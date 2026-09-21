@@ -1,0 +1,331 @@
+<!-- @dsCard group="Component detail" viewport="1100x1400" name="Surfaces — detail" subtitle="Card, Badge, Tag, Alert, Dialog with states, props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Card, Badge, Tag, Alert, Dialog, Button, AspectRatio, Inline, Stack, Grid;
+
+function Page() {
+  const [open, setOpen] = React.useState(false);
+  const [danger, setDanger] = React.useState(false);
+  const [filters, setFilters] = React.useState(["Open"]);
+  function toggle(t) { setFilters(v => v.includes(t) ? v.filter(x => x !== t) : [...v, t]); }
+  return (
+    <React.Fragment>
+      <PageHead title="Surfaces" subtitle="Containers and status marks. Card is the most context-sensitive component in the system — the same markup reads as a dense product panel or an airy marketing tile depending only on the context class above it." />
+
+      <Shelf
+        name="Card"
+        summary="Content container with eyebrow, title, description, media and footer slots."
+        props={[
+          { name: "eyebrow", type: "string", notes: "Uppercase label above the title." },
+          { name: "title", type: "ReactNode" },
+          { name: "description", type: "ReactNode" },
+          { name: "media", type: "ReactNode", notes: "Image slot, rendered above everything." },
+          { name: "footer", type: "ReactNode", notes: "Action row at the bottom." },
+          { name: "interactive", type: "boolean", notes: "Raises elevation on hover and sets a pointer cursor." },
+          { name: "selected", type: "boolean", notes: "Accent border and tinted background for a chosen option." },
+        ]}
+        guidance={[
+          "Cards inherit padding and radius from the context. The same Card is compact under dt-context-product and generous under dt-context-marketing — do not override either.",
+          "interactive means the whole card is one target. If the card contains two links, it is not interactive — it is a container with links in it.",
+          "The eyebrow is the one place in the system that is uppercase. Keep it to a word or two.",
+          "A card with no title is a panel. Use a plain surface rather than an empty Card shell.",
+        ]}
+      >
+        <Specimen label="Static, interactive, selected" bg="var(--dt-surface-subtle)">
+          <Grid minColumnWidth="240px" gap="md">
+            <Card eyebrow="Plan" title="Starter" description="One editor, 100 invoices a month." footer={<Button size="sm" variant="secondary">Choose</Button>} />
+            <Card interactive eyebrow="Plan" title="Team" description="Five editors, unlimited invoices." footer={<Button size="sm" variant="secondary">Choose</Button>} />
+            <Card selected eyebrow="Plan" title="Business" description="Unlimited editors, SSO, audit log." footer={<Button size="sm">Current plan</Button>} />
+          </Grid>
+        </Specimen>
+        <Specimen label="With media" bg="var(--dt-surface-subtle)">
+          <div style={{ maxWidth: 300 }}>
+            <Card
+              media={<AspectRatio ratio="16/9" style={{ background: "var(--dt-surface-sunken)" }} />}
+              eyebrow="Guide"
+              title="Migrating to tokens"
+              description="Replace literal values one screen at a time and let the lint tell you the scope."
+            />
+          </div>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Badge"
+        summary="Small non-interactive label for status or metadata."
+        props={[
+          { name: "tone", type: '"neutral" | "accent" | "success" | "warning" | "danger" | "info"', default: '"neutral"' },
+          { name: "variant", type: '"subtle" | "solid"', default: '"subtle"', notes: "solid is a filled chip for high emphasis." },
+          { name: "dot", type: "boolean", notes: "Leading status dot." },
+        ]}
+        guidance={[
+          "Badges are not interactive. If it can be clicked or removed, it is a Tag.",
+          "Tone carries meaning. A green badge on a neutral status teaches the user that colour here means nothing.",
+          "Use dot for live state — Paid, Past due, Syncing — and a plain badge for a category like Owner or Beta.",
+          "One or two words. A badge that wraps has become a sentence.",
+        ]}
+      >
+        <Specimen label="Tones" bg="var(--dt-surface-base)">
+          <Inline gap="sm" wrap>
+            <Badge>Neutral</Badge><Badge tone="accent">Accent</Badge><Badge tone="success">Paid</Badge>
+            <Badge tone="warning">Due soon</Badge><Badge tone="danger">Past due</Badge><Badge tone="info">Draft</Badge>
+          </Inline>
+        </Specimen>
+        <Specimen label="Solid and dotted" bg="var(--dt-surface-base)">
+          <Inline gap="sm" wrap>
+            <Badge variant="solid">Neutral</Badge><Badge variant="solid" tone="accent">Accent</Badge>
+            <Badge variant="solid" tone="success">Paid</Badge><Badge variant="solid" tone="danger">Past due</Badge>
+            <Badge dot tone="success">Live</Badge><Badge dot tone="warning">Syncing</Badge><Badge dot tone="danger">Failed</Badge>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Tag"
+        summary="Interactive chip: a filter that toggles, or an entered value that can be removed."
+        props={[
+          { name: "selected", type: "boolean", notes: "Sets aria-pressed when the tag is clickable." },
+          { name: "onRemove", type: "() => void", notes: "Renders a remove button." },
+          { name: "disabled", type: "boolean" },
+        ]}
+        guidance={[
+          "Tag is interactive, Badge is not. Choosing by appearance rather than behaviour is the usual mistake here.",
+          "A removable tag needs the remove control to be its own button, not the whole chip — otherwise clicking to select deletes it.",
+          "Selected tags carry aria-pressed. Do not rely on the tint alone to show which filters are on.",
+        ]}
+      >
+        <Specimen label="Filter set" bg="var(--dt-surface-base)">
+          <Inline gap="xs" wrap>
+            {["Open","Paid","Past due","Draft","Void"].map(t => (
+              <Tag key={t} selected={filters.includes(t)} onClick={() => toggle(t)}>{t}</Tag>
+            ))}
+          </Inline>
+        </Specimen>
+        <Specimen label="Removable and disabled" bg="var(--dt-surface-base)">
+          <Inline gap="xs" wrap>
+            <Tag onRemove={() => {}}>ada@northwind.co</Tag>
+            <Tag onRemove={() => {}}>grace@halcyon.dev</Tag>
+            <Tag disabled>locked@example.com</Tag>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Alert"
+        summary="Inline message about the state of a page or form. Stays until the condition clears."
+        props={[
+          { name: "tone", type: '"info" | "success" | "warning" | "danger"', default: '"info"' },
+          { name: "title", type: "ReactNode" },
+          { name: "action", type: "ReactNode", notes: "Usually a ghost or secondary Button." },
+          { name: "onDismiss", type: "() => void", notes: "Omit for messages the user must resolve." },
+        ]}
+        guidance={[
+          "Alert sits in the flow next to what it describes. Banner spans the page. Toast floats and disappears. Pick by scope, not by tone.",
+          "Omit onDismiss for anything the user must act on. A dismissible blocker is a blocker the user will dismiss.",
+          "danger announces as role=alert and interrupts a screen reader. Do not use it for information that can wait.",
+          "Say what happened and what to do next. An error with no next step leaves the user stuck.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <Alert tone="info" title="Read-only mode">Your trial ended. Add a payment method to continue editing.</Alert>
+            <Alert tone="success" title="Invoice sent" onDismiss={() => {}}>INV-2043 was emailed to Pallas Freight.</Alert>
+            <Alert tone="warning" title="Unverified domain" action={<Button size="sm" variant="secondary">Verify</Button>}>Emails from northwind.co may be marked as spam until the domain is verified.</Alert>
+            <Alert tone="danger" title="Payment failed" action={<Button size="sm" variant="secondary">Update card</Button>}>The card ending 4242 was declined. Access continues for 7 days.</Alert>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Dialog"
+        summary="Modal that interrupts the user. Reserve it for decisions that must be made now."
+        props={[
+          { name: "open", type: "boolean", required: true },
+          { name: "onClose", type: "() => void", notes: "Called by the close button, the scrim, and Escape." },
+          { name: "title", type: "ReactNode" },
+          { name: "description", type: "ReactNode", notes: "Supporting line below the title." },
+          { name: "footer", type: "ReactNode", notes: "Right-aligned. Put the confirming action last." },
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+        ]}
+        guidance={[
+          "A dialog stops everything. If the user could reasonably finish reading it later, it is an Alert or a Toast.",
+          "The confirming action goes last, on the right. Destructive confirmations name the act — Delete project, not Yes.",
+          "Never open a dialog from a dialog. If a second decision is needed, the first one was asking too much.",
+          "Escape and the scrim both close it. Do not disable that to force a choice — give the user a way out and an explanation instead.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Inline gap="sm">
+            <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>Open dialog</Button>
+            <Button size="sm" variant="danger" onClick={() => setDanger(true)}>Destructive confirm</Button>
+          </Inline>
+          <Dialog
+            open={open}
+            onClose={() => setOpen(false)}
+            title="Invite members"
+            description="They will get an email with a link to join this workspace."
+            footer={<React.Fragment><Button size="sm" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button size="sm" onClick={() => setOpen(false)}>Send invites</Button></React.Fragment>}
+          >
+            <Inline gap="xs" wrap>
+              <Tag onRemove={() => {}}>ada@northwind.co</Tag>
+              <Tag onRemove={() => {}}>grace@halcyon.dev</Tag>
+            </Inline>
+          </Dialog>
+          <Dialog
+            open={danger}
+            onClose={() => setDanger(false)}
+            size="sm"
+            title="Delete this project?"
+            description="All 412 documents and their history will be permanently removed. This cannot be undone."
+            footer={<React.Fragment><Button size="sm" variant="secondary" onClick={() => setDanger(false)}>Cancel</Button><Button size="sm" variant="danger" onClick={() => setDanger(false)}>Delete project</Button></React.Fragment>}
+          />
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Card","Badge","Tag","Alert","Dialog","Button","AspectRatio","Inline","Stack","Grid"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Card, Badge, Tag, Alert, Dialog, Button, AspectRatio, Inline, Stack, Grid } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

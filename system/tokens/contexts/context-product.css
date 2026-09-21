@@ -1,0 +1,55 @@
+/* CONTEXT — PRODUCT
+   A fourth axis, orthogonal to brand theme, colour mode, and density.
+
+   Product surfaces are dense, functional, and read for hours. Type runs small,
+   controls are compact, elevation is subtle, and section rhythm is tight. The same
+   Button that anchors a marketing hero has to sit in a toolbar without shouting.
+
+   Components do not know which context they are in. They read semantic tokens;
+   the context retunes those tokens. That is the whole mechanism — a context is a
+   theme for scale and rhythm rather than for colour.
+
+   Apply on the app shell:
+     <div class="dt-context-product"> … </div>
+
+   Composes with everything:
+     <html class="dark"><body class="dt-context-product dt-density-compact"> */
+
+.dt-context-product {
+  /* Display type is rare in product UI and never this large. */
+  --dt-text-display-lg-size: var(--dt-font-size-4xl);
+  --dt-text-display-lg-line: var(--dt-line-height-4xl);
+  --dt-text-display-md-size: var(--dt-font-size-3xl);
+  --dt-text-display-md-line: var(--dt-line-height-3xl);
+  --dt-text-display-sm-size: var(--dt-font-size-2xl);
+  --dt-text-display-sm-line: var(--dt-line-height-2xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-2xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-2xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-xl);
+  --dt-text-heading-md-size: var(--dt-font-size-lg);
+  --dt-text-heading-md-line: var(--dt-line-height-lg);
+
+  /* 14px body. Product UI is scanned, not read. */
+  --dt-text-body-md-size: var(--dt-font-size-sm);
+  --dt-text-body-md-line: var(--dt-line-height-sm);
+  --dt-text-body-lg-size: var(--dt-font-size-md);
+  --dt-text-body-lg-line: var(--dt-line-height-md);
+
+  /* Tight rhythm. */
+  --dt-space-section: var(--dt-dim-12);
+  --dt-space-gutter: var(--dt-space-inset-md);
+  --dt-space-stack-xl: var(--dt-dim-8);
+  --dt-space-stack-2xl: var(--dt-dim-12);
+
+  /* Restrained surfaces: borders carry structure, shadows stay quiet. */
+  --dt-card-padding: var(--dt-space-inset-md);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-1);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+}

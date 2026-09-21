@@ -1,0 +1,128 @@
+/* TIER 2 — SEMANTIC TYPOGRAPHY
+   Roles, not sizes. A component asks for "heading-md", never "23px", so a theme can
+   retune the whole ladder — including family and weight — from one file.
+
+   Each role ships four properties. Use all four together; taking the size and
+   dropping the line-height is how vertical rhythm breaks.
+
+   display — marketing and hero type. Rare in product UI.
+   heading — document and section structure. Maps to h1–h6.
+   body    — prose and long-form reading.
+   label   — UI chrome: buttons, form labels, table headers, badges.
+   code    — monospaced. */
+
+:root {
+  /* ---- Display ---------------------------------------------------- */
+  --dt-text-display-lg-family: var(--dt-font-family-sans);
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-md-family: var(--dt-font-family-sans);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+  --dt-text-display-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-md-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-sm-family: var(--dt-font-family-sans);
+  --dt-text-display-sm-size: var(--dt-font-size-5xl);
+  --dt-text-display-sm-line: var(--dt-line-height-5xl);
+  --dt-text-display-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-sm-tracking: var(--dt-tracking-tight);
+
+  /* ---- Heading ---------------------------------------------------- */
+  --dt-text-heading-xl-family: var(--dt-font-family-sans);
+  --dt-text-heading-xl-size: var(--dt-font-size-4xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-4xl);
+  --dt-text-heading-xl-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xl-tracking: var(--dt-tracking-tight);
+
+  --dt-text-heading-lg-family: var(--dt-font-family-sans);
+  --dt-text-heading-lg-size: var(--dt-font-size-3xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-3xl);
+  --dt-text-heading-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-lg-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-md-family: var(--dt-font-family-sans);
+  --dt-text-heading-md-size: var(--dt-font-size-2xl);
+  --dt-text-heading-md-line: var(--dt-line-height-2xl);
+  --dt-text-heading-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-md-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-sm-family: var(--dt-font-family-sans);
+  --dt-text-heading-sm-size: var(--dt-font-size-xl);
+  --dt-text-heading-sm-line: var(--dt-line-height-xl);
+  --dt-text-heading-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-heading-xs-family: var(--dt-font-family-sans);
+  --dt-text-heading-xs-size: var(--dt-font-size-lg);
+  --dt-text-heading-xs-line: var(--dt-line-height-lg);
+  --dt-text-heading-xs-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Body ------------------------------------------------------- */
+  --dt-text-body-lg-family: var(--dt-font-family-sans);
+  --dt-text-body-lg-size: var(--dt-font-size-lg);
+  --dt-text-body-lg-line: var(--dt-line-height-lg);
+  --dt-text-body-lg-weight: var(--dt-font-weight-regular);
+  --dt-text-body-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-md-family: var(--dt-font-family-sans);
+  --dt-text-body-md-size: var(--dt-font-size-md);
+  --dt-text-body-md-line: var(--dt-line-height-md);
+  --dt-text-body-md-weight: var(--dt-font-weight-regular);
+  --dt-text-body-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-sm-family: var(--dt-font-family-sans);
+  --dt-text-body-sm-size: var(--dt-font-size-sm);
+  --dt-text-body-sm-line: var(--dt-line-height-sm);
+  --dt-text-body-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-body-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-xs-family: var(--dt-font-family-sans);
+  --dt-text-body-xs-size: var(--dt-font-size-xs);
+  --dt-text-body-xs-line: var(--dt-line-height-xs);
+  --dt-text-body-xs-weight: var(--dt-font-weight-regular);
+  --dt-text-body-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Label ------------------------------------------------------ */
+  --dt-text-label-lg-family: var(--dt-font-family-sans);
+  --dt-text-label-lg-size: var(--dt-font-size-md);
+  --dt-text-label-lg-line: var(--dt-line-height-md);
+  --dt-text-label-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-label-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-md-family: var(--dt-font-family-sans);
+  --dt-text-label-md-size: var(--dt-font-size-sm);
+  --dt-text-label-md-line: var(--dt-line-height-sm);
+  --dt-text-label-md-weight: var(--dt-font-weight-medium);
+  --dt-text-label-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-sm-family: var(--dt-font-family-sans);
+  --dt-text-label-sm-size: var(--dt-font-size-xs);
+  --dt-text-label-sm-line: var(--dt-line-height-xs);
+  --dt-text-label-sm-weight: var(--dt-font-weight-medium);
+  --dt-text-label-sm-tracking: var(--dt-tracking-normal);
+
+  /* Eyebrow — the only role that is ever uppercased. */
+  --dt-text-eyebrow-family: var(--dt-font-family-sans);
+  --dt-text-eyebrow-size: var(--dt-font-size-2xs);
+  --dt-text-eyebrow-line: var(--dt-line-height-2xs);
+  --dt-text-eyebrow-weight: var(--dt-font-weight-semibold);
+  --dt-text-eyebrow-tracking: var(--dt-tracking-wider);
+
+  /* ---- Code ------------------------------------------------------- */
+  --dt-text-code-md-family: var(--dt-font-family-mono);
+  --dt-text-code-md-size: var(--dt-font-size-sm);
+  --dt-text-code-md-line: var(--dt-line-height-sm);
+  --dt-text-code-md-weight: var(--dt-font-weight-regular);
+  --dt-text-code-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-code-sm-family: var(--dt-font-family-mono);
+  --dt-text-code-sm-size: var(--dt-font-size-xs);
+  --dt-text-code-sm-line: var(--dt-line-height-xs);
+  --dt-text-code-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-code-sm-tracking: var(--dt-tracking-normal);
+}

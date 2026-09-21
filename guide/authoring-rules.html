@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authoring rules · Dovetail</title>
+<meta name="description" content="The always-on rules for building with Dovetail.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html" aria-current="page">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Authoring rules</li></ol></nav>
+<article class="prose doc">
+<h1 id="dovetail-authoring-rules-always-apply">Dovetail — authoring rules (always apply)</h1>
+<p>Dovetail is white-label. Nothing in it may know a brand.</p>
+<h2 id="tokens">Tokens</h2>
+<ol><li><strong>Never write a literal value.</strong> No hex, no px, no ms, no cubic-bezier. Every colour, dimension, radius, shadow, and duration is <code>var(--dt-*)</code>. If the value you need does not exist, add a token first — at the correct tier — then use it.</li><li><strong>Respect the tier direction: component → semantic → primitive.</strong> Components and product code read semantic tokens. Only <code>--dt-viz-*</code> chart code may read a primitive, and it must say why in a comment.</li><li><strong>Never put a value word in a semantic or component token name.</strong> No <code>surface-blue</code>, no <code>button-purple-bg</code>. Colour names live in Tier 1 only.</li><li><strong>Use background and foreground roles as pairs.</strong> <code>--dt-surface-action</code> with <code>--dt-text-on-action</code>. Never mix a surface from one pair with text from another.</li><li><strong>All spacing is 4px-based, from <code>--dt-space-*</code>.</strong> <code>--dt-dim-hair</code> and <code>--dt-dim-hair-2</code> are for borders and optical nudges only — never layout.</li></ol>
+<h2 id="type">Type</h2>
+<ol><li><strong>Apply a complete type role</strong>, not a loose font size: family, size, line-height, weight, and tracking from the same <code>--dt-text-&lt;role&gt;-*</code> set.</li><li><strong>Sentence case everywhere</strong> — headings, buttons, labels, table headers. The eyebrow role is the only thing ever uppercased.</li></ol>
+<h2 id="components">Components</h2>
+<ol><li><strong>Compose from <code>components/</code>.</strong> Never re-implement Button, Input, Card, or any other primitive inside a screen or template.</li><li><strong>Every new component ships four files</strong>: <code>Name.jsx</code>, <code>Name.d.ts</code> (props contract), <code>Name.md</code> (agent-facing guidelines), and an entry in its directory's <code>@dsCard</code> HTML.</li><li><strong>Accessible labels are required props, not optional.</strong> An icon-only control without a label is a bug, not a style choice.</li><li><strong>Components take content as props.</strong> No hard-coded copy, no fetching, no CMS coupling. A component must render identically from React state, Sanity, or a JSON file.</li></ol>
+<h2 id="visual">Visual</h2>
+<ol><li><strong>One primary action per view.</strong> Everything else is secondary, ghost, or a link.</li><li><strong>Backgrounds are flat.</strong> No gradients, textures, or patterns. Depth comes from <code>--dt-elevation-*</code> and surface hierarchy.</li><li><strong>Elevation is a level, not a shadow you picked.</strong> Use <code>--dt-elevation-0</code> through <code>5</code>.</li><li><strong>Focus rings are system-owned.</strong> <code>:focus-visible</code> with <code>--dt-focus-ring-*</code>. Never remove one, never restyle one per component.</li><li><strong>Motion uses a <code>--dt-motion-*</code> role.</strong> 100–300ms. No bounces, no infinite loops, no motion that is purely decorative.</li><li><strong>Icons are Lucide</strong>, 2px stroke, sized from <code>--dt-size-icon-*</code>, coloured <code>currentColor</code>. No emoji, no unicode glyphs, no hand-drawn SVG illustration.</li></ol>
+<h2 id="writing">Writing</h2>
+<ol><li><strong>Confident and educational.</strong> State the rule, then the reason. Second person, active voice, present tense. Name tradeoffs instead of hiding them.</li><li><strong>No emoji, no exclamation points, no hype adjectives.</strong> Nothing is powerful, seamless, or delightful.</li><li><strong>Buttons are verb-first, one to three words.</strong> Errors say what happened and what to do next.</li></ol>
+<h2 id="before-you-ship">Before you ship</h2>
+<ol><li><strong>Verify in light and dark</strong>, and under at least one demo theme. If it only works in the default theme, it is not finished.</li><li><strong>Self-audit against the Rules checklist in <code>readme.md</code>.</strong></li></ol>
+</article>
+<p class="muted">Source: <a href="../system/assets/notes/CLAUDE.from-standalone.md">system/assets/notes/CLAUDE.from-standalone.md</a></p>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

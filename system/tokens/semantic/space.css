@@ -1,0 +1,39 @@
+/* TIER 2 — SEMANTIC SPACE
+   Three axes, because "16px" does not say what the gap is for. Naming the axis makes
+   layout intent readable in markup and lets a density theme retune one axis alone.
+
+   inset  — padding inside a container
+   stack  — vertical gap between blocks
+   inline — horizontal gap between siblings */
+
+:root {
+  --dt-space-inset-2xs: var(--dt-dim-1);   /* 4  */
+  --dt-space-inset-xs: var(--dt-dim-2);    /* 8  */
+  --dt-space-inset-sm: var(--dt-dim-3);    /* 12 */
+  --dt-space-inset-md: var(--dt-dim-4);    /* 16 */
+  --dt-space-inset-lg: var(--dt-dim-6);    /* 24 */
+  --dt-space-inset-xl: var(--dt-dim-8);    /* 32 */
+  --dt-space-inset-2xl: var(--dt-dim-12);  /* 48 */
+
+  --dt-space-stack-2xs: var(--dt-dim-1);
+  --dt-space-stack-xs: var(--dt-dim-2);
+  --dt-space-stack-sm: var(--dt-dim-3);
+  --dt-space-stack-md: var(--dt-dim-4);
+  --dt-space-stack-lg: var(--dt-dim-6);
+  --dt-space-stack-xl: var(--dt-dim-10);
+  --dt-space-stack-2xl: var(--dt-dim-16);
+
+  --dt-space-inline-2xs: var(--dt-dim-1);
+  --dt-space-inline-xs: var(--dt-dim-2);
+  --dt-space-inline-sm: var(--dt-dim-3);
+  --dt-space-inline-md: var(--dt-dim-4);
+  --dt-space-inline-lg: var(--dt-dim-6);
+  --dt-space-inline-xl: var(--dt-dim-8);
+  --dt-space-inline-2xl: var(--dt-dim-12);
+
+  /* Page-level rhythm */
+  --dt-space-section: var(--dt-dim-24);      /* 96 — between major page sections */
+  --dt-space-section-compact: var(--dt-dim-16);
+  --dt-space-gutter: var(--dt-dim-6);        /* 24 — page edge padding */
+  --dt-space-gutter-wide: var(--dt-dim-10);
+}

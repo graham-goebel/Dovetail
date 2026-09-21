@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color · Dovetail</title>
+<meta name="description" content="Seven OKLCH ramps, six surface levels, and the pairing rule.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html" aria-current="page">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../foundations/index.html">Foundations</a></li><li aria-current="page">Color</li></ol></nav>
+<h1>Color</h1>
+<p class="lede">Seven OKLCH ramps, six surface levels, and the pairing rule.</p>
+<section class="card-block" id="coloraccent">
+  <div class="card-head">
+    <h2>ColorAccent</h2>
+    <a class="card-open" href="../previews/ColorAccent.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Accent ramp — Brand hue. A theme replaces this ramp in place.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorAccent.html" title="ColorAccent preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="coloractions">
+  <div class="card-head">
+    <h2>ColorActions</h2>
+    <a class="card-open" href="../previews/ColorActions.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Action states — Four variants × resting, hover, active, disabled.</p>
+  <div class="frame" style="height:224px">
+    <iframe src="../previews/ColorActions.html" title="ColorActions preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="coloramber">
+  <div class="card-head">
+    <h2>ColorAmber</h2>
+    <a class="card-open" href="../previews/ColorAmber.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Amber ramp — Warning. Note the dark foreground — amber needs it.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorAmber.html" title="ColorAmber preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorborders">
+  <div class="card-head">
+    <h2>ColorBorders</h2>
+    <a class="card-open" href="../previews/ColorBorders.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Border roles — Three weights of separation.</p>
+  <div class="frame" style="height:148px">
+    <iframe src="../previews/ColorBorders.html" title="ColorBorders preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorcyan">
+  <div class="card-head">
+    <h2>ColorCyan</h2>
+    <a class="card-open" href="../previews/ColorCyan.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Cyan ramp — Info.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorCyan.html" title="ColorCyan preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colordark">
+  <div class="card-head">
+    <h2>ColorDark</h2>
+    <a class="card-open" href="../previews/ColorDark.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Dark surfaces — The same semantic names, re-pointed. No component changes.</p>
+  <div class="frame" style="height:160px">
+    <iframe src="../previews/ColorDark.html" title="ColorDark preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorfeedback">
+  <div class="card-head">
+    <h2>ColorFeedback</h2>
+    <a class="card-open" href="../previews/ColorFeedback.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Feedback surfaces — Subtle backgrounds with matched border and text.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorFeedback.html" title="ColorFeedback preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorgreen">
+  <div class="card-head">
+    <h2>ColorGreen</h2>
+    <a class="card-open" href="../previews/ColorGreen.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Green ramp — Success.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorGreen.html" title="ColorGreen preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorneutral">
+  <div class="card-head">
+    <h2>ColorNeutral</h2>
+    <a class="card-open" href="../previews/ColorNeutral.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Neutral ramp — 11 steps, OKLCH. The white-label default.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorNeutral.html" title="ColorNeutral preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorpairs">
+  <div class="card-head">
+    <h2>ColorPairs</h2>
+    <a class="card-open" href="../previews/ColorPairs.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Foreground pairs — Every background role ships with its foreground. Use them as a set.</p>
+  <div class="frame" style="height:168px">
+    <iframe src="../previews/ColorPairs.html" title="ColorPairs preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorred">
+  <div class="card-head">
+    <h2>ColorRed</h2>
+    <a class="card-open" href="../previews/ColorRed.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Red ramp — Danger.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorRed.html" title="ColorRed preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorsurfaces">
+  <div class="card-head">
+    <h2>ColorSurfaces</h2>
+    <a class="card-open" href="../previews/ColorSurfaces.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Surfaces — Six levels, not two. Dense UI needs the hierarchy.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorSurfaces.html" title="ColorSurfaces preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colortext">
+  <div class="card-head">
+    <h2>ColorText</h2>
+    <a class="card-open" href="../previews/ColorText.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Text roles — Four weights of emphasis, plus link and inverse.</p>
+  <div class="frame" style="height:234px">
+    <iframe src="../previews/ColorText.html" title="ColorText preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="colorviolet">
+  <div class="card-head">
+    <h2>ColorViolet</h2>
+    <a class="card-open" href="../previews/ColorViolet.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Violet ramp — The spare hue, reserved for data visualisation.</p>
+  <div class="frame" style="height:158px">
+    <iframe src="../previews/ColorViolet.html" title="ColorViolet preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

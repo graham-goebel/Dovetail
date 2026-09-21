@@ -1,0 +1,1625 @@
+<!-- @dsCard group="Forms" height=733 -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script>/* The Design System page's theme picker sets data-theme on <html>; Dovetail's own CSS keys dark mode and contexts on classes. */
+(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<style id="dt-inlined-css" data-from="styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
+   Load order matters: primitives, then semantics, then component tokens, then base element styles.
+   Themes are opt-in — link a file from tokens/themes/ after this one. */
+
+/* TIER 1 — PRIMITIVE COLOR
+   Raw values in OKLCH. No meaning, no usage context.
+   Never reference these from a component. Semantic tokens are the only legal consumer.
+
+   OKLCH is used because lightness is perceptually uniform: step 500 in any ramp reads
+   as the same visual weight, so swapping a brand hue keeps contrast predictable. */
+
+:root {
+  /* Absolutes */
+  --dt-color-white: oklch(1 0 0);
+  --dt-color-black: oklch(0 0 0);
+  --dt-color-transparent: oklch(0 0 0 / 0);
+
+  /* Neutral — very slightly cool. The white-label default. */
+  --dt-color-neutral-050: oklch(0.985 0.001 264);
+  --dt-color-neutral-100: oklch(0.967 0.002 264);
+  --dt-color-neutral-200: oklch(0.925 0.003 264);
+  --dt-color-neutral-300: oklch(0.869 0.005 264);
+  --dt-color-neutral-400: oklch(0.708 0.007 264);
+  --dt-color-neutral-500: oklch(0.556 0.008 264);
+  --dt-color-neutral-600: oklch(0.440 0.008 264);
+  --dt-color-neutral-700: oklch(0.360 0.008 264);
+  --dt-color-neutral-800: oklch(0.273 0.007 264);
+  --dt-color-neutral-900: oklch(0.205 0.006 264);
+  --dt-color-neutral-950: oklch(0.145 0.005 264);
+
+  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-accent-050: oklch(0.970 0.014 259);
+  --dt-color-accent-100: oklch(0.936 0.032 259);
+  --dt-color-accent-200: oklch(0.885 0.059 259);
+  --dt-color-accent-300: oklch(0.809 0.096 259);
+  --dt-color-accent-400: oklch(0.714 0.143 259);
+  --dt-color-accent-500: oklch(0.623 0.188 259);
+  --dt-color-accent-600: oklch(0.546 0.215 259);
+  --dt-color-accent-700: oklch(0.476 0.196 259);
+  --dt-color-accent-800: oklch(0.404 0.162 259);
+  --dt-color-accent-900: oklch(0.344 0.128 259);
+  --dt-color-accent-950: oklch(0.256 0.093 259);
+
+  /* Green */
+  --dt-color-green-050: oklch(0.972 0.021 150);
+  --dt-color-green-100: oklch(0.940 0.045 150);
+  --dt-color-green-200: oklch(0.885 0.077 150);
+  --dt-color-green-300: oklch(0.806 0.116 150);
+  --dt-color-green-400: oklch(0.714 0.146 150);
+  --dt-color-green-500: oklch(0.627 0.149 150);
+  --dt-color-green-600: oklch(0.535 0.128 150);
+  --dt-color-green-700: oklch(0.447 0.106 150);
+  --dt-color-green-800: oklch(0.373 0.086 150);
+  --dt-color-green-900: oklch(0.315 0.070 150);
+  --dt-color-green-950: oklch(0.228 0.052 150);
+
+  /* Amber */
+  --dt-color-amber-050: oklch(0.980 0.024 75);
+  --dt-color-amber-100: oklch(0.953 0.055 75);
+  --dt-color-amber-200: oklch(0.903 0.104 75);
+  --dt-color-amber-300: oklch(0.848 0.146 75);
+  --dt-color-amber-400: oklch(0.793 0.163 75);
+  --dt-color-amber-500: oklch(0.740 0.158 75);
+  --dt-color-amber-600: oklch(0.653 0.140 75);
+  --dt-color-amber-700: oklch(0.540 0.116 75);
+  --dt-color-amber-800: oklch(0.450 0.095 75);
+  --dt-color-amber-900: oklch(0.386 0.079 75);
+  --dt-color-amber-950: oklch(0.270 0.056 75);
+
+  /* Red */
+  --dt-color-red-050: oklch(0.971 0.015 25);
+  --dt-color-red-100: oklch(0.936 0.033 25);
+  --dt-color-red-200: oklch(0.885 0.062 25);
+  --dt-color-red-300: oklch(0.808 0.108 25);
+  --dt-color-red-400: oklch(0.712 0.170 25);
+  --dt-color-red-500: oklch(0.637 0.208 25);
+  --dt-color-red-600: oklch(0.577 0.215 25);
+  --dt-color-red-700: oklch(0.505 0.191 25);
+  --dt-color-red-800: oklch(0.444 0.161 25);
+  --dt-color-red-900: oklch(0.396 0.134 25);
+  --dt-color-red-950: oklch(0.258 0.092 25);
+
+  /* Cyan */
+  --dt-color-cyan-050: oklch(0.977 0.013 230);
+  --dt-color-cyan-100: oklch(0.951 0.026 230);
+  --dt-color-cyan-200: oklch(0.901 0.050 230);
+  --dt-color-cyan-300: oklch(0.828 0.081 230);
+  --dt-color-cyan-400: oklch(0.746 0.115 230);
+  --dt-color-cyan-500: oklch(0.685 0.140 230);
+  --dt-color-cyan-600: oklch(0.588 0.135 230);
+  --dt-color-cyan-700: oklch(0.500 0.114 230);
+  --dt-color-cyan-800: oklch(0.424 0.094 230);
+  --dt-color-cyan-900: oklch(0.366 0.077 230);
+  --dt-color-cyan-950: oklch(0.262 0.056 230);
+
+  /* Violet — the spare hue. Reserved for data visualisation. */
+  --dt-color-violet-050: oklch(0.977 0.014 305);
+  --dt-color-violet-100: oklch(0.946 0.033 305);
+  --dt-color-violet-200: oklch(0.902 0.063 305);
+  --dt-color-violet-300: oklch(0.827 0.110 305);
+  --dt-color-violet-400: oklch(0.740 0.163 305);
+  --dt-color-violet-500: oklch(0.667 0.200 305);
+  --dt-color-violet-600: oklch(0.594 0.216 305);
+  --dt-color-violet-700: oklch(0.518 0.190 305);
+  --dt-color-violet-800: oklch(0.444 0.158 305);
+  --dt-color-violet-900: oklch(0.381 0.128 305);
+  --dt-color-violet-950: oklch(0.279 0.095 305);
+}
+
+/* TIER 1 — PRIMITIVE DIMENSION
+   One base unit: 4px. Every value is a multiple, and the number in the name is the multiplier.
+   --dt-dim-6 is 6 × 4px = 24px. The name stays true if the base unit ever changes.
+
+   Sub-unit values exist only for hairlines and optical nudges. They are named separately
+   so they cannot be mistaken for layout spacing. */
+
+:root {
+  --dt-dim-0: 0px;
+  --dt-dim-1: 4px;
+  --dt-dim-2: 8px;
+  --dt-dim-3: 12px;
+  --dt-dim-4: 16px;
+  --dt-dim-5: 20px;
+  --dt-dim-6: 24px;
+  --dt-dim-7: 28px;
+  --dt-dim-8: 32px;
+  --dt-dim-9: 36px;
+  --dt-dim-10: 40px;
+  --dt-dim-11: 44px;
+  --dt-dim-12: 48px;
+  --dt-dim-14: 56px;
+  --dt-dim-16: 64px;
+  --dt-dim-20: 80px;
+  --dt-dim-24: 96px;
+  --dt-dim-28: 112px;
+  --dt-dim-32: 128px;
+  --dt-dim-40: 160px;
+  --dt-dim-48: 192px;
+  --dt-dim-56: 224px;
+  --dt-dim-64: 256px;
+
+  /* Sub-unit. Hairlines and optical corrections only — never layout. */
+  --dt-dim-hair: 1px;
+  --dt-dim-hair-2: 2px;
+
+  /* Raw radii */
+  --dt-radius-raw-0: 0px;
+  --dt-radius-raw-2: 2px;
+  --dt-radius-raw-4: 4px;
+  --dt-radius-raw-6: 6px;
+  --dt-radius-raw-8: 8px;
+  --dt-radius-raw-12: 12px;
+  --dt-radius-raw-16: 16px;
+  --dt-radius-raw-24: 24px;
+  --dt-radius-raw-full: 9999px;
+
+  /* Container widths */
+  --dt-dim-container-sm: 640px;
+  --dt-dim-container-md: 768px;
+  --dt-dim-container-lg: 1024px;
+  --dt-dim-container-xl: 1280px;
+  --dt-dim-container-2xl: 1536px;
+
+  /* Breakpoints, mirrored here so they can be documented as tokens.
+     Media queries cannot read custom properties — the values are duplicated
+     in guidelines/layout.md and must be changed in both places. */
+  --dt-breakpoint-sm: 640px;
+  --dt-breakpoint-md: 768px;
+  --dt-breakpoint-lg: 1024px;
+  --dt-breakpoint-xl: 1280px;
+  --dt-breakpoint-2xl: 1536px;
+}
+
+/* TIER 1 — PRIMITIVE TYPOGRAPHY
+   Font sizes follow a 1.200 modular scale from a 16px base, rounded to whole pixels.
+   Two rounds are deliberate and documented: 13.33 → 14 and 57.33 → 58, because 14px is
+   the workhorse UI size and a half-pixel display size renders inconsistently.
+
+   Line heights snap to the 4px grid so text blocks align with everything else.
+   This is the one place the modular scale and the 4px grid are reconciled by hand. */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap");
+
+:root {
+  /* Families. A theme overrides these three lines and nothing else. */
+  --dt-font-family-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --dt-font-family-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --dt-font-family-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Size ramp */
+  --dt-font-size-2xs: 11px;
+  --dt-font-size-xs: 12px;
+  --dt-font-size-sm: 14px;
+  --dt-font-size-md: 16px;
+  --dt-font-size-lg: 19px;
+  --dt-font-size-xl: 23px;
+  --dt-font-size-2xl: 28px;
+  --dt-font-size-3xl: 33px;
+  --dt-font-size-4xl: 40px;
+  --dt-font-size-5xl: 48px;
+  --dt-font-size-6xl: 58px;
+  --dt-font-size-7xl: 69px;
+
+  /* Line heights — all multiples of 4 */
+  --dt-line-height-2xs: 16px;
+  --dt-line-height-xs: 16px;
+  --dt-line-height-sm: 20px;
+  --dt-line-height-md: 24px;
+  --dt-line-height-lg: 28px;
+  --dt-line-height-xl: 32px;
+  --dt-line-height-2xl: 36px;
+  --dt-line-height-3xl: 40px;
+  --dt-line-height-4xl: 48px;
+  --dt-line-height-5xl: 52px;
+  --dt-line-height-6xl: 64px;
+  --dt-line-height-7xl: 76px;
+
+  /* Weights */
+  --dt-font-weight-light: 300;
+  --dt-font-weight-regular: 400;
+  --dt-font-weight-medium: 500;
+  --dt-font-weight-semibold: 600;
+  --dt-font-weight-bold: 700;
+  --dt-font-weight-extrabold: 800;
+
+  /* Tracking. Large type needs negative tracking; small type needs positive. */
+  --dt-tracking-tighter: -0.03em;
+  --dt-tracking-tight: -0.02em;
+  --dt-tracking-snug: -0.01em;
+  --dt-tracking-normal: 0em;
+  --dt-tracking-wide: 0.02em;
+  --dt-tracking-wider: 0.06em;
+
+  /* Measure — characters per line, for readable prose */
+  --dt-measure-narrow: 45ch;
+  --dt-measure-default: 68ch;
+  --dt-measure-wide: 85ch;
+}
+
+/* TIER 1 — PRIMITIVE MOTION
+   Raw durations and easing curves. Components reference the semantic motion roles,
+   not these. Durations are short by default: interface motion confirms a change,
+   it does not perform. */
+
+:root {
+  --dt-duration-instant: 0ms; /* @kind other */
+  --dt-duration-50: 50ms; /* @kind other */
+  --dt-duration-100: 100ms; /* @kind other */
+  --dt-duration-150: 150ms; /* @kind other */
+  --dt-duration-200: 200ms; /* @kind other */
+  --dt-duration-300: 300ms; /* @kind other */
+  --dt-duration-400: 400ms; /* @kind other */
+  --dt-duration-600: 600ms; /* @kind other */
+
+  --dt-easing-linear: linear; /* @kind other */
+  --dt-easing-standard: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --dt-easing-decelerate: cubic-bezier(0, 0, 0, 1); /* @kind other */
+  --dt-easing-accelerate: cubic-bezier(0.3, 0, 1, 1); /* @kind other */
+  --dt-easing-emphasis: cubic-bezier(0.2, 0, 0, 1.2); /* @kind other */
+}
+
+/* TIER 1 — PRIMITIVE ELEVATION
+   Raw shadow recipes. Each is a two-layer shadow: a tight contact shadow plus a
+   soft ambient one. Single-layer shadows read as flat stickers at larger sizes. */
+
+:root {
+  --dt-shadow-raw-none: none; /* @kind other */
+  --dt-shadow-raw-1: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 1px 3px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+  --dt-shadow-raw-2: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 2px 6px -1px oklch(0.145 0.005 264 / 0.10); /* @kind other */
+  --dt-shadow-raw-3: 0 2px 4px -1px oklch(0.145 0.005 264 / 0.06), 0 6px 12px -2px oklch(0.145 0.005 264 / 0.10); /* @kind other */
+  --dt-shadow-raw-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12); /* @kind other */
+  --dt-shadow-raw-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16); /* @kind other */
+  --dt-shadow-raw-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+}
+
+
+/* TIER 2 — SEMANTIC COLOR
+   Purpose, not value. This is the themeable layer: a brand theme overrides these
+   names and every component follows. No value words are allowed here — the moment
+   "blue" appears in a semantic name, it becomes a lie waiting for the next rebrand.
+
+   Pairing convention: every role that can be a background has a matching
+   on- foreground role, and the pair is contrast-checked together.
+   Use them as a set. `--dt-surface-action` without `--dt-text-on-action` is a bug.
+
+   Values below are the LIGHT theme. Dark lives in tokens/themes/base-dark.css and
+   re-points these same names. */
+
+:root {
+  /* ---- Surfaces -------------------------------------------------- */
+  --dt-surface-base: var(--dt-color-white);          /* the page */
+  --dt-surface-subtle: var(--dt-color-neutral-050);  /* quiet section behind the page */
+  --dt-surface-raised: var(--dt-color-white);        /* cards, anything with elevation */
+  --dt-surface-sunken: var(--dt-color-neutral-100);  /* wells, code blocks, inset areas */
+  --dt-surface-overlay: var(--dt-color-white);       /* dialogs, popovers, menus */
+  --dt-surface-inverse: var(--dt-color-neutral-900); /* dark band on a light page */
+  --dt-surface-disabled: var(--dt-color-neutral-100);
+  --dt-surface-scrim: oklch(0.145 0.005 264 / 0.5);  /* behind a modal */
+
+  /* ---- Text ------------------------------------------------------ */
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-600);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-400);
+  --dt-text-inverse: var(--dt-color-neutral-050);
+  --dt-text-link: var(--dt-color-accent-700);
+  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link-visited: var(--dt-color-violet-700);
+
+  /* ---- Borders --------------------------------------------------- */
+  --dt-border-subtle: var(--dt-color-neutral-100);
+  --dt-border-default: var(--dt-color-neutral-200);
+  --dt-border-strong: var(--dt-color-neutral-400);
+  --dt-border-inverse: var(--dt-color-neutral-700);
+  --dt-border-disabled: var(--dt-color-neutral-200);
+
+  /* ---- Actions --------------------------------------------------- */
+  --dt-surface-action: var(--dt-color-accent-600);
+  --dt-surface-action-hover: var(--dt-color-accent-700);
+  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-text-on-action: var(--dt-color-white);
+
+  --dt-surface-action-secondary: var(--dt-color-white);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-900);
+  --dt-border-action-secondary: var(--dt-color-neutral-200);
+
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-200);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-900);
+
+  --dt-surface-action-danger: var(--dt-color-red-600);
+  --dt-surface-action-danger-hover: var(--dt-color-red-700);
+  --dt-surface-action-danger-active: var(--dt-color-red-800);
+  --dt-text-on-action-danger: var(--dt-color-white);
+
+  --dt-surface-action-disabled: var(--dt-color-neutral-100);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-400);
+
+  /* ---- Selection ------------------------------------------------- */
+  --dt-surface-selected: var(--dt-color-accent-050);
+  --dt-surface-selected-hover: var(--dt-color-accent-100);
+  --dt-text-on-selected: var(--dt-color-accent-900);
+  --dt-border-selected: var(--dt-color-accent-600);
+
+  /* ---- Feedback -------------------------------------------------- */
+  --dt-surface-success: var(--dt-color-green-600);
+  --dt-surface-success-subtle: var(--dt-color-green-050);
+  --dt-border-success: var(--dt-color-green-200);
+  --dt-text-success: var(--dt-color-green-800);
+  --dt-text-on-success: var(--dt-color-white);
+
+  --dt-surface-warning: var(--dt-color-amber-500);
+  --dt-surface-warning-subtle: var(--dt-color-amber-050);
+  --dt-border-warning: var(--dt-color-amber-200);
+  --dt-text-warning: var(--dt-color-amber-900);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+
+  --dt-surface-danger: var(--dt-color-red-600);
+  --dt-surface-danger-subtle: var(--dt-color-red-050);
+  --dt-border-danger: var(--dt-color-red-200);
+  --dt-text-danger: var(--dt-color-red-800);
+  --dt-text-on-danger: var(--dt-color-white);
+
+  --dt-surface-info: var(--dt-color-cyan-600);
+  --dt-surface-info-subtle: var(--dt-color-cyan-050);
+  --dt-border-info: var(--dt-color-cyan-200);
+  --dt-text-info: var(--dt-color-cyan-900);
+  --dt-text-on-info: var(--dt-color-white);
+
+  /* ---- Focus ----------------------------------------------------- */
+  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+
+  /* ---- Data visualisation ---------------------------------------
+     The documented exception to the no-primitives rule. Chart series need a
+     palette with no semantic meaning, ordered for categorical distinctness. */
+  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-2: var(--dt-color-violet-500);
+  --dt-viz-3: var(--dt-color-cyan-600);
+  --dt-viz-4: var(--dt-color-amber-500);
+  --dt-viz-5: var(--dt-color-green-600);
+  --dt-viz-6: var(--dt-color-red-500);
+}
+
+/* TIER 2 — SEMANTIC SPACE
+   Three axes, because "16px" does not say what the gap is for. Naming the axis makes
+   layout intent readable in markup and lets a density theme retune one axis alone.
+
+   inset  — padding inside a container
+   stack  — vertical gap between blocks
+   inline — horizontal gap between siblings */
+
+:root {
+  --dt-space-inset-2xs: var(--dt-dim-1);   /* 4  */
+  --dt-space-inset-xs: var(--dt-dim-2);    /* 8  */
+  --dt-space-inset-sm: var(--dt-dim-3);    /* 12 */
+  --dt-space-inset-md: var(--dt-dim-4);    /* 16 */
+  --dt-space-inset-lg: var(--dt-dim-6);    /* 24 */
+  --dt-space-inset-xl: var(--dt-dim-8);    /* 32 */
+  --dt-space-inset-2xl: var(--dt-dim-12);  /* 48 */
+
+  --dt-space-stack-2xs: var(--dt-dim-1);
+  --dt-space-stack-xs: var(--dt-dim-2);
+  --dt-space-stack-sm: var(--dt-dim-3);
+  --dt-space-stack-md: var(--dt-dim-4);
+  --dt-space-stack-lg: var(--dt-dim-6);
+  --dt-space-stack-xl: var(--dt-dim-10);
+  --dt-space-stack-2xl: var(--dt-dim-16);
+
+  --dt-space-inline-2xs: var(--dt-dim-1);
+  --dt-space-inline-xs: var(--dt-dim-2);
+  --dt-space-inline-sm: var(--dt-dim-3);
+  --dt-space-inline-md: var(--dt-dim-4);
+  --dt-space-inline-lg: var(--dt-dim-6);
+  --dt-space-inline-xl: var(--dt-dim-8);
+  --dt-space-inline-2xl: var(--dt-dim-12);
+
+  /* Page-level rhythm */
+  --dt-space-section: var(--dt-dim-24);      /* 96 — between major page sections */
+  --dt-space-section-compact: var(--dt-dim-16);
+  --dt-space-gutter: var(--dt-dim-6);        /* 24 — page edge padding */
+  --dt-space-gutter-wide: var(--dt-dim-10);
+}
+
+/* TIER 2 — SEMANTIC TYPOGRAPHY
+   Roles, not sizes. A component asks for "heading-md", never "23px", so a theme can
+   retune the whole ladder — including family and weight — from one file.
+
+   Each role ships four properties. Use all four together; taking the size and
+   dropping the line-height is how vertical rhythm breaks.
+
+   display — marketing and hero type. Rare in product UI.
+   heading — document and section structure. Maps to h1–h6.
+   body    — prose and long-form reading.
+   label   — UI chrome: buttons, form labels, table headers, badges.
+   code    — monospaced. */
+
+:root {
+  /* ---- Display ---------------------------------------------------- */
+  --dt-text-display-lg-family: var(--dt-font-family-sans);
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-md-family: var(--dt-font-family-sans);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+  --dt-text-display-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-md-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-sm-family: var(--dt-font-family-sans);
+  --dt-text-display-sm-size: var(--dt-font-size-5xl);
+  --dt-text-display-sm-line: var(--dt-line-height-5xl);
+  --dt-text-display-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-sm-tracking: var(--dt-tracking-tight);
+
+  /* ---- Heading ---------------------------------------------------- */
+  --dt-text-heading-xl-family: var(--dt-font-family-sans);
+  --dt-text-heading-xl-size: var(--dt-font-size-4xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-4xl);
+  --dt-text-heading-xl-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xl-tracking: var(--dt-tracking-tight);
+
+  --dt-text-heading-lg-family: var(--dt-font-family-sans);
+  --dt-text-heading-lg-size: var(--dt-font-size-3xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-3xl);
+  --dt-text-heading-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-lg-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-md-family: var(--dt-font-family-sans);
+  --dt-text-heading-md-size: var(--dt-font-size-2xl);
+  --dt-text-heading-md-line: var(--dt-line-height-2xl);
+  --dt-text-heading-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-md-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-sm-family: var(--dt-font-family-sans);
+  --dt-text-heading-sm-size: var(--dt-font-size-xl);
+  --dt-text-heading-sm-line: var(--dt-line-height-xl);
+  --dt-text-heading-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-heading-xs-family: var(--dt-font-family-sans);
+  --dt-text-heading-xs-size: var(--dt-font-size-lg);
+  --dt-text-heading-xs-line: var(--dt-line-height-lg);
+  --dt-text-heading-xs-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Body ------------------------------------------------------- */
+  --dt-text-body-lg-family: var(--dt-font-family-sans);
+  --dt-text-body-lg-size: var(--dt-font-size-lg);
+  --dt-text-body-lg-line: var(--dt-line-height-lg);
+  --dt-text-body-lg-weight: var(--dt-font-weight-regular);
+  --dt-text-body-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-md-family: var(--dt-font-family-sans);
+  --dt-text-body-md-size: var(--dt-font-size-md);
+  --dt-text-body-md-line: var(--dt-line-height-md);
+  --dt-text-body-md-weight: var(--dt-font-weight-regular);
+  --dt-text-body-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-sm-family: var(--dt-font-family-sans);
+  --dt-text-body-sm-size: var(--dt-font-size-sm);
+  --dt-text-body-sm-line: var(--dt-line-height-sm);
+  --dt-text-body-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-body-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-xs-family: var(--dt-font-family-sans);
+  --dt-text-body-xs-size: var(--dt-font-size-xs);
+  --dt-text-body-xs-line: var(--dt-line-height-xs);
+  --dt-text-body-xs-weight: var(--dt-font-weight-regular);
+  --dt-text-body-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Label ------------------------------------------------------ */
+  --dt-text-label-lg-family: var(--dt-font-family-sans);
+  --dt-text-label-lg-size: var(--dt-font-size-md);
+  --dt-text-label-lg-line: var(--dt-line-height-md);
+  --dt-text-label-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-label-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-md-family: var(--dt-font-family-sans);
+  --dt-text-label-md-size: var(--dt-font-size-sm);
+  --dt-text-label-md-line: var(--dt-line-height-sm);
+  --dt-text-label-md-weight: var(--dt-font-weight-medium);
+  --dt-text-label-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-sm-family: var(--dt-font-family-sans);
+  --dt-text-label-sm-size: var(--dt-font-size-xs);
+  --dt-text-label-sm-line: var(--dt-line-height-xs);
+  --dt-text-label-sm-weight: var(--dt-font-weight-medium);
+  --dt-text-label-sm-tracking: var(--dt-tracking-normal);
+
+  /* Eyebrow — the only role that is ever uppercased. */
+  --dt-text-eyebrow-family: var(--dt-font-family-sans);
+  --dt-text-eyebrow-size: var(--dt-font-size-2xs);
+  --dt-text-eyebrow-line: var(--dt-line-height-2xs);
+  --dt-text-eyebrow-weight: var(--dt-font-weight-semibold);
+  --dt-text-eyebrow-tracking: var(--dt-tracking-wider);
+
+  /* ---- Code ------------------------------------------------------- */
+  --dt-text-code-md-family: var(--dt-font-family-mono);
+  --dt-text-code-md-size: var(--dt-font-size-sm);
+  --dt-text-code-md-line: var(--dt-line-height-sm);
+  --dt-text-code-md-weight: var(--dt-font-weight-regular);
+  --dt-text-code-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-code-sm-family: var(--dt-font-family-mono);
+  --dt-text-code-sm-size: var(--dt-font-size-xs);
+  --dt-text-code-sm-line: var(--dt-line-height-xs);
+  --dt-text-code-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-code-sm-tracking: var(--dt-tracking-normal);
+}
+
+/* TIER 2 — SEMANTIC SHAPE
+   Radius roles are named by what they wrap, not by size, so a sharp-cornered theme
+   can flatten the whole system by re-pointing five lines.
+
+   --dt-radius-scale is the single dial: a theme that wants everything rounder
+   overrides the roles, but a theme that only wants a nudge can retune from here. */
+
+:root {
+  --dt-radius-none: var(--dt-radius-raw-0);
+  --dt-radius-control: var(--dt-radius-raw-6);   /* buttons, inputs, selects */
+  --dt-radius-container: var(--dt-radius-raw-8); /* cards, panels, alerts */
+  --dt-radius-overlay: var(--dt-radius-raw-12);  /* dialogs, popovers, drawers */
+  --dt-radius-media: var(--dt-radius-raw-8);     /* images, video, avatars-as-squares */
+  --dt-radius-pill: var(--dt-radius-raw-full);   /* badges, tags, avatars */
+
+  --dt-border-width-none: 0px;
+  --dt-border-width-default: var(--dt-dim-hair);
+  --dt-border-width-strong: var(--dt-dim-hair-2);
+
+  /* Focus ring geometry. The colour lives in semantic/color.css. */
+  --dt-focus-ring-width: var(--dt-dim-hair-2);
+  --dt-focus-ring-offset: var(--dt-dim-hair-2);
+}
+
+/* TIER 2 — SEMANTIC SIZE
+   Control heights and icon sizes, all on the 4px grid. A density theme overrides
+   the control heights and every form control resizes together.
+
+   Touch targets: --dt-size-control-md (40px) is the smallest size allowed on a
+   touch surface without a padded hit area. WCAG 2.2 sets the floor at 24px;
+   40px is the size people can actually hit. */
+
+:root {
+  --dt-size-control-xs: var(--dt-dim-6);   /* 24 — dense tables, inline chips */
+  --dt-size-control-sm: var(--dt-dim-8);   /* 32 — toolbars, compact forms */
+  --dt-size-control-md: var(--dt-dim-10);  /* 40 — the default */
+  --dt-size-control-lg: var(--dt-dim-12);  /* 48 — primary CTAs, touch-first */
+
+  --dt-size-icon-xs: var(--dt-dim-3);      /* 12 */
+  --dt-size-icon-sm: var(--dt-dim-4);      /* 16 */
+  --dt-size-icon-md: var(--dt-dim-5);      /* 20 — the default */
+  --dt-size-icon-lg: var(--dt-dim-6);      /* 24 */
+  --dt-size-icon-xl: var(--dt-dim-8);      /* 32 */
+
+  --dt-size-avatar-xs: var(--dt-dim-5);    /* 20 */
+  --dt-size-avatar-sm: var(--dt-dim-6);    /* 24 */
+  --dt-size-avatar-md: var(--dt-dim-8);    /* 32 */
+  --dt-size-avatar-lg: var(--dt-dim-10);   /* 40 */
+  --dt-size-avatar-xl: var(--dt-dim-16);   /* 64 */
+
+  /* The minimum hit area for any interactive element on touch. */
+  --dt-size-touch-target: var(--dt-dim-11); /* 44 */
+}
+
+/* TIER 2 — SEMANTIC ELEVATION
+   Elevation is a z-order vocabulary, not a shadow menu. Pick the level that matches
+   what the element is, and the shadow follows. Dark themes swap shadows for surface
+   lightness, because shadows are close to invisible on a dark ground.
+
+   0 flush with the page          3 sticky headers, dropdowns
+   1 cards, resting surfaces      4 dialogs, drawers
+   2 hovered cards, popovers      5 toasts, anything above a dialog */
+
+:root {
+  --dt-elevation-0: var(--dt-shadow-raw-none); /* @kind other */
+  --dt-elevation-1: var(--dt-shadow-raw-1); /* @kind other */
+  --dt-elevation-2: var(--dt-shadow-raw-2); /* @kind other */
+  --dt-elevation-3: var(--dt-shadow-raw-3); /* @kind other */
+  --dt-elevation-4: var(--dt-shadow-raw-4); /* @kind other */
+  --dt-elevation-5: var(--dt-shadow-raw-5); /* @kind other */
+  --dt-elevation-inset: var(--dt-shadow-raw-inset); /* @kind other */
+
+  /* Stacking order. Keep every fixed-position layer on this ladder —
+     hand-picked z-index values are how overlay bugs start. */
+  --dt-z-base: 0; /* @kind other */
+  --dt-z-raised: 10; /* @kind other */
+  --dt-z-sticky: 100; /* @kind other */
+  --dt-z-dropdown: 200; /* @kind other */
+  --dt-z-overlay: 300; /* @kind other */
+  --dt-z-dialog: 400; /* @kind other */
+  --dt-z-toast: 500; /* @kind other */
+  --dt-z-tooltip: 600; /* @kind other */
+}
+
+/* TIER 2 — SEMANTIC MOTION
+   Four roles cover interface motion. Anything that needs a fifth is probably
+   decoration, and decoration is not a system concern.
+
+   micro    — state change on an element already on screen (hover, press, toggle)
+   enter    — something arriving (popover opens, toast slides in)
+   exit     — something leaving. Faster than enter: people wait for arrivals,
+              they do not wait for departures.
+   emphasis — a change that must be noticed (validation error, value update) */
+
+:root {
+  --dt-motion-micro: var(--dt-duration-100) var(--dt-easing-standard); /* @kind other */
+  --dt-motion-enter: var(--dt-duration-200) var(--dt-easing-decelerate); /* @kind other */
+  --dt-motion-exit: var(--dt-duration-150) var(--dt-easing-accelerate); /* @kind other */
+  --dt-motion-emphasis: var(--dt-duration-300) var(--dt-easing-emphasis); /* @kind other */
+}
+
+/* Respect the user's setting. This is not optional. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dt-motion-micro: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-enter: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-exit: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-emphasis: var(--dt-duration-instant) var(--dt-easing-linear);
+  }
+}
+
+
+/* BASE DARK THEME
+   Dark mode is not a second design system. It re-points the same semantic names at
+   different primitives. No component changes, no dark-specific class names.
+
+   Two rules that make dark mode work:
+   1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
+      invisible on a dark ground, so raised surfaces get lighter instead.
+   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+      white is too hot on near-black; 500 carries the same weight.
+
+   Applies on .dark, and automatically when the OS asks for it. */
+
+.dark {
+  --dt-surface-base: var(--dt-color-neutral-950);
+  --dt-surface-subtle: var(--dt-color-neutral-900);
+  --dt-surface-raised: var(--dt-color-neutral-900);
+  --dt-surface-sunken: var(--dt-color-black);
+  --dt-surface-overlay: var(--dt-color-neutral-800);
+  --dt-surface-inverse: var(--dt-color-neutral-050);
+  --dt-surface-disabled: var(--dt-color-neutral-800);
+  --dt-surface-scrim: oklch(0 0 0 / 0.7);
+
+  --dt-text-primary: var(--dt-color-neutral-050);
+  --dt-text-secondary: var(--dt-color-neutral-400);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-600);
+  --dt-text-inverse: var(--dt-color-neutral-900);
+  --dt-text-link: var(--dt-color-accent-400);
+  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link-visited: var(--dt-color-violet-400);
+
+  --dt-border-subtle: var(--dt-color-neutral-800);
+  --dt-border-default: var(--dt-color-neutral-700);
+  --dt-border-strong: var(--dt-color-neutral-500);
+  --dt-border-inverse: var(--dt-color-neutral-300);
+  --dt-border-disabled: var(--dt-color-neutral-800);
+
+  --dt-surface-action: var(--dt-color-accent-500);
+  --dt-surface-action-hover: var(--dt-color-accent-400);
+  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-text-on-action: var(--dt-color-neutral-950);
+
+  --dt-surface-action-secondary: var(--dt-color-neutral-900);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-050);
+  --dt-border-action-secondary: var(--dt-color-neutral-700);
+
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-050);
+
+  --dt-surface-action-danger: var(--dt-color-red-500);
+  --dt-surface-action-danger-hover: var(--dt-color-red-400);
+  --dt-surface-action-danger-active: var(--dt-color-red-300);
+  --dt-text-on-action-danger: var(--dt-color-neutral-950);
+
+  --dt-surface-action-disabled: var(--dt-color-neutral-800);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-600);
+
+  --dt-surface-selected: oklch(0.256 0.093 259);
+  --dt-surface-selected-hover: oklch(0.344 0.128 259);
+  --dt-text-on-selected: var(--dt-color-accent-100);
+  --dt-border-selected: var(--dt-color-accent-500);
+
+  --dt-surface-success: var(--dt-color-green-500);
+  --dt-surface-success-subtle: var(--dt-color-green-950);
+  --dt-border-success: var(--dt-color-green-800);
+  --dt-text-success: var(--dt-color-green-300);
+  --dt-text-on-success: var(--dt-color-neutral-950);
+
+  --dt-surface-warning: var(--dt-color-amber-400);
+  --dt-surface-warning-subtle: var(--dt-color-amber-950);
+  --dt-border-warning: var(--dt-color-amber-800);
+  --dt-text-warning: var(--dt-color-amber-300);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+
+  --dt-surface-danger: var(--dt-color-red-500);
+  --dt-surface-danger-subtle: var(--dt-color-red-950);
+  --dt-border-danger: var(--dt-color-red-800);
+  --dt-text-danger: var(--dt-color-red-300);
+  --dt-text-on-danger: var(--dt-color-neutral-950);
+
+  --dt-surface-info: var(--dt-color-cyan-500);
+  --dt-surface-info-subtle: var(--dt-color-cyan-950);
+  --dt-border-info: var(--dt-color-cyan-800);
+  --dt-text-info: var(--dt-color-cyan-300);
+  --dt-text-on-info: var(--dt-color-neutral-950);
+
+  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+
+  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-2: var(--dt-color-violet-400);
+  --dt-viz-3: var(--dt-color-cyan-400);
+  --dt-viz-4: var(--dt-color-amber-400);
+  --dt-viz-5: var(--dt-color-green-400);
+  --dt-viz-6: var(--dt-color-red-400);
+
+  /* Elevation as lightness. Shadows stay for depth cueing but carry less of the work. */
+  --dt-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.4);
+  --dt-elevation-2: 0 2px 6px -1px oklch(0 0 0 / 0.5);
+  --dt-elevation-3: 0 6px 12px -2px oklch(0 0 0 / 0.55);
+  --dt-elevation-4: 0 12px 24px -4px oklch(0 0 0 / 0.6);
+  --dt-elevation-5: 0 24px 48px -8px oklch(0 0 0 / 0.7);
+}
+
+/* Custom theme — the commit target for the theme configurator.
+
+   The configurator (tools/theme-configurator) writes a live override into browser
+   storage so you can judge a theme across the whole system before committing to it.
+   That is a preview, not a build artefact. When you are happy with a theme, paste the
+   configurator's exported CSS between the markers below and the theme becomes real:
+   it ships with the repository, applies without JavaScript, and survives a cleared
+   cache.
+
+   Leave this file empty to run the base theme. */
+
+/* --- configurator output starts --- */
+
+/* --- configurator output ends --- */
+
+
+/* TIER 3 — BUTTON
+   Component tokens exist so a consumer can restyle one component without
+   disturbing anything else. They are only authored for components with a real
+   override need. Every value here resolves to a semantic token.
+
+   Cascade: override --dt-surface-action and Button, Tabs, Switch and every other
+   action surface move together. Override --dt-button-primary-bg and only Button moves. */
+
+:root {
+  --dt-button-radius: var(--dt-radius-control);
+  --dt-button-font-family: var(--dt-text-label-md-family);
+  --dt-button-font-weight: var(--dt-font-weight-medium);
+  --dt-button-gap: var(--dt-space-inline-xs);
+  --dt-button-border-width: var(--dt-border-width-default);
+  --dt-button-transition: var(--dt-motion-micro);
+
+  --dt-button-height-sm: var(--dt-size-control-sm);
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-height-lg: var(--dt-size-control-lg);
+  --dt-button-padding-sm: var(--dt-space-inset-sm);
+  --dt-button-padding-md: var(--dt-space-inset-md);
+  --dt-button-padding-lg: var(--dt-space-inset-lg);
+  --dt-button-font-size-sm: var(--dt-font-size-sm);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+  --dt-button-font-size-lg: var(--dt-font-size-md);
+
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+}
+
+/* TIER 3 — INPUT
+   Shared by Input, Textarea, Select, and Combobox so every field in a form has
+   identical geometry. A field that is 1px taller than its neighbour is the most
+   common and most visible design-system failure. */
+
+:root {
+  --dt-input-radius: var(--dt-radius-control);
+  --dt-input-border-width: var(--dt-border-width-default);
+  --dt-input-transition: var(--dt-motion-micro);
+  --dt-input-font-size: var(--dt-font-size-sm);
+  --dt-input-font-family: var(--dt-text-body-md-family);
+
+  --dt-input-height-sm: var(--dt-size-control-sm);
+  --dt-input-height-md: var(--dt-size-control-md);
+  --dt-input-height-lg: var(--dt-size-control-lg);
+  --dt-input-padding-x: var(--dt-space-inset-sm);
+
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+
+  --dt-input-label-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+}
+
+/* TIER 3 — CARD
+   Card is the most-overridden component in every system, because it is the one
+   that carries a product's surface personality. Its tokens are exposed so a
+   consumer can go from bordered-and-flat to shadowed-and-round without a fork. */
+
+:root {
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+  --dt-card-padding: var(--dt-space-inset-lg);
+  --dt-card-gap: var(--dt-space-stack-sm);
+  --dt-card-elevation: var(--dt-elevation-1); /* @kind other */
+  --dt-card-elevation-hover: var(--dt-elevation-2); /* @kind other */
+  --dt-card-transition: var(--dt-motion-micro);
+
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+}
+
+/* TIER 3 — DIALOG
+   Covers Dialog, Drawer, Popover, and Sheet — every overlay shares one scrim,
+   one radius, and one elevation so stacked overlays read as one system. */
+
+:root {
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-radius: var(--dt-radius-overlay);
+  --dt-dialog-padding: var(--dt-space-inset-xl);
+  --dt-dialog-gap: var(--dt-space-stack-md);
+  --dt-dialog-elevation: var(--dt-elevation-4); /* @kind other */
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-border-width: var(--dt-border-width-default);
+
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-dialog-scrim-blur: 2px;
+
+  --dt-dialog-width-sm: 400px;
+  --dt-dialog-width-md: 520px;
+  --dt-dialog-width-lg: 720px;
+  --dt-dialog-max-height: 85vh;
+
+  --dt-dialog-enter: var(--dt-motion-enter); /* @kind other */
+  --dt-dialog-exit: var(--dt-motion-exit); /* @kind other */
+
+  --dt-popover-radius: var(--dt-radius-container);
+  --dt-popover-padding: var(--dt-space-inset-md);
+  --dt-popover-elevation: var(--dt-elevation-3); /* @kind other */
+}
+
+/* TIER 3 — TABLE
+   Tables are the densest surface in most products and the first place a generic
+   spacing scale stops fitting. These tokens let a consumer tune row rhythm without
+   changing the global density theme. */
+
+:root {
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-border-width: var(--dt-border-width-default);
+  --dt-table-radius: var(--dt-radius-container);
+
+  --dt-table-row-height: var(--dt-dim-12);
+  --dt-table-row-height-compact: var(--dt-dim-9);
+  --dt-table-cell-padding-x: var(--dt-space-inset-sm);
+  --dt-table-cell-padding-y: var(--dt-space-inset-xs);
+
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-header-font-size: var(--dt-font-size-xs);
+  --dt-table-header-font-weight: var(--dt-font-weight-medium);
+  --dt-table-header-tracking: var(--dt-tracking-wide);
+
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+
+
+/* Contexts come last: they retune semantic and component tokens, and at equal
+   specificity source order decides. */
+/* CONTEXT — PRODUCT
+   A fourth axis, orthogonal to brand theme, colour mode, and density.
+
+   Product surfaces are dense, functional, and read for hours. Type runs small,
+   controls are compact, elevation is subtle, and section rhythm is tight. The same
+   Button that anchors a marketing hero has to sit in a toolbar without shouting.
+
+   Components do not know which context they are in. They read semantic tokens;
+   the context retunes those tokens. That is the whole mechanism — a context is a
+   theme for scale and rhythm rather than for colour.
+
+   Apply on the app shell:
+     <div class="dt-context-product"> … </div>
+
+   Composes with everything:
+     <html class="dark"><body class="dt-context-product dt-density-compact"> */
+
+.dt-context-product {
+  /* Display type is rare in product UI and never this large. */
+  --dt-text-display-lg-size: var(--dt-font-size-4xl);
+  --dt-text-display-lg-line: var(--dt-line-height-4xl);
+  --dt-text-display-md-size: var(--dt-font-size-3xl);
+  --dt-text-display-md-line: var(--dt-line-height-3xl);
+  --dt-text-display-sm-size: var(--dt-font-size-2xl);
+  --dt-text-display-sm-line: var(--dt-line-height-2xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-2xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-2xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-xl);
+  --dt-text-heading-md-size: var(--dt-font-size-lg);
+  --dt-text-heading-md-line: var(--dt-line-height-lg);
+
+  /* 14px body. Product UI is scanned, not read. */
+  --dt-text-body-md-size: var(--dt-font-size-sm);
+  --dt-text-body-md-line: var(--dt-line-height-sm);
+  --dt-text-body-lg-size: var(--dt-font-size-md);
+  --dt-text-body-lg-line: var(--dt-line-height-md);
+
+  /* Tight rhythm. */
+  --dt-space-section: var(--dt-dim-12);
+  --dt-space-gutter: var(--dt-space-inset-md);
+  --dt-space-stack-xl: var(--dt-dim-8);
+  --dt-space-stack-2xl: var(--dt-dim-12);
+
+  /* Restrained surfaces: borders carry structure, shadows stay quiet. */
+  --dt-card-padding: var(--dt-space-inset-md);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-1);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+}
+
+/* CONTEXT — MARKETING
+   Marketing surfaces are scanned in seconds and seen once. Type runs large, sections
+   breathe, controls are touch-first, and cards lose their borders because the page is
+   already doing the structural work.
+
+   Same components, same tokens, different scale and rhythm. A Card in this context is
+   a content block on a landing page; in product context it is a panel in a dashboard.
+   Neither Card knows the difference.
+
+   Apply on the page shell:
+     <div class="dt-context-marketing"> … </div> */
+
+.dt-context-marketing {
+  /* Display type earns its size here. */
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-5xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-5xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-4xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-4xl);
+  --dt-text-heading-md-size: var(--dt-font-size-3xl);
+  --dt-text-heading-md-line: var(--dt-line-height-3xl);
+
+  /* 19px body. Long-form marketing copy is read at arm's length. */
+  --dt-text-body-md-size: var(--dt-font-size-lg);
+  --dt-text-body-md-line: var(--dt-line-height-lg);
+  --dt-text-body-sm-size: var(--dt-font-size-md);
+  --dt-text-body-sm-line: var(--dt-line-height-md);
+
+  /* Generous rhythm. */
+  --dt-space-section: var(--dt-dim-32);
+  --dt-space-gutter: var(--dt-space-inset-xl);
+  --dt-space-stack-xl: var(--dt-dim-12);
+  --dt-space-stack-2xl: var(--dt-dim-24);
+
+  /* Larger default controls — marketing CTAs are touch-first and want presence. */
+  --dt-size-control-md: var(--dt-dim-12);
+  --dt-button-height-md: var(--dt-dim-12);
+  --dt-button-font-size-md: var(--dt-font-size-md);
+  --dt-button-padding-md: var(--dt-space-inset-lg);
+
+  /* Borderless, softly raised content blocks. */
+  --dt-card-padding: var(--dt-space-inset-xl);
+  --dt-card-border-width: var(--dt-border-width-none);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-2);
+  --dt-card-radius: var(--dt-radius-overlay);
+}
+
+
+/* BASE — minimal element defaults.
+   Dovetail does not ship a CSS reset. This sets only what a system must own:
+   box sizing, the page's type and colour, focus visibility, and link colour.
+   Everything else is a component's job. */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--dt-text-body-md-family);
+  font-size: var(--dt-text-body-md-size);
+  line-height: var(--dt-text-body-md-line);
+  font-weight: var(--dt-text-body-md-weight);
+  letter-spacing: var(--dt-text-body-md-tracking);
+  color: var(--dt-text-primary);
+  background-color: var(--dt-surface-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* One focus treatment, applied everywhere, visible on every surface.
+   :focus-visible so pointer users never see it and keyboard users always do. */
+:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+  border-radius: inherit;
+}
+
+a {
+  color: var(--dt-text-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--dt-text-link-hover); text-decoration-thickness: 2px; }
+
+code, pre, kbd, samp {
+  font-family: var(--dt-text-code-md-family);
+  font-size: var(--dt-text-code-md-size);
+}
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+
+::selection {
+  background-color: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+/* System-owned animations. Components reference these by name; never redefine them
+   locally. All are suppressed under reduced-motion. */
+@keyframes dt-spin { to { transform: rotate(360deg); } }
+@keyframes dt-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes dt-progress-slide { 0% { margin-left: 0; } 50% { margin-left: 65%; } 100% { margin-left: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+</style>
+<script>/* Theme runtime — applies a saved configurator theme across the system.
+
+   The configurator saves a resolved set of token values to browser storage. This script
+   reads them and writes them onto the document root, so every page that loads it shows
+   the saved theme. It is a preview mechanism: it makes a theme judgeable across the whole
+   system before you commit to it. Nothing here belongs in production.
+
+   Commit a theme by pasting the configurator's exported CSS into
+   tokens/themes/theme-custom.css. That version needs no JavaScript and survives a
+   cleared cache.
+
+   Load it after styles.css:
+     <script src="../system/templates/_support/theme-runtime.js"><\/script>
+   Depth matters — from a subdirectory, use ../templates/_support/theme-runtime.js.
+
+   It lives under templates/ because the design-system compiler sweeps every .js in the
+   project into _ds_bundle.js, and templates/ is the one tree it skips. This is a page
+   script, not a component. */
+(function () {
+  var KEY = "dovetail-theme-config";
+  var applied = [];
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; }
+  }
+
+  function apply(cfg) {
+    var root = document.documentElement;
+
+    // Clear the previous application first, so switching themes never leaves a residue.
+    applied.forEach(function (k) { root.style.removeProperty(k); });
+    applied = [];
+
+    if (!cfg) return;
+
+    if (cfg.vars) {
+      Object.keys(cfg.vars).forEach(function (k) {
+        root.style.setProperty(k, cfg.vars[k]);
+        applied.push(k);
+      });
+    }
+
+    if (cfg.fontHref) {
+      var l = document.querySelector("link[data-dt-theme-font]");
+      if (!l) {
+        l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.setAttribute("data-dt-theme-font", "");
+        document.head.appendChild(l);
+      }
+      if (l.href !== cfg.fontHref) l.href = cfg.fontHref;
+    }
+
+    root.classList.toggle("dark", !!cfg.dark);
+  }
+
+  apply(load());
+
+  // A save in the configurator tab reaches every other open page.
+  window.addEventListener("storage", function (e) { if (e.key === KEY) apply(load()); });
+  window.addEventListener("dovetail:theme-change", function () { apply(load()); });
+})();
+</script>
+<script>/* Card kit — shared chrome for @dsCard component pages. Loaded as text/babel.
+   Not a design-system component: no .d.ts sibling, so the compiler skips it. */
+function Shelf({ name, summary, children, props: propList = [], guidance = [], status = "Stable" }) {
+    const [tab, setTab] = React.useState("preview");
+    const tabBtn = on => ({
+        appearance: "none", border: "none", background: "transparent", cursor: "pointer",
+        padding: "var(--dt-space-inset-2xs, 4px) 0", marginRight: "var(--dt-space-inline-md)",
+        fontFamily: "var(--dt-text-label-sm-family)", fontSize: "var(--dt-text-label-sm-size)",
+        fontWeight: "var(--dt-font-weight-medium)",
+        color: on ? "var(--dt-text-primary)" : "var(--dt-text-tertiary)",
+        borderBottom: "2px solid " + (on ? "var(--dt-border-selected)" : "transparent"),
+    });
+    return (React.createElement("section", { style: {
+            border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+            borderRadius: "var(--dt-radius-container)", background: "var(--dt-surface-base)", overflow: "hidden",
+        } },
+        React.createElement("header", { style: { padding: "var(--dt-space-inset-md) var(--dt-space-inset-md) 0" } },
+            React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: "var(--dt-space-inline-sm)", flexWrap: "wrap" } },
+                React.createElement("h2", { style: {
+                        margin: 0, fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)",
+                        fontWeight: "var(--dt-font-weight-semibold)", color: "var(--dt-text-primary)",
+                    } }, name),
+                React.createElement("span", { style: {
+                        fontFamily: "var(--dt-font-family-mono)", fontSize: "10px", textTransform: "uppercase",
+                        letterSpacing: "0.06em", color: "var(--dt-text-tertiary)",
+                        border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+                        borderRadius: "var(--dt-radius-pill)", padding: "1px 7px",
+                    } }, status)),
+            summary && React.createElement("p", { style: {
+                    margin: "var(--dt-space-stack-2xs) 0 0", maxWidth: "70ch", textWrap: "pretty",
+                    fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)",
+                    lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)",
+                } }, summary),
+            React.createElement("nav", { style: {
+                    marginTop: "var(--dt-space-stack-sm)",
+                    borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+                } },
+                React.createElement("button", { style: tabBtn(tab === "preview"), onClick: () => setTab("preview") }, "Preview"),
+                propList.length > 0 && React.createElement("button", { style: tabBtn(tab === "props"), onClick: () => setTab("props") }, "Props"),
+                guidance.length > 0 && React.createElement("button", { style: tabBtn(tab === "usage"), onClick: () => setTab("usage") }, "Usage"))),
+        React.createElement("div", { style: { padding: "var(--dt-space-inset-md)" } },
+            tab === "preview" && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-lg)" } }, children),
+            tab === "props" && React.createElement(PropTable, { rows: propList }),
+            tab === "usage" && React.createElement(Guidance, { items: guidance }))));
+}
+function PropTable({ rows = [] }) {
+    const th = { textAlign: "left", padding: "var(--dt-space-inset-xs) var(--dt-space-inset-sm) var(--dt-space-inset-xs) 0",
+        fontFamily: "var(--dt-text-label-sm-family)", fontSize: "var(--dt-text-label-sm-size)",
+        fontWeight: "var(--dt-font-weight-medium)", color: "var(--dt-text-secondary)",
+        borderBottom: "var(--dt-border-width-default) solid var(--dt-border-default)", whiteSpace: "nowrap" };
+    const td = { padding: "var(--dt-space-inset-xs) var(--dt-space-inset-sm) var(--dt-space-inset-xs) 0",
+        borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+        fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)",
+        color: "var(--dt-text-secondary)", verticalAlign: "top" };
+    const mono = { fontFamily: "var(--dt-font-family-mono)", fontSize: "12px", color: "var(--dt-text-primary)" };
+    return (React.createElement("div", { style: { overflowX: "auto" } },
+        React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", minWidth: 520 } },
+            React.createElement("thead", null,
+                React.createElement("tr", null,
+                    React.createElement("th", { style: th }, "Prop"),
+                    React.createElement("th", { style: th }, "Type"),
+                    React.createElement("th", { style: th }, "Default"),
+                    React.createElement("th", { style: { ...th, width: "45%" } }, "Notes"))),
+            React.createElement("tbody", null, rows.map(r => (React.createElement("tr", { key: r.name },
+                React.createElement("td", { style: { ...td, ...mono, whiteSpace: "nowrap" } },
+                    r.name,
+                    r.required && React.createElement("span", { style: { color: "var(--dt-text-danger)" } }, "*")),
+                React.createElement("td", { style: { ...td, ...mono, color: "var(--dt-text-secondary)" } }, r.type),
+                React.createElement("td", { style: { ...td, ...mono, color: "var(--dt-text-tertiary)" } }, r.default ?? "—"),
+                React.createElement("td", { style: { ...td, textWrap: "pretty" } }, r.notes)))))),
+        React.createElement("p", { style: { margin: "var(--dt-space-stack-xs) 0 0", fontFamily: "var(--dt-text-body-xs-family)", fontSize: "var(--dt-text-body-xs-size)", color: "var(--dt-text-tertiary)" } },
+            React.createElement("span", { style: { color: "var(--dt-text-danger)" } }, "*"),
+            " required")));
+}
+function Guidance({ items = [] }) {
+    return (React.createElement("ul", { style: { margin: 0, paddingLeft: "1.1em", display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)", maxWidth: "72ch" } }, items.map((g, i) => (React.createElement("li", { key: i, style: {
+            fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)",
+            lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)", textWrap: "pretty",
+        } }, g)))));
+}
+function Specimen({ label, children, bg }) {
+    return (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+        label && React.createElement("span", { style: {
+                fontFamily: "var(--dt-font-family-mono)", fontSize: "10px", textTransform: "uppercase",
+                letterSpacing: "0.06em", color: "var(--dt-text-tertiary)",
+            } }, label),
+        React.createElement("div", { style: {
+                padding: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)",
+                background: bg || "var(--dt-surface-subtle)",
+                border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+            } }, children)));
+}
+function PageHead({ title, subtitle }) {
+    return (React.createElement("header", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+        React.createElement("h1", { style: {
+                margin: 0, fontFamily: "var(--dt-text-heading-md-family)", fontSize: "var(--dt-text-heading-md-size)",
+                fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-text-heading-md-tracking)",
+                color: "var(--dt-text-primary)",
+            } }, title),
+        subtitle && React.createElement("p", { style: {
+                margin: 0, maxWidth: "72ch", textWrap: "pretty",
+                fontFamily: "var(--dt-text-body-md-family)", fontSize: "var(--dt-text-body-md-size)",
+                lineHeight: "var(--dt-text-body-md-line)", color: "var(--dt-text-secondary)",
+            } }, subtitle)));
+}
+/* dsReady — mounts once the design-system bundle actually carries the components the
+   page needs.
+
+   Two failure modes this exists to survive. A browser holding a stale _ds_bundle.js
+   defines the namespace without the newer exports; rendering then produces undefined
+   elements and React empties the container. A bundle mid-recompile 404s outright and the
+   namespace never appears at all.
+
+   So: poll, refetch past the cache once, and give up out loud. A page that cannot mount
+   says why on screen — never a white rectangle. */
+function dsReady(required, done) {
+    var NS_KEY = "BeamMobileDesignSystem_e33121";
+    var REFETCH_AT = 1200, DEADLINE = 8000, TICK = 40;
+    var waited = 0, refetched = false;
+    function missing() {
+        var ns = window[NS_KEY];
+        if (!ns)
+            return required.slice();
+        var out = [];
+        for (var i = 0; i < required.length; i++)
+            if (!ns[required[i]])
+                out.push(required[i]);
+        return out;
+    }
+    function refetch() {
+        var base = document.querySelector('script[src$="_ds_bundle.js"]');
+        var s = document.createElement("script");
+        s.src = (base ? base.getAttribute("src") : "_ds_bundle.js") + "?cb=" + Date.now();
+        document.head.appendChild(s);
+    }
+    (function poll() {
+        var gaps = missing();
+        if (gaps.length === 0 && window.PageHead)
+            return done(window[NS_KEY]);
+        waited += TICK;
+        if (waited > REFETCH_AT && !refetched) {
+            refetched = true;
+            refetch();
+        }
+        if (waited > DEADLINE)
+            return fail(gaps);
+        setTimeout(poll, TICK);
+    })();
+    function fail(gaps) {
+        var root = document.getElementById("root");
+        if (!root)
+            return;
+        var noNs = !window[NS_KEY];
+        root.innerHTML =
+            '<div role="alert" style="max-width:62ch;margin:48px auto;padding:20px 24px;' +
+                'border:1px solid #d4d4d8;border-radius:8px;background:#fff;' +
+                'font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+                '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+                (noNs
+                    ? '<code>_ds_bundle.js</code> did not load. It is regenerated whenever components change — reload in a moment.'
+                    : 'The loaded bundle is missing: <code>' + gaps.join(", ") + '</code>. This is usually a cached copy — hard reload to clear it.') +
+                '</div>';
+    }
+}
+Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady });
+</script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+</head><body><div id="root"></div>
+
+<script>/* Show only this component's shelf from the forms-detail.card.html reference card. */
+(function(){var only="Checkbox / CheckboxGroup";var S=window.Shelf;window.Shelf=function(p){return p&&p.name===only?S(p):null};window.PageHead=function(){return null};})();</script>
+<script>let Field, Input, Textarea, Select, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider, Button, Inline, Stack, Grid;
+function Page() {
+    const [plan, setPlan] = React.useState("team");
+    const [scopes, setScopes] = React.useState(["read"]);
+    const [seats, setSeats] = React.useState(12);
+    const [notify, setNotify] = React.useState(true);
+    return (React.createElement(React.Fragment, null,
+        React.createElement(PageHead, { title: "Forms", subtitle: "Controls that collect input. Every one carries its own label, hint, and error wiring \u2014 the accessible name is a prop, never something the page is trusted to add later." }),
+        React.createElement(Shelf, { name: "Field", summary: "Label, control, hint, and error wrapper. Every form control in a form goes inside one.", props: [
+                { name: "label", type: "string", notes: "Visible label. Ties to the control through htmlFor." },
+                { name: "hint", type: "string", notes: "Helper text below the control." },
+                { name: "error", type: "string", notes: "Replaces the hint and renders in an alert live region." },
+                { name: "required", type: "boolean", notes: "Adds the marker. Also set required on the control itself." },
+                { name: "htmlFor", type: "string", notes: "id of the control this labels." },
+            ], guidance: [
+                "error replaces hint rather than stacking with it, so the user is never asked to read two instructions at once.",
+                "Placeholder text is not a label. It disappears the moment the user types, which is when they most need it.",
+                "Hints say what good input looks like before the user types. Errors say what went wrong and how to fix it.",
+                "Mark optional fields rather than required ones when most fields are required — fewer markers, less noise.",
+            ] },
+            React.createElement(Specimen, { label: "Rest, hint, error, required", bg: "var(--dt-surface-base)" },
+                React.createElement(Grid, { minColumnWidth: "220px", gap: "md" },
+                    React.createElement(Field, { label: "Workspace name" },
+                        React.createElement(Input, { defaultValue: "Northwind" })),
+                    React.createElement(Field, { label: "Subdomain", hint: "Lowercase letters and hyphens only." },
+                        React.createElement(Input, { defaultValue: "northwind" })),
+                    React.createElement(Field, { label: "Billing email", error: "Enter a valid email address." },
+                        React.createElement(Input, { defaultValue: "ada@", error: "x" })),
+                    React.createElement(Field, { label: "Company", required: true },
+                        React.createElement(Input, { placeholder: "Acme Inc" }))))),
+        React.createElement(Shelf, { name: "Input", summary: "Single-line text field. Three sizes, an optional leading icon, and a built-in error state.", props: [
+                { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+                { name: "error", type: "string", notes: "Sets aria-invalid and the error border." },
+                { name: "iconStart", type: "ReactNode", notes: "20px, decorative — it is aria-hidden." },
+                { name: "label", type: "string", notes: "Use Field instead when the form has more than one control." },
+                { name: "hint", type: "string" },
+                { name: "required", type: "boolean" },
+            ], guidance: [
+                "Set the right type and inputmode. A numeric keypad on a phone field costs nothing and saves every mobile user a tap.",
+                "Size the field to its content where you can. A four-character postcode field the width of the page invites the wrong input.",
+                "iconStart is decorative and hidden from screen readers. It must never be the only thing indicating what the field is for.",
+            ] },
+            React.createElement(Specimen, { label: "Sizes and states", bg: "var(--dt-surface-base)" },
+                React.createElement(Grid, { minColumnWidth: "220px", gap: "md" },
+                    React.createElement(Input, { size: "sm", placeholder: "Small" }),
+                    React.createElement(Input, { size: "md", placeholder: "Medium" }),
+                    React.createElement(Input, { size: "lg", placeholder: "Large" }),
+                    React.createElement(Input, { iconStart: React.createElement("span", null, "\u2315"), placeholder: "Search invoices" }),
+                    React.createElement(Input, { defaultValue: "Not an email", error: "Enter a valid email address." }),
+                    React.createElement(Input, { defaultValue: "Locked value", disabled: true })))),
+        React.createElement(Shelf, { name: "Textarea", summary: "Multi-line text. Resizes vertically only, so it cannot break the layout sideways.", props: [
+                { name: "rows", type: "number", default: "4" },
+                { name: "error", type: "string" },
+                { name: "label", type: "string" },
+                { name: "hint", type: "string" },
+            ], guidance: [
+                "Set rows to the expected answer length. A four-row box asks for a paragraph; a one-row box should have been an Input.",
+                "Horizontal resize is disabled deliberately — a user-widened textarea overflows every container it sits in.",
+                "If you enforce a character limit, show the count. A rejected submission that never warned the user is a design failure.",
+            ] },
+            React.createElement(Specimen, { bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "md", style: { maxWidth: 480 } },
+                    React.createElement(Field, { label: "Invoice note", hint: "Shown on the PDF, below the line items." },
+                        React.createElement(Textarea, { rows: 3, defaultValue: "Thanks for your business." })),
+                    React.createElement(Field, { label: "Reason for cancellation", error: "Tell us a little more \u2014 at least 20 characters." },
+                        React.createElement(Textarea, { rows: 3, defaultValue: "Too expensive", error: "x" }))))),
+        React.createElement(Shelf, { name: "Select", summary: "Dropdown for a known set of options, native select underneath.", props: [
+                { name: "options", type: "Array<string | { value, label }>" },
+                { name: "placeholder", type: "string", notes: "Empty-value first option, e.g. Choose a plan." },
+                { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+                { name: "error", type: "string" },
+            ], guidance: [
+                "Native on purpose. A custom dropdown loses the platform picker on mobile, which is better than anything we would build.",
+                "Under about five options, use RadioGroup. A select hides the choices behind a click and gives no sense of the range.",
+                "Over about fifteen, a select becomes a scroll hunt. That is when you need a searchable combobox.",
+                "A placeholder is not a default. If there is a sensible default, select it.",
+            ] },
+            React.createElement(Specimen, { bg: "var(--dt-surface-base)" },
+                React.createElement(Grid, { minColumnWidth: "220px", gap: "md" },
+                    React.createElement(Field, { label: "Plan" },
+                        React.createElement(Select, { options: ["Starter", "Team", "Business", "Enterprise"], defaultValue: "Team" })),
+                    React.createElement(Field, { label: "Region" },
+                        React.createElement(Select, { placeholder: "Choose a region", options: [{ value: "eu", label: "Europe" }, { value: "us", label: "North America" }, { value: "ap", label: "Asia Pacific" }] })),
+                    React.createElement(Field, { label: "Currency", error: "Select a currency." },
+                        React.createElement(Select, { placeholder: "Choose", options: ["USD", "EUR", "GBP"], error: "x" }))))),
+        React.createElement(Shelf, { name: "Checkbox / CheckboxGroup", summary: "Independent binary choices. The group supplies the shared question as an accessible name.", props: [
+                { name: "label", type: "ReactNode", notes: "Checkbox. Clicking it toggles the box." },
+                { name: "indeterminate", type: "boolean", notes: "Dash state for a parent controlling a partial selection." },
+                { name: "hint", type: "string" },
+                { name: "options", type: "CheckboxOption[]", required: true, notes: "CheckboxGroup: value, label, hint, disabled." },
+                { name: "value", type: "string[]", notes: "CheckboxGroup. Controlled selection." },
+                { name: "orientation", type: '"vertical" | "horizontal"', default: '"vertical"' },
+            ], guidance: [
+                "CheckboxGroup label is required. A bare column of checkboxes has no accessible name, so the set has no question.",
+                "Checkboxes are independent; radios are exclusive. A single checkbox asking a yes/no question is fine — two are not a choice between them.",
+                "indeterminate is display only. It never submits a value, so the parent must still resolve to checked or unchecked.",
+                "Changes apply on submit. If the change should apply instantly, that is a Switch.",
+            ] },
+            React.createElement(Specimen, { label: "Single, hint, indeterminate", bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "sm" },
+                    React.createElement(Checkbox, { label: "Email me about product updates", defaultChecked: true }),
+                    React.createElement(Checkbox, { label: "Require two-factor authentication", hint: "Applies to every member of this workspace." }),
+                    React.createElement(Checkbox, { label: "All permissions", indeterminate: true }),
+                    React.createElement(Checkbox, { label: "Disabled option", disabled: true }))),
+            React.createElement(Specimen, { label: "Group", bg: "var(--dt-surface-base)" },
+                React.createElement(CheckboxGroup, { label: "API scopes", hint: "Choose the minimum the integration needs.", value: scopes, onChange: setScopes, options: [
+                        { value: "read", label: "Read", hint: "Fetch invoices and clients." },
+                        { value: "write", label: "Write", hint: "Create and edit invoices." },
+                        { value: "delete", label: "Delete", hint: "Permanently remove records." },
+                        { value: "admin", label: "Admin", hint: "Manage members and billing.", disabled: true },
+                    ] }))),
+        React.createElement(Shelf, { name: "Radio / RadioGroup", summary: "Exactly one choice from a visible set. Arrow keys move within the group.", props: [
+                { name: "options", type: "RadioOption[]", required: true, notes: "value, label, hint, disabled." },
+                { name: "label", type: "ReactNode", required: true, notes: "The question the set answers." },
+                { name: "value", type: "string", notes: "Controlled selection." },
+                { name: "orientation", type: '"vertical" | "horizontal"', default: '"vertical"' },
+                { name: "name", type: "string", notes: "Shared input name. Generated when omitted." },
+            ], guidance: [
+                "Always select a default. A radio group with nothing selected forces a choice the user may not be able to make yet.",
+                "Radios cannot be unselected. If no answer is valid, add an explicit None option rather than leaving the set empty.",
+                "Use RadioGroup rather than loose Radios. The group supplies the name, the roving focus, and the accessible question.",
+                "Horizontal only for two or three very short labels. Beyond that the link between label and control gets ambiguous.",
+            ] },
+            React.createElement(Specimen, { bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "lg" },
+                    React.createElement(RadioGroup, { label: "Plan", value: plan, onChange: setPlan, options: [
+                            { value: "starter", label: "Starter", hint: "One editor, 100 invoices a month." },
+                            { value: "team", label: "Team", hint: "Five editors, unlimited invoices." },
+                            { value: "business", label: "Business", hint: "Unlimited editors, SSO, audit log." },
+                        ] }),
+                    React.createElement(RadioGroup, { label: "Billing period", orientation: "horizontal", defaultValue: "year", options: [{ value: "month", label: "Monthly" }, { value: "year", label: "Yearly" }] })))),
+        React.createElement(Shelf, { name: "Switch", summary: "Instant on/off setting. The change applies the moment it is flipped.", props: [
+                { name: "label", type: "ReactNode" },
+                { name: "hint", type: "string" },
+                { name: "labelPosition", type: '"start" | "end"', default: '"end"', notes: "start pushes the switch right — the settings-row pattern." },
+                { name: "checked", type: "boolean" },
+            ], guidance: [
+                "A switch applies immediately. If the change needs a Save button, it is a Checkbox.",
+                "Label the thing being controlled, not the state: Email notifications, not Enable email notifications. The switch already shows on or off.",
+                "labelPosition start is the settings-row pattern — label left, switch pinned right, hint under the label.",
+                "Never pair a switch with an On/Off text label. The control already says which it is, and the two can disagree.",
+            ] },
+            React.createElement(Specimen, { label: "Inline and settings row", bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "md" },
+                    React.createElement(Switch, { label: "Email notifications", checked: notify, onChange: e => setNotify(e.target.checked) }),
+                    React.createElement(Switch, { label: "Weekly digest", hint: "Sent Monday mornings.", labelPosition: "start", defaultChecked: true }),
+                    React.createElement(Switch, { label: "Public workspace", labelPosition: "start", hint: "Anyone with the link can view." }),
+                    React.createElement(Switch, { label: "Enforced by your administrator", disabled: true, defaultChecked: true })))),
+        React.createElement(Shelf, { name: "Slider", summary: "A range input for an approximate value along a continuum.", props: [
+                { name: "label", type: "ReactNode", required: true, notes: "A slider with no label is unusable without sight." },
+                { name: "min", type: "number", default: "0" },
+                { name: "max", type: "number", default: "100" },
+                { name: "step", type: "number", default: "1" },
+                { name: "showValue", type: "boolean", default: "true" },
+                { name: "formatValue", type: "(value: number) => string", notes: "Format the readout, e.g. v => v + '%'." },
+            ], guidance: [
+                "Sliders are for approximate values where relative position matters more than the exact number. For a precise figure, use a number Input.",
+                "Always show the value. A slider without a readout cannot be set to anything specific.",
+                "Use formatValue to show units. A bare 60 tells the user nothing about what they just set.",
+                "Keep the range meaningful. A 0–1000 slider where only 0–50 is sensible wastes the whole track.",
+            ] },
+            React.createElement(Specimen, { bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "lg", style: { maxWidth: 420 } },
+                    React.createElement(Slider, { label: "Seats", min: 1, max: 50, value: seats, onChange: setSeats, formatValue: v => v + " seats" }),
+                    React.createElement(Slider, { label: "Invoice reminder", min: 0, max: 30, defaultValue: 7, formatValue: v => v + " days before due" }),
+                    React.createElement(Slider, { label: "Disabled", defaultValue: 40, disabled: true }))))));
+}
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+    var NEED = ["Field", "Input", "Textarea", "Select", "Checkbox", "CheckboxGroup", "Radio", "RadioGroup", "Switch", "Slider", "Button", "Inline", "Stack", "Grid"];
+    var NS_KEY = "BeamMobileDesignSystem_e33121";
+    var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+    var startedAt = Date.now(), refetched = false;
+    /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+       timeout well past 40ms, which would push the deadline minutes out. */
+    function elapsed() { return Date.now() - startedAt; }
+    function missingComponents() {
+        var ns = window[NS_KEY];
+        if (!ns)
+            return NEED.slice();
+        return NEED.filter(function (n) { return !ns[n]; });
+    }
+    function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+    function refetchBundle() {
+        var base = document.querySelector('script[src$="_ds_bundle.js"]');
+        if (!base)
+            return;
+        var s = document.createElement("script");
+        s.src = base.getAttribute("src") + "?cb=" + Date.now();
+        document.head.appendChild(s);
+    }
+    function explain(gaps) {
+        var noBundle = !window[NS_KEY];
+        var noKit = !kitReady();
+        var why;
+        if (noBundle && noKit)
+            why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+        else if (noKit)
+            why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+        else if (noBundle)
+            why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+        else
+            why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+        var el = document.getElementById("root");
+        if (!el)
+            return;
+        el.innerHTML =
+            '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+                'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+                '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+                why + '</div>';
+    }
+    (function poll() {
+        var gaps = missingComponents();
+        if (gaps.length === 0 && kitReady()) {
+            ({ Field, Input, Textarea, Select, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider, Button, Inline, Stack, Grid } = window[NS_KEY]);
+            ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Page, null));
+            return;
+        }
+        if (elapsed() > REFETCH_AT && !refetched && gaps.length) {
+            refetched = true;
+            refetchBundle();
+        }
+        if (elapsed() > DEADLINE)
+            return explain(gaps);
+        setTimeout(poll, TICK);
+    })();
+})();
+</script>
+</body></html>

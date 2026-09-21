@@ -1,0 +1,110 @@
+/* TIER 2 — SEMANTIC COLOR
+   Purpose, not value. This is the themeable layer: a brand theme overrides these
+   names and every component follows. No value words are allowed here — the moment
+   "blue" appears in a semantic name, it becomes a lie waiting for the next rebrand.
+
+   Pairing convention: every role that can be a background has a matching
+   on- foreground role, and the pair is contrast-checked together.
+   Use them as a set. `--dt-surface-action` without `--dt-text-on-action` is a bug.
+
+   Values below are the LIGHT theme. Dark lives in tokens/themes/base-dark.css and
+   re-points these same names. */
+
+:root {
+  /* ---- Surfaces -------------------------------------------------- */
+  --dt-surface-base: var(--dt-color-white);          /* the page */
+  --dt-surface-subtle: var(--dt-color-neutral-050);  /* quiet section behind the page */
+  --dt-surface-raised: var(--dt-color-white);        /* cards, anything with elevation */
+  --dt-surface-sunken: var(--dt-color-neutral-100);  /* wells, code blocks, inset areas */
+  --dt-surface-overlay: var(--dt-color-white);       /* dialogs, popovers, menus */
+  --dt-surface-inverse: var(--dt-color-neutral-900); /* dark band on a light page */
+  --dt-surface-disabled: var(--dt-color-neutral-100);
+  --dt-surface-scrim: oklch(0.145 0.005 264 / 0.5);  /* behind a modal */
+
+  /* ---- Text ------------------------------------------------------ */
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-600);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-400);
+  --dt-text-inverse: var(--dt-color-neutral-050);
+  --dt-text-link: var(--dt-color-accent-700);
+  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link-visited: var(--dt-color-violet-700);
+
+  /* ---- Borders --------------------------------------------------- */
+  --dt-border-subtle: var(--dt-color-neutral-100);
+  --dt-border-default: var(--dt-color-neutral-200);
+  --dt-border-strong: var(--dt-color-neutral-400);
+  --dt-border-inverse: var(--dt-color-neutral-700);
+  --dt-border-disabled: var(--dt-color-neutral-200);
+
+  /* ---- Actions --------------------------------------------------- */
+  --dt-surface-action: var(--dt-color-accent-600);
+  --dt-surface-action-hover: var(--dt-color-accent-700);
+  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-text-on-action: var(--dt-color-white);
+
+  --dt-surface-action-secondary: var(--dt-color-white);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-900);
+  --dt-border-action-secondary: var(--dt-color-neutral-200);
+
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-200);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-900);
+
+  --dt-surface-action-danger: var(--dt-color-red-600);
+  --dt-surface-action-danger-hover: var(--dt-color-red-700);
+  --dt-surface-action-danger-active: var(--dt-color-red-800);
+  --dt-text-on-action-danger: var(--dt-color-white);
+
+  --dt-surface-action-disabled: var(--dt-color-neutral-100);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-400);
+
+  /* ---- Selection ------------------------------------------------- */
+  --dt-surface-selected: var(--dt-color-accent-050);
+  --dt-surface-selected-hover: var(--dt-color-accent-100);
+  --dt-text-on-selected: var(--dt-color-accent-900);
+  --dt-border-selected: var(--dt-color-accent-600);
+
+  /* ---- Feedback -------------------------------------------------- */
+  --dt-surface-success: var(--dt-color-green-600);
+  --dt-surface-success-subtle: var(--dt-color-green-050);
+  --dt-border-success: var(--dt-color-green-200);
+  --dt-text-success: var(--dt-color-green-800);
+  --dt-text-on-success: var(--dt-color-white);
+
+  --dt-surface-warning: var(--dt-color-amber-500);
+  --dt-surface-warning-subtle: var(--dt-color-amber-050);
+  --dt-border-warning: var(--dt-color-amber-200);
+  --dt-text-warning: var(--dt-color-amber-900);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+
+  --dt-surface-danger: var(--dt-color-red-600);
+  --dt-surface-danger-subtle: var(--dt-color-red-050);
+  --dt-border-danger: var(--dt-color-red-200);
+  --dt-text-danger: var(--dt-color-red-800);
+  --dt-text-on-danger: var(--dt-color-white);
+
+  --dt-surface-info: var(--dt-color-cyan-600);
+  --dt-surface-info-subtle: var(--dt-color-cyan-050);
+  --dt-border-info: var(--dt-color-cyan-200);
+  --dt-text-info: var(--dt-color-cyan-900);
+  --dt-text-on-info: var(--dt-color-white);
+
+  /* ---- Focus ----------------------------------------------------- */
+  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+
+  /* ---- Data visualisation ---------------------------------------
+     The documented exception to the no-primitives rule. Chart series need a
+     palette with no semantic meaning, ordered for categorical distinctness. */
+  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-2: var(--dt-color-violet-500);
+  --dt-viz-3: var(--dt-color-cyan-600);
+  --dt-viz-4: var(--dt-color-amber-500);
+  --dt-viz-5: var(--dt-color-green-600);
+  --dt-viz-6: var(--dt-color-red-500);
+}

@@ -1,0 +1,27 @@
+/* TIER 3 — TABLE
+   Tables are the densest surface in most products and the first place a generic
+   spacing scale stops fitting. These tokens let a consumer tune row rhythm without
+   changing the global density theme. */
+
+:root {
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-border-width: var(--dt-border-width-default);
+  --dt-table-radius: var(--dt-radius-container);
+
+  --dt-table-row-height: var(--dt-dim-12);
+  --dt-table-row-height-compact: var(--dt-dim-9);
+  --dt-table-cell-padding-x: var(--dt-space-inset-sm);
+  --dt-table-cell-padding-y: var(--dt-space-inset-xs);
+
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-header-font-size: var(--dt-font-size-xs);
+  --dt-table-header-font-weight: var(--dt-font-weight-medium);
+  --dt-table-header-tracking: var(--dt-tracking-wide);
+
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}

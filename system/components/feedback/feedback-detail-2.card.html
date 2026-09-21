@@ -1,0 +1,384 @@
+<!-- @dsCard group="Component detail" viewport="1100x1500" name="Feedback — detail" subtitle="Spinner, Progress, Banner, Tooltip, Popover, Toast, Drawer with props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Spinner, Progress, Banner, Tooltip, Popover, Toast, ToastRegion, Drawer, Alert, Button, IconButton, Input, Field, Inline, Stack;
+
+function Page() {
+  const [pct, setPct] = React.useState(64);
+  const [pop, setPop] = React.useState(false);
+  const [drawer, setDrawer] = React.useState(false);
+  const [toasts, setToasts] = React.useState([]);
+  function push(t) {
+    const id = Date.now();
+    setToasts(v => [...v, { ...t, id }]);
+    setTimeout(() => setToasts(v => v.filter(x => x.id !== id)), 4000);
+  }
+  return (
+    <React.Fragment>
+      <PageHead title="Feedback" subtitle="Components that tell the user what the system is doing or what just happened. Each one picks its aria live behaviour from its tone — danger announces assertively, everything else politely." />
+
+      <Shelf
+        name="Spinner"
+        summary="Indeterminate loading for actions with no known result shape."
+        props={[
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+          { name: "label", type: "string", default: '"Loading"', notes: "Announced via role=status. Make it specific." },
+          { name: "inline", type: "boolean", default: "false", notes: "Render inline with text." },
+        ]}
+        guidance={[
+          "Spinner for actions; Skeleton for content about to fill a known layout.",
+          "Below roughly 300ms, show nothing. A flash of spinner reads as a glitch.",
+          'Make the label specific: "Saving changes" beats "Loading".',
+          "Spinners give no sense of duration. If you know the progress, use Progress.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Inline gap="xl" align="center">
+            <Spinner size="sm" label="Loading results" />
+            <Spinner size="md" label="Saving changes" />
+            <Spinner size="lg" label="Connecting" />
+            <Button size="sm" disabled><Inline gap="xs" align="center"><Spinner size="sm" inline label="Saving" />Saving…</Inline></Button>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Progress"
+        summary="Determinate or indeterminate bar for a measurable task."
+        props={[
+          { name: "value", type: "number", notes: "Omit for an indeterminate bar." },
+          { name: "max", type: "number", default: "100" },
+          { name: "label", type: "ReactNode", notes: "Visible label and accessible name." },
+          { name: "showValue", type: "boolean", default: "false" },
+          { name: "tone", type: '"accent" | "success" | "warning" | "danger"', default: '"accent"' },
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+        ]}
+        guidance={[
+          "Only use a determinate bar when you can measure honestly. A bar stuck at 90% costs more trust than a spinner.",
+          "Pair label with showValue for anything over a few seconds.",
+          "Tone is semantic — warning and danger are for quota meters near a limit, not decoration.",
+          "Indeterminate bars look like progress without being progress. If you cannot measure, Spinner is more honest.",
+        ]}
+      >
+        <Specimen label="Determinate" bg="var(--dt-surface-base)">
+          <Stack gap="md" style={{ maxWidth: 420 }}>
+            <Progress label="Uploading 3 files" value={pct} showValue />
+            <Progress label="Storage used" value={87} max={100} tone="warning" showValue size="sm" />
+            <Progress label="Seats assigned" value={20} max={20} tone="danger" showValue size="sm" />
+            <Inline gap="sm">
+              <Button size="sm" variant="secondary" onClick={() => setPct(Math.max(0, pct - 20))}>−20</Button>
+              <Button size="sm" variant="secondary" onClick={() => setPct(Math.min(100, pct + 20))}>+20</Button>
+            </Inline>
+          </Stack>
+        </Specimen>
+        <Specimen label="Indeterminate" bg="var(--dt-surface-base)">
+          <Progress label="Importing from CSV" style={{ maxWidth: 420 }} />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Banner"
+        summary="Full-width message about the state of the whole view. Use Alert for messages scoped to one region."
+        props={[
+          { name: "tone", type: '"info" | "success" | "warning" | "danger"', default: '"info"' },
+          { name: "title", type: "ReactNode" },
+          { name: "children", type: "ReactNode", notes: "Body copy." },
+          { name: "action", type: "ReactNode", notes: "One trailing action." },
+          { name: "onDismiss", type: "() => void", notes: "Renders a close button when supplied." },
+        ]}
+        guidance={[
+          "Banners run edge to edge at the top of the region they describe. A floating banner mid-page is an Alert.",
+          "One banner at a time. Stacked banners push the page below the fold and train users to ignore the strip.",
+          "Persistent conditions get no dismiss button. Only offer onDismiss when dismissing is a real decision.",
+          "A banner buys attention from every user on the page, including those it is not for. Target it.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <Banner tone="warning" title="Trial ends in 3 days" action={<Button size="sm">Add payment</Button>}>Your workspace switches to read-only when the trial ends.</Banner>
+            <Banner tone="danger" title="Sync failed" action={<Button size="sm" variant="secondary">Retry</Button>}>We could not reach your Git provider. Changes since 14:02 are not backed up.</Banner>
+            <Banner tone="info" onDismiss={() => {}}>Scheduled maintenance on Sunday 02:00–04:00 UTC.</Banner>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Tooltip"
+        summary="Short label revealed on hover or focus. Supplementary only — never the sole source of a label."
+        props={[
+          { name: "content", type: "ReactNode", required: true, notes: "A few words." },
+          { name: "children", type: "ReactNode", required: true, notes: "The trigger. Must be focusable." },
+          { name: "placement", type: '"top" | "bottom" | "left" | "right"', default: '"top"' },
+          { name: "delay", type: "number", default: "200", notes: "Hover delay in ms." },
+        ]}
+        guidance={[
+          "An IconButton still needs its own label prop. The tooltip repeats it for sighted users.",
+          "Never put an action, a link, or required reading in a tooltip. It is unreachable on touch.",
+          "The trigger must be focusable. A tooltip on a plain span never opens for keyboard users.",
+          "Tooltips do not exist on touch devices. Plan the mobile affordance separately.",
+        ]}
+      >
+        <Specimen label="Hover or tab to the buttons" bg="var(--dt-surface-base)">
+          <Inline gap="lg" align="center">
+            <Tooltip content="Duplicate"><Button size="sm" variant="secondary">Duplicate</Button></Tooltip>
+            <Tooltip content="Archive this project" placement="bottom"><Button size="sm" variant="secondary">Archive</Button></Tooltip>
+            <Tooltip content="Only owners can delete" placement="right"><Button size="sm" variant="secondary" disabled>Delete</Button></Tooltip>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Popover"
+        summary="Anchored panel for secondary controls. Opens on click, closes on outside click or Escape."
+        props={[
+          { name: "trigger", type: "ReactNode", required: true, notes: "Cloned with aria-expanded and aria-haspopup." },
+          { name: "label", type: "string", required: true, notes: "Accessible name for the panel." },
+          { name: "open", type: "boolean", notes: "Controlled. Omit to let the component manage it." },
+          { name: "onOpenChange", type: "(open: boolean) => void" },
+          { name: "placement", type: '"bottom-start" | "bottom-end" | "top-start" | "top-end"', default: '"bottom-start"' },
+          { name: "width", type: "number | string", default: "260" },
+        ]}
+        guidance={[
+          "Click, not hover. Hover-opened panels with controls are unusable on touch.",
+          "Keep it to one job. A popover with tabs inside should be a Drawer or a Dialog.",
+          "Do not nest popovers. The second traps focus behind the first.",
+          "Past roughly 320px tall, a Drawer gives the user a scrollable surface and a clear way out.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Popover
+            label="Filter invoices"
+            open={pop}
+            onOpenChange={setPop}
+            trigger={<Button size="sm" variant="secondary">Filter</Button>}
+          >
+            <Stack gap="sm">
+              <span style={{ fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-label-md-size)" }}>Filter invoices</span>
+              <Field label="Client"><Input placeholder="Any client" /></Field>
+              <Inline gap="sm" justify="flex-end"><Button size="sm" variant="ghost" onClick={() => setPop(false)}>Cancel</Button><Button size="sm" onClick={() => setPop(false)}>Apply</Button></Inline>
+            </Stack>
+          </Popover>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Toast / ToastRegion"
+        summary="Transient confirmation of something the user just did. ToastRegion owns the fixed positioning and stacking."
+        props={[
+          { name: "tone", type: '"neutral" | "success" | "warning" | "danger"', default: '"neutral"' },
+          { name: "title", type: "ReactNode" },
+          { name: "action", type: "ReactNode", notes: "One action — Undo or Retry." },
+          { name: "onDismiss", type: "() => void" },
+          { name: "placement", type: '"bottom-right" | "bottom-left" | "top-right" | "top-center"', default: '"bottom-right"', notes: "ToastRegion only." },
+        ]}
+        guidance={[
+          "Render toasts inside a ToastRegion. It owns positioning, stacking, and the accessible region name.",
+          "Toasts are for outcomes, not errors needing a decision. Those belong in an Alert next to the form.",
+          "danger announces assertively and should not auto-dismiss.",
+          "Never stack more than three. Toasts are easy to miss — for anything that must be acknowledged, use a Dialog.",
+        ]}
+      >
+        <Specimen label="Static examples" bg="var(--dt-surface-base)">
+          <Stack gap="sm" style={{ maxWidth: 420 }}>
+            <Toast tone="success" title="Invoice sent" onDismiss={() => {}}>INV-2043 was emailed to Pallas Freight.</Toast>
+            <Toast title="Draft deleted" action={<Button size="sm" variant="ghost">Undo</Button>} onDismiss={() => {}} />
+            <Toast tone="danger" title="Upload failed" action={<Button size="sm" variant="ghost">Retry</Button>} onDismiss={() => {}}>report-q3.pdf exceeds the 25 MB limit.</Toast>
+          </Stack>
+        </Specimen>
+        <Specimen label="Live region" bg="var(--dt-surface-base)">
+          <Inline gap="sm">
+            <Button size="sm" onClick={() => push({ tone: "success", title: "Changes saved" })}>Show success</Button>
+            <Button size="sm" variant="secondary" onClick={() => push({ title: "Item removed", undo: true })}>Show with undo</Button>
+          </Inline>
+          <ToastRegion>
+            {toasts.map(t => (
+              <Toast key={t.id} tone={t.tone} title={t.title}
+                action={t.undo ? <Button size="sm" variant="ghost" onClick={() => setToasts(v => v.filter(x => x.id !== t.id))}>Undo</Button> : undefined}
+                onDismiss={() => setToasts(v => v.filter(x => x.id !== t.id))} />
+            ))}
+          </ToastRegion>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Drawer"
+        summary="Modal panel from an edge, for detail views and secondary forms. Escape and the scrim both close it, and focus returns to the trigger."
+        props={[
+          { name: "open", type: "boolean", required: true },
+          { name: "onClose", type: "() => void" },
+          { name: "title", type: "ReactNode", notes: "Header text and accessible name when a string." },
+          { name: "footer", type: "ReactNode", notes: "Stays visible while the body scrolls." },
+          { name: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
+          { name: "width", type: "number | string", default: "380", notes: "Left and right only." },
+        ]}
+        guidance={[
+          "right for detail and editing, left for navigation on narrow screens, bottom for mobile sheets.",
+          "Actions go in footer, not loose at the end of the body.",
+          "A drawer is modal. If the user must reference the page behind it, use an inline panel.",
+          "For tasks longer than a couple of fields, a dedicated page respects the browser back button.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Button size="sm" onClick={() => setDrawer(true)}>Open drawer</Button>
+          <Drawer
+            open={drawer}
+            onClose={() => setDrawer(false)}
+            title="Invoice INV-2043"
+            footer={<React.Fragment><Button size="sm" variant="secondary" onClick={() => setDrawer(false)}>Cancel</Button><Button size="sm" onClick={() => setDrawer(false)}>Save</Button></React.Fragment>}
+          >
+            <Stack gap="md">
+              <Alert tone="warning" title="Past due">This invoice was due 14 days ago.</Alert>
+              <Field label="Client"><Input defaultValue="Pallas Freight" /></Field>
+              <Field label="Amount" hint="Excluding tax."><Input defaultValue="12,040.00" /></Field>
+            </Stack>
+          </Drawer>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Spinner","Progress","Banner","Tooltip","Popover","Toast","ToastRegion","Drawer","Alert","Button","IconButton","Input","Field","Inline","Stack"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Spinner, Progress, Banner, Tooltip, Popover, Toast, ToastRegion, Drawer, Alert, Button, IconButton, Input, Field, Inline, Stack } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

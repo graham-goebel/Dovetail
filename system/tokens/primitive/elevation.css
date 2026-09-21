@@ -1,0 +1,13 @@
+/* TIER 1 — PRIMITIVE ELEVATION
+   Raw shadow recipes. Each is a two-layer shadow: a tight contact shadow plus a
+   soft ambient one. Single-layer shadows read as flat stickers at larger sizes. */
+
+:root {
+  --dt-shadow-raw-none: none; /* @kind other */
+  --dt-shadow-raw-1: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 1px 3px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+  --dt-shadow-raw-2: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 2px 6px -1px oklch(0.145 0.005 264 / 0.10); /* @kind other */
+  --dt-shadow-raw-3: 0 2px 4px -1px oklch(0.145 0.005 264 / 0.06), 0 6px 12px -2px oklch(0.145 0.005 264 / 0.10); /* @kind other */
+  --dt-shadow-raw-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12); /* @kind other */
+  --dt-shadow-raw-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16); /* @kind other */
+  --dt-shadow-raw-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+}

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token reference · Dovetail</title>
+<meta name="description" content="The full token contract, tier by tier.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html" aria-current="page">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Token reference</li></ol></nav>
+<article class="prose doc">
+<h1 id="token-reference">Token reference</h1>
+<p>The full vocabulary, with the reasoning behind each group. For the architecture, see <code>readme.md</code>. For how to override any of it, see <code>theming.md</code>.</p>
+<h2 id="naming-grammar">Naming grammar</h2>
+<pre class="code"><code>--dt-[category]-[role]-[variant]-[state]</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Example</th><th>Tier</th><th>Reads as</th></tr></thead><tbody><tr><td><code>--dt-color-neutral-600</code></td><td>Primitive</td><td>category, hue, step</td></tr><tr><td><code>--dt-surface-action-hover</code></td><td>Semantic</td><td>category, role, state</td></tr><tr><td><code>--dt-text-on-action</code></td><td>Semantic</td><td>the foreground paired with <code>surface-action</code></td></tr><tr><td><code>--dt-button-primary-bg-hover</code></td><td>Component</td><td>component, variant, property, state</td></tr></tbody></table></div>
+<p>Lowercase, hyphen-delimited, one convention throughout. Names are stable API — renaming a token is a migration, so name it carefully the first time.</p>
+<hr>
+<h2 id="tier-1-primitive">Tier 1 — Primitive</h2>
+<h3 id="colour">Colour</h3>
+<p>Seven ramps of eleven steps (<code>050</code>–<code>950</code>), all OKLCH.</p>
+<p><code>neutral</code> · <code>accent</code> · <code>green</code> · <code>amber</code> · <code>red</code> · <code>cyan</code> · <code>violet</code></p>
+<p>OKLCH because lightness is perceptually uniform. Step 600 in any ramp carries the same visual weight, so a brand hue dropped into the accent ramp inherits the contrast behaviour the system was tested against. A hex ramp gives you no such guarantee.</p>
+<p><code>violet</code> is the spare hue, reserved for data visualisation so charts never collide with a semantic meaning.</p>
+<h3 id="dimension">Dimension</h3>
+<p>One base unit: <strong>4px</strong>. The number in the name is the multiplier, so <code>--dt-dim-6</code> is 24px. The name stays true if the base unit ever changes.</p>
+<pre class="code"><code>0  1  2  3  4  5  6  7  8  9  10  11  12  14  16  20  24  28  32  40  48  56  64</code></pre>
+<p><code>--dt-dim-hair</code> (1px) and <code>--dt-dim-hair-2</code> (2px) are the only sub-unit values. They exist for borders and optical nudges, and are named separately so they cannot leak into layout.</p>
+<h3 id="typography">Typography</h3>
+<p>Sizes follow a 1.200 modular scale from a 16px base, rounded to whole pixels. Two rounds are deliberate: 13.33 → <strong>14</strong> because 14px is the workhorse UI size, and 57.33 → <strong>58</strong> because half-pixel display type renders inconsistently across browsers.</p>
+<div class="table-wrap"><table><thead><tr><th>Token</th><th>Size</th><th>Line height</th></tr></thead><tbody><tr><td><code>2xs</code></td><td>11</td><td>16</td></tr><tr><td><code>xs</code></td><td>12</td><td>16</td></tr><tr><td><code>sm</code></td><td>14</td><td>20</td></tr><tr><td><code>md</code></td><td>16</td><td>24</td></tr><tr><td><code>lg</code></td><td>19</td><td>28</td></tr><tr><td><code>xl</code></td><td>23</td><td>32</td></tr><tr><td><code>2xl</code></td><td>28</td><td>36</td></tr><tr><td><code>3xl</code></td><td>33</td><td>40</td></tr><tr><td><code>4xl</code></td><td>40</td><td>48</td></tr><tr><td><code>5xl</code></td><td>48</td><td>52</td></tr><tr><td><code>6xl</code></td><td>58</td><td>64</td></tr><tr><td><code>7xl</code></td><td>69</td><td>76</td></tr></tbody></table></div>
+<p>Every line height is a multiple of 4, so text blocks align to the same grid as everything else. This is the one place the modular scale and the 4px grid are reconciled by hand — forcing font sizes themselves onto 4px multiples produces a lumpy, unusable scale.</p>
+<h3 id="motion-and-elevation">Motion and elevation</h3>
+<p>Durations 0–600ms. Four easing curves: <code>standard</code>, <code>decelerate</code>, <code>accelerate</code>, <code>emphasis</code>.</p>
+<p>Six raw shadows, each a two-layer recipe — a tight contact shadow plus a soft ambient one. Single-layer shadows read as flat stickers once they get large.</p>
+<hr>
+<h2 id="tier-2-semantic">Tier 2 — Semantic</h2>
+<p>The themeable layer. This is where a consumer spends their time.</p>
+<h3 id="surfaces">Surfaces</h3>
+<div class="table-wrap"><table><thead><tr><th>Token</th><th>Use for</th></tr></thead><tbody><tr><td><code>--dt-surface-base</code></td><td>the page</td></tr><tr><td><code>--dt-surface-subtle</code></td><td>a quiet section band</td></tr><tr><td><code>--dt-surface-raised</code></td><td>cards, anything with elevation</td></tr><tr><td><code>--dt-surface-sunken</code></td><td>wells, code blocks, inset areas</td></tr><tr><td><code>--dt-surface-overlay</code></td><td>dialogs, popovers, menus</td></tr><tr><td><code>--dt-surface-inverse</code></td><td>a dark band on a light page</td></tr><tr><td><code>--dt-surface-scrim</code></td><td>behind a modal</td></tr></tbody></table></div>
+<p>Six surfaces rather than two, because dense product UI needs more than a page colour and a card colour. A settings panel inside a card inside a dialog has three surfaces to distinguish, and guessing at opacity values is how that goes wrong.</p>
+<h3 id="text">Text</h3>
+<p><code>primary</code> · <code>secondary</code> · <code>tertiary</code> · <code>disabled</code> · <code>inverse</code> · <code>link</code> · <code>link-hover</code> · <code>link-visited</code></p>
+<p>Plus the <code>on-</code> roles, which exist only as halves of a pair: <code>--dt-text-on-action</code>, <code>--dt-text-on-success</code>, <code>--dt-text-on-selected</code>, and so on.</p>
+<h3 id="actions">Actions</h3>
+<p>Four variants, each with resting, hover, active, and foreground roles: <code>action</code> · <code>action-secondary</code> · <code>action-ghost</code> · <code>action-danger</code>.</p>
+<p>Plus <code>action-disabled</code>, which is shared — a disabled button looks the same regardless of what variant it would otherwise be.</p>
+<h3 id="space">Space</h3>
+<p>Three axes. <code>16px</code> does not say what the gap is for; <code>--dt-space-stack-md</code> does.</p>
+<ul><li><code>inset-*</code> — padding inside a container</li><li><code>stack-*</code> — vertical gap between blocks</li><li><code>inline-*</code> — horizontal gap between siblings</li></ul>
+<p>Naming the axis also lets a density theme retune one axis without touching the others.</p>
+<h3 id="size">Size</h3>
+<p>Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32. <code>--dt-size-touch-target</code> (44px) is the minimum hit area on touch surfaces.</p>
+<h3 id="shape">Shape</h3>
+<p>Radius is named by what it wraps: <code>control</code>, <code>container</code>, <code>overlay</code>, <code>media</code>, <code>pill</code>. A square-cornered theme flattens the entire system by re-pointing five lines.</p>
+<h3 id="elevation">Elevation</h3>
+<p>Six levels, and a z-index ladder to match. Keep every fixed-position layer on the ladder — hand-picked z-index values are how overlay bugs start.</p>
+<pre class="code"><code>0 flush        3 sticky headers, dropdowns
+1 cards        4 dialogs, drawers
+2 hover, popovers   5 toasts</code></pre>
+<h3 id="motion">Motion</h3>
+<p>Four roles. <code>micro</code> for state changes on screen, <code>enter</code> for arrivals, <code>exit</code> for departures, <code>emphasis</code> for changes that must be noticed. Exits are faster than entrances: people wait for arrivals, not departures.</p>
+<p>All four collapse to zero under <code>prefers-reduced-motion</code>.</p>
+<hr>
+<h2 id="tier-3-component">Tier 3 — Component</h2>
+<p>Authored only for Button, Input, Card, Dialog, and Table — the components with a real override need. Adding Tier 3 to every component is a maintenance tax most teams never cash in.</p>
+<p>The cascade is the point:</p>
+<pre class="code" data-lang="css"><code>/* Move every action surface in the system */
+--dt-surface-action: var(--dt-color-accent-700);
+
+/* Move only Button */
+--dt-button-primary-bg: var(--dt-color-accent-700);</code></pre>
+<p><code>input.css</code> is shared by Input, Textarea, Select, and Combobox so every field in a form has identical geometry. A field 1px taller than its neighbour is the most visible failure a design system can ship.</p>
+<hr>
+<h2 id="adding-a-token">Adding a token</h2>
+<ol><li>Pick the tier. If it has a usage meaning, it is semantic. If it is a raw value, it is primitive. If only one component will ever read it, it is component.</li><li>Add it to <code>tokens/dovetail.tokens.json</code> first — a semantic <code>$value</code> must be a reference, never a literal.</li><li>Write the value in the DTCG type syntax for its <code>$type</code>, not as a CSS string. The file follows <a href="https://www.designtokens.org/tr/2025.10/format/">Design Tokens Format Module 2025.10</a>: colours are <code>{ &quot;colorSpace&quot;: &quot;oklch&quot;, &quot;components&quot;: [L, C, H] }</code> with an optional <code>alpha</code>, dimensions and durations are <code>{ &quot;value&quot;, &quot;unit&quot; }</code> objects (<code>px</code>/<code>rem</code>, <code>ms</code>/<code>s</code>), easings are four-number <code>cubicBezier</code> arrays, and elevation levels are <code>shadow</code> composites. Tracking is a unitless <code>number</code> because DTCG dimension has no <code>em</code>; the CSS generator adds the unit.</li><li>Port it to the matching CSS file.</li><li>Add it to the relevant spec card so it is visible in the Design System tab.</li><li>If it is a colour, verify contrast against its pair before committing.</li></ol>
+</article>
+<p class="muted">Source: <a href="../system/guidelines/tokens.md">system/guidelines/tokens.md</a></p>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

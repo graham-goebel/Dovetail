@@ -1,0 +1,24 @@
+import * as React from "react";
+import { AspectRatioProps } from "./AspectRatio";
+
+/** A ratio-locked image. Renders a labelled placeholder when \`src\` is absent, so templates lay out before content arrives. */
+export interface ImageProps extends Omit<React.HTMLAttributes<HTMLElement>, "placeholder"> {
+  /** Image URL. Omit to render the placeholder frame. */
+  src?: string;
+  /** Alternative text. Required — pass an empty string only for decorative images. */
+  alt: string;
+  /** @default "16:9" */
+  ratio?: AspectRatioProps["ratio"];
+  /** How the image fills its frame. @default "cover" */
+  fit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+  /** Focal point, any CSS object-position. @default "center" */
+  position?: string;
+  /** @default "media" */
+  radius?: "none" | "media" | "container" | "pill";
+  /** @default "lazy" */
+  loading?: "lazy" | "eager";
+  /** Text shown in the placeholder frame. Falls back to \`alt\`. */
+  placeholder?: string;
+}
+
+export declare function Image(props: ImageProps): JSX.Element;

@@ -1,0 +1,106 @@
+/* BASE DARK THEME
+   Dark mode is not a second design system. It re-points the same semantic names at
+   different primitives. No component changes, no dark-specific class names.
+
+   Two rules that make dark mode work:
+   1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
+      invisible on a dark ground, so raised surfaces get lighter instead.
+   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+      white is too hot on near-black; 500 carries the same weight.
+
+   Applies on .dark, and automatically when the OS asks for it. */
+
+.dark {
+  --dt-surface-base: var(--dt-color-neutral-950);
+  --dt-surface-subtle: var(--dt-color-neutral-900);
+  --dt-surface-raised: var(--dt-color-neutral-900);
+  --dt-surface-sunken: var(--dt-color-black);
+  --dt-surface-overlay: var(--dt-color-neutral-800);
+  --dt-surface-inverse: var(--dt-color-neutral-050);
+  --dt-surface-disabled: var(--dt-color-neutral-800);
+  --dt-surface-scrim: oklch(0 0 0 / 0.7);
+
+  --dt-text-primary: var(--dt-color-neutral-050);
+  --dt-text-secondary: var(--dt-color-neutral-400);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-600);
+  --dt-text-inverse: var(--dt-color-neutral-900);
+  --dt-text-link: var(--dt-color-accent-400);
+  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link-visited: var(--dt-color-violet-400);
+
+  --dt-border-subtle: var(--dt-color-neutral-800);
+  --dt-border-default: var(--dt-color-neutral-700);
+  --dt-border-strong: var(--dt-color-neutral-500);
+  --dt-border-inverse: var(--dt-color-neutral-300);
+  --dt-border-disabled: var(--dt-color-neutral-800);
+
+  --dt-surface-action: var(--dt-color-accent-500);
+  --dt-surface-action-hover: var(--dt-color-accent-400);
+  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-text-on-action: var(--dt-color-neutral-950);
+
+  --dt-surface-action-secondary: var(--dt-color-neutral-900);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-050);
+  --dt-border-action-secondary: var(--dt-color-neutral-700);
+
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-050);
+
+  --dt-surface-action-danger: var(--dt-color-red-500);
+  --dt-surface-action-danger-hover: var(--dt-color-red-400);
+  --dt-surface-action-danger-active: var(--dt-color-red-300);
+  --dt-text-on-action-danger: var(--dt-color-neutral-950);
+
+  --dt-surface-action-disabled: var(--dt-color-neutral-800);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-600);
+
+  --dt-surface-selected: oklch(0.256 0.093 259);
+  --dt-surface-selected-hover: oklch(0.344 0.128 259);
+  --dt-text-on-selected: var(--dt-color-accent-100);
+  --dt-border-selected: var(--dt-color-accent-500);
+
+  --dt-surface-success: var(--dt-color-green-500);
+  --dt-surface-success-subtle: var(--dt-color-green-950);
+  --dt-border-success: var(--dt-color-green-800);
+  --dt-text-success: var(--dt-color-green-300);
+  --dt-text-on-success: var(--dt-color-neutral-950);
+
+  --dt-surface-warning: var(--dt-color-amber-400);
+  --dt-surface-warning-subtle: var(--dt-color-amber-950);
+  --dt-border-warning: var(--dt-color-amber-800);
+  --dt-text-warning: var(--dt-color-amber-300);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+
+  --dt-surface-danger: var(--dt-color-red-500);
+  --dt-surface-danger-subtle: var(--dt-color-red-950);
+  --dt-border-danger: var(--dt-color-red-800);
+  --dt-text-danger: var(--dt-color-red-300);
+  --dt-text-on-danger: var(--dt-color-neutral-950);
+
+  --dt-surface-info: var(--dt-color-cyan-500);
+  --dt-surface-info-subtle: var(--dt-color-cyan-950);
+  --dt-border-info: var(--dt-color-cyan-800);
+  --dt-text-info: var(--dt-color-cyan-300);
+  --dt-text-on-info: var(--dt-color-neutral-950);
+
+  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+
+  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-2: var(--dt-color-violet-400);
+  --dt-viz-3: var(--dt-color-cyan-400);
+  --dt-viz-4: var(--dt-color-amber-400);
+  --dt-viz-5: var(--dt-color-green-400);
+  --dt-viz-6: var(--dt-color-red-400);
+
+  /* Elevation as lightness. Shadows stay for depth cueing but carry less of the work. */
+  --dt-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.4);
+  --dt-elevation-2: 0 2px 6px -1px oklch(0 0 0 / 0.5);
+  --dt-elevation-3: 0 6px 12px -2px oklch(0 0 0 / 0.55);
+  --dt-elevation-4: 0 12px 24px -4px oklch(0 0 0 / 0.6);
+  --dt-elevation-5: 0 24px 48px -8px oklch(0 0 0 / 0.7);
+}

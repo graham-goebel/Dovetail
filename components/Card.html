@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card · Dovetail</title>
+<meta name="description" content="A content container. Card is the clearest demonstration of the context system: the same component is a bordered, flat panel in product and a borderless, softly raised content block in marketing.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html" aria-current="page">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Card</li></ol></nav>
+<h1>Card</h1>
+<p class="lede">A content container. Card is the clearest demonstration of the context system: the same component is a bordered, flat panel in product and a borderless, softly raised content block in marketing.</p>
+<p class="meta">
+  <span class="pill">Display</span>
+  
+  <a href="../system/components/display/Card.jsx">Card.jsx</a>
+  <a href="../system/components/display/Card.d.ts">Card.d.ts</a>
+  <a href="../system/components/display/Card.md">Card.md</a>
+</p>
+
+<section class="card-block" id="card-live">
+  <div class="card-head">
+    <h2>Card — live</h2>
+    <a class="card-open" href="../previews/Card.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:928px">
+    <iframe src="../previews/Card.html" title="Card — live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A content container. Card is the clearest demonstration of the context system: the same component is a bordered, flat panel in product and a borderless, softly raised content block in marketing.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>Grouping related content that could stand alone: a plan, a setting group, a dashboard panel, a feature block.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>Everything on the page is a card. Nesting cards inside cards means neither is doing any work — use <code>Stack</code> and a <code>Divider</code>.</li><li>It is a list of similar rows. Use one container with row borders.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>&lt;Card
+  eyebrow=&quot;Best value&quot;
+  title=&quot;Team&quot;
+  description=&quot;Everything in Starter, plus shared workspaces.&quot;
+  footer={&lt;Button fullWidth&gt;Choose Team&lt;/Button&gt;}
+/&gt;</code></pre>
+<h2 id="product-vs-marketing">Product vs marketing</h2>
+<p>Set by the context, not by a prop.</p>
+<div class="table-wrap"><table><thead><tr><th></th><th>Product</th><th>Marketing</th></tr></thead><tbody><tr><td>Padding</td><td>16px</td><td>32px</td></tr><tr><td>Border</td><td>1px</td><td>none</td></tr><tr><td>Elevation</td><td>0, raising to 1</td><td>0, raising to 2</td></tr><tr><td>Radius</td><td>container (8px)</td><td>overlay (12px)</td></tr></tbody></table></div>
+<p>If a card needs different treatment inside one context, that is a Tier 3 override on a wrapper, not a new prop.</p>
+<h2 id="tokens">Tokens</h2>
+<p><code>--dt-card-*</code>. Override these to restyle every card; override <code>--dt-surface-raised</code> to move all raised surfaces together.</p>
+<h2 id="accessibility">Accessibility</h2>
+<p><code>interactive</code> is visual only. A clickable card needs a real control inside it, or <code>as=&quot;button&quot;</code> with an accessible name — a div with onClick is not keyboard operable.</p>
+<h2 id="content">Content</h2>
+<p>Eyebrow is two or three words. Title is a noun phrase. Description is one sentence.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Card.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/**
+ * Content container. The most context-sensitive component in the system.
+ */
+export interface CardProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
+  /** Uppercase label above the title. */
+  eyebrow?: string;
+  title?: React.ReactNode;
+  /** Secondary copy below the title. */
+  description?: React.ReactNode;
+  /** Image or media slot, rendered above everything. */
+  media?: React.ReactNode;
+  /** Action row at the bottom. */
+  footer?: React.ReactNode;
+  /** Raises elevation on hover and sets a pointer cursor. */
+  interactive?: boolean;
+  /** Accent border and tinted background for a chosen option. */
+  selected?: boolean;
+  /** @default &quot;div&quot; */
+  as?: keyof JSX.IntrinsicElements;
+  children?: React.ReactNode;
+}
+
+export declare function Card(props: CardProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+export function Card({ eyebrow, title, description, media, footer, interactive = false, selected = false, as: Tag = &quot;div&quot;, children, style, ...rest }) {
+  const [hover, setHover] = React.useState(false);
+  return (
+    &lt;Tag
+      onMouseEnter={() =&gt; interactive &amp;&amp; setHover(true)}
+      onMouseLeave={() =&gt; interactive &amp;&amp; setHover(false)}
+      style={{
+        display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-card-gap)&quot;,
+        background: selected ? &quot;var(--dt-card-selected-bg)&quot; : &quot;var(--dt-card-bg)&quot;,
+        color: &quot;var(--dt-card-fg)&quot;,
+        border: `var(--dt-card-border-width) solid ${selected ? &quot;var(--dt-card-selected-border)&quot; : &quot;var(--dt-card-border-color)&quot;}`,
+        borderRadius: &quot;var(--dt-card-radius)&quot;,
+        padding: &quot;var(--dt-card-padding)&quot;,
+        boxShadow: hover ? &quot;var(--dt-card-elevation-hover)&quot; : &quot;var(--dt-card-elevation)&quot;,
+        transition: &quot;box-shadow var(--dt-card-transition), border-color var(--dt-card-transition)&quot;,
+        cursor: interactive ? &quot;pointer&quot; : undefined,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      {media}
+      {eyebrow &amp;&amp; (
+        &lt;span style={{
+          fontFamily: &quot;var(--dt-text-eyebrow-family)&quot;, fontSize: &quot;var(--dt-text-eyebrow-size)&quot;,
+          lineHeight: &quot;var(--dt-text-eyebrow-line)&quot;, fontWeight: &quot;var(--dt-text-eyebrow-weight)&quot;,
+          letterSpacing: &quot;var(--dt-text-eyebrow-tracking)&quot;, textTransform: &quot;uppercase&quot;,
+          color: &quot;var(--dt-text-secondary)&quot;,
+        }}&gt;{eyebrow}&lt;/span&gt;
+      )}
+      {title &amp;&amp; (
+        &lt;span style={{
+          fontFamily: &quot;var(--dt-text-heading-sm-family)&quot;, fontSize: &quot;var(--dt-text-heading-sm-size)&quot;,
+          lineHeight: &quot;var(--dt-text-heading-sm-line)&quot;, fontWeight: &quot;var(--dt-text-heading-sm-weight)&quot;,
+          letterSpacing: &quot;var(--dt-text-heading-sm-tracking)&quot;,
+        }}&gt;{title}&lt;/span&gt;
+      )}
+      {description &amp;&amp; (
+        &lt;span style={{
+          fontFamily: &quot;var(--dt-text-body-sm-family)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;,
+          lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-text-secondary)&quot;,
+        }}&gt;{description}&lt;/span&gt;
+      )}
+      {children}
+      {footer &amp;&amp; &lt;div style={{ marginTop: &quot;var(--dt-space-stack-xs)&quot; }}&gt;{footer}&lt;/div&gt;}
+    &lt;/Tag&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Card also appears on the display reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#displaydetail">DisplayDetail</a></li><li><a href="../showcase/detail.html#surfacesdetail">SurfacesDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

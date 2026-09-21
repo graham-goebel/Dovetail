@@ -1,0 +1,20 @@
+/* TIER 3 — CARD
+   Card is the most-overridden component in every system, because it is the one
+   that carries a product's surface personality. Its tokens are exposed so a
+   consumer can go from bordered-and-flat to shadowed-and-round without a fork. */
+
+:root {
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+  --dt-card-padding: var(--dt-space-inset-lg);
+  --dt-card-gap: var(--dt-space-stack-sm);
+  --dt-card-elevation: var(--dt-elevation-1); /* @kind other */
+  --dt-card-elevation-hover: var(--dt-elevation-2); /* @kind other */
+  --dt-card-transition: var(--dt-motion-micro);
+
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+}

@@ -1,0 +1,395 @@
+<!-- @dsCard group="Component detail" viewport="1100x1800" name="Forms — detail" subtitle="Field, Input, Textarea, Select, Checkbox, Radio, Switch, Slider with states, props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Field, Input, Textarea, Select, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider, Button, Inline, Stack, Grid;
+
+function Page() {
+  const [plan, setPlan] = React.useState("team");
+  const [scopes, setScopes] = React.useState(["read"]);
+  const [seats, setSeats] = React.useState(12);
+  const [notify, setNotify] = React.useState(true);
+  return (
+    <React.Fragment>
+      <PageHead title="Forms" subtitle="Controls that collect input. Every one carries its own label, hint, and error wiring — the accessible name is a prop, never something the page is trusted to add later." />
+
+      <Shelf
+        name="Field"
+        summary="Label, control, hint, and error wrapper. Every form control in a form goes inside one."
+        props={[
+          { name: "label", type: "string", notes: "Visible label. Ties to the control through htmlFor." },
+          { name: "hint", type: "string", notes: "Helper text below the control." },
+          { name: "error", type: "string", notes: "Replaces the hint and renders in an alert live region." },
+          { name: "required", type: "boolean", notes: "Adds the marker. Also set required on the control itself." },
+          { name: "htmlFor", type: "string", notes: "id of the control this labels." },
+        ]}
+        guidance={[
+          "error replaces hint rather than stacking with it, so the user is never asked to read two instructions at once.",
+          "Placeholder text is not a label. It disappears the moment the user types, which is when they most need it.",
+          "Hints say what good input looks like before the user types. Errors say what went wrong and how to fix it.",
+          "Mark optional fields rather than required ones when most fields are required — fewer markers, less noise.",
+        ]}
+      >
+        <Specimen label="Rest, hint, error, required" bg="var(--dt-surface-base)">
+          <Grid minColumnWidth="220px" gap="md">
+            <Field label="Workspace name"><Input defaultValue="Northwind" /></Field>
+            <Field label="Subdomain" hint="Lowercase letters and hyphens only."><Input defaultValue="northwind" /></Field>
+            <Field label="Billing email" error="Enter a valid email address."><Input defaultValue="ada@" error="x" /></Field>
+            <Field label="Company" required><Input placeholder="Acme Inc" /></Field>
+          </Grid>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Input"
+        summary="Single-line text field. Three sizes, an optional leading icon, and a built-in error state."
+        props={[
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+          { name: "error", type: "string", notes: "Sets aria-invalid and the error border." },
+          { name: "iconStart", type: "ReactNode", notes: "20px, decorative — it is aria-hidden." },
+          { name: "label", type: "string", notes: "Use Field instead when the form has more than one control." },
+          { name: "hint", type: "string" },
+          { name: "required", type: "boolean" },
+        ]}
+        guidance={[
+          "Set the right type and inputmode. A numeric keypad on a phone field costs nothing and saves every mobile user a tap.",
+          "Size the field to its content where you can. A four-character postcode field the width of the page invites the wrong input.",
+          "iconStart is decorative and hidden from screen readers. It must never be the only thing indicating what the field is for.",
+        ]}
+      >
+        <Specimen label="Sizes and states" bg="var(--dt-surface-base)">
+          <Grid minColumnWidth="220px" gap="md">
+            <Input size="sm" placeholder="Small" />
+            <Input size="md" placeholder="Medium" />
+            <Input size="lg" placeholder="Large" />
+            <Input iconStart={<span>⌕</span>} placeholder="Search invoices" />
+            <Input defaultValue="Not an email" error="Enter a valid email address." />
+            <Input defaultValue="Locked value" disabled />
+          </Grid>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Textarea"
+        summary="Multi-line text. Resizes vertically only, so it cannot break the layout sideways."
+        props={[
+          { name: "rows", type: "number", default: "4" },
+          { name: "error", type: "string" },
+          { name: "label", type: "string" },
+          { name: "hint", type: "string" },
+        ]}
+        guidance={[
+          "Set rows to the expected answer length. A four-row box asks for a paragraph; a one-row box should have been an Input.",
+          "Horizontal resize is disabled deliberately — a user-widened textarea overflows every container it sits in.",
+          "If you enforce a character limit, show the count. A rejected submission that never warned the user is a design failure.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="md" style={{ maxWidth: 480 }}>
+            <Field label="Invoice note" hint="Shown on the PDF, below the line items."><Textarea rows={3} defaultValue="Thanks for your business." /></Field>
+            <Field label="Reason for cancellation" error="Tell us a little more — at least 20 characters."><Textarea rows={3} defaultValue="Too expensive" error="x" /></Field>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Select"
+        summary="Dropdown for a known set of options, native select underneath."
+        props={[
+          { name: "options", type: "Array<string | { value, label }>" },
+          { name: "placeholder", type: "string", notes: "Empty-value first option, e.g. Choose a plan." },
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+          { name: "error", type: "string" },
+        ]}
+        guidance={[
+          "Native on purpose. A custom dropdown loses the platform picker on mobile, which is better than anything we would build.",
+          "Under about five options, use RadioGroup. A select hides the choices behind a click and gives no sense of the range.",
+          "Over about fifteen, a select becomes a scroll hunt. That is when you need a searchable combobox.",
+          "A placeholder is not a default. If there is a sensible default, select it.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Grid minColumnWidth="220px" gap="md">
+            <Field label="Plan"><Select options={["Starter","Team","Business","Enterprise"]} defaultValue="Team" /></Field>
+            <Field label="Region"><Select placeholder="Choose a region" options={[{ value: "eu", label: "Europe" },{ value: "us", label: "North America" },{ value: "ap", label: "Asia Pacific" }]} /></Field>
+            <Field label="Currency" error="Select a currency."><Select placeholder="Choose" options={["USD","EUR","GBP"]} error="x" /></Field>
+          </Grid>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Checkbox / CheckboxGroup"
+        summary="Independent binary choices. The group supplies the shared question as an accessible name."
+        props={[
+          { name: "label", type: "ReactNode", notes: "Checkbox. Clicking it toggles the box." },
+          { name: "indeterminate", type: "boolean", notes: "Dash state for a parent controlling a partial selection." },
+          { name: "hint", type: "string" },
+          { name: "options", type: "CheckboxOption[]", required: true, notes: "CheckboxGroup: value, label, hint, disabled." },
+          { name: "value", type: "string[]", notes: "CheckboxGroup. Controlled selection." },
+          { name: "orientation", type: '"vertical" | "horizontal"', default: '"vertical"' },
+        ]}
+        guidance={[
+          "CheckboxGroup label is required. A bare column of checkboxes has no accessible name, so the set has no question.",
+          "Checkboxes are independent; radios are exclusive. A single checkbox asking a yes/no question is fine — two are not a choice between them.",
+          "indeterminate is display only. It never submits a value, so the parent must still resolve to checked or unchecked.",
+          "Changes apply on submit. If the change should apply instantly, that is a Switch.",
+        ]}
+      >
+        <Specimen label="Single, hint, indeterminate" bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <Checkbox label="Email me about product updates" defaultChecked />
+            <Checkbox label="Require two-factor authentication" hint="Applies to every member of this workspace." />
+            <Checkbox label="All permissions" indeterminate />
+            <Checkbox label="Disabled option" disabled />
+          </Stack>
+        </Specimen>
+        <Specimen label="Group" bg="var(--dt-surface-base)">
+          <CheckboxGroup
+            label="API scopes"
+            hint="Choose the minimum the integration needs."
+            value={scopes}
+            onChange={setScopes}
+            options={[
+              { value: "read", label: "Read", hint: "Fetch invoices and clients." },
+              { value: "write", label: "Write", hint: "Create and edit invoices." },
+              { value: "delete", label: "Delete", hint: "Permanently remove records." },
+              { value: "admin", label: "Admin", hint: "Manage members and billing.", disabled: true },
+            ]}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Radio / RadioGroup"
+        summary="Exactly one choice from a visible set. Arrow keys move within the group."
+        props={[
+          { name: "options", type: "RadioOption[]", required: true, notes: "value, label, hint, disabled." },
+          { name: "label", type: "ReactNode", required: true, notes: "The question the set answers." },
+          { name: "value", type: "string", notes: "Controlled selection." },
+          { name: "orientation", type: '"vertical" | "horizontal"', default: '"vertical"' },
+          { name: "name", type: "string", notes: "Shared input name. Generated when omitted." },
+        ]}
+        guidance={[
+          "Always select a default. A radio group with nothing selected forces a choice the user may not be able to make yet.",
+          "Radios cannot be unselected. If no answer is valid, add an explicit None option rather than leaving the set empty.",
+          "Use RadioGroup rather than loose Radios. The group supplies the name, the roving focus, and the accessible question.",
+          "Horizontal only for two or three very short labels. Beyond that the link between label and control gets ambiguous.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="lg">
+            <RadioGroup
+              label="Plan"
+              value={plan}
+              onChange={setPlan}
+              options={[
+                { value: "starter", label: "Starter", hint: "One editor, 100 invoices a month." },
+                { value: "team", label: "Team", hint: "Five editors, unlimited invoices." },
+                { value: "business", label: "Business", hint: "Unlimited editors, SSO, audit log." },
+              ]}
+            />
+            <RadioGroup label="Billing period" orientation="horizontal" defaultValue="year"
+              options={[{ value: "month", label: "Monthly" }, { value: "year", label: "Yearly" }]} />
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Switch"
+        summary="Instant on/off setting. The change applies the moment it is flipped."
+        props={[
+          { name: "label", type: "ReactNode" },
+          { name: "hint", type: "string" },
+          { name: "labelPosition", type: '"start" | "end"', default: '"end"', notes: "start pushes the switch right — the settings-row pattern." },
+          { name: "checked", type: "boolean" },
+        ]}
+        guidance={[
+          "A switch applies immediately. If the change needs a Save button, it is a Checkbox.",
+          "Label the thing being controlled, not the state: Email notifications, not Enable email notifications. The switch already shows on or off.",
+          "labelPosition start is the settings-row pattern — label left, switch pinned right, hint under the label.",
+          "Never pair a switch with an On/Off text label. The control already says which it is, and the two can disagree.",
+        ]}
+      >
+        <Specimen label="Inline and settings row" bg="var(--dt-surface-base)">
+          <Stack gap="md">
+            <Switch label="Email notifications" checked={notify} onChange={e => setNotify(e.target.checked)} />
+            <Switch label="Weekly digest" hint="Sent Monday mornings." labelPosition="start" defaultChecked />
+            <Switch label="Public workspace" labelPosition="start" hint="Anyone with the link can view." />
+            <Switch label="Enforced by your administrator" disabled defaultChecked />
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Slider"
+        summary="A range input for an approximate value along a continuum."
+        props={[
+          { name: "label", type: "ReactNode", required: true, notes: "A slider with no label is unusable without sight." },
+          { name: "min", type: "number", default: "0" },
+          { name: "max", type: "number", default: "100" },
+          { name: "step", type: "number", default: "1" },
+          { name: "showValue", type: "boolean", default: "true" },
+          { name: "formatValue", type: "(value: number) => string", notes: "Format the readout, e.g. v => v + '%'." },
+        ]}
+        guidance={[
+          "Sliders are for approximate values where relative position matters more than the exact number. For a precise figure, use a number Input.",
+          "Always show the value. A slider without a readout cannot be set to anything specific.",
+          "Use formatValue to show units. A bare 60 tells the user nothing about what they just set.",
+          "Keep the range meaningful. A 0–1000 slider where only 0–50 is sensible wastes the whole track.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="lg" style={{ maxWidth: 420 }}>
+            <Slider label="Seats" min={1} max={50} value={seats} onChange={setSeats} formatValue={v => v + " seats"} />
+            <Slider label="Invoice reminder" min={0} max={30} defaultValue={7} formatValue={v => v + " days before due"} />
+            <Slider label="Disabled" defaultValue={40} disabled />
+          </Stack>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Field","Input","Textarea","Select","Checkbox","CheckboxGroup","Radio","RadioGroup","Switch","Slider","Button","Inline","Stack","Grid"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Field, Input, Textarea, Select, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider, Button, Inline, Stack, Grid } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

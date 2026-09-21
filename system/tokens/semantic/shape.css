@@ -1,0 +1,23 @@
+/* TIER 2 — SEMANTIC SHAPE
+   Radius roles are named by what they wrap, not by size, so a sharp-cornered theme
+   can flatten the whole system by re-pointing five lines.
+
+   --dt-radius-scale is the single dial: a theme that wants everything rounder
+   overrides the roles, but a theme that only wants a nudge can retune from here. */
+
+:root {
+  --dt-radius-none: var(--dt-radius-raw-0);
+  --dt-radius-control: var(--dt-radius-raw-6);   /* buttons, inputs, selects */
+  --dt-radius-container: var(--dt-radius-raw-8); /* cards, panels, alerts */
+  --dt-radius-overlay: var(--dt-radius-raw-12);  /* dialogs, popovers, drawers */
+  --dt-radius-media: var(--dt-radius-raw-8);     /* images, video, avatars-as-squares */
+  --dt-radius-pill: var(--dt-radius-raw-full);   /* badges, tags, avatars */
+
+  --dt-border-width-none: 0px;
+  --dt-border-width-default: var(--dt-dim-hair);
+  --dt-border-width-strong: var(--dt-dim-hair-2);
+
+  /* Focus ring geometry. The colour lives in semantic/color.css. */
+  --dt-focus-ring-width: var(--dt-dim-hair-2);
+  --dt-focus-ring-offset: var(--dt-dim-hair-2);
+}

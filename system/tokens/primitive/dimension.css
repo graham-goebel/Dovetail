@@ -1,0 +1,63 @@
+/* TIER 1 — PRIMITIVE DIMENSION
+   One base unit: 4px. Every value is a multiple, and the number in the name is the multiplier.
+   --dt-dim-6 is 6 × 4px = 24px. The name stays true if the base unit ever changes.
+
+   Sub-unit values exist only for hairlines and optical nudges. They are named separately
+   so they cannot be mistaken for layout spacing. */
+
+:root {
+  --dt-dim-0: 0px;
+  --dt-dim-1: 4px;
+  --dt-dim-2: 8px;
+  --dt-dim-3: 12px;
+  --dt-dim-4: 16px;
+  --dt-dim-5: 20px;
+  --dt-dim-6: 24px;
+  --dt-dim-7: 28px;
+  --dt-dim-8: 32px;
+  --dt-dim-9: 36px;
+  --dt-dim-10: 40px;
+  --dt-dim-11: 44px;
+  --dt-dim-12: 48px;
+  --dt-dim-14: 56px;
+  --dt-dim-16: 64px;
+  --dt-dim-20: 80px;
+  --dt-dim-24: 96px;
+  --dt-dim-28: 112px;
+  --dt-dim-32: 128px;
+  --dt-dim-40: 160px;
+  --dt-dim-48: 192px;
+  --dt-dim-56: 224px;
+  --dt-dim-64: 256px;
+
+  /* Sub-unit. Hairlines and optical corrections only — never layout. */
+  --dt-dim-hair: 1px;
+  --dt-dim-hair-2: 2px;
+
+  /* Raw radii */
+  --dt-radius-raw-0: 0px;
+  --dt-radius-raw-2: 2px;
+  --dt-radius-raw-4: 4px;
+  --dt-radius-raw-6: 6px;
+  --dt-radius-raw-8: 8px;
+  --dt-radius-raw-12: 12px;
+  --dt-radius-raw-16: 16px;
+  --dt-radius-raw-24: 24px;
+  --dt-radius-raw-full: 9999px;
+
+  /* Container widths */
+  --dt-dim-container-sm: 640px;
+  --dt-dim-container-md: 768px;
+  --dt-dim-container-lg: 1024px;
+  --dt-dim-container-xl: 1280px;
+  --dt-dim-container-2xl: 1536px;
+
+  /* Breakpoints, mirrored here so they can be documented as tokens.
+     Media queries cannot read custom properties — the values are duplicated
+     in guidelines/layout.md and must be changed in both places. */
+  --dt-breakpoint-sm: 640px;
+  --dt-breakpoint-md: 768px;
+  --dt-breakpoint-lg: 1024px;
+  --dt-breakpoint-xl: 1280px;
+  --dt-breakpoint-2xl: 1536px;
+}

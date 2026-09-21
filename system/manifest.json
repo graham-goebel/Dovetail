@@ -1,0 +1,482 @@
+{
+  "manifestVersion": 3,
+  "name": "Dovetail DS",
+  "namespace": "BeamMobileDesignSystem_e33121",
+  "files": [
+    "PLAN.md",
+    "assets/notes/CLAUDE.from-standalone.md",
+    "assets/notes/MIGRATION-REPORT.md",
+    "assets/notes/SKILL.from-standalone.md",
+    "components/actions/Button.d.ts",
+    "components/actions/Button.jsx",
+    "components/actions/Button.md",
+    "components/actions/Button.play.html",
+    "components/actions/ButtonGroup.d.ts",
+    "components/actions/ButtonGroup.jsx",
+    "components/actions/ButtonGroup.md",
+    "components/actions/ButtonGroup.play.html",
+    "components/actions/IconButton.d.ts",
+    "components/actions/IconButton.jsx",
+    "components/actions/IconButton.md",
+    "components/actions/IconButton.play.html",
+    "components/actions/Link.d.ts",
+    "components/actions/Link.jsx",
+    "components/actions/Link.md",
+    "components/actions/Link.play.html",
+    "components/actions/actions-detail.card.html",
+    "components/actions/actions.card.html",
+    "components/bundle.css",
+    "components/bundle.js",
+    "components/content/Accordion.d.ts",
+    "components/content/Accordion.jsx",
+    "components/content/Accordion.md",
+    "components/content/AspectRatio.d.ts",
+    "components/content/AspectRatio.jsx",
+    "components/content/AspectRatio.md",
+    "components/content/Callout.d.ts",
+    "components/content/Callout.jsx",
+    "components/content/Callout.md",
+    "components/content/Figure.d.ts",
+    "components/content/Figure.jsx",
+    "components/content/Figure.md",
+    "components/content/Image.d.ts",
+    "components/content/Image.jsx",
+    "components/content/Image.md",
+    "components/content/Media.d.ts",
+    "components/content/Media.jsx",
+    "components/content/Media.md",
+    "components/content/Prose.d.ts",
+    "components/content/Prose.jsx",
+    "components/content/Prose.md",
+    "components/content/Quote.d.ts",
+    "components/content/Quote.jsx",
+    "components/content/Quote.md",
+    "components/content/content-detail.card.html",
+    "components/content/content.card.html",
+    "components/display/Avatar.d.ts",
+    "components/display/Avatar.jsx",
+    "components/display/Avatar.md",
+    "components/display/AvatarGroup.d.ts",
+    "components/display/AvatarGroup.jsx",
+    "components/display/AvatarGroup.md",
+    "components/display/Badge.d.ts",
+    "components/display/Badge.jsx",
+    "components/display/Badge.md",
+    "components/display/Card.d.ts",
+    "components/display/Card.jsx",
+    "components/display/Card.md",
+    "components/display/Code.d.ts",
+    "components/display/Code.jsx",
+    "components/display/Code.md",
+    "components/display/EmptyState.d.ts",
+    "components/display/EmptyState.jsx",
+    "components/display/EmptyState.md",
+    "components/display/List.d.ts",
+    "components/display/List.jsx",
+    "components/display/List.md",
+    "components/display/Skeleton.d.ts",
+    "components/display/Skeleton.jsx",
+    "components/display/Skeleton.md",
+    "components/display/Stat.d.ts",
+    "components/display/Stat.jsx",
+    "components/display/Stat.md",
+    "components/display/Table.d.ts",
+    "components/display/Table.jsx",
+    "components/display/Table.md",
+    "components/display/Tag.d.ts",
+    "components/display/Tag.jsx",
+    "components/display/Tag.md",
+    "components/display/display-detail.card.html",
+    "components/display/display.card.html",
+    "components/feedback/Alert.d.ts",
+    "components/feedback/Alert.jsx",
+    "components/feedback/Alert.md",
+    "components/feedback/Banner.d.ts",
+    "components/feedback/Banner.jsx",
+    "components/feedback/Banner.md",
+    "components/feedback/Dialog.d.ts",
+    "components/feedback/Dialog.jsx",
+    "components/feedback/Dialog.md",
+    "components/feedback/Drawer.d.ts",
+    "components/feedback/Drawer.jsx",
+    "components/feedback/Drawer.md",
+    "components/feedback/Popover.d.ts",
+    "components/feedback/Popover.jsx",
+    "components/feedback/Popover.md",
+    "components/feedback/Progress.d.ts",
+    "components/feedback/Progress.jsx",
+    "components/feedback/Progress.md",
+    "components/feedback/Spinner.d.ts",
+    "components/feedback/Spinner.jsx",
+    "components/feedback/Spinner.md",
+    "components/feedback/Toast.d.ts",
+    "components/feedback/Toast.jsx",
+    "components/feedback/Toast.md",
+    "components/feedback/Tooltip.d.ts",
+    "components/feedback/Tooltip.jsx",
+    "components/feedback/Tooltip.md",
+    "components/feedback/feedback-detail-2.card.html",
+    "components/feedback/feedback.card.html",
+    "components/feedback/surfaces-detail.card.html",
+    "components/forms/Checkbox.d.ts",
+    "components/forms/Checkbox.jsx",
+    "components/forms/Checkbox.md",
+    "components/forms/CheckboxGroup.d.ts",
+    "components/forms/CheckboxGroup.jsx",
+    "components/forms/CheckboxGroup.md",
+    "components/forms/Field.d.ts",
+    "components/forms/Field.jsx",
+    "components/forms/Field.md",
+    "components/forms/Input.d.ts",
+    "components/forms/Input.jsx",
+    "components/forms/Input.md",
+    "components/forms/Radio.d.ts",
+    "components/forms/Radio.jsx",
+    "components/forms/Radio.md",
+    "components/forms/RadioGroup.d.ts",
+    "components/forms/RadioGroup.jsx",
+    "components/forms/RadioGroup.md",
+    "components/forms/Select.d.ts",
+    "components/forms/Select.jsx",
+    "components/forms/Select.md",
+    "components/forms/Slider.d.ts",
+    "components/forms/Slider.jsx",
+    "components/forms/Slider.md",
+    "components/forms/Switch.d.ts",
+    "components/forms/Switch.jsx",
+    "components/forms/Switch.md",
+    "components/forms/Textarea.d.ts",
+    "components/forms/Textarea.jsx",
+    "components/forms/Textarea.md",
+    "components/forms/forms-detail.card.html",
+    "components/forms/forms.card.html",
+    "components/lib/react-dom.production.min.js",
+    "components/lib/react.production.min.js",
+    "components/navigation/Breadcrumbs.d.ts",
+    "components/navigation/Breadcrumbs.jsx",
+    "components/navigation/Breadcrumbs.md",
+    "components/navigation/Navbar.d.ts",
+    "components/navigation/Navbar.jsx",
+    "components/navigation/Navbar.md",
+    "components/navigation/Pagination.d.ts",
+    "components/navigation/Pagination.jsx",
+    "components/navigation/Pagination.md",
+    "components/navigation/Sidebar.d.ts",
+    "components/navigation/Sidebar.jsx",
+    "components/navigation/Sidebar.md",
+    "components/navigation/Stepper.d.ts",
+    "components/navigation/Stepper.jsx",
+    "components/navigation/Stepper.md",
+    "components/navigation/Tabs.d.ts",
+    "components/navigation/Tabs.jsx",
+    "components/navigation/Tabs.md",
+    "components/navigation/navigation-detail.card.html",
+    "components/primitives/Divider.d.ts",
+    "components/primitives/Divider.jsx",
+    "components/primitives/Divider.md",
+    "components/primitives/Grid.d.ts",
+    "components/primitives/Grid.jsx",
+    "components/primitives/Grid.md",
+    "components/primitives/Inline.d.ts",
+    "components/primitives/Inline.jsx",
+    "components/primitives/Inline.md",
+    "components/primitives/Spacer.d.ts",
+    "components/primitives/Spacer.jsx",
+    "components/primitives/Spacer.md",
+    "components/primitives/Stack.d.ts",
+    "components/primitives/Stack.jsx",
+    "components/primitives/Stack.md",
+    "components/primitives/VisuallyHidden.d.ts",
+    "components/primitives/VisuallyHidden.jsx",
+    "components/primitives/VisuallyHidden.md",
+    "components/primitives/primitives-detail.card.html",
+    "components/primitives/primitives.card.html",
+    "docs/_ds_manifest.json",
+    "guidelines/accessibility.md",
+    "guidelines/color-accent.html",
+    "guidelines/color-actions.html",
+    "guidelines/color-amber.html",
+    "guidelines/color-borders.html",
+    "guidelines/color-cyan.html",
+    "guidelines/color-dark.html",
+    "guidelines/color-feedback.html",
+    "guidelines/color-green.html",
+    "guidelines/color-neutral.html",
+    "guidelines/color-pairs.html",
+    "guidelines/color-red.html",
+    "guidelines/color-surfaces.html",
+    "guidelines/color-text.html",
+    "guidelines/color-violet.html",
+    "guidelines/contributing.md",
+    "guidelines/elevation-levels.html",
+    "guidelines/elevation-z.html",
+    "guidelines/headless-integration.md",
+    "guidelines/iconography.html",
+    "guidelines/motion-easing.html",
+    "guidelines/motion-roles.html",
+    "guidelines/shape-focus.html",
+    "guidelines/shape-radius.html",
+    "guidelines/size-controls.html",
+    "guidelines/size-icons.html",
+    "guidelines/space-axes.html",
+    "guidelines/space-in-use.html",
+    "guidelines/space-scale.html",
+    "guidelines/theme-density.html",
+    "guidelines/theme-editorial.html",
+    "guidelines/theme-mono.html",
+    "guidelines/theming.md",
+    "guidelines/tier-contract.html",
+    "guidelines/tokens.md",
+    "guidelines/type-body.html",
+    "guidelines/type-display.html",
+    "guidelines/type-families.html",
+    "guidelines/type-heading.html",
+    "guidelines/type-label.html",
+    "guidelines/type-measure.html",
+    "guidelines/type-scale.html",
+    "guidelines/type-tracking.html",
+    "guidelines/voice.html",
+    "guidelines/wordmark.html",
+    "kits/dashboard-kit.card.html",
+    "kits/marketing-kit.card.html",
+    "support.js",
+    "tearsheet.html",
+    "templates/_support/card-kit.js",
+    "templates/_support/playground-specs.js",
+    "templates/_support/playground.js",
+    "templates/_support/style-dictionary.config.cjs",
+    "templates/_support/theme-runtime.js",
+    "templates/_support/theme-switcher.js",
+    "templates/settings-page/SettingsPage.dc.html",
+    "templates/settings-page/ds-base.js",
+    "templates/settings-page/support.js",
+    "theme-configurator copy.html",
+    "theme-configurator-standalone.html",
+    "theme-configurator.html",
+    "tokens.css",
+    "tokens/base.css",
+    "tokens/component/button.css",
+    "tokens/component/card.css",
+    "tokens/component/dialog.css",
+    "tokens/component/input.css",
+    "tokens/component/table.css",
+    "tokens/contexts/context-marketing.css",
+    "tokens/contexts/context-product.css",
+    "tokens/dovetail.tokens.json",
+    "tokens/primitive/color.css",
+    "tokens/primitive/dimension.css",
+    "tokens/primitive/elevation.css",
+    "tokens/primitive/motion.css",
+    "tokens/primitive/typography.css",
+    "tokens/semantic/color.css",
+    "tokens/semantic/elevation.css",
+    "tokens/semantic/motion.css",
+    "tokens/semantic/shape.css",
+    "tokens/semantic/size.css",
+    "tokens/semantic/space.css",
+    "tokens/semantic/typography.css",
+    "tokens/themes/base-dark.css",
+    "tokens/themes/density-compact.css",
+    "tokens/themes/theme-custom.css",
+    "tokens/themes/theme-editorial.css",
+    "tokens/themes/theme-mono.css",
+    "tools/README.md"
+  ],
+  "libraries": [
+    {
+      "name": "react",
+      "version": "18.3.1",
+      "global": "React",
+      "file": "components/lib/react.production.min.js"
+    },
+    {
+      "name": "react-dom",
+      "version": "18.3.1",
+      "global": "ReactDOM",
+      "file": "components/lib/react-dom.production.min.js"
+    }
+  ],
+  "components": [
+    {
+      "name": "Button"
+    },
+    {
+      "name": "ButtonGroup"
+    },
+    {
+      "name": "IconButton"
+    },
+    {
+      "name": "Link"
+    },
+    {
+      "name": "Accordion"
+    },
+    {
+      "name": "AspectRatio"
+    },
+    {
+      "name": "Callout"
+    },
+    {
+      "name": "Figure"
+    },
+    {
+      "name": "Image"
+    },
+    {
+      "name": "Media"
+    },
+    {
+      "name": "Prose"
+    },
+    {
+      "name": "Quote"
+    },
+    {
+      "name": "Avatar"
+    },
+    {
+      "name": "AvatarGroup"
+    },
+    {
+      "name": "Badge"
+    },
+    {
+      "name": "Card"
+    },
+    {
+      "name": "Code"
+    },
+    {
+      "name": "EmptyState"
+    },
+    {
+      "name": "List"
+    },
+    {
+      "name": "Skeleton"
+    },
+    {
+      "name": "Stat"
+    },
+    {
+      "name": "Table"
+    },
+    {
+      "name": "Tag"
+    },
+    {
+      "name": "Alert"
+    },
+    {
+      "name": "Banner"
+    },
+    {
+      "name": "Dialog"
+    },
+    {
+      "name": "Drawer"
+    },
+    {
+      "name": "Popover"
+    },
+    {
+      "name": "Progress"
+    },
+    {
+      "name": "Spinner"
+    },
+    {
+      "name": "Toast"
+    },
+    {
+      "name": "ToastRegion"
+    },
+    {
+      "name": "Tooltip"
+    },
+    {
+      "name": "Checkbox"
+    },
+    {
+      "name": "CheckboxGroup"
+    },
+    {
+      "name": "Field"
+    },
+    {
+      "name": "Input"
+    },
+    {
+      "name": "Radio"
+    },
+    {
+      "name": "RadioGroup"
+    },
+    {
+      "name": "Select"
+    },
+    {
+      "name": "Slider"
+    },
+    {
+      "name": "Switch"
+    },
+    {
+      "name": "Textarea"
+    },
+    {
+      "name": "Breadcrumbs"
+    },
+    {
+      "name": "Navbar"
+    },
+    {
+      "name": "Pagination"
+    },
+    {
+      "name": "Sidebar"
+    },
+    {
+      "name": "Stepper"
+    },
+    {
+      "name": "Tabs"
+    },
+    {
+      "name": "TabPanel"
+    },
+    {
+      "name": "Divider"
+    },
+    {
+      "name": "Grid"
+    },
+    {
+      "name": "Inline"
+    },
+    {
+      "name": "Spacer"
+    },
+    {
+      "name": "Stack"
+    },
+    {
+      "name": "VisuallyHidden"
+    }
+  ],
+  "lastChange": {
+    "by": "Migration",
+    "via": "standalone export",
+    "at": "2026-09-21T15:21:27.423Z",
+    "note": "migrated from the standalone version",
+    "source": "claude-design",
+    "authoredIn": "spa"
+  },
+  "assetGroups": [
+    {
+      "name": "notes"
+    }
+  ]
+}

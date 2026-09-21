@@ -1,0 +1,301 @@
+<!-- @dsCard group="Component detail" viewport="1100x1400" name="Actions — detail" subtitle="Button, ButtonGroup, IconButton, Link with states, props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Button, ButtonGroup, IconButton, Link, Inline, Stack;
+
+const Dots = () => <span style={{ fontSize: 16, lineHeight: 1 }}>⋯</span>;
+const Plus = () => <span style={{ fontSize: 15, lineHeight: 1 }}>+</span>;
+
+function Page() {
+  return (
+    <React.Fragment>
+      <PageHead title="Actions" subtitle="Controls that do something. The split is intent, not appearance: if it changes data it is a Button, if it changes the page it is a Link." />
+
+      <Shelf
+        name="Button"
+        summary="The system's primary action control. Four variants, three sizes, and a loading state that keeps its label."
+        props={[
+          { name: "variant", type: '"primary" | "secondary" | "ghost" | "danger"', default: '"primary"', notes: "primary is the single main action in a view." },
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+          { name: "loading", type: "boolean", notes: "Shows a spinner and blocks interaction. Keep the label." },
+          { name: "disabled", type: "boolean" },
+          { name: "fullWidth", type: "boolean" },
+          { name: "iconStart", type: "ReactNode", notes: "16px, currentColor." },
+          { name: "iconEnd", type: "ReactNode", notes: "Reserve for external links and disclosure." },
+          { name: "as", type: "keyof JSX.IntrinsicElements", default: '"button"', notes: 'Use "a" for a link that must look like a button.' },
+        ]}
+        guidance={[
+          "One primary action per view. Everything else is secondary, ghost, or a link.",
+          'Never swap the label for "Loading…". The loading prop adds a spinner and keeps the word, so the button does not change width or meaning mid-action.',
+          "Labels are verb-first and one to three words: Save changes, Delete project, Invite.",
+          "danger is for destructive confirmation, not for anything merely important. A red button the user presses daily stops reading as a warning.",
+          "Disabled buttons give no reason. Prefer an enabled button that explains what is missing when pressed.",
+        ]}
+      >
+        <Specimen label="Variants" bg="var(--dt-surface-base)">
+          <Inline gap="sm" wrap>
+            <Button>Save changes</Button>
+            <Button variant="secondary">Cancel</Button>
+            <Button variant="ghost">Skip</Button>
+            <Button variant="danger">Delete project</Button>
+          </Inline>
+        </Specimen>
+        <Specimen label="Sizes" bg="var(--dt-surface-base)">
+          <Inline gap="sm" align="center" wrap>
+            <Button size="sm">Small</Button>
+            <Button size="md">Medium</Button>
+            <Button size="lg">Large</Button>
+          </Inline>
+        </Specimen>
+        <Specimen label="States" bg="var(--dt-surface-base)">
+          <Inline gap="sm" wrap>
+            <Button>Rest</Button>
+            <Button loading>Saving</Button>
+            <Button disabled>Disabled</Button>
+            <Button variant="secondary" disabled>Disabled</Button>
+          </Inline>
+        </Specimen>
+        <Specimen label="With icons, and full width" bg="var(--dt-surface-base)">
+          <Stack gap="sm" style={{ maxWidth: 320 }}>
+            <Inline gap="sm" wrap>
+              <Button iconStart={<Plus />}>New invoice</Button>
+              <Button variant="secondary" iconEnd={<span>↗</span>}>Open docs</Button>
+            </Inline>
+            <Button fullWidth>Continue</Button>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="ButtonGroup"
+        summary="Groups related buttons. Attached mode joins them into one segmented control with shared edges."
+        props={[
+          { name: "label", type: "string", required: true, notes: "Accessible group name, e.g. Text alignment." },
+          { name: "attached", type: "boolean", default: "false", notes: "Join the buttons into a segmented control." },
+        ]}
+        guidance={[
+          "label is required. A bare row of buttons has no accessible name, so a screen reader announces three unrelated controls.",
+          "Attached groups are for mutually exclusive choices of the same kind. Do not attach Save and Cancel — they are not the same kind.",
+          "Keep every button in a group the same variant and size. Mixing a primary into an attached group breaks the shared edge.",
+        ]}
+      >
+        <Specimen label="Spaced" bg="var(--dt-surface-base)">
+          <ButtonGroup label="Invoice actions">
+            <Button variant="secondary">Duplicate</Button>
+            <Button variant="secondary">Archive</Button>
+            <Button variant="secondary">Export</Button>
+          </ButtonGroup>
+        </Specimen>
+        <Specimen label="Attached" bg="var(--dt-surface-base)">
+          <ButtonGroup label="Text alignment" attached>
+            <Button variant="secondary" size="sm">Left</Button>
+            <Button variant="secondary" size="sm">Centre</Button>
+            <Button variant="secondary" size="sm">Right</Button>
+          </ButtonGroup>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="IconButton"
+        summary="Icon-only button. The accessible label is a required prop, not an optional extra."
+        props={[
+          { name: "label", type: "string", required: true, notes: "Accessible name and tooltip. An unlabelled icon button is a bug." },
+          { name: "variant", type: '"ghost" | "solid"', default: '"ghost"' },
+          { name: "size", type: '"xs" | "sm" | "md" | "lg"', default: '"md"' },
+          { name: "children", type: "ReactNode", required: true, notes: "A single icon, 20px, currentColor." },
+        ]}
+        guidance={[
+          "Only use an icon alone when the icon is unambiguous — close, more, search. Everything else needs a word.",
+          "Pair with Tooltip for sighted users. The tooltip repeats the label; it does not replace it.",
+          "xs and sm are for dense toolbars and table rows. On touch, keep the hit target at 44px regardless of the visual size.",
+        ]}
+      >
+        <Specimen label="Variants and sizes" bg="var(--dt-surface-base)">
+          <Inline gap="md" align="center" wrap>
+            <IconButton label="More actions"><Dots /></IconButton>
+            <IconButton label="More actions" variant="solid"><Dots /></IconButton>
+            <IconButton label="Add item" size="xs"><Plus /></IconButton>
+            <IconButton label="Add item" size="sm"><Plus /></IconButton>
+            <IconButton label="Add item" size="lg"><Plus /></IconButton>
+            <IconButton label="Add item" disabled><Plus /></IconButton>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Link"
+        summary="Navigation. External links get rel=noopener noreferrer and a visible indicator."
+        props={[
+          { name: "href", type: "string", required: true },
+          { name: "external", type: "boolean", notes: "New tab, safe rel, and an indicator icon." },
+          { name: "underline", type: '"always" | "hover" | "never"', default: '"always"', notes: "always is correct for links in prose." },
+          { name: "tone", type: '"accent" | "inherit"', default: '"accent"', notes: "inherit inside a coloured block where accent would clash." },
+        ]}
+        guidance={[
+          "If it changes the page, it is a Link. If it changes data, it is a Button. Styling does not decide this — behaviour does.",
+          'Keep underline="always" in body copy. Colour alone fails for readers who cannot distinguish it.',
+          "Link text describes the destination. Never use here or read more — a screen reader lists links out of context.",
+          "external opens a new tab, which takes control away from the user. Reserve it for genuinely off-site destinations.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <p style={{ margin: 0, maxWidth: "62ch", fontSize: "var(--dt-text-body-sm-size)", lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)" }}>
+              Tokens are authored in <Link href="#">the DTCG format</Link> and build to CSS custom properties. The spec is maintained at <Link href="https://www.designtokens.org" external>designtokens.org</Link>.
+            </p>
+            <Inline gap="lg" wrap>
+              <Link href="#">Always underlined</Link>
+              <Link href="#" underline="hover">Underline on hover</Link>
+              <Link href="#" underline="never">No underline</Link>
+            </Inline>
+          </Stack>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Button","ButtonGroup","IconButton","Link","Inline","Stack"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Button, ButtonGroup, IconButton, Link, Inline, Stack } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

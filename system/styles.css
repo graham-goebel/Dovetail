@@ -1,0 +1,33 @@
+/* Dovetail — global entry point. Import lines only; never write rules here.
+   Load order matters: primitives, then semantics, then component tokens, then base element styles.
+   Themes are opt-in — link a file from tokens/themes/ after this one. */
+
+@import "tokens/primitive/color.css";
+@import "tokens/primitive/dimension.css";
+@import "tokens/primitive/typography.css";
+@import "tokens/primitive/motion.css";
+@import "tokens/primitive/elevation.css";
+
+@import "tokens/semantic/color.css";
+@import "tokens/semantic/space.css";
+@import "tokens/semantic/typography.css";
+@import "tokens/semantic/shape.css";
+@import "tokens/semantic/size.css";
+@import "tokens/semantic/elevation.css";
+@import "tokens/semantic/motion.css";
+
+@import "tokens/themes/base-dark.css";
+@import "tokens/themes/theme-custom.css";
+
+@import "tokens/component/button.css";
+@import "tokens/component/input.css";
+@import "tokens/component/card.css";
+@import "tokens/component/dialog.css";
+@import "tokens/component/table.css";
+
+/* Contexts come last: they retune semantic and component tokens, and at equal
+   specificity source order decides. */
+@import "tokens/contexts/context-product.css";
+@import "tokens/contexts/context-marketing.css";
+
+@import "tokens/base.css";

@@ -1,0 +1,54 @@
+/* TIER 3 — BUTTON
+   Component tokens exist so a consumer can restyle one component without
+   disturbing anything else. They are only authored for components with a real
+   override need. Every value here resolves to a semantic token.
+
+   Cascade: override --dt-surface-action and Button, Tabs, Switch and every other
+   action surface move together. Override --dt-button-primary-bg and only Button moves. */
+
+:root {
+  --dt-button-radius: var(--dt-radius-control);
+  --dt-button-font-family: var(--dt-text-label-md-family);
+  --dt-button-font-weight: var(--dt-font-weight-medium);
+  --dt-button-gap: var(--dt-space-inline-xs);
+  --dt-button-border-width: var(--dt-border-width-default);
+  --dt-button-transition: var(--dt-motion-micro);
+
+  --dt-button-height-sm: var(--dt-size-control-sm);
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-height-lg: var(--dt-size-control-lg);
+  --dt-button-padding-sm: var(--dt-space-inset-sm);
+  --dt-button-padding-md: var(--dt-space-inset-md);
+  --dt-button-padding-lg: var(--dt-space-inset-lg);
+  --dt-button-font-size-sm: var(--dt-font-size-sm);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+  --dt-button-font-size-lg: var(--dt-font-size-md);
+
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+}

@@ -1,0 +1,1185 @@
+/* Dovetail DS — generated from tokens.json */
+:root, [data-theme="light"] {
+  --dt-color-white: oklch(1 0 0);
+  --dt-color-black: oklch(0 0 0);
+  --dt-color-transparent: oklch(0 0 0 / 0);
+  --dt-color-neutral-050: oklch(0.985 0.001 264);
+  --dt-color-neutral-100: oklch(0.967 0.002 264);
+  --dt-color-neutral-200: oklch(0.925 0.003 264);
+  --dt-color-neutral-300: oklch(0.869 0.005 264);
+  --dt-color-neutral-400: oklch(0.708 0.007 264);
+  --dt-color-neutral-500: oklch(0.556 0.008 264);
+  --dt-color-neutral-600: oklch(0.440 0.008 264);
+  --dt-color-neutral-700: oklch(0.360 0.008 264);
+  --dt-color-neutral-800: oklch(0.273 0.007 264);
+  --dt-color-neutral-900: oklch(0.205 0.006 264);
+  --dt-color-neutral-950: oklch(0.145 0.005 264);
+  --dt-color-accent-050: oklch(0.970 0.014 259);
+  --dt-color-accent-100: oklch(0.936 0.032 259);
+  --dt-color-accent-200: oklch(0.885 0.059 259);
+  --dt-color-accent-300: oklch(0.809 0.096 259);
+  --dt-color-accent-400: oklch(0.714 0.143 259);
+  --dt-color-accent-500: oklch(0.623 0.188 259);
+  --dt-color-accent-600: oklch(0.546 0.215 259);
+  --dt-color-accent-700: oklch(0.476 0.196 259);
+  --dt-color-accent-800: oklch(0.404 0.162 259);
+  --dt-color-accent-900: oklch(0.344 0.128 259);
+  --dt-color-accent-950: oklch(0.256 0.093 259);
+  --dt-color-green-050: oklch(0.972 0.021 150);
+  --dt-color-green-100: oklch(0.940 0.045 150);
+  --dt-color-green-200: oklch(0.885 0.077 150);
+  --dt-color-green-300: oklch(0.806 0.116 150);
+  --dt-color-green-400: oklch(0.714 0.146 150);
+  --dt-color-green-500: oklch(0.627 0.149 150);
+  --dt-color-green-600: oklch(0.535 0.128 150);
+  --dt-color-green-700: oklch(0.447 0.106 150);
+  --dt-color-green-800: oklch(0.373 0.086 150);
+  --dt-color-green-900: oklch(0.315 0.070 150);
+  --dt-color-green-950: oklch(0.228 0.052 150);
+  --dt-color-amber-050: oklch(0.980 0.024 75);
+  --dt-color-amber-100: oklch(0.953 0.055 75);
+  --dt-color-amber-200: oklch(0.903 0.104 75);
+  --dt-color-amber-300: oklch(0.848 0.146 75);
+  --dt-color-amber-400: oklch(0.793 0.163 75);
+  --dt-color-amber-500: oklch(0.740 0.158 75);
+  --dt-color-amber-600: oklch(0.653 0.140 75);
+  --dt-color-amber-700: oklch(0.540 0.116 75);
+  --dt-color-amber-800: oklch(0.450 0.095 75);
+  --dt-color-amber-900: oklch(0.386 0.079 75);
+  --dt-color-amber-950: oklch(0.270 0.056 75);
+  --dt-color-red-050: oklch(0.971 0.015 25);
+  --dt-color-red-100: oklch(0.936 0.033 25);
+  --dt-color-red-200: oklch(0.885 0.062 25);
+  --dt-color-red-300: oklch(0.808 0.108 25);
+  --dt-color-red-400: oklch(0.712 0.170 25);
+  --dt-color-red-500: oklch(0.637 0.208 25);
+  --dt-color-red-600: oklch(0.577 0.215 25);
+  --dt-color-red-700: oklch(0.505 0.191 25);
+  --dt-color-red-800: oklch(0.444 0.161 25);
+  --dt-color-red-900: oklch(0.396 0.134 25);
+  --dt-color-red-950: oklch(0.258 0.092 25);
+  --dt-color-cyan-050: oklch(0.977 0.013 230);
+  --dt-color-cyan-100: oklch(0.951 0.026 230);
+  --dt-color-cyan-200: oklch(0.901 0.050 230);
+  --dt-color-cyan-300: oklch(0.828 0.081 230);
+  --dt-color-cyan-400: oklch(0.746 0.115 230);
+  --dt-color-cyan-500: oklch(0.685 0.140 230);
+  --dt-color-cyan-600: oklch(0.588 0.135 230);
+  --dt-color-cyan-700: oklch(0.500 0.114 230);
+  --dt-color-cyan-800: oklch(0.424 0.094 230);
+  --dt-color-cyan-900: oklch(0.366 0.077 230);
+  --dt-color-cyan-950: oklch(0.262 0.056 230);
+  --dt-color-violet-050: oklch(0.977 0.014 305);
+  --dt-color-violet-100: oklch(0.946 0.033 305);
+  --dt-color-violet-200: oklch(0.902 0.063 305);
+  --dt-color-violet-300: oklch(0.827 0.110 305);
+  --dt-color-violet-400: oklch(0.740 0.163 305);
+  --dt-color-violet-500: oklch(0.667 0.200 305);
+  --dt-color-violet-600: oklch(0.594 0.216 305);
+  --dt-color-violet-700: oklch(0.518 0.190 305);
+  --dt-color-violet-800: oklch(0.444 0.158 305);
+  --dt-color-violet-900: oklch(0.381 0.128 305);
+  --dt-color-violet-950: oklch(0.279 0.095 305);
+  --dt-surface-base: var(--dt-color-white);
+  --dt-surface-subtle: var(--dt-color-neutral-050);
+  --dt-surface-raised: var(--dt-color-white);
+  --dt-surface-sunken: var(--dt-color-neutral-100);
+  --dt-surface-overlay: var(--dt-color-white);
+  --dt-surface-inverse: var(--dt-color-neutral-900);
+  --dt-surface-disabled: var(--dt-color-neutral-100);
+  --dt-surface-scrim: oklch(0.145 0.005 264 / 0.5);
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-600);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-400);
+  --dt-text-inverse: var(--dt-color-neutral-050);
+  --dt-text-link: var(--dt-color-accent-700);
+  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link-visited: var(--dt-color-violet-700);
+  --dt-border-subtle: var(--dt-color-neutral-100);
+  --dt-border-default: var(--dt-color-neutral-200);
+  --dt-border-strong: var(--dt-color-neutral-400);
+  --dt-border-inverse: var(--dt-color-neutral-700);
+  --dt-border-disabled: var(--dt-color-neutral-200);
+  --dt-surface-action: var(--dt-color-accent-600);
+  --dt-surface-action-hover: var(--dt-color-accent-700);
+  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-text-on-action: var(--dt-color-white);
+  --dt-surface-action-secondary: var(--dt-color-white);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-900);
+  --dt-border-action-secondary: var(--dt-color-neutral-200);
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-200);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-900);
+  --dt-surface-action-danger: var(--dt-color-red-600);
+  --dt-surface-action-danger-hover: var(--dt-color-red-700);
+  --dt-surface-action-danger-active: var(--dt-color-red-800);
+  --dt-text-on-action-danger: var(--dt-color-white);
+  --dt-surface-action-disabled: var(--dt-color-neutral-100);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-400);
+  --dt-surface-selected: var(--dt-color-accent-050);
+  --dt-surface-selected-hover: var(--dt-color-accent-100);
+  --dt-text-on-selected: var(--dt-color-accent-900);
+  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-success: var(--dt-color-green-600);
+  --dt-surface-success-subtle: var(--dt-color-green-050);
+  --dt-border-success: var(--dt-color-green-200);
+  --dt-text-success: var(--dt-color-green-800);
+  --dt-text-on-success: var(--dt-color-white);
+  --dt-surface-warning: var(--dt-color-amber-500);
+  --dt-surface-warning-subtle: var(--dt-color-amber-050);
+  --dt-border-warning: var(--dt-color-amber-200);
+  --dt-text-warning: var(--dt-color-amber-900);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+  --dt-surface-danger: var(--dt-color-red-600);
+  --dt-surface-danger-subtle: var(--dt-color-red-050);
+  --dt-border-danger: var(--dt-color-red-200);
+  --dt-text-danger: var(--dt-color-red-800);
+  --dt-text-on-danger: var(--dt-color-white);
+  --dt-surface-info: var(--dt-color-cyan-600);
+  --dt-surface-info-subtle: var(--dt-color-cyan-050);
+  --dt-border-info: var(--dt-color-cyan-200);
+  --dt-text-info: var(--dt-color-cyan-900);
+  --dt-text-on-info: var(--dt-color-white);
+  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-2: var(--dt-color-violet-500);
+  --dt-viz-3: var(--dt-color-cyan-600);
+  --dt-viz-4: var(--dt-color-amber-500);
+  --dt-viz-5: var(--dt-color-green-600);
+  --dt-viz-6: var(--dt-color-red-500);
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+[data-theme="dark"] {
+  --dt-surface-base: var(--dt-color-neutral-950);
+  --dt-surface-subtle: var(--dt-color-neutral-900);
+  --dt-surface-raised: var(--dt-color-neutral-900);
+  --dt-surface-sunken: var(--dt-color-black);
+  --dt-surface-overlay: var(--dt-color-neutral-800);
+  --dt-surface-inverse: var(--dt-color-neutral-050);
+  --dt-surface-disabled: var(--dt-color-neutral-800);
+  --dt-surface-scrim: oklch(0 0 0 / 0.7);
+  --dt-text-primary: var(--dt-color-neutral-050);
+  --dt-text-secondary: var(--dt-color-neutral-400);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-600);
+  --dt-text-inverse: var(--dt-color-neutral-900);
+  --dt-text-link: var(--dt-color-accent-400);
+  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link-visited: var(--dt-color-violet-400);
+  --dt-border-subtle: var(--dt-color-neutral-800);
+  --dt-border-default: var(--dt-color-neutral-700);
+  --dt-border-strong: var(--dt-color-neutral-500);
+  --dt-border-inverse: var(--dt-color-neutral-300);
+  --dt-border-disabled: var(--dt-color-neutral-800);
+  --dt-surface-action: var(--dt-color-accent-500);
+  --dt-surface-action-hover: var(--dt-color-accent-400);
+  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-text-on-action: var(--dt-color-neutral-950);
+  --dt-surface-action-secondary: var(--dt-color-neutral-900);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-050);
+  --dt-border-action-secondary: var(--dt-color-neutral-700);
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-050);
+  --dt-surface-action-danger: var(--dt-color-red-500);
+  --dt-surface-action-danger-hover: var(--dt-color-red-400);
+  --dt-surface-action-danger-active: var(--dt-color-red-300);
+  --dt-text-on-action-danger: var(--dt-color-neutral-950);
+  --dt-surface-action-disabled: var(--dt-color-neutral-800);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-600);
+  --dt-surface-selected: oklch(0.256 0.093 259);
+  --dt-surface-selected-hover: oklch(0.344 0.128 259);
+  --dt-text-on-selected: var(--dt-color-accent-100);
+  --dt-border-selected: var(--dt-color-accent-500);
+  --dt-surface-success: var(--dt-color-green-500);
+  --dt-surface-success-subtle: var(--dt-color-green-950);
+  --dt-border-success: var(--dt-color-green-800);
+  --dt-text-success: var(--dt-color-green-300);
+  --dt-text-on-success: var(--dt-color-neutral-950);
+  --dt-surface-warning: var(--dt-color-amber-400);
+  --dt-surface-warning-subtle: var(--dt-color-amber-950);
+  --dt-border-warning: var(--dt-color-amber-800);
+  --dt-text-warning: var(--dt-color-amber-300);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+  --dt-surface-danger: var(--dt-color-red-500);
+  --dt-surface-danger-subtle: var(--dt-color-red-950);
+  --dt-border-danger: var(--dt-color-red-800);
+  --dt-text-danger: var(--dt-color-red-300);
+  --dt-text-on-danger: var(--dt-color-neutral-950);
+  --dt-surface-info: var(--dt-color-cyan-500);
+  --dt-surface-info-subtle: var(--dt-color-cyan-950);
+  --dt-border-info: var(--dt-color-cyan-800);
+  --dt-text-info: var(--dt-color-cyan-300);
+  --dt-text-on-info: var(--dt-color-neutral-950);
+  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-2: var(--dt-color-violet-400);
+  --dt-viz-3: var(--dt-color-cyan-400);
+  --dt-viz-4: var(--dt-color-amber-400);
+  --dt-viz-5: var(--dt-color-green-400);
+  --dt-viz-6: var(--dt-color-red-400);
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+[data-theme="dt-context-product"] {
+  --dt-surface-base: var(--dt-color-white);
+  --dt-surface-subtle: var(--dt-color-neutral-050);
+  --dt-surface-raised: var(--dt-color-white);
+  --dt-surface-sunken: var(--dt-color-neutral-100);
+  --dt-surface-overlay: var(--dt-color-white);
+  --dt-surface-inverse: var(--dt-color-neutral-900);
+  --dt-surface-disabled: var(--dt-color-neutral-100);
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-600);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-400);
+  --dt-text-inverse: var(--dt-color-neutral-050);
+  --dt-text-link: var(--dt-color-accent-700);
+  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link-visited: var(--dt-color-violet-700);
+  --dt-border-subtle: var(--dt-color-neutral-100);
+  --dt-border-default: var(--dt-color-neutral-200);
+  --dt-border-strong: var(--dt-color-neutral-400);
+  --dt-border-inverse: var(--dt-color-neutral-700);
+  --dt-border-disabled: var(--dt-color-neutral-200);
+  --dt-surface-action: var(--dt-color-accent-600);
+  --dt-surface-action-hover: var(--dt-color-accent-700);
+  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-text-on-action: var(--dt-color-white);
+  --dt-surface-action-secondary: var(--dt-color-white);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-900);
+  --dt-border-action-secondary: var(--dt-color-neutral-200);
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-200);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-900);
+  --dt-surface-action-danger: var(--dt-color-red-600);
+  --dt-surface-action-danger-hover: var(--dt-color-red-700);
+  --dt-surface-action-danger-active: var(--dt-color-red-800);
+  --dt-text-on-action-danger: var(--dt-color-white);
+  --dt-surface-action-disabled: var(--dt-color-neutral-100);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-400);
+  --dt-surface-selected: var(--dt-color-accent-050);
+  --dt-surface-selected-hover: var(--dt-color-accent-100);
+  --dt-text-on-selected: var(--dt-color-accent-900);
+  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-success: var(--dt-color-green-600);
+  --dt-surface-success-subtle: var(--dt-color-green-050);
+  --dt-border-success: var(--dt-color-green-200);
+  --dt-text-success: var(--dt-color-green-800);
+  --dt-text-on-success: var(--dt-color-white);
+  --dt-surface-warning: var(--dt-color-amber-500);
+  --dt-surface-warning-subtle: var(--dt-color-amber-050);
+  --dt-border-warning: var(--dt-color-amber-200);
+  --dt-text-warning: var(--dt-color-amber-900);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+  --dt-surface-danger: var(--dt-color-red-600);
+  --dt-surface-danger-subtle: var(--dt-color-red-050);
+  --dt-border-danger: var(--dt-color-red-200);
+  --dt-text-danger: var(--dt-color-red-800);
+  --dt-text-on-danger: var(--dt-color-white);
+  --dt-surface-info: var(--dt-color-cyan-600);
+  --dt-surface-info-subtle: var(--dt-color-cyan-050);
+  --dt-border-info: var(--dt-color-cyan-200);
+  --dt-text-info: var(--dt-color-cyan-900);
+  --dt-text-on-info: var(--dt-color-white);
+  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-2: var(--dt-color-violet-500);
+  --dt-viz-3: var(--dt-color-cyan-600);
+  --dt-viz-4: var(--dt-color-amber-500);
+  --dt-viz-5: var(--dt-color-green-600);
+  --dt-viz-6: var(--dt-color-red-500);
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+[data-theme="dt-context-marketing"] {
+  --dt-surface-base: var(--dt-color-white);
+  --dt-surface-subtle: var(--dt-color-neutral-050);
+  --dt-surface-raised: var(--dt-color-white);
+  --dt-surface-sunken: var(--dt-color-neutral-100);
+  --dt-surface-overlay: var(--dt-color-white);
+  --dt-surface-inverse: var(--dt-color-neutral-900);
+  --dt-surface-disabled: var(--dt-color-neutral-100);
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-600);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-400);
+  --dt-text-inverse: var(--dt-color-neutral-050);
+  --dt-text-link: var(--dt-color-accent-700);
+  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link-visited: var(--dt-color-violet-700);
+  --dt-border-subtle: var(--dt-color-neutral-100);
+  --dt-border-default: var(--dt-color-neutral-200);
+  --dt-border-strong: var(--dt-color-neutral-400);
+  --dt-border-inverse: var(--dt-color-neutral-700);
+  --dt-border-disabled: var(--dt-color-neutral-200);
+  --dt-surface-action: var(--dt-color-accent-600);
+  --dt-surface-action-hover: var(--dt-color-accent-700);
+  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-text-on-action: var(--dt-color-white);
+  --dt-surface-action-secondary: var(--dt-color-white);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-900);
+  --dt-border-action-secondary: var(--dt-color-neutral-200);
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-200);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-900);
+  --dt-surface-action-danger: var(--dt-color-red-600);
+  --dt-surface-action-danger-hover: var(--dt-color-red-700);
+  --dt-surface-action-danger-active: var(--dt-color-red-800);
+  --dt-text-on-action-danger: var(--dt-color-white);
+  --dt-surface-action-disabled: var(--dt-color-neutral-100);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-400);
+  --dt-surface-selected: var(--dt-color-accent-050);
+  --dt-surface-selected-hover: var(--dt-color-accent-100);
+  --dt-text-on-selected: var(--dt-color-accent-900);
+  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-success: var(--dt-color-green-600);
+  --dt-surface-success-subtle: var(--dt-color-green-050);
+  --dt-border-success: var(--dt-color-green-200);
+  --dt-text-success: var(--dt-color-green-800);
+  --dt-text-on-success: var(--dt-color-white);
+  --dt-surface-warning: var(--dt-color-amber-500);
+  --dt-surface-warning-subtle: var(--dt-color-amber-050);
+  --dt-border-warning: var(--dt-color-amber-200);
+  --dt-text-warning: var(--dt-color-amber-900);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+  --dt-surface-danger: var(--dt-color-red-600);
+  --dt-surface-danger-subtle: var(--dt-color-red-050);
+  --dt-border-danger: var(--dt-color-red-200);
+  --dt-text-danger: var(--dt-color-red-800);
+  --dt-text-on-danger: var(--dt-color-white);
+  --dt-surface-info: var(--dt-color-cyan-600);
+  --dt-surface-info-subtle: var(--dt-color-cyan-050);
+  --dt-border-info: var(--dt-color-cyan-200);
+  --dt-text-info: var(--dt-color-cyan-900);
+  --dt-text-on-info: var(--dt-color-white);
+  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-2: var(--dt-color-violet-500);
+  --dt-viz-3: var(--dt-color-cyan-600);
+  --dt-viz-4: var(--dt-color-amber-500);
+  --dt-viz-5: var(--dt-color-green-600);
+  --dt-viz-6: var(--dt-color-red-500);
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+:root {
+  --dt-dim-0: 0px;
+  --dt-dim-1: 4px;
+  --dt-dim-2: 8px;
+  --dt-dim-3: 12px;
+  --dt-dim-4: 16px;
+  --dt-dim-5: 20px;
+  --dt-dim-6: 24px;
+  --dt-dim-7: 28px;
+  --dt-dim-8: 32px;
+  --dt-dim-9: 36px;
+  --dt-dim-10: 40px;
+  --dt-dim-11: 44px;
+  --dt-dim-12: 48px;
+  --dt-dim-14: 56px;
+  --dt-dim-16: 64px;
+  --dt-dim-20: 80px;
+  --dt-dim-24: 96px;
+  --dt-dim-28: 112px;
+  --dt-dim-32: 128px;
+  --dt-dim-40: 160px;
+  --dt-dim-48: 192px;
+  --dt-dim-56: 224px;
+  --dt-dim-64: 256px;
+  --dt-dim-hair: 1px;
+  --dt-dim-hair-2: 2px;
+  --dt-dim-container-sm: 640px;
+  --dt-dim-container-md: 768px;
+  --dt-dim-container-lg: 1024px;
+  --dt-dim-container-xl: 1280px;
+  --dt-dim-container-2xl: 1536px;
+  --dt-breakpoint-sm: 640px;
+  --dt-breakpoint-md: 768px;
+  --dt-breakpoint-lg: 1024px;
+  --dt-breakpoint-xl: 1280px;
+  --dt-breakpoint-2xl: 1536px;
+  --dt-space-inset-2xs: 4px;
+  --dt-space-inset-xs: 8px;
+  --dt-space-inset-sm: 12px;
+  --dt-space-inset-md: 16px;
+  --dt-space-inset-lg: 24px;
+  --dt-space-inset-xl: 32px;
+  --dt-space-inset-2xl: 48px;
+  --dt-space-stack-2xs: 4px;
+  --dt-space-stack-xs: 8px;
+  --dt-space-stack-sm: 12px;
+  --dt-space-stack-md: 16px;
+  --dt-space-stack-lg: 24px;
+  --dt-space-stack-xl: 40px;
+  --dt-space-stack-2xl: 64px;
+  --dt-space-inline-2xs: 4px;
+  --dt-space-inline-xs: 8px;
+  --dt-space-inline-sm: 12px;
+  --dt-space-inline-md: 16px;
+  --dt-space-inline-lg: 24px;
+  --dt-space-inline-xl: 32px;
+  --dt-space-inline-2xl: 48px;
+  --dt-space-section: 96px;
+  --dt-space-section-compact: 64px;
+  --dt-space-gutter: 24px;
+  --dt-space-gutter-wide: 40px;
+  --dt-radius-raw-0: 0px;
+  --dt-radius-raw-2: 2px;
+  --dt-radius-raw-4: 4px;
+  --dt-radius-raw-6: 6px;
+  --dt-radius-raw-8: 8px;
+  --dt-radius-raw-12: 12px;
+  --dt-radius-raw-16: 16px;
+  --dt-radius-raw-24: 24px;
+  --dt-radius-raw-full: 9999px;
+  --dt-radius-none: 0px;
+  --dt-radius-control: 6px;
+  --dt-radius-container: 8px;
+  --dt-radius-overlay: 12px;
+  --dt-radius-media: 8px;
+  --dt-radius-pill: 9999px;
+  --dt-button-radius: 6px;
+  --dt-input-radius: 6px;
+  --dt-card-radius: 8px;
+  --dt-dialog-radius: 12px;
+  --dt-popover-radius: 8px;
+  --dt-table-radius: 8px;
+  --dt-duration-instant: 0ms;
+  --dt-duration-50: 50ms;
+  --dt-duration-100: 100ms;
+  --dt-duration-150: 150ms;
+  --dt-duration-200: 200ms;
+  --dt-duration-300: 300ms;
+  --dt-duration-400: 400ms;
+  --dt-duration-600: 600ms;
+  --dt-easing-linear: linear;
+  --dt-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dt-easing-decelerate: cubic-bezier(0, 0, 0, 1);
+  --dt-easing-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --dt-easing-emphasis: cubic-bezier(0.2, 0, 0, 1.2);
+  --dt-line-height-2xs: 16px;
+  --dt-line-height-xs: 16px;
+  --dt-line-height-sm: 20px;
+  --dt-line-height-md: 24px;
+  --dt-line-height-lg: 28px;
+  --dt-line-height-xl: 32px;
+  --dt-line-height-2xl: 36px;
+  --dt-line-height-3xl: 40px;
+  --dt-line-height-4xl: 48px;
+  --dt-line-height-5xl: 52px;
+  --dt-line-height-6xl: 64px;
+  --dt-line-height-7xl: 76px;
+  --dt-font-weight-light: 300;
+  --dt-font-weight-regular: 400;
+  --dt-font-weight-medium: 500;
+  --dt-font-weight-semibold: 600;
+  --dt-font-weight-bold: 700;
+  --dt-font-weight-extrabold: 800;
+  --dt-button-font-weight: 500;
+  --dt-tracking-tighter: -0.03em;
+  --dt-tracking-tight: -0.02em;
+  --dt-tracking-snug: -0.01em;
+  --dt-tracking-normal: 0em;
+  --dt-tracking-wide: 0.02em;
+  --dt-tracking-wider: 0.06em;
+  --dt-shadow-raw-none: none;
+  --dt-shadow-raw-1: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 1px 3px 0 oklch(0.145 0.005 264 / 0.08);
+  --dt-shadow-raw-2: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 2px 6px -1px oklch(0.145 0.005 264 / 0.10);
+  --dt-shadow-raw-3: 0 2px 4px -1px oklch(0.145 0.005 264 / 0.06), 0 6px 12px -2px oklch(0.145 0.005 264 / 0.10);
+  --dt-shadow-raw-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12);
+  --dt-shadow-raw-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16);
+  --dt-shadow-raw-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08);
+  --dt-border-width-default: 1px;
+  --dt-border-width-strong: 2px;
+  --dt-focus-ring-width: 2px;
+  --dt-focus-ring-offset: 2px;
+  --dt-elevation-0: none;
+  --dt-elevation-1: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 1px 3px 0 oklch(0.145 0.005 264 / 0.08);
+  --dt-elevation-2: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 2px 6px -1px oklch(0.145 0.005 264 / 0.10);
+  --dt-elevation-3: 0 2px 4px -1px oklch(0.145 0.005 264 / 0.06), 0 6px 12px -2px oklch(0.145 0.005 264 / 0.10);
+  --dt-elevation-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12);
+  --dt-elevation-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16);
+  --dt-elevation-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08);
+  --dt-z-base: 0;
+  --dt-z-raised: 10;
+  --dt-z-sticky: 100;
+  --dt-z-dropdown: 200;
+  --dt-z-overlay: 300;
+  --dt-z-dialog: 400;
+  --dt-z-toast: 500;
+  --dt-z-tooltip: 600;
+  --dt-motion-micro: 0ms linear;
+  --dt-motion-enter: 0ms linear;
+  --dt-motion-exit: 0ms linear;
+  --dt-motion-emphasis: 0ms linear;
+  --dt-button-border-width: 1px;
+  --dt-button-transition: 0ms linear;
+  --dt-button-height-sm: 32px;
+  --dt-button-height-md: 40px;
+  --dt-button-height-lg: 48px;
+  --dt-input-border-width: 1px;
+  --dt-input-transition: 0ms linear;
+  --dt-input-height-sm: 32px;
+  --dt-input-height-md: 40px;
+  --dt-input-height-lg: 48px;
+  --dt-card-border-width: 1px;
+  --dt-card-elevation: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 1px 3px 0 oklch(0.145 0.005 264 / 0.08);
+  --dt-card-elevation-hover: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 2px 6px -1px oklch(0.145 0.005 264 / 0.10);
+  --dt-card-transition: 0ms linear;
+  --dt-dialog-elevation: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12);
+  --dt-dialog-border-width: 1px;
+  --dt-dialog-enter: 0ms linear;
+  --dt-dialog-exit: 0ms linear;
+  --dt-popover-elevation: 0 2px 4px -1px oklch(0.145 0.005 264 / 0.06), 0 6px 12px -2px oklch(0.145 0.005 264 / 0.10);
+  --dt-table-border-width: 1px;
+  --dt-table-row-height: 48px;
+  --dt-table-row-height-compact: 36px;
+  --font-dt-font-family-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-dt-font-family-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-dt-font-family-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-dt-font-size-2xs: 400 11px/1.4 inherit;
+  --text-dt-font-size-xs: 400 12px/1.4 inherit;
+  --text-dt-font-size-sm: 400 14px/1.4 inherit;
+  --text-dt-font-size-md: 400 16px/1.4 inherit;
+  --text-dt-font-size-lg: 400 19px/1.4 inherit;
+  --text-dt-font-size-xl: 400 23px/1.4 inherit;
+  --text-dt-font-size-2xl: 400 28px/1.4 inherit;
+  --text-dt-font-size-3xl: 400 33px/1.4 inherit;
+  --text-dt-font-size-4xl: 400 40px/1.4 inherit;
+  --text-dt-font-size-5xl: 400 48px/1.4 inherit;
+  --text-dt-font-size-6xl: 400 58px/1.4 inherit;
+  --text-dt-font-size-7xl: 400 69px/1.4 inherit;
+  --text-dt-text-display-lg: 600 69px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-display-lg-line: 400 76px/1.4 inherit;
+  --text-dt-text-display-md: 600 58px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-display-md-line: 400 64px/1.4 inherit;
+  --text-dt-text-display-sm: 600 48px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-display-sm-line: 400 52px/1.4 inherit;
+  --text-dt-text-heading-xl: 600 40px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-heading-xl-line: 400 48px/1.4 inherit;
+  --text-dt-text-heading-lg: 600 33px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-heading-lg-line: 400 40px/1.4 inherit;
+  --text-dt-text-heading-md: 600 28px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-heading-md-line: 400 36px/1.4 inherit;
+  --text-dt-text-heading-sm: 600 23px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-heading-sm-line: 400 32px/1.4 inherit;
+  --text-dt-text-heading-xs: 600 19px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-heading-xs-line: 400 28px/1.4 inherit;
+  --text-dt-text-body-lg: 400 19px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-body-lg-line: 400 28px/1.4 inherit;
+  --text-dt-text-body-md: 400 16px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-body-md-line: 400 24px/1.4 inherit;
+  --text-dt-text-body-sm: 400 14px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-body-sm-line: 400 20px/1.4 inherit;
+  --text-dt-text-body-xs: 400 12px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-body-xs-line: 400 16px/1.4 inherit;
+  --text-dt-text-label-lg: 500 16px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-label-lg-line: 400 24px/1.4 inherit;
+  --text-dt-text-label-md: 500 14px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-label-md-line: 400 20px/1.4 inherit;
+  --text-dt-text-label-sm: 500 12px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-label-sm-line: 400 16px/1.4 inherit;
+  --text-dt-text-eyebrow: 600 11px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-eyebrow-line: 400 16px/1.4 inherit;
+  --text-dt-text-code-md: 400 14px/1.4 var(--font-dt-font-family-mono);
+  --text-dt-text-code-md-line: 400 20px/1.4 inherit;
+  --text-dt-text-code-sm: 400 12px/1.4 var(--font-dt-font-family-mono);
+  --text-dt-text-code-sm-line: 400 16px/1.4 inherit;
+  --text-dt-button-font-size-sm: 400 14px/1.4 inherit;
+  --text-dt-button-font-size-md: 400 14px/1.4 inherit;
+  --text-dt-button-font-size-lg: 400 16px/1.4 inherit;
+  --text-dt-input: 400 14px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-table-header: 500 12px/1.4 inherit;
+  --text-body: 400 16px/24px var(--font-dt-font-family-sans); /* From `body` in tokens/base.css. */
+  --text-code: 400 14px/24px var(--font-dt-font-family-mono); /* From `code, pre, kbd, samp` in tokens/base.css. */
+  --text-pre: 400 14px/24px var(--font-dt-font-family-mono); /* From `code, pre, kbd, samp` in tokens/base.css. */
+  --text-kbd: 400 14px/24px var(--font-dt-font-family-mono); /* From `code, pre, kbd, samp` in tokens/base.css. */
+}
+.dt-font-size-2xs {
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-xs {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-sm {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-md {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-lg {
+  font-size: 19px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-xl {
+  font-size: 23px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-2xl {
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-3xl {
+  font-size: 33px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-4xl {
+  font-size: 40px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-5xl {
+  font-size: 48px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-6xl {
+  font-size: 58px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-7xl {
+  font-size: 69px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-display-lg {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 69px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.dt-text-display-lg-line {
+  font-size: 76px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-display-md {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 58px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.dt-text-display-md-line {
+  font-size: 64px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-display-sm {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 48px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.dt-text-display-sm-line {
+  font-size: 52px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-heading-xl {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 40px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.dt-text-heading-xl-line {
+  font-size: 48px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-heading-lg {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 33px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.dt-text-heading-lg-line {
+  font-size: 40px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-heading-md {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.dt-text-heading-md-line {
+  font-size: 36px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-heading-sm {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 23px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0em;
+}
+.dt-text-heading-sm-line {
+  font-size: 32px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-heading-xs {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 19px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0em;
+}
+.dt-text-heading-xs-line {
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-body-lg {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 19px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.dt-text-body-lg-line {
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-body-md {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.dt-text-body-md-line {
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-body-sm {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.dt-text-body-sm-line {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-body-xs {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.dt-text-body-xs-line {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-label-lg {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0em;
+}
+.dt-text-label-lg-line {
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-label-md {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0em;
+}
+.dt-text-label-md-line {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-label-sm {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0em;
+}
+.dt-text-label-sm-line {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-eyebrow {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.dt-text-eyebrow-line {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-code-md {
+  font-family: var(--font-dt-font-family-mono);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.dt-text-code-md-line {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-code-sm {
+  font-family: var(--font-dt-font-family-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.dt-text-code-sm-line {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-button-font-size-sm {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-button-font-size-md {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-button-font-size-lg {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-input {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-table-header {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.body {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
+.code {
+  font-family: var(--font-dt-font-family-mono);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.pre {
+  font-family: var(--font-dt-font-family-mono);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.kbd {
+  font-family: var(--font-dt-font-family-mono);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+}

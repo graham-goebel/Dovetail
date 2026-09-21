@@ -1,0 +1,400 @@
+<!-- @dsCard group="Component detail" viewport="1100x1500" name="Display — detail" subtitle="Avatar, List, Table, Stat, EmptyState, Skeleton, Code with props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+let Avatar, AvatarGroup, List, Table, Stat, EmptyState, Skeleton, Code, Badge, Button, Inline, Stack;
+
+const PEOPLE = [
+  { name: "Ada Lovelace" }, { name: "Grace Hopper" }, { name: "Alan Turing" },
+  { name: "Katherine Johnson" }, { name: "Jean Bartik" }, { name: "Margaret Hamilton" },
+];
+
+function Page() {
+  return (
+    <React.Fragment>
+      <PageHead title="Display" subtitle="Components that present data the user reads rather than edits. Each shelf shows real states, the props contract, and the rules that govern use." />
+
+      <Shelf
+        name="Avatar / AvatarGroup"
+        summary="Identifies a person or entity. Falls back to initials when no image is supplied; AvatarGroup overlaps several and counts the remainder."
+        props={[
+          { name: "name", type: "string", required: true, notes: "Accessible label and initials source. Required even when src is set." },
+          { name: "src", type: "string", notes: "Image URL. Initials render when absent." },
+          { name: "size", type: '"xs" | "sm" | "md" | "lg" | "xl"', default: '"md"', notes: "xs and sm for dense rows; lg and xl for profile headers." },
+          { name: "shape", type: '"circle" | "square"', default: '"circle"', notes: "Squares are for organisations, circles for people." },
+          { name: "status", type: '"online" | "busy" | "away" | "offline"', notes: "Presence only. Not a notification dot." },
+          { name: "people", type: "Array<{ name, src }>", required: true, notes: "AvatarGroup only. Most relevant first." },
+          { name: "max", type: "number", default: "4", notes: "AvatarGroup only. Keep to 3–5." },
+        ]}
+        guidance={[
+          "name is required even with an image. It is the alt text and the initials fallback; an avatar with no name is unlabelled to a screen reader.",
+          "AvatarGroup requires label. Screen readers announce the group, not each overlapping image.",
+          "Initials collide in large directories. If your data has many shared initials, supply images or add a secondary identifier.",
+          "Do not make individual avatars in a group clickable. If a person needs an action, use a List.",
+        ]}
+      >
+        <Specimen label="Sizes">
+          <Inline gap="md" align="center">
+            {["xs","sm","md","lg","xl"].map(s => <Avatar key={s} name="Ada Lovelace" size={s} />)}
+          </Inline>
+        </Specimen>
+        <Specimen label="Shape and presence">
+          <Inline gap="md" align="center">
+            <Avatar name="Ada Lovelace" status="online" />
+            <Avatar name="Grace Hopper" status="busy" />
+            <Avatar name="Alan Turing" status="away" />
+            <Avatar name="Jean Bartik" status="offline" />
+            <Avatar name="Northwind Trading" shape="square" />
+          </Inline>
+        </Specimen>
+        <Specimen label="Group with overflow">
+          <Inline gap="lg" align="center">
+            <AvatarGroup people={PEOPLE} max={4} label="Project members" />
+            <AvatarGroup people={PEOPLE.slice(0,3)} size="sm" label="Reviewers" />
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="List"
+        summary="A sequence of comparable records with optional leading and trailing slots. Rows become buttons when the list is interactive."
+        props={[
+          { name: "items", type: "ListItem[]", required: true, notes: "Each item takes title, description, leading, trailing, onClick." },
+          { name: "divided", type: "boolean", default: "true", notes: "Hairline between rows." },
+          { name: "interactive", type: "boolean", default: "false", notes: "Renders rows with onClick as buttons with hover feedback." },
+          { name: "label", type: "string", required: true, notes: "Accessible list name." },
+        ]}
+        guidance={[
+          "Set interactive only when rows navigate or select. A row that looks clickable and does nothing is worse than a plain row.",
+          "One trailing action per row. Two competing controls make the hit target ambiguous on touch.",
+          "Keep description to one line. If a row needs more, it is a Card.",
+          "Once you need more than a title, a description, and one piece of metadata, move to Table.",
+        ]}
+      >
+        <Specimen label="Interactive rows with avatars and badges" bg="var(--dt-surface-base)">
+          <List
+            label="Team members"
+            interactive
+            items={[
+              { id: 1, leading: <Avatar name="Ada Lovelace" size="sm" />, title: "Ada Lovelace", description: "ada@northwind.co", trailing: <Badge tone="accent">Owner</Badge>, onClick: () => {} },
+              { id: 2, leading: <Avatar name="Grace Hopper" size="sm" />, title: "Grace Hopper", description: "grace@northwind.co", trailing: <Badge>Admin</Badge>, onClick: () => {} },
+              { id: 3, leading: <Avatar name="Alan Turing" size="sm" />, title: "Alan Turing", description: "alan@northwind.co", trailing: <Badge>Member</Badge>, onClick: () => {} },
+            ]}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Table"
+        summary="Tabular data with a header row, optional zebra striping, and a dense mode for data-heavy views."
+        props={[
+          { name: "columns", type: "TableColumn[]", required: true, notes: "key, header, align, width, and an optional render(row)." },
+          { name: "rows", type: "Array<Record<string, any>>", required: true, notes: "Plain row objects keyed by column key." },
+          { name: "caption", type: "ReactNode", notes: "Visible description and accessible name. Always supply one." },
+          { name: "dense", type: "boolean", default: "false", notes: "Tighter padding. Use past roughly fifteen rows." },
+          { name: "zebra", type: "boolean", default: "false", notes: "Alternating tint. Do not combine with heavy row borders." },
+        ]}
+        guidance={[
+          "Right-align numbers. The component enables tabular figures for right-aligned columns so digits line up.",
+          "zebra and hairlines are alternatives, not a pair. Both on every row reads as noise.",
+          "Tables do not reflow. Below roughly 600px a multi-column table either scrolls sideways or becomes a List — decide which before shipping a responsive view.",
+        ]}
+      >
+        <Specimen label="Default with a rendered status column" bg="var(--dt-surface-base)">
+          <Table
+            caption="Invoices, last 30 days"
+            columns={[
+              { key: "id", header: "Invoice", width: "110px" },
+              { key: "client", header: "Client" },
+              { key: "status", header: "Status", render: r => <Badge tone={r.tone} dot>{r.status}</Badge> },
+              { key: "amount", header: "Amount", align: "right" },
+            ]}
+            rows={[
+              { id: "INV-2041", client: "Northwind Trading", status: "Paid", tone: "success", amount: "$4,200.00" },
+              { id: "INV-2042", client: "Halcyon Labs", status: "Due soon", tone: "warning", amount: "$1,875.50" },
+              { id: "INV-2043", client: "Pallas Freight", status: "Past due", tone: "danger", amount: "$12,040.00" },
+            ]}
+          />
+        </Specimen>
+        <Specimen label="Dense and zebra" bg="var(--dt-surface-base)">
+          <Table
+            dense zebra
+            caption="Regional totals"
+            columns={[
+              { key: "region", header: "Region" },
+              { key: "orders", header: "Orders", align: "right" },
+              { key: "revenue", header: "Revenue", align: "right" },
+            ]}
+            rows={[
+              { region: "North", orders: "1,284", revenue: "$412,900" },
+              { region: "South", orders: "982", revenue: "$308,410" },
+              { region: "East", orders: "2,117", revenue: "$744,020" },
+              { region: "West", orders: "640", revenue: "$198,330" },
+            ]}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Stat"
+        summary="One headline metric with an optional change indicator. Direction is semantic: a falling error rate is up."
+        props={[
+          { name: "label", type: "ReactNode", required: true, notes: "What the number measures." },
+          { name: "value", type: "ReactNode", required: true, notes: "Pre-formatted. The component does not round or add separators." },
+          { name: "unit", type: "ReactNode", notes: "Trailing unit, e.g. hrs or / mo." },
+          { name: "delta", type: "ReactNode", notes: "Change since the comparison period." },
+          { name: "deltaDirection", type: '"up" | "down" | "flat"', notes: "Means good or bad, not arithmetic direction." },
+          { name: "caption", type: "ReactNode", notes: "Comparison period. A delta without one is not a fact." },
+          { name: "align", type: '"left" | "center" | "right"', default: '"left"' },
+        ]}
+        guidance={[
+          "deltaDirection is meaning, not arithmetic. A 12% drop in churn is up — otherwise green reads as praise for a bad result.",
+          "Always caption a delta with its comparison period.",
+          "Group three or four stats across. More than that and none of them is headline.",
+        ]}
+      >
+        <Specimen label="Dashboard row" bg="var(--dt-surface-base)">
+          <Inline gap="xl" wrap>
+            <Stat label="Monthly active users" value="48,209" delta="+12.4%" deltaDirection="up" caption="vs. previous 30 days" />
+            <Stat label="Churn" value="1.8" unit="%" delta="−0.4pp" deltaDirection="up" caption="vs. previous 30 days" />
+            <Stat label="Median response" value="240" unit="ms" delta="+38ms" deltaDirection="down" caption="vs. previous 30 days" />
+            <Stat label="Open incidents" value="3" delta="0" deltaDirection="flat" caption="unchanged this week" />
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="EmptyState"
+        summary="Turns a blank region into an instruction. The three empties — first run, no results, no access — are different problems."
+        props={[
+          { name: "title", type: "ReactNode", required: true, notes: "What is empty, sentence case." },
+          { name: "description", type: "ReactNode", notes: "Why it is empty and what to do next." },
+          { name: "icon", type: "ReactNode", notes: "Lucide icon sized from --dt-size-icon-*." },
+          { name: "action", type: "ReactNode", notes: "Primary action — usually the thing that fills the space." },
+          { name: "secondaryAction", type: "ReactNode" },
+          { name: "size", type: '"sm" | "md"', default: '"md"', notes: "sm inside a card or panel." },
+        ]}
+        guidance={[
+          "Do not ship one generic empty state for all three cases. First run needs a create action; no results needs a way to widen the search; no access needs a way to request it.",
+          'description says why it is empty and what happens next. "No data" says neither.',
+          "For states users hit routinely — a cleared filter, an empty inbox — keep it to text and one control.",
+        ]}
+      >
+        <Specimen label="First run" bg="var(--dt-surface-base)">
+          <EmptyState
+            title="No projects yet"
+            description="Projects hold your documents, members, and billing. Create one to get started."
+            action={<Button size="sm">Create project</Button>}
+            secondaryAction={<Button size="sm" variant="ghost">Import</Button>}
+          />
+        </Specimen>
+        <Specimen label="No results, small" bg="var(--dt-surface-base)">
+          <EmptyState
+            size="sm"
+            title="No invoices match those filters"
+            description="Try widening the date range or clearing the status filter."
+            action={<Button size="sm" variant="secondary">Clear filters</Button>}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Skeleton"
+        summary="Holds the shape of loading content so the layout does not jump when data arrives."
+        props={[
+          { name: "variant", type: '"text" | "rect" | "circle"', default: '"text"' },
+          { name: "width", type: "number | string" },
+          { name: "height", type: "number | string" },
+          { name: "lines", type: "number", default: "1", notes: "Text only. The last line is shortened." },
+          { name: "radius", type: "string", notes: "Overrides the variant radius." },
+        ]}
+        guidance={[
+          "Match the real content's dimensions. A wrong-sized skeleton causes the reflow it exists to prevent.",
+          "Skeletons are aria-hidden. Announce loading on the container with aria-busy.",
+          "Use skeletons for content-shaped waits over roughly 300ms; use Spinner for actions with no known shape.",
+          "Pair every skeleton with an error state — a failed request under a skeleton never resolves.",
+        ]}
+      >
+        <Specimen label="Loading list row" bg="var(--dt-surface-base)">
+          <Inline gap="md" align="center">
+            <Skeleton variant="circle" width={32} height={32} />
+            <Skeleton lines={2} width={280} />
+          </Inline>
+        </Specimen>
+        <Specimen label="Card placeholder" bg="var(--dt-surface-base)">
+          <Stack gap="sm" style={{ maxWidth: 360 }}>
+            <Skeleton variant="rect" height={120} />
+            <Skeleton lines={3} />
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Code"
+        summary="Monospace text that must be read literally. Inline for identifiers, block for snippets."
+        props={[
+          { name: "block", type: "boolean", default: "false", notes: "Renders a scrollable pre instead of inline code." },
+          { name: "label", type: "ReactNode", notes: "Caption above a block, usually a filename." },
+        ]}
+        guidance={[
+          "Inline code does not wrap. Keep it to a short identifier; a whole command belongs in a block.",
+          "Give every block a label when the snippet belongs to a file.",
+          "No syntax highlighting by design. Highlighting is a product decision and a dependency, not a system default.",
+          "Blocks scroll rather than wrap, because a wrapped command can be copied incorrectly.",
+        ]}
+      >
+        <Specimen label="Inline" bg="var(--dt-surface-base)">
+          <p style={{ margin: 0, maxWidth: "62ch", fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)" }}>
+            Surface colours come from <Code>--dt-surface-*</Code> and their paired text from <Code>--dt-text-on-*</Code>.
+          </p>
+        </Specimen>
+        <Specimen label="Block with a filename" bg="var(--dt-surface-base)">
+          <Code block label="tokens/themes/brand.css">{":root {\n  --dt-color-accent-600: oklch(0.546 0.215 259);\n  --dt-radius-control: 6px;\n}"}</Code>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Avatar","AvatarGroup","List","Table","Stat","EmptyState","Skeleton","Code","Badge","Button","Inline","Stack"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Avatar, AvatarGroup, List, Table, Stat, EmptyState, Skeleton, Code, Badge, Button, Inline, Stack } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

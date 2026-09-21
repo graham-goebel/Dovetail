@@ -1,0 +1,29 @@
+/* TIER 2 — SEMANTIC SIZE
+   Control heights and icon sizes, all on the 4px grid. A density theme overrides
+   the control heights and every form control resizes together.
+
+   Touch targets: --dt-size-control-md (40px) is the smallest size allowed on a
+   touch surface without a padded hit area. WCAG 2.2 sets the floor at 24px;
+   40px is the size people can actually hit. */
+
+:root {
+  --dt-size-control-xs: var(--dt-dim-6);   /* 24 — dense tables, inline chips */
+  --dt-size-control-sm: var(--dt-dim-8);   /* 32 — toolbars, compact forms */
+  --dt-size-control-md: var(--dt-dim-10);  /* 40 — the default */
+  --dt-size-control-lg: var(--dt-dim-12);  /* 48 — primary CTAs, touch-first */
+
+  --dt-size-icon-xs: var(--dt-dim-3);      /* 12 */
+  --dt-size-icon-sm: var(--dt-dim-4);      /* 16 */
+  --dt-size-icon-md: var(--dt-dim-5);      /* 20 — the default */
+  --dt-size-icon-lg: var(--dt-dim-6);      /* 24 */
+  --dt-size-icon-xl: var(--dt-dim-8);      /* 32 */
+
+  --dt-size-avatar-xs: var(--dt-dim-5);    /* 20 */
+  --dt-size-avatar-sm: var(--dt-dim-6);    /* 24 */
+  --dt-size-avatar-md: var(--dt-dim-8);    /* 32 */
+  --dt-size-avatar-lg: var(--dt-dim-10);   /* 40 */
+  --dt-size-avatar-xl: var(--dt-dim-16);   /* 64 */
+
+  /* The minimum hit area for any interactive element on touch. */
+  --dt-size-touch-target: var(--dt-dim-11); /* 44 */
+}

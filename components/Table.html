@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Table · Dovetail</title>
+<meta name="description" content="Compares records across several fields at once. Use it when the user reads across a row">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html" aria-current="page">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Table</li></ol></nav>
+<h1>Table</h1>
+<p class="lede">Compares records across several fields at once. Use it when the user reads across a row</p>
+<p class="meta">
+  <span class="pill">Display</span>
+  
+  <a href="../system/components/display/Table.jsx">Table.jsx</a>
+  <a href="../system/components/display/Table.d.ts">Table.d.ts</a>
+  <a href="../system/components/display/Table.md">Table.md</a>
+</p>
+
+<section class="card-block" id="table-live">
+  <div class="card-head">
+    <h2>Table — live</h2>
+    <a class="card-open" href="../previews/Table.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:835px">
+    <iframe src="../previews/Table.html" title="Table — live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>Compares records across several fields at once. Use it when the user reads across a row as often as down a column.</p>
+<h2 id="rules">Rules</h2>
+<ul><li>Give every table a <code>caption</code>. It is the accessible name and it tells a scanning reader what the rows are before they parse the headers.</li><li>Right-align numbers. The component turns on tabular figures for right-aligned columns so digits line up.</li><li>Use <code>dense</code> for data tables over roughly fifteen rows. Use the default padding for short summary tables where each row is a decision.</li><li><code>zebra</code> and hairlines are alternatives, not a pair. Stripes plus borders on every row reads as noise.</li></ul>
+<h2 id="tradeoffs">Tradeoffs</h2>
+<p>Tables do not reflow. Below roughly 600px a multi-column table either scrolls sideways or has to become a List. Decide which before you ship a responsive view.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Table.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+export interface TableColumn&lt;Row = any&gt; {
+  /** Field name on the row, and the React key. */
+  key: string;
+  /** Column heading. */
+  header: React.ReactNode;
+  /** Use &quot;right&quot; for numeric columns — it also enables tabular figures. @default &quot;left&quot; */
+  align?: &quot;left&quot; | &quot;center&quot; | &quot;right&quot;;
+  /** Fixed column width, e.g. &quot;120px&quot; or &quot;20%&quot;. */
+  width?: string;
+  /** Custom cell renderer. Receives the whole row. */
+  render?: (row: Row) =&gt; React.ReactNode;
+}
+
+/** Tabular data with a header row. */
+export interface TableProps extends React.TableHTMLAttributes&lt;HTMLTableElement&gt; {
+  columns: TableColumn[];
+  rows: Array&lt;Record&lt;string, any&gt;&gt;;
+  /** Visible description above the table. Also serves as the accessible name. */
+  caption?: React.ReactNode;
+  /** Tighter row padding for data-heavy views. @default false */
+  dense?: boolean;
+  /** Alternating row tint. @default false */
+  zebra?: boolean;
+}
+
+export declare function Table(props: TableProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+export function Table({ columns = [], rows = [], caption, dense = false, zebra = false, style, ...rest }) {
+  const pad = dense ? &quot;var(--dt-space-inset-xs) var(--dt-space-inset-sm)&quot; : &quot;var(--dt-space-inset-sm) var(--dt-space-inset-md)&quot;;
+  return (
+    &lt;table style={{ width: &quot;100%&quot;, borderCollapse: &quot;collapse&quot;, fontFamily: &quot;var(--dt-text-body-sm-family)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, ...style }} {...rest}&gt;
+      {caption &amp;&amp; &lt;caption style={{ captionSide: &quot;top&quot;, textAlign: &quot;left&quot;, padding: &quot;0 0 var(--dt-space-stack-xs)&quot;, color: &quot;var(--dt-text-secondary)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot; }}&gt;{caption}&lt;/caption&gt;}
+      &lt;thead&gt;
+        &lt;tr&gt;
+          {columns.map(c =&gt; (
+            &lt;th key={c.key} scope=&quot;col&quot; style={{
+              textAlign: c.align || &quot;left&quot;, padding: pad,
+              fontFamily: &quot;var(--dt-text-label-sm-family)&quot;, fontSize: &quot;var(--dt-text-label-sm-size)&quot;,
+              fontWeight: &quot;var(--dt-font-weight-medium)&quot;, color: &quot;var(--dt-text-secondary)&quot;,
+              borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-border-default)&quot;,
+              whiteSpace: &quot;nowrap&quot;, width: c.width,
+            }}&gt;{c.header}&lt;/th&gt;
+          ))}
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        {rows.map((r, i) =&gt; (
+          &lt;tr key={r.id ?? i} style={{ background: zebra &amp;&amp; i % 2 === 1 ? &quot;var(--dt-surface-subtle)&quot; : &quot;transparent&quot; }}&gt;
+            {columns.map(c =&gt; (
+              &lt;td key={c.key} style={{
+                padding: pad, textAlign: c.align || &quot;left&quot;, color: &quot;var(--dt-text-primary)&quot;,
+                borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-border-subtle)&quot;,
+                fontVariantNumeric: c.align === &quot;right&quot; ? &quot;tabular-nums&quot; : undefined,
+              }}&gt;{c.render ? c.render(r) : r[c.key]}&lt;/td&gt;
+            ))}
+          &lt;/tr&gt;
+        ))}
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Table also appears on the display reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#displaydetail">DisplayDetail</a></li><li><a href="../showcase/detail.html#surfacesdetail">SurfacesDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+/* TIER 2 — SEMANTIC MOTION
+   Four roles cover interface motion. Anything that needs a fifth is probably
+   decoration, and decoration is not a system concern.
+
+   micro    — state change on an element already on screen (hover, press, toggle)
+   enter    — something arriving (popover opens, toast slides in)
+   exit     — something leaving. Faster than enter: people wait for arrivals,
+              they do not wait for departures.
+   emphasis — a change that must be noticed (validation error, value update) */
+
+:root {
+  --dt-motion-micro: var(--dt-duration-100) var(--dt-easing-standard); /* @kind other */
+  --dt-motion-enter: var(--dt-duration-200) var(--dt-easing-decelerate); /* @kind other */
+  --dt-motion-exit: var(--dt-duration-150) var(--dt-easing-accelerate); /* @kind other */
+  --dt-motion-emphasis: var(--dt-duration-300) var(--dt-easing-emphasis); /* @kind other */
+}
+
+/* Respect the user's setting. This is not optional. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dt-motion-micro: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-enter: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-exit: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-emphasis: var(--dt-duration-instant) var(--dt-easing-linear);
+  }
+}

@@ -1,0 +1,65 @@
+/* BASE — minimal element defaults.
+   Dovetail does not ship a CSS reset. This sets only what a system must own:
+   box sizing, the page's type and colour, focus visibility, and link colour.
+   Everything else is a component's job. */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--dt-text-body-md-family);
+  font-size: var(--dt-text-body-md-size);
+  line-height: var(--dt-text-body-md-line);
+  font-weight: var(--dt-text-body-md-weight);
+  letter-spacing: var(--dt-text-body-md-tracking);
+  color: var(--dt-text-primary);
+  background-color: var(--dt-surface-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* One focus treatment, applied everywhere, visible on every surface.
+   :focus-visible so pointer users never see it and keyboard users always do. */
+:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+  border-radius: inherit;
+}
+
+a {
+  color: var(--dt-text-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--dt-text-link-hover); text-decoration-thickness: 2px; }
+
+code, pre, kbd, samp {
+  font-family: var(--dt-text-code-md-family);
+  font-size: var(--dt-text-code-md-size);
+}
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+
+::selection {
+  background-color: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+/* System-owned animations. Components reference these by name; never redefine them
+   locally. All are suppressed under reduced-motion. */
+@keyframes dt-spin { to { transform: rotate(360deg); } }
+@keyframes dt-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes dt-progress-slide { 0% { margin-left: 0; } 50% { margin-left: 65%; } 100% { margin-left: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

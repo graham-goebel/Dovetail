@@ -1,0 +1,29 @@
+/* TIER 3 — DIALOG
+   Covers Dialog, Drawer, Popover, and Sheet — every overlay shares one scrim,
+   one radius, and one elevation so stacked overlays read as one system. */
+
+:root {
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-radius: var(--dt-radius-overlay);
+  --dt-dialog-padding: var(--dt-space-inset-xl);
+  --dt-dialog-gap: var(--dt-space-stack-md);
+  --dt-dialog-elevation: var(--dt-elevation-4); /* @kind other */
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-border-width: var(--dt-border-width-default);
+
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-dialog-scrim-blur: 2px;
+
+  --dt-dialog-width-sm: 400px;
+  --dt-dialog-width-md: 520px;
+  --dt-dialog-width-lg: 720px;
+  --dt-dialog-max-height: 85vh;
+
+  --dt-dialog-enter: var(--dt-motion-enter); /* @kind other */
+  --dt-dialog-exit: var(--dt-motion-exit); /* @kind other */
+
+  --dt-popover-radius: var(--dt-radius-container);
+  --dt-popover-padding: var(--dt-space-inset-md);
+  --dt-popover-elevation: var(--dt-elevation-3); /* @kind other */
+}

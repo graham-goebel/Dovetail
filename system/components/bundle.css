@@ -1,0 +1,642 @@
+/* ── styles.css ── */
+/* Dovetail — global entry point. Import lines only; never write rules here.
+   Load order matters: primitives, then semantics, then component tokens, then base element styles.
+   Themes are opt-in — link a file from tokens/themes/ after this one. */
+
+@import "tokens/primitive/color.css";
+@import "tokens/primitive/dimension.css";
+@import "tokens/primitive/typography.css";
+@import "tokens/primitive/motion.css";
+@import "tokens/primitive/elevation.css";
+
+@import "tokens/semantic/color.css";
+@import "tokens/semantic/space.css";
+@import "tokens/semantic/typography.css";
+@import "tokens/semantic/shape.css";
+@import "tokens/semantic/size.css";
+@import "tokens/semantic/elevation.css";
+@import "tokens/semantic/motion.css";
+
+@import "tokens/themes/base-dark.css";
+@import "tokens/themes/theme-custom.css";
+
+@import "tokens/component/button.css";
+@import "tokens/component/input.css";
+@import "tokens/component/card.css";
+@import "tokens/component/dialog.css";
+@import "tokens/component/table.css";
+
+/* Contexts come last: they retune semantic and component tokens, and at equal
+   specificity source order decides. */
+@import "tokens/contexts/context-product.css";
+@import "tokens/contexts/context-marketing.css";
+
+@import "tokens/base.css";
+
+/* ── tokens/primitive/color.css ── */
+/* TIER 1 — PRIMITIVE COLOR
+   Raw values in OKLCH. No meaning, no usage context.
+   Never reference these from a component. Semantic tokens are the only legal consumer.
+
+   OKLCH is used because lightness is perceptually uniform: step 500 in any ramp reads
+   as the same visual weight, so swapping a brand hue keeps contrast predictable. */
+
+:root {
+}
+
+/* ── tokens/primitive/dimension.css ── */
+/* TIER 1 — PRIMITIVE DIMENSION
+   One base unit: 4px. Every value is a multiple, and the number in the name is the multiplier.
+   --dt-dim-6 is 6 × 4px = 24px. The name stays true if the base unit ever changes.
+
+   Sub-unit values exist only for hairlines and optical nudges. They are named separately
+   so they cannot be mistaken for layout spacing. */
+
+:root {
+}
+
+/* ── tokens/primitive/typography.css ── */
+/* TIER 1 — PRIMITIVE TYPOGRAPHY
+   Font sizes follow a 1.200 modular scale from a 16px base, rounded to whole pixels.
+   Two rounds are deliberate and documented: 13.33 → 14 and 57.33 → 58, because 14px is
+   the workhorse UI size and a half-pixel display size renders inconsistently.
+
+   Line heights snap to the 4px grid so text blocks align with everything else.
+   This is the one place the modular scale and the 4px grid are reconciled by hand. */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap");
+
+:root {
+  /* Families. A theme overrides these three lines and nothing else. */
+  --dt-font-family-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --dt-font-family-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --dt-font-family-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Size ramp */
+  --dt-font-size-2xs: 11px;
+  --dt-font-size-xs: 12px;
+  --dt-font-size-sm: 14px;
+  --dt-font-size-md: 16px;
+  --dt-font-size-lg: 19px;
+  --dt-font-size-xl: 23px;
+  --dt-font-size-2xl: 28px;
+  --dt-font-size-3xl: 33px;
+  --dt-font-size-4xl: 40px;
+  --dt-font-size-5xl: 48px;
+  --dt-font-size-6xl: 58px;
+  --dt-font-size-7xl: 69px;
+
+  /* Measure — characters per line, for readable prose */
+  --dt-measure-narrow: 45ch;
+  --dt-measure-default: 68ch;
+  --dt-measure-wide: 85ch;
+}
+
+/* ── tokens/primitive/motion.css ── */
+/* TIER 1 — PRIMITIVE MOTION
+   Raw durations and easing curves. Components reference the semantic motion roles,
+   not these. Durations are short by default: interface motion confirms a change,
+   it does not perform. */
+
+:root { /* @kind other */
+}
+
+/* ── tokens/primitive/elevation.css ── */
+/* TIER 1 — PRIMITIVE ELEVATION
+   Raw shadow recipes. Each is a two-layer shadow: a tight contact shadow plus a
+   soft ambient one. Single-layer shadows read as flat stickers at larger sizes. */
+
+:root { /* @kind other */
+}
+
+/* ── tokens/semantic/color.css ── */
+/* TIER 2 — SEMANTIC COLOR
+   Purpose, not value. This is the themeable layer: a brand theme overrides these
+   names and every component follows. No value words are allowed here — the moment
+   "blue" appears in a semantic name, it becomes a lie waiting for the next rebrand.
+
+   Pairing convention: every role that can be a background has a matching
+   on- foreground role, and the pair is contrast-checked together.
+   Use them as a set. `--dt-surface-action` without `--dt-text-on-action` is a bug.
+
+   Values below are the LIGHT theme. Dark lives in tokens/themes/base-dark.css and
+   re-points these same names. */
+
+:root {
+}
+
+/* ── tokens/semantic/space.css ── */
+/* TIER 2 — SEMANTIC SPACE
+   Three axes, because "16px" does not say what the gap is for. Naming the axis makes
+   layout intent readable in markup and lets a density theme retune one axis alone.
+
+   inset  — padding inside a container
+   stack  — vertical gap between blocks
+   inline — horizontal gap between siblings */
+
+:root {
+}
+
+/* ── tokens/semantic/typography.css ── */
+/* TIER 2 — SEMANTIC TYPOGRAPHY
+   Roles, not sizes. A component asks for "heading-md", never "23px", so a theme can
+   retune the whole ladder — including family and weight — from one file.
+
+   Each role ships four properties. Use all four together; taking the size and
+   dropping the line-height is how vertical rhythm breaks.
+
+   display — marketing and hero type. Rare in product UI.
+   heading — document and section structure. Maps to h1–h6.
+   body    — prose and long-form reading.
+   label   — UI chrome: buttons, form labels, table headers, badges.
+   code    — monospaced. */
+
+:root {
+  /* ---- Display ---------------------------------------------------- */
+  --dt-text-display-lg-family: var(--dt-font-family-sans);
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-md-family: var(--dt-font-family-sans);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+  --dt-text-display-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-md-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-sm-family: var(--dt-font-family-sans);
+  --dt-text-display-sm-size: var(--dt-font-size-5xl);
+  --dt-text-display-sm-line: var(--dt-line-height-5xl);
+  --dt-text-display-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-sm-tracking: var(--dt-tracking-tight);
+
+  /* ---- Heading ---------------------------------------------------- */
+  --dt-text-heading-xl-family: var(--dt-font-family-sans);
+  --dt-text-heading-xl-size: var(--dt-font-size-4xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-4xl);
+  --dt-text-heading-xl-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xl-tracking: var(--dt-tracking-tight);
+
+  --dt-text-heading-lg-family: var(--dt-font-family-sans);
+  --dt-text-heading-lg-size: var(--dt-font-size-3xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-3xl);
+  --dt-text-heading-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-lg-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-md-family: var(--dt-font-family-sans);
+  --dt-text-heading-md-size: var(--dt-font-size-2xl);
+  --dt-text-heading-md-line: var(--dt-line-height-2xl);
+  --dt-text-heading-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-md-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-sm-family: var(--dt-font-family-sans);
+  --dt-text-heading-sm-size: var(--dt-font-size-xl);
+  --dt-text-heading-sm-line: var(--dt-line-height-xl);
+  --dt-text-heading-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-heading-xs-family: var(--dt-font-family-sans);
+  --dt-text-heading-xs-size: var(--dt-font-size-lg);
+  --dt-text-heading-xs-line: var(--dt-line-height-lg);
+  --dt-text-heading-xs-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Body ------------------------------------------------------- */
+  --dt-text-body-lg-family: var(--dt-font-family-sans);
+  --dt-text-body-lg-size: var(--dt-font-size-lg);
+  --dt-text-body-lg-line: var(--dt-line-height-lg);
+  --dt-text-body-lg-weight: var(--dt-font-weight-regular);
+  --dt-text-body-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-md-family: var(--dt-font-family-sans);
+  --dt-text-body-md-size: var(--dt-font-size-md);
+  --dt-text-body-md-line: var(--dt-line-height-md);
+  --dt-text-body-md-weight: var(--dt-font-weight-regular);
+  --dt-text-body-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-sm-family: var(--dt-font-family-sans);
+  --dt-text-body-sm-size: var(--dt-font-size-sm);
+  --dt-text-body-sm-line: var(--dt-line-height-sm);
+  --dt-text-body-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-body-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-xs-family: var(--dt-font-family-sans);
+  --dt-text-body-xs-size: var(--dt-font-size-xs);
+  --dt-text-body-xs-line: var(--dt-line-height-xs);
+  --dt-text-body-xs-weight: var(--dt-font-weight-regular);
+  --dt-text-body-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Label ------------------------------------------------------ */
+  --dt-text-label-lg-family: var(--dt-font-family-sans);
+  --dt-text-label-lg-size: var(--dt-font-size-md);
+  --dt-text-label-lg-line: var(--dt-line-height-md);
+  --dt-text-label-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-label-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-md-family: var(--dt-font-family-sans);
+  --dt-text-label-md-size: var(--dt-font-size-sm);
+  --dt-text-label-md-line: var(--dt-line-height-sm);
+  --dt-text-label-md-weight: var(--dt-font-weight-medium);
+  --dt-text-label-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-sm-family: var(--dt-font-family-sans);
+  --dt-text-label-sm-size: var(--dt-font-size-xs);
+  --dt-text-label-sm-line: var(--dt-line-height-xs);
+  --dt-text-label-sm-weight: var(--dt-font-weight-medium);
+  --dt-text-label-sm-tracking: var(--dt-tracking-normal);
+
+  /* Eyebrow — the only role that is ever uppercased. */
+  --dt-text-eyebrow-family: var(--dt-font-family-sans);
+  --dt-text-eyebrow-size: var(--dt-font-size-2xs);
+  --dt-text-eyebrow-line: var(--dt-line-height-2xs);
+  --dt-text-eyebrow-weight: var(--dt-font-weight-semibold);
+  --dt-text-eyebrow-tracking: var(--dt-tracking-wider);
+
+  /* ---- Code ------------------------------------------------------- */
+  --dt-text-code-md-family: var(--dt-font-family-mono);
+  --dt-text-code-md-size: var(--dt-font-size-sm);
+  --dt-text-code-md-line: var(--dt-line-height-sm);
+  --dt-text-code-md-weight: var(--dt-font-weight-regular);
+  --dt-text-code-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-code-sm-family: var(--dt-font-family-mono);
+  --dt-text-code-sm-size: var(--dt-font-size-xs);
+  --dt-text-code-sm-line: var(--dt-line-height-xs);
+  --dt-text-code-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-code-sm-tracking: var(--dt-tracking-normal);
+}
+
+/* ── tokens/semantic/shape.css ── */
+/* TIER 2 — SEMANTIC SHAPE
+   Radius roles are named by what they wrap, not by size, so a sharp-cornered theme
+   can flatten the whole system by re-pointing five lines.
+
+   --dt-radius-scale is the single dial: a theme that wants everything rounder
+   overrides the roles, but a theme that only wants a nudge can retune from here. */
+
+:root {   /* badges, tags, avatars */
+
+  --dt-border-width-none: 0px;
+}
+
+/* ── tokens/semantic/size.css ── */
+/* TIER 2 — SEMANTIC SIZE
+   Control heights and icon sizes, all on the 4px grid. A density theme overrides
+   the control heights and every form control resizes together.
+
+   Touch targets: --dt-size-control-md (40px) is the smallest size allowed on a
+   touch surface without a padded hit area. WCAG 2.2 sets the floor at 24px;
+   40px is the size people can actually hit. */
+
+:root {
+  --dt-size-control-xs: var(--dt-dim-6);   /* 24 — dense tables, inline chips */
+  --dt-size-control-sm: var(--dt-dim-8);   /* 32 — toolbars, compact forms */
+  --dt-size-control-md: var(--dt-dim-10);  /* 40 — the default */
+  --dt-size-control-lg: var(--dt-dim-12);  /* 48 — primary CTAs, touch-first */
+
+  --dt-size-icon-xs: var(--dt-dim-3);      /* 12 */
+  --dt-size-icon-sm: var(--dt-dim-4);      /* 16 */
+  --dt-size-icon-md: var(--dt-dim-5);      /* 20 — the default */
+  --dt-size-icon-lg: var(--dt-dim-6);      /* 24 */
+  --dt-size-icon-xl: var(--dt-dim-8);      /* 32 */
+
+  --dt-size-avatar-xs: var(--dt-dim-5);    /* 20 */
+  --dt-size-avatar-sm: var(--dt-dim-6);    /* 24 */
+  --dt-size-avatar-md: var(--dt-dim-8);    /* 32 */
+  --dt-size-avatar-lg: var(--dt-dim-10);   /* 40 */
+  --dt-size-avatar-xl: var(--dt-dim-16);   /* 64 */
+
+  /* The minimum hit area for any interactive element on touch. */
+  --dt-size-touch-target: var(--dt-dim-11); /* 44 */
+}
+
+/* ── tokens/semantic/elevation.css ── */
+/* TIER 2 — SEMANTIC ELEVATION
+   Elevation is a z-order vocabulary, not a shadow menu. Pick the level that matches
+   what the element is, and the shadow follows. Dark themes swap shadows for surface
+   lightness, because shadows are close to invisible on a dark ground.
+
+   0 flush with the page          3 sticky headers, dropdowns
+   1 cards, resting surfaces      4 dialogs, drawers
+   2 hovered cards, popovers      5 toasts, anything above a dialog */
+
+:root { /* @kind other */
+}
+
+/* ── tokens/semantic/motion.css ── */
+/* TIER 2 — SEMANTIC MOTION
+   Four roles cover interface motion. Anything that needs a fifth is probably
+   decoration, and decoration is not a system concern.
+
+   micro    — state change on an element already on screen (hover, press, toggle)
+   enter    — something arriving (popover opens, toast slides in)
+   exit     — something leaving. Faster than enter: people wait for arrivals,
+              they do not wait for departures.
+   emphasis — a change that must be noticed (validation error, value update) */
+
+:root { /* @kind other */
+}
+
+/* Respect the user's setting. This is not optional. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dt-motion-micro: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-enter: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-exit: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-emphasis: var(--dt-duration-instant) var(--dt-easing-linear);
+  }
+}
+
+/* ── tokens/themes/base-dark.css ── */
+/* BASE DARK THEME
+   Dark mode is not a second design system. It re-points the same semantic names at
+   different primitives. No component changes, no dark-specific class names.
+
+   Two rules that make dark mode work:
+   1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
+      invisible on a dark ground, so raised surfaces get lighter instead.
+   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+      white is too hot on near-black; 500 carries the same weight.
+
+   Applies on .dark, and automatically when the OS asks for it. */
+
+.dark {
+
+  /* Elevation as lightness. Shadows stay for depth cueing but carry less of the work. */
+  --dt-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.4);
+  --dt-elevation-2: 0 2px 6px -1px oklch(0 0 0 / 0.5);
+  --dt-elevation-3: 0 6px 12px -2px oklch(0 0 0 / 0.55);
+  --dt-elevation-4: 0 12px 24px -4px oklch(0 0 0 / 0.6);
+  --dt-elevation-5: 0 24px 48px -8px oklch(0 0 0 / 0.7);
+}
+
+/* ── tokens/themes/theme-custom.css ── */
+/* Custom theme — the commit target for the theme configurator.
+
+   The configurator (tools/theme-configurator) writes a live override into browser
+   storage so you can judge a theme across the whole system before committing to it.
+   That is a preview, not a build artefact. When you are happy with a theme, paste the
+   configurator's exported CSS between the markers below and the theme becomes real:
+   it ships with the repository, applies without JavaScript, and survives a cleared
+   cache.
+
+   Leave this file empty to run the base theme. */
+
+/* --- configurator output starts --- */
+
+/* --- configurator output ends --- */
+
+/* ── tokens/component/button.css ── */
+/* TIER 3 — BUTTON
+   Component tokens exist so a consumer can restyle one component without
+   disturbing anything else. They are only authored for components with a real
+   override need. Every value here resolves to a semantic token.
+
+   Cascade: override --dt-surface-action and Button, Tabs, Switch and every other
+   action surface move together. Override --dt-button-primary-bg and only Button moves. */
+
+:root {
+  --dt-button-font-family: var(--dt-text-label-md-family);
+  --dt-button-gap: var(--dt-space-inline-xs);
+  --dt-button-padding-sm: var(--dt-space-inset-sm);
+  --dt-button-padding-md: var(--dt-space-inset-md);
+  --dt-button-padding-lg: var(--dt-space-inset-lg);
+  --dt-button-font-size-sm: var(--dt-font-size-sm);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+  --dt-button-font-size-lg: var(--dt-font-size-md);
+}
+
+/* ── tokens/component/input.css ── */
+/* TIER 3 — INPUT
+   Shared by Input, Textarea, Select, and Combobox so every field in a form has
+   identical geometry. A field that is 1px taller than its neighbour is the most
+   common and most visible design-system failure. */
+
+:root {
+  --dt-input-font-size: var(--dt-font-size-sm);
+  --dt-input-font-family: var(--dt-text-body-md-family);
+  --dt-input-padding-x: var(--dt-space-inset-sm);
+
+  --dt-input-label-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-gap: var(--dt-space-stack-2xs);
+}
+
+/* ── tokens/component/card.css ── */
+/* TIER 3 — CARD
+   Card is the most-overridden component in every system, because it is the one
+   that carries a product's surface personality. Its tokens are exposed so a
+   consumer can go from bordered-and-flat to shadowed-and-round without a fork. */
+
+:root {
+  --dt-card-padding: var(--dt-space-inset-lg);
+  --dt-card-gap: var(--dt-space-stack-sm);
+}
+
+/* ── tokens/component/dialog.css ── */
+/* TIER 3 — DIALOG
+   Covers Dialog, Drawer, Popover, and Sheet — every overlay shares one scrim,
+   one radius, and one elevation so stacked overlays read as one system. */
+
+:root {
+  --dt-dialog-padding: var(--dt-space-inset-xl);
+  --dt-dialog-gap: var(--dt-space-stack-md);
+  --dt-dialog-scrim-blur: 2px;
+
+  --dt-dialog-width-sm: 400px;
+  --dt-dialog-width-md: 520px;
+  --dt-dialog-width-lg: 720px;
+  --dt-dialog-max-height: 85vh;
+  --dt-popover-padding: var(--dt-space-inset-md); /* @kind other */
+}
+
+/* ── tokens/component/table.css ── */
+/* TIER 3 — TABLE
+   Tables are the densest surface in most products and the first place a generic
+   spacing scale stops fitting. These tokens let a consumer tune row rhythm without
+   changing the global density theme. */
+
+:root {
+  --dt-table-cell-padding-x: var(--dt-space-inset-sm);
+  --dt-table-cell-padding-y: var(--dt-space-inset-xs);
+  --dt-table-header-font-size: var(--dt-font-size-xs);
+  --dt-table-header-font-weight: var(--dt-font-weight-medium);
+  --dt-table-header-tracking: var(--dt-tracking-wide);
+}
+
+/* ── tokens/contexts/context-product.css ── */
+/* CONTEXT — PRODUCT
+   A fourth axis, orthogonal to brand theme, colour mode, and density.
+
+   Product surfaces are dense, functional, and read for hours. Type runs small,
+   controls are compact, elevation is subtle, and section rhythm is tight. The same
+   Button that anchors a marketing hero has to sit in a toolbar without shouting.
+
+   Components do not know which context they are in. They read semantic tokens;
+   the context retunes those tokens. That is the whole mechanism — a context is a
+   theme for scale and rhythm rather than for colour.
+
+   Apply on the app shell:
+     <div class="dt-context-product"> … </div>
+
+   Composes with everything:
+     <html class="dark"><body class="dt-context-product dt-density-compact"> */
+
+.dt-context-product {
+  /* Display type is rare in product UI and never this large. */
+  --dt-text-display-lg-size: var(--dt-font-size-4xl);
+  --dt-text-display-lg-line: var(--dt-line-height-4xl);
+  --dt-text-display-md-size: var(--dt-font-size-3xl);
+  --dt-text-display-md-line: var(--dt-line-height-3xl);
+  --dt-text-display-sm-size: var(--dt-font-size-2xl);
+  --dt-text-display-sm-line: var(--dt-line-height-2xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-2xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-2xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-xl);
+  --dt-text-heading-md-size: var(--dt-font-size-lg);
+  --dt-text-heading-md-line: var(--dt-line-height-lg);
+
+  /* 14px body. Product UI is scanned, not read. */
+  --dt-text-body-md-size: var(--dt-font-size-sm);
+  --dt-text-body-md-line: var(--dt-line-height-sm);
+  --dt-text-body-lg-size: var(--dt-font-size-md);
+  --dt-text-body-lg-line: var(--dt-line-height-md);
+
+  /* Tight rhythm. */
+  --dt-space-section: var(--dt-dim-12);
+  --dt-space-gutter: var(--dt-space-inset-md);
+  --dt-space-stack-xl: var(--dt-dim-8);
+  --dt-space-stack-2xl: var(--dt-dim-12);
+
+  /* Restrained surfaces: borders carry structure, shadows stay quiet. */
+  --dt-card-padding: var(--dt-space-inset-md);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-1);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+}
+
+/* ── tokens/contexts/context-marketing.css ── */
+/* CONTEXT — MARKETING
+   Marketing surfaces are scanned in seconds and seen once. Type runs large, sections
+   breathe, controls are touch-first, and cards lose their borders because the page is
+   already doing the structural work.
+
+   Same components, same tokens, different scale and rhythm. A Card in this context is
+   a content block on a landing page; in product context it is a panel in a dashboard.
+   Neither Card knows the difference.
+
+   Apply on the page shell:
+     <div class="dt-context-marketing"> … </div> */
+
+.dt-context-marketing {
+  /* Display type earns its size here. */
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-5xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-5xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-4xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-4xl);
+  --dt-text-heading-md-size: var(--dt-font-size-3xl);
+  --dt-text-heading-md-line: var(--dt-line-height-3xl);
+
+  /* 19px body. Long-form marketing copy is read at arm's length. */
+  --dt-text-body-md-size: var(--dt-font-size-lg);
+  --dt-text-body-md-line: var(--dt-line-height-lg);
+  --dt-text-body-sm-size: var(--dt-font-size-md);
+  --dt-text-body-sm-line: var(--dt-line-height-md);
+
+  /* Generous rhythm. */
+  --dt-space-section: var(--dt-dim-32);
+  --dt-space-gutter: var(--dt-space-inset-xl);
+  --dt-space-stack-xl: var(--dt-dim-12);
+  --dt-space-stack-2xl: var(--dt-dim-24);
+
+  /* Larger default controls — marketing CTAs are touch-first and want presence. */
+  --dt-size-control-md: var(--dt-dim-12);
+  --dt-button-height-md: var(--dt-dim-12);
+  --dt-button-font-size-md: var(--dt-font-size-md);
+  --dt-button-padding-md: var(--dt-space-inset-lg);
+
+  /* Borderless, softly raised content blocks. */
+  --dt-card-padding: var(--dt-space-inset-xl);
+  --dt-card-border-width: var(--dt-border-width-none);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-2);
+  --dt-card-radius: var(--dt-radius-overlay);
+}
+
+/* ── tokens/base.css ── */
+/* BASE — minimal element defaults.
+   Dovetail does not ship a CSS reset. This sets only what a system must own:
+   box sizing, the page's type and colour, focus visibility, and link colour.
+   Everything else is a component's job. */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--dt-text-body-md-family);
+  font-size: var(--dt-text-body-md-size);
+  line-height: var(--dt-text-body-md-line);
+  font-weight: var(--dt-text-body-md-weight);
+  letter-spacing: var(--dt-text-body-md-tracking);
+  color: var(--dt-text-primary);
+  background-color: var(--dt-surface-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* One focus treatment, applied everywhere, visible on every surface.
+   :focus-visible so pointer users never see it and keyboard users always do. */
+:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+  border-radius: inherit;
+}
+
+a {
+  color: var(--dt-text-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--dt-text-link-hover); text-decoration-thickness: 2px; }
+
+code, pre, kbd, samp {
+  font-family: var(--dt-text-code-md-family);
+  font-size: var(--dt-text-code-md-size);
+}
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+
+::selection {
+  background-color: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+/* System-owned animations. Components reference these by name; never redefine them
+   locally. All are suppressed under reduced-motion. */
+@keyframes dt-spin { to { transform: rotate(360deg); } }
+@keyframes dt-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes dt-progress-slide { 0% { margin-left: 0; } 50% { margin-left: 65%; } 100% { margin-left: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Components · Dovetail</title>
+<meta name="description" content="Every Dovetail component, with guides, props and live cards.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html" aria-current="page">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li aria-current="page">Components</li></ol></nav>
+<h1>Components</h1>
+<p class="lede">56 components in seven families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one — it carries the rules the types cannot.</p>
+<section class="group">
+  <h2 id="primitives">Primitives</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Divider.html"><h3>Divider</h3><p>A rule between content groups.</p></a>
+  <a class="tile" href="Grid.html"><h3>Grid</h3><p>Equal-width column layout. Tracks use <code>minmax(0, 1fr)</code> so a long word in one cell cannot blow out the row.</p></a>
+  <a class="tile" href="Inline.html"><h3>Inline</h3><p>Horizontal layout primitive. Wraps by default, because a row of buttons that overflows on a phone is the most common responsive bug in a design system.</p></a>
+  <a class="tile" href="Spacer.html"><h3>Spacer</h3><p>Empty space as an element. It exists for one job: pushing siblings apart inside a flex container.</p></a>
+  <a class="tile" href="Stack.html"><h3>Stack</h3><p>Vertical layout primitive. It owns the space between its children, so nothing inside needs a margin.</p></a>
+  <a class="tile" href="VisuallyHidden.html"><h3>VisuallyHidden</h3><p>Text that screen readers announce and sighted users never see.</p></a>
+  </div>
+</section>
+<section class="group">
+  <h2 id="actions">Actions</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Button.html"><h3>Button</h3><p>The system's action control. Use exactly one <code>primary</code> button per view — if two things are equally important, neither is.</p></a>
+  <a class="tile" href="ButtonGroup.html"><h3>ButtonGroup</h3><p>Groups related buttons. Detached by default; <code>attached</code> joins them into a segmented control.</p></a>
+  <a class="tile" href="IconButton.html"><h3>IconButton</h3><p>A button whose only content is an icon. <code>label</code> is a required prop and the type system enforces it.</p></a>
+  <a class="tile" href="Link.html"><h3>Link</h3><p>Navigation. The rule: if it changes the page, it is a Link; if it changes data, it is a Button.</p></a>
+  </div>
+</section>
+<section class="group">
+  <h2 id="forms">Forms</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Checkbox.html"><h3>Checkbox</h3><p>Binary choice inside a form, committed when the form is submitted.</p></a>
+  <a class="tile" href="CheckboxGroup.html"><h3>CheckboxGroup</h3><p>A labelled set of checkboxes answering one question. Use it whenever two or more checkboxes belong together — a loose column of \<code>Checkbox\</code> has no accessible name, so a screen reader reads the options without ever saying what they are for.</p></a>
+  <a class="tile" href="Field.html"><h3>Field</h3><p>The wrapper that gives a control its label, hint, and error. Input, Textarea, and Select render their own Field when you pass them a label; use Field directly when you need to wrap something else.</p></a>
+  <a class="tile" href="Input.html"><h3>Input</h3><p>Single-line text field. Builds its own Field when given a label.</p></a>
+  <a class="tile" href="Radio.html"><h3>Radio</h3><p>One choice from a mutually exclusive set, with all options visible.</p></a>
+  <a class="tile" href="RadioGroup.html"><h3>RadioGroup</h3><p>A labelled set of radios where exactly one option wins. Always use the group rather than loose \<code>Radio\</code> elements: it generates the shared \<code>name\</code>, applies \<code>role=&quot;radiogroup&quot;\</code>, and gives the set an accessible name.</p></a>
+  <a class="tile" href="Select.html"><h3>Select</h3><p>Dropdown for a known set of options. Uses a native select, so it gets the platform's picker on mobile for free.</p></a>
+  <a class="tile" href="Slider.html"><h3>Slider</h3><p>A range input for a value on a continuum where the approximate position matters more than the exact number — volume, opacity, a price ceiling.</p></a>
+  <a class="tile" href="Switch.html"><h3>Switch</h3><p>An instant on/off setting. Flipping it applies the change — there is no Save button.</p></a>
+  <a class="tile" href="Textarea.html"><h3>Textarea</h3><p>Multi-line text field.</p></a>
+  </div>
+</section>
+<section class="group">
+  <h2 id="display">Display</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Avatar.html"><h3>Avatar</h3><p>Identifies a person or entity at a glance. Use it in lists, tables, comment threads, and</p></a>
+  <a class="tile" href="AvatarGroup.html"><h3>AvatarGroup</h3><p>Shows who is involved without spending a full row per person. Use it for project members,</p></a>
+  <a class="tile" href="Badge.html"><h3>Badge</h3><p>A small, non-interactive label. Badges report state; they never do anything.</p></a>
+  <a class="tile" href="Card.html"><h3>Card</h3><p>A content container. Card is the clearest demonstration of the context system: the same component is a bordered, flat panel in product and a borderless, softly raised content block in marketing.</p></a>
+  <a class="tile" href="Code.html"><h3>Code</h3><p>Marks text that must be read literally — token names, file paths, commands, snippets.</p></a>
+  <a class="tile" href="EmptyState.html"><h3>EmptyState</h3><p>Turns a blank region into an instruction. Use it for first-run views, cleared filters,</p></a>
+  <a class="tile" href="List.html"><h3>List</h3><p>Presents a sequence of comparable records — files, members, notifications, settings.</p></a>
+  <a class="tile" href="Skeleton.html"><h3>Skeleton</h3><p>Holds the shape of content that is still loading, so the layout does not jump when data</p></a>
+  <a class="tile" href="Stat.html"><h3>Stat</h3><p>Puts one number where the eye lands first. Use it in dashboard headers, summary bars, and</p></a>
+  <a class="tile" href="Table.html"><h3>Table</h3><p>Compares records across several fields at once. Use it when the user reads across a row</p></a>
+  <a class="tile" href="Tag.html"><h3>Tag</h3><p>An interactive chip. If it cannot be clicked or removed, it is a <code>Badge</code>.</p></a>
+  </div>
+</section>
+<section class="group">
+  <h2 id="navigation">Navigation</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Breadcrumbs.html"><h3>Breadcrumbs</h3><p>Tells the user where they are in a nested structure and gives them one click back up.</p></a>
+  <a class="tile" href="Navbar.html"><h3>Navbar</h3><p>Top-level navigation for marketing pages and product shells with few destinations.</p></a>
+  <a class="tile" href="Pagination.html"><h3>Pagination</h3><p>Moves through a result set one page at a time. Use it when the user needs a stable</p></a>
+  <a class="tile" href="Sidebar.html"><h3>Sidebar</h3><p>Persistent navigation for products with more destinations than a Navbar can hold.</p></a>
+  <a class="tile" href="Stepper.html"><h3>Stepper</h3><p>Shows how far through a sequential task the user is and how much remains. Use it for</p></a>
+  <a class="tile" href="Tabs.html"><h3>Tabs</h3><p>Switches between sibling views that share a purpose. Use tabs when the user compares or</p></a>
+  <a class="tile" href="TabPanel.html"><h3>TabPanel</h3><p>Switches between sibling views that share a purpose. Use tabs when the user compares or</p></a>
+  </div>
+</section>
+<section class="group">
+  <h2 id="feedback">Feedback</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Alert.html"><h3>Alert</h3><p>An inline message about the state of the page or a form. It sits in the layout and stays until the condition clears.</p></a>
+  <a class="tile" href="Banner.html"><h3>Banner</h3><p>Page-level message about the state of the whole view — trial expiry, degraded service,</p></a>
+  <a class="tile" href="Dialog.html"><h3>Dialog</h3><p>A modal that interrupts. Every dialog costs the user their place, so open one only for a decision that genuinely cannot wait.</p></a>
+  <a class="tile" href="Drawer.html"><h3>Drawer</h3><p>Modal side panel for detail views, filters, and secondary forms that need more room than</p></a>
+  <a class="tile" href="Popover.html"><h3>Popover</h3><p>Anchored panel holding secondary controls or detail — a filter set, a field explanation,</p></a>
+  <a class="tile" href="Progress.html"><h3>Progress</h3><p>Shows how much of a known task is done. Use it for uploads, imports, quota meters, and</p></a>
+  <a class="tile" href="Spinner.html"><h3>Spinner</h3><p>Signals an indeterminate wait where the resulting content has no known shape.</p></a>
+  <a class="tile" href="Toast.html"><h3>Toast</h3><p>Confirms that something happened, out of the user's way. Use it for results of actions</p></a>
+  <a class="tile" href="ToastRegion.html"><h3>ToastRegion</h3><p>Confirms that something happened, out of the user's way. Use it for results of actions</p></a>
+  <a class="tile" href="Tooltip.html"><h3>Tooltip</h3><p>Names a control whose purpose is not obvious from its face — most often an IconButton.</p></a>
+  </div>
+</section>
+<section class="group">
+  <h2 id="content">Content</h2>
+  <div class="tiles compact">
+  <a class="tile" href="Accordion.html"><h3>Accordion</h3><p>Collapses reference content so the page stays scannable. Use it for FAQs, spec sheets,</p></a>
+  <a class="tile" href="AspectRatio.html"><h3>AspectRatio</h3><p>Reserves a fixed proportion of space before its content loads. Use it around every image, video, and map. Without it the page reflows when media arrives, which costs you layout stability and reads as a broken load.</p></a>
+  <a class="tile" href="Callout.html"><h3>Callout</h3><p>Aside within documentation or long-form content. Use it to lift out a caveat, a</p></a>
+  <a class="tile" href="Figure.html"><h3>Figure</h3><p>Pairs media with a caption. Use it in editorial and article layouts where the image carries information the surrounding prose does not.</p></a>
+  <a class="tile" href="Image.html"><h3>Image</h3><p>A ratio-locked image with a built-in placeholder. Use it instead of a bare \<code>&lt;img&gt;\</code> anywhere in a template. It reserves space, crops predictably, and degrades to a labelled frame when the content system has not supplied a file yet.</p></a>
+  <a class="tile" href="Media.html"><h3>Media</h3><p>A media-and-copy row. This is the block a marketing or lifestyle page is mostly made of, so it is a component rather than something each template re-lays-out.</p></a>
+  <a class="tile" href="Prose.html"><h3>Prose</h3><p>Wraps long-form editorial text — articles, documentation, changelogs — in a readable</p></a>
+  <a class="tile" href="Quote.html"><h3>Quote</h3><p>Testimonial or pull quote. Uses <code>figure</code> and <code>blockquote</code> so the attribution is</p></a>
+  </div>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

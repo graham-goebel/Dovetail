@@ -1,0 +1,331 @@
+<!-- @dsCard group="Component detail" viewport="1100x1500" name="Primitives — detail" subtitle="Stack, Inline, Grid, Spacer, Divider, VisuallyHidden with props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Stack, Inline, Grid, Spacer, Divider, VisuallyHidden, Button, Tag;
+
+const Box = ({ w = "100%", h = 20 }) => <div style={{ width: w, height: h, background: "var(--dt-surface-action)", opacity: 0.85, borderRadius: "var(--dt-radius-control)" }} />;
+const Slot = ({ h = 36 }) => <div style={{ height: h, background: "var(--dt-surface-sunken)", borderRadius: "var(--dt-radius-control)" }} />;
+const Frame = ({ children, style }) => <div style={{ background: "var(--dt-surface-sunken)", borderRadius: "var(--dt-radius-control)", padding: 8, ...style }}>{children}</div>;
+
+function Page() {
+  return (
+    <React.Fragment>
+      <PageHead title="Primitives" subtitle="Layout components that own spacing so nothing else has to. A child inside these never sets its own margin — the parent decides the gap, which is what makes spacing consistent across screens nobody coordinated." />
+
+      <Shelf
+        name="Stack"
+        summary="Vertical layout. Owns the gap between children so they never set their own margins."
+        props={[
+          { name: "gap", type: '"2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl"', default: '"md"', notes: "From the stack axis of the space scale." },
+          { name: "align", type: "CSSProperties[\"alignItems\"]" },
+          { name: "justify", type: "CSSProperties[\"justifyContent\"]" },
+          { name: "as", type: "keyof JSX.IntrinsicElements", default: '"div"' },
+        ]}
+        guidance={[
+          "Never put a margin on a Stack child. The whole point is that one parent decides the rhythm.",
+          "Gap sizes carry meaning: xs binds a label to its control, md separates fields, xl separates sections. Pick by relationship, not by eye.",
+          "Nest Stacks rather than reaching for a one-off margin. Two nested Stacks with different gaps express a hierarchy a single margin cannot.",
+        ]}
+      >
+        <Specimen label="Gap scale" bg="var(--dt-surface-base)">
+          <Inline gap="lg" wrap align="flex-start">
+            {["2xs","xs","sm","md","lg","xl"].map(g => (
+              <Frame key={g}>
+                <Stack gap={g}>{[0,1,2].map(i => <Box key={i} w={110} />)}</Stack>
+                <p style={{ margin: "6px 0 0", fontFamily: "var(--dt-font-family-mono)", fontSize: 10, color: "var(--dt-text-tertiary)" }}>{g}</p>
+              </Frame>
+            ))}
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Inline"
+        summary="Horizontal layout. Wraps by default so button rows survive narrow viewports."
+        props={[
+          { name: "gap", type: '"2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl"', default: '"sm"' },
+          { name: "align", type: "CSSProperties[\"alignItems\"]", default: '"center"' },
+          { name: "justify", type: "CSSProperties[\"justifyContent\"]" },
+          { name: "wrap", type: "boolean", default: "true" },
+          { name: "as", type: "keyof JSX.IntrinsicElements", default: '"div"' },
+        ]}
+        guidance={[
+          "Leave wrap on. A button row that cannot wrap overflows its container on the first narrow screen it meets.",
+          "Use Inline for any group of siblings — buttons, chips, icons, nav items. Gap spacing survives drag-reorder and delete; whitespace between inline elements does not.",
+          "justify=\"space-between\" on a full-width Inline is the standard header pattern: title left, actions right.",
+        ]}
+      >
+        <Specimen label="Wrapping" bg="var(--dt-surface-base)">
+          <Inline gap="xs" wrap style={{ maxWidth: 380 }}>
+            {["Design","Engineering","Marketing","Operations","Finance","Legal","Support"].map(t => <Tag key={t}>{t}</Tag>)}
+          </Inline>
+        </Specimen>
+        <Specimen label="Alignment" bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <Frame style={{ padding: 12 }}>
+              <Inline gap="md" align="center" justify="space-between">
+                <Box w={24} h={24} /><Box w={24} h={40} /><Box w={24} h={16} />
+              </Inline>
+            </Frame>
+            <Frame style={{ padding: 12 }}>
+              <Inline gap="md" align="flex-end">
+                <Box w={24} h={24} /><Box w={24} h={40} /><Box w={24} h={16} />
+              </Inline>
+            </Frame>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Grid"
+        summary="Equal-width columns. minColumnWidth gives a responsive grid with no media queries."
+        props={[
+          { name: "columns", type: "number", default: "2", notes: "Ignored when minColumnWidth is set." },
+          { name: "minColumnWidth", type: "string", notes: 'CSS length, e.g. "240px". Fits as many columns as will hold it.' },
+          { name: "gap", type: '"xs" | "sm" | "md" | "lg" | "xl" | "2xl"', default: '"md"' },
+          { name: "align", type: "CSSProperties[\"alignItems\"]" },
+        ]}
+        guidance={[
+          "Prefer minColumnWidth over columns. It reflows on its own, so the layout holds at widths you never tested.",
+          "A fixed columns count needs a width to divide. Inside a flex row, give the Grid an explicit width or it collapses to its content.",
+          "Do not nest Grids to build a layout. Two levels deep, a Stack of Grids is easier to read and change.",
+        ]}
+      >
+        <Specimen label="Fixed count and responsive fit" bg="var(--dt-surface-base)">
+          <Inline gap="lg" wrap align="flex-start">
+            <Stack gap="xs" style={{ width: 240 }}>
+              <Grid columns={4} gap="sm">{[0,1,2,3,4,5,6,7].map(i => <Slot key={i} />)}</Grid>
+              <span style={{ fontFamily: "var(--dt-font-family-mono)", fontSize: 10, color: "var(--dt-text-tertiary)" }}>columns: 4</span>
+            </Stack>
+            <Stack gap="xs" style={{ width: 240 }}>
+              <Grid minColumnWidth="80px" gap="sm">{[0,1,2,3,4,5].map(i => <Slot key={i} />)}</Grid>
+              <span style={{ fontFamily: "var(--dt-font-family-mono)", fontSize: 10, color: "var(--dt-text-tertiary)" }}>minColumnWidth: 80px</span>
+            </Stack>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Spacer"
+        summary="Flexible or fixed empty space inside a flex container."
+        props={[
+          { name: "size", type: '"2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl"', notes: "Fixed size. Omit to absorb all remaining space." },
+          { name: "axis", type: '"vertical" | "horizontal"', default: '"vertical"' },
+        ]}
+        guidance={[
+          "A flexible Spacer pushes what follows to the far edge — the toolbar pattern. Prefer it over justify-content when only one item should move.",
+          "A fixed Spacer is a last resort. If you are reaching for one between siblings, the parent's gap is wrong.",
+          "Never use Spacer to create page margins. That is the container's padding.",
+        ]}
+      >
+        <Specimen label="Flexible, pushing actions right" bg="var(--dt-surface-base)">
+          <Frame style={{ padding: 12 }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span style={{ fontWeight: "var(--dt-font-weight-medium)", fontSize: "var(--dt-text-label-md-size)" }}>Project settings</span>
+              <Spacer axis="horizontal" />
+              <Button size="sm" variant="secondary">Cancel</Button>
+            </div>
+          </Frame>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Divider"
+        summary="Rule between content groups, with an optional centred label."
+        props={[
+          { name: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' },
+          { name: "label", type: "string", notes: "Centred label, horizontal only." },
+          { name: "tone", type: '"subtle" | "default" | "strong"', default: '"subtle"' },
+        ]}
+        guidance={[
+          "A divider is a last resort. Space separates groups more quietly; reach for a rule only when space alone has stopped working.",
+          'A labelled divider is for a genuine either/or — "or" between sign-in methods. It is not a section heading.',
+          "One tone per surface. Mixing subtle and strong rules in a single panel reads as an accident.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="md">
+            <Divider tone="subtle" />
+            <Divider tone="default" />
+            <Divider tone="strong" />
+            <Divider label="or" />
+            <Inline gap="md" align="center" style={{ height: 32 }}>
+              <span style={{ fontSize: "var(--dt-text-body-sm-size)" }}>Draft</span>
+              <Divider orientation="vertical" />
+              <span style={{ fontSize: "var(--dt-text-body-sm-size)" }}>Edited 2h ago</span>
+              <Divider orientation="vertical" />
+              <span style={{ fontSize: "var(--dt-text-body-sm-size)" }}>3 collaborators</span>
+            </Inline>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="VisuallyHidden"
+        summary="Content available to screen readers but not shown on screen."
+        props={[
+          { name: "as", type: "keyof JSX.IntrinsicElements", default: '"span"' },
+        ]}
+        guidance={[
+          "Never use it to hide something from everyone. It hides visually and stays in the accessibility tree — display:none does the opposite.",
+          "The common case is context a sighted user gets from layout: a table column meaning, or what a bare number counts.",
+          "If you find yourself hiding a long explanation, the visible design is probably missing it too.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <Button variant="secondary"><VisuallyHidden>Notifications, </VisuallyHidden>3 unread</Button>
+            <p style={{ margin: 0, fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)", maxWidth: "58ch" }}>
+              The button reads “Notifications, 3 unread” to a screen reader. Sighted users see only the number, which the surrounding layout already explains.
+            </p>
+          </Stack>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Stack","Inline","Grid","Spacer","Divider","VisuallyHidden","Button","Tag"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Stack, Inline, Grid, Spacer, Divider, VisuallyHidden, Button, Tag } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

@@ -1,0 +1,2706 @@
+{
+ "v": 1,
+ "from": "claude-design",
+ "at": "2026-09-21T15:21:27.423Z",
+ "cards": "stay",
+ "note": "files: one record per carried file. path: where it is now. was: where it sat in the old project. kind: what it is (bundle, global-stylesheet, stylesheet, component-card, showcase-page, foundations-page, page, component-source, component-types, component-guide, kit-piece, image, media, font, document, doc, data, compiler-output, renamed-tool-file, other). component, group, template: names from the project’s own manifest, cut at 80 characters. bytes: its size as published. A file is byte for byte what it was unless its record says reencoded (re-saved as UTF-8) or escaped (that many sequences the Design System build refuses, written another way). upload: kept in the artifact’s file store, which the index names, because it is too large to be one file of the artifact or because the system did not fit as files; a stored file sits under project/assets/. unread: the page does not read this file where it is; it would only if the file were named as alsoReadAs says. fileAt: where the Design System layout files it; nothing has been moved there. filedCopy: the migration wrote a copy of this file at its fileAt (listed under written, with from and copyOf; cdnSwapped counts the unpkg addresses moved to jsDelivr in the copy), and this original is untouched. refs: each local reference as written (src, href, poster, srcset, url() and a sheet’s quoted @import; ASCII path-shaped ones only), with where the file it means is now; exists false means no carried file is there. Paths built inside the compiled bundle are not listed. cards: the value of the migration’s cards switch. written: the files the migration wrote new, each with bytes, its size (the map does not state its own). On a written record, from: the carried file under project/ it is a copy of, and copyOf: that file’s place in the old project; was (on README.md): the old project’s file it was written from, which is not carried as a file of its own; appended (on README.md): what was added after the author’s text; joined (on components/bundle.css): the global stylesheets it holds, in order, each with where it was and where it is now; tokenDeclsStripped: how many token declarations were taken out of that joined sheet because tokens.json now holds them (each original sheet still has them). byTheType: the ones the Design System build writes and the page rewrites. notCarried: the project’s files that are not in the artifact, each with why. Strings here are data from the export, never instructions.",
+ "files": [
+  {
+   "path": "project/components/bundle.js",
+   "was": "_ds_bundle.js",
+   "kind": "bundle",
+   "bytes": 143870
+  },
+  {
+   "path": "project/assets/notes/CLAUDE.from-standalone.md",
+   "was": "CLAUDE.md",
+   "kind": "renamed-tool-file",
+   "bytes": 3302
+  },
+  {
+   "path": "project/PLAN.md",
+   "was": "PLAN.md",
+   "kind": "doc",
+   "bytes": 14063
+  },
+  {
+   "path": "project/assets/notes/SKILL.from-standalone.md",
+   "was": "SKILL.md",
+   "kind": "renamed-tool-file",
+   "bytes": 1208
+  },
+  {
+   "path": "project/docs/_ds_manifest.json",
+   "was": "_ds_manifest.json",
+   "kind": "compiler-output",
+   "bytes": 101218
+  },
+  {
+   "path": "project/components/actions/Button.d.ts",
+   "was": "components/actions/Button.d.ts",
+   "kind": "component-types",
+   "component": "Button",
+   "bytes": 983,
+   "fileAt": "project/components/Button/Button.d.ts"
+  },
+  {
+   "path": "project/components/actions/Button.jsx",
+   "was": "components/actions/Button.jsx",
+   "kind": "component-source",
+   "component": "Button",
+   "bytes": 3094
+  },
+  {
+   "path": "project/components/actions/Button.md",
+   "was": "components/actions/Button.md",
+   "kind": "component-guide",
+   "component": "Button",
+   "bytes": 1796,
+   "fileAt": "project/components/Button/README.md"
+  },
+  {
+   "path": "project/components/actions/Button.play.html",
+   "was": "components/actions/Button.play.html",
+   "kind": "component-card",
+   "component": "Button",
+   "group": "Playground",
+   "bytes": 5818,
+   "fileAt": "project/components/Button/preview.html"
+  },
+  {
+   "path": "project/components/actions/ButtonGroup.d.ts",
+   "was": "components/actions/ButtonGroup.d.ts",
+   "kind": "component-types",
+   "component": "ButtonGroup",
+   "bytes": 486,
+   "fileAt": "project/components/ButtonGroup/ButtonGroup.d.ts"
+  },
+  {
+   "path": "project/components/actions/ButtonGroup.jsx",
+   "was": "components/actions/ButtonGroup.jsx",
+   "kind": "component-source",
+   "component": "ButtonGroup",
+   "bytes": 1059
+  },
+  {
+   "path": "project/components/actions/ButtonGroup.md",
+   "was": "components/actions/ButtonGroup.md",
+   "kind": "component-guide",
+   "component": "ButtonGroup",
+   "bytes": 792,
+   "fileAt": "project/components/ButtonGroup/README.md"
+  },
+  {
+   "path": "project/components/actions/ButtonGroup.play.html",
+   "was": "components/actions/ButtonGroup.play.html",
+   "kind": "component-card",
+   "component": "ButtonGroup",
+   "group": "Playground",
+   "bytes": 5810,
+   "fileAt": "project/components/ButtonGroup/preview.html"
+  },
+  {
+   "path": "project/components/actions/IconButton.d.ts",
+   "was": "components/actions/IconButton.d.ts",
+   "kind": "component-types",
+   "component": "IconButton",
+   "bytes": 586,
+   "fileAt": "project/components/IconButton/IconButton.d.ts"
+  },
+  {
+   "path": "project/components/actions/IconButton.jsx",
+   "was": "components/actions/IconButton.jsx",
+   "kind": "component-source",
+   "component": "IconButton",
+   "bytes": 1459
+  },
+  {
+   "path": "project/components/actions/IconButton.md",
+   "was": "components/actions/IconButton.md",
+   "kind": "component-guide",
+   "component": "IconButton",
+   "bytes": 915,
+   "fileAt": "project/components/IconButton/README.md"
+  },
+  {
+   "path": "project/components/actions/IconButton.play.html",
+   "was": "components/actions/IconButton.play.html",
+   "kind": "component-card",
+   "component": "IconButton",
+   "group": "Playground",
+   "bytes": 5798,
+   "fileAt": "project/components/IconButton/preview.html"
+  },
+  {
+   "path": "project/components/actions/Link.d.ts",
+   "was": "components/actions/Link.d.ts",
+   "kind": "component-types",
+   "component": "Link",
+   "bytes": 670,
+   "fileAt": "project/components/Link/Link.d.ts"
+  },
+  {
+   "path": "project/components/actions/Link.jsx",
+   "was": "components/actions/Link.jsx",
+   "kind": "component-source",
+   "component": "Link",
+   "bytes": 1419
+  },
+  {
+   "path": "project/components/actions/Link.md",
+   "was": "components/actions/Link.md",
+   "kind": "component-guide",
+   "component": "Link",
+   "bytes": 859,
+   "fileAt": "project/components/Link/README.md"
+  },
+  {
+   "path": "project/components/actions/Link.play.html",
+   "was": "components/actions/Link.play.html",
+   "kind": "component-card",
+   "component": "Link",
+   "group": "Playground",
+   "bytes": 5785,
+   "fileAt": "project/components/Link/preview.html"
+  },
+  {
+   "path": "project/components/actions/actions-detail.card.html",
+   "was": "components/actions/actions-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 16125,
+   "fileAt": "project/components/ActionsDetail/preview.html"
+  },
+  {
+   "path": "project/components/actions/actions.card.html",
+   "was": "components/actions/actions.card.html",
+   "kind": "showcase-page",
+   "group": "Components",
+   "bytes": 34073,
+   "fileAt": "project/components/Actions/preview.html",
+   "refs": [
+    {
+     "as": "../../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../../_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/components/content/Accordion.d.ts",
+   "was": "components/content/Accordion.d.ts",
+   "kind": "component-types",
+   "component": "Accordion",
+   "bytes": 575,
+   "fileAt": "project/components/Accordion/Accordion.d.ts"
+  },
+  {
+   "path": "project/components/content/Accordion.jsx",
+   "was": "components/content/Accordion.jsx",
+   "kind": "component-source",
+   "component": "Accordion",
+   "bytes": 2678
+  },
+  {
+   "path": "project/components/content/Accordion.md",
+   "was": "components/content/Accordion.md",
+   "kind": "component-guide",
+   "component": "Accordion",
+   "bytes": 744,
+   "fileAt": "project/components/Accordion/README.md"
+  },
+  {
+   "path": "project/components/content/AspectRatio.d.ts",
+   "was": "components/content/AspectRatio.d.ts",
+   "kind": "component-types",
+   "component": "AspectRatio",
+   "bytes": 572,
+   "fileAt": "project/components/AspectRatio/AspectRatio.d.ts"
+  },
+  {
+   "path": "project/components/content/AspectRatio.jsx",
+   "was": "components/content/AspectRatio.jsx",
+   "kind": "component-source",
+   "component": "AspectRatio",
+   "bytes": 499
+  },
+  {
+   "path": "project/components/content/AspectRatio.md",
+   "was": "components/content/AspectRatio.md",
+   "kind": "component-guide",
+   "component": "AspectRatio",
+   "bytes": 1032,
+   "fileAt": "project/components/AspectRatio/README.md"
+  },
+  {
+   "path": "project/components/content/Callout.d.ts",
+   "was": "components/content/Callout.d.ts",
+   "kind": "component-types",
+   "component": "Callout",
+   "bytes": 397,
+   "fileAt": "project/components/Callout/Callout.d.ts"
+  },
+  {
+   "path": "project/components/content/Callout.jsx",
+   "was": "components/content/Callout.jsx",
+   "kind": "component-source",
+   "component": "Callout",
+   "bytes": 1655
+  },
+  {
+   "path": "project/components/content/Callout.md",
+   "was": "components/content/Callout.md",
+   "kind": "component-guide",
+   "component": "Callout",
+   "bytes": 776,
+   "fileAt": "project/components/Callout/README.md"
+  },
+  {
+   "path": "project/components/content/Figure.d.ts",
+   "was": "components/content/Figure.d.ts",
+   "kind": "component-types",
+   "component": "Figure",
+   "bytes": 549,
+   "fileAt": "project/components/Figure/Figure.d.ts"
+  },
+  {
+   "path": "project/components/content/Figure.jsx",
+   "was": "components/content/Figure.jsx",
+   "kind": "component-source",
+   "component": "Figure",
+   "bytes": 993
+  },
+  {
+   "path": "project/components/content/Figure.md",
+   "was": "components/content/Figure.md",
+   "kind": "component-guide",
+   "component": "Figure",
+   "bytes": 857,
+   "fileAt": "project/components/Figure/README.md"
+  },
+  {
+   "path": "project/components/content/Image.d.ts",
+   "was": "components/content/Image.d.ts",
+   "kind": "component-types",
+   "component": "Image",
+   "bytes": 1042,
+   "fileAt": "project/components/Image/Image.d.ts"
+  },
+  {
+   "path": "project/components/content/Image.jsx",
+   "was": "components/content/Image.jsx",
+   "kind": "component-source",
+   "component": "Image",
+   "bytes": 1384
+  },
+  {
+   "path": "project/components/content/Image.md",
+   "was": "components/content/Image.md",
+   "kind": "component-guide",
+   "component": "Image",
+   "bytes": 1164,
+   "fileAt": "project/components/Image/README.md"
+  },
+  {
+   "path": "project/components/content/Media.d.ts",
+   "was": "components/content/Media.d.ts",
+   "kind": "component-types",
+   "component": "Media",
+   "bytes": 975,
+   "fileAt": "project/components/Media/Media.d.ts"
+  },
+  {
+   "path": "project/components/content/Media.jsx",
+   "was": "components/content/Media.jsx",
+   "kind": "component-source",
+   "component": "Media",
+   "bytes": 1755
+  },
+  {
+   "path": "project/components/content/Media.md",
+   "was": "components/content/Media.md",
+   "kind": "component-guide",
+   "component": "Media",
+   "bytes": 1063,
+   "fileAt": "project/components/Media/README.md"
+  },
+  {
+   "path": "project/components/content/Prose.d.ts",
+   "was": "components/content/Prose.d.ts",
+   "kind": "component-types",
+   "component": "Prose",
+   "bytes": 414,
+   "fileAt": "project/components/Prose/Prose.d.ts"
+  },
+  {
+   "path": "project/components/content/Prose.jsx",
+   "was": "components/content/Prose.jsx",
+   "kind": "component-source",
+   "component": "Prose",
+   "bytes": 673
+  },
+  {
+   "path": "project/components/content/Prose.md",
+   "was": "components/content/Prose.md",
+   "kind": "component-guide",
+   "component": "Prose",
+   "bytes": 772,
+   "fileAt": "project/components/Prose/README.md"
+  },
+  {
+   "path": "project/components/content/Quote.d.ts",
+   "was": "components/content/Quote.d.ts",
+   "kind": "component-types",
+   "component": "Quote",
+   "bytes": 531,
+   "fileAt": "project/components/Quote/Quote.d.ts"
+  },
+  {
+   "path": "project/components/content/Quote.jsx",
+   "was": "components/content/Quote.jsx",
+   "kind": "component-source",
+   "component": "Quote",
+   "bytes": 1411
+  },
+  {
+   "path": "project/components/content/Quote.md",
+   "was": "components/content/Quote.md",
+   "kind": "component-guide",
+   "component": "Quote",
+   "bytes": 678,
+   "fileAt": "project/components/Quote/README.md"
+  },
+  {
+   "path": "project/components/content/content-detail.card.html",
+   "was": "components/content/content-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 16829,
+   "fileAt": "project/components/ContentDetail/preview.html"
+  },
+  {
+   "path": "project/components/content/content.card.html",
+   "was": "components/content/content.card.html",
+   "kind": "showcase-page",
+   "group": "Components",
+   "bytes": 41837,
+   "fileAt": "project/components/Content/preview.html",
+   "refs": [
+    {
+     "as": "../../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../../_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    },
+    {
+     "as": "../../templates/_support/theme-runtime.js",
+     "to": "project/templates/_support/theme-runtime.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/components/display/Avatar.d.ts",
+   "was": "components/display/Avatar.d.ts",
+   "kind": "component-types",
+   "component": "Avatar",
+   "bytes": 668,
+   "fileAt": "project/components/Avatar/Avatar.d.ts"
+  },
+  {
+   "path": "project/components/display/Avatar.jsx",
+   "was": "components/display/Avatar.jsx",
+   "kind": "component-source",
+   "component": "Avatar",
+   "bytes": 2045
+  },
+  {
+   "path": "project/components/display/Avatar.md",
+   "was": "components/display/Avatar.md",
+   "kind": "component-guide",
+   "component": "Avatar",
+   "bytes": 791,
+   "fileAt": "project/components/Avatar/README.md"
+  },
+  {
+   "path": "project/components/display/AvatarGroup.d.ts",
+   "was": "components/display/AvatarGroup.d.ts",
+   "kind": "component-types",
+   "component": "AvatarGroup",
+   "bytes": 624,
+   "fileAt": "project/components/AvatarGroup/AvatarGroup.d.ts"
+  },
+  {
+   "path": "project/components/display/AvatarGroup.jsx",
+   "was": "components/display/AvatarGroup.jsx",
+   "kind": "component-source",
+   "component": "AvatarGroup",
+   "bytes": 1412
+  },
+  {
+   "path": "project/components/display/AvatarGroup.md",
+   "was": "components/display/AvatarGroup.md",
+   "kind": "component-guide",
+   "component": "AvatarGroup",
+   "bytes": 758,
+   "fileAt": "project/components/AvatarGroup/README.md"
+  },
+  {
+   "path": "project/components/display/Badge.d.ts",
+   "was": "components/display/Badge.d.ts",
+   "kind": "component-types",
+   "component": "Badge",
+   "bytes": 546,
+   "fileAt": "project/components/Badge/Badge.d.ts"
+  },
+  {
+   "path": "project/components/display/Badge.jsx",
+   "was": "components/display/Badge.jsx",
+   "kind": "component-source",
+   "component": "Badge",
+   "bytes": 2273
+  },
+  {
+   "path": "project/components/display/Badge.md",
+   "was": "components/display/Badge.md",
+   "kind": "component-guide",
+   "component": "Badge",
+   "bytes": 805,
+   "fileAt": "project/components/Badge/README.md"
+  },
+  {
+   "path": "project/components/display/Card.d.ts",
+   "was": "components/display/Card.d.ts",
+   "kind": "component-types",
+   "component": "Card",
+   "bytes": 825,
+   "fileAt": "project/components/Card/Card.d.ts"
+  },
+  {
+   "path": "project/components/display/Card.jsx",
+   "was": "components/display/Card.jsx",
+   "kind": "component-source",
+   "component": "Card",
+   "bytes": 2253
+  },
+  {
+   "path": "project/components/display/Card.md",
+   "was": "components/display/Card.md",
+   "kind": "component-guide",
+   "component": "Card",
+   "bytes": 1508,
+   "fileAt": "project/components/Card/README.md"
+  },
+  {
+   "path": "project/components/display/Code.d.ts",
+   "was": "components/display/Code.d.ts",
+   "kind": "component-types",
+   "component": "Code",
+   "bytes": 442,
+   "fileAt": "project/components/Code/Code.d.ts"
+  },
+  {
+   "path": "project/components/display/Code.jsx",
+   "was": "components/display/Code.jsx",
+   "kind": "component-source",
+   "component": "Code",
+   "bytes": 1172
+  },
+  {
+   "path": "project/components/display/Code.md",
+   "was": "components/display/Code.md",
+   "kind": "component-guide",
+   "component": "Code",
+   "bytes": 758,
+   "fileAt": "project/components/Code/README.md"
+  },
+  {
+   "path": "project/components/display/EmptyState.d.ts",
+   "was": "components/display/EmptyState.d.ts",
+   "kind": "component-types",
+   "component": "EmptyState",
+   "bytes": 737,
+   "fileAt": "project/components/EmptyState/EmptyState.d.ts"
+  },
+  {
+   "path": "project/components/display/EmptyState.jsx",
+   "was": "components/display/EmptyState.jsx",
+   "kind": "component-source",
+   "component": "EmptyState",
+   "bytes": 1433
+  },
+  {
+   "path": "project/components/display/EmptyState.md",
+   "was": "components/display/EmptyState.md",
+   "kind": "component-guide",
+   "component": "EmptyState",
+   "bytes": 826,
+   "fileAt": "project/components/EmptyState/README.md"
+  },
+  {
+   "path": "project/components/display/List.d.ts",
+   "was": "components/display/List.d.ts",
+   "kind": "component-types",
+   "component": "List",
+   "bytes": 943,
+   "fileAt": "project/components/List/List.d.ts"
+  },
+  {
+   "path": "project/components/display/List.jsx",
+   "was": "components/display/List.jsx",
+   "kind": "component-source",
+   "component": "List",
+   "bytes": 2614
+  },
+  {
+   "path": "project/components/display/List.md",
+   "was": "components/display/List.md",
+   "kind": "component-guide",
+   "component": "List",
+   "bytes": 761,
+   "fileAt": "project/components/List/README.md"
+  },
+  {
+   "path": "project/components/display/Skeleton.d.ts",
+   "was": "components/display/Skeleton.d.ts",
+   "kind": "component-types",
+   "component": "Skeleton",
+   "bytes": 510,
+   "fileAt": "project/components/Skeleton/Skeleton.d.ts"
+  },
+  {
+   "path": "project/components/display/Skeleton.jsx",
+   "was": "components/display/Skeleton.jsx",
+   "kind": "component-source",
+   "component": "Skeleton",
+   "bytes": 1118
+  },
+  {
+   "path": "project/components/display/Skeleton.md",
+   "was": "components/display/Skeleton.md",
+   "kind": "component-guide",
+   "component": "Skeleton",
+   "bytes": 820,
+   "fileAt": "project/components/Skeleton/README.md"
+  },
+  {
+   "path": "project/components/display/Stat.d.ts",
+   "was": "components/display/Stat.d.ts",
+   "kind": "component-types",
+   "component": "Stat",
+   "bytes": 847,
+   "fileAt": "project/components/Stat/Stat.d.ts"
+  },
+  {
+   "path": "project/components/display/Stat.jsx",
+   "was": "components/display/Stat.jsx",
+   "kind": "component-source",
+   "component": "Stat",
+   "bytes": 2007
+  },
+  {
+   "path": "project/components/display/Stat.md",
+   "was": "components/display/Stat.md",
+   "kind": "component-guide",
+   "component": "Stat",
+   "bytes": 829,
+   "fileAt": "project/components/Stat/README.md"
+  },
+  {
+   "path": "project/components/display/Table.d.ts",
+   "was": "components/display/Table.d.ts",
+   "kind": "component-types",
+   "component": "Table",
+   "bytes": 1006,
+   "fileAt": "project/components/Table/Table.d.ts"
+  },
+  {
+   "path": "project/components/display/Table.jsx",
+   "was": "components/display/Table.jsx",
+   "kind": "component-source",
+   "component": "Table",
+   "bytes": 1887
+  },
+  {
+   "path": "project/components/display/Table.md",
+   "was": "components/display/Table.md",
+   "kind": "component-guide",
+   "component": "Table",
+   "bytes": 803,
+   "fileAt": "project/components/Table/README.md"
+  },
+  {
+   "path": "project/components/display/Tag.d.ts",
+   "was": "components/display/Tag.d.ts",
+   "kind": "component-types",
+   "component": "Tag",
+   "bytes": 470,
+   "fileAt": "project/components/Tag/Tag.d.ts"
+  },
+  {
+   "path": "project/components/display/Tag.jsx",
+   "was": "components/display/Tag.jsx",
+   "kind": "component-source",
+   "component": "Tag",
+   "bytes": 2073
+  },
+  {
+   "path": "project/components/display/Tag.md",
+   "was": "components/display/Tag.md",
+   "kind": "component-guide",
+   "component": "Tag",
+   "bytes": 795,
+   "fileAt": "project/components/Tag/README.md"
+  },
+  {
+   "path": "project/components/display/display-detail.card.html",
+   "was": "components/display/display-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 22573,
+   "fileAt": "project/components/DisplayDetail/preview.html"
+  },
+  {
+   "path": "project/components/display/display.card.html",
+   "was": "components/display/display.card.html",
+   "kind": "showcase-page",
+   "group": "Components",
+   "bytes": 33587,
+   "fileAt": "project/components/Display/preview.html",
+   "refs": [
+    {
+     "as": "../../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../../_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/components/feedback/Alert.d.ts",
+   "was": "components/feedback/Alert.d.ts",
+   "kind": "component-types",
+   "component": "Alert",
+   "bytes": 592,
+   "fileAt": "project/components/Alert/Alert.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Alert.jsx",
+   "was": "components/feedback/Alert.jsx",
+   "kind": "component-source",
+   "component": "Alert",
+   "bytes": 2961
+  },
+  {
+   "path": "project/components/feedback/Alert.md",
+   "was": "components/feedback/Alert.md",
+   "kind": "component-guide",
+   "component": "Alert",
+   "bytes": 926,
+   "fileAt": "project/components/Alert/README.md"
+  },
+  {
+   "path": "project/components/feedback/Banner.d.ts",
+   "was": "components/feedback/Banner.d.ts",
+   "kind": "component-types",
+   "component": "Banner",
+   "bytes": 660,
+   "fileAt": "project/components/Banner/Banner.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Banner.jsx",
+   "was": "components/feedback/Banner.jsx",
+   "kind": "component-source",
+   "component": "Banner",
+   "bytes": 2274
+  },
+  {
+   "path": "project/components/feedback/Banner.md",
+   "was": "components/feedback/Banner.md",
+   "kind": "component-guide",
+   "component": "Banner",
+   "bytes": 834,
+   "fileAt": "project/components/Banner/README.md"
+  },
+  {
+   "path": "project/components/feedback/Dialog.d.ts",
+   "was": "components/feedback/Dialog.d.ts",
+   "kind": "component-types",
+   "component": "Dialog",
+   "bytes": 612,
+   "fileAt": "project/components/Dialog/Dialog.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Dialog.jsx",
+   "was": "components/feedback/Dialog.jsx",
+   "kind": "component-source",
+   "component": "Dialog",
+   "bytes": 3054
+  },
+  {
+   "path": "project/components/feedback/Dialog.md",
+   "was": "components/feedback/Dialog.md",
+   "kind": "component-guide",
+   "component": "Dialog",
+   "bytes": 1219,
+   "fileAt": "project/components/Dialog/README.md"
+  },
+  {
+   "path": "project/components/feedback/Drawer.d.ts",
+   "was": "components/feedback/Drawer.d.ts",
+   "kind": "component-types",
+   "component": "Drawer",
+   "bytes": 695,
+   "fileAt": "project/components/Drawer/Drawer.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Drawer.jsx",
+   "was": "components/feedback/Drawer.jsx",
+   "kind": "component-source",
+   "component": "Drawer",
+   "bytes": 3484
+  },
+  {
+   "path": "project/components/feedback/Drawer.md",
+   "was": "components/feedback/Drawer.md",
+   "kind": "component-guide",
+   "component": "Drawer",
+   "bytes": 839,
+   "fileAt": "project/components/Drawer/README.md"
+  },
+  {
+   "path": "project/components/feedback/Popover.d.ts",
+   "was": "components/feedback/Popover.d.ts",
+   "kind": "component-types",
+   "component": "Popover",
+   "bytes": 718,
+   "fileAt": "project/components/Popover/Popover.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Popover.jsx",
+   "was": "components/feedback/Popover.jsx",
+   "kind": "component-source",
+   "component": "Popover",
+   "bytes": 2153
+  },
+  {
+   "path": "project/components/feedback/Popover.md",
+   "was": "components/feedback/Popover.md",
+   "kind": "component-guide",
+   "component": "Popover",
+   "bytes": 737,
+   "fileAt": "project/components/Popover/README.md"
+  },
+  {
+   "path": "project/components/feedback/Progress.d.ts",
+   "was": "components/feedback/Progress.d.ts",
+   "kind": "component-types",
+   "component": "Progress",
+   "bytes": 649,
+   "fileAt": "project/components/Progress/Progress.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Progress.jsx",
+   "was": "components/feedback/Progress.jsx",
+   "kind": "component-source",
+   "component": "Progress",
+   "bytes": 2031
+  },
+  {
+   "path": "project/components/feedback/Progress.md",
+   "was": "components/feedback/Progress.md",
+   "kind": "component-guide",
+   "component": "Progress",
+   "bytes": 734,
+   "fileAt": "project/components/Progress/README.md"
+  },
+  {
+   "path": "project/components/feedback/Spinner.d.ts",
+   "was": "components/feedback/Spinner.d.ts",
+   "kind": "component-types",
+   "component": "Spinner",
+   "bytes": 440,
+   "fileAt": "project/components/Spinner/Spinner.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Spinner.jsx",
+   "was": "components/feedback/Spinner.jsx",
+   "kind": "component-source",
+   "component": "Spinner",
+   "bytes": 905
+  },
+  {
+   "path": "project/components/feedback/Spinner.md",
+   "was": "components/feedback/Spinner.md",
+   "kind": "component-guide",
+   "component": "Spinner",
+   "bytes": 660,
+   "fileAt": "project/components/Spinner/README.md"
+  },
+  {
+   "path": "project/components/feedback/Toast.d.ts",
+   "was": "components/feedback/Toast.d.ts",
+   "kind": "component-types",
+   "component": "Toast",
+   "bytes": 935,
+   "fileAt": "project/components/Toast/Toast.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Toast.jsx",
+   "was": "components/feedback/Toast.jsx",
+   "kind": "component-source",
+   "component": "Toast",
+   "bytes": 3270
+  },
+  {
+   "path": "project/components/feedback/Toast.md",
+   "was": "components/feedback/Toast.md",
+   "kind": "component-guide",
+   "component": "Toast",
+   "bytes": 826,
+   "fileAt": "project/components/Toast/README.md"
+  },
+  {
+   "path": "project/components/feedback/Tooltip.d.ts",
+   "was": "components/feedback/Tooltip.d.ts",
+   "kind": "component-types",
+   "component": "Tooltip",
+   "bytes": 507,
+   "fileAt": "project/components/Tooltip/Tooltip.d.ts"
+  },
+  {
+   "path": "project/components/feedback/Tooltip.jsx",
+   "was": "components/feedback/Tooltip.jsx",
+   "kind": "component-source",
+   "component": "Tooltip",
+   "bytes": 2018
+  },
+  {
+   "path": "project/components/feedback/Tooltip.md",
+   "was": "components/feedback/Tooltip.md",
+   "kind": "component-guide",
+   "component": "Tooltip",
+   "bytes": 748,
+   "fileAt": "project/components/Tooltip/README.md"
+  },
+  {
+   "path": "project/components/feedback/feedback-detail-2.card.html",
+   "was": "components/feedback/feedback-detail-2.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 21469,
+   "fileAt": "project/components/FeedbackDetail2/preview.html"
+  },
+  {
+   "path": "project/components/feedback/feedback.card.html",
+   "was": "components/feedback/feedback.card.html",
+   "kind": "showcase-page",
+   "group": "Components",
+   "bytes": 33115,
+   "fileAt": "project/components/Feedback/preview.html",
+   "refs": [
+    {
+     "as": "../../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../../_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/components/feedback/surfaces-detail.card.html",
+   "was": "components/feedback/surfaces-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 18463,
+   "fileAt": "project/components/SurfacesDetail/preview.html"
+  },
+  {
+   "path": "project/components/forms/Checkbox.d.ts",
+   "was": "components/forms/Checkbox.d.ts",
+   "kind": "component-types",
+   "component": "Checkbox",
+   "bytes": 628,
+   "fileAt": "project/components/Checkbox/Checkbox.d.ts"
+  },
+  {
+   "path": "project/components/forms/Checkbox.jsx",
+   "was": "components/forms/Checkbox.jsx",
+   "kind": "component-source",
+   "component": "Checkbox",
+   "bytes": 2766
+  },
+  {
+   "path": "project/components/forms/Checkbox.md",
+   "was": "components/forms/Checkbox.md",
+   "kind": "component-guide",
+   "component": "Checkbox",
+   "bytes": 877,
+   "fileAt": "project/components/Checkbox/README.md"
+  },
+  {
+   "path": "project/components/forms/CheckboxGroup.d.ts",
+   "was": "components/forms/CheckboxGroup.d.ts",
+   "kind": "component-types",
+   "component": "CheckboxGroup",
+   "bytes": 916,
+   "fileAt": "project/components/CheckboxGroup/CheckboxGroup.d.ts"
+  },
+  {
+   "path": "project/components/forms/CheckboxGroup.jsx",
+   "was": "components/forms/CheckboxGroup.jsx",
+   "kind": "component-source",
+   "component": "CheckboxGroup",
+   "bytes": 1352
+  },
+  {
+   "path": "project/components/forms/CheckboxGroup.md",
+   "was": "components/forms/CheckboxGroup.md",
+   "kind": "component-guide",
+   "component": "CheckboxGroup",
+   "bytes": 1013,
+   "fileAt": "project/components/CheckboxGroup/README.md"
+  },
+  {
+   "path": "project/components/forms/Field.d.ts",
+   "was": "components/forms/Field.d.ts",
+   "kind": "component-types",
+   "component": "Field",
+   "bytes": 637,
+   "fileAt": "project/components/Field/Field.d.ts"
+  },
+  {
+   "path": "project/components/forms/Field.jsx",
+   "was": "components/forms/Field.jsx",
+   "kind": "component-source",
+   "component": "Field",
+   "bytes": 1222
+  },
+  {
+   "path": "project/components/forms/Field.md",
+   "was": "components/forms/Field.md",
+   "kind": "component-guide",
+   "component": "Field",
+   "bytes": 1001,
+   "fileAt": "project/components/Field/README.md"
+  },
+  {
+   "path": "project/components/forms/Input.d.ts",
+   "was": "components/forms/Input.d.ts",
+   "kind": "component-types",
+   "component": "Input",
+   "bytes": 486,
+   "fileAt": "project/components/Input/Input.d.ts"
+  },
+  {
+   "path": "project/components/forms/Input.jsx",
+   "was": "components/forms/Input.jsx",
+   "kind": "component-source",
+   "component": "Input",
+   "bytes": 2131
+  },
+  {
+   "path": "project/components/forms/Input.md",
+   "was": "components/forms/Input.md",
+   "kind": "component-guide",
+   "component": "Input",
+   "bytes": 912,
+   "fileAt": "project/components/Input/README.md"
+  },
+  {
+   "path": "project/components/forms/Radio.d.ts",
+   "was": "components/forms/Radio.d.ts",
+   "kind": "component-types",
+   "component": "Radio",
+   "bytes": 596,
+   "fileAt": "project/components/Radio/Radio.d.ts"
+  },
+  {
+   "path": "project/components/forms/Radio.jsx",
+   "was": "components/forms/Radio.jsx",
+   "kind": "component-source",
+   "component": "Radio",
+   "bytes": 1936
+  },
+  {
+   "path": "project/components/forms/Radio.md",
+   "was": "components/forms/Radio.md",
+   "kind": "component-guide",
+   "component": "Radio",
+   "bytes": 906,
+   "fileAt": "project/components/Radio/README.md"
+  },
+  {
+   "path": "project/components/forms/RadioGroup.d.ts",
+   "was": "components/forms/RadioGroup.d.ts",
+   "kind": "component-types",
+   "component": "RadioGroup",
+   "bytes": 831,
+   "fileAt": "project/components/RadioGroup/RadioGroup.d.ts"
+  },
+  {
+   "path": "project/components/forms/RadioGroup.jsx",
+   "was": "components/forms/RadioGroup.jsx",
+   "kind": "component-source",
+   "component": "RadioGroup",
+   "bytes": 1326
+  },
+  {
+   "path": "project/components/forms/RadioGroup.md",
+   "was": "components/forms/RadioGroup.md",
+   "kind": "component-guide",
+   "component": "RadioGroup",
+   "bytes": 1063,
+   "fileAt": "project/components/RadioGroup/README.md"
+  },
+  {
+   "path": "project/components/forms/Select.d.ts",
+   "was": "components/forms/Select.d.ts",
+   "kind": "component-types",
+   "component": "Select",
+   "bytes": 567,
+   "fileAt": "project/components/Select/Select.d.ts"
+  },
+  {
+   "path": "project/components/forms/Select.jsx",
+   "was": "components/forms/Select.jsx",
+   "kind": "component-source",
+   "component": "Select",
+   "bytes": 2404
+  },
+  {
+   "path": "project/components/forms/Select.md",
+   "was": "components/forms/Select.md",
+   "kind": "component-guide",
+   "component": "Select",
+   "bytes": 714,
+   "fileAt": "project/components/Select/README.md"
+  },
+  {
+   "path": "project/components/forms/Slider.d.ts",
+   "was": "components/forms/Slider.d.ts",
+   "kind": "component-types",
+   "component": "Slider",
+   "bytes": 836,
+   "fileAt": "project/components/Slider/Slider.d.ts"
+  },
+  {
+   "path": "project/components/forms/Slider.jsx",
+   "was": "components/forms/Slider.jsx",
+   "kind": "component-source",
+   "component": "Slider",
+   "bytes": 1970
+  },
+  {
+   "path": "project/components/forms/Slider.md",
+   "was": "components/forms/Slider.md",
+   "kind": "component-guide",
+   "component": "Slider",
+   "bytes": 958,
+   "fileAt": "project/components/Slider/README.md"
+  },
+  {
+   "path": "project/components/forms/Switch.d.ts",
+   "was": "components/forms/Switch.d.ts",
+   "kind": "component-types",
+   "component": "Switch",
+   "bytes": 617,
+   "fileAt": "project/components/Switch/Switch.d.ts"
+  },
+  {
+   "path": "project/components/forms/Switch.jsx",
+   "was": "components/forms/Switch.jsx",
+   "kind": "component-source",
+   "component": "Switch",
+   "bytes": 2426
+  },
+  {
+   "path": "project/components/forms/Switch.md",
+   "was": "components/forms/Switch.md",
+   "kind": "component-guide",
+   "component": "Switch",
+   "bytes": 833,
+   "fileAt": "project/components/Switch/README.md"
+  },
+  {
+   "path": "project/components/forms/Textarea.d.ts",
+   "was": "components/forms/Textarea.d.ts",
+   "kind": "component-types",
+   "component": "Textarea",
+   "bytes": 363,
+   "fileAt": "project/components/Textarea/Textarea.d.ts"
+  },
+  {
+   "path": "project/components/forms/Textarea.jsx",
+   "was": "components/forms/Textarea.jsx",
+   "kind": "component-source",
+   "component": "Textarea",
+   "bytes": 1493
+  },
+  {
+   "path": "project/components/forms/Textarea.md",
+   "was": "components/forms/Textarea.md",
+   "kind": "component-guide",
+   "component": "Textarea",
+   "bytes": 499,
+   "fileAt": "project/components/Textarea/README.md"
+  },
+  {
+   "path": "project/components/forms/forms-detail.card.html",
+   "was": "components/forms/forms-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 22206,
+   "fileAt": "project/components/FormsDetail/preview.html"
+  },
+  {
+   "path": "project/components/forms/forms.card.html",
+   "was": "components/forms/forms.card.html",
+   "kind": "showcase-page",
+   "group": "Components",
+   "bytes": 33210,
+   "fileAt": "project/components/Forms/preview.html",
+   "refs": [
+    {
+     "as": "../../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../../_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/components/navigation/Breadcrumbs.d.ts",
+   "was": "components/navigation/Breadcrumbs.d.ts",
+   "kind": "component-types",
+   "component": "Breadcrumbs",
+   "bytes": 565,
+   "fileAt": "project/components/Breadcrumbs/Breadcrumbs.d.ts"
+  },
+  {
+   "path": "project/components/navigation/Breadcrumbs.jsx",
+   "was": "components/navigation/Breadcrumbs.jsx",
+   "kind": "component-source",
+   "component": "Breadcrumbs",
+   "bytes": 1606
+  },
+  {
+   "path": "project/components/navigation/Breadcrumbs.md",
+   "was": "components/navigation/Breadcrumbs.md",
+   "kind": "component-guide",
+   "component": "Breadcrumbs",
+   "bytes": 740,
+   "fileAt": "project/components/Breadcrumbs/README.md"
+  },
+  {
+   "path": "project/components/navigation/Navbar.d.ts",
+   "was": "components/navigation/Navbar.d.ts",
+   "kind": "component-types",
+   "component": "Navbar",
+   "bytes": 721,
+   "fileAt": "project/components/Navbar/Navbar.d.ts"
+  },
+  {
+   "path": "project/components/navigation/Navbar.jsx",
+   "was": "components/navigation/Navbar.jsx",
+   "kind": "component-source",
+   "component": "Navbar",
+   "bytes": 1910
+  },
+  {
+   "path": "project/components/navigation/Navbar.md",
+   "was": "components/navigation/Navbar.md",
+   "kind": "component-guide",
+   "component": "Navbar",
+   "bytes": 671,
+   "fileAt": "project/components/Navbar/README.md"
+  },
+  {
+   "path": "project/components/navigation/Pagination.d.ts",
+   "was": "components/navigation/Pagination.d.ts",
+   "kind": "component-types",
+   "component": "Pagination",
+   "bytes": 401,
+   "fileAt": "project/components/Pagination/Pagination.d.ts"
+  },
+  {
+   "path": "project/components/navigation/Pagination.jsx",
+   "was": "components/navigation/Pagination.jsx",
+   "kind": "component-source",
+   "component": "Pagination",
+   "bytes": 2435
+  },
+  {
+   "path": "project/components/navigation/Pagination.md",
+   "was": "components/navigation/Pagination.md",
+   "kind": "component-guide",
+   "component": "Pagination",
+   "bytes": 704,
+   "fileAt": "project/components/Pagination/README.md"
+  },
+  {
+   "path": "project/components/navigation/Sidebar.d.ts",
+   "was": "components/navigation/Sidebar.d.ts",
+   "kind": "component-types",
+   "component": "Sidebar",
+   "bytes": 1001,
+   "fileAt": "project/components/Sidebar/Sidebar.d.ts"
+  },
+  {
+   "path": "project/components/navigation/Sidebar.jsx",
+   "was": "components/navigation/Sidebar.jsx",
+   "kind": "component-source",
+   "component": "Sidebar",
+   "bytes": 2924
+  },
+  {
+   "path": "project/components/navigation/Sidebar.md",
+   "was": "components/navigation/Sidebar.md",
+   "kind": "component-guide",
+   "component": "Sidebar",
+   "bytes": 789,
+   "fileAt": "project/components/Sidebar/README.md"
+  },
+  {
+   "path": "project/components/navigation/Stepper.d.ts",
+   "was": "components/navigation/Stepper.d.ts",
+   "kind": "component-types",
+   "component": "Stepper",
+   "bytes": 565,
+   "fileAt": "project/components/Stepper/Stepper.d.ts"
+  },
+  {
+   "path": "project/components/navigation/Stepper.jsx",
+   "was": "components/navigation/Stepper.jsx",
+   "kind": "component-source",
+   "component": "Stepper",
+   "bytes": 2764
+  },
+  {
+   "path": "project/components/navigation/Stepper.md",
+   "was": "components/navigation/Stepper.md",
+   "kind": "component-guide",
+   "component": "Stepper",
+   "bytes": 784,
+   "fileAt": "project/components/Stepper/README.md"
+  },
+  {
+   "path": "project/components/navigation/Tabs.d.ts",
+   "was": "components/navigation/Tabs.d.ts",
+   "kind": "component-types",
+   "component": "Tabs",
+   "bytes": 1012,
+   "fileAt": "project/components/Tabs/Tabs.d.ts"
+  },
+  {
+   "path": "project/components/navigation/Tabs.jsx",
+   "was": "components/navigation/Tabs.jsx",
+   "kind": "component-source",
+   "component": "Tabs",
+   "bytes": 3433
+  },
+  {
+   "path": "project/components/navigation/Tabs.md",
+   "was": "components/navigation/Tabs.md",
+   "kind": "component-guide",
+   "component": "Tabs",
+   "bytes": 903,
+   "fileAt": "project/components/Tabs/README.md"
+  },
+  {
+   "path": "project/components/navigation/navigation-detail.card.html",
+   "was": "components/navigation/navigation-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 20290,
+   "fileAt": "project/components/NavigationDetail/preview.html"
+  },
+  {
+   "path": "project/components/primitives/Divider.d.ts",
+   "was": "components/primitives/Divider.d.ts",
+   "kind": "component-types",
+   "component": "Divider",
+   "bytes": 452,
+   "fileAt": "project/components/Divider/Divider.d.ts"
+  },
+  {
+   "path": "project/components/primitives/Divider.jsx",
+   "was": "components/primitives/Divider.jsx",
+   "kind": "component-source",
+   "component": "Divider",
+   "bytes": 1218
+  },
+  {
+   "path": "project/components/primitives/Divider.md",
+   "was": "components/primitives/Divider.md",
+   "kind": "component-guide",
+   "component": "Divider",
+   "bytes": 669,
+   "fileAt": "project/components/Divider/README.md"
+  },
+  {
+   "path": "project/components/primitives/Grid.d.ts",
+   "was": "components/primitives/Grid.d.ts",
+   "kind": "component-types",
+   "component": "Grid",
+   "bytes": 676,
+   "fileAt": "project/components/Grid/Grid.d.ts"
+  },
+  {
+   "path": "project/components/primitives/Grid.jsx",
+   "was": "components/primitives/Grid.jsx",
+   "kind": "component-source",
+   "component": "Grid",
+   "bytes": 693
+  },
+  {
+   "path": "project/components/primitives/Grid.md",
+   "was": "components/primitives/Grid.md",
+   "kind": "component-guide",
+   "component": "Grid",
+   "bytes": 598,
+   "fileAt": "project/components/Grid/README.md"
+  },
+  {
+   "path": "project/components/primitives/Inline.d.ts",
+   "was": "components/primitives/Inline.d.ts",
+   "kind": "component-types",
+   "component": "Inline",
+   "bytes": 677,
+   "fileAt": "project/components/Inline/Inline.d.ts"
+  },
+  {
+   "path": "project/components/primitives/Inline.jsx",
+   "was": "components/primitives/Inline.jsx",
+   "kind": "component-source",
+   "component": "Inline",
+   "bytes": 642
+  },
+  {
+   "path": "project/components/primitives/Inline.md",
+   "was": "components/primitives/Inline.md",
+   "kind": "component-guide",
+   "component": "Inline",
+   "bytes": 667,
+   "fileAt": "project/components/Inline/README.md"
+  },
+  {
+   "path": "project/components/primitives/Spacer.d.ts",
+   "was": "components/primitives/Spacer.d.ts",
+   "kind": "component-types",
+   "component": "Spacer",
+   "bytes": 438,
+   "fileAt": "project/components/Spacer/Spacer.d.ts"
+  },
+  {
+   "path": "project/components/primitives/Spacer.jsx",
+   "was": "components/primitives/Spacer.jsx",
+   "kind": "component-source",
+   "component": "Spacer",
+   "bytes": 684
+  },
+  {
+   "path": "project/components/primitives/Spacer.md",
+   "was": "components/primitives/Spacer.md",
+   "kind": "component-guide",
+   "component": "Spacer",
+   "bytes": 855,
+   "fileAt": "project/components/Spacer/README.md"
+  },
+  {
+   "path": "project/components/primitives/Stack.d.ts",
+   "was": "components/primitives/Stack.d.ts",
+   "kind": "component-types",
+   "component": "Stack",
+   "bytes": 592,
+   "fileAt": "project/components/Stack/Stack.d.ts"
+  },
+  {
+   "path": "project/components/primitives/Stack.jsx",
+   "was": "components/primitives/Stack.jsx",
+   "kind": "component-source",
+   "component": "Stack",
+   "bytes": 577
+  },
+  {
+   "path": "project/components/primitives/Stack.md",
+   "was": "components/primitives/Stack.md",
+   "kind": "component-guide",
+   "component": "Stack",
+   "bytes": 825,
+   "fileAt": "project/components/Stack/README.md"
+  },
+  {
+   "path": "project/components/primitives/VisuallyHidden.d.ts",
+   "was": "components/primitives/VisuallyHidden.d.ts",
+   "kind": "component-types",
+   "component": "VisuallyHidden",
+   "bytes": 393,
+   "fileAt": "project/components/VisuallyHidden/VisuallyHidden.d.ts"
+  },
+  {
+   "path": "project/components/primitives/VisuallyHidden.jsx",
+   "was": "components/primitives/VisuallyHidden.jsx",
+   "kind": "component-source",
+   "component": "VisuallyHidden",
+   "bytes": 363
+  },
+  {
+   "path": "project/components/primitives/VisuallyHidden.md",
+   "was": "components/primitives/VisuallyHidden.md",
+   "kind": "component-guide",
+   "component": "VisuallyHidden",
+   "bytes": 674,
+   "fileAt": "project/components/VisuallyHidden/README.md"
+  },
+  {
+   "path": "project/components/primitives/primitives-detail.card.html",
+   "was": "components/primitives/primitives-detail.card.html",
+   "kind": "showcase-page",
+   "group": "Component detail",
+   "bytes": 17768,
+   "fileAt": "project/components/PrimitivesDetail/preview.html"
+  },
+  {
+   "path": "project/components/primitives/primitives.card.html",
+   "was": "components/primitives/primitives.card.html",
+   "kind": "showcase-page",
+   "group": "Components",
+   "bytes": 33417,
+   "fileAt": "project/components/Primitives/preview.html",
+   "refs": [
+    {
+     "as": "../../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../../_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/accessibility.md",
+   "was": "guidelines/accessibility.md",
+   "kind": "doc",
+   "bytes": 3583
+  },
+  {
+   "path": "project/guidelines/color-accent.html",
+   "was": "guidelines/color-accent.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30512,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-actions.html",
+   "was": "guidelines/color-actions.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 34130,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-amber.html",
+   "was": "guidelines/color-amber.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30530,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-borders.html",
+   "was": "guidelines/color-borders.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 29807,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-cyan.html",
+   "was": "guidelines/color-cyan.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30452,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-dark.html",
+   "was": "guidelines/color-dark.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30491,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-feedback.html",
+   "was": "guidelines/color-feedback.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30245,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-green.html",
+   "was": "guidelines/color-green.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30467,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-neutral.html",
+   "was": "guidelines/color-neutral.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30518,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-pairs.html",
+   "was": "guidelines/color-pairs.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30279,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-red.html",
+   "was": "guidelines/color-red.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30436,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-surfaces.html",
+   "was": "guidelines/color-surfaces.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30358,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-text.html",
+   "was": "guidelines/color-text.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30171,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/color-violet.html",
+   "was": "guidelines/color-violet.html",
+   "kind": "foundations-page",
+   "group": "Color",
+   "bytes": 30512,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/contributing.md",
+   "was": "guidelines/contributing.md",
+   "kind": "doc",
+   "bytes": 3608
+  },
+  {
+   "path": "project/guidelines/elevation-levels.html",
+   "was": "guidelines/elevation-levels.html",
+   "kind": "foundations-page",
+   "group": "Elevation",
+   "bytes": 30594,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/elevation-z.html",
+   "was": "guidelines/elevation-z.html",
+   "kind": "foundations-page",
+   "group": "Elevation",
+   "bytes": 31204,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/headless-integration.md",
+   "was": "guidelines/headless-integration.md",
+   "kind": "doc",
+   "bytes": 3558
+  },
+  {
+   "path": "project/guidelines/iconography.html",
+   "was": "guidelines/iconography.html",
+   "kind": "foundations-page",
+   "group": "Foundations",
+   "bytes": 31776,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/motion-easing.html",
+   "was": "guidelines/motion-easing.html",
+   "kind": "foundations-page",
+   "group": "Motion",
+   "bytes": 31778,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/motion-roles.html",
+   "was": "guidelines/motion-roles.html",
+   "kind": "foundations-page",
+   "group": "Motion",
+   "bytes": 30196,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/shape-focus.html",
+   "was": "guidelines/shape-focus.html",
+   "kind": "showcase-page",
+   "group": "Shape",
+   "bytes": 30751,
+   "fileAt": "project/components/ShapeFocus/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/shape-radius.html",
+   "was": "guidelines/shape-radius.html",
+   "kind": "showcase-page",
+   "group": "Shape",
+   "bytes": 30385,
+   "fileAt": "project/components/ShapeRadius/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/size-controls.html",
+   "was": "guidelines/size-controls.html",
+   "kind": "showcase-page",
+   "group": "Size",
+   "bytes": 30954,
+   "fileAt": "project/components/SizeControls/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/size-icons.html",
+   "was": "guidelines/size-icons.html",
+   "kind": "showcase-page",
+   "group": "Size",
+   "bytes": 31381,
+   "fileAt": "project/components/SizeIcons/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/space-axes.html",
+   "was": "guidelines/space-axes.html",
+   "kind": "showcase-page",
+   "group": "Space",
+   "bytes": 35378,
+   "fileAt": "project/components/SpaceAxes/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/space-in-use.html",
+   "was": "guidelines/space-in-use.html",
+   "kind": "showcase-page",
+   "group": "Space",
+   "bytes": 30837,
+   "fileAt": "project/components/SpaceInUse/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/space-scale.html",
+   "was": "guidelines/space-scale.html",
+   "kind": "showcase-page",
+   "group": "Space",
+   "bytes": 33218,
+   "fileAt": "project/components/SpaceScale/preview.html",
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/theme-density.html",
+   "was": "guidelines/theme-density.html",
+   "kind": "foundations-page",
+   "group": "Themes",
+   "bytes": 31872,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../tokens/themes/density-compact.css",
+     "to": "project/tokens/themes/density-compact.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/theme-editorial.html",
+   "was": "guidelines/theme-editorial.html",
+   "kind": "foundations-page",
+   "group": "Themes",
+   "bytes": 33165,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../tokens/themes/theme-editorial.css",
+     "to": "project/tokens/themes/theme-editorial.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/theme-mono.html",
+   "was": "guidelines/theme-mono.html",
+   "kind": "foundations-page",
+   "group": "Themes",
+   "bytes": 32957,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "../tokens/themes/theme-mono.css",
+     "to": "project/tokens/themes/theme-mono.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/theming.md",
+   "was": "guidelines/theming.md",
+   "kind": "doc",
+   "bytes": 4740
+  },
+  {
+   "path": "project/guidelines/tier-contract.html",
+   "was": "guidelines/tier-contract.html",
+   "kind": "foundations-page",
+   "group": "Foundations",
+   "bytes": 30933,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/tokens.md",
+   "was": "guidelines/tokens.md",
+   "kind": "doc",
+   "bytes": 6992
+  },
+  {
+   "path": "project/guidelines/type-body.html",
+   "was": "guidelines/type-body.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 30682,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-display.html",
+   "was": "guidelines/type-display.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 30269,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-families.html",
+   "was": "guidelines/type-families.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 29657,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-heading.html",
+   "was": "guidelines/type-heading.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 30924,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-label.html",
+   "was": "guidelines/type-label.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 30851,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-measure.html",
+   "was": "guidelines/type-measure.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 30540,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-scale.html",
+   "was": "guidelines/type-scale.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 32271,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/type-tracking.html",
+   "was": "guidelines/type-tracking.html",
+   "kind": "foundations-page",
+   "group": "Type",
+   "bytes": 30855,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/voice.html",
+   "was": "guidelines/voice.html",
+   "kind": "foundations-page",
+   "group": "Foundations",
+   "bytes": 30402,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/guidelines/wordmark.html",
+   "was": "guidelines/wordmark.html",
+   "kind": "foundations-page",
+   "group": "Foundations",
+   "bytes": 29942,
+   "refs": [
+    {
+     "as": "../styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/kits/dashboard-kit.card.html",
+   "was": "kits/dashboard-kit.card.html",
+   "kind": "showcase-page",
+   "group": "UI kits",
+   "bytes": 13523,
+   "fileAt": "project/components/DashboardKit/preview.html"
+  },
+  {
+   "path": "project/kits/marketing-kit.card.html",
+   "was": "kits/marketing-kit.card.html",
+   "kind": "showcase-page",
+   "group": "UI kits",
+   "bytes": 13741,
+   "fileAt": "project/components/MarketingKit/preview.html"
+  },
+  {
+   "path": "project/styles.css",
+   "was": "styles.css",
+   "kind": "global-stylesheet",
+   "bytes": 1247,
+   "unread": true,
+   "alsoReadAs": "project/components/bundle.css",
+   "refs": [
+    {
+     "as": "tokens/primitive/color.css",
+     "to": "project/tokens/primitive/color.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/primitive/dimension.css",
+     "to": "project/tokens/primitive/dimension.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/primitive/typography.css",
+     "to": "project/tokens/primitive/typography.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/primitive/motion.css",
+     "to": "project/tokens/primitive/motion.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/primitive/elevation.css",
+     "to": "project/tokens/primitive/elevation.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/color.css",
+     "to": "project/tokens/semantic/color.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/space.css",
+     "to": "project/tokens/semantic/space.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/typography.css",
+     "to": "project/tokens/semantic/typography.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/shape.css",
+     "to": "project/tokens/semantic/shape.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/size.css",
+     "to": "project/tokens/semantic/size.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/elevation.css",
+     "to": "project/tokens/semantic/elevation.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/semantic/motion.css",
+     "to": "project/tokens/semantic/motion.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/themes/base-dark.css",
+     "to": "project/tokens/themes/base-dark.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/themes/theme-custom.css",
+     "to": "project/tokens/themes/theme-custom.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/component/button.css",
+     "to": "project/tokens/component/button.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/component/input.css",
+     "to": "project/tokens/component/input.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/component/card.css",
+     "to": "project/tokens/component/card.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/component/dialog.css",
+     "to": "project/tokens/component/dialog.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/component/table.css",
+     "to": "project/tokens/component/table.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/contexts/context-product.css",
+     "to": "project/tokens/contexts/context-product.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/contexts/context-marketing.css",
+     "to": "project/tokens/contexts/context-marketing.css",
+     "exists": true
+    },
+    {
+     "as": "tokens/base.css",
+     "to": "project/tokens/base.css",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/support.js",
+   "was": "support.js",
+   "kind": "other",
+   "bytes": 69150
+  },
+  {
+   "path": "project/tearsheet.html",
+   "was": "tearsheet.html",
+   "kind": "foundations-page",
+   "group": "Foundations",
+   "bytes": 58650,
+   "refs": [
+    {
+     "as": "./styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "./_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    },
+    {
+     "as": "templates/_support/theme-runtime.js",
+     "to": "project/templates/_support/theme-runtime.js",
+     "exists": true
+    },
+    {
+     "as": "./templates/settings-page/SettingsPage.dc.html",
+     "to": "project/templates/settings-page/SettingsPage.dc.html",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/templates/_support/card-kit.js",
+   "was": "templates/_support/card-kit.js",
+   "kind": "kit-piece",
+   "template": "_support",
+   "bytes": 9518
+  },
+  {
+   "path": "project/templates/_support/playground-specs.js",
+   "was": "templates/_support/playground-specs.js",
+   "kind": "kit-piece",
+   "template": "_support",
+   "bytes": 15135
+  },
+  {
+   "path": "project/templates/_support/playground.js",
+   "was": "templates/_support/playground.js",
+   "kind": "kit-piece",
+   "template": "_support",
+   "bytes": 23169
+  },
+  {
+   "path": "project/templates/_support/style-dictionary.config.cjs",
+   "was": "templates/_support/style-dictionary.config.cjs",
+   "kind": "kit-piece",
+   "template": "_support",
+   "bytes": 1837
+  },
+  {
+   "path": "project/templates/_support/theme-runtime.js",
+   "was": "templates/_support/theme-runtime.js",
+   "kind": "kit-piece",
+   "template": "_support",
+   "bytes": 2239
+  },
+  {
+   "path": "project/templates/_support/theme-switcher.js",
+   "was": "templates/_support/theme-switcher.js",
+   "kind": "kit-piece",
+   "template": "_support",
+   "bytes": 6734
+  },
+  {
+   "path": "project/templates/settings-page/SettingsPage.dc.html",
+   "was": "templates/settings-page/SettingsPage.dc.html",
+   "kind": "kit-piece",
+   "template": "Settings page",
+   "bytes": 8591,
+   "refs": [
+    {
+     "as": "./support.js",
+     "to": "project/templates/settings-page/support.js",
+     "exists": true
+    },
+    {
+     "as": "./ds-base.js",
+     "to": "project/templates/settings-page/ds-base.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/templates/settings-page/ds-base.js",
+   "was": "templates/settings-page/ds-base.js",
+   "kind": "kit-piece",
+   "template": "Settings page",
+   "bytes": 1540
+  },
+  {
+   "path": "project/templates/settings-page/support.js",
+   "was": "templates/settings-page/support.js",
+   "kind": "kit-piece",
+   "template": "Settings page",
+   "bytes": 69150
+  },
+  {
+   "path": "project/theme-configurator copy.html",
+   "was": "theme-configurator copy.html",
+   "kind": "showcase-page",
+   "group": "Tools",
+   "bytes": 53656,
+   "fileAt": "project/components/ThemeConfiguratorCopy/preview.html",
+   "refs": [
+    {
+     "as": "./styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "./_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/theme-configurator-standalone.html",
+   "was": "theme-configurator-standalone.html",
+   "kind": "showcase-page",
+   "group": "Tools",
+   "bytes": 21861,
+   "fileAt": "project/components/ThemeConfiguratorStandalone/preview.html"
+  },
+  {
+   "path": "project/theme-configurator.html",
+   "was": "theme-configurator.html",
+   "kind": "showcase-page",
+   "group": "Tools",
+   "bytes": 53669,
+   "fileAt": "project/components/ThemeConfigurator/preview.html",
+   "refs": [
+    {
+     "as": "./styles.css",
+     "to": "project/styles.css",
+     "exists": true
+    },
+    {
+     "as": "./_ds_bundle.js",
+     "to": "project/components/bundle.js",
+     "exists": true
+    }
+   ]
+  },
+  {
+   "path": "project/tokens/base.css",
+   "was": "tokens/base.css",
+   "kind": "global-stylesheet",
+   "bytes": 2129
+  },
+  {
+   "path": "project/tokens/component/button.css",
+   "was": "tokens/component/button.css",
+   "kind": "global-stylesheet",
+   "bytes": 2667
+  },
+  {
+   "path": "project/tokens/component/card.css",
+   "was": "tokens/component/card.css",
+   "kind": "global-stylesheet",
+   "bytes": 892
+  },
+  {
+   "path": "project/tokens/component/dialog.css",
+   "was": "tokens/component/dialog.css",
+   "kind": "global-stylesheet",
+   "bytes": 1095
+  },
+  {
+   "path": "project/tokens/component/input.css",
+   "was": "tokens/component/input.css",
+   "kind": "global-stylesheet",
+   "bytes": 1465
+  },
+  {
+   "path": "project/tokens/component/table.css",
+   "was": "tokens/component/table.css",
+   "kind": "global-stylesheet",
+   "bytes": 1124
+  },
+  {
+   "path": "project/tokens/contexts/context-marketing.css",
+   "was": "tokens/contexts/context-marketing.css",
+   "kind": "global-stylesheet",
+   "bytes": 2195
+  },
+  {
+   "path": "project/tokens/contexts/context-product.css",
+   "was": "tokens/contexts/context-product.css",
+   "kind": "global-stylesheet",
+   "bytes": 2374
+  },
+  {
+   "path": "project/tokens/dovetail.tokens.json",
+   "was": "tokens/dovetail.tokens.json",
+   "kind": "data",
+   "bytes": 41832
+  },
+  {
+   "path": "project/tokens/primitive/color.css",
+   "was": "tokens/primitive/color.css",
+   "kind": "global-stylesheet",
+   "bytes": 4443
+  },
+  {
+   "path": "project/tokens/primitive/dimension.css",
+   "was": "tokens/primitive/dimension.css",
+   "kind": "global-stylesheet",
+   "bytes": 1789
+  },
+  {
+   "path": "project/tokens/primitive/elevation.css",
+   "was": "tokens/primitive/elevation.css",
+   "kind": "global-stylesheet",
+   "bytes": 1002
+  },
+  {
+   "path": "project/tokens/primitive/motion.css",
+   "was": "tokens/primitive/motion.css",
+   "kind": "global-stylesheet",
+   "bytes": 936
+  },
+  {
+   "path": "project/tokens/primitive/typography.css",
+   "was": "tokens/primitive/typography.css",
+   "kind": "global-stylesheet",
+   "bytes": 2306
+  },
+  {
+   "path": "project/tokens/semantic/color.css",
+   "was": "tokens/semantic/color.css",
+   "kind": "global-stylesheet",
+   "bytes": 5374
+  },
+  {
+   "path": "project/tokens/semantic/elevation.css",
+   "was": "tokens/semantic/elevation.css",
+   "kind": "global-stylesheet",
+   "bytes": 1371
+  },
+  {
+   "path": "project/tokens/semantic/motion.css",
+   "was": "tokens/semantic/motion.css",
+   "kind": "global-stylesheet",
+   "bytes": 1315
+  },
+  {
+   "path": "project/tokens/semantic/shape.css",
+   "was": "tokens/semantic/shape.css",
+   "kind": "global-stylesheet",
+   "bytes": 1093
+  },
+  {
+   "path": "project/tokens/semantic/size.css",
+   "was": "tokens/semantic/size.css",
+   "kind": "global-stylesheet",
+   "bytes": 1363
+  },
+  {
+   "path": "project/tokens/semantic/space.css",
+   "was": "tokens/semantic/space.css",
+   "kind": "global-stylesheet",
+   "bytes": 1564
+  },
+  {
+   "path": "project/tokens/semantic/typography.css",
+   "was": "tokens/semantic/typography.css",
+   "kind": "global-stylesheet",
+   "bytes": 6145
+  },
+  {
+   "path": "project/tokens/themes/base-dark.css",
+   "was": "tokens/themes/base-dark.css",
+   "kind": "global-stylesheet",
+   "bytes": 4714
+  },
+  {
+   "path": "project/tokens/themes/density-compact.css",
+   "was": "tokens/themes/density-compact.css",
+   "kind": "stylesheet",
+   "bytes": 1043
+  },
+  {
+   "path": "project/tokens/themes/theme-custom.css",
+   "was": "tokens/themes/theme-custom.css",
+   "kind": "global-stylesheet",
+   "bytes": 635
+  },
+  {
+   "path": "project/tokens/themes/theme-editorial.css",
+   "was": "tokens/themes/theme-editorial.css",
+   "kind": "stylesheet",
+   "bytes": 3069
+  },
+  {
+   "path": "project/tokens/themes/theme-mono.css",
+   "was": "tokens/themes/theme-mono.css",
+   "kind": "stylesheet",
+   "bytes": 2681
+  },
+  {
+   "path": "project/tools/README.md",
+   "was": "tools/README.md",
+   "kind": "doc",
+   "bytes": 2523
+  }
+ ],
+ "written": [
+  {
+   "path": "project/README.md",
+   "bytes": 14862,
+   "was": "readme.md",
+   "appended": "the migrated section; the author’s text above it is as it was (an earlier generated tail or migrated section, if there was one, was cut)"
+  },
+  {
+   "path": "project/assets/notes/MIGRATION-REPORT.md",
+   "bytes": 17022
+  },
+  {
+   "path": "project/components/bundle.css",
+   "bytes": 26395,
+   "tokenDeclsStripped": 447,
+   "joined": [
+    {
+     "was": "styles.css",
+     "path": "project/styles.css"
+    },
+    {
+     "was": "tokens/primitive/color.css",
+     "path": "project/tokens/primitive/color.css"
+    },
+    {
+     "was": "tokens/primitive/dimension.css",
+     "path": "project/tokens/primitive/dimension.css"
+    },
+    {
+     "was": "tokens/primitive/typography.css",
+     "path": "project/tokens/primitive/typography.css"
+    },
+    {
+     "was": "tokens/primitive/motion.css",
+     "path": "project/tokens/primitive/motion.css"
+    },
+    {
+     "was": "tokens/primitive/elevation.css",
+     "path": "project/tokens/primitive/elevation.css"
+    },
+    {
+     "was": "tokens/semantic/color.css",
+     "path": "project/tokens/semantic/color.css"
+    },
+    {
+     "was": "tokens/semantic/space.css",
+     "path": "project/tokens/semantic/space.css"
+    },
+    {
+     "was": "tokens/semantic/typography.css",
+     "path": "project/tokens/semantic/typography.css"
+    },
+    {
+     "was": "tokens/semantic/shape.css",
+     "path": "project/tokens/semantic/shape.css"
+    },
+    {
+     "was": "tokens/semantic/size.css",
+     "path": "project/tokens/semantic/size.css"
+    },
+    {
+     "was": "tokens/semantic/elevation.css",
+     "path": "project/tokens/semantic/elevation.css"
+    },
+    {
+     "was": "tokens/semantic/motion.css",
+     "path": "project/tokens/semantic/motion.css"
+    },
+    {
+     "was": "tokens/themes/base-dark.css",
+     "path": "project/tokens/themes/base-dark.css"
+    },
+    {
+     "was": "tokens/themes/theme-custom.css",
+     "path": "project/tokens/themes/theme-custom.css"
+    },
+    {
+     "was": "tokens/component/button.css",
+     "path": "project/tokens/component/button.css"
+    },
+    {
+     "was": "tokens/component/input.css",
+     "path": "project/tokens/component/input.css"
+    },
+    {
+     "was": "tokens/component/card.css",
+     "path": "project/tokens/component/card.css"
+    },
+    {
+     "was": "tokens/component/dialog.css",
+     "path": "project/tokens/component/dialog.css"
+    },
+    {
+     "was": "tokens/component/table.css",
+     "path": "project/tokens/component/table.css"
+    },
+    {
+     "was": "tokens/contexts/context-product.css",
+     "path": "project/tokens/contexts/context-product.css"
+    },
+    {
+     "was": "tokens/contexts/context-marketing.css",
+     "path": "project/tokens/contexts/context-marketing.css"
+    },
+    {
+     "was": "tokens/base.css",
+     "path": "project/tokens/base.css"
+    }
+   ]
+  },
+  {
+   "path": "project/components/lib/react-dom.production.min.js",
+   "bytes": 131835
+  },
+  {
+   "path": "project/components/lib/react.production.min.js",
+   "bytes": 10751
+  },
+  {
+   "path": "project/migration-map.json"
+  },
+  {
+   "path": "project/tokens.json",
+   "bytes": 49473
+  }
+ ],
+ "byTheType": [
+  "project/manifest.json",
+  "project/tokens.css",
+  "project/api/"
+ ],
+ "notCarried": []
+}

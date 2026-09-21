@@ -1,0 +1,228 @@
+<!-- @dsCard group="UI kits" viewport="1280x900" name="Dashboard kit" subtitle="A product screen composed only from Dovetail components — switch themes to see it hold" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+body{margin:0;background:var(--dt-surface-subtle);padding-bottom:88px}
+.shell{display:flex;min-height:100vh}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.body{flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:24px;max-width:1100px}
+.panel{background:var(--dt-surface-raised);border:var(--dt-border-width-default) solid var(--dt-border-subtle);border-radius:var(--dt-radius-container);padding:20px}
+.statrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.two{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.shell{flex-direction:column}.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.body{padding:18px 16px}}
+@media (max-width:560px){.statrow{grid-template-columns:1fr}}
+</style>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended. CSS is fetched and its @import closure resolved here, then
+   injected as one <style> — a <link> loads, but its imports resolve without the token
+   and 401 silently, leaving a sheet with rules and none of the tokens they pull in. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return js("templates/_support/theme-switcher.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body class="dt-context-product"><div id="root"></div>
+<script type="text/babel">
+let Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag;
+
+const INVOICES = [
+  { id: "INV-2041", client: "Northwind Trading", status: "Paid", tone: "success", due: "12 Sep", amount: "$4,200.00" },
+  { id: "INV-2042", client: "Halcyon Labs", status: "Due soon", tone: "warning", due: "24 Sep", amount: "$1,875.50" },
+  { id: "INV-2043", client: "Pallas Freight", status: "Past due", tone: "danger", due: "06 Sep", amount: "$12,040.00" },
+  { id: "INV-2044", client: "Kestrel Analytics", status: "Draft", tone: "neutral", due: "—", amount: "$3,310.00" },
+  { id: "INV-2045", client: "Orbit Supply Co.", status: "Paid", tone: "success", due: "01 Sep", amount: "$890.00" },
+];
+
+const PEOPLE = [{ name: "Ada Lovelace" }, { name: "Grace Hopper" }, { name: "Alan Turing" }, { name: "Jean Bartik" }, { name: "Margaret Hamilton" }];
+
+function App() {
+  const [nav, setNav] = React.useState("invoices");
+  const [tab, setTab] = React.useState("all");
+  const [page, setPage] = React.useState(1);
+  const rows = tab === "all" ? INVOICES : INVOICES.filter(r => (tab === "open" ? r.status !== "Paid" : r.status === "Paid"));
+  return (
+    <div className="shell">
+      <Sidebar
+        current={nav}
+        onNavigate={setNav}
+        header={<Inline gap="sm" align="center"><Avatar name="Northwind Trading" shape="square" size="sm" /><span style={{ fontWeight: "var(--dt-font-weight-semibold)" }}>Northwind</span></Inline>}
+        footer={<Inline gap="sm" align="center"><Avatar name="Ada Lovelace" size="sm" status="online" /><span style={{ fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)" }}>Ada Lovelace</span></Inline>}
+        sections={[
+          { items: [{ id: "overview", label: "Overview" }, { id: "invoices", label: "Invoices", trailing: <Badge>5</Badge> }, { id: "clients", label: "Clients" }] },
+          { title: "Workspace", items: [{ id: "members", label: "Members" }, { id: "integrations", label: "Integrations" }] },
+          { title: "Settings", items: [{ id: "billing", label: "Billing" }, { id: "security", label: "Security" }] },
+        ]}
+      />
+      <div className="main">
+        <Banner tone="warning" title="Trial ends in 3 days" action={<Button size="sm">Add payment</Button>}>Your workspace switches to read-only when the trial ends.</Banner>
+        <div className="body">
+          <Stack gap="sm">
+            <Breadcrumbs items={[{ label: "Workspace", href: "#" }, { label: "Billing", href: "#" }, { label: "Invoices" }]} />
+            <Inline gap="md" align="center" justify="space-between" wrap>
+              <h1 style={{ margin: 0, fontSize: "var(--dt-text-heading-lg-size)", fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-text-heading-lg-tracking)" }}>Invoices</h1>
+              <Inline gap="sm" align="center">
+                <AvatarGroup people={PEOPLE} max={4} size="sm" label="People with access" />
+                <Button size="sm" variant="secondary">Export</Button>
+                <Button size="sm">New invoice</Button>
+              </Inline>
+            </Inline>
+          </Stack>
+
+          <div className="statrow">
+            <div className="panel"><Stat label="Outstanding" value="$18,115" delta="+8.2%" deltaDirection="down" caption="vs. previous 30 days" /></div>
+            <div className="panel"><Stat label="Collected" value="$41,290" delta="+12.4%" deltaDirection="up" caption="vs. previous 30 days" /></div>
+            <div className="panel"><Stat label="Median days to pay" value="11" unit="days" delta="−2" deltaDirection="up" caption="vs. previous 30 days" /></div>
+            <div className="panel"><Stat label="Past due" value="1" delta="0" deltaDirection="flat" caption="unchanged this week" /></div>
+          </div>
+
+          <div className="two">
+            <div className="panel">
+              <Stack gap="md">
+                <Tabs label="Invoice filter" variant="pill" value={tab} onChange={setTab} style={{ display: "inline-flex" }}
+                  tabs={[{ id: "all", label: "All", count: INVOICES.length }, { id: "open", label: "Open" }, { id: "paid", label: "Paid" }]} />
+                <TabPanel id={tab} value={tab}>
+                  {rows.length === 0 ? (
+                    <EmptyState size="sm" title="No invoices in this view" description="Try another filter or create an invoice." action={<Button size="sm">New invoice</Button>} />
+                  ) : (
+                    <Table
+                      caption={rows.length + " invoices, last 30 days"}
+                      columns={[
+                        { key: "id", header: "Invoice", width: "108px" },
+                        { key: "client", header: "Client" },
+                        { key: "status", header: "Status", render: r => <Badge tone={r.tone} dot>{r.status}</Badge> },
+                        { key: "due", header: "Due" },
+                        { key: "amount", header: "Amount", align: "right" },
+                      ]}
+                      rows={rows}
+                    />
+                  )}
+                </TabPanel>
+                <Pagination page={page} totalPages={6} onChange={setPage} />
+              </Stack>
+            </div>
+
+            <Stack gap="lg">
+              <div className="panel">
+                <Stack gap="md">
+                  <span style={{ fontWeight: "var(--dt-font-weight-semibold)" }}>Plan usage</span>
+                  <Progress label="Seats" value={17} max={20} showValue size="sm" tone="warning" />
+                  <Progress label="Storage" value={42} max={100} showValue size="sm" />
+                  <Progress label="API calls" value={68} max={100} showValue size="sm" />
+                </Stack>
+              </div>
+              <div className="panel">
+                <Stack gap="sm">
+                  <span style={{ fontWeight: "var(--dt-font-weight-semibold)" }}>Recent activity</span>
+                  <List label="Recent activity" items={[
+                    { id: 1, leading: <Avatar name="Grace Hopper" size="sm" />, title: "Grace sent INV-2043", description: "2 hours ago" },
+                    { id: 2, leading: <Avatar name="Alan Turing" size="sm" />, title: "Alan marked INV-2041 paid", description: "Yesterday" },
+                    { id: 3, leading: <Avatar name="Jean Bartik" size="sm" />, title: "Jean added Kestrel Analytics", description: "2 days ago" },
+                  ]} />
+                </Stack>
+              </div>
+            </Stack>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function dsReady(required, done) {
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var REFETCH_AT = 1200, DEADLINE = 8000, TICK = 40;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled frame stretches a 40ms timeout well past
+     40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+  function missing() {
+    var ns = window[NS_KEY];
+    if (!ns) return required.slice();
+    var out = [];
+    for (var i = 0; i < required.length; i++) if (!ns[required[i]]) out.push(required[i]);
+    return out;
+  }
+  (function poll() {
+    var gaps = missing();
+    if (gaps.length === 0) return done(window[NS_KEY]);
+    if (elapsed() > REFETCH_AT && !refetched) {
+      refetched = true;
+      var base = document.querySelector('script[src$="_ds_bundle.js"]');
+      var s = document.createElement("script");
+      s.src = (base ? base.getAttribute("src") : "_ds_bundle.js") + "?cb=" + Date.now();
+      document.head.appendChild(s);
+    }
+    if (elapsed() > DEADLINE) {
+      var root = document.getElementById("root");
+      if (root) root.innerHTML = '<div role="alert" style="max-width:62ch;margin:48px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This kit could not load the design system</strong>' + (!window[NS_KEY] ? '<code>_ds_bundle.js</code> did not load. It is regenerated whenever components change \u2014 reload in a moment.' : 'The loaded bundle is missing: <code>' + gaps.join(", ") + '</code>. Hard reload to clear the cached copy.') + '</div>';
+      return;
+    }
+    setTimeout(poll, TICK);
+  })();
+}
+
+dsReady(["Sidebar","Tabs","TabPanel","Breadcrumbs","Table","Stat","Badge","Button","Avatar","AvatarGroup","List","Progress","Banner","EmptyState","Pagination","Inline","Stack","Card","Tag"], function (NS) {
+  ({ Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag } = NS);
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+});
+</script>
+</body></html>

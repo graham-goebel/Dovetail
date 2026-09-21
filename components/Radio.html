@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radio · Dovetail</title>
+<meta name="description" content="One choice from a mutually exclusive set, with all options visible.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html" aria-current="page">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Radio</li></ol></nav>
+<h1>Radio</h1>
+<p class="lede">One choice from a mutually exclusive set, with all options visible.</p>
+<p class="meta">
+  <span class="pill">Forms</span>
+  
+  <a href="../system/components/forms/Radio.jsx">Radio.jsx</a>
+  <a href="../system/components/forms/Radio.d.ts">Radio.d.ts</a>
+  <a href="../system/components/forms/Radio.md">Radio.md</a>
+</p>
+
+<section class="card-block" id="radio-live">
+  <div class="card-head">
+    <h2>Radio — live</h2>
+    <a class="card-open" href="../previews/Radio.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:528px">
+    <iframe src="../previews/Radio.html" title="Radio — live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>One choice from a mutually exclusive set, with all options visible.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>Two to five options and the user benefits from seeing them all.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>More than about five options. Use Select.</li><li>The choices are not exclusive. Use Checkbox.</li><li>There are exactly two opposite states applied instantly. Use Switch.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>&lt;Stack gap=&quot;xs&quot;&gt;
+  &lt;Radio name=&quot;billing&quot; value=&quot;monthly&quot; label=&quot;Monthly&quot; hint=&quot;$20 per seat&quot; defaultChecked /&gt;
+  &lt;Radio name=&quot;billing&quot; value=&quot;annual&quot; label=&quot;Annual&quot; hint=&quot;$16 per seat, billed yearly&quot; /&gt;
+&lt;/Stack&gt;</code></pre>
+<h2 id="accessibility">Accessibility</h2>
+<p>Every radio in a group needs the same name — that is what gives the group arrow-key navigation and a single tab stop. Wrap the group in a fieldset with a legend, or a Field with role=&quot;radiogroup&quot;.</p>
+<h2 id="content">Content</h2>
+<p>Options are parallel in structure and length. Put price or consequence in the hint, not the label.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Radio.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** One choice from a mutually exclusive set. Group several by giving them the same name. */
+export interface RadioProps extends Omit&lt;React.InputHTMLAttributes&lt;HTMLInputElement&gt;, &quot;onChange&quot; | &quot;type&quot;&gt; {
+  label?: React.ReactNode;
+  hint?: string;
+  /** Shared across the group. Required for keyboard arrow navigation to work. */
+  name?: string;
+  value?: string;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onChange?: (e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; void;
+  disabled?: boolean;
+}
+
+export declare function Radio(props: RadioProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, style, ...rest }) {
+  const [internal, setInternal] = React.useState(!!defaultChecked);
+  const auto = React.useId();
+  const radioId = id || auto;
+  const isOn = checked !== undefined ? checked : internal;
+
+  const handle = (e) =&gt; {
+    if (checked === undefined) setInternal(e.target.checked);
+    onChange &amp;&amp; onChange(e);
+  };
+
+  return (
+    &lt;div style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, opacity: disabled ? 0.6 : 1, ...style }}&gt;
+      &lt;input
+        type=&quot;radio&quot; id={radioId} name={name} value={value} checked={isOn} onChange={handle} disabled={disabled}
+        style={{ position: &quot;absolute&quot;, opacity: 0, width: 0, height: 0 }}
+        {...rest}
+      /&gt;
+      &lt;label htmlFor={radioId} style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, cursor: disabled ? &quot;not-allowed&quot; : &quot;pointer&quot;, alignItems: hint ? &quot;flex-start&quot; : &quot;center&quot; }}&gt;
+        &lt;span
+          aria-hidden=&quot;true&quot;
+          style={{
+            flex: &quot;none&quot;, width: 18, height: 18, marginTop: hint ? 2 : 0, boxSizing: &quot;border-box&quot;, borderRadius: &quot;50%&quot;,
+            border: isOn ? &quot;6px solid var(--dt-surface-action)&quot; : &quot;var(--dt-border-width-strong) solid var(--dt-border-strong)&quot;,
+            background: &quot;var(--dt-input-bg)&quot;,
+            transition: &quot;border var(--dt-motion-micro)&quot;,
+          }}
+        /&gt;
+        &lt;span style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: 2 }}&gt;
+          &lt;span style={{ fontFamily: &quot;var(--dt-text-body-sm-family)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-text-primary)&quot; }}&gt;{label}&lt;/span&gt;
+          {hint &amp;&amp; &lt;span style={{ fontSize: &quot;var(--dt-text-body-xs-size)&quot;, lineHeight: &quot;var(--dt-text-body-xs-line)&quot;, color: &quot;var(--dt-text-secondary)&quot; }}&gt;{hint}&lt;/span&gt;}
+        &lt;/span&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Radio also appears on the forms reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#formsdetail">FormsDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

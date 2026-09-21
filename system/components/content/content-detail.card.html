@@ -1,0 +1,293 @@
+<!-- @dsCard group="Component detail" viewport="1100x1500" name="Content — detail" subtitle="Prose, Quote, Accordion, Callout, and the image primitives with props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Prose, Quote, Accordion, Callout, Image, AspectRatio, Figure, Media, Avatar, Button, Inline, Stack;
+
+function Page() {
+  return (
+    <React.Fragment>
+      <PageHead title="Content" subtitle="Components for editorial and marketing surfaces. These take content as props and render identically from React state, a CMS, or a JSON file." />
+
+      <Shelf
+        name="Prose"
+        summary="Long-form text in a readable measure with consistent vertical rhythm."
+        props={[
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"', notes: "lg for a standalone article, md inside product UI, sm for footnotes." },
+          { name: "measure", type: "string", default: '"68ch"', notes: "Maximum line length." },
+        ]}
+        guidance={[
+          "Do not raise the measure past 75ch to fill a wide column.",
+          "Prose owns the gap between blocks. Do not add margins to the paragraphs inside it.",
+          "Content comes from a CMS or Markdown. Do not put interactive controls in it.",
+          "A fixed measure leaves white space on wide screens. That space is the point.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Prose>
+            <h2 style={{ margin: 0, fontSize: "var(--dt-text-heading-sm-size)", fontWeight: "var(--dt-font-weight-semibold)" }}>Why tokens have tiers</h2>
+            <p style={{ margin: 0 }}>A primitive token names a value. A semantic token names a job. A component token names a part. Reading upward is allowed; reading downward is not, because a component that reaches past the semantic layer inherits a value it cannot rename later.</p>
+            <p style={{ margin: 0 }}>The practical test is renaming. If you can change what a button looks like by editing one semantic token, the tiers are working. If you have to find every button rule, they are not.</p>
+          </Prose>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Quote"
+        summary="Pull quote or testimonial. Uses figure and blockquote so the attribution is tied to the words."
+        props={[
+          { name: "children", type: "ReactNode", required: true, notes: "The quoted text, without quotation marks." },
+          { name: "attribution", type: "ReactNode", notes: "Who said it." },
+          { name: "role", type: "ReactNode", notes: "Their title or company." },
+          { name: "avatar", type: "ReactNode" },
+          { name: "size", type: '"md" | "lg"', default: '"md"' },
+        ]}
+        guidance={[
+          "Do not add quotation marks in the copy. If the design calls for them, they belong in the component.",
+          "Always attribute. An unattributed testimonial is marketing copy pretending to be evidence.",
+          "lg is for a single hero quote per page.",
+          "Large quote type competes with the page heading. Pick one to be the largest thing on screen.",
+        ]}
+      >
+        <Specimen label="Large, hero" bg="var(--dt-surface-base)">
+          <Quote size="lg" attribution="Grace Hopper" role="Head of Platform, Halcyon Labs" avatar={<Avatar name="Grace Hopper" size="lg" />}>
+            We replaced four separate button implementations with one. The audit that used to take a week now runs in CI.
+          </Quote>
+        </Specimen>
+        <Specimen label="Default, in a row" bg="var(--dt-surface-base)">
+          <Inline gap="xl" align="flex-start" wrap>
+            <Quote attribution="Ada Lovelace" role="Design Systems Lead" style={{ flex: "1 1 280px" }}>Tokens made the redesign a config change instead of a rewrite.</Quote>
+            <Quote attribution="Alan Turing" role="Principal Engineer" style={{ flex: "1 1 280px" }}>The props contracts caught three accessibility bugs before review.</Quote>
+          </Inline>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Accordion"
+        summary="Collapsible sections for reference content. Headers are real buttons inside an h3 with aria-expanded."
+        props={[
+          { name: "items", type: "AccordionItem[]", required: true, notes: "title and content." },
+          { name: "allowMultiple", type: "boolean", default: "false", notes: "Allow several panels open at once." },
+          { name: "defaultOpen", type: "string[]", notes: "Ids open on first render." },
+          { name: "label", type: "string", required: true, notes: "Accessible group name." },
+        ]}
+        guidance={[
+          "Only for content users consult, not content they read. Never collapse the main explanation of a page.",
+          'Titles are questions or nouns that say what is inside. "More information" is not a title.',
+          "allowMultiple for reference lists where users compare answers; single-open for wizard-like disclosure.",
+          "Accordions hide content from in-page search. If most users need most sections, use headed sections instead.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Accordion
+            label="Billing questions"
+            defaultOpen={["a"]}
+            items={[
+              { id: "a", title: "When am I billed?", content: "On the same day each month, based on the day you subscribed. Changing plans mid-cycle prorates the difference on your next invoice." },
+              { id: "b", title: "What happens when the trial ends?", content: "Your workspace becomes read-only. Nothing is deleted, and adding a payment method restores write access immediately." },
+              { id: "c", title: "Can I export my data?", content: "Yes. Workspace owners can export documents, members, and audit logs as JSON from Settings at any time, including during a read-only period." },
+            ]}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Callout"
+        summary="Aside within editorial content. For application state, use Alert or Banner — they announce to assistive technology."
+        props={[
+          { name: "tone", type: '"note" | "tip" | "important" | "caution"', default: '"note"' },
+          { name: "title", type: "ReactNode" },
+          { name: "icon", type: "ReactNode" },
+        ]}
+        guidance={[
+          "Callout is editorial. Alert and Banner are application state — do not swap one for the other.",
+          "One callout per section. Three in a row means the surrounding prose is not doing its job.",
+          "caution is for irreversible or costly actions, not mild inconvenience.",
+          "Boxing content pulls the eye out of the reading flow. Useful once per section, counterproductive as a stack.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Stack gap="sm" style={{ maxWidth: 620 }}>
+            <Callout title="Tier direction" tone="note">Components read semantic tokens. Only chart code reads a primitive, and it must say why in a comment.</Callout>
+            <Callout title="Faster audits" tone="tip">Run the adherence lint in CI. It catches literal values before they reach review.</Callout>
+            <Callout title="Renaming a semantic token is a breaking change" tone="caution">Every consuming project references it by name. Add the new token, migrate, then remove the old one in a later release.</Callout>
+          </Stack>
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Image / AspectRatio / Figure / Media"
+        summary="The image primitives marketing templates lean on. AspectRatio reserves the box, Image fills it, Figure adds a caption, Media pairs an image with copy."
+        props={[
+          { name: "ratio", type: 'number | "16/9" | "4/3" | "1/1" | "3/2"', notes: "AspectRatio. Reserves the box before the image loads." },
+          { name: "src", type: "string", required: true, notes: "Image." },
+          { name: "alt", type: "string", required: true, notes: "Empty string for decorative images, never omitted." },
+          { name: "fit", type: '"cover" | "contain"', default: '"cover"' },
+          { name: "caption", type: "ReactNode", notes: "Figure." },
+          { name: "reverse", type: "boolean", notes: "Media. Puts the image after the copy." },
+        ]}
+        guidance={[
+          "Always wrap a loading image in AspectRatio. Without a reserved box the page reflows when it lands.",
+          'alt is required. Decorative images take alt="" — omitting the prop makes a screen reader read the filename.',
+          "Use cover for photography and contain for logos and screenshots that must not crop.",
+          "In marketing templates, keep one ratio per section. Mixed ratios in a row read as a mistake.",
+        ]}
+      >
+        <Specimen label="Ratios" bg="var(--dt-surface-base)">
+          <Inline gap="md" wrap align="flex-start">
+            {["16/9", "4/3", "1/1"].map(r => (
+              <Stack key={r} gap="xs" style={{ width: 180 }}>
+                <AspectRatio ratio={r} style={{ background: "var(--dt-surface-sunken)", borderRadius: "var(--dt-radius-media)" }} />
+                <span style={{ fontFamily: "var(--dt-font-family-mono)", fontSize: 10, color: "var(--dt-text-tertiary)" }}>{r}</span>
+              </Stack>
+            ))}
+          </Inline>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Prose","Quote","Accordion","Callout","Image","AspectRatio","Figure","Media","Avatar","Button","Inline","Stack"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Prose, Quote, Accordion, Callout, Image, AspectRatio, Figure, Media, Avatar, Button, Inline, Stack } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Settings page" description="Product settings screen: sidebar nav, section cards, form fields and one primary action. Built only from Dovetail components." -->
+<helmet><script src="./ds-base.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0}@keyframes dt-spin{to{transform:rotate(360deg)}}</style>
+</helmet>
+<div style="display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);min-height:100vh;background:var(--dt-surface-subtle);font-family:var(--dt-font-family-sans);color:var(--dt-text-primary)">
+<aside style="display:flex;flex-direction:column;gap:var(--dt-space-stack-lg);padding:var(--dt-space-inset-lg);background:var(--dt-surface-base);border-right:var(--dt-border-width-hair) solid var(--dt-border-subtle)">
+<div style="display:flex;align-items:center;gap:var(--dt-space-inline-sm);font-size:var(--dt-font-size-md);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-tracking-snug)"><span style="display:inline-block;width:var(--dt-size-icon-md);height:var(--dt-size-icon-md);border-radius:var(--dt-radius-control);background:var(--dt-surface-action)"></span>Acme</div>
+<nav style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xs)">
+<a href="#" style="padding:var(--dt-space-inset-xs) var(--dt-space-inset-sm);border-radius:var(--dt-radius-control);font-size:var(--dt-font-size-sm);font-weight:var(--dt-font-weight-medium);text-decoration:none;color:var(--dt-text-secondary)">Overview</a>
+<a href="#" style="padding:var(--dt-space-inset-xs) var(--dt-space-inset-sm);border-radius:var(--dt-radius-control);font-size:var(--dt-font-size-sm);font-weight:var(--dt-font-weight-medium);text-decoration:none;color:var(--dt-text-secondary)">Projects</a>
+<a href="#" style="padding:var(--dt-space-inset-xs) var(--dt-space-inset-sm);border-radius:var(--dt-radius-control);font-size:var(--dt-font-size-sm);font-weight:var(--dt-font-weight-medium);text-decoration:none;color:var(--dt-text-secondary)">Members</a>
+<a href="#" style="padding:var(--dt-space-inset-xs) var(--dt-space-inset-sm);border-radius:var(--dt-radius-control);font-size:var(--dt-font-size-sm);font-weight:var(--dt-font-weight-medium);text-decoration:none;color:var(--dt-text-on-selected);background:var(--dt-surface-selected)">Settings</a>
+</nav>
+</aside>
+<main style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xl);padding:var(--dt-space-inset-2xl);max-width:880px">
+<header style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xs)">
+<p style="margin:0;font-family:var(--dt-font-family-mono);font-size:var(--dt-font-size-2xs);letter-spacing:var(--dt-tracking-wider);text-transform:uppercase;color:var(--dt-text-tertiary)">Workspace</p>
+<h1 style="margin:0;font-size:var(--dt-font-size-3xl);line-height:var(--dt-line-height-3xl);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-tracking-snug)">Settings</h1>
+<p style="margin:0;max-width:60ch;font-size:var(--dt-font-size-md);line-height:var(--dt-line-height-md);color:var(--dt-text-secondary);text-wrap:pretty">Changes apply to everyone in the workspace. Members keep their personal preferences.</p>
+</header>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Alert" tone="info" title="Single sign-on is pending verification" hint-size="100%,72px">Add the TXT record to your DNS, then verify the domain. Members can keep signing in with email until then.</x-import>
+<section style="display:flex;flex-direction:column;gap:var(--dt-space-stack-md)">
+<h2 style="margin:0;font-size:var(--dt-font-size-lg);line-height:var(--dt-line-height-lg);font-weight:var(--dt-font-weight-semibold)">Workspace details</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--dt-space-inline-lg) var(--dt-space-inline-lg);padding:var(--dt-space-inset-lg);background:var(--dt-surface-raised);border:var(--dt-border-width-hair) solid var(--dt-border-default);border-radius:var(--dt-radius-container)">
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Input" label="Workspace name" defaultValue="Acme Inc" hint="Shown on invoices and in the sidebar." hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Input" label="Primary domain" defaultValue="acme.com" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Select" label="Default member role" hint="Applied to everyone who joins through an invite link." options="{{ roles }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Select" label="Time zone" options="{{ zones }}" hint-size="100%,76px"></x-import>
+</div>
+</section>
+<section style="display:flex;flex-direction:column;gap:var(--dt-space-stack-md)">
+<h2 style="margin:0;font-size:var(--dt-font-size-lg);line-height:var(--dt-line-height-lg);font-weight:var(--dt-font-weight-semibold)">Access</h2>
+<div style="display:flex;flex-direction:column;gap:var(--dt-space-stack-md);padding:var(--dt-space-inset-lg);background:var(--dt-surface-raised);border:var(--dt-border-width-hair) solid var(--dt-border-default);border-radius:var(--dt-radius-container)">
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Switch" label="Require two-factor authentication" hint="Members without it are prompted at their next sign-in." defaultChecked="true" hint-size="100%,44px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Divider" tone="subtle" hint-size="100%,1px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Switch" label="Allow invite links" hint="Anyone with the link can join with the default role." hint-size="100%,44px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Divider" tone="subtle" hint-size="100%,1px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Checkbox" label="Notify owners when a member is removed" hint-size="100%,28px"></x-import>
+</div>
+</section>
+<section style="display:flex;flex-direction:column;gap:var(--dt-space-stack-md)">
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--dt-space-inline-md)">
+<h2 style="margin:0;font-size:var(--dt-font-size-lg);line-height:var(--dt-line-height-lg);font-weight:var(--dt-font-weight-semibold)">Plan</h2>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Link" href="#" hint-size="max-content,20px">Compare plans</x-import>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--dt-space-inline-md)">
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Card" eyebrow="Current" title="Team" description="24 of 30 seats used. Renews 12 April." hint-size="100%,140px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Card" eyebrow="Usage" title="1.2 TB stored" description="Included in the plan up to 2 TB." hint-size="100%,140px"></x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Card" eyebrow="Billing" title="Visa ending 4417" description="Invoices go to billing@acme.com." hint-size="100%,140px"></x-import>
+</div>
+</section>
+<footer style="display:flex;align-items:center;justify-content:space-between;gap:var(--dt-space-inline-md);padding-top:var(--dt-space-stack-md);border-top:var(--dt-border-width-hair) solid var(--dt-border-subtle)">
+<p style="margin:0;font-size:var(--dt-font-size-sm);color:var(--dt-text-tertiary)">Last saved 4 minutes ago</p>
+<div style="display:flex;gap:var(--dt-space-inline-xs)">
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Button" variant="secondary" hint-size="max-content,40px">Discard</x-import>
+<x-import component-from-global-scope="BeamMobileDesignSystem_e33121.Button" hint-size="max-content,40px">Save changes</x-import>
+</div>
+</footer>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      roles: ["Member", "Admin", "Owner"],
+      zones: ["UTC", "Europe/London", "America/New_York", "Asia/Singapore"]
+    };
+  }
+}
+</script>
+</body>
+</html>

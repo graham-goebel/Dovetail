@@ -1,0 +1,63 @@
+/* THEME — MONOCHROME MINIMAL
+   No brand hue at all. Action colour is the darkest neutral, borders do the work
+   that fills usually do, and shape is square. The opposite pole from Editorial —
+   between the two, a consumer can see the full range the token contract supports.
+
+   Semantic feedback colours stay chromatic. A monochrome error state is an
+   accessibility failure, not a design choice.
+
+   Link after styles.css:
+     <link rel="stylesheet" href="tokens/themes/theme-mono.css"> */
+
+:root {
+  /* Action reads as ink, not colour. */
+  --dt-surface-action: var(--dt-color-neutral-950);
+  --dt-surface-action-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-active: var(--dt-color-neutral-700);
+  --dt-text-on-action: var(--dt-color-white);
+
+  --dt-text-link: var(--dt-color-neutral-950);
+  --dt-text-link-hover: var(--dt-color-neutral-600);
+  --dt-text-link-visited: var(--dt-color-neutral-700);
+
+  --dt-surface-selected: var(--dt-color-neutral-100);
+  --dt-surface-selected-hover: var(--dt-color-neutral-200);
+  --dt-text-on-selected: var(--dt-color-neutral-950);
+  --dt-border-selected: var(--dt-color-neutral-950);
+
+  --dt-focus-ring-color: var(--dt-color-neutral-950);
+
+  /* Square, high-contrast shape. Borders carry the structure. */
+  --dt-radius-control: var(--dt-radius-raw-0);
+  --dt-radius-container: var(--dt-radius-raw-0);
+  --dt-radius-overlay: var(--dt-radius-raw-0);
+  --dt-radius-media: var(--dt-radius-raw-0);
+  --dt-radius-pill: var(--dt-radius-raw-0);
+
+  --dt-border-default: var(--dt-color-neutral-300);
+  --dt-border-strong: var(--dt-color-neutral-950);
+  --dt-border-action-secondary: var(--dt-color-neutral-950);
+
+  /* Flat. Elevation is communicated by border weight instead of shadow. */
+  --dt-elevation-1: none;
+  --dt-elevation-2: none;
+  --dt-elevation-3: 0 0 0 1px var(--dt-color-neutral-300);
+  --dt-elevation-4: 0 0 0 1px var(--dt-color-neutral-950);
+  --dt-elevation-5: 0 0 0 1px var(--dt-color-neutral-950);
+
+  /* Tighter, more mechanical type. */
+  --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
+  --dt-text-display-md-tracking: var(--dt-tracking-tighter);
+  --dt-text-heading-xl-tracking: var(--dt-tracking-tighter);
+  --dt-text-label-md-family: var(--dt-font-family-mono);
+  --dt-text-label-sm-family: var(--dt-font-family-mono);
+  --dt-text-eyebrow-family: var(--dt-font-family-mono);
+
+  /* Data visualisation falls back to a lightness ramp. */
+  --dt-viz-1: var(--dt-color-neutral-950);
+  --dt-viz-2: var(--dt-color-neutral-700);
+  --dt-viz-3: var(--dt-color-neutral-500);
+  --dt-viz-4: var(--dt-color-neutral-400);
+  --dt-viz-5: var(--dt-color-neutral-300);
+  --dt-viz-6: var(--dt-color-neutral-200);
+}

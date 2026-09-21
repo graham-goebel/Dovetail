@@ -1,0 +1,51 @@
+/* CONTEXT — MARKETING
+   Marketing surfaces are scanned in seconds and seen once. Type runs large, sections
+   breathe, controls are touch-first, and cards lose their borders because the page is
+   already doing the structural work.
+
+   Same components, same tokens, different scale and rhythm. A Card in this context is
+   a content block on a landing page; in product context it is a panel in a dashboard.
+   Neither Card knows the difference.
+
+   Apply on the page shell:
+     <div class="dt-context-marketing"> … </div> */
+
+.dt-context-marketing {
+  /* Display type earns its size here. */
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-5xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-5xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-4xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-4xl);
+  --dt-text-heading-md-size: var(--dt-font-size-3xl);
+  --dt-text-heading-md-line: var(--dt-line-height-3xl);
+
+  /* 19px body. Long-form marketing copy is read at arm's length. */
+  --dt-text-body-md-size: var(--dt-font-size-lg);
+  --dt-text-body-md-line: var(--dt-line-height-lg);
+  --dt-text-body-sm-size: var(--dt-font-size-md);
+  --dt-text-body-sm-line: var(--dt-line-height-md);
+
+  /* Generous rhythm. */
+  --dt-space-section: var(--dt-dim-32);
+  --dt-space-gutter: var(--dt-space-inset-xl);
+  --dt-space-stack-xl: var(--dt-dim-12);
+  --dt-space-stack-2xl: var(--dt-dim-24);
+
+  /* Larger default controls — marketing CTAs are touch-first and want presence. */
+  --dt-size-control-md: var(--dt-dim-12);
+  --dt-button-height-md: var(--dt-dim-12);
+  --dt-button-font-size-md: var(--dt-font-size-md);
+  --dt-button-padding-md: var(--dt-space-inset-lg);
+
+  /* Borderless, softly raised content blocks. */
+  --dt-card-padding: var(--dt-space-inset-xl);
+  --dt-card-border-width: var(--dt-border-width-none);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-2);
+  --dt-card-radius: var(--dt-radius-overlay);
+}

@@ -1,0 +1,14 @@
+/* Custom theme — the commit target for the theme configurator.
+
+   The configurator (tools/theme-configurator) writes a live override into browser
+   storage so you can judge a theme across the whole system before committing to it.
+   That is a preview, not a build artefact. When you are happy with a theme, paste the
+   configurator's exported CSS between the markers below and the theme becomes real:
+   it ships with the repository, applies without JavaScript, and survives a cleared
+   cache.
+
+   Leave this file empty to run the base theme. */
+
+/* --- configurator output starts --- */
+
+/* --- configurator output ends --- */

@@ -1,0 +1,65 @@
+/* TIER 1 — PRIMITIVE TYPOGRAPHY
+   Font sizes follow a 1.200 modular scale from a 16px base, rounded to whole pixels.
+   Two rounds are deliberate and documented: 13.33 → 14 and 57.33 → 58, because 14px is
+   the workhorse UI size and a half-pixel display size renders inconsistently.
+
+   Line heights snap to the 4px grid so text blocks align with everything else.
+   This is the one place the modular scale and the 4px grid are reconciled by hand. */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap");
+
+:root {
+  /* Families. A theme overrides these three lines and nothing else. */
+  --dt-font-family-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --dt-font-family-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --dt-font-family-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Size ramp */
+  --dt-font-size-2xs: 11px;
+  --dt-font-size-xs: 12px;
+  --dt-font-size-sm: 14px;
+  --dt-font-size-md: 16px;
+  --dt-font-size-lg: 19px;
+  --dt-font-size-xl: 23px;
+  --dt-font-size-2xl: 28px;
+  --dt-font-size-3xl: 33px;
+  --dt-font-size-4xl: 40px;
+  --dt-font-size-5xl: 48px;
+  --dt-font-size-6xl: 58px;
+  --dt-font-size-7xl: 69px;
+
+  /* Line heights — all multiples of 4 */
+  --dt-line-height-2xs: 16px;
+  --dt-line-height-xs: 16px;
+  --dt-line-height-sm: 20px;
+  --dt-line-height-md: 24px;
+  --dt-line-height-lg: 28px;
+  --dt-line-height-xl: 32px;
+  --dt-line-height-2xl: 36px;
+  --dt-line-height-3xl: 40px;
+  --dt-line-height-4xl: 48px;
+  --dt-line-height-5xl: 52px;
+  --dt-line-height-6xl: 64px;
+  --dt-line-height-7xl: 76px;
+
+  /* Weights */
+  --dt-font-weight-light: 300;
+  --dt-font-weight-regular: 400;
+  --dt-font-weight-medium: 500;
+  --dt-font-weight-semibold: 600;
+  --dt-font-weight-bold: 700;
+  --dt-font-weight-extrabold: 800;
+
+  /* Tracking. Large type needs negative tracking; small type needs positive. */
+  --dt-tracking-tighter: -0.03em;
+  --dt-tracking-tight: -0.02em;
+  --dt-tracking-snug: -0.01em;
+  --dt-tracking-normal: 0em;
+  --dt-tracking-wide: 0.02em;
+  --dt-tracking-wider: 0.06em;
+
+  /* Measure — characters per line, for readable prose */
+  --dt-measure-narrow: 45ch;
+  --dt-measure-default: 68ch;
+  --dt-measure-wide: 85ch;
+}

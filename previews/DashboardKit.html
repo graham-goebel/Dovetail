@@ -1,0 +1,1508 @@
+<!-- @dsCard group="UI kits" height=996 width=1280 subtitle="Dashboard kit — A product screen composed only from Dovetail components — switch themes to see it hold" page -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script>/* The Design System page's theme picker sets data-theme on <html>; Dovetail's own CSS keys dark mode and contexts on classes. */
+(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+body{margin:0;background:var(--dt-surface-subtle);padding-bottom:88px}
+.shell{display:flex;min-height:100vh}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.body{flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:24px;max-width:1100px}
+.panel{background:var(--dt-surface-raised);border:var(--dt-border-width-default) solid var(--dt-border-subtle);border-radius:var(--dt-radius-container);padding:20px}
+.statrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.two{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.shell{flex-direction:column}.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.body{padding:18px 16px}}
+@media (max-width:560px){.statrow{grid-template-columns:1fr}}
+</style>
+<style id="dt-inlined-css" data-from="styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
+   Load order matters: primitives, then semantics, then component tokens, then base element styles.
+   Themes are opt-in — link a file from tokens/themes/ after this one. */
+
+/* TIER 1 — PRIMITIVE COLOR
+   Raw values in OKLCH. No meaning, no usage context.
+   Never reference these from a component. Semantic tokens are the only legal consumer.
+
+   OKLCH is used because lightness is perceptually uniform: step 500 in any ramp reads
+   as the same visual weight, so swapping a brand hue keeps contrast predictable. */
+
+:root {
+  /* Absolutes */
+  --dt-color-white: oklch(1 0 0);
+  --dt-color-black: oklch(0 0 0);
+  --dt-color-transparent: oklch(0 0 0 / 0);
+
+  /* Neutral — very slightly cool. The white-label default. */
+  --dt-color-neutral-050: oklch(0.985 0.001 264);
+  --dt-color-neutral-100: oklch(0.967 0.002 264);
+  --dt-color-neutral-200: oklch(0.925 0.003 264);
+  --dt-color-neutral-300: oklch(0.869 0.005 264);
+  --dt-color-neutral-400: oklch(0.708 0.007 264);
+  --dt-color-neutral-500: oklch(0.556 0.008 264);
+  --dt-color-neutral-600: oklch(0.440 0.008 264);
+  --dt-color-neutral-700: oklch(0.360 0.008 264);
+  --dt-color-neutral-800: oklch(0.273 0.007 264);
+  --dt-color-neutral-900: oklch(0.205 0.006 264);
+  --dt-color-neutral-950: oklch(0.145 0.005 264);
+
+  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-accent-050: oklch(0.970 0.014 259);
+  --dt-color-accent-100: oklch(0.936 0.032 259);
+  --dt-color-accent-200: oklch(0.885 0.059 259);
+  --dt-color-accent-300: oklch(0.809 0.096 259);
+  --dt-color-accent-400: oklch(0.714 0.143 259);
+  --dt-color-accent-500: oklch(0.623 0.188 259);
+  --dt-color-accent-600: oklch(0.546 0.215 259);
+  --dt-color-accent-700: oklch(0.476 0.196 259);
+  --dt-color-accent-800: oklch(0.404 0.162 259);
+  --dt-color-accent-900: oklch(0.344 0.128 259);
+  --dt-color-accent-950: oklch(0.256 0.093 259);
+
+  /* Green */
+  --dt-color-green-050: oklch(0.972 0.021 150);
+  --dt-color-green-100: oklch(0.940 0.045 150);
+  --dt-color-green-200: oklch(0.885 0.077 150);
+  --dt-color-green-300: oklch(0.806 0.116 150);
+  --dt-color-green-400: oklch(0.714 0.146 150);
+  --dt-color-green-500: oklch(0.627 0.149 150);
+  --dt-color-green-600: oklch(0.535 0.128 150);
+  --dt-color-green-700: oklch(0.447 0.106 150);
+  --dt-color-green-800: oklch(0.373 0.086 150);
+  --dt-color-green-900: oklch(0.315 0.070 150);
+  --dt-color-green-950: oklch(0.228 0.052 150);
+
+  /* Amber */
+  --dt-color-amber-050: oklch(0.980 0.024 75);
+  --dt-color-amber-100: oklch(0.953 0.055 75);
+  --dt-color-amber-200: oklch(0.903 0.104 75);
+  --dt-color-amber-300: oklch(0.848 0.146 75);
+  --dt-color-amber-400: oklch(0.793 0.163 75);
+  --dt-color-amber-500: oklch(0.740 0.158 75);
+  --dt-color-amber-600: oklch(0.653 0.140 75);
+  --dt-color-amber-700: oklch(0.540 0.116 75);
+  --dt-color-amber-800: oklch(0.450 0.095 75);
+  --dt-color-amber-900: oklch(0.386 0.079 75);
+  --dt-color-amber-950: oklch(0.270 0.056 75);
+
+  /* Red */
+  --dt-color-red-050: oklch(0.971 0.015 25);
+  --dt-color-red-100: oklch(0.936 0.033 25);
+  --dt-color-red-200: oklch(0.885 0.062 25);
+  --dt-color-red-300: oklch(0.808 0.108 25);
+  --dt-color-red-400: oklch(0.712 0.170 25);
+  --dt-color-red-500: oklch(0.637 0.208 25);
+  --dt-color-red-600: oklch(0.577 0.215 25);
+  --dt-color-red-700: oklch(0.505 0.191 25);
+  --dt-color-red-800: oklch(0.444 0.161 25);
+  --dt-color-red-900: oklch(0.396 0.134 25);
+  --dt-color-red-950: oklch(0.258 0.092 25);
+
+  /* Cyan */
+  --dt-color-cyan-050: oklch(0.977 0.013 230);
+  --dt-color-cyan-100: oklch(0.951 0.026 230);
+  --dt-color-cyan-200: oklch(0.901 0.050 230);
+  --dt-color-cyan-300: oklch(0.828 0.081 230);
+  --dt-color-cyan-400: oklch(0.746 0.115 230);
+  --dt-color-cyan-500: oklch(0.685 0.140 230);
+  --dt-color-cyan-600: oklch(0.588 0.135 230);
+  --dt-color-cyan-700: oklch(0.500 0.114 230);
+  --dt-color-cyan-800: oklch(0.424 0.094 230);
+  --dt-color-cyan-900: oklch(0.366 0.077 230);
+  --dt-color-cyan-950: oklch(0.262 0.056 230);
+
+  /* Violet — the spare hue. Reserved for data visualisation. */
+  --dt-color-violet-050: oklch(0.977 0.014 305);
+  --dt-color-violet-100: oklch(0.946 0.033 305);
+  --dt-color-violet-200: oklch(0.902 0.063 305);
+  --dt-color-violet-300: oklch(0.827 0.110 305);
+  --dt-color-violet-400: oklch(0.740 0.163 305);
+  --dt-color-violet-500: oklch(0.667 0.200 305);
+  --dt-color-violet-600: oklch(0.594 0.216 305);
+  --dt-color-violet-700: oklch(0.518 0.190 305);
+  --dt-color-violet-800: oklch(0.444 0.158 305);
+  --dt-color-violet-900: oklch(0.381 0.128 305);
+  --dt-color-violet-950: oklch(0.279 0.095 305);
+}
+
+/* TIER 1 — PRIMITIVE DIMENSION
+   One base unit: 4px. Every value is a multiple, and the number in the name is the multiplier.
+   --dt-dim-6 is 6 × 4px = 24px. The name stays true if the base unit ever changes.
+
+   Sub-unit values exist only for hairlines and optical nudges. They are named separately
+   so they cannot be mistaken for layout spacing. */
+
+:root {
+  --dt-dim-0: 0px;
+  --dt-dim-1: 4px;
+  --dt-dim-2: 8px;
+  --dt-dim-3: 12px;
+  --dt-dim-4: 16px;
+  --dt-dim-5: 20px;
+  --dt-dim-6: 24px;
+  --dt-dim-7: 28px;
+  --dt-dim-8: 32px;
+  --dt-dim-9: 36px;
+  --dt-dim-10: 40px;
+  --dt-dim-11: 44px;
+  --dt-dim-12: 48px;
+  --dt-dim-14: 56px;
+  --dt-dim-16: 64px;
+  --dt-dim-20: 80px;
+  --dt-dim-24: 96px;
+  --dt-dim-28: 112px;
+  --dt-dim-32: 128px;
+  --dt-dim-40: 160px;
+  --dt-dim-48: 192px;
+  --dt-dim-56: 224px;
+  --dt-dim-64: 256px;
+
+  /* Sub-unit. Hairlines and optical corrections only — never layout. */
+  --dt-dim-hair: 1px;
+  --dt-dim-hair-2: 2px;
+
+  /* Raw radii */
+  --dt-radius-raw-0: 0px;
+  --dt-radius-raw-2: 2px;
+  --dt-radius-raw-4: 4px;
+  --dt-radius-raw-6: 6px;
+  --dt-radius-raw-8: 8px;
+  --dt-radius-raw-12: 12px;
+  --dt-radius-raw-16: 16px;
+  --dt-radius-raw-24: 24px;
+  --dt-radius-raw-full: 9999px;
+
+  /* Container widths */
+  --dt-dim-container-sm: 640px;
+  --dt-dim-container-md: 768px;
+  --dt-dim-container-lg: 1024px;
+  --dt-dim-container-xl: 1280px;
+  --dt-dim-container-2xl: 1536px;
+
+  /* Breakpoints, mirrored here so they can be documented as tokens.
+     Media queries cannot read custom properties — the values are duplicated
+     in guidelines/layout.md and must be changed in both places. */
+  --dt-breakpoint-sm: 640px;
+  --dt-breakpoint-md: 768px;
+  --dt-breakpoint-lg: 1024px;
+  --dt-breakpoint-xl: 1280px;
+  --dt-breakpoint-2xl: 1536px;
+}
+
+/* TIER 1 — PRIMITIVE TYPOGRAPHY
+   Font sizes follow a 1.200 modular scale from a 16px base, rounded to whole pixels.
+   Two rounds are deliberate and documented: 13.33 → 14 and 57.33 → 58, because 14px is
+   the workhorse UI size and a half-pixel display size renders inconsistently.
+
+   Line heights snap to the 4px grid so text blocks align with everything else.
+   This is the one place the modular scale and the 4px grid are reconciled by hand. */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap");
+
+:root {
+  /* Families. A theme overrides these three lines and nothing else. */
+  --dt-font-family-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --dt-font-family-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --dt-font-family-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Size ramp */
+  --dt-font-size-2xs: 11px;
+  --dt-font-size-xs: 12px;
+  --dt-font-size-sm: 14px;
+  --dt-font-size-md: 16px;
+  --dt-font-size-lg: 19px;
+  --dt-font-size-xl: 23px;
+  --dt-font-size-2xl: 28px;
+  --dt-font-size-3xl: 33px;
+  --dt-font-size-4xl: 40px;
+  --dt-font-size-5xl: 48px;
+  --dt-font-size-6xl: 58px;
+  --dt-font-size-7xl: 69px;
+
+  /* Line heights — all multiples of 4 */
+  --dt-line-height-2xs: 16px;
+  --dt-line-height-xs: 16px;
+  --dt-line-height-sm: 20px;
+  --dt-line-height-md: 24px;
+  --dt-line-height-lg: 28px;
+  --dt-line-height-xl: 32px;
+  --dt-line-height-2xl: 36px;
+  --dt-line-height-3xl: 40px;
+  --dt-line-height-4xl: 48px;
+  --dt-line-height-5xl: 52px;
+  --dt-line-height-6xl: 64px;
+  --dt-line-height-7xl: 76px;
+
+  /* Weights */
+  --dt-font-weight-light: 300;
+  --dt-font-weight-regular: 400;
+  --dt-font-weight-medium: 500;
+  --dt-font-weight-semibold: 600;
+  --dt-font-weight-bold: 700;
+  --dt-font-weight-extrabold: 800;
+
+  /* Tracking. Large type needs negative tracking; small type needs positive. */
+  --dt-tracking-tighter: -0.03em;
+  --dt-tracking-tight: -0.02em;
+  --dt-tracking-snug: -0.01em;
+  --dt-tracking-normal: 0em;
+  --dt-tracking-wide: 0.02em;
+  --dt-tracking-wider: 0.06em;
+
+  /* Measure — characters per line, for readable prose */
+  --dt-measure-narrow: 45ch;
+  --dt-measure-default: 68ch;
+  --dt-measure-wide: 85ch;
+}
+
+/* TIER 1 — PRIMITIVE MOTION
+   Raw durations and easing curves. Components reference the semantic motion roles,
+   not these. Durations are short by default: interface motion confirms a change,
+   it does not perform. */
+
+:root {
+  --dt-duration-instant: 0ms; /* @kind other */
+  --dt-duration-50: 50ms; /* @kind other */
+  --dt-duration-100: 100ms; /* @kind other */
+  --dt-duration-150: 150ms; /* @kind other */
+  --dt-duration-200: 200ms; /* @kind other */
+  --dt-duration-300: 300ms; /* @kind other */
+  --dt-duration-400: 400ms; /* @kind other */
+  --dt-duration-600: 600ms; /* @kind other */
+
+  --dt-easing-linear: linear; /* @kind other */
+  --dt-easing-standard: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --dt-easing-decelerate: cubic-bezier(0, 0, 0, 1); /* @kind other */
+  --dt-easing-accelerate: cubic-bezier(0.3, 0, 1, 1); /* @kind other */
+  --dt-easing-emphasis: cubic-bezier(0.2, 0, 0, 1.2); /* @kind other */
+}
+
+/* TIER 1 — PRIMITIVE ELEVATION
+   Raw shadow recipes. Each is a two-layer shadow: a tight contact shadow plus a
+   soft ambient one. Single-layer shadows read as flat stickers at larger sizes. */
+
+:root {
+  --dt-shadow-raw-none: none; /* @kind other */
+  --dt-shadow-raw-1: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 1px 3px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+  --dt-shadow-raw-2: 0 1px 2px 0 oklch(0.145 0.005 264 / 0.06), 0 2px 6px -1px oklch(0.145 0.005 264 / 0.10); /* @kind other */
+  --dt-shadow-raw-3: 0 2px 4px -1px oklch(0.145 0.005 264 / 0.06), 0 6px 12px -2px oklch(0.145 0.005 264 / 0.10); /* @kind other */
+  --dt-shadow-raw-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12); /* @kind other */
+  --dt-shadow-raw-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16); /* @kind other */
+  --dt-shadow-raw-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+}
+
+
+/* TIER 2 — SEMANTIC COLOR
+   Purpose, not value. This is the themeable layer: a brand theme overrides these
+   names and every component follows. No value words are allowed here — the moment
+   "blue" appears in a semantic name, it becomes a lie waiting for the next rebrand.
+
+   Pairing convention: every role that can be a background has a matching
+   on- foreground role, and the pair is contrast-checked together.
+   Use them as a set. `--dt-surface-action` without `--dt-text-on-action` is a bug.
+
+   Values below are the LIGHT theme. Dark lives in tokens/themes/base-dark.css and
+   re-points these same names. */
+
+:root {
+  /* ---- Surfaces -------------------------------------------------- */
+  --dt-surface-base: var(--dt-color-white);          /* the page */
+  --dt-surface-subtle: var(--dt-color-neutral-050);  /* quiet section behind the page */
+  --dt-surface-raised: var(--dt-color-white);        /* cards, anything with elevation */
+  --dt-surface-sunken: var(--dt-color-neutral-100);  /* wells, code blocks, inset areas */
+  --dt-surface-overlay: var(--dt-color-white);       /* dialogs, popovers, menus */
+  --dt-surface-inverse: var(--dt-color-neutral-900); /* dark band on a light page */
+  --dt-surface-disabled: var(--dt-color-neutral-100);
+  --dt-surface-scrim: oklch(0.145 0.005 264 / 0.5);  /* behind a modal */
+
+  /* ---- Text ------------------------------------------------------ */
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-600);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-400);
+  --dt-text-inverse: var(--dt-color-neutral-050);
+  --dt-text-link: var(--dt-color-accent-700);
+  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link-visited: var(--dt-color-violet-700);
+
+  /* ---- Borders --------------------------------------------------- */
+  --dt-border-subtle: var(--dt-color-neutral-100);
+  --dt-border-default: var(--dt-color-neutral-200);
+  --dt-border-strong: var(--dt-color-neutral-400);
+  --dt-border-inverse: var(--dt-color-neutral-700);
+  --dt-border-disabled: var(--dt-color-neutral-200);
+
+  /* ---- Actions --------------------------------------------------- */
+  --dt-surface-action: var(--dt-color-accent-600);
+  --dt-surface-action-hover: var(--dt-color-accent-700);
+  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-text-on-action: var(--dt-color-white);
+
+  --dt-surface-action-secondary: var(--dt-color-white);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-900);
+  --dt-border-action-secondary: var(--dt-color-neutral-200);
+
+  --dt-surface-action-ghost: var(--dt-color-transparent);
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-200);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-900);
+
+  --dt-surface-action-danger: var(--dt-color-red-600);
+  --dt-surface-action-danger-hover: var(--dt-color-red-700);
+  --dt-surface-action-danger-active: var(--dt-color-red-800);
+  --dt-text-on-action-danger: var(--dt-color-white);
+
+  --dt-surface-action-disabled: var(--dt-color-neutral-100);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-400);
+
+  /* ---- Selection ------------------------------------------------- */
+  --dt-surface-selected: var(--dt-color-accent-050);
+  --dt-surface-selected-hover: var(--dt-color-accent-100);
+  --dt-text-on-selected: var(--dt-color-accent-900);
+  --dt-border-selected: var(--dt-color-accent-600);
+
+  /* ---- Feedback -------------------------------------------------- */
+  --dt-surface-success: var(--dt-color-green-600);
+  --dt-surface-success-subtle: var(--dt-color-green-050);
+  --dt-border-success: var(--dt-color-green-200);
+  --dt-text-success: var(--dt-color-green-800);
+  --dt-text-on-success: var(--dt-color-white);
+
+  --dt-surface-warning: var(--dt-color-amber-500);
+  --dt-surface-warning-subtle: var(--dt-color-amber-050);
+  --dt-border-warning: var(--dt-color-amber-200);
+  --dt-text-warning: var(--dt-color-amber-900);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+
+  --dt-surface-danger: var(--dt-color-red-600);
+  --dt-surface-danger-subtle: var(--dt-color-red-050);
+  --dt-border-danger: var(--dt-color-red-200);
+  --dt-text-danger: var(--dt-color-red-800);
+  --dt-text-on-danger: var(--dt-color-white);
+
+  --dt-surface-info: var(--dt-color-cyan-600);
+  --dt-surface-info-subtle: var(--dt-color-cyan-050);
+  --dt-border-info: var(--dt-color-cyan-200);
+  --dt-text-info: var(--dt-color-cyan-900);
+  --dt-text-on-info: var(--dt-color-white);
+
+  /* ---- Focus ----------------------------------------------------- */
+  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+
+  /* ---- Data visualisation ---------------------------------------
+     The documented exception to the no-primitives rule. Chart series need a
+     palette with no semantic meaning, ordered for categorical distinctness. */
+  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-2: var(--dt-color-violet-500);
+  --dt-viz-3: var(--dt-color-cyan-600);
+  --dt-viz-4: var(--dt-color-amber-500);
+  --dt-viz-5: var(--dt-color-green-600);
+  --dt-viz-6: var(--dt-color-red-500);
+}
+
+/* TIER 2 — SEMANTIC SPACE
+   Three axes, because "16px" does not say what the gap is for. Naming the axis makes
+   layout intent readable in markup and lets a density theme retune one axis alone.
+
+   inset  — padding inside a container
+   stack  — vertical gap between blocks
+   inline — horizontal gap between siblings */
+
+:root {
+  --dt-space-inset-2xs: var(--dt-dim-1);   /* 4  */
+  --dt-space-inset-xs: var(--dt-dim-2);    /* 8  */
+  --dt-space-inset-sm: var(--dt-dim-3);    /* 12 */
+  --dt-space-inset-md: var(--dt-dim-4);    /* 16 */
+  --dt-space-inset-lg: var(--dt-dim-6);    /* 24 */
+  --dt-space-inset-xl: var(--dt-dim-8);    /* 32 */
+  --dt-space-inset-2xl: var(--dt-dim-12);  /* 48 */
+
+  --dt-space-stack-2xs: var(--dt-dim-1);
+  --dt-space-stack-xs: var(--dt-dim-2);
+  --dt-space-stack-sm: var(--dt-dim-3);
+  --dt-space-stack-md: var(--dt-dim-4);
+  --dt-space-stack-lg: var(--dt-dim-6);
+  --dt-space-stack-xl: var(--dt-dim-10);
+  --dt-space-stack-2xl: var(--dt-dim-16);
+
+  --dt-space-inline-2xs: var(--dt-dim-1);
+  --dt-space-inline-xs: var(--dt-dim-2);
+  --dt-space-inline-sm: var(--dt-dim-3);
+  --dt-space-inline-md: var(--dt-dim-4);
+  --dt-space-inline-lg: var(--dt-dim-6);
+  --dt-space-inline-xl: var(--dt-dim-8);
+  --dt-space-inline-2xl: var(--dt-dim-12);
+
+  /* Page-level rhythm */
+  --dt-space-section: var(--dt-dim-24);      /* 96 — between major page sections */
+  --dt-space-section-compact: var(--dt-dim-16);
+  --dt-space-gutter: var(--dt-dim-6);        /* 24 — page edge padding */
+  --dt-space-gutter-wide: var(--dt-dim-10);
+}
+
+/* TIER 2 — SEMANTIC TYPOGRAPHY
+   Roles, not sizes. A component asks for "heading-md", never "23px", so a theme can
+   retune the whole ladder — including family and weight — from one file.
+
+   Each role ships four properties. Use all four together; taking the size and
+   dropping the line-height is how vertical rhythm breaks.
+
+   display — marketing and hero type. Rare in product UI.
+   heading — document and section structure. Maps to h1–h6.
+   body    — prose and long-form reading.
+   label   — UI chrome: buttons, form labels, table headers, badges.
+   code    — monospaced. */
+
+:root {
+  /* ---- Display ---------------------------------------------------- */
+  --dt-text-display-lg-family: var(--dt-font-family-sans);
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-md-family: var(--dt-font-family-sans);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+  --dt-text-display-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-md-tracking: var(--dt-tracking-tighter);
+
+  --dt-text-display-sm-family: var(--dt-font-family-sans);
+  --dt-text-display-sm-size: var(--dt-font-size-5xl);
+  --dt-text-display-sm-line: var(--dt-line-height-5xl);
+  --dt-text-display-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-display-sm-tracking: var(--dt-tracking-tight);
+
+  /* ---- Heading ---------------------------------------------------- */
+  --dt-text-heading-xl-family: var(--dt-font-family-sans);
+  --dt-text-heading-xl-size: var(--dt-font-size-4xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-4xl);
+  --dt-text-heading-xl-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xl-tracking: var(--dt-tracking-tight);
+
+  --dt-text-heading-lg-family: var(--dt-font-family-sans);
+  --dt-text-heading-lg-size: var(--dt-font-size-3xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-3xl);
+  --dt-text-heading-lg-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-lg-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-md-family: var(--dt-font-family-sans);
+  --dt-text-heading-md-size: var(--dt-font-size-2xl);
+  --dt-text-heading-md-line: var(--dt-line-height-2xl);
+  --dt-text-heading-md-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-md-tracking: var(--dt-tracking-snug);
+
+  --dt-text-heading-sm-family: var(--dt-font-family-sans);
+  --dt-text-heading-sm-size: var(--dt-font-size-xl);
+  --dt-text-heading-sm-line: var(--dt-line-height-xl);
+  --dt-text-heading-sm-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-heading-xs-family: var(--dt-font-family-sans);
+  --dt-text-heading-xs-size: var(--dt-font-size-lg);
+  --dt-text-heading-xs-line: var(--dt-line-height-lg);
+  --dt-text-heading-xs-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Body ------------------------------------------------------- */
+  --dt-text-body-lg-family: var(--dt-font-family-sans);
+  --dt-text-body-lg-size: var(--dt-font-size-lg);
+  --dt-text-body-lg-line: var(--dt-line-height-lg);
+  --dt-text-body-lg-weight: var(--dt-font-weight-regular);
+  --dt-text-body-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-md-family: var(--dt-font-family-sans);
+  --dt-text-body-md-size: var(--dt-font-size-md);
+  --dt-text-body-md-line: var(--dt-line-height-md);
+  --dt-text-body-md-weight: var(--dt-font-weight-regular);
+  --dt-text-body-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-sm-family: var(--dt-font-family-sans);
+  --dt-text-body-sm-size: var(--dt-font-size-sm);
+  --dt-text-body-sm-line: var(--dt-line-height-sm);
+  --dt-text-body-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-body-sm-tracking: var(--dt-tracking-normal);
+
+  --dt-text-body-xs-family: var(--dt-font-family-sans);
+  --dt-text-body-xs-size: var(--dt-font-size-xs);
+  --dt-text-body-xs-line: var(--dt-line-height-xs);
+  --dt-text-body-xs-weight: var(--dt-font-weight-regular);
+  --dt-text-body-xs-tracking: var(--dt-tracking-normal);
+
+  /* ---- Label ------------------------------------------------------ */
+  --dt-text-label-lg-family: var(--dt-font-family-sans);
+  --dt-text-label-lg-size: var(--dt-font-size-md);
+  --dt-text-label-lg-line: var(--dt-line-height-md);
+  --dt-text-label-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-label-lg-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-md-family: var(--dt-font-family-sans);
+  --dt-text-label-md-size: var(--dt-font-size-sm);
+  --dt-text-label-md-line: var(--dt-line-height-sm);
+  --dt-text-label-md-weight: var(--dt-font-weight-medium);
+  --dt-text-label-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-label-sm-family: var(--dt-font-family-sans);
+  --dt-text-label-sm-size: var(--dt-font-size-xs);
+  --dt-text-label-sm-line: var(--dt-line-height-xs);
+  --dt-text-label-sm-weight: var(--dt-font-weight-medium);
+  --dt-text-label-sm-tracking: var(--dt-tracking-normal);
+
+  /* Eyebrow — the only role that is ever uppercased. */
+  --dt-text-eyebrow-family: var(--dt-font-family-sans);
+  --dt-text-eyebrow-size: var(--dt-font-size-2xs);
+  --dt-text-eyebrow-line: var(--dt-line-height-2xs);
+  --dt-text-eyebrow-weight: var(--dt-font-weight-semibold);
+  --dt-text-eyebrow-tracking: var(--dt-tracking-wider);
+
+  /* ---- Code ------------------------------------------------------- */
+  --dt-text-code-md-family: var(--dt-font-family-mono);
+  --dt-text-code-md-size: var(--dt-font-size-sm);
+  --dt-text-code-md-line: var(--dt-line-height-sm);
+  --dt-text-code-md-weight: var(--dt-font-weight-regular);
+  --dt-text-code-md-tracking: var(--dt-tracking-normal);
+
+  --dt-text-code-sm-family: var(--dt-font-family-mono);
+  --dt-text-code-sm-size: var(--dt-font-size-xs);
+  --dt-text-code-sm-line: var(--dt-line-height-xs);
+  --dt-text-code-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-code-sm-tracking: var(--dt-tracking-normal);
+}
+
+/* TIER 2 — SEMANTIC SHAPE
+   Radius roles are named by what they wrap, not by size, so a sharp-cornered theme
+   can flatten the whole system by re-pointing five lines.
+
+   --dt-radius-scale is the single dial: a theme that wants everything rounder
+   overrides the roles, but a theme that only wants a nudge can retune from here. */
+
+:root {
+  --dt-radius-none: var(--dt-radius-raw-0);
+  --dt-radius-control: var(--dt-radius-raw-6);   /* buttons, inputs, selects */
+  --dt-radius-container: var(--dt-radius-raw-8); /* cards, panels, alerts */
+  --dt-radius-overlay: var(--dt-radius-raw-12);  /* dialogs, popovers, drawers */
+  --dt-radius-media: var(--dt-radius-raw-8);     /* images, video, avatars-as-squares */
+  --dt-radius-pill: var(--dt-radius-raw-full);   /* badges, tags, avatars */
+
+  --dt-border-width-none: 0px;
+  --dt-border-width-default: var(--dt-dim-hair);
+  --dt-border-width-strong: var(--dt-dim-hair-2);
+
+  /* Focus ring geometry. The colour lives in semantic/color.css. */
+  --dt-focus-ring-width: var(--dt-dim-hair-2);
+  --dt-focus-ring-offset: var(--dt-dim-hair-2);
+}
+
+/* TIER 2 — SEMANTIC SIZE
+   Control heights and icon sizes, all on the 4px grid. A density theme overrides
+   the control heights and every form control resizes together.
+
+   Touch targets: --dt-size-control-md (40px) is the smallest size allowed on a
+   touch surface without a padded hit area. WCAG 2.2 sets the floor at 24px;
+   40px is the size people can actually hit. */
+
+:root {
+  --dt-size-control-xs: var(--dt-dim-6);   /* 24 — dense tables, inline chips */
+  --dt-size-control-sm: var(--dt-dim-8);   /* 32 — toolbars, compact forms */
+  --dt-size-control-md: var(--dt-dim-10);  /* 40 — the default */
+  --dt-size-control-lg: var(--dt-dim-12);  /* 48 — primary CTAs, touch-first */
+
+  --dt-size-icon-xs: var(--dt-dim-3);      /* 12 */
+  --dt-size-icon-sm: var(--dt-dim-4);      /* 16 */
+  --dt-size-icon-md: var(--dt-dim-5);      /* 20 — the default */
+  --dt-size-icon-lg: var(--dt-dim-6);      /* 24 */
+  --dt-size-icon-xl: var(--dt-dim-8);      /* 32 */
+
+  --dt-size-avatar-xs: var(--dt-dim-5);    /* 20 */
+  --dt-size-avatar-sm: var(--dt-dim-6);    /* 24 */
+  --dt-size-avatar-md: var(--dt-dim-8);    /* 32 */
+  --dt-size-avatar-lg: var(--dt-dim-10);   /* 40 */
+  --dt-size-avatar-xl: var(--dt-dim-16);   /* 64 */
+
+  /* The minimum hit area for any interactive element on touch. */
+  --dt-size-touch-target: var(--dt-dim-11); /* 44 */
+}
+
+/* TIER 2 — SEMANTIC ELEVATION
+   Elevation is a z-order vocabulary, not a shadow menu. Pick the level that matches
+   what the element is, and the shadow follows. Dark themes swap shadows for surface
+   lightness, because shadows are close to invisible on a dark ground.
+
+   0 flush with the page          3 sticky headers, dropdowns
+   1 cards, resting surfaces      4 dialogs, drawers
+   2 hovered cards, popovers      5 toasts, anything above a dialog */
+
+:root {
+  --dt-elevation-0: var(--dt-shadow-raw-none); /* @kind other */
+  --dt-elevation-1: var(--dt-shadow-raw-1); /* @kind other */
+  --dt-elevation-2: var(--dt-shadow-raw-2); /* @kind other */
+  --dt-elevation-3: var(--dt-shadow-raw-3); /* @kind other */
+  --dt-elevation-4: var(--dt-shadow-raw-4); /* @kind other */
+  --dt-elevation-5: var(--dt-shadow-raw-5); /* @kind other */
+  --dt-elevation-inset: var(--dt-shadow-raw-inset); /* @kind other */
+
+  /* Stacking order. Keep every fixed-position layer on this ladder —
+     hand-picked z-index values are how overlay bugs start. */
+  --dt-z-base: 0; /* @kind other */
+  --dt-z-raised: 10; /* @kind other */
+  --dt-z-sticky: 100; /* @kind other */
+  --dt-z-dropdown: 200; /* @kind other */
+  --dt-z-overlay: 300; /* @kind other */
+  --dt-z-dialog: 400; /* @kind other */
+  --dt-z-toast: 500; /* @kind other */
+  --dt-z-tooltip: 600; /* @kind other */
+}
+
+/* TIER 2 — SEMANTIC MOTION
+   Four roles cover interface motion. Anything that needs a fifth is probably
+   decoration, and decoration is not a system concern.
+
+   micro    — state change on an element already on screen (hover, press, toggle)
+   enter    — something arriving (popover opens, toast slides in)
+   exit     — something leaving. Faster than enter: people wait for arrivals,
+              they do not wait for departures.
+   emphasis — a change that must be noticed (validation error, value update) */
+
+:root {
+  --dt-motion-micro: var(--dt-duration-100) var(--dt-easing-standard); /* @kind other */
+  --dt-motion-enter: var(--dt-duration-200) var(--dt-easing-decelerate); /* @kind other */
+  --dt-motion-exit: var(--dt-duration-150) var(--dt-easing-accelerate); /* @kind other */
+  --dt-motion-emphasis: var(--dt-duration-300) var(--dt-easing-emphasis); /* @kind other */
+}
+
+/* Respect the user's setting. This is not optional. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dt-motion-micro: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-enter: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-exit: var(--dt-duration-instant) var(--dt-easing-linear);
+    --dt-motion-emphasis: var(--dt-duration-instant) var(--dt-easing-linear);
+  }
+}
+
+
+/* BASE DARK THEME
+   Dark mode is not a second design system. It re-points the same semantic names at
+   different primitives. No component changes, no dark-specific class names.
+
+   Two rules that make dark mode work:
+   1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
+      invisible on a dark ground, so raised surfaces get lighter instead.
+   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+      white is too hot on near-black; 500 carries the same weight.
+
+   Applies on .dark, and automatically when the OS asks for it. */
+
+.dark {
+  --dt-surface-base: var(--dt-color-neutral-950);
+  --dt-surface-subtle: var(--dt-color-neutral-900);
+  --dt-surface-raised: var(--dt-color-neutral-900);
+  --dt-surface-sunken: var(--dt-color-black);
+  --dt-surface-overlay: var(--dt-color-neutral-800);
+  --dt-surface-inverse: var(--dt-color-neutral-050);
+  --dt-surface-disabled: var(--dt-color-neutral-800);
+  --dt-surface-scrim: oklch(0 0 0 / 0.7);
+
+  --dt-text-primary: var(--dt-color-neutral-050);
+  --dt-text-secondary: var(--dt-color-neutral-400);
+  --dt-text-tertiary: var(--dt-color-neutral-500);
+  --dt-text-disabled: var(--dt-color-neutral-600);
+  --dt-text-inverse: var(--dt-color-neutral-900);
+  --dt-text-link: var(--dt-color-accent-400);
+  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link-visited: var(--dt-color-violet-400);
+
+  --dt-border-subtle: var(--dt-color-neutral-800);
+  --dt-border-default: var(--dt-color-neutral-700);
+  --dt-border-strong: var(--dt-color-neutral-500);
+  --dt-border-inverse: var(--dt-color-neutral-300);
+  --dt-border-disabled: var(--dt-color-neutral-800);
+
+  --dt-surface-action: var(--dt-color-accent-500);
+  --dt-surface-action-hover: var(--dt-color-accent-400);
+  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-text-on-action: var(--dt-color-neutral-950);
+
+  --dt-surface-action-secondary: var(--dt-color-neutral-900);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-secondary: var(--dt-color-neutral-050);
+  --dt-border-action-secondary: var(--dt-color-neutral-700);
+
+  --dt-surface-action-ghost-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-ghost-active: var(--dt-color-neutral-700);
+  --dt-text-on-action-ghost: var(--dt-color-neutral-050);
+
+  --dt-surface-action-danger: var(--dt-color-red-500);
+  --dt-surface-action-danger-hover: var(--dt-color-red-400);
+  --dt-surface-action-danger-active: var(--dt-color-red-300);
+  --dt-text-on-action-danger: var(--dt-color-neutral-950);
+
+  --dt-surface-action-disabled: var(--dt-color-neutral-800);
+  --dt-text-on-action-disabled: var(--dt-color-neutral-600);
+
+  --dt-surface-selected: oklch(0.256 0.093 259);
+  --dt-surface-selected-hover: oklch(0.344 0.128 259);
+  --dt-text-on-selected: var(--dt-color-accent-100);
+  --dt-border-selected: var(--dt-color-accent-500);
+
+  --dt-surface-success: var(--dt-color-green-500);
+  --dt-surface-success-subtle: var(--dt-color-green-950);
+  --dt-border-success: var(--dt-color-green-800);
+  --dt-text-success: var(--dt-color-green-300);
+  --dt-text-on-success: var(--dt-color-neutral-950);
+
+  --dt-surface-warning: var(--dt-color-amber-400);
+  --dt-surface-warning-subtle: var(--dt-color-amber-950);
+  --dt-border-warning: var(--dt-color-amber-800);
+  --dt-text-warning: var(--dt-color-amber-300);
+  --dt-text-on-warning: var(--dt-color-neutral-950);
+
+  --dt-surface-danger: var(--dt-color-red-500);
+  --dt-surface-danger-subtle: var(--dt-color-red-950);
+  --dt-border-danger: var(--dt-color-red-800);
+  --dt-text-danger: var(--dt-color-red-300);
+  --dt-text-on-danger: var(--dt-color-neutral-950);
+
+  --dt-surface-info: var(--dt-color-cyan-500);
+  --dt-surface-info-subtle: var(--dt-color-cyan-950);
+  --dt-border-info: var(--dt-color-cyan-800);
+  --dt-text-info: var(--dt-color-cyan-300);
+  --dt-text-on-info: var(--dt-color-neutral-950);
+
+  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+
+  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-2: var(--dt-color-violet-400);
+  --dt-viz-3: var(--dt-color-cyan-400);
+  --dt-viz-4: var(--dt-color-amber-400);
+  --dt-viz-5: var(--dt-color-green-400);
+  --dt-viz-6: var(--dt-color-red-400);
+
+  /* Elevation as lightness. Shadows stay for depth cueing but carry less of the work. */
+  --dt-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.4);
+  --dt-elevation-2: 0 2px 6px -1px oklch(0 0 0 / 0.5);
+  --dt-elevation-3: 0 6px 12px -2px oklch(0 0 0 / 0.55);
+  --dt-elevation-4: 0 12px 24px -4px oklch(0 0 0 / 0.6);
+  --dt-elevation-5: 0 24px 48px -8px oklch(0 0 0 / 0.7);
+}
+
+/* Custom theme — the commit target for the theme configurator.
+
+   The configurator (tools/theme-configurator) writes a live override into browser
+   storage so you can judge a theme across the whole system before committing to it.
+   That is a preview, not a build artefact. When you are happy with a theme, paste the
+   configurator's exported CSS between the markers below and the theme becomes real:
+   it ships with the repository, applies without JavaScript, and survives a cleared
+   cache.
+
+   Leave this file empty to run the base theme. */
+
+/* --- configurator output starts --- */
+
+/* --- configurator output ends --- */
+
+
+/* TIER 3 — BUTTON
+   Component tokens exist so a consumer can restyle one component without
+   disturbing anything else. They are only authored for components with a real
+   override need. Every value here resolves to a semantic token.
+
+   Cascade: override --dt-surface-action and Button, Tabs, Switch and every other
+   action surface move together. Override --dt-button-primary-bg and only Button moves. */
+
+:root {
+  --dt-button-radius: var(--dt-radius-control);
+  --dt-button-font-family: var(--dt-text-label-md-family);
+  --dt-button-font-weight: var(--dt-font-weight-medium);
+  --dt-button-gap: var(--dt-space-inline-xs);
+  --dt-button-border-width: var(--dt-border-width-default);
+  --dt-button-transition: var(--dt-motion-micro);
+
+  --dt-button-height-sm: var(--dt-size-control-sm);
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-height-lg: var(--dt-size-control-lg);
+  --dt-button-padding-sm: var(--dt-space-inset-sm);
+  --dt-button-padding-md: var(--dt-space-inset-md);
+  --dt-button-padding-lg: var(--dt-space-inset-lg);
+  --dt-button-font-size-sm: var(--dt-font-size-sm);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+  --dt-button-font-size-lg: var(--dt-font-size-md);
+
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-primary-border: var(--dt-color-transparent);
+
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-ghost-border: var(--dt-color-transparent);
+
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-danger-border: var(--dt-color-transparent);
+
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-button-disabled-border: var(--dt-color-transparent);
+}
+
+/* TIER 3 — INPUT
+   Shared by Input, Textarea, Select, and Combobox so every field in a form has
+   identical geometry. A field that is 1px taller than its neighbour is the most
+   common and most visible design-system failure. */
+
+:root {
+  --dt-input-radius: var(--dt-radius-control);
+  --dt-input-border-width: var(--dt-border-width-default);
+  --dt-input-transition: var(--dt-motion-micro);
+  --dt-input-font-size: var(--dt-font-size-sm);
+  --dt-input-font-family: var(--dt-text-body-md-family);
+
+  --dt-input-height-sm: var(--dt-size-control-sm);
+  --dt-input-height-md: var(--dt-size-control-md);
+  --dt-input-height-lg: var(--dt-size-control-lg);
+  --dt-input-padding-x: var(--dt-space-inset-sm);
+
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+
+  --dt-input-label-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+}
+
+/* TIER 3 — CARD
+   Card is the most-overridden component in every system, because it is the one
+   that carries a product's surface personality. Its tokens are exposed so a
+   consumer can go from bordered-and-flat to shadowed-and-round without a fork. */
+
+:root {
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+  --dt-card-padding: var(--dt-space-inset-lg);
+  --dt-card-gap: var(--dt-space-stack-sm);
+  --dt-card-elevation: var(--dt-elevation-1); /* @kind other */
+  --dt-card-elevation-hover: var(--dt-elevation-2); /* @kind other */
+  --dt-card-transition: var(--dt-motion-micro);
+
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+}
+
+/* TIER 3 — DIALOG
+   Covers Dialog, Drawer, Popover, and Sheet — every overlay shares one scrim,
+   one radius, and one elevation so stacked overlays read as one system. */
+
+:root {
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-radius: var(--dt-radius-overlay);
+  --dt-dialog-padding: var(--dt-space-inset-xl);
+  --dt-dialog-gap: var(--dt-space-stack-md);
+  --dt-dialog-elevation: var(--dt-elevation-4); /* @kind other */
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-border-width: var(--dt-border-width-default);
+
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-dialog-scrim-blur: 2px;
+
+  --dt-dialog-width-sm: 400px;
+  --dt-dialog-width-md: 520px;
+  --dt-dialog-width-lg: 720px;
+  --dt-dialog-max-height: 85vh;
+
+  --dt-dialog-enter: var(--dt-motion-enter); /* @kind other */
+  --dt-dialog-exit: var(--dt-motion-exit); /* @kind other */
+
+  --dt-popover-radius: var(--dt-radius-container);
+  --dt-popover-padding: var(--dt-space-inset-md);
+  --dt-popover-elevation: var(--dt-elevation-3); /* @kind other */
+}
+
+/* TIER 3 — TABLE
+   Tables are the densest surface in most products and the first place a generic
+   spacing scale stops fitting. These tokens let a consumer tune row rhythm without
+   changing the global density theme. */
+
+:root {
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-border-width: var(--dt-border-width-default);
+  --dt-table-radius: var(--dt-radius-container);
+
+  --dt-table-row-height: var(--dt-dim-12);
+  --dt-table-row-height-compact: var(--dt-dim-9);
+  --dt-table-cell-padding-x: var(--dt-space-inset-sm);
+  --dt-table-cell-padding-y: var(--dt-space-inset-xs);
+
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-header-font-size: var(--dt-font-size-xs);
+  --dt-table-header-font-weight: var(--dt-font-weight-medium);
+  --dt-table-header-tracking: var(--dt-tracking-wide);
+
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+
+
+/* Contexts come last: they retune semantic and component tokens, and at equal
+   specificity source order decides. */
+/* CONTEXT — PRODUCT
+   A fourth axis, orthogonal to brand theme, colour mode, and density.
+
+   Product surfaces are dense, functional, and read for hours. Type runs small,
+   controls are compact, elevation is subtle, and section rhythm is tight. The same
+   Button that anchors a marketing hero has to sit in a toolbar without shouting.
+
+   Components do not know which context they are in. They read semantic tokens;
+   the context retunes those tokens. That is the whole mechanism — a context is a
+   theme for scale and rhythm rather than for colour.
+
+   Apply on the app shell:
+     <div class="dt-context-product"> … </div>
+
+   Composes with everything:
+     <html class="dark"><body class="dt-context-product dt-density-compact"> */
+
+.dt-context-product {
+  /* Display type is rare in product UI and never this large. */
+  --dt-text-display-lg-size: var(--dt-font-size-4xl);
+  --dt-text-display-lg-line: var(--dt-line-height-4xl);
+  --dt-text-display-md-size: var(--dt-font-size-3xl);
+  --dt-text-display-md-line: var(--dt-line-height-3xl);
+  --dt-text-display-sm-size: var(--dt-font-size-2xl);
+  --dt-text-display-sm-line: var(--dt-line-height-2xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-2xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-2xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-xl);
+  --dt-text-heading-md-size: var(--dt-font-size-lg);
+  --dt-text-heading-md-line: var(--dt-line-height-lg);
+
+  /* 14px body. Product UI is scanned, not read. */
+  --dt-text-body-md-size: var(--dt-font-size-sm);
+  --dt-text-body-md-line: var(--dt-line-height-sm);
+  --dt-text-body-lg-size: var(--dt-font-size-md);
+  --dt-text-body-lg-line: var(--dt-line-height-md);
+
+  /* Tight rhythm. */
+  --dt-space-section: var(--dt-dim-12);
+  --dt-space-gutter: var(--dt-space-inset-md);
+  --dt-space-stack-xl: var(--dt-dim-8);
+  --dt-space-stack-2xl: var(--dt-dim-12);
+
+  /* Restrained surfaces: borders carry structure, shadows stay quiet. */
+  --dt-card-padding: var(--dt-space-inset-md);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-1);
+  --dt-card-border-width: var(--dt-border-width-default);
+  --dt-card-radius: var(--dt-radius-container);
+
+  --dt-button-height-md: var(--dt-size-control-md);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+}
+
+/* CONTEXT — MARKETING
+   Marketing surfaces are scanned in seconds and seen once. Type runs large, sections
+   breathe, controls are touch-first, and cards lose their borders because the page is
+   already doing the structural work.
+
+   Same components, same tokens, different scale and rhythm. A Card in this context is
+   a content block on a landing page; in product context it is a panel in a dashboard.
+   Neither Card knows the difference.
+
+   Apply on the page shell:
+     <div class="dt-context-marketing"> … </div> */
+
+.dt-context-marketing {
+  /* Display type earns its size here. */
+  --dt-text-display-lg-size: var(--dt-font-size-7xl);
+  --dt-text-display-lg-line: var(--dt-line-height-7xl);
+  --dt-text-display-md-size: var(--dt-font-size-6xl);
+  --dt-text-display-md-line: var(--dt-line-height-6xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-5xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-5xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-4xl);
+  --dt-text-heading-lg-line: var(--dt-line-height-4xl);
+  --dt-text-heading-md-size: var(--dt-font-size-3xl);
+  --dt-text-heading-md-line: var(--dt-line-height-3xl);
+
+  /* 19px body. Long-form marketing copy is read at arm's length. */
+  --dt-text-body-md-size: var(--dt-font-size-lg);
+  --dt-text-body-md-line: var(--dt-line-height-lg);
+  --dt-text-body-sm-size: var(--dt-font-size-md);
+  --dt-text-body-sm-line: var(--dt-line-height-md);
+
+  /* Generous rhythm. */
+  --dt-space-section: var(--dt-dim-32);
+  --dt-space-gutter: var(--dt-space-inset-xl);
+  --dt-space-stack-xl: var(--dt-dim-12);
+  --dt-space-stack-2xl: var(--dt-dim-24);
+
+  /* Larger default controls — marketing CTAs are touch-first and want presence. */
+  --dt-size-control-md: var(--dt-dim-12);
+  --dt-button-height-md: var(--dt-dim-12);
+  --dt-button-font-size-md: var(--dt-font-size-md);
+  --dt-button-padding-md: var(--dt-space-inset-lg);
+
+  /* Borderless, softly raised content blocks. */
+  --dt-card-padding: var(--dt-space-inset-xl);
+  --dt-card-border-width: var(--dt-border-width-none);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-2);
+  --dt-card-radius: var(--dt-radius-overlay);
+}
+
+
+/* BASE — minimal element defaults.
+   Dovetail does not ship a CSS reset. This sets only what a system must own:
+   box sizing, the page's type and colour, focus visibility, and link colour.
+   Everything else is a component's job. */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--dt-text-body-md-family);
+  font-size: var(--dt-text-body-md-size);
+  line-height: var(--dt-text-body-md-line);
+  font-weight: var(--dt-text-body-md-weight);
+  letter-spacing: var(--dt-text-body-md-tracking);
+  color: var(--dt-text-primary);
+  background-color: var(--dt-surface-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* One focus treatment, applied everywhere, visible on every surface.
+   :focus-visible so pointer users never see it and keyboard users always do. */
+:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+  border-radius: inherit;
+}
+
+a {
+  color: var(--dt-text-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--dt-text-link-hover); text-decoration-thickness: 2px; }
+
+code, pre, kbd, samp {
+  font-family: var(--dt-text-code-md-family);
+  font-size: var(--dt-text-code-md-size);
+}
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+
+::selection {
+  background-color: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+/* System-owned animations. Components reference these by name; never redefine them
+   locally. All are suppressed under reduced-motion. */
+@keyframes dt-spin { to { transform: rotate(360deg); } }
+@keyframes dt-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes dt-progress-slide { 0% { margin-left: 0; } 50% { margin-left: 65%; } 100% { margin-left: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+</style>
+<script>/* Theme runtime — applies a saved configurator theme across the system.
+
+   The configurator saves a resolved set of token values to browser storage. This script
+   reads them and writes them onto the document root, so every page that loads it shows
+   the saved theme. It is a preview mechanism: it makes a theme judgeable across the whole
+   system before you commit to it. Nothing here belongs in production.
+
+   Commit a theme by pasting the configurator's exported CSS into
+   tokens/themes/theme-custom.css. That version needs no JavaScript and survives a
+   cleared cache.
+
+   Load it after styles.css:
+     <script src="../system/templates/_support/theme-runtime.js"><\/script>
+   Depth matters — from a subdirectory, use ../templates/_support/theme-runtime.js.
+
+   It lives under templates/ because the design-system compiler sweeps every .js in the
+   project into _ds_bundle.js, and templates/ is the one tree it skips. This is a page
+   script, not a component. */
+(function () {
+  var KEY = "dovetail-theme-config";
+  var applied = [];
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; }
+  }
+
+  function apply(cfg) {
+    var root = document.documentElement;
+
+    // Clear the previous application first, so switching themes never leaves a residue.
+    applied.forEach(function (k) { root.style.removeProperty(k); });
+    applied = [];
+
+    if (!cfg) return;
+
+    if (cfg.vars) {
+      Object.keys(cfg.vars).forEach(function (k) {
+        root.style.setProperty(k, cfg.vars[k]);
+        applied.push(k);
+      });
+    }
+
+    if (cfg.fontHref) {
+      var l = document.querySelector("link[data-dt-theme-font]");
+      if (!l) {
+        l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.setAttribute("data-dt-theme-font", "");
+        document.head.appendChild(l);
+      }
+      if (l.href !== cfg.fontHref) l.href = cfg.fontHref;
+    }
+
+    root.classList.toggle("dark", !!cfg.dark);
+  }
+
+  apply(load());
+
+  // A save in the configurator tab reaches every other open page.
+  window.addEventListener("storage", function (e) { if (e.key === KEY) apply(load()); });
+  window.addEventListener("dovetail:theme-change", function () { apply(load()); });
+})();
+</script>
+<script>/* Theme switcher — floating toolbar for demo and kit pages.
+
+   Lets a viewer render the page under any shipped theme without leaving it. It writes the
+   same token overrides the configurator writes, and fires the same "dovetail:theme-change"
+   event, so a page that also loads theme-runtime.js stays in sync.
+
+   Demo chrome, not a component. Load it after styles.css:
+     <script src="../templates/_support/theme-switcher.js"><\/script>
+
+   It lives under templates/ because the design-system compiler sweeps every .js in the
+   project into _ds_bundle.js, and templates/ is the one tree it skips. */
+(function () {
+  var KEY = "dovetail-demo-theme";
+  var STEPS = ["050","100","200","300","400","500","600","700","800","900","950"];
+
+  var RAMPS = {
+    accent: null,
+    terracotta: ["oklch(0.971 0.016 45)","oklch(0.939 0.038 45)","oklch(0.892 0.070 45)","oklch(0.820 0.112 45)","oklch(0.735 0.148 45)","oklch(0.660 0.166 45)","oklch(0.585 0.162 45)","oklch(0.505 0.140 45)","oklch(0.430 0.117 45)","oklch(0.372 0.097 45)","oklch(0.262 0.070 45)"],
+    blue: ["oklch(0.970 0.014 259)","oklch(0.936 0.032 259)","oklch(0.885 0.059 259)","oklch(0.809 0.096 259)","oklch(0.714 0.143 259)","oklch(0.623 0.188 259)","oklch(0.546 0.215 259)","oklch(0.476 0.196 259)","oklch(0.404 0.162 259)","oklch(0.344 0.128 259)","oklch(0.256 0.093 259)"],
+    neutral: ["oklch(0.985 0.001 264)","oklch(0.967 0.002 264)","oklch(0.925 0.003 264)","oklch(0.869 0.005 264)","oklch(0.708 0.007 264)","oklch(0.556 0.008 264)","oklch(0.440 0.008 264)","oklch(0.360 0.008 264)","oklch(0.273 0.007 264)","oklch(0.205 0.006 264)","oklch(0.145 0.005 264)"]
+  };
+
+  var RADIUS = {
+    sharp:    { control: "0", container: "0", overlay: "0", media: "0", pill: "0" },
+    standard: { control: "6px", container: "8px", overlay: "12px", media: "8px", pill: "9999px" },
+    soft:     { control: "9999px", container: "16px", overlay: "24px", media: "12px", pill: "9999px" }
+  };
+
+  var THEMES = {
+    base:      { label: "Base",      ramp: "blue",       radius: "standard", font: null },
+    editorial: { label: "Editorial", ramp: "terracotta", radius: "soft",     font: '"Newsreader", Georgia, serif', google: "Newsreader:opsz,wght@6..72,400..700" },
+    mono:      { label: "Mono",      ramp: "neutral",    radius: "sharp",    font: '"Geist Mono", ui-monospace, monospace' }
+  };
+
+  var state = load();
+
+  function load() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (raw && THEMES[raw.theme]) return { theme: raw.theme, dark: !!raw.dark };
+    } catch (e) {}
+    return { theme: "base", dark: false };
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  var fontLink = null;
+
+  function apply() {
+    var t = THEMES[state.theme];
+    var root = document.documentElement;
+    var ramp = RAMPS[t.ramp];
+
+    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-accent-" + STEPS[i], ramp[i]);
+
+    var r = RADIUS[t.radius];
+    for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) root.style.setProperty("--dt-radius-" + k, r[k]);
+
+    if (t.font) root.style.setProperty("--dt-font-family-sans", t.font);
+    else root.style.removeProperty("--dt-font-family-sans");
+
+    if (t.google) {
+      if (!fontLink) {
+        fontLink = document.createElement("link");
+        fontLink.rel = "stylesheet";
+        document.head.appendChild(fontLink);
+      }
+      var href = "https://fonts.googleapis.com/css2?family=" + t.google + "&display=swap";
+      if (fontLink.href !== href) fontLink.href = href;
+    }
+
+    root.classList.toggle("dark", state.dark);
+    save();
+    window.dispatchEvent(new Event("dovetail:theme-change"));
+    paint();
+  }
+
+  var bar, themeBtns = {}, modeBtn;
+
+  function paint() {
+    for (var id in themeBtns) {
+      if (Object.prototype.hasOwnProperty.call(themeBtns, id)) {
+        themeBtns[id].setAttribute("aria-pressed", String(id === state.theme));
+        style(themeBtns[id], id === state.theme);
+      }
+    }
+    if (modeBtn) {
+      modeBtn.textContent = state.dark ? "Dark" : "Light";
+      modeBtn.setAttribute("aria-pressed", String(state.dark));
+      style(modeBtn, state.dark);
+    }
+  }
+
+  function style(el, on) {
+    el.style.background = on ? "var(--dt-surface-action)" : "transparent";
+    el.style.color = on ? "var(--dt-text-on-action)" : "var(--dt-text-secondary)";
+  }
+
+  function build() {
+    bar = document.createElement("div");
+    bar.setAttribute("role", "group");
+    bar.setAttribute("aria-label", "Preview theme");
+    bar.style.cssText = [
+      "position:fixed", "bottom:20px", "left:50%", "transform:translateX(-50%)",
+      "z-index:200", "display:flex", "align-items:center", "gap:4px",
+      "padding:5px", "border-radius:var(--dt-radius-pill)",
+      "background:var(--dt-surface-raised)",
+      "border:var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      "box-shadow:var(--dt-elevation-3)",
+      "font-family:var(--dt-text-label-sm-family)",
+      "max-width:calc(100vw - 32px)", "overflow-x:auto"
+    ].join(";");
+
+    var lbl = document.createElement("span");
+    lbl.textContent = "Theme";
+    lbl.style.cssText = "padding:0 8px 0 10px;font-family:var(--dt-font-family-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--dt-text-tertiary);white-space:nowrap";
+    bar.appendChild(lbl);
+
+    Object.keys(THEMES).forEach(function (id) {
+      var b = chip(THEMES[id].label);
+      b.onclick = function () { state.theme = id; apply(); };
+      themeBtns[id] = b;
+      bar.appendChild(b);
+    });
+
+    var sep = document.createElement("span");
+    sep.style.cssText = "width:var(--dt-border-width-default);align-self:stretch;margin:2px 4px;background:var(--dt-border-subtle)";
+    bar.appendChild(sep);
+
+    modeBtn = chip("Light");
+    modeBtn.onclick = function () { state.dark = !state.dark; apply(); };
+    bar.appendChild(modeBtn);
+
+    document.body.appendChild(bar);
+  }
+
+  function chip(text) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = text;
+    b.setAttribute("aria-pressed", "false");
+    b.style.cssText = [
+      "appearance:none", "border:none", "cursor:pointer", "white-space:nowrap",
+      "padding:6px 13px", "border-radius:var(--dt-radius-pill)",
+      "font-family:inherit", "font-size:var(--dt-text-label-sm-size)",
+      "font-weight:var(--dt-font-weight-medium)",
+      "transition:background var(--dt-motion-duration-fast) var(--dt-motion-easing-standard)"
+    ].join(";");
+    return b;
+  }
+
+  function init() { build(); apply(); }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+</head><body class="dt-context-product"><div id="root"></div>
+
+<script>let Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag;
+const INVOICES = [
+    { id: "INV-2041", client: "Northwind Trading", status: "Paid", tone: "success", due: "12 Sep", amount: "$4,200.00" },
+    { id: "INV-2042", client: "Halcyon Labs", status: "Due soon", tone: "warning", due: "24 Sep", amount: "$1,875.50" },
+    { id: "INV-2043", client: "Pallas Freight", status: "Past due", tone: "danger", due: "06 Sep", amount: "$12,040.00" },
+    { id: "INV-2044", client: "Kestrel Analytics", status: "Draft", tone: "neutral", due: "—", amount: "$3,310.00" },
+    { id: "INV-2045", client: "Orbit Supply Co.", status: "Paid", tone: "success", due: "01 Sep", amount: "$890.00" },
+];
+const PEOPLE = [{ name: "Ada Lovelace" }, { name: "Grace Hopper" }, { name: "Alan Turing" }, { name: "Jean Bartik" }, { name: "Margaret Hamilton" }];
+function App() {
+    const [nav, setNav] = React.useState("invoices");
+    const [tab, setTab] = React.useState("all");
+    const [page, setPage] = React.useState(1);
+    const rows = tab === "all" ? INVOICES : INVOICES.filter(r => (tab === "open" ? r.status !== "Paid" : r.status === "Paid"));
+    return (React.createElement("div", { className: "shell" },
+        React.createElement(Sidebar, { current: nav, onNavigate: setNav, header: React.createElement(Inline, { gap: "sm", align: "center" },
+                React.createElement(Avatar, { name: "Northwind Trading", shape: "square", size: "sm" }),
+                React.createElement("span", { style: { fontWeight: "var(--dt-font-weight-semibold)" } }, "Northwind")), footer: React.createElement(Inline, { gap: "sm", align: "center" },
+                React.createElement(Avatar, { name: "Ada Lovelace", size: "sm", status: "online" }),
+                React.createElement("span", { style: { fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)" } }, "Ada Lovelace")), sections: [
+                { items: [{ id: "overview", label: "Overview" }, { id: "invoices", label: "Invoices", trailing: React.createElement(Badge, null, "5") }, { id: "clients", label: "Clients" }] },
+                { title: "Workspace", items: [{ id: "members", label: "Members" }, { id: "integrations", label: "Integrations" }] },
+                { title: "Settings", items: [{ id: "billing", label: "Billing" }, { id: "security", label: "Security" }] },
+            ] }),
+        React.createElement("div", { className: "main" },
+            React.createElement(Banner, { tone: "warning", title: "Trial ends in 3 days", action: React.createElement(Button, { size: "sm" }, "Add payment") }, "Your workspace switches to read-only when the trial ends."),
+            React.createElement("div", { className: "body" },
+                React.createElement(Stack, { gap: "sm" },
+                    React.createElement(Breadcrumbs, { items: [{ label: "Workspace", href: "#" }, { label: "Billing", href: "#" }, { label: "Invoices" }] }),
+                    React.createElement(Inline, { gap: "md", align: "center", justify: "space-between", wrap: true },
+                        React.createElement("h1", { style: { margin: 0, fontSize: "var(--dt-text-heading-lg-size)", fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-text-heading-lg-tracking)" } }, "Invoices"),
+                        React.createElement(Inline, { gap: "sm", align: "center" },
+                            React.createElement(AvatarGroup, { people: PEOPLE, max: 4, size: "sm", label: "People with access" }),
+                            React.createElement(Button, { size: "sm", variant: "secondary" }, "Export"),
+                            React.createElement(Button, { size: "sm" }, "New invoice")))),
+                React.createElement("div", { className: "statrow" },
+                    React.createElement("div", { className: "panel" },
+                        React.createElement(Stat, { label: "Outstanding", value: "$18,115", delta: "+8.2%", deltaDirection: "down", caption: "vs. previous 30 days" })),
+                    React.createElement("div", { className: "panel" },
+                        React.createElement(Stat, { label: "Collected", value: "$41,290", delta: "+12.4%", deltaDirection: "up", caption: "vs. previous 30 days" })),
+                    React.createElement("div", { className: "panel" },
+                        React.createElement(Stat, { label: "Median days to pay", value: "11", unit: "days", delta: "\u22122", deltaDirection: "up", caption: "vs. previous 30 days" })),
+                    React.createElement("div", { className: "panel" },
+                        React.createElement(Stat, { label: "Past due", value: "1", delta: "0", deltaDirection: "flat", caption: "unchanged this week" }))),
+                React.createElement("div", { className: "two" },
+                    React.createElement("div", { className: "panel" },
+                        React.createElement(Stack, { gap: "md" },
+                            React.createElement(Tabs, { label: "Invoice filter", variant: "pill", value: tab, onChange: setTab, style: { display: "inline-flex" }, tabs: [{ id: "all", label: "All", count: INVOICES.length }, { id: "open", label: "Open" }, { id: "paid", label: "Paid" }] }),
+                            React.createElement(TabPanel, { id: tab, value: tab }, rows.length === 0 ? (React.createElement(EmptyState, { size: "sm", title: "No invoices in this view", description: "Try another filter or create an invoice.", action: React.createElement(Button, { size: "sm" }, "New invoice") })) : (React.createElement(Table, { caption: rows.length + " invoices, last 30 days", columns: [
+                                    { key: "id", header: "Invoice", width: "108px" },
+                                    { key: "client", header: "Client" },
+                                    { key: "status", header: "Status", render: r => React.createElement(Badge, { tone: r.tone, dot: true }, r.status) },
+                                    { key: "due", header: "Due" },
+                                    { key: "amount", header: "Amount", align: "right" },
+                                ], rows: rows }))),
+                            React.createElement(Pagination, { page: page, totalPages: 6, onChange: setPage }))),
+                    React.createElement(Stack, { gap: "lg" },
+                        React.createElement("div", { className: "panel" },
+                            React.createElement(Stack, { gap: "md" },
+                                React.createElement("span", { style: { fontWeight: "var(--dt-font-weight-semibold)" } }, "Plan usage"),
+                                React.createElement(Progress, { label: "Seats", value: 17, max: 20, showValue: true, size: "sm", tone: "warning" }),
+                                React.createElement(Progress, { label: "Storage", value: 42, max: 100, showValue: true, size: "sm" }),
+                                React.createElement(Progress, { label: "API calls", value: 68, max: 100, showValue: true, size: "sm" }))),
+                        React.createElement("div", { className: "panel" },
+                            React.createElement(Stack, { gap: "sm" },
+                                React.createElement("span", { style: { fontWeight: "var(--dt-font-weight-semibold)" } }, "Recent activity"),
+                                React.createElement(List, { label: "Recent activity", items: [
+                                        { id: 1, leading: React.createElement(Avatar, { name: "Grace Hopper", size: "sm" }), title: "Grace sent INV-2043", description: "2 hours ago" },
+                                        { id: 2, leading: React.createElement(Avatar, { name: "Alan Turing", size: "sm" }), title: "Alan marked INV-2041 paid", description: "Yesterday" },
+                                        { id: 3, leading: React.createElement(Avatar, { name: "Jean Bartik", size: "sm" }), title: "Jean added Kestrel Analytics", description: "2 days ago" },
+                                    ] })))))))));
+}
+function dsReady(required, done) {
+    var NS_KEY = "BeamMobileDesignSystem_e33121";
+    var REFETCH_AT = 1200, DEADLINE = 8000, TICK = 40;
+    var startedAt = Date.now(), refetched = false;
+    /* Wall clock, not tick count: a throttled frame stretches a 40ms timeout well past
+       40ms, which would push the deadline minutes out. */
+    function elapsed() { return Date.now() - startedAt; }
+    function missing() {
+        var ns = window[NS_KEY];
+        if (!ns)
+            return required.slice();
+        var out = [];
+        for (var i = 0; i < required.length; i++)
+            if (!ns[required[i]])
+                out.push(required[i]);
+        return out;
+    }
+    (function poll() {
+        var gaps = missing();
+        if (gaps.length === 0)
+            return done(window[NS_KEY]);
+        if (elapsed() > REFETCH_AT && !refetched) {
+            refetched = true;
+            var base = document.querySelector('script[src$="_ds_bundle.js"]');
+            var s = document.createElement("script");
+            s.src = (base ? base.getAttribute("src") : "_ds_bundle.js") + "?cb=" + Date.now();
+            document.head.appendChild(s);
+        }
+        if (elapsed() > DEADLINE) {
+            var root = document.getElementById("root");
+            if (root)
+                root.innerHTML = '<div role="alert" style="max-width:62ch;margin:48px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This kit could not load the design system</strong>' + (!window[NS_KEY] ? '<code>_ds_bundle.js</code> did not load. It is regenerated whenever components change \u2014 reload in a moment.' : 'The loaded bundle is missing: <code>' + gaps.join(", ") + '</code>. Hard reload to clear the cached copy.') + '</div>';
+            return;
+        }
+        setTimeout(poll, TICK);
+    })();
+}
+dsReady(["Sidebar", "Tabs", "TabPanel", "Breadcrumbs", "Table", "Stat", "Badge", "Button", "Avatar", "AvatarGroup", "List", "Progress", "Banner", "EmptyState", "Pagination", "Inline", "Stack", "Card", "Tag"], function (NS) {
+    ({ Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag } = NS);
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App, null));
+});
+</script>
+</body></html>

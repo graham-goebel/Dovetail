@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build plan · Dovetail</title>
+<meta name="description" content="The four-phase plan, benchmarks and inventory.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html" aria-current="page">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Build plan</li></ol></nav>
+<article class="prose doc">
+<h1 id="dovetail-white-label-design-system">Dovetail — white-label design system</h1>
+<h2 id="build-plan-for-review">Build plan for review</h2>
+<p>Draft v1 · prepared from the Beam Mobile system as a structural starting point</p>
+<hr>
+<h2 id="1-what-dovetail-is">1. What Dovetail is</h2>
+<p>Dovetail is a <strong>white-label design system</strong>: an unbranded, production-grade foundation that a team adopts and then skins. Beam Mobile was a single opinionated brand. Dovetail inverts that — the system ships neutral, and brand is a <em>theme layer</em> applied on top without touching a single component.</p>
+<p>Three consequences drive every decision below:</p>
+<ol><li><strong>Nothing in a component may know a brand.</strong> No magenta, no Barlow, no &quot;beam&quot;. Components reference semantic tokens only.</li><li><strong>Theming is the product.</strong> A theme is a small file of token overrides. Swapping it restyles everything.</li><li><strong>Content is external.</strong> Components accept content as props/slots so they can be driven by React state, Sanity, Contentful, or static markup interchangeably.</li></ol>
+<h3 id="benchmarks-studied">Benchmarks studied</h3>
+<div class="table-wrap"><table><thead><tr><th>System</th><th>What we take</th></tr></thead><tbody><tr><td><strong>shadcn/ui</strong></td><td><code>background</code>/<code>foreground</code> pairing convention; OKLCH color; <code>.dark</code> class overriding the same semantic names; copy-in (not npm-locked) distribution; per-component docs pages</td></tr><tr><td><strong>Atlassian Design System</strong></td><td>Strict semantic naming with no value words; documented token deprecation path</td></tr><tr><td><strong>IBM Carbon</strong></td><td>Multi-theme architecture (white / g10 / g90 / g100) from one token contract</td></tr><tr><td><strong>Material 3</strong></td><td>Role-based color (<code>surface-container-high</code>, <code>on-surface-variant</code>) — richer surface hierarchy than most systems ship</td></tr><tr><td><strong>Polaris / Spectrum</strong></td><td>Content &amp; voice guidelines treated as first-class system documentation, not an afterthought</td></tr><tr><td><strong>W3C DTCG</strong></td><td>Token file format as the interchange layer, so Figma and code cannot drift</td></tr></tbody></table></div>
+<hr>
+<h2 id="2-token-architecture">2. Token architecture</h2>
+<p>Three tiers, referenced in one direction only: <strong>component → semantic → primitive</strong>. A component never reads a primitive. This is the consensus architecture across the systems above and the thing that makes white-labeling work at all.</p>
+<pre class="code"><code>tokens/
+  primitive/          Tier 1 — raw values, no meaning
+    color.css           --dt-color-neutral-050 … 950, and 6 hue ramps × 11 steps (OKLCH)
+    dimension.css       --dt-dim-0 … --dt-dim-96  (4px scale, see §3)
+    typography.css      --dt-font-family-*, --dt-font-size-*, --dt-line-height-*, --dt-font-weight-*, --dt-tracking-*
+    duration.css        --dt-duration-*, --dt-easing-*
+    elevation.css       --dt-shadow-raw-*
+  semantic/           Tier 2 — purpose. THE themeable layer. No value words, ever.
+    color.css           surface / text / border / action / feedback / focus roles
+    space.css           --dt-space-inset-*, --dt-space-stack-*, --dt-space-inline-*
+    typography.css      --dt-text-display-*, --dt-text-heading-*, --dt-text-body-*, --dt-text-label-*, --dt-text-code-*
+    shape.css           --dt-radius-*, --dt-border-width-*
+    elevation.css       --dt-elevation-0 … 5
+    motion.css          --dt-motion-enter / exit / emphasis
+  component/          Tier 3 — per-component escape hatches
+    button.css, input.css, card.css, dialog.css, table.css, …
+  themes/             Brand skins: override Tier 2 only
+    base-light.css, base-dark.css
+    theme-example-a.css, theme-example-b.css   (two demo brands proving the swap)
+    density-compact.css, density-comfortable.css</code></pre>
+<h3 id="naming-grammar">Naming grammar</h3>
+<p><code>--dt-[tier?]-[category]-[role]-[variant]-[state]</code></p>
+<ul><li><code>--dt-color-neutral-600</code> — primitive (category + hue + step)</li><li><code>--dt-surface-raised</code> — semantic</li><li><code>--dt-text-on-action</code> — semantic, pairing convention</li><li><code>--dt-button-primary-bg-hover</code> — component</li></ul>
+<p>Rules the linter will enforce:</p>
+<ul><li><strong>No value words above Tier 1.</strong> Never <code>--dt-surface-blue</code>. A <code>gray-blue</code> that renders green after a rebrand is the classic failure.</li><li><strong>Every background role has a paired foreground role</strong> (shadcn's convention, adopted wholesale). <code>--dt-surface-action</code> always ships with <code>--dt-text-on-action</code>, contrast-verified.</li><li>Lowercase, hyphen-delimited, one convention across the whole set.</li></ul>
+<h3 id="color">Color</h3>
+<ul><li><strong>OKLCH throughout.</strong> Perceptually uniform lightness means a generated ramp has even visual steps and contrast is predictable when a brand hue is swapped in.</li><li><strong>Neutral ramp + 6 functional hues</strong> (accent, success, warning, danger, info, plus one spare for data-viz) × 11 steps each.</li><li><strong>Surface hierarchy borrowed from Material 3</strong> — <code>surface-base</code>, <code>surface-subtle</code>, <code>surface-raised</code>, <code>surface-sunken</code>, <code>surface-inverse</code>, <code>surface-overlay</code>. Deeper than shadcn's flat <code>background</code>/<code>card</code>, which pays off in dense product UI.</li><li><strong>Dark mode is not a second system.</strong> <code>.dark</code> (and <code>@media (prefers-color-scheme)</code>) re-point the <em>same</em> semantic names at different primitives. Components are untouched.</li><li><strong>Contrast is a build-time check</strong>, not a review comment: every semantic pair must clear WCAG 2.2 AA (4.5:1 body, 3:1 large text and non-text).</li></ul>
+<h3 id="open-question-7">Open question → §7</h3>
+<p>Whether we also ship a <strong>DTCG JSON source of truth</strong> with a Style Dictionary build (CSS + JSON + Figma Variables + iOS/Android out of one file), or keep CSS as the single source. JSON is the 2026 standard and the right answer if Figma parity matters; it adds a build step.</p>
+<hr>
+<h2 id="3-the-4px-scale">3. The 4px scale</h2>
+<p>One base unit: <strong>4px</strong>. Every dimension primitive is a multiple. No exceptions, no one-off paddings.</p>
+<pre class="code"><code>--dt-dim-0   0       --dt-dim-5   20px     --dt-dim-16  64px
+--dt-dim-1   4px     --dt-dim-6   24px     --dt-dim-20  80px
+--dt-dim-2   8px     --dt-dim-8   32px     --dt-dim-24  96px
+--dt-dim-3   12px    --dt-dim-10  40px     --dt-dim-32  128px
+--dt-dim-4   16px    --dt-dim-12  48px     --dt-dim-40  160px</code></pre>
+<p>Half-steps (<code>2px</code>) exist <strong>only</strong> for border widths and hairline offsets, named separately so they can't leak into layout.</p>
+<p>Semantic spacing sits on top, so intent is readable in the markup:</p>
+<ul><li><code>--dt-space-inset-{xs…2xl}</code> — padding inside a container</li><li><code>--dt-space-stack-{xs…2xl}</code> — vertical rhythm between blocks</li><li><code>--dt-space-inline-{xs…2xl}</code> — horizontal gaps between siblings</li></ul>
+<p>The scale also governs <strong>component sizing</strong>: control heights 24 / 32 / 40 / 48, icon sizes 16 / 20 / 24 / 32, touch targets never below 44px (WCAG 2.2 §2.5.8 asks 24px minimum; 44px is the humane floor).</p>
+<p><strong>Type is the one place the 4px grid bends.</strong> Font sizes follow a modular ratio (1.200 minor third), then line-heights snap to the 4px grid so text blocks still align to the baseline. This is standard practice — forcing font sizes onto 4px multiples produces an ugly scale.</p>
+<hr>
+<h2 id="4-component-inventory">4. Component inventory</h2>
+<p>Grouped by concern. Each component ships: <code>Name.jsx</code> · <code>Name.d.ts</code> (props contract) · <code>Name.prompt.md</code> (when/how) · a spec card in the Design System tab.</p>
+<p><strong>Primitives</strong> — Box, Stack, Inline, Grid, Divider, Spacer, VisuallyHidden <strong>Actions</strong> — Button, IconButton, ButtonGroup, Link, Menu, DropdownMenu <strong>Forms</strong> — Input, Textarea, Select, Combobox, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider, DatePicker, FileUpload, Field (label/hint/error wrapper), Form <strong>Display</strong> — Card, Badge, Tag, Avatar, AvatarGroup, List, Table, DataGrid, Stat, EmptyState, Skeleton, Code <strong>Navigation</strong> — Tabs, Breadcrumbs, Pagination, Sidebar, Navbar, Stepper, CommandPalette <strong>Feedback</strong> — Alert, Toast, Dialog, Drawer, Popover, Tooltip, Progress, Spinner, Banner <strong>Content</strong> — Prose (rich-text renderer), Media, Figure, Quote, Accordion, Callout</p>
+<p>That is ~50 components. <strong>Proposed phasing</strong> — see §6; I would not build all 50 before you've reviewed the first 12.</p>
+<h3 id="accessibility-baked-in-not-bolted-on">Accessibility baked in, not bolted on</h3>
+<ul><li>Focus ring is a semantic token (<code>--dt-focus-ring</code>), applied identically everywhere, visible against every surface.</li><li>Every interactive component has a documented keyboard contract in its <code>.d.ts</code>.</li><li>Labels are required props, not optional. <code>IconButton</code> without <code>label</code> is a type error.</li></ul>
+<hr>
+<h2 id="5-headless-cms-readiness">5. Headless / CMS readiness</h2>
+<p>The ask is &quot;React components or Sanity or other headless options.&quot; Three deliverables:</p>
+<ol><li><strong>Content-agnostic props.</strong> No component hard-codes copy. Everything renders from props; rich text goes through a <code>Prose</code> component that accepts either HTML or a portable-text-style node array.</li><li><strong>A Sanity schema pack</strong> — <code>integrations/sanity/</code> — schema definitions mirroring the component props, so a <code>Card</code> in Sanity Studio produces exactly the props <code>Card.jsx</code> expects. Plus a <code>PortableText</code> serializer mapping Sanity blocks to Dovetail components.</li><li><strong>A generic block renderer</strong> — <code>&lt;BlockRenderer blocks={…} /&gt;</code> that maps a <code>{_type, …props}</code> array to components. This is the layer that makes Contentful, Storyblok, Payload, or a plain JSON file work identically. Sanity is then just one adapter, not the assumption.</li></ol>
+<p>Documented in <code>guidelines/headless-integration.md</code>, with a worked example: the same page rendered from static props and from a Sanity payload.</p>
+<hr>
+<h2 id="6-documentation-governance">6. Documentation &amp; governance</h2>
+<p>This is where world-class systems separate from good ones, and it's what &quot;zero drift&quot; actually requires.</p>
+<ul><li><strong><code>readme.md</code></strong> — the manifest and design guide.</li><li><strong><code>CLAUDE.md</code></strong> — always-on authoring rules (rewritten for Dovetail; the current one is Beam-specific).</li><li><strong><code>guidelines/</code></strong> — foundations prose: color, type, space, motion, elevation, accessibility, content &amp; voice, headless integration, theming, contribution.</li><li><strong>Spec cards</strong> (~30) in the Design System tab — primitive ramps, semantic role maps, the 4px scale, type scale, elevation, motion, focus states, and per-component state matrices.</li><li><strong>Do/Don't cards</strong> — visual wrong-vs-right for the five most-violated rules.</li><li><strong>Templates</strong> — <code>templates/&lt;slug&gt;/</code> starting points: marketing page, app shell + dashboard, settings, auth, article/CMS page. Templates are the strongest anti-drift tool; a consumer starting from one cannot get the structure wrong.</li><li><strong><code>SKILL.md</code></strong> — agent entry point, cross-compatible with Claude Code.</li><li><strong>A theming guide</strong> that walks a team from &quot;we have a brand&quot; to &quot;we have a theme file&quot; in about 20 minutes.</li></ul>
+<h3 id="tone-of-voice-confident-and-educational">Tone of voice: confident and educational</h3>
+<p>Rewriting the voice guidance per your note. The register:</p>
+<ul><li><strong>State the rule, then the reason.</strong> &quot;Use <code>surface-raised</code> for anything that floats above the page. It carries the elevation token, so it stays correct in dark mode.&quot; Confident = no hedging. Educational = the <em>why</em> travels with the <em>what</em>.</li><li><strong>Second person, active, present tense.</strong> &quot;You theme Dovetail by overriding semantic tokens.&quot; Not &quot;Dovetail can be themed.&quot;</li><li><strong>Name the tradeoff instead of pretending there isn't one.</strong> &quot;Component tokens give you precision at the cost of a wider API surface. Reach for them last.&quot;</li><li><strong>Sentence case. No exclamation points. No emoji. No hype adjectives</strong> — nothing is &quot;powerful&quot;, &quot;seamless&quot;, or &quot;delightful&quot;.</li><li><strong>Teach through the example, not around it.</strong> Every rule gets a code sample within two lines of being stated.</li><li><strong>Say &quot;don't&quot; plainly when it matters.</strong> &quot;Don't reference a primitive from a component. It will survive code review and break the first rebrand.&quot;</li></ul>
+<p>Applied consistently across readme, guidelines, prompt files, component descriptions, and the sample content inside UI kits.</p>
+<hr>
+<h2 id="7-phasing">7. Phasing</h2>
+<p>I'd rather ship four reviewable milestones than one 50-component drop.</p>
+<p><strong>Phase 1 — Foundation</strong> (review gate) Full three-tier token set, 4px scale, base light + dark themes, two demo brand themes, ~30 spec cards, readme + CLAUDE.md + voice guidelines rewritten. No components yet. <em>You review the foundation before anything is built on it.</em></p>
+<p><strong>Phase 2 — Core components</strong> (review gate) Primitives, Actions, Forms, plus Card / Badge / Alert / Dialog. ~20 components with full docs and state cards. Enough to build a real screen.</p>
+<p><strong>Phase 3 — Full inventory + UI kits</strong> Remaining components. Two UI kits proving the theme swap: one marketing site, one app dashboard, each rendered under both demo brands.</p>
+<p><strong>Phase 4 — Headless + governance</strong> Sanity schema pack, BlockRenderer, integration docs, templates, do/don't cards, contribution guide, SKILL.md.</p>
+<hr>
+<h2 id="8-decisions-i-need-from-you">8. Decisions I need from you</h2>
+<p>These change the build, so I'd like answers before Phase 1 — I've marked my recommendation on each.</p>
+<ol><li><strong>Token source of truth</strong> — CSS only (simple, no build step) <em>or</em> DTCG JSON + Style Dictionary (Figma parity, multi-platform output). <strong>Rec: DTCG JSON</strong> if this is meant to be world-class and outlive one codebase.</li><li><strong>Default typeface</strong> — Dovetail ships unbranded, so the default should be a neutral, license-free workhorse. <strong>Rec: Inter Variable for UI + a variable serif for editorial, with a documented one-line swap.</strong> (Noting the house guidance against Inter — for a <em>white-label</em> default its neutrality is the point, but say the word and I'll pick a different neutral.)</li><li><strong>Component tokens (Tier 3) — all components or only complex ones?</strong> <strong>Rec: only where a real override need exists</strong> (Button, Input, Card, Table, Dialog). Tier 3 everywhere is a maintenance tax most teams never cash in.</li><li><strong>How many demo themes?</strong> <strong>Rec: two</strong>, deliberately far apart (e.g. a warm editorial brand and a cool dense enterprise one) — that's what proves the white-label claim.</li><li><strong>Density modes</strong> — ship compact/comfortable from day one, or later? <strong>Rec: build the token hooks in Phase 1, ship the compact theme in Phase 3.</strong></li><li><strong>Full 50 components, or a tighter 30?</strong> <strong>Rec: 50 is right for &quot;world class&quot;, but Phase 2's 20 will tell us whether the pace is working.</strong></li><li><strong>Keep or delete the Beam Mobile content?</strong> <strong>Rec: delete.</strong> Dovetail should not carry a magenta telecom brand in its history. I'll archive it if you want it retained.</li></ol>
+<hr>
+<h2 id="9-what-i-cannot-do">9. What I cannot do</h2>
+<ul><li><strong>No logo.</strong> Dovetail gets a wordmark set in the default typeface. If you want a mark, it needs a designer or a file.</li><li><strong>No imagery or illustration.</strong> UI kits will use labelled placeholders. I can't generate images, and hand-drawn SVG would undercut the quality bar.</li><li><strong>No Figma file.</strong> I can produce the DTCG JSON that Figma Variables imports, but I can't author the Figma library itself.</li></ul>
+</article>
+<p class="muted">Source: <a href="../system/PLAN.md">system/PLAN.md</a></p>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

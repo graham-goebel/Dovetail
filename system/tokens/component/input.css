@@ -1,0 +1,35 @@
+/* TIER 3 — INPUT
+   Shared by Input, Textarea, Select, and Combobox so every field in a form has
+   identical geometry. A field that is 1px taller than its neighbour is the most
+   common and most visible design-system failure. */
+
+:root {
+  --dt-input-radius: var(--dt-radius-control);
+  --dt-input-border-width: var(--dt-border-width-default);
+  --dt-input-transition: var(--dt-motion-micro);
+  --dt-input-font-size: var(--dt-font-size-sm);
+  --dt-input-font-family: var(--dt-text-body-md-family);
+
+  --dt-input-height-sm: var(--dt-size-control-sm);
+  --dt-input-height-md: var(--dt-size-control-md);
+  --dt-input-height-lg: var(--dt-size-control-lg);
+  --dt-input-padding-x: var(--dt-space-inset-sm);
+
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+
+  --dt-input-label-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-gap: var(--dt-space-stack-2xs);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+}

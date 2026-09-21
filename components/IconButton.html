@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IconButton · Dovetail</title>
+<meta name="description" content="A button whose only content is an icon. label is a required prop and the type system enforces it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html" aria-current="page">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">IconButton</li></ol></nav>
+<h1>IconButton</h1>
+<p class="lede">A button whose only content is an icon. <code>label</code> is a required prop and the type system enforces it.</p>
+<p class="meta">
+  <span class="pill">Actions</span>
+  
+  <a href="../system/components/actions/IconButton.jsx">IconButton.jsx</a>
+  <a href="../system/components/actions/IconButton.d.ts">IconButton.d.ts</a>
+  <a href="../system/components/actions/IconButton.md">IconButton.md</a>
+</p>
+
+<section class="card-block" id="iconbutton-live">
+  <div class="card-head">
+    <h2>IconButton — live</h2>
+    <a class="card-open" href="../previews/IconButton.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Reference and playground for IconButton</p>
+  <div class="frame" style="height:576px">
+    <iframe src="../previews/IconButton.html" title="IconButton — live preview" loading="lazy"></iframe>
+  </div>
+</section>
+<section class="card-block" id="iconbutton-playground">
+  <div class="card-head">
+    <h2>IconButton — playground</h2>
+    <a class="card-open" href="../previews/IconButtonPlayground.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">IconButton — Icon-only control where the label is a required prop</p>
+  <div class="frame" style="height:868px">
+    <iframe src="../previews/IconButtonPlayground.html" title="IconButton — playground preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A button whose only content is an icon. <code>label</code> is a required prop and the type system enforces it.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>Space is genuinely tight and the icon is unambiguous: close, search, more, edit, delete.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>The icon needs explaining. If you would add a caption, use a <code>Button</code> with <code>iconStart</code>.</li><li>It is the primary action in a form or dialog. Those get words.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>&lt;IconButton label=&quot;Close dialog&quot; onClick={close}&gt;
+  &lt;X size={20} /&gt;
+&lt;/IconButton&gt;</code></pre>
+<h2 id="variants">Variants</h2>
+<p><code>ghost</code> (default) for toolbars and table rows. <code>solid</code> for a floating or primary action.</p>
+<h2 id="accessibility">Accessibility</h2>
+<p><code>label</code> becomes both <code>aria-label</code> and the native tooltip. On touch surfaces use <code>size=&quot;md&quot;</code> or larger — <code>xs</code> and <code>sm</code> fall below the 44px target and need a padded hit area around them.</p>
+<h2 id="content">Content</h2>
+<p>Label is a verb phrase naming the action and its object: &quot;Close dialog&quot;, not &quot;Close&quot; or &quot;X&quot;.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>IconButton.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** Icon-only button. The accessible label is required, not optional. */
+export interface IconButtonProps extends React.ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
+  /** Accessible name and tooltip. Required — an unlabelled icon button is a bug. */
+  label: string;
+  /** @default &quot;ghost&quot; */
+  variant?: &quot;ghost&quot; | &quot;solid&quot;;
+  /** @default &quot;md&quot; */
+  size?: &quot;xs&quot; | &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot;;
+  disabled?: boolean;
+  /** A single icon, 20px, currentColor. */
+  children: React.ReactNode;
+}
+
+export declare function IconButton(props: IconButtonProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+export function IconButton({ label, variant = &quot;ghost&quot;, size = &quot;md&quot;, disabled = false, children, style, ...rest }) {
+  const [state, setState] = React.useState(&quot;idle&quot;);
+  const solid = variant === &quot;solid&quot;;
+  const bg = disabled
+    ? &quot;var(--dt-button-disabled-bg)&quot;
+    : solid
+      ? `var(--dt-button-primary-bg${state === &quot;active&quot; ? &quot;-active&quot; : state === &quot;hover&quot; ? &quot;-hover&quot; : &quot;&quot;})`
+      : `var(--dt-button-ghost-bg${state === &quot;active&quot; ? &quot;-active&quot; : state === &quot;hover&quot; ? &quot;-hover&quot; : &quot;&quot;})`;
+  return (
+    &lt;button
+      type=&quot;button&quot;
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onMouseEnter={() =&gt; !disabled &amp;&amp; setState(&quot;hover&quot;)}
+      onMouseLeave={() =&gt; setState(&quot;idle&quot;)}
+      onMouseDown={() =&gt; !disabled &amp;&amp; setState(&quot;active&quot;)}
+      onMouseUp={() =&gt; !disabled &amp;&amp; setState(&quot;hover&quot;)}
+      style={{
+        display: &quot;inline-flex&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;center&quot;,
+        width: `var(--dt-size-control-${size})`, height: `var(--dt-size-control-${size})`,
+        padding: 0, border: 0, borderRadius: &quot;var(--dt-button-radius)&quot;,
+        background: bg,
+        color: disabled ? &quot;var(--dt-button-disabled-fg)&quot; : solid ? &quot;var(--dt-button-primary-fg)&quot; : &quot;var(--dt-button-ghost-fg)&quot;,
+        cursor: disabled ? &quot;not-allowed&quot; : &quot;pointer&quot;,
+        transition: &quot;background var(--dt-button-transition)&quot;,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      {children}
+    &lt;/button&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>IconButton also appears on the actions reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#actionsdetail">ActionsDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

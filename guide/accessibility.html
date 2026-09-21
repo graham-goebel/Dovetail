@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessibility · Dovetail</title>
+<meta name="description" content="What the system guarantees, and what you owe.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* Applied before first paint so the page never flashes the wrong theme. */
+  try {
+    var m = localStorage.getItem("dovetail-docs-mode") || "light";
+    var c = localStorage.getItem("dovetail-docs-context") || "";
+    var r = document.documentElement;
+    if (m === "dark") r.classList.add("dark");
+    if (c) r.classList.add(c);
+    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">Dovetail</a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <label class="control">
+      <span>Context</span>
+      <select id="context-select">
+        <option value="">Default</option>
+        <option value="dt-context-product">Product</option>
+        <option value="dt-context-marketing">Marketing</option>
+      </select>
+    </label>
+    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
+      <span data-mode-label>Dark</span>
+    </button>
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html" aria-current="page">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Accessibility</li></ol></nav>
+<article class="prose doc">
+<h1 id="accessibility-contract">Accessibility contract</h1>
+<p>Accessibility is encoded in the tokens and the component APIs, not left to the person using them. This page documents what the system guarantees and what you still owe.</p>
+<h2 id="what-the-system-guarantees">What the system guarantees</h2>
+<p><strong>Contrast.</strong> Every semantic foreground/background pair clears WCAG 2.2 AA in both light and dark: 4.5:1 for body text, 3:1 for large text (19px bold / 23px regular and above) and non-text elements like borders and icons.</p>
+<p><strong>Focus.</strong> One ring, defined by <code>--dt-focus-ring-*</code> and applied through <code>:focus-visible</code> in <code>tokens/base.css</code>. It is 2px, offset 2px, and uses the accent colour, which is contrast- checked against every surface in the system. Pointer users never see it; keyboard users always do.</p>
+<p><strong>Touch targets.</strong> <code>--dt-size-control-md</code> is 40px and <code>--dt-size-touch-target</code> is 44px. WCAG 2.2 §2.5.8 sets the floor at 24px; 44px is the size people can actually hit.</p>
+<p><strong>Reduced motion.</strong> All four motion roles collapse to <code>0ms linear</code> under <code>prefers-reduced-motion: reduce</code>. No component needs its own media query.</p>
+<h2 id="what-you-owe">What you owe</h2>
+<p><strong>Never remove a focus ring.</strong> Not with <code>outline: none</code>, not by overriding <code>--dt-focus-ring-width</code> to zero. If the ring looks wrong on a component, the component needs a different offset, not a removal.</p>
+<p><strong>Labels are not optional.</strong> Every icon-only control takes a required <code>label</code> prop. Every form field is associated with a <code>&lt;label&gt;</code>. Placeholder text is not a label — it disappears the moment someone types.</p>
+<p><strong>Don't carry meaning in colour alone.</strong> An error state needs an icon or text, not just a red border. This is why <code>theme-mono</code> keeps feedback colours chromatic even though it strips the brand hue.</p>
+<p><strong>Keyboard contracts are part of the component.</strong> Each component's <code>.md</code> file documents its keyboard behaviour. If you compose components into a new pattern, the pattern needs a documented contract too.</p>
+<p><strong>Respect the heading hierarchy.</strong> Type roles are visual, not structural. <code>--dt-text-heading-md</code> on an <code>&lt;h4&gt;</code> is fine. Skipping from <code>&lt;h2&gt;</code> to <code>&lt;h5&gt;</code> because it looked right is not.</p>
+<h2 id="the-pairs-to-check-when-theming">The pairs to check when theming</h2>
+<p>If you override any of these surfaces, verify the paired foreground with it.</p>
+<div class="table-wrap"><table><thead><tr><th>Surface</th><th>Foreground</th><th>Minimum</th></tr></thead><tbody><tr><td><code>--dt-surface-base</code></td><td><code>--dt-text-primary</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-base</code></td><td><code>--dt-text-secondary</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-base</code></td><td><code>--dt-text-tertiary</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-subtle</code></td><td><code>--dt-text-primary</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-action</code></td><td><code>--dt-text-on-action</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-action-danger</code></td><td><code>--dt-text-on-action-danger</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-inverse</code></td><td><code>--dt-text-inverse</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-selected</code></td><td><code>--dt-text-on-selected</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-success</code></td><td><code>--dt-text-on-success</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-warning</code></td><td><code>--dt-text-on-warning</code></td><td>4.5:1</td></tr><tr><td><code>--dt-surface-base</code></td><td><code>--dt-border-default</code></td><td>3:1 for meaningful borders</td></tr><tr><td><code>--dt-surface-base</code></td><td><code>--dt-focus-ring-color</code></td><td>3:1</td></tr></tbody></table></div>
+<p>Disabled states are exempt from the text contrast minimum under WCAG, but Dovetail still aims for 3:1 — a disabled control nobody can read is a usability problem even if it passes.</p>
+<h2 id="testing">Testing</h2>
+<p>Automated checks catch roughly 30% of issues. The rest need a person.</p>
+<ol><li>Tab through the entire screen. Every interactive element must be reachable, in a sensible order, with a visible ring.</li><li>Operate it with the keyboard alone. No mouse, no trackpad.</li><li>Run it at 200% browser zoom and 320px width.</li><li>Turn on <code>prefers-reduced-motion</code> and confirm nothing animates.</li><li>Check it in dark mode — contrast regressions hide there.</li></ol>
+</article>
+<p class="muted">Source: <a href="../system/guidelines/accessibility.md">system/guidelines/accessibility.md</a></p>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+/* TIER 1 — PRIMITIVE MOTION
+   Raw durations and easing curves. Components reference the semantic motion roles,
+   not these. Durations are short by default: interface motion confirms a change,
+   it does not perform. */
+
+:root {
+  --dt-duration-instant: 0ms; /* @kind other */
+  --dt-duration-50: 50ms; /* @kind other */
+  --dt-duration-100: 100ms; /* @kind other */
+  --dt-duration-150: 150ms; /* @kind other */
+  --dt-duration-200: 200ms; /* @kind other */
+  --dt-duration-300: 300ms; /* @kind other */
+  --dt-duration-400: 400ms; /* @kind other */
+  --dt-duration-600: 600ms; /* @kind other */
+
+  --dt-easing-linear: linear; /* @kind other */
+  --dt-easing-standard: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --dt-easing-decelerate: cubic-bezier(0, 0, 0, 1); /* @kind other */
+  --dt-easing-accelerate: cubic-bezier(0.3, 0, 1, 1); /* @kind other */
+  --dt-easing-emphasis: cubic-bezier(0.2, 0, 0, 1.2); /* @kind other */
+}

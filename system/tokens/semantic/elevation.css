@@ -1,0 +1,29 @@
+/* TIER 2 — SEMANTIC ELEVATION
+   Elevation is a z-order vocabulary, not a shadow menu. Pick the level that matches
+   what the element is, and the shadow follows. Dark themes swap shadows for surface
+   lightness, because shadows are close to invisible on a dark ground.
+
+   0 flush with the page          3 sticky headers, dropdowns
+   1 cards, resting surfaces      4 dialogs, drawers
+   2 hovered cards, popovers      5 toasts, anything above a dialog */
+
+:root {
+  --dt-elevation-0: var(--dt-shadow-raw-none); /* @kind other */
+  --dt-elevation-1: var(--dt-shadow-raw-1); /* @kind other */
+  --dt-elevation-2: var(--dt-shadow-raw-2); /* @kind other */
+  --dt-elevation-3: var(--dt-shadow-raw-3); /* @kind other */
+  --dt-elevation-4: var(--dt-shadow-raw-4); /* @kind other */
+  --dt-elevation-5: var(--dt-shadow-raw-5); /* @kind other */
+  --dt-elevation-inset: var(--dt-shadow-raw-inset); /* @kind other */
+
+  /* Stacking order. Keep every fixed-position layer on this ladder —
+     hand-picked z-index values are how overlay bugs start. */
+  --dt-z-base: 0; /* @kind other */
+  --dt-z-raised: 10; /* @kind other */
+  --dt-z-sticky: 100; /* @kind other */
+  --dt-z-dropdown: 200; /* @kind other */
+  --dt-z-overlay: 300; /* @kind other */
+  --dt-z-dialog: 400; /* @kind other */
+  --dt-z-toast: 500; /* @kind other */
+  --dt-z-tooltip: 600; /* @kind other */
+}

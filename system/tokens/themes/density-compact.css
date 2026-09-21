@@ -1,0 +1,30 @@
+/* DENSITY — COMPACT
+   Retunes control heights and inset spacing only. Type, colour, and shape are
+   untouched, so a compact view is recognisably the same product.
+
+   Use for data-dense surfaces: tables, admin tools, anything with more than
+   roughly twenty interactive elements in view.
+
+   Link after styles.css, or scope it to a subtree with a class. */
+
+:root,
+.dt-density-compact {
+  --dt-size-control-xs: var(--dt-dim-5);  /* 20 */
+  --dt-size-control-sm: var(--dt-dim-7);  /* 28 */
+  --dt-size-control-md: var(--dt-dim-8);  /* 32 */
+  --dt-size-control-lg: var(--dt-dim-10); /* 40 */
+
+  --dt-space-inset-sm: var(--dt-dim-2);
+  --dt-space-inset-md: var(--dt-dim-3);
+  --dt-space-inset-lg: var(--dt-dim-4);
+  --dt-space-inset-xl: var(--dt-dim-6);
+  --dt-space-inset-2xl: var(--dt-dim-8);
+
+  --dt-space-stack-md: var(--dt-dim-3);
+  --dt-space-stack-lg: var(--dt-dim-4);
+  --dt-space-stack-xl: var(--dt-dim-6);
+  --dt-space-stack-2xl: var(--dt-dim-10);
+
+  --dt-space-section: var(--dt-dim-12);
+  --dt-space-gutter: var(--dt-dim-4);
+}

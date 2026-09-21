@@ -1,0 +1,362 @@
+<!-- @dsCard group="Component detail" viewport="1100x1600" name="Navigation — detail" subtitle="Tabs, Breadcrumbs, Pagination, Stepper, Navbar, Sidebar with props and usage" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+/* Token-propagating asset loader. The page URL carries an auth token; project-relative
+   subresource URLs do not inherit it and come back 401, so every request is built with
+   the token appended (absent token yields an empty suffix, which is harmless).
+
+   CSS is fetched and its @import closure resolved here, then injected as one <style>.
+   A <link> loads, but the imports inside resolve without the token and 401 silently —
+   the sheet arrives with rules and none of the tokens they pull in.
+
+   Babel-typed files are fetched and transformed here rather than left to Babel's own
+   scan, because Babel fetches src itself and a 401 there surfaces as a bare
+   "Script error." with no URL attached. */
+(function () {
+  var Q = (function () {
+    var t = new URLSearchParams(location.search).get("t");
+    return t ? "?t=" + t : "";
+  })();
+  var B = "../../";
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  function url(p) { return B + p + Q; }
+  function normalise(p) {
+    var out = [];
+    p.split("/").forEach(function (s) { if (s === "." || s === "") return; if (s === "..") out.pop(); else out.push(s); });
+    return out.join("/");
+  }
+  function resolveCss(path) {
+    return fetch(url(path))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (txt) {
+        var dir = path.replace(/[^/]*$/, "");
+        var re = /@import\s+(?:url\()?["']?([^"')]+)["']?\)?\s*;/g;
+        var parts = [], jobs = [], last = 0, m;
+        while ((m = re.exec(txt))) {
+          parts.push(txt.slice(last, m.index));
+          last = m.index + m[0].length;
+          if (/^(https?:)?\/\//.test(m[1])) { parts.push(m[0]); continue; }
+          jobs.push({ slot: parts.length, path: normalise(dir + m[1]) });
+          parts.push("");
+        }
+        parts.push(txt.slice(last));
+        return Promise.all(jobs.map(function (j) {
+          return resolveCss(j.path).then(function (css) { parts[j.slot] = css; });
+        })).then(function () { return parts.join("\n"); });
+      })
+      .catch(function (e) { failures.push(path + " (" + e.message + ")"); return ""; });
+  }
+  function js(p) {
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = url(p);
+      s.onload = function () { res(true); };
+      s.onerror = function () { failures.push(p); res(false); };
+      document.head.appendChild(s);
+    });
+  }
+  function jsx(p) {
+    return fetch(url(p))
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (src) { (0, eval)(Babel.transform(src, { presets: ["react"] }).code); return true; })
+      .catch(function (e) { failures.push(p + " (" + e.message + ")"); return false; });
+  }
+  window.DT_ASSETS = Promise.all([resolveCss("styles.css")])
+    .then(function (sheets) {
+      var el = document.createElement("style");
+      el.id = "dt-inlined-css";
+      el.textContent = sheets.join("\n");
+      document.head.appendChild(el);
+    })
+    .then(function () { return js("_ds_bundle.js"); })
+    .then(function () { return js("templates/_support/theme-runtime.js"); })
+    .then(function () { return jsx("templates/_support/card-kit.js"); })
+    .then(function () { return failures; });
+})();
+</script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+
+let Tabs, TabPanel, Breadcrumbs, Pagination, Stepper, Navbar, Sidebar, Badge, Button, Avatar, Inline, Stack;
+
+function Page() {
+  const [tab, setTab] = React.useState("overview");
+  const [pill, setPill] = React.useState("all");
+  const [page, setPage] = React.useState(3);
+  const [step, setStep] = React.useState(1);
+  const [navId, setNavId] = React.useState("product");
+  const [side, setSide] = React.useState("inbox");
+  return (
+    <React.Fragment>
+      <PageHead title="Navigation" subtitle="Components that move the user between views. Each one owns its keyboard behaviour and its aria-current state — do not reimplement either in product code." />
+
+      <Shelf
+        name="Tabs"
+        summary="Switches between sibling views that share a purpose. Arrow keys move between tabs; Home and End jump to the ends."
+        props={[
+          { name: "tabs", type: "TabItem[]", required: true, notes: "id, label, and optional icon, count, disabled." },
+          { name: "value", type: "string", required: true, notes: "Id of the selected tab. Controlled." },
+          { name: "onChange", type: "(id: string) => void" },
+          { name: "label", type: "string", required: true, notes: "Accessible tablist name." },
+          { name: "variant", type: '"underline" | "pill"', default: '"underline"', notes: "underline inside page content; pill for compact toolbar filters." },
+        ]}
+        guidance={[
+          "Pair every Tabs with TabPanel. The panel wires aria-controls and aria-labelledby — a bare div loses the relationship.",
+          "Three to six tabs. Beyond that use a Sidebar; tabs that scroll horizontally hide options.",
+          "Do not intercept keydown on the tablist. Arrow, Home, and End handling is built in.",
+          "Tabs hide everything but one panel. When panels are short and related, stacked sections with headings scan better.",
+        ]}
+      >
+        <Specimen label="Underline, with counts" bg="var(--dt-surface-base)">
+          <Stack gap="sm">
+            <Tabs
+              label="Account sections"
+              value={tab}
+              onChange={setTab}
+              tabs={[
+                { id: "overview", label: "Overview" },
+                { id: "members", label: "Members", count: 12 },
+                { id: "billing", label: "Billing" },
+                { id: "audit", label: "Audit log", disabled: true },
+              ]}
+            />
+            <TabPanel id="overview" value={tab}><p style={{ margin: 0, color: "var(--dt-text-secondary)", fontSize: "var(--dt-text-body-sm-size)" }}>Workspace summary and recent activity.</p></TabPanel>
+            <TabPanel id="members" value={tab}><p style={{ margin: 0, color: "var(--dt-text-secondary)", fontSize: "var(--dt-text-body-sm-size)" }}>Twelve people have access to this workspace.</p></TabPanel>
+            <TabPanel id="billing" value={tab}><p style={{ margin: 0, color: "var(--dt-text-secondary)", fontSize: "var(--dt-text-body-sm-size)" }}>Plan, payment method, and invoices.</p></TabPanel>
+          </Stack>
+        </Specimen>
+        <Specimen label="Pill, as a filter switch" bg="var(--dt-surface-base)">
+          <Tabs
+            variant="pill"
+            label="Invoice filter"
+            value={pill}
+            onChange={setPill}
+            tabs={[{ id: "all", label: "All" }, { id: "open", label: "Open" }, { id: "paid", label: "Paid" }, { id: "void", label: "Void" }]}
+            style={{ display: "inline-flex" }}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Breadcrumbs"
+        summary="Shows where the current page sits in the hierarchy. The last crumb is the current page and renders as text."
+        props={[
+          { name: "items", type: "Crumb[]", required: true, notes: "Root first, current page last." },
+          { name: "label", type: "string", default: '"Breadcrumb"' },
+          { name: "separator", type: "ReactNode", default: '"/"' },
+        ]}
+        guidance={[
+          "Breadcrumbs reflect hierarchy, not history. Do not build them from the back stack.",
+          "The last crumb carries aria-current=\"page\" and is never a link to itself.",
+          "Two levels does not need a trail — use a single back link.",
+          "On mobile, collapse the middle crumbs to an ellipsis rather than wrapping to two lines.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Breadcrumbs items={[
+            { label: "Workspace", href: "#" },
+            { label: "Projects", href: "#" },
+            { label: "Northwind rebrand", href: "#" },
+            { label: "Assets" },
+          ]} />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Pagination"
+        summary="Page-by-page navigation for a known result count. Truncates with an ellipsis past seven pages."
+        props={[
+          { name: "page", type: "number", required: true, notes: "1-indexed, matching what the user reads." },
+          { name: "totalPages", type: "number", required: true },
+          { name: "onChange", type: "(page: number) => void" },
+          { name: "label", type: "string", default: '"Pagination"' },
+        ]}
+        guidance={[
+          "Show the total. A user who cannot see how much is left cannot decide whether to page or to filter.",
+          "Disable, never hide, the end controls. A control that vanishes shifts the row under the cursor.",
+          "Pagination beats infinite scroll for findability and deep linking. Use it for tables and search results, not feeds.",
+        ]}
+      >
+        <Specimen label={"Page " + page + " of 24"} bg="var(--dt-surface-base)">
+          <Pagination page={page} totalPages={24} onChange={setPage} />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Stepper"
+        summary="Position in a linear, multi-step task. Completed steps show a check; the active step carries aria-current."
+        props={[
+          { name: "steps", type: "Step[]", required: true, notes: "label and optional description." },
+          { name: "current", type: "number", required: true, notes: "0-based index of the active step." },
+          { name: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"', notes: "Use vertical when descriptions run long." },
+          { name: "label", type: "string", default: '"Progress"' },
+        ]}
+        guidance={[
+          "Steps must be genuinely sequential. If the user can complete them in any order, use Tabs or a checklist.",
+          "Three to five steps. A seven-step stepper reads as a warning, not a guide.",
+          "Labels are nouns or short verb phrases, sentence case.",
+          "Showing the full path sets expectations but can deter users at step one. Keep the first commitment small.",
+        ]}
+      >
+        <Specimen label="Horizontal" bg="var(--dt-surface-base)">
+          <Stack gap="md">
+            <Stepper current={step} steps={[
+              { label: "Account", description: "Email and password" },
+              { label: "Workspace", description: "Name and members" },
+              { label: "Billing", description: "Plan and payment" },
+              { label: "Done" },
+            ]} />
+            <Inline gap="sm">
+              <Button size="sm" variant="secondary" onClick={() => setStep(Math.max(0, step - 1))}>Back</Button>
+              <Button size="sm" onClick={() => setStep(Math.min(3, step + 1))}>Continue</Button>
+            </Inline>
+          </Stack>
+        </Specimen>
+        <Specimen label="Vertical" bg="var(--dt-surface-base)">
+          <Stepper orientation="vertical" current={1} style={{ maxWidth: 320 }} steps={[
+            { label: "Connect repository", description: "Grant read access to the branch you deploy from." },
+            { label: "Configure build", description: "Set the build command and output directory." },
+            { label: "Add domain", description: "Point a CNAME at the generated host." },
+          ]} />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Navbar"
+        summary="Top-level horizontal navigation for marketing pages and shallow product shells."
+        props={[
+          { name: "links", type: "NavLink[]", required: true, notes: "id, label, href." },
+          { name: "brand", type: "ReactNode", notes: "Logo or wordmark slot." },
+          { name: "current", type: "string", notes: "Id of the active link." },
+          { name: "onNavigate", type: "(id: string) => void", notes: "When set, clicks are intercepted and routed here." },
+          { name: "actions", type: "ReactNode", notes: "Right-hand slot for buttons, search, or an Avatar." },
+          { name: "sticky", type: "boolean", default: "false" },
+        ]}
+        guidance={[
+          "Five links or fewer. A navbar is a shortlist, not a sitemap.",
+          "One primary action in actions, at most. Two filled buttons means neither is primary.",
+          "Do not put the current page's own section links here. Those are Tabs.",
+          "Plan the mobile treatment — a Drawer — before you add the fourth link.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <Navbar
+            brand={<span style={{ fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-body-lg-size)" }}>Northwind</span>}
+            current={navId}
+            onNavigate={setNavId}
+            links={[{ id: "product", label: "Product" }, { id: "pricing", label: "Pricing" }, { id: "docs", label: "Docs" }, { id: "company", label: "Company" }]}
+            actions={<Inline gap="xs" align="center"><Button size="sm" variant="ghost">Sign in</Button><Button size="sm">Start free</Button></Inline>}
+            style={{ borderRadius: "var(--dt-radius-container)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" }}
+          />
+        </Specimen>
+      </Shelf>
+
+      <Shelf
+        name="Sidebar"
+        summary="Persistent vertical navigation for products with more destinations than a Navbar can hold."
+        props={[
+          { name: "sections", type: "SidebarSection[]", required: true, notes: "Optional title plus items of id, label, icon, trailing." },
+          { name: "current", type: "string" },
+          { name: "onNavigate", type: "(id: string) => void" },
+          { name: "header", type: "ReactNode", notes: "Workspace switcher or logo." },
+          { name: "footer", type: "ReactNode", notes: "Pinned to the bottom — account, help." },
+          { name: "width", type: "number | string", default: "240" },
+        ]}
+        guidance={[
+          "Group with sections once you pass roughly seven items. The section eyebrow is the one place uppercase is allowed.",
+          "Icons are all-or-nothing within a section. A mixed column reads as broken.",
+          "Counts go in trailing as a Badge. Appending them to the label breaks truncation.",
+          "Below roughly 900px, move the sidebar into a Drawer rather than shrinking it.",
+        ]}
+      >
+        <Specimen bg="var(--dt-surface-base)">
+          <div style={{ display: "flex", height: 340, border: "var(--dt-border-width-default) solid var(--dt-border-subtle)", borderRadius: "var(--dt-radius-container)", overflow: "hidden" }}>
+            <Sidebar
+              current={side}
+              onNavigate={setSide}
+              header={<Inline gap="sm" align="center"><Avatar name="Northwind Trading" shape="square" size="sm" /><span style={{ fontWeight: "var(--dt-font-weight-medium)", fontSize: "var(--dt-text-label-md-size)" }}>Northwind</span></Inline>}
+              footer={<Inline gap="sm" align="center"><Avatar name="Ada Lovelace" size="sm" /><span style={{ fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)" }}>Ada Lovelace</span></Inline>}
+              sections={[
+                { items: [{ id: "inbox", label: "Inbox", trailing: <Badge>8</Badge> }, { id: "assigned", label: "Assigned to me" }, { id: "drafts", label: "Drafts" }] },
+                { title: "Workspace", items: [{ id: "projects", label: "Projects" }, { id: "members", label: "Members" }, { id: "integrations", label: "Integrations" }] },
+                { title: "Settings", items: [{ id: "billing", label: "Billing" }, { id: "security", label: "Security" }] },
+              ]}
+            />
+            <div style={{ flex: 1, padding: "var(--dt-space-inset-lg)", background: "var(--dt-surface-base)" }}>
+              <p style={{ margin: 0, color: "var(--dt-text-tertiary)", fontSize: "var(--dt-text-body-sm-size)" }}>Selected: {side}</p>
+            </div>
+          </div>
+        </Specimen>
+      </Shelf>
+    </React.Fragment>
+  );
+}
+
+/* Self-contained bootstrap. It must not depend on card-kit.js, because the most likely
+   failure is card-kit.js itself not loading — a loop that waits on window.dsReady to
+   report that window.dsReady is missing waits forever. Everything below runs from this
+   file alone and always resolves: render, or say why not. */
+(function () {
+  var NEED = ["Tabs","TabPanel","Breadcrumbs","Pagination","Stepper","Navbar","Sidebar","Badge","Button","Avatar","Inline","Stack"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  /* Wall clock, not tick count: a throttled or backgrounded frame stretches a 40ms
+     timeout well past 40ms, which would push the deadline minutes out. */
+  function elapsed() { return Date.now() - startedAt; }
+
+  function missingComponents() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.PageHead && window.Specimen); }
+
+  function refetchBundle() {
+    var base = document.querySelector('script[src$="_ds_bundle.js"]');
+    if (!base) return;
+    var s = document.createElement("script");
+    s.src = base.getAttribute("src") + "?cb=" + Date.now();
+    document.head.appendChild(s);
+  }
+
+  function explain(gaps) {
+    var noBundle = !window[NS_KEY];
+    var noKit = !kitReady();
+    var why;
+    if (noBundle && noKit) why = "Neither <code>_ds_bundle.js</code> nor <code>card-kit.js</code> loaded. Both are project-relative, so this is usually a serving or path problem rather than anything in the card itself.";
+    else if (noKit) why = "<code>templates/_support/card-kit.js</code> did not load, so the shelf chrome is unavailable.";
+    else if (noBundle) why = "<code>_ds_bundle.js</code> did not load. It is regenerated whenever a component changes — reload in a moment.";
+    else why = "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. That is a cached copy behind the current sources; a hard reload clears it.";
+
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      why + '</div>';
+  }
+
+  (function poll() {
+    var gaps = missingComponents();
+    if (gaps.length === 0 && kitReady()) {
+      ({ Tabs, TabPanel, Breadcrumbs, Pagination, Stepper, Navbar, Sidebar, Badge, Button, Avatar, Inline, Stack } = window[NS_KEY]);
+      ReactDOM.createRoot(document.getElementById("root")).render(<Page />);
+      return;
+    }
+    if (elapsed() > REFETCH_AT && !refetched && gaps.length) { refetched = true; refetchBundle(); }
+    if (elapsed() > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>
