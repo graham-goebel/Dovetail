@@ -41,7 +41,11 @@ jobs:
             exit 1
           fi
 
+      # enablement turns Pages on for the repository the first time this runs,
+      # so nothing has to be set by hand in Settings.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       # upload-pages-artifact excludes .git and .github, so the whole
       # repository root is the site: pages, previews, and system/ beside them.

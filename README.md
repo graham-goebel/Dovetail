@@ -53,10 +53,11 @@ python3 -m http.server 8000
 ## Publishing
 
 `.github/workflows/pages.yml` builds the site and deploys the repository root to GitHub
-Pages on every push to `main` or the development branch. Set **Settings → Pages →
-Source** to **GitHub Actions** once, and the workflow does the rest. It fails the build
-if the committed pages are out of date with `system/`, so what is deployed always matches
-what is in the repository.
+Pages on every push to `main` or the development branch. It enables Pages on the first
+run, so there is nothing to set by hand — if that is refused for your account, set
+**Settings → Pages → Source** to **GitHub Actions** and re-run the workflow. The build
+fails if the committed pages are out of date with `system/`, so what is deployed always
+matches what is in the repository.
 
 `.nojekyll` is committed because the system has paths that begin with an underscore, and
 Jekyll would drop them.
