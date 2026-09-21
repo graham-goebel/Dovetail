@@ -52,12 +52,21 @@ python3 -m http.server 8000
 
 ## Publishing
 
-`.github/workflows/pages.yml` builds the site and deploys the repository root to GitHub
-Pages on every push to `main` or the development branch. It enables Pages on the first
-run, so there is nothing to set by hand — if that is refused for your account, set
-**Settings → Pages → Source** to **GitHub Actions** and re-run the workflow. The build
-fails if the committed pages are out of date with `system/`, so what is deployed always
-matches what is in the repository.
+Pages has to be switched on once, in **Settings → Pages**. A workflow cannot do it for
+you: the token Actions runs with is not allowed to create the Pages site, so the first
+run fails with *Create Pages site failed — resource not accessible by integration* until
+someone with repository admin makes the choice. There are two ways to make it.
+
+**Source: GitHub Actions.** `.github/workflows/pages.yml` builds the site and deploys
+the repository root on every push to `main` or the development branch, and fails the
+build if the committed pages are out of date with `system/` — so what is deployed always
+matches what is in the repository. Pick this one, then re-run the workflow.
+
+**Source: Deploy from a branch**, with the branch set and the folder set to `/ (root)`.
+The whole site is committed, so this publishes with no build and no Actions run at all.
+The trade-off is that nothing then checks the pages against `system/` after an edit.
+
+Either way the site lands at `https://<owner>.github.io/<repo>/`.
 
 `.nojekyll` is committed because the system has paths that begin with an underscore, and
 Jekyll would drop them.
