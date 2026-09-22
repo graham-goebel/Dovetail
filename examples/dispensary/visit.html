@@ -47,12 +47,12 @@
               ]
             }),
             h(NS.Inline, { gap: "sm", wrap: true },
-              h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Reserve for pickup"),
-              h(NS.Button, { as: "a", href: "#faq", size: "lg", variant: "secondary" }, "Read the FAQ")
+              h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", size: "lg" }, "Reserve for pickup"),
+              h(NS.Button, { as: "a", className: "lm-btn", href: "#faq", size: "lg", variant: "secondary" }, "Read the FAQ")
             )
           ),
           h(NS.Cover, {
-            src: "img/friends-ride.png", alt: "Friends cycling through the park near the store",
+            src: "img/friends-ride.png", alt: "Friends cycling through the park near the store", className: "lm-on-photo",
             ratio: "4:3", radius: "container", scrim: "gradient", align: "bottom",
             eyebrow: "Getting here", title: "Ride the park trail",
             body: "Racks for 12 bikes out front. Lock up and come in."
@@ -88,7 +88,8 @@
         )
       ),
 
-      h(LM.Section, { id: "faq" },
+      h(LM.Bleed, { img: "img/leaf-shadow.png", scrim: "wash", className: "lm-sec-band", id: "faq", label: "First visit" },
+        h(NS.Stack, { gap: "xl" },
         h(NS.Stack, { gap: "xs", className: "lm-center" },
           h("span", { className: "lm-eyebrow" }, "First visit"),
           h("h2", { className: "lm-h2" }, "Questions people ask at the counter")
@@ -105,9 +106,10 @@
             ]
           })
         )
+        )
       ),
 
-      h("section", { className: "lm-sec lm-alt" },
+      h(LM.Bleed, { img: "img/water-light.png", scrim: "full", className: "lm-sec-band", label: "Newsletter" },
         h("div", { className: "lm-two" },
           h(NS.Stack, { gap: "md" },
             h("span", { className: "lm-eyebrow" }, "Stay in the loop"),
@@ -115,7 +117,7 @@
             h("p", { className: "lm-lead" }, "One email when a new jar lands on the shelf, usually twice a month. No daily deals, and you can leave any time."),
             h(Signup)
           ),
-          h(NS.Image, { src: "img/flower-jar.png", alt: "A glass jar of freshly cured flower", ratio: "4:3", radius: "container" })
+          h(NS.Image, { src: "img/preroll-tray.png", alt: "A pre-roll resting in a stone ashtray beside a brass lighter", ratio: "4:3", radius: "container" })
         )
       )
     );

@@ -22,63 +22,98 @@
   var h = LM.h, NS = LM.NS;
 
   function Home() {
-    var featured = ["meadow-haze", "harvest-jar", "globe-bubbler"].map(LM.find);
+    var featured = ["meadow-haze", "haze-prerolls", "globe-bubbler"].map(LM.find);
     return h(React.Fragment, null,
 
-      h(LM.Section, null,
-        h("div", { className: "lm-hero" },
+      h(LM.Bleed, {
+        img: "img/friends-circle.png", eager: true, focus: "50% 30%", scrim: "left", className: "lm-hero-bleed", label: "Welcome",
+        alt: "Four friends laughing together by candlelight"
+      },
+        h(NS.Stack, { gap: "lg", style: { maxWidth: "36rem" } },
           h(NS.Stack, { gap: "md" },
             h("span", { className: "lm-eyebrow" }, "Open today, 10am to 9pm"),
-            h("h1", { className: "lm-h1" }, "Good flower for good afternoons"),
-            h("p", { className: "lm-lead" }, "Low Meadow is a neighbourhood dispensary on Orchard Street. We stock small-farm flower, hand-blown glass, and seeds you can grow at home, and our staff will tell you honestly what each one is like."),
-            h(NS.Inline, { gap: "sm", wrap: true },
-              h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Shop the menu"),
-              h(NS.Button, { as: "a", href: "visit.html", size: "lg", variant: "secondary" }, "Plan a visit")
-            ),
-            h(NS.Inline, { gap: "xs", wrap: true },
-              h(NS.Tag, null, "Reserve online"),
-              h(NS.Tag, null, "Pay at pickup"),
-              h(NS.Tag, null, "Lab tested")
-            )
+            h("h1", { className: "lm-h1" }, "Good flower for good company"),
+            h("p", { className: "lm-lead" }, "Small-farm flower, hand-blown glass, and seeds you can grow at home, from a neighbourhood shop on Orchard Street. Tell us how you want the evening to feel; we will help with the rest.")
           ),
-          h(NS.Image, { src: "img/friends-ride.png", alt: "Three friends laughing on bicycles in a sunlit park, with the city skyline behind them", ratio: "4:3", radius: "container" })
-        )
-      ),
-
-      h(LM.Section, { alt: true },
-        h(NS.Stack, { gap: "xs", className: "lm-center" },
-          h("span", { className: "lm-eyebrow" }, "What we carry"),
-          h("h2", { className: "lm-h2" }, "Three shelves, chosen by hand")
-        ),
-        h(NS.Grid, { minColumnWidth: "260px", gap: "lg" },
-          LM.CATEGORIES.map(function (c) {
-            return h("a", { key: c.id, href: "shop.html?category=" + c.id, className: "lm-card-link" },
-              h(NS.Card, {
-                interactive: true,
-                media: h(NS.Image, { src: c.img, alt: "", ratio: "3:2", radius: "media" }),
-                title: c.label, description: c.blurb
-              })
-            );
-          })
+          h(NS.Inline, { gap: "sm", wrap: true },
+            h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", size: "lg" }, "Shop the menu"),
+            h(NS.Button, { as: "a", className: "lm-btn", href: "visit.html", size: "lg", variant: "secondary" }, "Plan a visit")
+          ),
+          h(NS.Inline, { gap: "xs", wrap: true },
+            h(NS.Tag, null, "Reserve online"),
+            h(NS.Tag, null, "Pay at pickup"),
+            h(NS.Tag, null, "Lab tested")
+          )
         )
       ),
 
       h(LM.Section, null,
         h(NS.Inline, { justify: "space-between", align: "end", wrap: true, gap: "md" },
           h(NS.Stack, { gap: "xs" },
+            h("span", { className: "lm-eyebrow" }, "What we carry"),
+            h("h2", { className: "lm-h2" }, "Three shelves, chosen by hand")
+          ),
+          h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", variant: "ghost" }, "See everything")
+        ),
+        h(NS.Grid, { minColumnWidth: "220px", gap: "lg", className: "lm-on-photo" },
+          LM.CATEGORIES.map(function (c) {
+            return h("a", { key: c.id, href: "shop.html?category=" + c.id, className: "lm-tile" },
+              h(NS.Cover, {
+                src: c.photo, alt: "", ratio: "3:4", radius: "container", scrim: "gradient", align: "bottom",
+                eyebrow: "Shop", title: c.label, body: c.blurb
+              })
+            );
+          })
+        )
+      ),
+
+      h(LM.Bleed, { img: "img/concert.png", scrim: "full", center: true, label: "Share it" },
+        h(NS.Stack, { gap: "md", align: "center" },
+          h("span", { className: "lm-eyebrow" }, "Made for sharing"),
+          h("h2", { className: "lm-h1" }, "For the nights you will talk about for years"),
+          h("p", { className: "lm-lead" }, "Pick up something to pass around before the show, the dinner, or the long drive home with someone else behind the wheel."),
+          h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html?category=flower", size: "lg" }, "Shop flower")
+        )
+      ),
+
+      h(LM.Section, { alt: true },
+        h(NS.Inline, { justify: "space-between", align: "end", wrap: true, gap: "md" },
+          h(NS.Stack, { gap: "xs" },
             h("span", { className: "lm-eyebrow" }, "This week"),
             h("h2", { className: "lm-h2" }, "Staff picks")
           ),
-          h(NS.Button, { as: "a", href: "shop.html", variant: "ghost" }, "See the full menu")
+          h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", variant: "ghost" }, "See the full menu")
         ),
         h(NS.Grid, { minColumnWidth: "280px", gap: "lg" },
           featured.map(function (p) { return h(LM.ProductCard, { key: p.id, product: p }); })
         )
       ),
 
-      h(LM.Section, { alt: true },
+      h(LM.Bleed, { img: "img/preroll-tray.png", scrim: "left", focus: "50% 60%", label: "Pre-rolls" },
+        h(NS.Stack, { gap: "md", style: { maxWidth: "32rem" } },
+          h("span", { className: "lm-eyebrow" }, "New on the shelf"),
+          h("h2", { className: "lm-h1" }, "Rolled by hand, ready when you are"),
+          h("p", { className: "lm-lead" }, "Our pre-rolls use whole flower from the same jars on the counter, never shake or trim. Three half-grams to a tube: enough for a slow afternoon or a small circle of friends."),
+          h(NS.Inline, { gap: "sm", wrap: true },
+            h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html?category=prerolls", size: "lg" }, "Shop pre-rolls")
+          )
+        )
+      ),
+
+      h(LM.Bleed, { img: "img/leaf-shadow.png", scrim: "wash", className: "lm-sec-band", label: "What guests say" },
+        h(NS.Grid, { minColumnWidth: "280px", gap: "xl" },
+          h(NS.Quote, { attribution: "Maya R.", role: "Regular since 2023", avatar: h(NS.Avatar, { name: "Maya R." }) },
+            "They asked what I wanted the evening to feel like, not what I wanted to spend. That is why I keep coming back."),
+          h(NS.Quote, { attribution: "Jordan T.", role: "First visit last spring", avatar: h(NS.Avatar, { name: "Jordan T." }) },
+            "I had not tried anything in 15 years. Sunday mix was exactly the gentle start they said it would be."),
+          h(NS.Quote, { attribution: "Priya S.", role: "Home grower", avatar: h(NS.Avatar, { name: "Priya S." }) },
+            "The starter seeds came with a grow card written by someone who clearly grows. All 4 came up.")
+        )
+      ),
+
+      h(LM.Bleed, { img: "img/wood-grain.png", scrim: "full", label: "How we buy" },
         h("div", { className: "lm-two" },
-          h(NS.Image, { src: "img/flower-jar.png", alt: "A glass jar of cured cannabis flower on a linen cloth", ratio: "square", radius: "container" }),
+          h(NS.Image, { src: "img/plant-closeup.png", alt: "A frosted cannabis flower close to harvest, lit by the sun", ratio: "square", radius: "container" }),
           h(NS.Stack, { gap: "md" },
             h("span", { className: "lm-eyebrow" }, "How we buy"),
             h("h2", { className: "lm-h2" }, "Every jar has a farm and a date on it"),
@@ -92,24 +127,14 @@
         )
       ),
 
-      h(LM.Section, null,
-        h(NS.Grid, { minColumnWidth: "280px", gap: "xl" },
-          h(NS.Quote, { attribution: "Maya R.", role: "Regular since 2023", avatar: h(NS.Avatar, { name: "Maya R." }) },
-            "They asked what I wanted the evening to feel like, not what I wanted to spend. That is why I keep coming back."),
-          h(NS.Quote, { attribution: "Jordan T.", role: "First visit last spring", avatar: h(NS.Avatar, { name: "Jordan T." }) },
-            "I had not tried anything in 15 years. Sunday mix was exactly the gentle start they said it would be."),
-          h(NS.Quote, { attribution: "Priya S.", role: "Home grower", avatar: h(NS.Avatar, { name: "Priya S." }) },
-            "The starter seeds came with a grow card written by someone who clearly grows. All 4 came up.")
-        )
-      ),
-
-      h("section", { className: "lm-sec lm-brand-fill" },
-        h(NS.Stack, { gap: "md", className: "lm-center" },
-          h("h2", { className: "lm-h2" }, "Reserve now, pick up in 20 minutes"),
-          h("p", { className: "lm-lead" }, "Add what you want to your bag and we will have it bagged at the counter. Bring your ID; you pay when you arrive."),
-          h(NS.Inline, { gap: "sm", justify: "center", wrap: true },
-            h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Start an order"),
-            h(NS.Button, { as: "a", href: "visit.html", size: "lg", variant: "secondary" }, "Get directions")
+      h(LM.Bleed, { img: "img/friends-ride.png", scrim: "left", focus: "50% 40%", label: "Reserve for pickup" },
+        h(NS.Stack, { gap: "md", style: { maxWidth: "34rem" } },
+          h("span", { className: "lm-eyebrow" }, "Two blocks from the park trail"),
+          h("h2", { className: "lm-h1" }, "Reserve now, pick up on your ride"),
+          h("p", { className: "lm-lead" }, "Add what you want to your bag and we will have it ready at the counter in 20 minutes. Bring your ID; you pay when you arrive."),
+          h(NS.Inline, { gap: "sm", wrap: true },
+            h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", size: "lg" }, "Start an order"),
+            h(NS.Button, { as: "a", className: "lm-btn", href: "visit.html", size: "lg", variant: "secondary" }, "Get directions")
           )
         )
       )

@@ -89,14 +89,17 @@
         )
       ),
 
-      isPlant ? h(LM.Section, { className: "tight" },
-        h(NS.Callout, { tone: "caution", title: "Start low, go slow" },
-          "Effects vary from person to person. Wait at least 15 minutes after inhaling before you have more, and never drive after use.")
+      isPlant ? h(LM.Bleed, { img: "img/smoke.png", scrim: "full", center: true, className: "lm-band-short lm-sec-band", label: "Start low, go slow" },
+        h(NS.Stack, { gap: "sm", align: "center" },
+          h("span", { className: "lm-eyebrow" }, "A note from our staff"),
+          h("h2", { className: "lm-h2" }, "Start low, go slow"),
+          h("p", { className: "lm-lead" }, "Effects vary from person to person. Wait at least 15 minutes after inhaling before you have more, and never drive after use.")
+        )
       ) : null,
 
       related.length ? h(LM.Section, { alt: true },
         h("h2", { className: "lm-h2" }, "More from " + CAT_LABEL[p.category].toLowerCase()),
-        h(NS.Grid, { minColumnWidth: "260px", gap: "lg" },
+        h(NS.Grid, { minColumnWidth: "260px", gap: "lg", style: { gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))" } },
           related.map(function (x) { return h(LM.ProductCard, { key: x.id, product: x }); }))
       ) : null
     );

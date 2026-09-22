@@ -54,8 +54,8 @@
     }
 
     return h(React.Fragment, null,
-      h(LM.Section, { className: "tight", alt: true },
-        h(NS.Stack, { gap: "sm" },
+      h(LM.Bleed, { img: "img/plant-closeup.png", scrim: "left", className: "lm-band-short", label: "The menu", eager: true },
+        h(NS.Stack, { gap: "sm", style: { maxWidth: "40rem" } },
           h(NS.Breadcrumbs, { items: [{ label: "Home", href: "index.html" }, { label: "Shop" }] }),
           h("h1", { className: "lm-h1" }, "The menu"),
           h("p", { className: "lm-lead" }, "Everything on this page is on our shelves today. Reserve it here and pick it up within 24 hours; you pay at the counter.")
@@ -94,7 +94,7 @@
             h(NS.Stack, { gap: "md" },
               h("p", { className: "lm-small", "aria-live": "polite" }, list.length + (list.length === 1 ? " product" : " products")),
               list.length
-                ? h(NS.Grid, { minColumnWidth: "240px", gap: "lg" },
+                ? h(NS.Grid, { minColumnWidth: "240px", gap: "lg", style: { gridTemplateColumns: "repeat(auto-fill, minmax(min(240px, 100%), 1fr))" } },
                     list.map(function (p) { return h(LM.ProductCard, { key: p.id, product: p }); }))
                 : h(NS.EmptyState, {
                     title: "Nothing matches those filters",
