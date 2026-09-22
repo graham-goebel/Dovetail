@@ -47,12 +47,12 @@
               ]
             }),
             h(NS.Inline, { gap: "sm", wrap: true },
-              h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Reserve for pickup"),
-              h(NS.Button, { as: "a", href: "#faq", size: "lg", variant: "secondary" }, "Read the FAQ")
+              h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", size: "lg" }, "Reserve for pickup"),
+              h(NS.Button, { as: "a", className: "lm-btn", href: "#faq", size: "lg", variant: "secondary" }, "Read the FAQ")
             )
           ),
           h(NS.Cover, {
-            src: "img/friends-ride.png", alt: "Friends cycling through the park near the store",
+            src: "img/friends-ride.png", alt: "Friends cycling through the park near the store", className: "lm-on-photo",
             ratio: "4:3", radius: "container", scrim: "gradient", align: "bottom",
             eyebrow: "Getting here", title: "Ride the park trail",
             body: "Racks for 12 bikes out front. Lock up and come in."

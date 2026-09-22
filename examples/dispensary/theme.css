@@ -118,6 +118,9 @@ main { flex: 1; display: flex; flex-direction: column; }
 }
 .lm-wordmark:hover { color: var(--dt-text-primary); }
 
+/* Button renders as a link here; base.css underlines every anchor. */
+a.lm-btn, a.lm-btn:hover { text-decoration: none; }
+
 a.lm-card-link { color: inherit; text-decoration: none; display: flex; }
 a.lm-card-link > * { flex: 1; }
 
@@ -140,6 +143,51 @@ a.lm-card-link > * { flex: 1; }
   font-size: var(--dt-text-label-sm-size); font-weight: var(--dt-font-weight-semibold);
 }
 
+
+/* ---------------------------------------------------------------- photo bands
+   A full-bleed photograph with text set over it. The band carries the "dark" class,
+   so base-dark.css re-points every semantic token inside it: text, buttons, badges
+   and stats all read correctly over a darkened photo with no per-component rules.
+   The scrim is --dt-surface-scrim, the same role a dialog darkens the page with. */
+.lm-bleed {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  min-height: 420px;
+  padding: var(--dt-space-section) var(--dt-space-inset-xl);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+}
+.lm-bleed > img {
+  position: absolute; inset: 0; z-index: -2;
+  width: 100%; height: 100%; object-fit: cover; object-position: var(--lm-focus, 50% 50%); display: block;
+}
+.lm-bleed::before { content: ""; position: absolute; inset: 0; z-index: -1; }
+.lm-bleed.scrim-left::before {
+  background: linear-gradient(to right, var(--dt-surface-scrim) 0%, var(--dt-surface-scrim) 30%, transparent 85%),
+              linear-gradient(to top, var(--dt-surface-scrim), transparent 60%);
+}
+.lm-bleed.scrim-full::before { background: var(--dt-surface-scrim); }
+.lm-bleed.scrim-bottom::before { background: linear-gradient(to top, var(--dt-surface-scrim) 10%, transparent 90%); }
+.lm-bleed.center { justify-content: center; text-align: center; }
+.lm-bleed.center .lm-lead { margin-inline: auto; }
+.lm-bleed > .lm-bleed-inner { width: 100%; max-width: 1120px; }
+.lm-bleed .lm-lead { color: var(--dt-text-primary); opacity: 0.88; }
+.lm-hero-bleed { min-height: clamp(560px, calc(100vh - 57px), 880px); }
+.lm-hero-bleed .lm-h1 {
+  max-width: 14ch;
+  font-size: var(--dt-text-display-lg-size); line-height: var(--dt-text-display-lg-line);
+  letter-spacing: var(--dt-text-display-lg-tracking);
+}
+.lm-band-short { min-height: 340px; padding-top: var(--dt-space-stack-2xl); padding-bottom: var(--dt-space-stack-xl); }
+
+/* Cover sets its caption in --dt-text-inverse, which is a dark value in dark mode.
+   Over a photo the caption must stay light in both modes, so the tiles pin it. */
+.lm-on-photo { --dt-text-inverse: var(--dt-color-neutral-050); }
+.lm-tile { display: block; color: inherit; text-decoration: none; border-radius: var(--dt-radius-container); }
+.lm-tile > * { transition: transform var(--dt-motion-enter); }
+.lm-tile:hover > * { transform: translateY(calc(var(--dt-dim-1) * -1)); }
+@media (prefers-reduced-motion: reduce) { .lm-tile > * { transition: none; } .lm-tile:hover > * { transform: none; } }
+
 @media (max-width: 900px) {
   .lm-sec { padding: var(--dt-space-stack-2xl) var(--dt-space-inset-md); gap: var(--dt-space-stack-lg); }
   .lm-hero, .lm-two, .lm-shop, .lm-product { grid-template-columns: minmax(0, 1fr); gap: var(--dt-space-stack-xl); }
@@ -149,4 +197,8 @@ a.lm-card-link > * { flex: 1; }
   .lm-footer > div > :first-child { grid-column: 1 / -1; }
   .lm-h1 { font-size: var(--dt-text-display-sm-size); line-height: var(--dt-text-display-sm-line); }
   .lm-hide-sm { display: none; }
+  .lm-bleed { padding: var(--dt-space-stack-2xl) var(--dt-space-inset-md); min-height: 360px; }
+  .lm-hero-bleed { min-height: 620px; }
+  .lm-hero-bleed .lm-h1 { font-size: var(--dt-text-display-sm-size); line-height: var(--dt-text-display-sm-line); }
+  .lm-bleed.scrim-left::before { background: linear-gradient(to top, var(--dt-surface-scrim) 35%, transparent 95%); }
 }

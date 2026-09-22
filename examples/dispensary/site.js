@@ -77,9 +77,9 @@
   ];
 
   var CATEGORIES = [
-    { id: "flower", label: "Flower", img: "img/flower-bud.png", blurb: "Small-farm flower, dated and cured in glass." },
-    { id: "glass", label: "Glass", img: "img/glass-bubbler.png", blurb: "Hand-blown pieces from local studios." },
-    { id: "seeds", label: "Seeds", img: "img/seeds.png", blurb: "Tested genetics for growing at home." }
+    { id: "flower", label: "Flower", img: "img/flower-bud.png", photo: "img/plant-closeup.png", blurb: "Small-farm flower, dated and cured in glass." },
+    { id: "glass", label: "Glass", img: "img/glass-bubbler.png", photo: "img/glass-bubbler.png", blurb: "Hand-blown pieces from local studios." },
+    { id: "seeds", label: "Seeds", img: "img/seeds.png", photo: "img/seeds.png", blurb: "Tested genetics for growing at home." }
   ];
 
   var TYPE_TONE = { Sativa: "warning", Indica: "info", Hybrid: "success", Accessory: "neutral" };
@@ -127,7 +127,6 @@
 
   /* ------------------------------------------------------------------ chrome */
   var PAGES = [
-    { id: "home", label: "Home", href: "index.html" },
     { id: "shop", label: "Shop", href: "shop.html" },
     { id: "visit", label: "Visit", href: "visit.html" }
   ];
@@ -168,7 +167,7 @@
       body = h(NS.EmptyState, {
         title: "Your bag is empty",
         description: "Add flower, glass, or seeds from the shop and reserve them for pickup.",
-        action: h(NS.Button, { as: "a", href: "shop.html" }, "Browse the shop")
+        action: h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html" }, "Browse the shop")
       });
     } else {
       body = h(NS.List, {
@@ -291,6 +290,17 @@
     return h("section", { className: "lm-sec" + (props.alt ? " lm-alt" : "") + (props.className ? " " + props.className : ""), id: props.id }, props.children);
   }
 
+  /* A full-bleed photo band with text over it. See .lm-bleed in theme.css: the band
+     is scoped dark, so everything inside reads its dark-mode tokens over the scrim. */
+  function Bleed(props) {
+    var cls = "lm-bleed dark scrim-" + (props.scrim || "left") +
+      (props.center ? " center" : "") + (props.className ? " " + props.className : "");
+    return h("section", { className: cls, id: props.id, "aria-label": props.label },
+      h("img", { src: props.img, alt: props.alt || "", loading: props.eager ? "eager" : "lazy", style: props.focus ? { "--lm-focus": props.focus } : undefined }),
+      h("div", { className: "lm-bleed-inner" }, props.children)
+    );
+  }
+
   function mount(Page, current) {
     function App() {
       return h(React.Fragment, null,
@@ -307,6 +317,6 @@
   window.LM = {
     h: h, NS: NS, PRODUCTS: PRODUCTS, CATEGORIES: CATEGORIES, TYPE_TONE: TYPE_TONE,
     find: find, money: money, addToBag: addToBag, useBag: useBag,
-    ProductCard: ProductCard, Section: Section, mount: mount
+    ProductCard: ProductCard, Section: Section, Bleed: Bleed, mount: mount
   };
 })();
