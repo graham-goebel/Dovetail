@@ -20,7 +20,9 @@
 
   var KEY = "dovetail-theme-config";
   var CONTEXT_KEY = "dovetail-docs-context";
+  var BRAND_KEY = "dovetail-docs-brand";
   var CONTEXTS = ["dt-context-product", "dt-context-marketing"];
+  var MARK_LIMIT = 512 * 1024;
 
   var DEFAULTS = {
     accent: "blue",
@@ -31,6 +33,28 @@
     density: false,
     dark: false,
     mono: false,
+    baseUnit: 4,
+    focusRing: 2,
+    iconLib: "lucide",
+    iconStroke: "authored",
+    iconSize: "default",
+    mediaRadius: "auto",
+  };
+
+  /* Icon sizes are real tokens, so a scale step is a re-pointing, not a hack.
+     Each column is xs, sm, md, lg, xl in multiples of the base unit. */
+  var ICON_SIZES = {
+    small: [2, 3, 4, 5, 6],
+    default: null,
+    large: [4, 5, 6, 8, 10],
+  };
+
+  var MEDIA_RADII = {
+    auto: null,
+    square: "var(--dt-radius-raw-0)",
+    media: "var(--dt-radius-raw-8)",
+    overlay: "var(--dt-radius-raw-16)",
+    pill: "var(--dt-radius-raw-full)",
   };
 
   /* ------------------------------------------------------------- the model */
@@ -52,6 +76,16 @@
       cfg = null;
     }
     return assign(assign({}, DEFAULTS), cfg || {});
+  }
+
+  function loadBrand() {
+    var brand;
+    try {
+      brand = JSON.parse(localStorage.getItem(BRAND_KEY));
+    } catch (e) {
+      brand = null;
+    }
+    return assign({ name: "", mark: "" }, brand || {});
   }
 
   function loadContext() {
@@ -136,6 +170,29 @@
     var code = DATA.fonts[cfg.codeFont];
     if (code) vars["--dt-font-family-mono"] = code.value;
 
+    /* The name of a dimension token is its multiplier, so a different base unit
+       is a re-derivation rather than an override list. */
+    if (Number(cfg.baseUnit) !== 4) {
+      DATA.dimSteps.forEach(function (step) {
+        vars["--dt-dim-" + step] = step * Number(cfg.baseUnit) + "px";
+      });
+    }
+
+    if (Number(cfg.focusRing) !== 2) vars["--dt-focus-ring-width"] = Number(cfg.focusRing) + "px";
+
+    var sizes = ICON_SIZES[cfg.iconSize];
+    if (sizes) {
+      ["xs", "sm", "md", "lg", "xl"].forEach(function (name, i) {
+        vars["--dt-size-icon-" + name] = "var(--dt-dim-" + sizes[i] + ")";
+      });
+    }
+
+    /* Applied after the shape preset, which also sets the media role: the later
+       declaration is the one the reader chose explicitly. */
+    if (MEDIA_RADII[cfg.mediaRadius]) vars["--dt-radius-media"] = MEDIA_RADII[cfg.mediaRadius];
+
+    if (cfg.iconStroke !== "authored") vars["--dt-icon-stroke-width"] = String(cfg.iconStroke);
+
     if (cfg.density) assign(vars, DATA.density);
     /* The configurator previews the monochrome overrides but leaves them out of
        what it saves, so the preset could not survive a reload. They are carried
@@ -164,6 +221,24 @@
       }
     }
     root.__dovetailApplied = names;
+
+    /* Icons in the system are inline SVGs with their stroke width written into
+       the markup. A stylesheet is the only way to retune them all at once, and
+       it is only injected once a reader asks for something other than what was
+       authored. */
+    var rule = doc.getElementById("dt-icon-stroke");
+    if (cfg.iconStroke === "authored") {
+      if (rule) rule.remove();
+    } else {
+      if (!rule) {
+        rule = doc.createElement("style");
+        rule.id = "dt-icon-stroke";
+        doc.head.appendChild(rule);
+      }
+      rule.textContent =
+        'svg[stroke]:not([stroke="none"]) { stroke-width: var(--dt-icon-stroke-width); ' +
+        "stroke-linecap: round; stroke-linejoin: round; }";
+    }
 
     var href = fontHrefFor(cfg);
     if (href) {
@@ -203,6 +278,7 @@
 
   var config = load();
   var context = loadContext();
+  var brand = loadBrand();
 
   function applyEverywhere(options) {
     var vars = computeVars(config);
@@ -210,7 +286,47 @@
     frames().forEach(function (frame) {
       applyTo(frame.contentDocument, config, context, vars);
     });
+    applyBrand();
     render(options);
+  }
+
+  /* The wordmark is the one piece of brand the system does ship, and it is set
+     in type rather than drawn. A name and an optional mark are all it takes. */
+  var AUTHORED_TITLE = document.title;
+
+  function applyBrand() {
+    var name = brand.name || "Dovetail";
+
+    var text = document.querySelector(".wordmark-text");
+    if (text) text.textContent = name;
+
+    var mark = document.querySelector(".wordmark-mark");
+    if (mark) {
+      if (brand.mark) {
+        mark.src = brand.mark;
+        mark.hidden = false;
+      } else {
+        mark.removeAttribute("src");
+        mark.hidden = true;
+      }
+    }
+
+    /* The first crumb is the wordmark as a link, so it carries the name too.
+       Everything below it is page content and stays as it was written. */
+    var crumb = document.querySelector(".crumbs li:first-child a");
+    if (crumb) crumb.textContent = name;
+
+    /* Re-derived from the authored title each time, so clearing the name puts
+       the original back without a reload. */
+    document.title = AUTHORED_TITLE.replace(/Dovetail/g, name);
+  }
+
+  function setBrand(patch) {
+    assign(brand, patch);
+    if (!brand.name && !brand.mark) store(BRAND_KEY, null);
+    else store(BRAND_KEY, JSON.stringify(brand));
+    applyBrand();
+    render();
   }
 
   function commit(patch, options) {
@@ -231,7 +347,9 @@
 
   function reset() {
     config = assign({}, DEFAULTS);
+    brand = { name: "", mark: "" };
     store(KEY, null);
+    store(BRAND_KEY, null);
     setContext("");
     window.dispatchEvent(new Event("dovetail:theme-change"));
   }
@@ -278,7 +396,59 @@
         lines.push("  " + name + ": " + DATA.monochrome[name] + ";");
       });
     }
+
+    if (Number(config.baseUnit) !== 4) {
+      lines.push("");
+      lines.push("  /* Space — " + config.baseUnit + "px base unit. The number in each name is still the multiplier. */");
+      DATA.dimSteps.forEach(function (step) {
+        lines.push("  --dt-dim-" + step + ": " + step * Number(config.baseUnit) + "px;");
+      });
+    }
+
+    if (Number(config.focusRing) !== 2) {
+      lines.push("");
+      lines.push("  /* Focus */");
+      lines.push("  --dt-focus-ring-width: " + Number(config.focusRing) + "px;");
+    }
+
+    var sizes = ICON_SIZES[config.iconSize];
+    if (sizes) {
+      lines.push("");
+      lines.push("  /* Icon sizes — " + config.iconSize + " */");
+      ["xs", "sm", "md", "lg", "xl"].forEach(function (name, i) {
+        lines.push("  --dt-size-icon-" + name + ": var(--dt-dim-" + sizes[i] + ");");
+      });
+    }
+
+    if (MEDIA_RADII[config.mediaRadius]) {
+      lines.push("");
+      lines.push("  /* Imagery */");
+      lines.push("  --dt-radius-media: " + MEDIA_RADII[config.mediaRadius] + ";");
+    }
+
     lines.push("}");
+
+    var lib = DATA.icons[config.iconLib];
+    lines.push("");
+    lines.push("/* Iconography — " + lib.label + ", " + lib.licence + ".");
+    lines.push("   The system ships no icon set. Load one and size it from --dt-size-icon-*;");
+    lines.push("   icons inherit text colour and are never given their own.");
+    lines.push("     " + lib.include);
+    if (config.iconStroke !== "authored") {
+      lines.push("   Drawn at " + config.iconStroke + "px stroke, round caps and joins. */");
+    } else {
+      lines.push("   Drawn at the stroke width each icon ships with. */");
+    }
+
+    if (brand.name || brand.mark) {
+      lines.push("");
+      lines.push("/* Brand — the wordmark is the name set in the sans family at");
+      lines.push("   --dt-font-weight-semibold with --dt-tracking-tight.");
+      lines.push("     Name: " + (brand.name || "Dovetail"));
+      if (brand.mark) lines.push("     Mark: supplied as a file; it is not a token and does not belong in this sheet.");
+      lines.push(" */");
+    }
+
     return lines.join("\n");
   }
 
@@ -389,8 +559,6 @@
     el.open.appendChild(el.swatch);
     el.open.appendChild(el.openLabel);
 
-    el.scrim = h("div", { class: "bases-scrim", hidden: true, onclick: close });
-
     el.sheet = h("aside", {
       id: "bases-sheet",
       class: "bases-sheet",
@@ -416,7 +584,6 @@
     el.sheet.appendChild(el.body);
 
     document.body.appendChild(el.toolbar);
-    document.body.appendChild(el.scrim);
     document.body.appendChild(el.sheet);
 
     renderBody();
@@ -436,6 +603,25 @@
       var restored = el.body.querySelector('[data-bid="' + bid + '"]');
       if (restored) restored.focus();
     }
+  }
+
+  function group(title) {
+    return h("h3", { class: "bases-group", text: title });
+  }
+
+  function textInput(label, bid, value, onCommit) {
+    var node = h("input", {
+      type: "text",
+      class: "bases-text",
+      "data-bid": bid,
+      "aria-label": label,
+      value: value,
+      placeholder: "Dovetail",
+      oninput: function () {
+        onCommit(node.value);
+      },
+    });
+    return node;
   }
 
   function paintBody() {
@@ -459,6 +645,78 @@
           commit({ accent: preset.accent, radius: preset.radius, font: preset.font, mono: !!preset.mono });
         })
       )
+    );
+
+    /* ---- Brand ---------------------------------------------------------- */
+
+    body.appendChild(group("Brand"));
+
+    body.appendChild(
+      field(
+        "Name",
+        "Dovetail ships no logo. The wordmark is the name, set in the sans family.",
+        textInput("Name", "brand-name", brand.name, function (value) {
+          setBrand({ name: value });
+        })
+      )
+    );
+
+    var markFile = h("input", {
+      type: "file",
+      accept: "image/*",
+      class: "bases-file",
+      "data-bid": "brand-mark",
+      "aria-label": "Brand mark image",
+      onchange: function (event) {
+        readMark(event.target.files[0]);
+        event.target.value = "";
+      },
+    });
+
+    var drop = h(
+      "label",
+      {
+        class: "bases-drop",
+        ondragover: function (event) {
+          event.preventDefault();
+          drop.setAttribute("data-over", "");
+        },
+        ondragleave: function () {
+          drop.removeAttribute("data-over");
+        },
+        ondrop: function (event) {
+          event.preventDefault();
+          drop.removeAttribute("data-over");
+          readMark(event.dataTransfer.files[0]);
+        },
+      },
+      [
+        h("span", { text: brand.mark ? "Replace the mark" : "Drop a mark, or choose a file" }),
+        markFile,
+      ]
+    );
+
+    var markRow = [drop];
+    if (brand.mark) {
+      markRow.push(
+        h("div", { class: "bases-mark-row" }, [
+          h("img", { class: "bases-mark", src: brand.mark, alt: "" }),
+          h("button", {
+            type: "button",
+            class: "bases-btn",
+            "data-bid": "brand-mark-remove",
+            text: "Remove mark",
+            onclick: function () {
+              setBrand({ mark: "" });
+            },
+          }),
+        ])
+      );
+    }
+    if (el.markError) markRow.push(h("p", { class: "bases-bad", role: "alert", text: el.markError }));
+
+    body.appendChild(
+      field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "bases-stack" }, markRow))
     );
 
     var swatches = DATA.accents.map(function (accent) {
@@ -498,11 +756,25 @@
 
     body.appendChild(
       field(
-        "Brand accent",
+        "Accent",
         "One hue drives eleven steps. Lightness and chroma stay put, so contrast holds.",
         h("div", { class: "bases-swatches" }, swatches)
       )
     );
+
+    body.appendChild(
+      field(
+        "Monochrome",
+        "Drops the brand hue from action surfaces. Feedback colours stay chromatic.",
+        segmented("Monochrome", "mono", [{ value: "off", label: "Off" }, { value: "on", label: "On" }], config.mono ? "on" : "off", function (value) {
+          commit({ mono: value === "on" });
+        })
+      )
+    );
+
+    /* ---- Shape ---------------------------------------------------------- */
+
+    body.appendChild(group("Shape"));
 
     body.appendChild(
       field(
@@ -524,7 +796,21 @@
 
     body.appendChild(
       field(
-        "Interface type",
+        "Focus ring",
+        "One ring on every interactive element. Thinner reads as quieter; it never goes to zero.",
+        segmented("Focus ring", "focus", [{ value: 1, label: "1px" }, { value: 2, label: "2px" }, { value: 3, label: "3px" }], Number(config.focusRing), function (value) {
+          commit({ focusRing: value });
+        })
+      )
+    );
+
+    /* ---- Type ----------------------------------------------------------- */
+
+    body.appendChild(group("Type"));
+
+    body.appendChild(
+      field(
+        "Interface",
         "Sets --dt-font-family-sans. Every type role inherits it.",
         select("Interface type", "font", DATA.interfaceFonts, config.font, function (value) {
           commit({ font: value });
@@ -534,10 +820,24 @@
 
     body.appendChild(
       field(
-        "Code type",
+        "Code",
         "Sets --dt-font-family-mono for code, tokens and numerals.",
         select("Code type", "codeFont", DATA.codeFonts, config.codeFont, function (value) {
           commit({ codeFont: value });
+        })
+      )
+    );
+
+    /* ---- Space ---------------------------------------------------------- */
+
+    body.appendChild(group("Space"));
+
+    body.appendChild(
+      field(
+        "Base unit",
+        "Every dimension is a multiple, and the number in each name is the multiplier — so the names stay true when the unit moves. Below 4px, control heights drop under the 40px the system asks for.",
+        segmented("Base unit", "unit", [{ value: 3, label: "3px" }, { value: 4, label: "4px" }, { value: 5, label: "5px" }], Number(config.baseUnit), function (value) {
+          commit({ baseUnit: value });
         })
       )
     );
@@ -546,13 +846,32 @@
       field(
         "Density",
         "Compact retunes control heights and inset only. Type and colour do not move.",
+        segmented("Density", "density", [{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }], config.density ? "compact" : "comfortable", function (value) {
+          commit({ density: value === "compact" });
+        })
+      )
+    );
+
+    /* ---- Icons ---------------------------------------------------------- */
+
+    body.appendChild(group("Icons"));
+
+    var lib = DATA.icons[config.iconLib];
+    body.appendChild(
+      field(
+        "Library",
+        lib.note + " " + lib.licence + ".",
         segmented(
-          "Density",
-          "density",
-          [{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }],
-          config.density ? "compact" : "comfortable",
+          "Icon library",
+          "iconlib",
+          Object.keys(DATA.icons).map(function (key) {
+            return { value: key, label: DATA.icons[key].label };
+          }),
+          config.iconLib,
           function (value) {
-            commit({ density: value === "compact" });
+            /* Picking a library sets the stroke it is drawn at. It is a nudge,
+               not a lock: the next control still overrides it. */
+            commit({ iconLib: value, iconStroke: DATA.icons[value].stroke });
           }
         )
       )
@@ -560,35 +879,86 @@
 
     body.appendChild(
       field(
-        "Monochrome",
-        "Drops the brand hue from action surfaces. Feedback colours stay chromatic.",
+        "Stroke",
+        "Applies to every icon on the page and in the cards. Authored leaves each one at the width it ships with.",
         segmented(
-          "Monochrome",
-          "mono",
-          [{ value: "off", label: "Off" }, { value: "on", label: "On" }],
-          config.mono ? "on" : "off",
+          "Icon stroke",
+          "iconstroke",
+          [
+            { value: "authored", label: "Authored" },
+            { value: 1.5, label: "1.5px" },
+            { value: 2, label: "2px" },
+            { value: 2.5, label: "2.5px" },
+          ],
+          config.iconStroke,
           function (value) {
-            commit({ mono: value === "on" });
+            commit({ iconStroke: value });
           }
         )
       )
     );
 
-    body.appendChild(h("hr", { class: "bases-rule" }));
+    body.appendChild(
+      field(
+        "Size",
+        "Re-points --dt-size-icon-*, so controls resize with their icons.",
+        segmented(
+          "Icon size",
+          "iconsize",
+          [{ value: "small", label: "Small" }, { value: "default", label: "Default" }, { value: "large", label: "Large" }],
+          config.iconSize,
+          function (value) {
+            commit({ iconSize: value });
+          }
+        )
+      )
+    );
+
+    body.appendChild(
+      h("p", { class: "bases-note" }, [
+        h("span", { text: "Browse a whole set, try the solid style, and drop in your own photography in the " }),
+        h("a", { href: siteRoot() + "showcase/tools.html", text: "media lab" }),
+        h("span", { text: ". It loads the libraries themselves, which needs a connection to jsDelivr." }),
+      ])
+    );
+
+    /* ---- Imagery -------------------------------------------------------- */
+
+    body.appendChild(group("Imagery"));
+
+    body.appendChild(
+      field(
+        "Media radius",
+        "How images, video and square avatars sit. Follow shape takes it from the radius above.",
+        segmented(
+          "Media radius",
+          "mediaradius",
+          [
+            { value: "auto", label: "Follow" },
+            { value: "square", label: "Square" },
+            { value: "media", label: "Soft" },
+            { value: "overlay", label: "Round" },
+            { value: "pill", label: "Pill" },
+          ],
+          config.mediaRadius,
+          function (value) {
+            commit({ mediaRadius: value });
+          }
+        )
+      )
+    );
+
+    /* ---- View ----------------------------------------------------------- */
+
+    body.appendChild(group("View"));
 
     body.appendChild(
       field(
         "Colour mode",
         "The same semantic names, re-pointed. No component changes.",
-        segmented(
-          "Colour mode",
-          "mode",
-          [{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }],
-          config.dark ? "dark" : "light",
-          function (value) {
-            commit({ dark: value === "dark" });
-          }
-        )
+        segmented("Colour mode", "mode", [{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }], config.dark ? "dark" : "light", function (value) {
+          commit({ dark: value === "dark" });
+        })
       )
     );
 
@@ -610,7 +980,9 @@
       )
     );
 
-    body.appendChild(h("hr", { class: "bases-rule" }));
+    /* ---- Export --------------------------------------------------------- */
+
+    body.appendChild(group("Export"));
 
     el.export = h("textarea", { class: "bases-export", readonly: true, rows: "10", spellcheck: "false", "aria-label": "Theme CSS" });
     el.export.value = exportCss();
@@ -646,12 +1018,15 @@
 
     body.appendChild(
       field(
-        "Export",
+        "Theme file",
         "Paste this into tokens/themes/theme-custom.css and the theme ships with the repository, with no JavaScript.",
-        h("div", { class: "bases-export-wrap" }, [el.export, h("div", { class: "bases-actions" }, [
-          el.copy,
-          h("button", { type: "button", class: "bases-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
-        ])])
+        h("div", { class: "bases-export-wrap" }, [
+          el.export,
+          h("div", { class: "bases-actions" }, [
+            el.copy,
+            h("button", { type: "button", class: "bases-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
+          ]),
+        ])
       )
     );
 
@@ -663,6 +1038,37 @@
     );
   }
 
+  /* Where the site root is, read from a link the generator already writes. */
+  function siteRoot() {
+    var home = document.querySelector(".wordmark");
+    var href = home ? home.getAttribute("href") : "index.html";
+    return href.replace(/index\.html$/, "");
+  }
+
+  function readMark(file) {
+    el.markError = null;
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      el.markError = "That is not an image file.";
+      renderBody();
+      return;
+    }
+    if (file.size > MARK_LIMIT) {
+      el.markError = "That mark is " + Math.round(file.size / 1024) + "KB. The limit is 512KB, because it is held in this browser.";
+      renderBody();
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      setBrand({ mark: String(reader.result) });
+    };
+    reader.onerror = function () {
+      el.markError = "That file could not be read.";
+      renderBody();
+    };
+    reader.readAsDataURL(file);
+  }
+
   /* --------------------------------------------------------------- opening */
 
   var lastFocus = null;
@@ -670,7 +1076,6 @@
   function open() {
     lastFocus = document.activeElement;
     el.sheet.hidden = false;
-    el.scrim.hidden = false;
     document.body.classList.add("bases-open");
     el.open.setAttribute("aria-expanded", "true");
     var first = el.sheet.querySelector("select, button, input");
@@ -679,7 +1084,6 @@
 
   function close() {
     el.sheet.hidden = true;
-    el.scrim.hidden = true;
     document.body.classList.remove("bases-open");
     el.open.setAttribute("aria-expanded", "false");
     if (lastFocus && lastFocus.focus) lastFocus.focus();

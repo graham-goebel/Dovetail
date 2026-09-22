@@ -287,5 +287,46 @@ window.DovetailBases = {
       "font": "sans",
       "mono": true
     }
-  }
+  },
+  "icons": {
+    "lucide": {
+      "label": "Lucide",
+      "note": "Dovetail's default. 24px grid, 2px stroke, round caps.",
+      "licence": "v0.468.0 · ISC",
+      "stroke": 2,
+      "include": "<script src=\"https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js\"></script>"
+    },
+    "heroicons": {
+      "label": "Heroicons (outline)",
+      "note": "Tailwind's set. Outline at 1.5px stroke, or solid.",
+      "licence": "v2.2.0 · MIT",
+      "stroke": 1.5,
+      "include": "import { BellIcon } from \"@heroicons/react@2.2.0/24/outline\";"
+    }
+  },
+  "dimSteps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    14,
+    16,
+    20,
+    24,
+    28,
+    32,
+    40,
+    48,
+    56,
+    64
+  ]
 };

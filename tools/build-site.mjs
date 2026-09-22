@@ -229,6 +229,29 @@ function literal(src, name) {
   throw new Error(`could not read ${name} from theme-configurator.html`);
 }
 
+/* The icon libraries are the media lab's, read from the card for the same reason
+   the theme choices are read from the configurator: one source, no drift. */
+function iconLibraries() {
+  const src = read(path.join(PREVIEWS, "MediaLab.html"));
+  const libs = new Function(`return ${literal(src, "LIBS")}`)();
+  return {
+    lucide: {
+      label: libs.lucide.label,
+      note: libs.lucide.note,
+      licence: `v${libs.lucide.version} · ${libs.lucide.licence}`,
+      stroke: 2,
+      include: `<script src="${libs.lucide.url}"></script>`,
+    },
+    heroicons: {
+      label: `${libs.heroicons.label} (outline)`,
+      note: libs.heroicons.note,
+      licence: `v${libs.heroicons.version} · ${libs.heroicons.licence}`,
+      stroke: 1.5,
+      include: `import { BellIcon } from "@heroicons/react@${libs.heroicons.version}/24/outline";`,
+    },
+  };
+}
+
 function buildBasesData() {
   const src = read(path.join(SYS, "theme-configurator.html"));
   const take = (name) => new Function(`return ${literal(src, name)}`)();
@@ -249,6 +272,10 @@ function buildBasesData() {
     density: take("DENSITY_OVERRIDES"),
     monochrome: take("MONO_OVERRIDES"),
     presets: take("THEME_PRESETS"),
+    icons: iconLibraries(),
+    /* The dimension scale, by the multiplier in each name. Re-deriving it from a
+       different base unit is what the naming convention is for. */
+    dimSteps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64],
   };
 
   write(
@@ -455,7 +482,10 @@ function page({ title, lede, body, active, root, wide = false }) {
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
-  <a class="wordmark" href="${root}index.html">Dovetail</a>
+  <a class="wordmark" href="${root}index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
   <span class="wordmark-note">White-label design system</span>
   <div class="header-controls">
     <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>

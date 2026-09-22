@@ -78,12 +78,22 @@ body {
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
   font-family: var(--dt-font-family-sans);
   font-size: var(--dt-font-size-md);
   font-weight: var(--dt-font-weight-semibold);
   letter-spacing: var(--dt-tracking-tight);
   color: var(--dt-text-primary);
   text-decoration: none;
+}
+
+.wordmark-mark {
+  height: var(--dt-size-icon-lg);
+  width: auto;
+  max-width: var(--dt-dim-32);
+  object-fit: contain;
 }
 
 .wordmark-note {
@@ -742,10 +752,9 @@ body.bases-open .bases-bar {
 
 /* --------------------------------------------------------- bases: the sheet */
 
-/* No scrim on a wide screen, and the page is padded out of the way instead of
-   being covered: the point of the sheet is watching the system change behind
-   it. On a narrow screen it becomes a bottom sheet, where covering is
-   unavoidable, and there a scrim says so. */
+/* The sheet never dims or blocks the page: the point of it is watching the
+   system change alongside. The page is padded out of its way rather than
+   covered, on both layouts. */
 
 .bases-sheet {
   position: fixed;
@@ -760,10 +769,6 @@ body.bases-open .bases-bar {
   background: var(--dt-surface-overlay);
   border-left: var(--dt-border-width-default) solid var(--dt-border-default);
   box-shadow: var(--dt-elevation-5);
-}
-
-.bases-scrim {
-  display: none;
 }
 
 body.bases-open {
@@ -938,6 +943,85 @@ body.bases-open {
   cursor: pointer;
 }
 
+.bases-group {
+  margin: var(--dt-space-stack-sm) 0 calc(-1 * var(--dt-space-stack-xs));
+  padding-top: var(--dt-space-stack-sm);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs);
+  font-weight: var(--dt-font-weight-medium);
+  letter-spacing: var(--dt-tracking-wider);
+  text-transform: uppercase;
+  color: var(--dt-text-tertiary);
+}
+
+.bases-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+}
+
+.bases-text {
+  width: 100%;
+  height: var(--dt-size-control-md);
+  padding: 0 var(--dt-space-inset-sm);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-input-fg);
+  background: var(--dt-input-bg);
+  border: var(--dt-input-border-width) solid var(--dt-input-border);
+  border-radius: var(--dt-input-radius);
+}
+
+.bases-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--dt-dim-12);
+  padding: var(--dt-space-inset-sm);
+  text-align: center;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-secondary);
+  background: var(--dt-surface-subtle);
+  border: var(--dt-border-width-default) dashed var(--dt-border-default);
+  border-radius: var(--dt-radius-container);
+  cursor: pointer;
+  transition: border-color var(--dt-motion-micro), background var(--dt-motion-micro);
+}
+
+.bases-drop:hover,
+.bases-drop[data-over] {
+  border-color: var(--dt-border-selected);
+  background: var(--dt-surface-selected);
+}
+
+.bases-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.bases-mark-row {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+}
+
+.bases-mark {
+  width: auto;
+  height: var(--dt-dim-8);
+  max-width: var(--dt-dim-24);
+  object-fit: contain;
+}
+
+.bases-bad {
+  margin: 0;
+  max-width: none;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-danger);
+}
+
 .bases-export-wrap {
   display: flex;
   flex-direction: column;
@@ -1000,36 +1084,46 @@ body.bases-open {
   text-wrap: pretty;
 }
 
+/* On a narrow screen the sheet docks to the bottom. It takes a little over half
+   the height and never dims or blocks the page, and the page gains padding to
+   match, so anything on it can still be scrolled into the space above and
+   watched while the controls move. */
 @media (max-width: 720px) {
+  :root {
+    --bases-height: 58vh;
+  }
+
   .bases-sheet {
     top: auto;
     left: 0;
     width: auto;
-    max-height: 82vh;
+    height: var(--bases-height);
+    max-height: none;
     border-left: 0;
     border-top: var(--dt-border-width-default) solid var(--dt-border-default);
     border-radius: var(--dt-radius-overlay) var(--dt-radius-overlay) 0 0;
   }
 
-  body.bases-open {
-    padding-right: 0;
-    overflow: hidden;
+  .bases-head {
+    padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-sm);
   }
 
-  .bases-scrim:not([hidden]) {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: var(--dt-z-overlay);
-    background: var(--dt-surface-scrim);
+  .bases-body {
+    padding: var(--dt-space-inset-md);
+  }
+
+  body.bases-open {
+    padding-right: 0;
+    padding-bottom: calc(var(--bases-height) + var(--dt-dim-4));
+  }
+
+  body.bases-open .bases-bar {
+    right: var(--dt-space-inset-md);
+    bottom: calc(var(--bases-height) + var(--dt-dim-2));
   }
 
   .bases-bar {
     right: var(--dt-space-inset-md);
     bottom: var(--dt-space-inset-md);
-  }
-
-  body.bases-open .bases-bar {
-    display: none;
   }
 }

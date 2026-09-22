@@ -74,10 +74,29 @@ Jekyll would drop them.
 ## The bases panel
 
 Every page carries a floating toolbar in the corner. It flips the colour mode, and it
-opens **Bases** — a sheet holding the tokens a brand is allowed to touch: the accent
-ramp, radius roles, interface and code type, density, monochrome, colour mode and
-context. Changes apply live to the page, to the sidebar and chrome, and to every preview
-card on it, then follow you to every other page.
+opens **Bases** — a sheet holding the decisions a brand actually makes, grouped the way
+the system is:
+
+| Group | Sets |
+| --- | --- |
+| Brand | Name and mark, accent ramp, monochrome |
+| Shape | Radius roles, focus ring width |
+| Type | Interface family, code family |
+| Space | Base unit, density |
+| Icons | Library, stroke, size |
+| Imagery | Media radius |
+| View | Colour mode, context |
+
+Changes apply live to the page, to the sidebar and chrome, and to every preview card on
+it, then follow you to every other page.
+
+The **base unit** is the one worth trying first: every dimension token is a multiple and
+the number in each name is the multiplier, so moving the unit re-derives the whole scale
+and the names stay true. **Icons** come from the media lab: picking a library sets the
+stroke it is drawn at, and the stroke applies to every icon already on the page and in
+the cards, since the system ships no icon set of its own. **Name and mark** are the
+white-label test — set both and the header, the breadcrumb and the page title are someone
+else's, with nothing forked.
 
 It works by writing one localStorage key, `dovetail-theme-config` — the key the system's
 own `templates/_support/theme-runtime.js` already reads. Using that key rather than a
@@ -86,14 +105,25 @@ settings-page template, and the theme configurator card in the showcase, which w
 same payload when you press Save there. Set an accent in the configurator card and the
 site follows; set it in the sheet and the configurator agrees.
 
-The sheet does not dim the page behind it, and on a wide screen the page is padded aside
-rather than covered, because watching the system change is the point of the control.
+The sheet never dims or blocks the page, because watching the system change is the point
+of the control. On a wide screen the page is padded aside; on a narrow one the sheet docks
+to the bottom at a little over half the height and the page gains matching padding, so
+anything on it can be scrolled into the space above and watched while the controls move.
 
-`assets/bases-data.js` is generated from `system/theme-configurator.html`, so the panel
-offers exactly the configurator's presets and can't drift from them. Two refinements over
-the card it is drawn from: the monochrome preset is carried into what gets saved and
-exported, where the configurator only previews it, and the type control is split so a
-mono face sets `--dt-font-family-mono` instead of the sans family.
+The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
+file, not a token, and it has no business in a theme stylesheet.
+
+`assets/bases-data.js` is generated from `system/theme-configurator.html` and
+`previews/MediaLab.html`, so the panel offers exactly the configurator's presets and the
+lab's icon libraries and can't drift from either. Two refinements over the configurator
+card: the monochrome preset is carried into what gets saved and exported, where the card
+only previews it, and the type control is split so a mono face sets
+`--dt-font-family-mono` instead of the sans family.
+
+What the panel deliberately does not take from the media lab is sample photography. Those
+photos belong to the layouts the lab renders, and there is no honest way to push them into
+a card that was authored with its own content — so the lab keeps them, and the sheet links
+to it.
 
 The **Export** field at the bottom of the sheet is the theme as a file of token
 overrides. Paste it into `system/tokens/themes/theme-custom.css` and the theme ships with
