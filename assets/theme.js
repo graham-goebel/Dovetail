@@ -21,6 +21,7 @@
   var KEY = "dovetail-theme-config";
   var CONTEXT_KEY = "dovetail-docs-context";
   var BRAND_KEY = "dovetail-docs-brand";
+  var TAB_KEY = "dovetail-docs-tab";
   var CONTEXTS = ["dt-context-product", "dt-context-marketing"];
   var MARK_LIMIT = 512 * 1024;
 
@@ -39,6 +40,8 @@
     iconStroke: "authored",
     iconSize: "default",
     mediaRadius: "auto",
+    whitespace: "balanced",
+    media: "shown",
   };
 
   /* Icon sizes are real tokens, so a scale step is a re-pointing, not a hack.
@@ -47,6 +50,43 @@
     small: [2, 3, 4, 5, 6],
     default: null,
     large: [4, 5, 6, 8, 10],
+  };
+
+  /* Whitespace is the three space axes and the page rhythm, re-pointed at other
+     steps of the same dimension scale. Every value stays on the grid, which is
+     the rule that makes the axes worth naming in the first place. Each list is
+     2xs, xs, sm, md, lg, xl, 2xl as multiples of the base unit. */
+  var WHITESPACE = {
+    tight: {
+      inset: [1, 1, 2, 3, 4, 6, 8],
+      stack: [1, 1, 2, 3, 4, 8, 12],
+      inline: [1, 1, 2, 3, 4, 6, 8],
+      section: 16,
+      gutter: 4,
+    },
+    balanced: null,
+    airy: {
+      inset: [2, 3, 4, 6, 8, 12, 16],
+      stack: [2, 3, 4, 6, 8, 12, 20],
+      inline: [2, 3, 4, 6, 8, 12, 16],
+      section: 32,
+      gutter: 10,
+    },
+  };
+  var SPACE_STEPS = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+
+  /* How much of a layout imagery carries. Dovetail ships no photography, so its
+     cards reserve a box rather than draw a picture — which is why this hides the
+     reserved boxes and the placeholder frames as well as any real media. The
+     override has to be !important: the components write display inline.
+
+     There is no third, richer step. Nothing in the repository would fill it,
+     and a control that claims to add imagery and cannot is worse than one fewer
+     control. The media lab is where you bring your own. */
+  var MEDIA_PRESENCE = {
+    shown: null,
+    hidden:
+      'img, video, [style*="aspect-ratio"], [style*="dashed"] { display: none !important; }',
   };
 
   var MEDIA_RADII = {
@@ -194,6 +234,19 @@
     if (cfg.iconStroke !== "authored") vars["--dt-icon-stroke-width"] = String(cfg.iconStroke);
 
     if (cfg.density) assign(vars, DATA.density);
+
+    /* After density, which also moves some inset and stack steps: an explicit
+       whitespace choice is the more specific of the two. */
+    var space = WHITESPACE[cfg.whitespace];
+    if (space) {
+      ["inset", "stack", "inline"].forEach(function (axis) {
+        SPACE_STEPS.forEach(function (step, i) {
+          vars["--dt-space-" + axis + "-" + step] = "var(--dt-dim-" + space[axis][i] + ")";
+        });
+      });
+      vars["--dt-space-section"] = "var(--dt-dim-" + space.section + ")";
+      vars["--dt-space-gutter"] = "var(--dt-dim-" + space.gutter + ")";
+    }
     /* The configurator previews the monochrome overrides but leaves them out of
        what it saves, so the preset could not survive a reload. They are carried
        here, and in the export, for the same reason every other choice is. */
@@ -240,6 +293,18 @@
         "stroke-linecap: round; stroke-linejoin: round; }";
     }
 
+    var media = doc.getElementById("dt-media-presence");
+    if (!MEDIA_PRESENCE[cfg.media]) {
+      if (media) media.remove();
+    } else {
+      if (!media) {
+        media = doc.createElement("style");
+        media.id = "dt-media-presence";
+        doc.head.appendChild(media);
+      }
+      media.textContent = MEDIA_PRESENCE[cfg.media];
+    }
+
     var href = fontHrefFor(cfg);
     if (href) {
       var link = doc.querySelector("link[data-dt-theme-font]");
@@ -279,6 +344,13 @@
   var config = load();
   var context = loadContext();
   var brand = loadBrand();
+  var activeTab = (function () {
+    try {
+      return localStorage.getItem(TAB_KEY) || "brand";
+    } catch (e) {
+      return "brand";
+    }
+  })();
 
   function applyEverywhere(options) {
     var vars = computeVars(config);
@@ -420,6 +492,19 @@
       });
     }
 
+    var space = WHITESPACE[config.whitespace];
+    if (space) {
+      lines.push("");
+      lines.push("  /* Whitespace — " + config.whitespace + " */");
+      ["inset", "stack", "inline"].forEach(function (axis) {
+        SPACE_STEPS.forEach(function (step, i) {
+          lines.push("  --dt-space-" + axis + "-" + step + ": var(--dt-dim-" + space[axis][i] + ");");
+        });
+      });
+      lines.push("  --dt-space-section: var(--dt-dim-" + space.section + ");");
+      lines.push("  --dt-space-gutter: var(--dt-dim-" + space.gutter + ");");
+    }
+
     if (MEDIA_RADII[config.mediaRadius]) {
       lines.push("");
       lines.push("  /* Imagery */");
@@ -438,6 +523,13 @@
       lines.push("   Drawn at " + config.iconStroke + "px stroke, round caps and joins. */");
     } else {
       lines.push("   Drawn at the stroke width each icon ships with. */");
+    }
+
+    if (config.media !== "shown") {
+      lines.push("");
+      lines.push("/* Media blocks hidden. A way of reading the layout, not a token: how much");
+      lines.push("   imagery a screen carries is a content decision, and components take");
+      lines.push("   content as props. */");
     }
 
     if (brand.name || brand.mark) {
@@ -605,10 +697,6 @@
     }
   }
 
-  function group(title) {
-    return h("h3", { class: "bases-group", text: title });
-  }
-
   function textInput(label, bid, value, onCommit) {
     var node = h("input", {
       type: "text",
@@ -624,34 +712,24 @@
     return node;
   }
 
-  function paintBody() {
-    var body = el.body;
-    body.textContent = "";
+  /* ------------------------------------------------------------- the tabs */
 
-    var presetOptions = Object.keys(DATA.presets).map(function (key) {
-      return { value: key, label: DATA.presets[key].label };
-    });
-    var current = matchedPreset();
-    if (current === "custom") presetOptions.push({ value: "custom", label: "Custom" });
+  /* Seven groups is more than one column should carry at once, so each is a
+     tab. The theme preset stays above them because it sets several at a time. */
+  var TABS = [
+    { id: "brand", label: "Brand", fields: brandFields },
+    { id: "shape", label: "Shape", fields: shapeFields },
+    { id: "type", label: "Type", fields: typeFields },
+    { id: "space", label: "Space", fields: spaceFields },
+    { id: "media", label: "Media", fields: mediaFields },
+    { id: "view", label: "View", fields: viewFields },
+    { id: "export", label: "Export", fields: exportFields },
+  ];
 
-    body.appendChild(
-      field(
-        "Theme",
-        "A starting point. Change anything below and it becomes custom.",
-        select("Theme", "preset", presetOptions, current, function (value) {
-          if (value === "custom") return;
-          var preset = DATA.presets[value];
-          /* Take the choices, not the preset's own label. */
-          commit({ accent: preset.accent, radius: preset.radius, font: preset.font, mono: !!preset.mono });
-        })
-      )
-    );
+  function brandFields() {
+    var out = [];
 
-    /* ---- Brand ---------------------------------------------------------- */
-
-    body.appendChild(group("Brand"));
-
-    body.appendChild(
+    out.push(
       field(
         "Name",
         "Dovetail ships no logo. The wordmark is the name, set in the sans family.",
@@ -690,10 +768,7 @@
           readMark(event.dataTransfer.files[0]);
         },
       },
-      [
-        h("span", { text: brand.mark ? "Replace the mark" : "Drop a mark, or choose a file" }),
-        markFile,
-      ]
+      [h("span", { text: brand.mark ? "Replace the mark" : "Drop a mark, or choose a file" }), markFile]
     );
 
     var markRow = [drop];
@@ -715,9 +790,7 @@
     }
     if (el.markError) markRow.push(h("p", { class: "bases-bad", role: "alert", text: el.markError }));
 
-    body.appendChild(
-      field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "bases-stack" }, markRow))
-    );
+    out.push(field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "bases-stack" }, markRow)));
 
     var swatches = DATA.accents.map(function (accent) {
       return h("button", {
@@ -750,19 +823,11 @@
         commit({ accent: "custom", customHex: event.target.value });
       },
     });
-    swatches.push(
-      h("span", { class: "bases-swatch-btn bases-swatch-custom", "aria-pressed": String(config.accent === "custom"), title: "Custom colour" }, [picker])
-    );
+    swatches.push(h("span", { class: "bases-swatch-btn bases-swatch-custom", "aria-pressed": String(config.accent === "custom"), title: "Custom colour" }, [picker]));
 
-    body.appendChild(
-      field(
-        "Accent",
-        "One hue drives eleven steps. Lightness and chroma stay put, so contrast holds.",
-        h("div", { class: "bases-swatches" }, swatches)
-      )
-    );
+    out.push(field("Accent", "One hue drives eleven steps. Lightness and chroma stay put, so contrast holds.", h("div", { class: "bases-swatches" }, swatches)));
 
-    body.appendChild(
+    out.push(
       field(
         "Monochrome",
         "Drops the brand hue from action surfaces. Feedback colours stay chromatic.",
@@ -772,11 +837,11 @@
       )
     );
 
-    /* ---- Shape ---------------------------------------------------------- */
+    return out;
+  }
 
-    body.appendChild(group("Shape"));
-
-    body.appendChild(
+  function shapeFields() {
+    return [
       field(
         "Radius",
         "Named by what it wraps, so three choices reshape every control and surface.",
@@ -791,75 +856,94 @@
             commit({ radius: value });
           }
         )
-      )
-    );
-
-    body.appendChild(
+      ),
+      field(
+        "Media radius",
+        "How images, video and square avatars sit. Follow takes it from the radius above.",
+        segmented(
+          "Media radius",
+          "mediaradius",
+          [
+            { value: "auto", label: "Follow" },
+            { value: "square", label: "Square" },
+            { value: "media", label: "Soft" },
+            { value: "overlay", label: "Round" },
+            { value: "pill", label: "Pill" },
+          ],
+          config.mediaRadius,
+          function (value) {
+            commit({ mediaRadius: value });
+          }
+        )
+      ),
       field(
         "Focus ring",
         "One ring on every interactive element. Thinner reads as quieter; it never goes to zero.",
         segmented("Focus ring", "focus", [{ value: 1, label: "1px" }, { value: 2, label: "2px" }, { value: 3, label: "3px" }], Number(config.focusRing), function (value) {
           commit({ focusRing: value });
         })
-      )
-    );
+      ),
+    ];
+  }
 
-    /* ---- Type ----------------------------------------------------------- */
-
-    body.appendChild(group("Type"));
-
-    body.appendChild(
+  function typeFields() {
+    return [
       field(
         "Interface",
         "Sets --dt-font-family-sans. Every type role inherits it.",
         select("Interface type", "font", DATA.interfaceFonts, config.font, function (value) {
           commit({ font: value });
         })
-      )
-    );
-
-    body.appendChild(
+      ),
       field(
         "Code",
         "Sets --dt-font-family-mono for code, tokens and numerals.",
         select("Code type", "codeFont", DATA.codeFonts, config.codeFont, function (value) {
           commit({ codeFont: value });
         })
-      )
-    );
+      ),
+    ];
+  }
 
-    /* ---- Space ---------------------------------------------------------- */
-
-    body.appendChild(group("Space"));
-
-    body.appendChild(
+  function spaceFields() {
+    return [
+      field(
+        "Whitespace",
+        "Moves all three space axes and the page rhythm together, staying on the grid. Tight fits more on a screen; airy gives each block room to be read on its own.",
+        segmented(
+          "Whitespace",
+          "whitespace",
+          [{ value: "tight", label: "Tight" }, { value: "balanced", label: "Balanced" }, { value: "airy", label: "Airy" }],
+          config.whitespace,
+          function (value) {
+            commit({ whitespace: value });
+          }
+        )
+      ),
+      field(
+        "Control density",
+        "Compact retunes control heights and their inset only. Type and colour do not move.",
+        segmented("Control density", "density", [{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }], config.density ? "compact" : "comfortable", function (value) {
+          commit({ density: value === "compact" });
+        })
+      ),
       field(
         "Base unit",
         "Every dimension is a multiple, and the number in each name is the multiplier — so the names stay true when the unit moves. Below 4px, control heights drop under the 40px the system asks for.",
         segmented("Base unit", "unit", [{ value: 3, label: "3px" }, { value: 4, label: "4px" }, { value: 5, label: "5px" }], Number(config.baseUnit), function (value) {
           commit({ baseUnit: value });
         })
-      )
-    );
+      ),
+    ];
+  }
 
-    body.appendChild(
-      field(
-        "Density",
-        "Compact retunes control heights and inset only. Type and colour do not move.",
-        segmented("Density", "density", [{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }], config.density ? "compact" : "comfortable", function (value) {
-          commit({ density: value === "compact" });
-        })
-      )
-    );
-
-    /* ---- Icons ---------------------------------------------------------- */
-
-    body.appendChild(group("Icons"));
-
+  function mediaFields() {
+    var out = [];
     var lib = DATA.icons[config.iconLib];
-    body.appendChild(
+
+    out.push(
       field(
-        "Library",
+        "Icon library",
         lib.note + " " + lib.licence + ".",
         segmented(
           "Icon library",
@@ -877,9 +961,9 @@
       )
     );
 
-    body.appendChild(
+    out.push(
       field(
-        "Stroke",
+        "Icon stroke",
         "Applies to every icon on the page and in the cards. Authored leaves each one at the width it ships with.",
         segmented(
           "Icon stroke",
@@ -898,9 +982,9 @@
       )
     );
 
-    body.appendChild(
+    out.push(
       field(
-        "Size",
+        "Icon size",
         "Re-points --dt-size-icon-*, so controls resize with their icons.",
         segmented(
           "Icon size",
@@ -914,7 +998,23 @@
       )
     );
 
-    body.appendChild(
+    out.push(
+      field(
+        "Media blocks",
+        "Dovetail ships no photography, so a card reserves a box where a picture goes. Hiding them takes every image, video and reserved box out of the page and the cards at once, which is how you find out whether the layout still works as words.",
+        segmented(
+          "Media blocks",
+          "mediapresence",
+          [{ value: "shown", label: "Shown" }, { value: "hidden", label: "Hidden" }],
+          config.media,
+          function (value) {
+            commit({ media: value });
+          }
+        )
+      )
+    );
+
+    out.push(
       h("p", { class: "bases-note" }, [
         h("span", { text: "Browse a whole set, try the solid style, and drop in your own photography in the " }),
         h("a", { href: siteRoot() + "showcase/tools.html", text: "media lab" }),
@@ -922,47 +1022,18 @@
       ])
     );
 
-    /* ---- Imagery -------------------------------------------------------- */
+    return out;
+  }
 
-    body.appendChild(group("Imagery"));
-
-    body.appendChild(
-      field(
-        "Media radius",
-        "How images, video and square avatars sit. Follow shape takes it from the radius above.",
-        segmented(
-          "Media radius",
-          "mediaradius",
-          [
-            { value: "auto", label: "Follow" },
-            { value: "square", label: "Square" },
-            { value: "media", label: "Soft" },
-            { value: "overlay", label: "Round" },
-            { value: "pill", label: "Pill" },
-          ],
-          config.mediaRadius,
-          function (value) {
-            commit({ mediaRadius: value });
-          }
-        )
-      )
-    );
-
-    /* ---- View ----------------------------------------------------------- */
-
-    body.appendChild(group("View"));
-
-    body.appendChild(
+  function viewFields() {
+    return [
       field(
         "Colour mode",
         "The same semantic names, re-pointed. No component changes.",
         segmented("Colour mode", "mode", [{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }], config.dark ? "dark" : "light", function (value) {
           commit({ dark: value === "dark" });
         })
-      )
-    );
-
-    body.appendChild(
+      ),
       field(
         "Context",
         "A fourth axis beside theme, mode and density. It retunes scale and rhythm, never colour.",
@@ -977,14 +1048,12 @@
           context,
           setContext
         )
-      )
-    );
+      ),
+    ];
+  }
 
-    /* ---- Export --------------------------------------------------------- */
-
-    body.appendChild(group("Export"));
-
-    el.export = h("textarea", { class: "bases-export", readonly: true, rows: "10", spellcheck: "false", "aria-label": "Theme CSS" });
+  function exportFields() {
+    el.export = h("textarea", { class: "bases-export", readonly: true, rows: "14", spellcheck: "false", "aria-label": "Theme CSS" });
     el.export.value = exportCss();
 
     el.copy = h("button", {
@@ -1016,7 +1085,7 @@
       },
     });
 
-    body.appendChild(
+    return [
       field(
         "Theme file",
         "Paste this into tokens/themes/theme-custom.css and the theme ships with the repository, with no JavaScript.",
@@ -1027,15 +1096,87 @@
             h("button", { type: "button", class: "bases-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
           ]),
         ])
-      )
-    );
-
-    body.appendChild(
+      ),
       h("p", {
         class: "bases-note",
         text: "Held in this browser only, under the key the system's own theme runtime reads. Nothing here edits a file.",
-      })
+      }),
+    ];
+  }
+
+  function paintBody() {
+    var body = el.body;
+    body.textContent = "";
+
+    var presetOptions = Object.keys(DATA.presets).map(function (key) {
+      return { value: key, label: DATA.presets[key].label };
+    });
+    var current = matchedPreset();
+    if (current === "custom") presetOptions.push({ value: "custom", label: "Custom" });
+
+    body.appendChild(
+      field(
+        "Theme",
+        "A starting point. Change anything and it becomes custom.",
+        select("Theme", "preset", presetOptions, current, function (value) {
+          if (value === "custom") return;
+          var preset = DATA.presets[value];
+          /* Take the choices, not the preset's own label. */
+          commit({ accent: preset.accent, radius: preset.radius, font: preset.font, mono: !!preset.mono });
+        })
+      )
     );
+
+    var strip = h("div", { class: "bases-tabs", role: "tablist", "aria-label": "Bases groups" });
+    TABS.forEach(function (tab) {
+      var selected = tab.id === activeTab;
+      strip.appendChild(
+        h("button", {
+          type: "button",
+          class: "bases-tab",
+          role: "tab",
+          id: "bases-tab-" + tab.id,
+          "data-bid": "tab:" + tab.id,
+          "aria-selected": String(selected),
+          "aria-controls": "bases-panel",
+          tabindex: selected ? "0" : "-1",
+          text: tab.label,
+          onclick: function () {
+            setTab(tab.id);
+          },
+          onkeydown: function (event) {
+            var i = TABS.map(function (t) { return t.id; }).indexOf(activeTab);
+            var next = null;
+            if (event.key === "ArrowRight") next = TABS[(i + 1) % TABS.length];
+            else if (event.key === "ArrowLeft") next = TABS[(i - 1 + TABS.length) % TABS.length];
+            else if (event.key === "Home") next = TABS[0];
+            else if (event.key === "End") next = TABS[TABS.length - 1];
+            if (!next) return;
+            event.preventDefault();
+            setTab(next.id);
+            var button = el.body.querySelector('[data-bid="tab:' + next.id + '"]');
+            if (button) button.focus();
+          },
+        })
+      );
+    });
+    body.appendChild(strip);
+
+    var tab = TABS.filter(function (t) { return t.id === activeTab; })[0] || TABS[0];
+    var panel = h("div", {
+      class: "bases-panel",
+      id: "bases-panel",
+      role: "tabpanel",
+      "aria-labelledby": "bases-tab-" + tab.id,
+      tabindex: "0",
+    }, tab.fields());
+    body.appendChild(panel);
+  }
+
+  function setTab(id) {
+    activeTab = id;
+    store(TAB_KEY, id);
+    renderBody();
   }
 
   /* Where the site root is, read from a link the generator already writes. */
@@ -1102,7 +1243,7 @@
     el.swatch.style.background = rampFor(config)["600"];
     if (el.sheet.hidden) return;
     if (options && options.rebuild === false) {
-      if (el.export) el.export.value = exportCss();
+      if (el.export && el.export.isConnected) el.export.value = exportCss();
       return;
     }
     renderBody();

@@ -77,26 +77,35 @@ Every page carries a floating toolbar in the corner. It flips the colour mode, a
 opens **Bases** — a sheet holding the decisions a brand actually makes, grouped the way
 the system is:
 
-| Group | Sets |
+| Tab | Sets |
 | --- | --- |
 | Brand | Name and mark, accent ramp, monochrome |
-| Shape | Radius roles, focus ring width |
+| Shape | Radius roles, media radius, focus ring width |
 | Type | Interface family, code family |
-| Space | Base unit, density |
-| Icons | Library, stroke, size |
-| Imagery | Media radius |
+| Space | Whitespace, control density, base unit |
+| Media | Icon library, icon stroke, icon size, media blocks |
 | View | Colour mode, context |
+| Export | The theme as a file of token overrides |
+
+The theme preset sits above the tabs, because it sets several of them at once.
 
 Changes apply live to the page, to the sidebar and chrome, and to every preview card on
 it, then follow you to every other page.
 
 The **base unit** is the one worth trying first: every dimension token is a multiple and
 the number in each name is the multiplier, so moving the unit re-derives the whole scale
-and the names stay true. **Icons** come from the media lab: picking a library sets the
-stroke it is drawn at, and the stroke applies to every icon already on the page and in
-the cards, since the system ships no icon set of its own. **Name and mark** are the
-white-label test — set both and the header, the breadcrumb and the page title are someone
-else's, with nothing forked.
+and the names stay true. **Whitespace** moves the three space axes and the page rhythm
+together, landing every value on that same grid. **Icons** come from the media lab:
+picking a library sets the stroke it is drawn at, and the stroke applies to every icon
+already on the page and in the cards, since the system ships no icon set of its own.
+**Name and mark** are the white-label test — set both and the header, the breadcrumb and
+the page title are someone else's, with nothing forked.
+
+**Media blocks** has two states, not a range. Dovetail ships no photography, so its cards
+reserve a box where a picture goes rather than drawing one; hiding them takes every image,
+video and reserved box out of the page and the cards at once, which answers whether the
+layout still works as words. There is no richer step because nothing in the repository
+would fill it. Bring your own imagery in the media lab.
 
 It works by writing one localStorage key, `dovetail-theme-config` — the key the system's
 own `templates/_support/theme-runtime.js` already reads. Using that key rather than a
@@ -106,9 +115,12 @@ same payload when you press Save there. Set an accent in the configurator card a
 site follows; set it in the sheet and the configurator agrees.
 
 The sheet never dims or blocks the page, because watching the system change is the point
-of the control. On a wide screen the page is padded aside; on a narrow one the sheet docks
-to the bottom at a little over half the height and the page gains matching padding, so
-anything on it can be scrolled into the space above and watched while the controls move.
+of the control. On a wide screen it floats over the page as frosted glass, so what is
+behind it stays readable through the blur; where `backdrop-filter` is unsupported the
+surface goes solid, since unreadable chrome is worse than flat chrome. On a narrow screen
+it docks to the bottom at a little over half the height and the page gains matching
+padding, so anything on it can be scrolled into the space above and watched while the
+controls move.
 
 The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
 file, not a token, and it has no business in a theme stylesheet.
