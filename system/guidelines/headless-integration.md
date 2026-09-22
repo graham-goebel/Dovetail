@@ -52,9 +52,11 @@ An adapter's only job is turning a CMS payload into that array. It lives in
 
 `integrations/sanity/` ships:
 
-- **Schema definitions** mirroring the component prop contracts, so a `card` document in
-  Sanity Studio produces exactly the props `Card` expects. Generated from the `.d.ts`
-  files, so the schema cannot drift from the component.
+- **Schema definitions** whose field names are the component prop names, so a `card`
+  document in Sanity Studio produces exactly the props `Card` expects. They are written
+  by hand today and nothing checks them against the `.d.ts` files, so a prop change and
+  a schema change belong in the same commit. Generating them from the types is the next
+  thing to build here.
 - **A PortableText serializer** mapping Sanity's block types to Dovetail components —
   `h2` to a `heading-md` role, `code` to `Code`, `blockquote` to `Quote`.
 - **GROQ fragments** for the common queries.

@@ -1,0 +1,81 @@
+<!-- @dsCard group="Content" height=720 name="BlockRenderer" subtitle="One array of blocks, one registry, any headless source" -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  #root { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: var(--dt-space-inline-xl); max-width: 1060px; margin: 0 auto; align-items: start; }
+  h3 { margin: 0 0 var(--dt-space-stack-xs); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  pre { margin: 0; padding: var(--dt-space-inset-md); overflow-x: auto; background: var(--dt-surface-sunken); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); line-height: var(--dt-line-height-xs); color: var(--dt-text-secondary); }
+  @media (max-width: 760px) { #root { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<script>
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+
+  /* What a CMS hands over. Nothing here is Dovetail-shaped until the registry says so. */
+  var BLOCKS = [
+    { _type: "callout", _key: "a", tone: "note", title: "Content decides the page",
+      children: "Every block below came from this array. Change the array, change the page." },
+    { _type: "card", _key: "b", eyebrow: "Changelog", title: "Dovetail 1.0",
+      description: "Token architecture, two demo themes, and the first component set." },
+    { _type: "quote", _key: "c", attribution: "Ada Lovelace", role: "Design Systems Lead",
+      children: "Tokens made the redesign a config change instead of a rewrite." },
+    { _type: "carousel", _key: "d", slides: 3 }
+  ];
+
+  var SOURCE =
+    'const registry = {\n' +
+    '  callout: Callout,\n' +
+    '  card: Card,\n' +
+    '  quote: Quote,\n' +
+    '};\n\n' +
+    '<BlockRenderer\n' +
+    '  blocks={page.blocks}\n' +
+    '  registry={registry}\n' +
+    '  debug\n' +
+    '/>';
+
+  function Page() {
+    var registry = { callout: NS.Callout, card: NS.Card, quote: NS.Quote };
+    return e(
+      React.Fragment,
+      null,
+      e("div", null,
+        e("h3", null, "The blocks and the registry"),
+        e("pre", null, JSON.stringify(BLOCKS, null, 1)),
+        e("div", { style: { height: "var(--dt-space-stack-md)" } }),
+        e("pre", null, SOURCE)
+      ),
+      e("div", null,
+        e("h3", null, "What renders"),
+        e(NS.Stack, { gap: "md" },
+          e(NS.BlockRenderer, { blocks: BLOCKS, registry: registry, debug: true })
+        ),
+        e("div", { style: { height: "var(--dt-space-stack-md)" } }),
+        e("p", { style: { margin: 0, maxWidth: "60ch", fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)", lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)" } },
+          "The last block has no component. With debug on it says so; with debug off it renders nothing, so a missing block is loud in review and silent for the reader.")
+      )
+    );
+  }
+
+  function start() {
+    if (!NS.BlockRenderer || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

@@ -220,6 +220,14 @@
 
     if (Number(cfg.focusRing) !== 2) vars["--dt-focus-ring-width"] = Number(cfg.focusRing) + "px";
 
+    /* The site's own icons are drawn to the shared convention, so the library
+       choice reaches them as a weight. Authored means "leave the system's cards
+       alone", not "leave the chrome at 2px", so the library default applies
+       here even then. */
+    vars["--site-icon-stroke"] = String(
+      cfg.iconStroke === "authored" ? (DATA.icons[cfg.iconLib] || DATA.icons.lucide).stroke : cfg.iconStroke
+    );
+
     var sizes = ICON_SIZES[cfg.iconSize];
     if (sizes) {
       ["xs", "sm", "md", "lg", "xl"].forEach(function (name, i) {

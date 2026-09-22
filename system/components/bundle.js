@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"aac4309aeb16","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"486783235f65","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"f189aefb47f3","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"8177513af12a","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"5dfe99647b13","components/display/Card.jsx":"d456bfba390d","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"27babae5c860","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"d0cc7e99ccc6","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"855d720a77f7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"04a11b22175c","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"aac4309aeb16","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"486783235f65","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"f189aefb47f3","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"8177513af12a","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"5dfe99647b13","components/display/Card.jsx":"d456bfba390d","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"27babae5c860","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"d0cc7e99ccc6","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"855d720a77f7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"04a11b22175c","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -3979,6 +3979,337 @@ function VisuallyHidden({
 Object.assign(__ds_scope, { VisuallyHidden });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/VisuallyHidden.jsx", error: String((e && e.message) || e) }); }
 
+// components/forms/Combobox.jsx
+try { (() => {
+const { Field } = __ds_scope;
+const norm = o => typeof o === "string" ? {
+  value: o,
+  label: o
+} : o;
+function Combobox({
+  label,
+  hint,
+  error,
+  required,
+  options = [],
+  value,
+  defaultValue = "",
+  onChange,
+  placeholder = "Search…",
+  emptyMessage = "No matches",
+  disabled = false,
+  size = "md",
+  id,
+  style,
+  ...rest
+}) {
+  const all = React.useMemo(() => options.map(norm), [options]);
+  const auto = React.useId();
+  const inputId = id || auto;
+  const listId = inputId + "-list";
+  const [uncontrolled, setUncontrolled] = React.useState(defaultValue);
+  const selected = value !== undefined ? value : uncontrolled;
+  const selectedOption = all.find(o => o.value === selected);
+  const [query, setQuery] = React.useState("");
+  const [open, setOpen] = React.useState(false);
+  const [active, setActive] = React.useState(0);
+  const [focus, setFocus] = React.useState(false);
+  const wrap = React.useRef(null);
+  const list = React.useRef(null);
+  const matches = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q ? all.filter(o => o.label.toLowerCase().includes(q)) : all;
+  }, [all, query]);
+
+  // The text in the box is what you typed while open, and the chosen label when closed.
+  const text = open ? query : selectedOption ? selectedOption.label : "";
+  React.useEffect(() => {
+    if (!open) return;
+    const away = e => {
+      if (wrap.current && !wrap.current.contains(e.target)) close();
+    };
+    document.addEventListener("mousedown", away);
+    return () => document.removeEventListener("mousedown", away);
+  }, [open]);
+
+  // Keep the active option in view when the keyboard moves it past the edge.
+  React.useEffect(() => {
+    if (!open || !list.current) return;
+    const el = list.current.children[active];
+    if (el && el.scrollIntoView) el.scrollIntoView({
+      block: "nearest"
+    });
+  }, [active, open]);
+  function openList() {
+    if (disabled) return;
+    setQuery("");
+    setActive(Math.max(0, all.findIndex(o => o.value === selected)));
+    setOpen(true);
+  }
+  function close() {
+    setOpen(false);
+    setQuery("");
+  }
+  function choose(option) {
+    if (!option) return;
+    if (value === undefined) setUncontrolled(option.value);
+    if (onChange) onChange(option.value);
+    close();
+  }
+  function onKeyDown(e) {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) return openList();
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      setActive(i => matches.length ? (i + step + matches.length) % matches.length : 0);
+      return;
+    }
+    if (!open) return;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      choose(matches[active]);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setActive(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setActive(Math.max(0, matches.length - 1));
+    } else if (e.key === "Tab") close();
+  }
+  const border = error ? "var(--dt-input-border-error)" : focus || open ? "var(--dt-input-border-focus)" : "var(--dt-input-border)";
+  const control = /*#__PURE__*/React.createElement("div", {
+    ref: wrap,
+    style: {
+      position: "relative"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    id: inputId,
+    type: "text",
+    role: "combobox",
+    autoComplete: "off",
+    "aria-expanded": open,
+    "aria-controls": listId,
+    "aria-autocomplete": "list",
+    "aria-activedescendant": open && matches[active] ? listId + "-" + active : undefined,
+    "aria-invalid": error ? true : undefined,
+    required: required,
+    disabled: disabled,
+    placeholder: placeholder,
+    value: text,
+    onChange: e => {
+      setQuery(e.target.value);
+      setActive(0);
+      if (!open) setOpen(true);
+    },
+    onFocus: () => setFocus(true),
+    onBlur: () => setFocus(false),
+    onMouseDown: () => open ? close() : openList(),
+    onKeyDown: onKeyDown,
+    style: {
+      width: "100%",
+      height: `var(--dt-input-height-${size})`,
+      padding: "0 calc(var(--dt-input-padding-x) * 2 + var(--dt-size-icon-sm)) 0 var(--dt-input-padding-x)",
+      fontFamily: "var(--dt-input-font-family)",
+      fontSize: "var(--dt-input-font-size)",
+      color: disabled ? "var(--dt-input-fg-disabled)" : "var(--dt-input-fg)",
+      background: disabled ? "var(--dt-input-bg-disabled)" : "var(--dt-input-bg)",
+      border: `var(--dt-input-border-width) solid ${border}`,
+      borderRadius: "var(--dt-input-radius)",
+      outline: "none",
+      transition: "border-color var(--dt-input-transition)",
+      boxSizing: "border-box"
+    },
+    ...rest
+  }), /*#__PURE__*/React.createElement("svg", {
+    "aria-hidden": "true",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      position: "absolute",
+      top: "50%",
+      right: "var(--dt-input-padding-x)",
+      transform: "translateY(-50%)",
+      width: "var(--dt-size-icon-sm)",
+      height: "var(--dt-size-icon-sm)",
+      pointerEvents: "none",
+      color: "var(--dt-text-secondary)"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m6 9 6 6 6-6"
+  })), /*#__PURE__*/React.createElement("ul", {
+    id: listId,
+    role: "listbox",
+    "aria-label": typeof label === "string" ? label : undefined,
+    ref: list,
+    hidden: !open,
+    style: {
+      position: "absolute",
+      top: "calc(100% + var(--dt-space-stack-2xs))",
+      left: 0,
+      right: 0,
+      zIndex: "var(--dt-z-dropdown)",
+      margin: 0,
+      padding: "var(--dt-space-inset-2xs)",
+      listStyle: "none",
+      maxHeight: "calc(var(--dt-dim-10) * 5)",
+      overflowY: "auto",
+      background: "var(--dt-surface-overlay)",
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderRadius: "var(--dt-radius-container)",
+      boxShadow: "var(--dt-elevation-3)"
+    }
+  }, matches.length === 0 && /*#__PURE__*/React.createElement("li", {
+    role: "option",
+    "aria-disabled": "true",
+    "aria-selected": "false",
+    style: {
+      padding: "var(--dt-space-inset-xs) var(--dt-space-inset-sm)",
+      fontFamily: "var(--dt-text-body-sm-family)",
+      fontSize: "var(--dt-text-body-sm-size)",
+      color: "var(--dt-text-tertiary)"
+    }
+  }, emptyMessage), matches.map((o, i) => {
+    const isActive = i === active;
+    const isSelected = o.value === selected;
+    return /*#__PURE__*/React.createElement("li", {
+      key: o.value,
+      id: listId + "-" + i,
+      role: "option",
+      "aria-selected": isSelected,
+      onMouseEnter: () => setActive(i),
+      onMouseDown: e => {
+        e.preventDefault();
+        choose(o);
+      },
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "var(--dt-space-inline-sm)",
+        padding: "var(--dt-space-inset-xs) var(--dt-space-inset-sm)",
+        borderRadius: "var(--dt-radius-control)",
+        fontFamily: "var(--dt-text-body-sm-family)",
+        fontSize: "var(--dt-text-body-sm-size)",
+        lineHeight: "var(--dt-text-body-sm-line)",
+        color: isSelected ? "var(--dt-text-on-selected)" : "var(--dt-text-primary)",
+        background: isSelected ? "var(--dt-surface-selected)" : isActive ? "var(--dt-surface-action-ghost-hover)" : "transparent",
+        cursor: "pointer"
+      }
+    }, /*#__PURE__*/React.createElement("span", null, o.label), isSelected && /*#__PURE__*/React.createElement("svg", {
+      "aria-hidden": "true",
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: "2.5",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      style: {
+        width: "var(--dt-size-icon-sm)",
+        height: "var(--dt-size-icon-sm)",
+        flex: "none"
+      }
+    }, /*#__PURE__*/React.createElement("path", {
+      d: "m5 13 4 4L19 7"
+    })));
+  })));
+  if (!label && !hint && !error) return /*#__PURE__*/React.createElement("div", {
+    style: style
+  }, control);
+  return /*#__PURE__*/React.createElement(Field, {
+    label: label,
+    hint: hint,
+    error: error,
+    required: required,
+    htmlFor: inputId,
+    style: style
+  }, control);
+}
+Object.assign(__ds_scope, { Combobox });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Combobox.jsx", error: String((e && e.message) || e) }); }
+
+// components/content/BlockRenderer.jsx
+try { (() => {
+/* The layer that makes any headless source work. A block is `{ _type, _key, ...props }`;
+   the registry maps a `_type` to a component. Nothing here knows about a CMS, which is
+   the point: an adapter turns a payload into this array and stops. */
+
+function BlockRenderer({
+  blocks = [],
+  registry = {},
+  debug,
+  onUnknown,
+  ...rest
+}) {
+  const loud = debug === undefined ? isDevelopment() : debug;
+  return /*#__PURE__*/React.createElement(React.Fragment, rest, blocks.map((block, i) => {
+    if (!block || !block._type) return null;
+    const {
+      _type,
+      _key,
+      ...props
+    } = block;
+    const Component = registry[_type];
+    if (!Component) {
+      if (onUnknown) onUnknown(_type, block);
+      /* A missing block is loud in review and silent for the reader: shipping a
+         red box to production would be a worse failure than the missing block. */
+      return loud ? /*#__PURE__*/React.createElement(UnknownBlock, {
+        key: _key || i,
+        type: _type
+      }) : null;
+    }
+    return /*#__PURE__*/React.createElement(Component, {
+      key: _key || i,
+      ...props
+    });
+  }));
+}
+function isDevelopment() {
+  try {
+    return typeof process !== "undefined" && !!process.env && process.env.NODE_ENV !== "production";
+  } catch (e) {
+    /* No bundler, no process: a plain script tag in a browser. Stay quiet. */
+    return false;
+  }
+}
+function UnknownBlock({
+  type
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    role: "alert",
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-2xs)",
+      padding: "var(--dt-space-inset-md)",
+      background: "var(--dt-surface-danger-subtle)",
+      border: `var(--dt-border-width-default) dashed var(--dt-border-danger)`,
+      borderRadius: "var(--dt-radius-container)",
+      fontFamily: "var(--dt-text-body-sm-family)",
+      fontSize: "var(--dt-text-body-sm-size)",
+      lineHeight: "var(--dt-text-body-sm-line)",
+      color: "var(--dt-text-danger)"
+    }
+  }, /*#__PURE__*/React.createElement("strong", {
+    style: {
+      fontWeight: "var(--dt-font-weight-semibold)"
+    }
+  }, "No component for “", type, "”"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--dt-text-secondary)"
+    }
+  }, "Add it to the registry you pass to BlockRenderer, or remove the block from the content."));
+}
+Object.assign(__ds_scope, { BlockRenderer });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/BlockRenderer.jsx", error: String((e && e.message) || e) }); }
+
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -4090,5 +4421,9 @@ __ds_ns.Spacer = __ds_scope.Spacer;
 __ds_ns.Stack = __ds_scope.Stack;
 
 __ds_ns.VisuallyHidden = __ds_scope.VisuallyHidden;
+
+__ds_ns.BlockRenderer = __ds_scope.BlockRenderer;
+
+__ds_ns.Combobox = __ds_scope.Combobox;
 
 })();

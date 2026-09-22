@@ -19,7 +19,7 @@ downloads.html      How to take the system into a project
 
 system/             The design system itself, at the paths it was authored with
 previews/           The @dsCard preview documents, one per card
-assets/             Site chrome: site.css, site.js, theme.js (the bases panel)
+assets/             Site chrome: site.css, site.js, theme.js (bases), specimens.js
 tools/build-site.mjs   The generator
 ```
 
@@ -70,6 +70,27 @@ Either way the site lands at `https://<owner>.github.io/<repo>/`.
 
 `.nojekyll` is committed because the system has paths that begin with an underscore, and
 Jekyll would drop them.
+
+## Live specimens
+
+The component index renders each component into its own card, from the same bundle the
+preview cards use, so a card cannot show something the component no longer does. One
+React root per card is heavier than a static list and much lighter than 56 iframes, which
+is the only other way to show the real thing. `assets/specimens.js` holds one entry per
+component: the smallest honest use of it, with real props and real content.
+
+Four cards carry a line of text instead. Dialog, Drawer and ToastRegion mount fixed to
+the viewport, so a specimen would cover the page rather than sit in a card, and
+VisuallyHidden renders nothing by design.
+
+## Chrome icons
+
+The tiles on the overview, foundations, showcase and guide pages carry inline SVG icons
+drawn on the same 24px grid the system documents — round caps, inherited colour, no fill.
+They are the site's own chrome, not copies of a library's glyphs: Dovetail ships no icon
+set, and the media lab is where you try real ones. They are stroked, so the icon controls
+in the bases sheet move them, and their weight follows whichever library is selected —
+2px for Lucide, 1.5px for Heroicons.
 
 ## The bases panel
 

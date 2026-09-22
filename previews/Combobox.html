@@ -1,0 +1,79 @@
+<!-- @dsCard group="Forms" height=520 name="Combobox" subtitle="Filters a known list. Select is right until the list is too long to scan." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  #root { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--dt-space-inline-lg); max-width: 1000px; margin: 0 auto; align-items: start; }
+  .spec { display: flex; flex-direction: column; gap: var(--dt-space-stack-xs); }
+  .spec > h3 { margin: 0; font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  .readout { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-xs); color: var(--dt-text-secondary); }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+
+  var COUNTRIES = ["Argentina","Australia","Austria","Belgium","Brazil","Canada","Chile","Denmark","Finland","France","Germany","Iceland","Ireland","Italy","Japan","Kenya","Mexico","Netherlands","New Zealand","Norway","Portugal","Singapore","South Africa","Spain","Sweden","Switzerland","United Kingdom","United States","Uruguay"];
+
+  function Spec(props) {
+    return e("div", { className: "spec" }, e("h3", null, props.name), props.children);
+  }
+
+  function Page() {
+    var picked = React.useState("United Kingdom");
+    return e(
+      React.Fragment,
+      null,
+      e(Spec, { name: "Selected" },
+        e(NS.Combobox, {
+          label: "Country",
+          hint: "Where the account is billed",
+          options: COUNTRIES,
+          value: picked[0],
+          onChange: picked[1],
+        }),
+        e("span", { className: "readout" }, "value: " + JSON.stringify(picked[0]))
+      ),
+      e(Spec, { name: "Empty, with a placeholder" },
+        e(NS.Combobox, { label: "Assignee", placeholder: "Search people…", options: ["Ada Lovelace","Alan Turing","Grace Hopper","Katherine Johnson"] })
+      ),
+      e(Spec, { name: "Required, in error" },
+        e(NS.Combobox, { label: "Country", required: true, error: "Choose a country to continue.", options: COUNTRIES })
+      ),
+      e(Spec, { name: "Disabled" },
+        e(NS.Combobox, { label: "Region", disabled: true, defaultValue: "eu-west-2", options: [{ value: "eu-west-2", label: "London" }] })
+      ),
+      e(Spec, { name: "Sizes" },
+        e(NS.Stack, { gap: "sm" },
+          e(NS.Combobox, { size: "sm", options: COUNTRIES, defaultValue: "Japan" }),
+          e(NS.Combobox, { size: "md", options: COUNTRIES, defaultValue: "Japan" }),
+          e(NS.Combobox, { size: "lg", options: COUNTRIES, defaultValue: "Japan" })
+        )
+      ),
+      e(Spec, { name: "Nothing matches" },
+        e(NS.Combobox, { label: "Country", options: COUNTRIES, emptyMessage: "No country by that name" })
+      )
+    );
+  }
+
+  function start() {
+    if (!NS.Combobox || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

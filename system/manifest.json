@@ -33,6 +33,9 @@
     "components/content/AspectRatio.d.ts",
     "components/content/AspectRatio.jsx",
     "components/content/AspectRatio.md",
+    "components/content/BlockRenderer.d.ts",
+    "components/content/BlockRenderer.jsx",
+    "components/content/BlockRenderer.md",
     "components/content/Callout.d.ts",
     "components/content/Callout.jsx",
     "components/content/Callout.md",
@@ -124,6 +127,9 @@
     "components/forms/CheckboxGroup.d.ts",
     "components/forms/CheckboxGroup.jsx",
     "components/forms/CheckboxGroup.md",
+    "components/forms/Combobox.d.ts",
+    "components/forms/Combobox.jsx",
+    "components/forms/Combobox.md",
     "components/forms/Field.d.ts",
     "components/forms/Field.jsx",
     "components/forms/Field.md",
@@ -237,6 +243,10 @@
     "guidelines/type-tracking.html",
     "guidelines/voice.html",
     "guidelines/wordmark.html",
+    "integrations/sanity/README.md",
+    "integrations/sanity/groq.js",
+    "integrations/sanity/portable-text.js",
+    "integrations/sanity/schemas.js",
     "kits/dashboard-kit.card.html",
     "kits/marketing-kit.card.html",
     "support.js",
@@ -464,6 +474,12 @@
     },
     {
       "name": "VisuallyHidden"
+    },
+    {
+      "name": "Combobox"
+    },
+    {
+      "name": "BlockRenderer"
     }
   ],
   "lastChange": {

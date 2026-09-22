@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlockRenderer · Dovetail</title>
+<meta name="description" content="Renders an array of content blocks through a registry of components. This is the whole">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved bases, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html" aria-current="page">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/ui-kits.html">UI kits</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">BlockRenderer</li></ol></nav>
+<h1>BlockRenderer</h1>
+<p class="lede">Renders an array of content blocks through a registry of components. This is the whole</p>
+<p class="meta">
+  <span class="pill">Content</span>
+  
+  <a href="../system/components/content/BlockRenderer.jsx">BlockRenderer.jsx</a>
+  <a href="../system/components/content/BlockRenderer.d.ts">BlockRenderer.d.ts</a>
+  <a href="../system/components/content/BlockRenderer.md">BlockRenderer.md</a>
+</p>
+
+<section class="card-block" id="blockrenderer-live">
+  <div class="card-head">
+    <h2>BlockRenderer — live</h2>
+    <a class="card-open" href="../previews/BlockRenderer.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">One array of blocks, one registry, any headless source</p>
+  <div class="frame" style="height:720px">
+    <iframe src="../previews/BlockRenderer.html" title="BlockRenderer — live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>Renders an array of content blocks through a registry of components. This is the whole integration surface for a headless source: Sanity, Contentful, Storyblok, Payload and a JSON file on disk all produce the same array once their client has resolved.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>A page's structure comes from content rather than from code.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>The page is a fixed composition. Write the JSX; an indirection that never varies is just harder to read.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>const registry = { hero: Hero, cardGrid: CardGrid, prose: Prose, cta: CTASection };
+
+&lt;BlockRenderer blocks={page.blocks} registry={registry} /&gt;</code></pre>
+<p>Each block is <code>{ _type, _key, ...props }</code>. The <code>_type</code> is looked up in the registry and the rest is spread as props, so a block's shape is the component's prop contract and nothing else.</p>
+<h2 id="unknown-types">Unknown types</h2>
+<p>A <code>_type</code> with no component renders a visible warning when <code>debug</code> is on, and nothing when it is off — loud in review, silent for the reader. <code>debug</code> defaults to true under a non-production <code>NODE_ENV</code> and false when there is no bundler to tell it apart, so a plain script tag in a browser stays quiet. Pass <code>onUnknown</code> to report the miss either way.</p>
+<h2 id="composition">Composition</h2>
+<p>Keep the registry outside the component that renders it, so it is one object rather than one per render. Registry values are ordinary components: Dovetail components, your own compositions, or a mix.</p>
+<h2 id="accessibility">Accessibility</h2>
+<p>BlockRenderer adds no markup of its own — it returns a fragment. Whatever the blocks render is the whole output, so heading order is the content's responsibility.</p>
+<h2 id="tradeoffs">Tradeoffs</h2>
+<p>An unknown block is the price of letting content drive structure. Keeping the registry small and reviewed is cheaper than a renderer that guesses.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>BlockRenderer.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+export interface Block {
+  /** Looked up in the registry. Everything else is spread onto the component. */
+  _type: string;
+  /** Stable key from the source. Falls back to the array index. */
+  _key?: string;
+  [prop: string]: any;
+}
+
+export type BlockRegistry = Record&lt;string, React.ComponentType&lt;any&gt;&gt;;
+
+/** Maps an array of content blocks onto components. The whole integration surface for any headless source. */
+export interface BlockRendererProps {
+  blocks?: Block[];
+  registry?: BlockRegistry;
+  /** Show a visible warning for a `_type` with no component. Defaults to true under a non-production NODE_ENV, false otherwise. */
+  debug?: boolean;
+  /** Called for every unknown `_type`, whether or not the warning renders. Wire it to your error reporter. */
+  onUnknown?: (type: string, block: Block) =&gt; void;
+}
+
+export declare function BlockRenderer(props: BlockRendererProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+/* The layer that makes any headless source work. A block is `{ _type, _key, ...props }`;
+   the registry maps a `_type` to a component. Nothing here knows about a CMS, which is
+   the point: an adapter turns a payload into this array and stops. */
+
+export function BlockRenderer({ blocks = [], registry = {}, debug, onUnknown, ...rest }) {
+  const loud = debug === undefined ? isDevelopment() : debug;
+
+  return (
+    &lt;React.Fragment {...rest}&gt;
+      {blocks.map((block, i) =&gt; {
+        if (!block || !block._type) return null;
+        const { _type, _key, ...props } = block;
+        const Component = registry[_type];
+
+        if (!Component) {
+          if (onUnknown) onUnknown(_type, block);
+          /* A missing block is loud in review and silent for the reader: shipping a
+             red box to production would be a worse failure than the missing block. */
+          return loud ? &lt;UnknownBlock key={_key || i} type={_type} /&gt; : null;
+        }
+
+        return &lt;Component key={_key || i} {...props} /&gt;;
+      })}
+    &lt;/React.Fragment&gt;
+  );
+}
+
+function isDevelopment() {
+  try {
+    return typeof process !== &quot;undefined&quot; &amp;&amp; !!process.env &amp;&amp; process.env.NODE_ENV !== &quot;production&quot;;
+  } catch (e) {
+    /* No bundler, no process: a plain script tag in a browser. Stay quiet. */
+    return false;
+  }
+}
+
+function UnknownBlock({ type }) {
+  return (
+    &lt;div
+      role=&quot;alert&quot;
+      style={{
+        display: &quot;flex&quot;,
+        flexDirection: &quot;column&quot;,
+        gap: &quot;var(--dt-space-stack-2xs)&quot;,
+        padding: &quot;var(--dt-space-inset-md)&quot;,
+        background: &quot;var(--dt-surface-danger-subtle)&quot;,
+        border: `var(--dt-border-width-default) dashed var(--dt-border-danger)`,
+        borderRadius: &quot;var(--dt-radius-container)&quot;,
+        fontFamily: &quot;var(--dt-text-body-sm-family)&quot;,
+        fontSize: &quot;var(--dt-text-body-sm-size)&quot;,
+        lineHeight: &quot;var(--dt-text-body-sm-line)&quot;,
+        color: &quot;var(--dt-text-danger)&quot;,
+      }}
+    &gt;
+      &lt;strong style={{ fontWeight: &quot;var(--dt-font-weight-semibold)&quot; }}&gt;No component for “{type}”&lt;/strong&gt;
+      &lt;span style={{ color: &quot;var(--dt-text-secondary)&quot; }}&gt;
+        Add it to the registry you pass to BlockRenderer, or remove the block from the content.
+      &lt;/span&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>BlockRenderer also appears on the content reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#contentdetail">ContentDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<footer class="site-footer">
+  <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
+  <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
+</footer>
+<script src="../assets/bases-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

@@ -41,9 +41,12 @@ const slug = (s) =>
 /* A small CommonMark subset: headings, fenced code, tables, lists, quotes,
    rules, and the inline set the system's own documentation uses. */
 function inlineMd(t) {
-  // Code spans are escaped and parked before anything else touches the text.
+  /* Some of the system's markdown escapes its backticks — an artefact of files
+     that once lived inside template literals. Unescaping first is what turns
+     `\`Checkbox\`` back into the code span it was written to be, rather than a
+     pair of stray backslashes on the page. */
   const spans = [];
-  let s = String(t).replace(/`([^`]+)`/g, (_, code) => {
+  let s = String(t).replace(/\\`/g, "`").replace(/`([^`]+)`/g, (_, code) => {
     spans.push(`<code>${esc(code)}</code>`);
     return `\u0000${spans.length - 1}\u0000`;
   });
@@ -148,6 +151,55 @@ function sections(src) {
     map.set(part.slice(0, nl).trim(), part.slice(nl + 1).trim());
   }
   return map;
+}
+
+/* -------------------------------------------------------------------- icons */
+
+/* Dovetail ships no icon set — the README says to load one, and the media lab is
+   where you try them. These are the site's own chrome: drawn on the same 24px
+   grid with round caps and joins, inherited colour, and no fill, which is the
+   convention Lucide and Heroicons share and the one the system documents. They
+   are inline so a page needs no script and no CDN to show them, and they are
+   stroked, so the icon controls in the bases sheet move them with everything
+   else. They are not copies of any library's glyphs. */
+const ICONS = {
+  compass: ['<circle cx="12" cy="12" r="9"/>', '<path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/>'],
+  layers: ['<path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/>', '<path d="m3 16.5 9 4.5 9-4.5"/>', '<path d="m3 12 9 4.5L21 12"/>'],
+  blocks: [
+    '<rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/>',
+    '<rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>',
+    '<rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/>',
+    '<rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>',
+  ],
+  braces: [
+    '<path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/>',
+    '<path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/>',
+  ],
+  monitor: ['<rect x="2.5" y="3.5" width="19" height="13" rx="2"/>', '<path d="M8.5 20.5h7"/>', '<path d="M12 16.5v4"/>'],
+  book: ['<path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/>', '<path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/>'],
+  download: ['<path d="M12 3.5v11"/>', '<path d="m7.5 10 4.5 4.5L16.5 10"/>', '<path d="M4.5 20.5h15"/>'],
+  droplet: ['<path d="M12 21.5a6.5 6.5 0 0 0 6.5-6.5c0-2-1.2-3.8-3-5.4C13.6 8 12.5 5.6 12 3c-.5 2.6-1.6 5-3.5 6.6-1.8 1.6-3 3.4-3 5.4a6.5 6.5 0 0 0 6.5 6.5Z"/>'],
+  type: ['<path d="M4.5 7V4.5h15V7"/>', '<path d="M9.5 19.5h5"/>', '<path d="M12 4.5v15"/>'],
+  ruler: ['<path d="m17.5 8 4 4-4 4"/>', '<path d="M2.5 12h19"/>', '<path d="m6.5 8-4 4 4 4"/>'],
+  square: ['<rect x="3.5" y="3.5" width="17" height="17" rx="4"/>'],
+  scale: ['<path d="M20.5 3.5 3.5 20.5"/>', '<path d="M20.5 9.5v-6h-6"/>', '<path d="M3.5 14.5v6h6"/>'],
+  zap: ['<path d="M13 2.5 4 13.5h7l-1 8 9-11h-7l1-8Z"/>'],
+  blend: ['<circle cx="9" cy="9" r="6"/>', '<circle cx="15" cy="15" r="6"/>'],
+  box: ['<path d="m20.5 7.5-8.5-4.5-8.5 4.5v9l8.5 4.5 8.5-4.5v-9Z"/>', '<path d="m3.5 7.5 8.5 4.5 8.5-4.5"/>', '<path d="M12 12v9"/>'],
+  list: ['<path d="M8.5 6h12"/>', '<path d="M8.5 12h12"/>', '<path d="M8.5 18h12"/>', '<path d="M3.5 6h.01"/>', '<path d="M3.5 12h.01"/>', '<path d="M3.5 18h.01"/>'],
+  sliders: [
+    '<path d="M5 21v-6"/>', '<path d="M5 11V3"/>', '<path d="M12 21v-9"/>', '<path d="M12 8V3"/>',
+    '<path d="M19 21v-4"/>', '<path d="M19 13V3"/>', '<path d="M2.5 15h5"/>', '<path d="M9.5 8h5"/>', '<path d="M16.5 17h5"/>',
+  ],
+  layout: ['<rect x="3.5" y="3.5" width="17" height="17" rx="2"/>', '<path d="M3.5 9.5h17"/>', '<path d="M9.5 20.5v-11"/>'],
+  file: ['<path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/>', '<path d="M13.5 2.5v6h6"/>'],
+  wrench: ['<path d="M20.5 4.5 17 8l-1-1 3.5-3.5a5.5 5.5 0 0 0-7 7l-8 8a2 2 0 0 0 2.8 2.8l8-8a5.5 5.5 0 0 0 7-7l-1.8 1.8"/>'],
+};
+
+function icon(name) {
+  const paths = ICONS[name];
+  if (!paths) return "";
+  return `<svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths.join("")}</svg>`;
 }
 
 /* ------------------------------------------------------------ preview cards */
@@ -369,23 +421,23 @@ const byGroup = (g) => components.filter((c) => c.group === g);
 
 /* Foundation and showcase cards, in the order they should be read. */
 const FOUNDATIONS = [
-  ["Foundations", "foundations", "The contract the rest of the system rests on."],
-  ["Color", "color", "Seven OKLCH ramps, six surface levels, and the pairing rule."],
-  ["Type", "type", "A 1.200 scale from 16px, with line heights on the 4px grid."],
-  ["Space", "space", "One 4px base unit, read through three semantic axes."],
-  ["Shape", "shape", "Radius named by what it wraps, and one focus ring."],
-  ["Size", "size", "Control heights and icon sizes, all on the grid."],
-  ["Elevation", "elevation", "Six levels of z-order, not a menu of shadows."],
-  ["Motion", "motion", "Four roles. Exits are faster than entrances."],
-  ["Themes", "themes", "Brand and density skins, each a file of token overrides."],
+  ["Foundations", "foundations", "The contract the rest of the system rests on.", "compass"],
+  ["Color", "color", "Seven OKLCH ramps, six surface levels, and the pairing rule.", "droplet"],
+  ["Type", "type", "A 1.200 scale from 16px, with line heights on the 4px grid.", "type"],
+  ["Space", "space", "One 4px base unit, read through three semantic axes.", "ruler"],
+  ["Shape", "shape", "Radius named by what it wraps, and one focus ring.", "square"],
+  ["Size", "size", "Control heights and icon sizes, all on the grid.", "scale"],
+  ["Elevation", "elevation", "Six levels of z-order, not a menu of shadows.", "layers"],
+  ["Motion", "motion", "Four roles. Exits are faster than entrances.", "zap"],
+  ["Themes", "themes", "Brand and density skins, each a file of token overrides.", "blend"],
 ];
 const SHOWCASE = [
-  ["Components", "overviews", "Each component family at a glance."],
-  ["Component detail", "detail", "Full reference cards: specimens, props and usage rules."],
-  ["Playground", "playground", "Controls you can drive, with the code that produced them."],
-  ["UI kits", "ui-kits", "Whole screens built only from Dovetail components."],
-  ["Templates", "templates", "Starting points to copy into a product."],
-  ["Tools", "tools", "The theme configurator and the media lab."],
+  ["Components", "overviews", "Each component family at a glance.", "box"],
+  ["Component detail", "detail", "Full reference cards: specimens, props and usage rules.", "list"],
+  ["Playground", "playground", "Controls you can drive, with the code that produced them.", "sliders"],
+  ["UI kits", "ui-kits", "Whole screens built only from Dovetail components.", "layout"],
+  ["Templates", "templates", "Starting points to copy into a product.", "file"],
+  ["Tools", "tools", "The theme configurator and the media lab.", "wrench"],
 ];
 const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === group);
 
@@ -453,7 +505,7 @@ const ICON = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1d4ed8"/><path d="M9 22 16 9l7 13z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>`
 )}`;
 
-function page({ title, lede, body, active, root, wide = false }) {
+function page({ title, lede, body, active, root, wide = false, scripts = "" }) {
   const heading = title === "Dovetail" ? "Dovetail" : `${title} · Dovetail`;
   return `<!doctype html>
 <html lang="en">
@@ -501,7 +553,7 @@ ${body}
   <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
   <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
 </footer>
-<script src="${root}assets/bases-data.js" defer></script>
+${scripts}<script src="${root}assets/bases-data.js" defer></script>
 <script src="${root}assets/theme.js" defer></script>
 <script src="${root}assets/site.js" defer></script>
 </body>
@@ -544,12 +596,12 @@ function breadcrumb(root, trail) {
 function buildHome() {
   const s = sections(readme);
   const tiles = [
-    ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards."],
-    ["components/index.html", "Components", `${components.length} components across seven families, with props, source and usage rules.`],
-    ["tokens.html", "Tokens", "Every token in the system, with its value in each theme."],
-    ["showcase/index.html", "Showcase", "Detail cards, playgrounds, UI kits and templates."],
-    ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline."],
-    ["downloads.html", "Download", "Take the stylesheets, tokens and components into your project."],
+    ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
+    ["components/index.html", "Components", `${components.length} components across seven families, with props, source and usage rules.`, "blocks"],
+    ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
+    ["showcase/index.html", "Showcase", "Detail cards, playgrounds, UI kits and templates.", "monitor"],
+    ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
+    ["downloads.html", "Download", "Take the stylesheets, tokens and components into your project.", "download"],
   ];
   const body = `
 <section class="hero">
@@ -567,8 +619,8 @@ function buildHome() {
 <section class="tiles">
   ${tiles
     .map(
-      ([href, title, text]) =>
-        `<a class="tile" href="${href}"><h2>${esc(title)}</h2><p>${esc(text)}</p></a>`
+      ([href, title, text, glyph]) =>
+        `<a class="tile" href="${href}">${icon(glyph)}<h2>${esc(title)}</h2><p>${esc(text)}</p></a>`
     )
     .join("\n  ")}
 </section>
@@ -602,9 +654,9 @@ ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Founda
 <h1>Foundations</h1>
 <p class="lede">The visual and structural decisions every component inherits. Each card below is live: switch the colour mode or context in the header and watch it follow.</p>
 <div class="tiles">
-${FOUNDATIONS.map(([group, s, text]) => {
+${FOUNDATIONS.map(([group, s, text, glyph]) => {
   const n = cardsInGroup(group).length;
-  return `<a class="tile" href="${s}.html"><h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
+  return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
 </div>`;
   write("foundations/index.html", page({ title: "Foundations", lede: "The visual and structural decisions every component inherits.", body: index, active: "foundations", root: "../" }));
@@ -636,14 +688,35 @@ ${GROUP_ORDER.map((g) => {
   ${list
     .map(
       (c) =>
-        `<a class="tile" href="${c.name}.html"><h3>${esc(c.name)}</h3><p>${inlineMd(c.summary)}</p></a>`
+        `<a class="tile tile-component" href="${c.name}.html">` +
+        `<div class="tile-specimen" data-specimen="${attr(c.name)}" aria-hidden="true"></div>` +
+        `<h3>${esc(c.name)}</h3><p>${inlineMd(c.summary)}</p></a>`
     )
     .join("\n  ")}
   </div>
 </section>`;
 }).join("\n")}
 `;
-  write("components/index.html", page({ title: "Components", lede: "Every Dovetail component, with guides, props and live cards.", body: index, active: "components", root: "../" }));
+  /* The specimens run from the same bundle the preview cards use. One React
+     root per card is heavier than a static list and lighter than 56 iframes,
+     which is the only other way to show the real component. */
+  const specimenScripts =
+    `<script src="../system/components/lib/react.production.min.js" defer></script>\n` +
+    `<script src="../system/components/lib/react-dom.production.min.js" defer></script>\n` +
+    `<script src="../system/components/bundle.js" defer></script>\n` +
+    `<script src="../assets/specimens.js" defer></script>\n`;
+
+  write(
+    "components/index.html",
+    page({
+      title: "Components",
+      lede: "Every Dovetail component, with guides, props and live cards.",
+      body: index,
+      active: "components",
+      root: "../",
+      scripts: specimenScripts,
+    })
+  );
 
   for (const c of components) {
     const detail = (GROUP_DETAIL[c.group] || []).map((id) => cards.get(id)).filter(Boolean);
@@ -714,9 +787,9 @@ ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showca
 <h1>Showcase</h1>
 <p class="lede">The system assembled: family reference cards, driveable playgrounds, whole screens, and the tools that produce a theme.</p>
 <div class="tiles">
-${SHOWCASE.map(([group, s, text]) => {
+${SHOWCASE.map(([group, s, text, glyph]) => {
   const n = cardsInGroup(group).length;
-  return `<a class="tile" href="${s}.html"><h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
+  return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
 </div>`;
   write("showcase/index.html", page({ title: "Showcase", lede: "Reference cards, playgrounds, UI kits and templates.", body: index, active: "showcase", root: "../" }));
@@ -741,7 +814,7 @@ ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Guide"
 <h1>Guide</h1>
 <p class="lede">The prose that travels with the system: how to theme it, what it guarantees, and how to add to it.</p>
 <div class="tiles">
-${GUIDE_PAGES.map(([s, label, , text]) => `<a class="tile" href="${s}.html"><h2>${esc(label)}</h2><p>${esc(text)}</p></a>`).join("\n")}
+${GUIDE_PAGES.map(([s, label, , text]) => `<a class="tile" href="${s}.html">${icon("book")}<h2>${esc(label)}</h2><p>${esc(text)}</p></a>`).join("\n")}
 </div>`;
   write("guide/index.html", page({ title: "Guide", lede: "Theming, accessibility, contribution and the token pipeline.", body: index, active: "guide", root: "../" }));
 

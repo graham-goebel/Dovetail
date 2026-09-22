@@ -36,6 +36,7 @@ tokens/
   base.css              Minimal element defaults
 components/             React primitives, grouped by concern
 guidelines/             Foundations prose and spec cards
+integrations/           Adapters that turn a CMS payload into blocks
 tools/                  Style Dictionary config and the token pipeline
 ```
 
@@ -173,7 +174,7 @@ Components do not know which context they are in, and no component takes a `cont
 
 **Actions** — Button, IconButton, ButtonGroup, Link
 
-**Forms** — Field, Input, Textarea, Select, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider
+**Forms** — Field, Input, Textarea, Select, Combobox, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider
 
 **Display** — Card, Badge, Tag, Avatar, AvatarGroup, List, Table, Stat, EmptyState, Skeleton, Code
 
@@ -181,7 +182,7 @@ Components do not know which context they are in, and no component takes a `cont
 
 **Feedback** — Alert, Dialog, Toast, Drawer, Popover, Tooltip, Progress, Spinner, Banner
 
-**Content** — AspectRatio, Image, Figure, Media, Prose, Quote, Accordion, Callout
+**Content** — AspectRatio, Image, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
 
 Each ships four files: `Name.jsx`, `Name.d.ts`, `Name.md` (read this before using it), and a directory spec card.
 
@@ -197,7 +198,14 @@ Cards under **Component detail** carry the full reference, one per group — Act
 
 **Phase 3 complete** — the Display, Navigation, Feedback and Content groups, each with a reference card carrying live specimens, props tables and usage rules. The theme configurator commits a real theme into `tokens/themes/theme-custom.css`, so a theme judged in the browser ships without JavaScript.
 
-**Phase 4 next** — marketing and dashboard UI kits proving the theme and context swap end to end, and a Combobox.
+**Phase 4 complete** — the marketing and dashboard UI kits prove the theme and context swap
+end to end, `Combobox` fills the last gap in Forms, and the headless layer the integration
+guide describes now exists: `BlockRenderer` maps a block array onto a registry, and
+`integrations/sanity/` ships the schemas, the PortableText serializer and the GROQ
+fragments.
+
+**Next** — generate the Sanity schemas from the `.d.ts` files rather than maintaining
+them by hand, and add the do/don't cards for the five most-violated rules.
 
 See `PLAN.md` for the full four-phase plan and the component inventory.
 
@@ -212,6 +220,7 @@ See `PLAN.md` for the full four-phase plan and the component inventory.
 - `guidelines/headless-integration.md` — React, Sanity, and other headless sources
 - `guidelines/contributing.md` — how to add to the system
 - `tools/README.md` — the token pipeline
+- `integrations/sanity/` — the Sanity adapter: schemas, serializer, GROQ fragments
 
 ## Migrated from a legacy design system
 

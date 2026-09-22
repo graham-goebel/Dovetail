@@ -404,7 +404,9 @@ hr {
 }
 
 .tiles.compact {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Wider than the plain tile grid: a specimen needs room to render at the size
+     the component actually is. */
+  grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
 }
 
 .tile {
@@ -425,6 +427,21 @@ hr {
   color: var(--dt-text-primary);
 }
 
+.tile-icon {
+  display: block;
+  width: var(--dt-size-icon-lg);
+  height: var(--dt-size-icon-lg);
+  margin-bottom: var(--dt-space-stack-xs);
+  color: var(--dt-text-link);
+  /* The chrome follows whichever icon library the bases sheet has selected:
+     each library is drawn at its own weight, and an explicit stroke wins. */
+  stroke-width: var(--site-icon-stroke, 2);
+}
+
+.tile:hover .tile-icon {
+  color: var(--dt-text-link-hover);
+}
+
 .tile h2,
 .tile h3 {
   margin: 0 0 var(--dt-dim-1);
@@ -440,6 +457,47 @@ hr {
   line-height: var(--dt-line-height-sm);
   color: var(--dt-text-secondary);
   text-wrap: pretty;
+}
+
+/* A specimen is the component itself, rendered small. It sits inside a link, so
+   it takes no pointer events and is hidden from assistive technology: the card
+   already has a name, and a second set of controls inside a link is a trap. */
+.tile-specimen {
+  position: relative;
+  height: var(--dt-dim-24);
+  margin-bottom: var(--dt-space-stack-sm);
+  overflow: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tile-specimen[data-rendered]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--dt-dim-6);
+  background: linear-gradient(to bottom, transparent, var(--dt-card-bg));
+}
+
+.tile-specimen > * {
+  max-width: 100%;
+}
+
+.tile-specimen-note {
+  justify-content: flex-end;
+  height: auto;
+  min-height: var(--dt-dim-10);
+  font-size: var(--dt-font-size-xs);
+  line-height: var(--dt-line-height-xs);
+  color: var(--dt-text-tertiary);
+  text-wrap: pretty;
+}
+
+.tile-component {
+  display: flex;
+  flex-direction: column;
 }
 
 .tile-meta {
