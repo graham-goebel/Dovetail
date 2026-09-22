@@ -276,6 +276,9 @@
     Video: function () {
       return e(NS.Video, { label: "Ridge line above a cloud inversion", ratio: "16:9" });
     },
+    Cover: function () {
+      return e(NS.Cover, { alt: "Ridge line above a cloud inversion", ratio: "16:9", eyebrow: "New season", title: "Built for the trail" });
+    },
     Figure: function () {
       return e(NS.Figure, { caption: "Throughput held steady through the migration." }, e(NS.Image, { alt: "Line chart of requests per second", ratio: "3:2" }));
     },

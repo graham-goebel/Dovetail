@@ -16,7 +16,7 @@ const PLACEHOLDER_ICON = (
    uploads anything. It hands a template the browser's own File, the same as
    a bare <input type="file">, and leaves what happens to it entirely to the
    template's own code. */
-export function UploadFrame({ icon, label, hint, accept, onFile, style }) {
+export function UploadFrame({ icon, label, hint, accept, onFile, quiet = false, style }) {
   const [over, setOver] = React.useState(false);
   const base = {
     position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -28,13 +28,19 @@ export function UploadFrame({ icon, label, hint, accept, onFile, style }) {
     ...style,
   };
 
+  /* A caller with its own content on top, a Cover with its title already
+     laid over the slot, does not need this frame to also announce itself:
+     two labels stacked in the same box is noise, not help. The border and
+     the drop behaviour still say where the slot is. */
+  const body = quiet ? null : (
+    <React.Fragment>
+      {icon}
+      <span>{label}</span>
+    </React.Fragment>
+  );
+
   if (!onFile) {
-    return (
-      <div style={base}>
-        {icon}
-        <span>{label}</span>
-      </div>
-    );
+    return <div style={base}>{body}</div>;
   }
 
   const take = (files) => {
@@ -56,9 +62,8 @@ export function UploadFrame({ icon, label, hint, accept, onFile, style }) {
         take(event.dataTransfer.files);
       }}
     >
-      {icon}
-      <span>{label}</span>
-      <span style={{ color: "var(--dt-text-link)" }}>{hint}</span>
+      {body}
+      {!quiet && <span style={{ color: "var(--dt-text-link)" }}>{hint}</span>}
       <input
         type="file"
         accept={accept}

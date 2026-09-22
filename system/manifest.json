@@ -45,6 +45,9 @@
     "components/content/Callout.d.ts",
     "components/content/Callout.jsx",
     "components/content/Callout.md",
+    "components/content/Cover.d.ts",
+    "components/content/Cover.jsx",
+    "components/content/Cover.md",
     "components/content/Figure.d.ts",
     "components/content/Figure.jsx",
     "components/content/Figure.md",
@@ -333,6 +336,9 @@
     },
     {
       "name": "AspectRatio"
+    },
+    {
+      "name": "Cover"
     },
     {
       "name": "Callout"

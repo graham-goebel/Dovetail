@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cover · Dovetail</title>
+<meta name="description" content="Text laid over a full-bleed image. A marketing hero, a lifestyle poster and a social">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html" aria-current="page">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Cover</li></ol></nav>
+<h1>Cover</h1>
+<p class="lede">Text laid over a full-bleed image. A marketing hero, a lifestyle poster and a social</p>
+<p class="meta">
+  <span class="pill">Content</span>
+  
+  <a href="../system/components/content/Cover.jsx">Cover.jsx</a>
+  <a href="../system/components/content/Cover.d.ts">Cover.d.ts</a>
+  <a href="../system/components/content/Cover.md">Cover.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Cover.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Cover — Text over a full-bleed image: hero, poster, social caption.</p>
+  <div class="frame" style="height:680px">
+    <iframe src="../previews/Cover.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>Text laid over a full-bleed image. A marketing hero, a lifestyle poster and a social caption card are the same shape underneath: an image, a scrim so the text stays legible, and a block of copy anchored to one edge. Cover is that shape, with a ratio and an anchor instead of three separate components to keep in sync.</p>
+<h2 id="rules">Rules</h2>
+<ul><li>Give it an <code>alt</code>. Pass an empty string only when the title on top already says what the image shows; that is still a decision, not an omission.</li><li>Keep <code>title</code> short. It is set at the heading-lg role over a photograph, not inside a measured column, and a photograph does not forgive a title that wraps four times.</li><li>One primary action in <code>actions</code>. A hero with three buttons is a hero that has not decided what the page is for.</li><li><code>scrim=&quot;none&quot;</code> is for an image you control the tone of, or a title short enough to live inside a <code>Badge</code> you place in <code>actions</code> instead of relying on contrast with the photo.</li></ul>
+<h2 id="choosing-align-and-scrim-together">Choosing align and scrim together</h2>
+<p><code>align=&quot;bottom&quot;</code> with <code>scrim=&quot;gradient&quot;</code> is the marketing hero: the top of the image stays clean for a person's eye to land on, and the gradient darkens only where the title sits.</p>
+<p><code>align=&quot;center&quot;</code> switches the gradient to a flat wash automatically, because a caption in the middle of a frame needs the whole photo dimmed, not one edge of it. Use it for a poster or a pull-quote over a photo.</p>
+<p><code>scrim=&quot;solid&quot;</code> is the social read: a flat band of colour behind a caption, legible against anything behind it. Pair it with <code>align=&quot;bottom&quot;</code> and a short <code>body</code> for a caption strip, or <code>align=&quot;top&quot;</code> for a name-and-handle bar over a portrait.</p>
+<pre class="code" data-lang="jsx"><code>&lt;Cover
+  src={hero}
+  alt=&quot;&quot;
+  ratio=&quot;16:9&quot;
+  eyebrow=&quot;New season&quot;
+  title=&quot;Built for the trail, not the showroom&quot;
+  body=&quot;Four days, three huts, one pack that never left our shoulders.&quot;
+  actions={&lt;Button&gt;Shop the collection&lt;/Button&gt;}
+/&gt;</code></pre>
+<h2 id="letting-someone-upload-one">Letting someone upload one</h2>
+<p>Pass <code>onFile</code> and the placeholder becomes a drop target, identical to Image's: a drag or a picker hands you the browser's own <code>File</code>, and Cover does nothing else with it. The text block still renders once a real <code>src</code> arrives, so a template can build the hero copy first and wire the image in after.</p>
+<h2 id="tradeoffs">Tradeoffs</h2>
+<p>Cover owns the scrim and the anchor; it does not own layout beyond its own box. A grid of Covers, a Cover beside a <code>Media</code> row, a full-viewport Cover as a page's opening section: all of that is the page's decision, made with <code>Grid</code>, <code>Stack</code> or plain CSS around it, the same way every other content primitive in this system stays out of the page's own layout.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Cover.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+import { AspectRatioProps } from &quot;./AspectRatio&quot;;
+
+/**
+ * Text over a full-bleed image: a hero band, a lifestyle poster, a social
+ * caption card. One component covers all three, because the difference
+ * between them is a ratio and where the text sits, not a different piece of
+ * markup. Renders Image's own upload-ready placeholder when \`src\` is absent.
+ */
+export interface CoverProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;placeholder&quot;&gt; {
+  /** Image URL. Omit to render the placeholder frame. */
+  src?: string;
+  /** Alternative text. Required; pass an empty string when the visible title already says what the image shows. */
+  alt: string;
+  /** @default &quot;4:3&quot; */
+  ratio?: AspectRatioProps[&quot;ratio&quot;];
+  /** How the image fills its frame. @default &quot;cover&quot; */
+  fit?: &quot;cover&quot; | &quot;contain&quot; | &quot;fill&quot; | &quot;none&quot; | &quot;scale-down&quot;;
+  /** @default &quot;media&quot; */
+  radius?: &quot;none&quot; | &quot;media&quot; | &quot;container&quot; | &quot;pill&quot;;
+  /** Text shown in the placeholder frame. Falls back to \`alt\`. */
+  placeholder?: string;
+  /** Turns the placeholder into a drop target, exactly as Image's does. */
+  onFile?: (file: File) =&gt; void;
+  /**
+   * none for an image bright or busy enough to carry text on its own, most
+   * often paired with a badge in `actions` rather than body copy. gradient
+   * fades from the anchored edge, the common case. solid washes the whole
+   * frame in one flat tone, for a caption you want readable no matter what
+   * is behind it. Ignored while the placeholder is showing.
+   * @default &quot;gradient&quot;
+   */
+  scrim?: &quot;none&quot; | &quot;gradient&quot; | &quot;solid&quot;;
+  /**
+   * Vertical anchor for both the text block and the direction a gradient
+   * scrim fades from. bottom is the marketing-hero default; center is a
+   * poster, and switches a gradient scrim to a flat wash, since a centred
+   * caption needs the whole frame dimmed, not one edge of it.
+   * @default &quot;bottom&quot;
+   */
+  align?: &quot;top&quot; | &quot;center&quot; | &quot;bottom&quot;;
+  /** @default &quot;start&quot; */
+  justify?: &quot;start&quot; | &quot;center&quot; | &quot;end&quot;;
+  /** Short kicker above the title. Uppercased by the eyebrow role. */
+  eyebrow?: React.ReactNode;
+  title?: React.ReactNode;
+  body?: React.ReactNode;
+  /** Buttons, links, or a Badge for a social-style tag. Keep to one primary action. */
+  actions?: React.ReactNode;
+}
+
+export declare function Cover(props: CoverProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Cover.jsx</code> resolves, read from the source: 22 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Cover">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-media"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-media"><code>--dt-radius-media</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-media" title="Show what --dt-radius-media connects to" aria-label="Graph for --dt-radius-media"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-icon-lg"><th scope="row"><span class="token-cell"><code>--dt-size-icon-lg</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-lg" title="Show what --dt-size-icon-lg connects to" aria-label="Graph for --dt-size-icon-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-lg"><code>--dt-space-inset-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-lg" title="Show what --dt-space-inset-lg connects to" aria-label="Graph for --dt-space-inset-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-surface-scrim"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-scrim"><code>--dt-surface-scrim</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-scrim" title="Show what --dt-surface-scrim connects to" aria-label="Graph for --dt-surface-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><span class="swatch" style="background:oklch(0.145 0.005 264 / 0.5)"></span><code>oklch(0.145 0.005 264 / 0.5)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-sunken" title="Show what --dt-surface-sunken connects to" aria-label="Graph for --dt-surface-sunken"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-text-body-md-family"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-family</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-family" title="Show what --dt-text-body-md-family connects to" aria-label="Graph for --dt-text-body-md-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-md-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-line" title="Show what --dt-text-body-md-line connects to" aria-label="Graph for --dt-text-body-md-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-md)</code></td></tr><tr id="uses-dt-text-body-md-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-size" title="Show what --dt-text-body-md-size connects to" aria-label="Graph for --dt-text-body-md-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-eyebrow-family"><th scope="row"><span class="token-cell"><code>--dt-text-eyebrow-family</code><button type="button" class="graph-btn" data-graph="--dt-text-eyebrow-family" title="Show what --dt-text-eyebrow-family connects to" aria-label="Graph for --dt-text-eyebrow-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-eyebrow-size"><th scope="row"><span class="token-cell"><code>--dt-text-eyebrow-size</code><button type="button" class="graph-btn" data-graph="--dt-text-eyebrow-size" title="Show what --dt-text-eyebrow-size connects to" aria-label="Graph for --dt-text-eyebrow-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-2xs)</code></td></tr><tr id="uses-dt-text-eyebrow-tracking"><th scope="row"><span class="token-cell"><code>--dt-text-eyebrow-tracking</code><button type="button" class="graph-btn" data-graph="--dt-text-eyebrow-tracking" title="Show what --dt-text-eyebrow-tracking connects to" aria-label="Graph for --dt-text-eyebrow-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-tracking-wider)</code></td></tr><tr id="uses-dt-text-eyebrow-weight"><th scope="row"><span class="token-cell"><code>--dt-text-eyebrow-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-eyebrow-weight" title="Show what --dt-text-eyebrow-weight connects to" aria-label="Graph for --dt-text-eyebrow-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-heading-lg-family"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-family</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-family" title="Show what --dt-text-heading-lg-family connects to" aria-label="Graph for --dt-text-heading-lg-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-lg-line"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-line</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-line" title="Show what --dt-text-heading-lg-line connects to" aria-label="Graph for --dt-text-heading-lg-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-3xl)</code></td></tr><tr id="uses-dt-text-heading-lg-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-size" title="Show what --dt-text-heading-lg-size connects to" aria-label="Graph for --dt-text-heading-lg-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-3xl)</code></td></tr><tr id="uses-dt-text-heading-lg-tracking"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-tracking</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-tracking" title="Show what --dt-text-heading-lg-tracking connects to" aria-label="Graph for --dt-text-heading-lg-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-tracking-snug)</code></td></tr><tr id="uses-dt-text-heading-lg-weight"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-weight" title="Show what --dt-text-heading-lg-weight connects to" aria-label="Graph for --dt-text-heading-lg-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-inverse"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-inverse"><code>--dt-text-inverse</code></a><button type="button" class="graph-btn" data-graph="--dt-text-inverse" title="Show what --dt-text-inverse connects to" aria-label="Graph for --dt-text-inverse"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { AspectRatio } from &quot;./AspectRatio.jsx&quot;;
+import { UploadFrame } from &quot;./Image.jsx&quot;;
+
+const RADII = { none: &quot;0&quot;, media: &quot;var(--dt-radius-media)&quot;, container: &quot;var(--dt-radius-container)&quot;, pill: &quot;var(--dt-radius-pill)&quot; };
+
+const ALIGN = { top: &quot;flex-start&quot;, center: &quot;center&quot;, bottom: &quot;flex-end&quot; };
+const JUSTIFY = { start: &quot;flex-start&quot;, center: &quot;center&quot;, end: &quot;flex-end&quot; };
+const TEXT_ALIGN = { start: &quot;left&quot;, center: &quot;center&quot;, end: &quot;right&quot; };
+
+const PLACEHOLDER_ICON = (
+  &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;1.5&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; style={{ width: &quot;var(--dt-size-icon-lg)&quot;, height: &quot;var(--dt-size-icon-lg)&quot; }} aria-hidden=&quot;true&quot;&gt;
+    &lt;rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot; /&gt;
+    &lt;circle cx=&quot;9&quot; cy=&quot;9&quot; r=&quot;2&quot; /&gt;
+    &lt;path d=&quot;m21 15-5-5L5 21&quot; /&gt;
+  &lt;/svg&gt;
+);
+
+/* Which way a gradient scrim fades. It always fades toward the edge the
+   content is anchored to, so the darkest part of the image sits behind the
+   text and the rest is left alone. Centre gets a flat wash rather than a
+   direction: text in the middle of a photo needs the whole frame dimmed, not
+   one edge of it. */
+function scrimImage(scrim, align) {
+  if (scrim === &quot;none&quot;) return &quot;none&quot;;
+  if (scrim === &quot;solid&quot; || align === &quot;center&quot;) return &quot;var(--dt-surface-scrim)&quot;;
+  const to = align === &quot;bottom&quot; ? &quot;to top&quot; : &quot;to bottom&quot;;
+  return `linear-gradient(${to}, var(--dt-surface-scrim), transparent 65%)`;
+}
+
+export function Cover({
+  src,
+  alt,
+  ratio = &quot;4:3&quot;,
+  fit = &quot;cover&quot;,
+  radius = &quot;media&quot;,
+  placeholder,
+  onFile,
+  scrim = &quot;gradient&quot;,
+  align = &quot;bottom&quot;,
+  justify = &quot;start&quot;,
+  eyebrow,
+  title,
+  body,
+  actions,
+  style,
+  ...rest
+}) {
+  const frame = { position: &quot;relative&quot;, background: &quot;var(--dt-surface-sunken)&quot;, borderRadius: RADII[radius] || RADII.media, ...style };
+  const hasContent = eyebrow || title || body || actions;
+
+  return (
+    &lt;AspectRatio ratio={ratio} style={frame} {...rest}&gt;
+      {src ? (
+        &lt;img src={src} alt={alt} loading=&quot;lazy&quot; style={{ position: &quot;absolute&quot;, inset: 0, width: &quot;100%&quot;, height: &quot;100%&quot;, objectFit: fit, display: &quot;block&quot; }} /&gt;
+      ) : (
+        &lt;UploadFrame icon={PLACEHOLDER_ICON} label={placeholder || alt || &quot;Cover image&quot;} hint=&quot;Drop an image, or choose a file&quot; accept=&quot;image/*&quot; onFile={onFile} quiet={!!hasContent} /&gt;
+      )}
+
+      {/* The scrim and the text preview even before src arrives: the caption's
+         weight is part of what a template is checking before the photo is
+         wired in, the same reason Image's own placeholder reserves the ratio
+         rather than collapsing to nothing. */}
+      {scrim !== &quot;none&quot; &amp;&amp; (
+        &lt;div aria-hidden=&quot;true&quot; style={{ position: &quot;absolute&quot;, inset: 0, backgroundImage: scrimImage(scrim, align), borderRadius: &quot;inherit&quot; }} /&gt;
+      )}
+
+      {hasContent &amp;&amp; (
+        &lt;div
+          style={{
+            position: &quot;absolute&quot;,
+            inset: 0,
+            display: &quot;flex&quot;,
+            flexDirection: &quot;column&quot;,
+            justifyContent: ALIGN[align] || ALIGN.bottom,
+            alignItems: JUSTIFY[justify] || JUSTIFY.start,
+            textAlign: TEXT_ALIGN[justify] || TEXT_ALIGN.start,
+            gap: &quot;var(--dt-space-stack-xs)&quot;,
+            padding: &quot;var(--dt-space-inset-lg)&quot;,
+            boxSizing: &quot;border-box&quot;,
+          }}
+        &gt;
+          {eyebrow &amp;&amp; (
+            &lt;span style={{ fontFamily: &quot;var(--dt-text-eyebrow-family)&quot;, fontSize: &quot;var(--dt-text-eyebrow-size)&quot;, letterSpacing: &quot;var(--dt-text-eyebrow-tracking)&quot;, fontWeight: &quot;var(--dt-text-eyebrow-weight)&quot;, textTransform: &quot;uppercase&quot;, color: &quot;var(--dt-text-inverse)&quot; }}&gt;
+              {eyebrow}
+            &lt;/span&gt;
+          )}
+          {title &amp;&amp; (
+            &lt;h2 style={{ margin: 0, maxWidth: &quot;40ch&quot;, fontFamily: &quot;var(--dt-text-heading-lg-family)&quot;, fontSize: &quot;var(--dt-text-heading-lg-size)&quot;, lineHeight: &quot;var(--dt-text-heading-lg-line)&quot;, fontWeight: &quot;var(--dt-text-heading-lg-weight)&quot;, letterSpacing: &quot;var(--dt-text-heading-lg-tracking)&quot;, color: &quot;var(--dt-text-inverse)&quot;, textWrap: &quot;pretty&quot; }}&gt;
+              {title}
+            &lt;/h2&gt;
+          )}
+          {body &amp;&amp; (
+            &lt;div style={{ maxWidth: &quot;48ch&quot;, fontFamily: &quot;var(--dt-text-body-md-family)&quot;, fontSize: &quot;var(--dt-text-body-md-size)&quot;, lineHeight: &quot;var(--dt-text-body-md-line)&quot;, color: &quot;var(--dt-text-inverse)&quot;, opacity: 0.9, textWrap: &quot;pretty&quot; }}&gt;
+              {body}
+            &lt;/div&gt;
+          )}
+          {actions &amp;&amp; &lt;div style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;, justifyContent: JUSTIFY[justify] || JUSTIFY.start }}&gt;{actions}&lt;/div&gt;}
+        &lt;/div&gt;
+      )}
+    &lt;/AspectRatio&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Cover also appears on the content reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#contentdetail">ContentDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+<script src="../assets/graph.js" defer></script>
+</body>
+</html>

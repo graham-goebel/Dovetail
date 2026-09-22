@@ -184,7 +184,7 @@ Components do not know which context they are in, and no component takes a `cont
 
 **Feedback**: Alert, Dialog, Toast, Drawer, Popover, Tooltip, Progress, Spinner, Banner
 
-**Content**: AspectRatio, Image, Video, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
+**Content**: AspectRatio, Image, Video, Cover, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
 
 Each ships four files: `Name.jsx`, `Name.d.ts`, `Name.md` (read this before using it), and a directory spec card.
 
@@ -215,6 +215,15 @@ texture built from two CSS gradients rather than an image; Configure can switch 
 brand fill to a gradient of the same ramp, and `Callout` takes both as a `tone` and a
 `texture` prop. `system/assets/icons/sketch/` is a second, opt-in icon voice for the
 moments a page is allowed to feel hand-drawn, kept off the interface icon set on purpose.
+
+**Phase 6 complete**: `Cover`, image and text sharing one box, for a marketing hero, a
+lifestyle poster and a social caption card alike. `align` anchors both the copy and the
+direction a gradient scrim fades from; centring it switches the gradient to a flat wash,
+since a caption in the middle of a photo needs the whole frame dimmed rather than one
+edge of it. It reads no new tokens: the scrim is `--dt-surface-scrim`, the same role a
+modal already darkens the page with, over `--dt-text-inverse`. Like Image and Video, it
+takes an optional `onFile`, and its placeholder previews the caption's weight before a
+real photo exists, the same reason Image's own placeholder reserves the ratio.
 
 **Next**: generate the Sanity schemas from the `.d.ts` files rather than maintaining
 them by hand, and add the do/don't cards for the five most-violated rules.

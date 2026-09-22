@@ -1,0 +1,131 @@
+<!-- @dsCard group="Content" height=680 name="Cover" subtitle="Cover — Text over a full-bleed image: hero, poster, social caption." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  #root { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--dt-space-inline-lg); max-width: 1100px; margin: 0 auto; align-items: start; }
+  .spec-wide { grid-column: 1 / -1; }
+  .spec { display: flex; flex-direction: column; gap: var(--dt-space-stack-xs); }
+  .spec > h3 { margin: 0; font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  .readout { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-xs); color: var(--dt-text-secondary); }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+
+  function Spec(props) {
+    var cls = "spec" + (props.className ? " " + props.className : "");
+    return e("div", { className: cls }, e("h3", null, props.name), props.children);
+  }
+
+  function UploadDemo() {
+    var state = React.useState(null);
+    var file = state[0];
+    var url = React.useMemo(function () { return file ? URL.createObjectURL(file) : undefined; }, [file]);
+    React.useEffect(function () {
+      return function () { if (url) URL.revokeObjectURL(url); };
+    }, [url]);
+    return e(
+      React.Fragment,
+      null,
+      e(NS.Cover, {
+        alt: "",
+        ratio: "4:3",
+        src: url,
+        eyebrow: "Cover photo",
+        title: "Drop a file to preview it here",
+        onFile: state[1],
+      }),
+      e("span", { className: "readout" }, file ? "onFile: " + file.name : "onFile: (nothing dropped yet)")
+    );
+  }
+
+  function Page() {
+    return e(
+      React.Fragment,
+      null,
+      e(Spec, { name: "Marketing hero", className: "spec-wide" },
+        e(NS.Cover, {
+          alt: "",
+          ratio: "21:9",
+          align: "bottom",
+          justify: "start",
+          scrim: "gradient",
+          eyebrow: "New season",
+          title: "Built for the trail, not the showroom",
+          body: "Four days, three huts, one pack that never left our shoulders.",
+          actions: e(NS.Button, { size: "sm" }, "Shop the collection"),
+        })
+      ),
+      e(Spec, { name: "Lifestyle poster, centred" },
+        e(NS.Cover, {
+          alt: "",
+          ratio: "4:5",
+          align: "center",
+          justify: "center",
+          scrim: "gradient",
+          title: "Quiet mornings",
+          body: "Somewhere without a signal.",
+        })
+      ),
+      e(Spec, { name: "Social, caption bar" },
+        e(NS.Cover, {
+          alt: "",
+          ratio: "1:1",
+          align: "bottom",
+          scrim: "solid",
+          eyebrow: "@trailmix",
+          body: "Coffee, dog, summit. Not in that order.",
+        })
+      ),
+      e(Spec, { name: "Social, name bar on top" },
+        e(NS.Cover, {
+          alt: "",
+          ratio: "4:5",
+          align: "top",
+          justify: "start",
+          scrim: "solid",
+          eyebrow: "Ada Lovelace",
+          body: "2 hours ago",
+        })
+      ),
+      e(Spec, { name: "No scrim, badge only" },
+        e(NS.Cover, {
+          alt: "",
+          ratio: "3:2",
+          scrim: "none",
+          align: "top",
+          justify: "end",
+          actions: e(NS.Badge, { tone: "accent", variant: "solid" }, "Sale"),
+        })
+      ),
+      e(Spec, { name: "Upload-ready" },
+        e(UploadDemo)
+      )
+    );
+  }
+
+  function start() {
+    if (!NS.Cover || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

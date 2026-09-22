@@ -99,12 +99,26 @@ height of its neighbour. The whole thing is on the component's own page.
 
 ## Letting someone upload media
 
-`Image` and `Video` take an optional `onFile`, and their placeholder becomes a real drop
-target: drag a file onto it or click through to a picker, and it hands back the browser's
-own `File`. Neither component reads it, stores it or sends it anywhere; a template derives
-an object URL for a live preview and passes that back in as `src` once it has one. This is
-the system's card on the request for upload, and it stops exactly where a design system
-should: at the file, not at storage.
+`Image`, `Video` and `Cover` take an optional `onFile`, and their placeholder becomes a
+real drop target: drag a file onto it or click through to a picker, and it hands back the
+browser's own `File`. None of the three reads it, stores it or sends it anywhere; a
+template derives an object URL for a live preview and passes that back in as `src` once
+it has one. This is the system's card on the request for upload, and it stops exactly
+where a design system should: at the file, not at storage.
+
+## Text over an image
+
+`Cover` is the one component for a hero band, a lifestyle poster and a social caption
+card, because the difference between the three is a ratio and an anchor, not a different
+piece of markup. `align` anchors both the text block and the direction a gradient scrim
+fades from; `scrim` chooses none, a directional gradient, or a flat, caption-bar solid.
+Choosing `align="center"` turns a gradient scrim into a flat wash automatically, because a
+caption in the middle of a photo needs the whole frame dimmed, not one edge of it. Its
+`previews/Cover.html` card carries six specimens: a marketing hero, a centred lifestyle
+poster, a social caption bar, a name-and-handle bar over a portrait, a badge with no scrim
+at all, and the same upload-ready placeholder Image and Video use. Like both of those, the
+placeholder and the caption preview together before a real photo exists, so a template
+can see the words holding their weight before wiring the image in.
 
 ## Cards on a phone
 
@@ -112,7 +126,7 @@ Every card grid becomes one swipeable row per group, in the manner of a product 
 cards are equal height because the row is a flex line, the next card peeks past the edge
 so the swipe is discoverable, and the row bleeds to the page edges so nothing looks
 cropped by the gutter. Scroll snapping makes each swipe land on a card. It saves most of
-the vertical space a stacked grid costs: 59 components in seven rows rather than 59
+the vertical space a stacked grid costs: 60 components in seven rows rather than 60
 screens of scrolling.
 
 ## Chrome icons

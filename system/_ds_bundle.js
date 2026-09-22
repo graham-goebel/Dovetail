@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"aac4309aeb16","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"486783235f65","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"214aafd4ad5e","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"5dfe99647b13","components/display/Card.jsx":"d456bfba390d","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"27babae5c860","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"d0cc7e99ccc6","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"855d720a77f7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"04a11b22175c","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"aac4309aeb16","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"486783235f65","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"5dfe99647b13","components/display/Card.jsx":"d456bfba390d","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"27babae5c860","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"d0cc7e99ccc6","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"855d720a77f7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"04a11b22175c","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"6f96d93775ee"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -551,6 +551,7 @@ function UploadFrame({
   hint,
   accept,
   onFile,
+  quiet = false,
   style
 }) {
   const [over, setOver] = React.useState(false);
@@ -573,10 +574,16 @@ function UploadFrame({
     background: over ? "var(--dt-surface-brand-muted)" : undefined,
     ...style
   };
+
+  /* A caller with its own content on top, a Cover with its title already
+     laid over the slot, does not need this frame to also announce itself:
+     two labels stacked in the same box is noise, not help. The border and
+     the drop behaviour still say where the slot is. */
+  const body = quiet ? null : /*#__PURE__*/React.createElement(React.Fragment, null, icon, /*#__PURE__*/React.createElement("span", null, label));
   if (!onFile) {
     return /*#__PURE__*/React.createElement("div", {
       style: base
-    }, icon, /*#__PURE__*/React.createElement("span", null, label));
+    }, body);
   }
   const take = files => {
     const file = files && files[0];
@@ -597,7 +604,7 @@ function UploadFrame({
       setOver(false);
       take(event.dataTransfer.files);
     }
-  }, icon, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("span", {
+  }, body, !quiet && /*#__PURE__*/React.createElement("span", {
     style: {
       color: "var(--dt-text-link)"
     }
@@ -4515,6 +4522,179 @@ function Video({
 Object.assign(__ds_scope, { Video });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Video.jsx", error: String((e && e.message) || e) }); }
 
+// components/content/Cover.jsx
+try { (() => {
+const { AspectRatio, UploadFrame } = __ds_scope;
+const RADII = {
+  none: "0",
+  media: "var(--dt-radius-media)",
+  container: "var(--dt-radius-container)",
+  pill: "var(--dt-radius-pill)"
+};
+const ALIGN = {
+  top: "flex-start",
+  center: "center",
+  bottom: "flex-end"
+};
+const JUSTIFY = {
+  start: "flex-start",
+  center: "center",
+  end: "flex-end"
+};
+const TEXT_ALIGN = {
+  start: "left",
+  center: "center",
+  end: "right"
+};
+const PLACEHOLDER_ICON = /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "1.5",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  style: {
+    width: "var(--dt-size-icon-lg)",
+    height: "var(--dt-size-icon-lg)"
+  },
+  "aria-hidden": "true"
+}, /*#__PURE__*/React.createElement("rect", {
+  x: "3",
+  y: "3",
+  width: "18",
+  height: "18",
+  rx: "2"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "9",
+  cy: "9",
+  r: "2"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "m21 15-5-5L5 21"
+}));
+
+/* Which way a gradient scrim fades. It always fades toward the edge the
+   content is anchored to, so the darkest part of the image sits behind the
+   text and the rest is left alone. Centre gets a flat wash rather than a
+   direction: text in the middle of a photo needs the whole frame dimmed, not
+   one edge of it. */
+function scrimImage(scrim, align) {
+  if (scrim === "none") return "none";
+  if (scrim === "solid" || align === "center") return "var(--dt-surface-scrim)";
+  const to = align === "bottom" ? "to top" : "to bottom";
+  return `linear-gradient(${to}, var(--dt-surface-scrim), transparent 65%)`;
+}
+function Cover({
+  src,
+  alt,
+  ratio = "4:3",
+  fit = "cover",
+  radius = "media",
+  placeholder,
+  onFile,
+  scrim = "gradient",
+  align = "bottom",
+  justify = "start",
+  eyebrow,
+  title,
+  body,
+  actions,
+  style,
+  ...rest
+}) {
+  const frame = {
+    position: "relative",
+    background: "var(--dt-surface-sunken)",
+    borderRadius: RADII[radius] || RADII.media,
+    ...style
+  };
+  const hasContent = eyebrow || title || body || actions;
+  return /*#__PURE__*/React.createElement(AspectRatio, {
+    ratio: ratio,
+    style: frame,
+    ...rest
+  }, src ? /*#__PURE__*/React.createElement("img", {
+    src: src,
+    alt: alt,
+    loading: "lazy",
+    style: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: fit,
+      display: "block"
+    }
+  }) : /*#__PURE__*/React.createElement(UploadFrame, {
+    icon: PLACEHOLDER_ICON,
+    label: placeholder || alt || "Cover image",
+    hint: "Drop an image, or choose a file",
+    accept: "image/*",
+    onFile: onFile,
+    quiet: !!hasContent
+  }), scrim !== "none" && /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      backgroundImage: scrimImage(scrim, align),
+      borderRadius: "inherit"
+    }
+  }), hasContent && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: ALIGN[align] || ALIGN.bottom,
+      alignItems: JUSTIFY[justify] || JUSTIFY.start,
+      textAlign: TEXT_ALIGN[justify] || TEXT_ALIGN.start,
+      gap: "var(--dt-space-stack-xs)",
+      padding: "var(--dt-space-inset-lg)",
+      boxSizing: "border-box"
+    }
+  }, eyebrow && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "var(--dt-text-eyebrow-family)",
+      fontSize: "var(--dt-text-eyebrow-size)",
+      letterSpacing: "var(--dt-text-eyebrow-tracking)",
+      fontWeight: "var(--dt-text-eyebrow-weight)",
+      textTransform: "uppercase",
+      color: "var(--dt-text-inverse)"
+    }
+  }, eyebrow), title && /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0,
+      maxWidth: "40ch",
+      fontFamily: "var(--dt-text-heading-lg-family)",
+      fontSize: "var(--dt-text-heading-lg-size)",
+      lineHeight: "var(--dt-text-heading-lg-line)",
+      fontWeight: "var(--dt-text-heading-lg-weight)",
+      letterSpacing: "var(--dt-text-heading-lg-tracking)",
+      color: "var(--dt-text-inverse)",
+      textWrap: "pretty"
+    }
+  }, title), body && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: "48ch",
+      fontFamily: "var(--dt-text-body-md-family)",
+      fontSize: "var(--dt-text-body-md-size)",
+      lineHeight: "var(--dt-text-body-md-line)",
+      color: "var(--dt-text-inverse)",
+      opacity: 0.9,
+      textWrap: "pretty"
+    }
+  }, body), actions && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-sm)",
+      justifyContent: JUSTIFY[justify] || JUSTIFY.start
+    }
+  }, actions)));
+}
+Object.assign(__ds_scope, { Cover });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Cover.jsx", error: String((e && e.message) || e) }); }
+
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -4626,6 +4806,8 @@ __ds_ns.Spacer = __ds_scope.Spacer;
 __ds_ns.Stack = __ds_scope.Stack;
 
 __ds_ns.VisuallyHidden = __ds_scope.VisuallyHidden;
+
+__ds_ns.Cover = __ds_scope.Cover;
 
 __ds_ns.Video = __ds_scope.Video;
 
