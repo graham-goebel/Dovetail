@@ -47,6 +47,20 @@
       body: "Sunday mix is where we start most people who tell us they have not tried cannabis in years. The CBD rounds off the edges, so it stays light and conversational."
     },
     {
+      id: "haze-prerolls", name: "Meadow Haze pre-rolls", category: "prerolls", type: "Sativa",
+      thc: 23, cbd: 0.1, price: 28, size: "3 × 0.5g", img: "img/preroll-tray.png",
+      effects: ["Uplifted", "Social", "Bright"], terpenes: ["Terpinolene", "Myrcene"],
+      blurb: "Three half-gram pre-rolls of our best-selling sativa, in a glass tube.",
+      body: "Rolled by hand in the shop from whole Meadow Haze flower, never shake or trim, with a paper filter tip. Three half-grams is enough to share between a small group, which is what we built them for."
+    },
+    {
+      id: "evening-prerolls", name: "Low tide pre-rolls", category: "prerolls", type: "Indica",
+      thc: 18, cbd: 1.1, price: 24, size: "3 × 0.5g", img: "img/preroll-tray.png",
+      effects: ["Calm", "Sleepy"], terpenes: ["Myrcene", "Linalool"],
+      blurb: "Slow-burning evening pre-rolls from our house indica.",
+      body: "The same slow, lavender-finished indica as our Low tide flower, rolled a little looser so it burns evenly. One is usually plenty for a quiet evening."
+    },
+    {
       id: "globe-bubbler", name: "Globe bubbler", category: "glass", type: "Accessory",
       price: 64, size: "7 in", img: "img/glass-bubbler.png",
       effects: [], terpenes: [],
@@ -78,6 +92,7 @@
 
   var CATEGORIES = [
     { id: "flower", label: "Flower", img: "img/flower-bud.png", photo: "img/plant-closeup.png", blurb: "Small-farm flower, dated and cured in glass." },
+    { id: "prerolls", label: "Pre-rolls", img: "img/preroll-tray.png", photo: "img/preroll-tray.png", blurb: "Rolled by hand from the same flower, ready to share." },
     { id: "glass", label: "Glass", img: "img/glass-bubbler.png", photo: "img/glass-bubbler.png", blurb: "Hand-blown pieces from local studios." },
     { id: "seeds", label: "Seeds", img: "img/seeds.png", photo: "img/seeds.png", blurb: "Tested genetics for growing at home." }
   ];
@@ -293,7 +308,8 @@
   /* A full-bleed photo band with text over it. See .lm-bleed in theme.css: the band
      is scoped dark, so everything inside reads its dark-mode tokens over the scrim. */
   function Bleed(props) {
-    var cls = "lm-bleed dark scrim-" + (props.scrim || "left") +
+    var light = props.scrim === "wash";
+    var cls = "lm-bleed" + (light ? "" : " dark") + " scrim-" + (props.scrim || "left") +
       (props.center ? " center" : "") + (props.className ? " " + props.className : "");
     return h("section", { className: cls, id: props.id, "aria-label": props.label },
       h("img", { src: props.img, alt: props.alt || "", loading: props.eager ? "eager" : "lazy", style: props.focus ? { "--lm-focus": props.focus } : undefined }),

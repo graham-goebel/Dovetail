@@ -22,7 +22,7 @@
   var h = LM.h, NS = LM.NS;
 
   function Home() {
-    var featured = ["meadow-haze", "harvest-jar", "globe-bubbler"].map(LM.find);
+    var featured = ["meadow-haze", "haze-prerolls", "globe-bubbler"].map(LM.find);
     return h(React.Fragment, null,
 
       h(LM.Bleed, {
@@ -55,7 +55,7 @@
           ),
           h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html", variant: "ghost" }, "See everything")
         ),
-        h(NS.Grid, { minColumnWidth: "260px", gap: "lg", className: "lm-on-photo" },
+        h(NS.Grid, { minColumnWidth: "220px", gap: "lg", className: "lm-on-photo" },
           LM.CATEGORIES.map(function (c) {
             return h("a", { key: c.id, href: "shop.html?category=" + c.id, className: "lm-tile" },
               h(NS.Cover, {
@@ -89,6 +89,28 @@
         )
       ),
 
+      h(LM.Bleed, { img: "img/preroll-tray.png", scrim: "left", focus: "50% 60%", label: "Pre-rolls" },
+        h(NS.Stack, { gap: "md", style: { maxWidth: "32rem" } },
+          h("span", { className: "lm-eyebrow" }, "New on the shelf"),
+          h("h2", { className: "lm-h1" }, "Rolled by hand, ready when you are"),
+          h("p", { className: "lm-lead" }, "Our pre-rolls use whole flower from the same jars on the counter, never shake or trim. Three half-grams to a tube: enough for a slow afternoon or a small circle of friends."),
+          h(NS.Inline, { gap: "sm", wrap: true },
+            h(NS.Button, { as: "a", className: "lm-btn", href: "shop.html?category=prerolls", size: "lg" }, "Shop pre-rolls")
+          )
+        )
+      ),
+
+      h(LM.Bleed, { img: "img/leaf-shadow.png", scrim: "wash", className: "lm-sec-band", label: "What guests say" },
+        h(NS.Grid, { minColumnWidth: "280px", gap: "xl" },
+          h(NS.Quote, { attribution: "Maya R.", role: "Regular since 2023", avatar: h(NS.Avatar, { name: "Maya R." }) },
+            "They asked what I wanted the evening to feel like, not what I wanted to spend. That is why I keep coming back."),
+          h(NS.Quote, { attribution: "Jordan T.", role: "First visit last spring", avatar: h(NS.Avatar, { name: "Jordan T." }) },
+            "I had not tried anything in 15 years. Sunday mix was exactly the gentle start they said it would be."),
+          h(NS.Quote, { attribution: "Priya S.", role: "Home grower", avatar: h(NS.Avatar, { name: "Priya S." }) },
+            "The starter seeds came with a grow card written by someone who clearly grows. All 4 came up.")
+        )
+      ),
+
       h(LM.Bleed, { img: "img/wood-grain.png", scrim: "full", label: "How we buy" },
         h("div", { className: "lm-two" },
           h(NS.Image, { src: "img/plant-closeup.png", alt: "A frosted cannabis flower close to harvest, lit by the sun", ratio: "square", radius: "container" }),
@@ -102,17 +124,6 @@
               h(NS.Stat, { label: "Lab tested", value: "100", unit: "%", caption: "potency and purity" })
             )
           )
-        )
-      ),
-
-      h(LM.Section, null,
-        h(NS.Grid, { minColumnWidth: "280px", gap: "xl" },
-          h(NS.Quote, { attribution: "Maya R.", role: "Regular since 2023", avatar: h(NS.Avatar, { name: "Maya R." }) },
-            "They asked what I wanted the evening to feel like, not what I wanted to spend. That is why I keep coming back."),
-          h(NS.Quote, { attribution: "Jordan T.", role: "First visit last spring", avatar: h(NS.Avatar, { name: "Jordan T." }) },
-            "I had not tried anything in 15 years. Sunday mix was exactly the gentle start they said it would be."),
-          h(NS.Quote, { attribution: "Priya S.", role: "Home grower", avatar: h(NS.Avatar, { name: "Priya S." }) },
-            "The starter seeds came with a grow card written by someone who clearly grows. All 4 came up.")
         )
       ),
 

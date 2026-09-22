@@ -94,7 +94,7 @@
             h(NS.Stack, { gap: "md" },
               h("p", { className: "lm-small", "aria-live": "polite" }, list.length + (list.length === 1 ? " product" : " products")),
               list.length
-                ? h(NS.Grid, { minColumnWidth: "240px", gap: "lg" },
+                ? h(NS.Grid, { minColumnWidth: "240px", gap: "lg", style: { gridTemplateColumns: "repeat(auto-fill, minmax(min(240px, 100%), 1fr))" } },
                     list.map(function (p) { return h(LM.ProductCard, { key: p.id, product: p }); }))
                 : h(NS.EmptyState, {
                     title: "Nothing matches those filters",

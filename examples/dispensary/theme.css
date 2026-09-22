@@ -167,6 +167,11 @@ a.lm-card-link > * { flex: 1; }
               linear-gradient(to top, var(--dt-surface-scrim), transparent 60%);
 }
 .lm-bleed.scrim-full::before { background: var(--dt-surface-scrim); }
+/* A light band: the photo is washed toward the page ground rather than darkened, so it
+   keeps the page's own colour mode and reads as texture behind ordinary content. */
+.lm-bleed.scrim-wash::before { background: color-mix(in oklch, var(--dt-surface-base) 45%, transparent); }
+.lm-bleed.scrim-wash .lm-lead { opacity: 1; color: var(--dt-text-secondary); }
+.lm-bleed.lm-sec-band { justify-content: center; }
 .lm-bleed.scrim-bottom::before { background: linear-gradient(to top, var(--dt-surface-scrim) 10%, transparent 90%); }
 .lm-bleed.center { justify-content: center; text-align: center; }
 .lm-bleed.center .lm-lead { margin-inline: auto; }
