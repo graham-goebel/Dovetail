@@ -20,7 +20,7 @@ downloads.html      How to take the system into a project
 system/             The design system itself, at the paths it was authored with
 previews/           The @dsCard preview documents, one per card
 assets/             Site chrome: site.css, site.js, theme.js (Configure), specimens.js,
-                    file-menu.js
+                    file-menu.js, graph.js (the node visualiser)
 tools/build-site.mjs   The generator
 ```
 
@@ -208,6 +208,36 @@ A token the source asks for that no tier declares is marked *not declared* rathe
 left blank. There are ten of them across the system, among them
 `--dt-motion-duration-fast` and `--dt-surface-hover`, and they silently resolve to
 nothing today. Surfacing them is the point of reading the source rather than the guide.
+
+## The node graph
+
+The tier rule is a claim about direction, so the site draws the graph the claim
+describes. Every row on the tokens page and in a component's token table carries a
+button, and both pages carry one at the top. It opens a dialog with the selected node in
+the middle, what it resolves through on the left, and what consumes it on the right.
+Click any node to walk to it.
+
+Right is the direction worth walking. Starting from `--dt-font-family-sans` you can see
+the eighteen roles that carry it and, in the footer, that it reaches 42 components that
+never name a font. Starting from a component and walking left gives the chain the rule
+promises: `Button` to `--dt-button-border-width` to `--dt-border-width-default` to
+`--dt-dim-hair`, component to semantic to primitive, nothing skipped.
+
+Nodes are coloured on their left edge by tier and say it in words underneath, along with
+how many things consume them. A token declared by no tier is marked in red, because a
+dead end is the thing worth seeing.
+
+`assets/graph-data.js` holds 596 nodes and 1,343 edges, generated from `system/tokens/`
+and the component sources. At 96KB it is the largest file the site produces, so it is
+fetched the first time someone opens the visualiser and never on an ordinary page load.
+Edges between tokens come from the `var()` references in their declared values; edges
+from a component come from the same source scan the token table uses.
+
+The wires are orthogonal rather than curved. Forty edges leaving one node span the whole
+column vertically and only a gutter horizontally, which turns beziers into a vertical
+smear; a bus with square corners stays readable at any fan-out. On a phone the three
+columns stack and the wires are dropped, since the headings already say which side you
+are reading.
 
 ## The menu on a phone
 

@@ -1634,3 +1634,341 @@ body.file-viewer-open {
     border-width: var(--dt-border-width-default) 0 0;
   }
 }
+
+/* ------------------------------------------------------- the node graph */
+
+/* The visualiser is a dialog over the page, unlike the Configure sheet: there
+   is nothing to watch behind it, and reading a graph wants the whole width. */
+
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.btn-graph {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-sm);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-medium);
+  color: var(--dt-text-on-action);
+  background: var(--dt-surface-action);
+  border: var(--dt-border-width-default) solid var(--dt-surface-action);
+  border-radius: var(--dt-radius-control);
+  cursor: pointer;
+  transition: background var(--dt-motion-micro);
+}
+
+.btn-graph:hover {
+  background: var(--dt-surface-action-hover);
+}
+
+/* A row button is quiet until the row is under the pointer: hundreds of them
+   at full strength would read as a column of controls rather than a table. */
+.token-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+}
+
+.graph-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-icon-lg);
+  height: var(--dt-size-icon-lg);
+  padding: 0;
+  color: var(--dt-text-tertiary);
+  background: none;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+
+.graph-btn .icon {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+}
+
+tr:hover .graph-btn,
+.graph-btn:focus-visible {
+  opacity: 1;
+}
+
+.graph-btn:hover {
+  color: var(--dt-text-link);
+}
+
+/* Touch has no hover, so the buttons are simply always there. */
+@media (hover: none) {
+  .graph-btn {
+    opacity: 1;
+  }
+}
+
+.graph-overlay[hidden] {
+  display: none;
+}
+
+.graph-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--dt-z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--dt-space-inset-lg);
+  background: var(--dt-surface-scrim);
+}
+
+body.graph-open {
+  overflow: hidden;
+}
+
+/* The Configure toolbar sits on the toast rung, which is above a dialog by the
+   system's own ladder and correct in general. It is not reachable while a modal
+   is up, though, so it steps aside rather than being demoted out of order. */
+body.graph-open .configure-bar,
+body.graph-open .configure-sheet {
+  visibility: hidden;
+}
+
+.graph-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(1180px, 100%);
+  max-height: 100%;
+  background: var(--dt-surface-base);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-overlay);
+  box-shadow: var(--dt-elevation-4);
+  overflow: hidden;
+}
+
+.graph-head {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+.graph-back,
+.graph-close {
+  height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-sm);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-primary);
+  background: var(--dt-surface-base);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  cursor: pointer;
+}
+
+.graph-close {
+  margin-left: auto;
+  width: var(--dt-size-control-sm);
+  padding: 0;
+  font-size: var(--dt-font-size-md);
+  line-height: 1;
+}
+
+.graph-back[hidden] {
+  display: none;
+}
+
+.graph-search {
+  flex: 1;
+  min-width: 0;
+}
+
+.graph-search input {
+  width: 100%;
+  height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-sm);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-primary);
+  background: var(--dt-surface-base);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+}
+
+.graph-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 0.95fr) 1fr;
+  gap: var(--dt-dim-12);
+  padding: var(--dt-space-inset-md);
+  overflow-y: auto;
+}
+
+.graph-wires {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.graph-wire {
+  fill: none;
+  stroke: var(--dt-border-default);
+  stroke-width: var(--dt-border-width-default);
+}
+
+/* The headings sit above the wires and the scrolled rows. */
+.graph-col > h2 {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-bottom: var(--dt-dim-1);
+  background: var(--dt-surface-base);
+  margin: 0 0 var(--dt-space-stack-xs);
+  font-family: var(--dt-text-eyebrow-family);
+  font-size: var(--dt-font-size-2xs);
+  font-weight: var(--dt-font-weight-semibold);
+  letter-spacing: var(--dt-tracking-wider);
+  text-transform: uppercase;
+  color: var(--dt-text-tertiary);
+}
+
+.graph-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-dim-2);
+}
+
+/* The selected node sticks to the top of the scroller. Centring it against a
+   column of forty consumers put it off-screen, which is the one node that must
+   never leave the view. */
+.graph-col-focus .graph-list {
+  position: sticky;
+  top: var(--dt-dim-8);
+}
+
+.graph-node {
+  display: block;
+  width: 100%;
+  padding: var(--dt-space-inset-sm);
+  text-align: left;
+  background: var(--dt-surface-base);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-left: var(--dt-dim-1) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-container);
+  cursor: pointer;
+  transition: background var(--dt-motion-micro), border-color var(--dt-motion-micro);
+}
+
+.graph-node:hover {
+  background: var(--dt-surface-subtle);
+}
+
+/* The tier a node belongs to is the one thing you read before its name, so it
+   is the left edge rather than a badge you have to find. */
+.graph-node[data-tier="primitive"] {
+  border-left-color: var(--dt-color-accent-300);
+}
+
+.graph-node[data-tier="semantic"] {
+  border-left-color: var(--dt-color-accent-500);
+}
+
+.graph-node[data-tier="component"] {
+  border-left-color: var(--dt-color-accent-700);
+}
+
+.graph-node[data-tier="consumer"] {
+  border-left-color: var(--dt-text-primary);
+}
+
+.graph-node[data-tier="undeclared"] {
+  border-left-color: var(--dt-text-danger);
+}
+
+.graph-node.is-focus {
+  background: var(--dt-surface-selected);
+  cursor: default;
+  position: relative;
+  z-index: 1;
+}
+
+.graph-node-name {
+  display: block;
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.graph-node-meta {
+  display: block;
+  margin-top: var(--dt-dim-1);
+  font-size: var(--dt-font-size-2xs);
+  color: var(--dt-text-tertiary);
+}
+
+.graph-node-value {
+  display: block;
+  margin-top: var(--dt-dim-1);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs);
+  color: var(--dt-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.graph-node-warn {
+  color: var(--dt-text-danger);
+}
+
+.graph-empty {
+  margin: 0;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-tertiary);
+}
+
+.graph-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-sm);
+  margin: 0;
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-secondary);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+/* On a phone the three columns become three stacked sections, and the wires
+   would cross the whole page to connect them, so they are dropped: the column
+   headings already say which side you are reading. */
+@media (max-width: 760px) {
+  .graph-overlay {
+    padding: 0;
+  }
+
+  .graph-panel {
+    max-height: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .graph-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .graph-wires {
+    display: none;
+  }
+
+  .graph-col-focus .graph-list {
+    position: static;
+  }
+}
