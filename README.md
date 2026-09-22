@@ -19,7 +19,7 @@ downloads.html      How to take the system into a project
 
 system/             The design system itself, at the paths it was authored with
 previews/           The @dsCard preview documents, one per card
-assets/             Site chrome: site.css, site.js
+assets/             Site chrome: site.css, site.js, theme.js (the bases panel)
 tools/build-site.mjs   The generator
 ```
 
@@ -70,6 +70,35 @@ Either way the site lands at `https://<owner>.github.io/<repo>/`.
 
 `.nojekyll` is committed because the system has paths that begin with an underscore, and
 Jekyll would drop them.
+
+## The bases panel
+
+Every page carries a floating toolbar in the corner. It flips the colour mode, and it
+opens **Bases** — a sheet holding the tokens a brand is allowed to touch: the accent
+ramp, radius roles, interface and code type, density, monochrome, colour mode and
+context. Changes apply live to the page, to the sidebar and chrome, and to every preview
+card on it, then follow you to every other page.
+
+It works by writing one localStorage key, `dovetail-theme-config` — the key the system's
+own `templates/_support/theme-runtime.js` already reads. Using that key rather than a
+site-only one is what makes a change reach the whole system, including the tearsheet, the
+settings-page template, and the theme configurator card in the showcase, which writes the
+same payload when you press Save there. Set an accent in the configurator card and the
+site follows; set it in the sheet and the configurator agrees.
+
+The sheet does not dim the page behind it, and on a wide screen the page is padded aside
+rather than covered, because watching the system change is the point of the control.
+
+`assets/bases-data.js` is generated from `system/theme-configurator.html`, so the panel
+offers exactly the configurator's presets and can't drift from them. Two refinements over
+the card it is drawn from: the monochrome preset is carried into what gets saved and
+exported, where the configurator only previews it, and the type control is split so a
+mono face sets `--dt-font-family-mono` instead of the sans family.
+
+The **Export** field at the bottom of the sheet is the theme as a file of token
+overrides. Paste it into `system/tokens/themes/theme-custom.css` and the theme ships with
+the repository, needing no JavaScript. Nothing in the panel edits a file; it is a preview
+held in one browser.
 
 ## How the previews work
 

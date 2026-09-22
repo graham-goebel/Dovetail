@@ -9,14 +9,16 @@
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
 <script>
-  /* Applied before first paint so the page never flashes the wrong theme. */
+  /* The saved bases, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
   try {
-    var m = localStorage.getItem("dovetail-docs-mode") || "light";
-    var c = localStorage.getItem("dovetail-docs-context") || "";
     var r = document.documentElement;
-    if (m === "dark") r.classList.add("dark");
-    if (c) r.classList.add(c);
-    r.setAttribute("data-theme", m === "dark" ? "dark" : c || "light");
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
   } catch (e) {}
 </script>
 </head>
@@ -26,17 +28,6 @@
   <a class="wordmark" href="../index.html">Dovetail</a>
   <span class="wordmark-note">White-label design system</span>
   <div class="header-controls">
-    <label class="control">
-      <span>Context</span>
-      <select id="context-select">
-        <option value="">Default</option>
-        <option value="dt-context-product">Product</option>
-        <option value="dt-context-marketing">Marketing</option>
-      </select>
-    </label>
-    <button id="mode-toggle" type="button" class="mode-toggle" aria-pressed="false">
-      <span data-mode-label>Dark</span>
-    </button>
     <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
   </div>
 </header>
@@ -179,6 +170,8 @@ export function Link({ href, external = false, underline = &quot;always&quot;, t
   <p>Dovetail ships unbranded. Adopt the foundation, apply a theme, and the system becomes yours without a fork.</p>
   <p class="muted">This site is generated from <code>system/</code> by <code>tools/build-site.mjs</code>, and is styled with Dovetail's own tokens.</p>
 </footer>
+<script src="../assets/bases-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
 <script src="../assets/site.js" defer></script>
 </body>
 </html>
