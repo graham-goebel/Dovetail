@@ -1,0 +1,575 @@
+/* THEME — MERIDIAN
+   A brand theme for a vacation rental company, written the way Dovetail asks a theme to
+   be written: it replaces primitive ramps, re-points semantic roles, and never names a
+   component. Dark mode needs nothing here, because base-dark.css re-points these same
+   semantic names at these same ramps.
+
+   The palette is taken from the artwork rather than invented next to it. The page ground
+   is the paper the illustrations were painted on (#f9f5f0), so an illustration sits on the
+   page with no edge, and the accent is the dusty blue in the shutters, the sea and the
+   signposts.
+
+   Link after system/styles.css. */
+
+:root {
+  /* Accent: the dusty blue of the artwork. Low chroma on purpose — a pale blue that
+     stays a colour rather than becoming a highlighter. Step 600 carries white text. */
+  --dt-color-accent-050: oklch(0.977 0.006 240);
+  --dt-color-accent-100: oklch(0.953 0.014 240);
+  --dt-color-accent-200: oklch(0.910 0.028 240);
+  --dt-color-accent-300: oklch(0.852 0.042 240);
+  --dt-color-accent-400: oklch(0.770 0.058 240);
+  --dt-color-accent-500: oklch(0.672 0.072 240);
+  --dt-color-accent-600: oklch(0.556 0.080 242);
+  --dt-color-accent-700: oklch(0.470 0.072 244);
+  --dt-color-accent-800: oklch(0.398 0.060 246);
+  --dt-color-accent-900: oklch(0.340 0.048 248);
+  --dt-color-accent-950: oklch(0.248 0.034 250);
+
+  /* Neutrals warmed to the paper. Cool greys fight watercolour. */
+  --dt-color-neutral-050: oklch(0.975 0.006 78);
+  --dt-color-neutral-100: oklch(0.958 0.008 78);
+  --dt-color-neutral-200: oklch(0.920 0.010 78);
+  --dt-color-neutral-300: oklch(0.862 0.012 78);
+  --dt-color-neutral-400: oklch(0.706 0.013 78);
+  --dt-color-neutral-500: oklch(0.552 0.013 78);
+  --dt-color-neutral-600: oklch(0.438 0.012 78);
+  --dt-color-neutral-700: oklch(0.358 0.011 78);
+  --dt-color-neutral-800: oklch(0.272 0.010 78);
+  --dt-color-neutral-900: oklch(0.204 0.008 78);
+  --dt-color-neutral-950: oklch(0.146 0.006 78);
+
+  /* The terracotta in every scene: the suitcase, the pots, the roofs. Re-tuning the
+     amber ramp gives it to warning, and to anything that asks for a warm tone, without
+     inventing a token no other theme would have. */
+  --dt-color-amber-100: oklch(0.940 0.030 48);
+  --dt-color-amber-200: oklch(0.888 0.056 46);
+  --dt-color-amber-300: oklch(0.818 0.086 44);
+  --dt-color-amber-500: oklch(0.680 0.130 42);
+  --dt-color-amber-600: oklch(0.602 0.132 40);
+  --dt-color-amber-700: oklch(0.512 0.112 38);
+
+  /* Type: a refined serif for the voice, the sans for everything operational. */
+  --dt-font-family-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --dt-text-display-lg-family: var(--dt-font-family-display);
+  --dt-text-display-md-family: var(--dt-font-family-display);
+  --dt-text-display-sm-family: var(--dt-font-family-display);
+  --dt-text-heading-xl-family: var(--dt-font-family-display);
+  --dt-text-heading-lg-family: var(--dt-font-family-display);
+  --dt-text-heading-md-family: var(--dt-font-family-display);
+  --dt-text-display-lg-weight: var(--dt-font-weight-regular);
+  --dt-text-display-md-weight: var(--dt-font-weight-regular);
+  --dt-text-display-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-heading-xl-weight: var(--dt-font-weight-regular);
+  --dt-text-heading-lg-weight: var(--dt-font-weight-regular);
+  --dt-text-heading-md-weight: var(--dt-font-weight-medium);
+  /* A serif at display size needs less tracking than a sans, not more. */
+  --dt-text-display-lg-tracking: -0.02em;
+  --dt-text-display-md-tracking: -0.015em;
+  --dt-text-display-sm-tracking: -0.01em;
+  --dt-text-heading-xl-tracking: -0.01em;
+  --dt-text-eyebrow-tracking: 0.16em;
+
+  /* Shape: soft, because the artwork is. Controls are pills; media matches containers. */
+  --dt-radius-control: var(--dt-radius-raw-full);
+  --dt-radius-container: var(--dt-radius-raw-12);
+  --dt-radius-media: var(--dt-radius-raw-12);
+
+}
+
+/* The page ground is the paper the illustrations are painted on, which is a light-mode
+   decision and only a light-mode decision. Scoping it keeps base-dark.css in charge of
+   the dark values: a plain :root block here would load after it, win on source order,
+   and leave a dark page sitting on a cream ground. Everything above this line is a ramp
+   or a family, so both modes read it and neither has to be written twice. */
+:root:not(.dark) {
+  --dt-surface-base: oklch(0.977 0.007 76);
+  --dt-surface-subtle: oklch(0.960 0.010 74);
+  --dt-surface-raised: oklch(0.990 0.004 76);
+  --dt-surface-overlay: oklch(0.993 0.003 76);
+}
+
+/* ------------------------------------------------------------------ scoped dark
+   Dovetail's component tier is declared once, on :root, as aliases of semantic roles.
+   A custom property resolves where it is declared, so when .dark sits on <html> the
+   aliases are re-declared on that same element and everything follows. When .dark is
+   scoped to a subtree instead — a header over a photograph, a full-bleed band — the
+   semantic roles re-point but the component aliases keep the value they already
+   resolved at the root, and a ghost button inside a dark band keeps its light-mode
+   foreground. Re-declaring the aliases here makes a dark subtree behave like a dark
+   page. This belongs in the system rather than in a brand; it is written here because
+   this page needs it today. */
+.dark {
+  --dt-button-primary-bg: var(--dt-surface-action);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-active);
+  --dt-button-primary-fg: var(--dt-text-on-action);
+  --dt-button-secondary-bg: var(--dt-surface-action-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-secondary);
+  --dt-button-secondary-border: var(--dt-border-action-secondary);
+  --dt-button-ghost-bg: var(--dt-surface-action-ghost);
+  --dt-button-ghost-bg-hover: var(--dt-surface-action-ghost-hover);
+  --dt-button-ghost-bg-active: var(--dt-surface-action-ghost-active);
+  --dt-button-ghost-fg: var(--dt-text-on-action-ghost);
+  --dt-button-danger-bg: var(--dt-surface-action-danger);
+  --dt-button-danger-bg-hover: var(--dt-surface-action-danger-hover);
+  --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
+  --dt-button-danger-fg: var(--dt-text-on-action-danger);
+  --dt-button-disabled-bg: var(--dt-surface-action-disabled);
+  --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}
+/* ------------------------------------------------------------------ page scaffolding */
+
+body { margin: 0; }
+#root { display: flex; flex-direction: column; min-height: 100vh; }
+main { flex: 1; }
+:target { scroll-margin-top: 96px; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.mv-shell { width: 100%; max-width: var(--mv-measure, 1160px); margin-inline: auto; padding-inline: var(--dt-space-inset-xl); }
+.mv-shell--wide { --mv-measure: 1320px; }
+.mv-shell--narrow { --mv-measure: 780px; }
+
+.mv-sec { padding-block: var(--dt-space-section); }
+.mv-sec--tight { padding-block: var(--dt-space-section-compact, var(--dt-space-stack-2xl)); }
+.mv-sec--subtle { background: var(--dt-surface-subtle); }
+
+/* ------------------------------------------------------------------ type */
+
+.mv-eyebrow {
+  display: inline-block;
+  font-family: var(--dt-text-eyebrow-family); font-size: var(--dt-text-eyebrow-size);
+  line-height: var(--dt-text-eyebrow-line); font-weight: var(--dt-font-weight-medium);
+  letter-spacing: var(--dt-text-eyebrow-tracking); text-transform: uppercase;
+  color: var(--dt-text-secondary);
+}
+.mv-display, .mv-h2, .mv-h3 { margin: 0; text-wrap: balance; }
+.mv-display {
+  font-family: var(--dt-text-display-lg-family); font-size: var(--dt-text-display-lg-size);
+  line-height: var(--dt-text-display-lg-line); font-weight: var(--dt-text-display-lg-weight);
+  letter-spacing: var(--dt-text-display-lg-tracking);
+}
+.mv-h2 {
+  font-family: var(--dt-text-display-sm-family); font-size: var(--dt-text-display-sm-size);
+  line-height: var(--dt-text-display-sm-line); font-weight: var(--dt-text-display-sm-weight);
+  letter-spacing: var(--dt-text-display-sm-tracking);
+}
+.mv-h3 {
+  font-family: var(--dt-text-heading-md-family); font-size: var(--dt-text-heading-md-size);
+  line-height: var(--dt-text-heading-md-line); font-weight: var(--dt-text-heading-md-weight);
+}
+.mv-lead {
+  margin: 0; max-width: var(--dt-measure-narrow); text-wrap: pretty;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-text-body-lg-size); line-height: var(--dt-text-body-lg-line);
+}
+.mv-small { margin: 0; color: var(--dt-text-secondary); font-size: var(--dt-text-body-sm-size); line-height: var(--dt-text-body-sm-line); }
+/* Secondary, not tertiary: at 12px the tertiary role clears 4.5:1 on a light page but
+   lands at 3.7:1 on a dark one, and the same class has to hold in both. */
+.mv-fine { margin: 0; color: var(--dt-text-secondary); font-size: var(--dt-text-body-xs-size); line-height: var(--dt-text-body-sm-line); }
+.mv-num { font-variant-numeric: tabular-nums; }
+.mv-center { text-align: center; }
+.mv-center .mv-lead { margin-inline: auto; }
+
+.mv-wordmark {
+  display: inline-flex; align-items: baseline; gap: var(--dt-space-inline-2xs);
+  font-family: var(--dt-font-family-display); font-size: var(--dt-text-heading-md-size);
+  font-weight: var(--dt-font-weight-medium); letter-spacing: 0.01em;
+  color: inherit; text-decoration: none; white-space: nowrap;
+}
+.mv-wordmark::after {
+  content: ""; width: var(--dt-dim-1); height: var(--dt-dim-1);
+  border-radius: var(--dt-radius-pill); background: var(--dt-surface-action);
+}
+a.mv-btn, a.mv-btn:hover { text-decoration: none; }
+
+/* ------------------------------------------------------------------ chrome
+   The header is transparent over the hero and only takes a surface once the page has
+   scrolled past it. Both states are tokens, so dark mode and a re-themed brand both
+   follow without a second rule. */
+
+.mv-header {
+  position: fixed; inset-block-start: 0; inset-inline: 0; z-index: var(--dt-z-sticky);
+  /* Named rather than inherited: `color: inherit` further down would otherwise pick up
+     the value the page body resolved, not the one the scoped .dark re-points to. */
+  color: var(--dt-text-primary);
+  transition: background var(--dt-motion-enter), border-color var(--dt-motion-enter), backdrop-filter var(--dt-motion-enter);
+  border-block-end: var(--dt-border-width-default) solid transparent;
+}
+/* Over the photograph the chrome carries its own scrim rather than asking the hero's to
+   cover the whole top of the frame: the band is only as tall as the bar, so the picture
+   keeps its sky. Measured, like the hero copy — a ghost button on white stone is 1.1:1
+   without it. */
+.mv-header[data-over="photo"] {
+  background:
+    linear-gradient(to bottom, var(--dt-surface-scrim) 0%, var(--dt-surface-scrim) 58%, transparent 100%),
+    linear-gradient(to bottom, var(--dt-surface-scrim) 0%, var(--dt-surface-scrim) 58%, transparent 100%),
+    linear-gradient(to bottom, var(--dt-surface-scrim) 0%, var(--dt-surface-scrim) 58%, transparent 100%);
+}
+.mv-header[data-over="page"] {
+  background: color-mix(in oklch, var(--dt-surface-base) 82%, transparent);
+  backdrop-filter: blur(12px) saturate(140%);
+  border-block-end-color: var(--dt-border-subtle);
+}
+@supports not (backdrop-filter: blur(1px)) { .mv-header[data-over="page"] { background: var(--dt-surface-base); } }
+/* Dialogs and drawers are drawn below the sticky layer, so fixed page chrome has to
+   step out of the way while one is open, or it floats over the scrim. */
+html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
+.mv-header-bar {
+  display: flex; align-items: center; flex-wrap: nowrap; gap: var(--dt-space-inline-lg);
+  padding-block: var(--dt-space-inset-sm);
+}
+.mv-header-bar > :last-child { margin-inline-start: auto; }
+.mv-menu-only { display: none; }
+.mv-nav { display: flex; gap: var(--dt-space-inline-lg); flex: 1; }
+.mv-nav a {
+  position: relative; color: inherit; text-decoration: none;
+  font-size: var(--dt-text-label-md-size); font-weight: var(--dt-font-weight-medium);
+  padding-block: var(--dt-space-inset-2xs);
+}
+.mv-nav a::after {
+  content: ""; position: absolute; inset-inline: 0; inset-block-end: 0; height: var(--dt-dim-hair, 1px);
+  background: currentColor; transform: scaleX(0); transform-origin: left;
+  transition: transform var(--dt-motion-enter);
+}
+.mv-nav a:hover::after, .mv-nav a:focus-visible::after { transform: scaleX(1); }
+.mv-progress {
+  position: absolute; inset-block-end: -1px; inset-inline-start: 0; height: 2px;
+  background: var(--dt-surface-action); width: var(--mv-progress, 0%);
+}
+.mv-header[data-over="photo"] .mv-progress { background: var(--dt-color-neutral-050); }
+
+/* ------------------------------------------------------------------ hero
+   The photograph is a layer inside the section rather than a background-image, so it can
+   be transformed for parallax without moving the text with it. */
+
+.mv-hero { position: relative; min-height: 100svh; display: grid; align-items: end; overflow: clip; isolation: isolate; }
+.mv-hero-layer { position: absolute; inset: -8% 0 -8%; z-index: -2; will-change: transform; }
+.mv-hero-layer img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mv-kenburns img { animation: mv-kenburns 32s ease-in-out infinite alternate; transform-origin: 62% 58%; }
+@keyframes mv-kenburns { from { transform: scale(1.02); } to { transform: scale(1.14); } }
+/* The scrim is sized by measurement, not by eye: white text over the brightest part of
+   this photograph needs the ground under it below about 0.18 relative luminance to clear
+   4.5:1, and one pass of the scrim role (alpha 0.5) does not get there. Two passes over
+   the text column do, and the gradient releases the right-hand two-thirds of the frame
+   so the photograph is still a photograph. */
+.mv-hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(100deg, var(--dt-surface-scrim) 0%, color-mix(in oklch, var(--dt-surface-scrim) 62%, transparent) 40%, transparent 78%),
+    linear-gradient(100deg, var(--dt-surface-scrim) 0%, color-mix(in oklch, var(--dt-surface-scrim) 62%, transparent) 40%, transparent 78%),
+    linear-gradient(100deg, var(--dt-surface-scrim) 0%, color-mix(in oklch, var(--dt-surface-scrim) 62%, transparent) 40%, transparent 78%),
+    linear-gradient(to top, var(--dt-surface-scrim) 0%, color-mix(in oklch, var(--dt-surface-scrim) 72%, transparent) 30%, transparent 80%),
+    linear-gradient(to top, color-mix(in oklch, var(--dt-surface-scrim) 80%, transparent) 0%, transparent 30%),
+    linear-gradient(to bottom, color-mix(in oklch, var(--dt-surface-scrim) 70%, transparent) 0%, transparent 26%);
+}
+.mv-hero-inner { padding-block: calc(var(--dt-space-section)) var(--dt-space-stack-2xl); }
+.mv-hero-copy { max-width: min(46rem, 100%); }
+/* The measure is set on the heading itself: a ch is the width of the element's own
+   zero, so a limit set on the sans-serif parent would be a quarter of the width the
+   display face actually needs. */
+.mv-hero .mv-display { max-width: 15ch; font-size: clamp(2.75rem, 5.6vw, 5rem); line-height: 1.03; }
+.mv-hero .mv-lead { max-width: 44ch; }
+.mv-scroll-cue {
+  position: absolute; inset-block-end: var(--dt-space-inset-lg); inset-inline-end: var(--dt-space-inset-xl);
+  display: flex; align-items: center; gap: var(--dt-space-inline-xs);
+  font-size: var(--dt-text-label-sm-size); letter-spacing: 0.12em; text-transform: uppercase;
+}
+.mv-scroll-cue span { display: block; width: 1px; height: var(--dt-dim-10); background: currentColor; transform-origin: top; animation: mv-cue 2.4s ease-in-out infinite; }
+@keyframes mv-cue { 0%, 100% { transform: scaleY(0.3); opacity: 0.4; } 50% { transform: scaleY(1); opacity: 1; } }
+
+/* Anything over a photograph is on a dark ground whatever the page mode is, so the
+   scoped .dark below it re-points every token inside — including the search panel's
+   own controls — instead of each one being overridden by hand. */
+.mv-on-photo { color: var(--dt-text-primary); }
+
+/* ------------------------------------------------------------------ search panel */
+
+.mv-search {
+  display: grid; grid-template-columns: 1.4fr 1.6fr 1fr auto; gap: var(--dt-space-inline-xs);
+  align-items: end;
+  padding: var(--dt-space-inset-xs);
+  background: color-mix(in oklch, var(--dt-surface-raised) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(130%);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-pill);
+  box-shadow: var(--dt-elevation-3);
+}
+.mv-search > * { min-width: 0; }
+.mv-search-field { padding-inline: var(--dt-space-inset-sm); display: flex; }
+.mv-search-field > * { flex: 1; min-width: 0; }
+.mv-search-field + .mv-search-field { border-inline-start: var(--dt-border-width-default) solid var(--dt-border-subtle); }
+.mv-search-submit { padding-inline: var(--dt-space-inset-2xs); }
+.mv-field-button {
+  display: flex; flex-direction: column; gap: 2px; width: 100%;
+  padding: var(--dt-space-inset-2xs) 0; border: 0; background: none; cursor: pointer;
+  text-align: start; color: var(--dt-text-primary); border-radius: var(--dt-radius-control);
+}
+.mv-field-button small {
+  font-size: var(--dt-text-label-sm-size); font-weight: var(--dt-font-weight-medium);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--dt-text-secondary);
+}
+.mv-field-button strong { font-weight: var(--dt-font-weight-regular); font-size: var(--dt-text-body-md-size); }
+@supports not (backdrop-filter: blur(1px)) { .mv-search { background: var(--dt-surface-raised); } }
+
+/* ------------------------------------------------------------------ calendar */
+
+.mv-cal { display: grid; gap: var(--dt-space-stack-xs); }
+.mv-cal-head { display: flex; align-items: center; justify-content: space-between; gap: var(--dt-space-inline-sm); }
+.mv-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.mv-cal-dow {
+  text-align: center; font-size: var(--dt-text-label-sm-size); color: var(--dt-text-tertiary);
+  padding-block: var(--dt-space-inset-2xs);
+}
+.mv-day {
+  position: relative; aspect-ratio: 1; border: 0; background: none; cursor: pointer;
+  color: var(--dt-text-primary); font-size: var(--dt-text-body-sm-size);
+  font-variant-numeric: tabular-nums; border-radius: var(--dt-radius-pill);
+  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+/* Hover carries more specificity than a plain attribute selector, so without this it
+   would repaint the day the pointer happens to be resting on — which is always the one
+   just chosen. The chosen days opt out of hover rather than fighting it. */
+.mv-day:hover:not(:disabled):not([data-edge]):not([data-in="true"]) { background: var(--dt-color-accent-100); }
+.mv-day:disabled { color: var(--dt-text-disabled); cursor: default; }
+.mv-day[data-in="true"] { background: var(--dt-color-accent-100); border-radius: 0; }
+.mv-day[data-edge="start"] { background: var(--dt-surface-action); color: var(--dt-text-on-action); border-start-end-radius: 0; border-end-end-radius: 0; }
+.mv-day[data-edge="end"] { background: var(--dt-surface-action); color: var(--dt-text-on-action); border-start-start-radius: 0; border-end-start-radius: 0; }
+.mv-day[data-edge="only"] { background: var(--dt-surface-action); color: var(--dt-text-on-action); }
+
+/* ------------------------------------------------------------------ collection tiles
+   The tilt follows the pointer through two custom properties the script writes. It is
+   the one place a transform is driven by JavaScript rather than a token, and it stops
+   entirely under prefers-reduced-motion. */
+
+.mv-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--dt-space-inline-md); }
+.mv-tile {
+  position: relative; display: block; border: 0; padding: 0; cursor: pointer;
+  background: var(--dt-surface-raised); color: inherit; text-align: start;
+  border-radius: var(--dt-radius-container); overflow: hidden;
+  box-shadow: var(--dt-elevation-1);
+  transform: perspective(900px) rotateX(calc(var(--mv-ty, 0) * -4deg)) rotateY(calc(var(--mv-tx, 0) * 4deg)) translateZ(0);
+  transition: box-shadow var(--dt-motion-enter), transform var(--dt-motion-exit);
+}
+.mv-tile:hover, .mv-tile:focus-visible { box-shadow: var(--dt-elevation-3); }
+.mv-tile img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; transition: transform var(--dt-motion-emphasis); }
+.mv-tile:hover img { transform: scale(1.05); }
+.mv-tile-label {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md) var(--dt-space-inset-md);
+}
+.mv-tile[aria-pressed="true"] { outline: 2px solid var(--dt-surface-action); outline-offset: 2px; }
+.mv-tile[aria-pressed="true"] .mv-tile-label { color: var(--dt-text-link); }
+
+/* ------------------------------------------------------------------ listings */
+
+.mv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: var(--dt-space-inline-lg); }
+.mv-card {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--dt-surface-raised); border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container); overflow: hidden;
+  box-shadow: var(--dt-elevation-0);
+  transition: box-shadow var(--dt-motion-enter), transform var(--dt-motion-enter), border-color var(--dt-motion-enter);
+}
+.mv-card:hover { box-shadow: var(--dt-elevation-2); transform: translateY(calc(var(--dt-dim-1) * -1)); border-color: var(--dt-border-default); }
+.mv-card-media { position: relative; overflow: hidden; }
+.mv-card-media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; transition: transform var(--dt-motion-emphasis); }
+.mv-card:hover .mv-card-media img { transform: scale(1.04); }
+.mv-card-body { display: flex; flex-direction: column; gap: var(--dt-space-stack-xs); padding: var(--dt-space-inset-md); flex: 1; }
+.mv-card-open {
+  position: absolute; inset: 0; z-index: 1; border: 0; padding: 0; cursor: pointer;
+  background: none; color: transparent; font: inherit;
+}
+.mv-card-open:focus-visible { outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color); outline-offset: -4px; border-radius: var(--dt-radius-container); }
+.mv-card-actions { position: absolute; inset-block-start: var(--dt-space-inset-xs); inset-inline-end: var(--dt-space-inset-xs); z-index: 2; }
+.mv-card-flag { position: absolute; inset-block-start: var(--dt-space-inset-xs); inset-inline-start: var(--dt-space-inset-xs); z-index: 2; }
+.mv-save {
+  display: grid; place-items: center; width: var(--dt-size-control-sm); height: var(--dt-size-control-sm);
+  border: 0; border-radius: var(--dt-radius-pill); cursor: pointer;
+  background: color-mix(in oklch, var(--dt-surface-raised) 85%, transparent);
+  backdrop-filter: blur(8px); color: var(--dt-text-secondary);
+  transition: color var(--dt-motion-micro), transform var(--dt-motion-micro);
+}
+.mv-save[aria-pressed="true"] { color: var(--dt-surface-danger, var(--dt-color-red-600)); }
+.mv-save:active { transform: scale(0.9); }
+.mv-price { font-size: var(--dt-text-body-lg-size); font-weight: var(--dt-font-weight-semibold); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------ filter bar */
+
+.mv-filterbar {
+  position: sticky; inset-block-start: 64px; z-index: var(--dt-z-raised);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--dt-space-inline-md);
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+  background: color-mix(in oklch, var(--dt-surface-base) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-pill);
+  box-shadow: var(--dt-elevation-1);
+}
+.mv-filterbar .mv-grow { flex: 1; min-width: 180px; }
+
+/* ------------------------------------------------------------------ story
+   A sticky visual column. The step the reader is on is decided by an observer on each
+   step, not by a scroll listener doing arithmetic, so it stays correct at any zoom. */
+
+.mv-story { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--dt-space-stack-2xl); align-items: start; }
+.mv-story-visual { position: sticky; inset-block-start: 96px; aspect-ratio: 1; border-radius: var(--dt-radius-container); overflow: hidden; background: var(--dt-surface-subtle); }
+.mv-story-visual img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transform: scale(1.04);
+  transition: opacity var(--dt-motion-emphasis), transform var(--dt-motion-emphasis);
+}
+.mv-story-visual img[data-on="true"] { opacity: 1; transform: scale(1); }
+.mv-step { padding-block: 17vh; opacity: 0.38; transition: opacity var(--dt-motion-enter); }
+.mv-step[data-on="true"] { opacity: 1; }
+.mv-step-index {
+  display: grid; place-items: center; width: var(--dt-dim-8); height: var(--dt-dim-8);
+  border-radius: var(--dt-radius-pill); border: var(--dt-border-width-default) solid var(--dt-border-default);
+  font-size: var(--dt-text-label-sm-size); font-variant-numeric: tabular-nums;
+  transition: background var(--dt-motion-enter), color var(--dt-motion-enter), border-color var(--dt-motion-enter);
+}
+.mv-step[data-on="true"] .mv-step-index { background: var(--dt-surface-action); color: var(--dt-text-on-action); border-color: transparent; }
+
+/* ------------------------------------------------------------------ texture bands */
+
+.mv-band { position: relative; overflow: hidden; isolation: isolate; }
+.mv-band > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.mv-band::before { content: ""; position: absolute; inset: 0; z-index: -1; }
+.mv-band[data-wash="paper"]::before { background: color-mix(in oklch, var(--dt-surface-base) 68%, transparent); }
+/* The scrim role is tuned for a modal over a page, where the page behind it is quiet.
+   A painting is not quiet, so the same token is stacked until body text clears it. No
+   new colour is invented, and a re-themed brand still moves it. */
+.mv-band[data-wash="deep"]::before {
+  background:
+    linear-gradient(var(--dt-surface-scrim), var(--dt-surface-scrim)),
+    linear-gradient(var(--dt-surface-scrim), var(--dt-surface-scrim)),
+    linear-gradient(var(--dt-surface-scrim), var(--dt-surface-scrim));
+}
+.mv-band[data-wash="deep"] { color: var(--dt-text-primary); }
+
+/* ------------------------------------------------------------------ amenity icons */
+
+.mv-icons { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--dt-space-inline-md); }
+.mv-icon {
+  display: grid; gap: var(--dt-space-stack-xs); justify-items: center; text-align: center;
+  padding: var(--dt-space-inset-sm); border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-raised); border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  transition: transform var(--dt-motion-enter), box-shadow var(--dt-motion-enter);
+}
+.mv-icon:hover { transform: translateY(calc(var(--dt-dim-1) * -1)); box-shadow: var(--dt-elevation-2); }
+.mv-icon img { width: 100%; max-width: var(--dt-dim-20, 80px); aspect-ratio: 1; object-fit: contain; mix-blend-mode: multiply; }
+.dark .mv-icon img { mix-blend-mode: normal; border-radius: var(--dt-radius-media); }
+.mv-icon-inline { width: var(--dt-dim-8); height: var(--dt-dim-8); object-fit: contain; mix-blend-mode: multiply; flex: none; }
+.dark .mv-icon-inline { mix-blend-mode: normal; border-radius: var(--dt-radius-media); }
+
+/* ------------------------------------------------------------------ detail dialog */
+
+.mv-detail { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--dt-space-stack-xl); align-items: start; }
+.mv-gallery { display: grid; gap: var(--dt-space-stack-xs); align-content: start; }
+.mv-gallery-main { position: relative; border-radius: var(--dt-radius-media); overflow: hidden; background: var(--dt-surface-subtle); }
+.mv-gallery-main img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.mv-thumbs { display: flex; gap: var(--dt-space-inline-xs); align-items: start; }
+.mv-thumb {
+  flex: 1; border: var(--dt-border-width-default) solid transparent; padding: 0; cursor: pointer;
+  border-radius: var(--dt-radius-media); overflow: hidden; background: none; line-height: 0;
+}
+.mv-thumb[aria-pressed="true"] { border-color: var(--dt-surface-action); }
+.mv-thumb img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.mv-rows { display: grid; gap: var(--dt-space-stack-xs); }
+.mv-row { display: flex; align-items: center; justify-content: space-between; gap: var(--dt-space-inline-md); }
+.mv-row--total { padding-block-start: var(--dt-space-stack-sm); border-block-start: var(--dt-border-width-default) solid var(--dt-border-subtle); font-weight: var(--dt-font-weight-semibold); }
+
+/* ------------------------------------------------------------------ reveal
+   One observer, one attribute. Reduced motion turns the movement off but never the
+   content: a reader who asks for less motion still gets the page. */
+
+[data-reveal] { opacity: 0; transform: translateY(var(--dt-dim-4)); transition: opacity 700ms var(--dt-easing-decelerate, ease-out), transform 700ms var(--dt-easing-decelerate, ease-out); transition-delay: var(--mv-delay, 0ms); }
+[data-reveal="in"] { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .mv-kenburns img { animation: none; }
+  .mv-scroll-cue span { animation: none; }
+  .mv-tile { transform: none !important; }
+  .mv-card:hover, .mv-icon:hover { transform: none; }
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.mv-footer { background: var(--dt-surface-subtle); border-block-start: var(--dt-border-width-default) solid var(--dt-border-subtle); padding-block: var(--dt-space-stack-2xl); }
+.mv-footer-cols { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--dt-space-stack-xl); }
+.mv-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--dt-space-stack-xs); }
+.mv-footer a { color: var(--dt-text-secondary); text-decoration: none; }
+.mv-footer a:hover { color: var(--dt-text-primary); }
+
+/* ------------------------------------------------------------------ narrow screens */
+
+@media (max-width: 1080px) {
+  .mv-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mv-icons { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mv-detail { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .mv-shell { padding-inline: var(--dt-space-inset-md); }
+  .mv-sec { padding-block: var(--dt-space-stack-2xl); }
+  .mv-search { grid-template-columns: 1fr; border-radius: var(--dt-radius-container); gap: 0; }
+  .mv-search-field + .mv-search-field { border-inline-start: 0; border-block-start: var(--dt-border-width-default) solid var(--dt-border-subtle); }
+  .mv-search-field { padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm); }
+  .mv-search > .mv-search-submit { padding: var(--dt-space-inset-2xs); }
+  .mv-story { grid-template-columns: minmax(0, 1fr); }
+  .mv-story-visual { position: relative; inset-block-start: auto; }
+  .mv-step { padding-block: var(--dt-space-stack-lg); opacity: 1; }
+  .mv-footer-cols { grid-template-columns: 1fr 1fr; }
+  .mv-footer-cols > :first-child { grid-column: 1 / -1; }
+  .mv-nav { display: none; }
+  .mv-menu-only { display: inline-flex; }
+  .mv-hide-sm { display: none; }
+  /* The bar keeps a wordmark, the saved count and the way in. On a phone the label is
+     the one thing the heart already says. */
+  .mv-saved-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .mv-header-bar { gap: var(--dt-space-inline-sm); }
+  .mv-hero { min-height: 92svh; }
+  .mv-scroll-cue { display: none; }
+  /* The bar becomes three stacked rows rather than three squeezed columns: a tab strip
+     that scrolls, then the price, then the sort. */
+  .mv-filterbar {
+    position: static; border-radius: var(--dt-radius-container);
+    flex-direction: column; align-items: stretch; gap: var(--dt-space-stack-sm);
+  }
+  .mv-filterbar > * { min-width: 0 !important; width: 100%; }
+}
+@media (max-width: 560px) {
+  .mv-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mv-icons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
