@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Low Meadow — neighbourhood cannabis</title>
+<meta name="description" content="Small-farm flower, local glass, and seeds, reserved online and picked up on Orchard Street.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300..700&display=swap">
+<link rel="stylesheet" href="../../system/styles.css">
+<link rel="stylesheet" href="theme.css">
+<script src="../../system/components/lib/react.production.min.js"></script>
+<script src="../../system/components/lib/react-dom.production.min.js"></script>
+<script src="../../system/components/bundle.js"></script>
+<script src="site.js"></script>
+</head>
+<body class="dt-context-marketing">
+<div id="root"></div>
+<script>
+(function () {
+  var h = LM.h, NS = LM.NS;
+
+  function Home() {
+    var featured = ["meadow-haze", "harvest-jar", "globe-bubbler"].map(LM.find);
+    return h(React.Fragment, null,
+
+      h(LM.Section, null,
+        h("div", { className: "lm-hero" },
+          h(NS.Stack, { gap: "md" },
+            h("span", { className: "lm-eyebrow" }, "Open today, 10am to 9pm"),
+            h("h1", { className: "lm-h1" }, "Good flower for good afternoons"),
+            h("p", { className: "lm-lead" }, "Low Meadow is a neighbourhood dispensary on Orchard Street. We stock small-farm flower, hand-blown glass, and seeds you can grow at home, and our staff will tell you honestly what each one is like."),
+            h(NS.Inline, { gap: "sm", wrap: true },
+              h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Shop the menu"),
+              h(NS.Button, { as: "a", href: "visit.html", size: "lg", variant: "secondary" }, "Plan a visit")
+            ),
+            h(NS.Inline, { gap: "xs", wrap: true },
+              h(NS.Tag, null, "Reserve online"),
+              h(NS.Tag, null, "Pay at pickup"),
+              h(NS.Tag, null, "Lab tested")
+            )
+          ),
+          h(NS.Image, { src: "img/friends-ride.png", alt: "Three friends laughing on bicycles in a sunlit park, with the city skyline behind them", ratio: "4:3", radius: "container" })
+        )
+      ),
+
+      h(LM.Section, { alt: true },
+        h(NS.Stack, { gap: "xs", className: "lm-center" },
+          h("span", { className: "lm-eyebrow" }, "What we carry"),
+          h("h2", { className: "lm-h2" }, "Three shelves, chosen by hand")
+        ),
+        h(NS.Grid, { minColumnWidth: "260px", gap: "lg" },
+          LM.CATEGORIES.map(function (c) {
+            return h("a", { key: c.id, href: "shop.html?category=" + c.id, className: "lm-card-link" },
+              h(NS.Card, {
+                interactive: true,
+                media: h(NS.Image, { src: c.img, alt: "", ratio: "3:2", radius: "media" }),
+                title: c.label, description: c.blurb
+              })
+            );
+          })
+        )
+      ),
+
+      h(LM.Section, null,
+        h(NS.Inline, { justify: "space-between", align: "end", wrap: true, gap: "md" },
+          h(NS.Stack, { gap: "xs" },
+            h("span", { className: "lm-eyebrow" }, "This week"),
+            h("h2", { className: "lm-h2" }, "Staff picks")
+          ),
+          h(NS.Button, { as: "a", href: "shop.html", variant: "ghost" }, "See the full menu")
+        ),
+        h(NS.Grid, { minColumnWidth: "280px", gap: "lg" },
+          featured.map(function (p) { return h(LM.ProductCard, { key: p.id, product: p }); })
+        )
+      ),
+
+      h(LM.Section, { alt: true },
+        h("div", { className: "lm-two" },
+          h(NS.Image, { src: "img/flower-jar.png", alt: "A glass jar of cured cannabis flower on a linen cloth", ratio: "square", radius: "container" }),
+          h(NS.Stack, { gap: "md" },
+            h("span", { className: "lm-eyebrow" }, "How we buy"),
+            h("h2", { className: "lm-h2" }, "Every jar has a farm and a date on it"),
+            h("p", { className: "lm-lead" }, "We buy from 6 farms within a two-hour drive, and we visit each one before we stock it. Flower is cured in glass, never plastic, and every label carries the harvest date and the lab report number."),
+            h(NS.Inline, { gap: "xl", wrap: true },
+              h(NS.Stat, { label: "Partner farms", value: "6", caption: "all within 120 miles" }),
+              h(NS.Stat, { label: "Days on the shelf", value: "30", caption: "at most, then it is gone" }),
+              h(NS.Stat, { label: "Lab tested", value: "100", unit: "%", caption: "potency and purity" })
+            )
+          )
+        )
+      ),
+
+      h(LM.Section, null,
+        h(NS.Grid, { minColumnWidth: "280px", gap: "xl" },
+          h(NS.Quote, { attribution: "Maya R.", role: "Regular since 2023", avatar: h(NS.Avatar, { name: "Maya R." }) },
+            "They asked what I wanted the evening to feel like, not what I wanted to spend. That is why I keep coming back."),
+          h(NS.Quote, { attribution: "Jordan T.", role: "First visit last spring", avatar: h(NS.Avatar, { name: "Jordan T." }) },
+            "I had not tried anything in 15 years. Sunday mix was exactly the gentle start they said it would be."),
+          h(NS.Quote, { attribution: "Priya S.", role: "Home grower", avatar: h(NS.Avatar, { name: "Priya S." }) },
+            "The starter seeds came with a grow card written by someone who clearly grows. All 4 came up.")
+        )
+      ),
+
+      h("section", { className: "lm-sec lm-brand-fill" },
+        h(NS.Stack, { gap: "md", className: "lm-center" },
+          h("h2", { className: "lm-h2" }, "Reserve now, pick up in 20 minutes"),
+          h("p", { className: "lm-lead" }, "Add what you want to your bag and we will have it bagged at the counter. Bring your ID; you pay when you arrive."),
+          h(NS.Inline, { gap: "sm", justify: "center", wrap: true },
+            h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Start an order"),
+            h(NS.Button, { as: "a", href: "visit.html", size: "lg", variant: "secondary" }, "Get directions")
+          )
+        )
+      )
+    );
+  }
+
+  LM.mount(Home, "home");
+})();
+</script>
+</body>
+</html>

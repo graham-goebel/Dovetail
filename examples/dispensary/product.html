@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product — Low Meadow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300..700&display=swap">
+<link rel="stylesheet" href="../../system/styles.css">
+<link rel="stylesheet" href="theme.css">
+<script src="../../system/components/lib/react.production.min.js"></script>
+<script src="../../system/components/lib/react-dom.production.min.js"></script>
+<script src="../../system/components/bundle.js"></script>
+<script src="site.js"></script>
+</head>
+<body class="dt-context-marketing">
+<div id="root"></div>
+<script>
+(function () {
+  var h = LM.h, NS = LM.NS;
+  var product = LM.find(new URLSearchParams(location.search).get("id")) || LM.PRODUCTS[0];
+  document.title = product.name + " — Low Meadow";
+
+  var CAT_LABEL = {};
+  LM.CATEGORIES.forEach(function (c) { CAT_LABEL[c.id] = c.label; });
+
+  function Product() {
+    var p = product;
+    var qty = React.useState("1");
+    var isPlant = p.category !== "glass";
+
+    var facts = [
+      { k: "Type", v: p.type },
+      { k: "Size", v: p.size }
+    ];
+    if (p.thc != null) facts.push({ k: "THC", v: p.thc + "%" });
+    if (p.cbd != null) facts.push({ k: "CBD", v: p.cbd + "%" });
+    if (p.terpenes.length) facts.push({ k: "Lead terpenes", v: p.terpenes.join(", ") });
+
+    var related = LM.PRODUCTS.filter(function (x) { return x.category === p.category && x.id !== p.id; }).slice(0, 3);
+
+    return h(React.Fragment, null,
+      h(LM.Section, { className: "tight" },
+        h(NS.Breadcrumbs, { items: [
+          { label: "Home", href: "index.html" },
+          { label: "Shop", href: "shop.html" },
+          { label: CAT_LABEL[p.category], href: "shop.html?category=" + p.category },
+          { label: p.name }
+        ] }),
+        h("div", { className: "lm-product" },
+          h(NS.Image, { src: p.img, alt: p.name, ratio: "square", radius: "container" }),
+          h(NS.Stack, { gap: "lg" },
+            h(NS.Stack, { gap: "sm" },
+              h(NS.Inline, { gap: "xs", wrap: true },
+                h(NS.Badge, { tone: LM.TYPE_TONE[p.type] || "neutral" }, p.type),
+                h(NS.Badge, { tone: "success", dot: true }, "In stock")
+              ),
+              h("h1", { className: "lm-h1" }, p.name),
+              h("p", { className: "lm-lead" }, p.blurb)
+            ),
+            h("span", { className: "lm-price", style: { fontSize: "var(--dt-text-heading-lg-size)", lineHeight: "var(--dt-text-heading-lg-line)" } }, LM.money(p.price),
+              h("span", { className: "lm-small", style: { fontWeight: "var(--dt-font-weight-regular)", marginLeft: "var(--dt-space-inline-xs)" } }, "for " + p.size)),
+            h(NS.Inline, { gap: "sm", align: "end", wrap: true },
+              h("div", { style: { width: 120 } },
+                h(NS.Select, { label: "Quantity", value: qty[0], onChange: function (e) { qty[1](e.target.value); }, options: ["1", "2", "3", "4"] })),
+              h(NS.Button, { size: "lg", onClick: function () { LM.addToBag(p.id, parseInt(qty[0], 10)); } }, "Add to bag")
+            ),
+            p.effects.length ? h(NS.Stack, { gap: "xs" },
+              h("strong", null, "What guests tell us"),
+              h(NS.Inline, { gap: "xs", wrap: true }, p.effects.map(function (e) { return h(NS.Tag, { key: e }, e); }))
+            ) : null,
+            h(NS.Table, {
+              caption: "Product details", dense: true,
+              columns: [{ key: "k", header: "Detail", width: "40%" }, { key: "v", header: "Value" }],
+              rows: facts
+            }),
+            h(NS.Accordion, {
+              label: "About this product", defaultOpen: ["story"],
+              items: [
+                { id: "story", title: "From our buyer", content: p.body },
+                isPlant
+                  ? { id: "lab", title: "Lab results", content: "Tested by an independent state-licensed lab for potency, pesticides, heavy metals, and microbials. Ask at the counter to see the full certificate for this batch." }
+                  : { id: "care", title: "Care and cleaning", content: "Rinse with warm water after each use. Once a week, shake with isopropyl alcohol and coarse salt, then rinse well. Never run boiling water through cold glass." },
+                { id: "pickup", title: "Pickup and returns", content: "Reservations are held for 24 hours. Unopened glass can be returned within 14 days with a receipt. Cannabis products cannot be returned once they leave the store." }
+              ]
+            })
+          )
+        )
+      ),
+
+      isPlant ? h(LM.Section, { className: "tight" },
+        h(NS.Callout, { tone: "caution", title: "Start low, go slow" },
+          "Effects vary from person to person. Wait at least 15 minutes after inhaling before you have more, and never drive after use.")
+      ) : null,
+
+      related.length ? h(LM.Section, { alt: true },
+        h("h2", { className: "lm-h2" }, "More from " + CAT_LABEL[p.category].toLowerCase()),
+        h(NS.Grid, { minColumnWidth: "260px", gap: "lg" },
+          related.map(function (x) { return h(LM.ProductCard, { key: x.id, product: x }); }))
+      ) : null
+    );
+  }
+
+  LM.mount(Product, "shop");
+})();
+</script>
+</body>
+</html>

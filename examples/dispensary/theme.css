@@ -1,0 +1,152 @@
+/* THEME — LOW MEADOW
+   A brand theme for a neighbourhood cannabis dispensary, written the way Dovetail asks
+   a theme to be written: it replaces primitive ramps and re-points a few semantic
+   roles, and it never names a component. Dark mode needs nothing here, because
+   base-dark.css re-points the same semantic names at these ramps.
+
+   Link after system/styles.css. */
+
+:root {
+  /* Brand hue: a field green. Replaces the accent ramp in place, so every semantic
+     role that read accent (actions, links, focus, selection) follows. */
+  --dt-color-accent-050: oklch(0.972 0.018 150);
+  --dt-color-accent-100: oklch(0.940 0.040 150);
+  --dt-color-accent-200: oklch(0.890 0.072 150);
+  --dt-color-accent-300: oklch(0.815 0.108 150);
+  --dt-color-accent-400: oklch(0.720 0.130 150);
+  --dt-color-accent-500: oklch(0.625 0.132 150);
+  --dt-color-accent-600: oklch(0.530 0.118 150);
+  --dt-color-accent-700: oklch(0.455 0.100 150);
+  --dt-color-accent-800: oklch(0.385 0.082 150);
+  --dt-color-accent-900: oklch(0.325 0.066 150);
+  --dt-color-accent-950: oklch(0.235 0.048 150);
+
+  /* Warm the neutrals toward the linen in the product photography. */
+  --dt-color-neutral-050: oklch(0.985 0.006 85);
+  --dt-color-neutral-100: oklch(0.965 0.009 85);
+  --dt-color-neutral-200: oklch(0.925 0.012 85);
+  --dt-color-neutral-300: oklch(0.868 0.015 85);
+  --dt-color-neutral-400: oklch(0.708 0.016 85);
+  --dt-color-neutral-500: oklch(0.556 0.016 85);
+  --dt-color-neutral-600: oklch(0.442 0.015 85);
+  --dt-color-neutral-700: oklch(0.362 0.014 85);
+  --dt-color-neutral-800: oklch(0.275 0.012 85);
+  --dt-color-neutral-900: oklch(0.207 0.010 85);
+  --dt-color-neutral-950: oklch(0.148 0.008 85);
+
+  /* A serif display face for the brand voice; the sans stays on UI and body text. */
+  --dt-font-family-display: "Fraunces", ui-serif, Georgia, serif;
+  --dt-text-display-lg-family: var(--dt-font-family-display);
+  --dt-text-display-md-family: var(--dt-font-family-display);
+  --dt-text-display-sm-family: var(--dt-font-family-display);
+  --dt-text-heading-xl-family: var(--dt-font-family-display);
+  --dt-text-heading-lg-family: var(--dt-font-family-display);
+  --dt-text-heading-md-family: var(--dt-font-family-display);
+  --dt-text-display-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-display-md-weight: var(--dt-font-weight-medium);
+  --dt-text-display-sm-weight: var(--dt-font-weight-medium);
+
+  /* Shape: soft containers, pill controls. */
+  --dt-radius-control: var(--dt-radius-raw-full);
+  --dt-radius-container: var(--dt-radius-raw-16);
+  --dt-radius-media: var(--dt-radius-raw-12);
+}
+
+/* ---------------------------------------------------------------- page layout
+   Layout only. Every value is a token; the widths are measures, not colours. */
+
+body { margin: 0; }
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+main { flex: 1; display: flex; flex-direction: column; }
+
+.lm-sec {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--dt-space-stack-xl);
+  padding: var(--dt-space-section) var(--dt-space-inset-xl);
+}
+.lm-sec > * { width: 100%; max-width: 1120px; }
+.lm-sec.tight { padding-top: var(--dt-space-stack-xl); padding-bottom: var(--dt-space-stack-xl); }
+.lm-alt { background: var(--dt-surface-subtle); }
+.lm-brand-fill { background: var(--dt-surface-inverse); color: var(--dt-text-inverse); }
+.lm-brand-fill .lm-lead { color: var(--dt-text-inverse); opacity: 0.8; }
+
+.lm-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--dt-space-stack-2xl); align-items: center; }
+.lm-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--dt-space-stack-2xl); align-items: center; }
+.lm-shop { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--dt-space-stack-2xl); align-items: start; }
+.lm-product { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--dt-space-stack-2xl); align-items: start; }
+.lm-filters { position: sticky; top: 88px; }
+
+.lm-eyebrow {
+  font-family: var(--dt-text-eyebrow-family); font-size: var(--dt-text-eyebrow-size);
+  line-height: var(--dt-text-eyebrow-line); font-weight: var(--dt-text-eyebrow-weight);
+  letter-spacing: var(--dt-text-eyebrow-tracking); text-transform: uppercase;
+  color: var(--dt-text-link);
+}
+.lm-h1 {
+  margin: 0; text-wrap: balance;
+  font-family: var(--dt-text-display-md-family); font-size: var(--dt-text-display-md-size);
+  line-height: var(--dt-text-display-md-line); font-weight: var(--dt-text-display-md-weight);
+  letter-spacing: var(--dt-text-display-md-tracking);
+}
+.lm-h2 {
+  margin: 0; text-wrap: balance;
+  font-family: var(--dt-text-heading-xl-family); font-size: var(--dt-text-heading-xl-size);
+  line-height: var(--dt-text-heading-xl-line); font-weight: var(--dt-text-heading-xl-weight);
+  letter-spacing: var(--dt-text-heading-xl-tracking);
+}
+.lm-h3 {
+  margin: 0;
+  font-family: var(--dt-text-heading-md-family); font-size: var(--dt-text-heading-md-size);
+  line-height: var(--dt-text-heading-md-line); font-weight: var(--dt-text-heading-md-weight);
+}
+.lm-lead {
+  margin: 0; max-width: 56ch; text-wrap: pretty; color: var(--dt-text-secondary);
+  font-size: var(--dt-text-body-lg-size); line-height: var(--dt-text-body-lg-line);
+}
+.lm-small { margin: 0; color: var(--dt-text-secondary); font-size: var(--dt-text-body-sm-size); line-height: var(--dt-text-body-sm-line); }
+.lm-price {
+  font-family: var(--dt-text-heading-sm-family); font-size: var(--dt-text-heading-sm-size);
+  line-height: var(--dt-text-heading-sm-line); font-weight: var(--dt-font-weight-semibold);
+}
+.lm-center { text-align: center; align-items: center; }
+.lm-center .lm-lead { margin-inline: auto; }
+
+.lm-wordmark {
+  font-family: var(--dt-font-family-display); font-size: var(--dt-text-heading-sm-size);
+  font-weight: var(--dt-font-weight-semibold); letter-spacing: var(--dt-tracking-tight);
+  color: var(--dt-text-primary); text-decoration: none; white-space: nowrap;
+}
+.lm-wordmark:hover { color: var(--dt-text-primary); }
+
+a.lm-card-link { color: inherit; text-decoration: none; display: flex; }
+a.lm-card-link > * { flex: 1; }
+
+.lm-footer {
+  padding: var(--dt-space-stack-2xl) var(--dt-space-inset-xl);
+  background: var(--dt-surface-subtle);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  display: flex; justify-content: center;
+}
+.lm-footer > div { width: 100%; max-width: 1120px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: var(--dt-space-stack-xl); }
+.lm-footer a { color: var(--dt-text-secondary); text-decoration: none; }
+.lm-footer a:hover { color: var(--dt-text-primary); }
+.lm-footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--dt-space-stack-xs); }
+.lm-fine { grid-column: 1 / -1; margin: 0; color: var(--dt-text-tertiary); font-size: var(--dt-text-body-xs-size, 12px); line-height: var(--dt-text-body-sm-line); }
+
+.lm-bag-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 var(--dt-space-inset-2xs, 4px);
+  border-radius: var(--dt-radius-pill); background: var(--dt-surface-action); color: var(--dt-text-on-action);
+  font-size: var(--dt-text-label-sm-size); font-weight: var(--dt-font-weight-semibold);
+}
+
+@media (max-width: 900px) {
+  .lm-sec { padding: var(--dt-space-stack-2xl) var(--dt-space-inset-md); gap: var(--dt-space-stack-lg); }
+  .lm-hero, .lm-two, .lm-shop, .lm-product { grid-template-columns: minmax(0, 1fr); gap: var(--dt-space-stack-xl); }
+  .lm-filters { position: static; }
+  .lm-footer { padding: var(--dt-space-stack-xl) var(--dt-space-inset-md); }
+  .lm-footer > div { grid-template-columns: 1fr 1fr; }
+  .lm-footer > div > :first-child { grid-column: 1 / -1; }
+  .lm-h1 { font-size: var(--dt-text-display-sm-size); line-height: var(--dt-text-display-sm-line); }
+  .lm-hide-sm { display: none; }
+}

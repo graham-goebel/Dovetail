@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visit — Low Meadow</title>
+<meta name="description" content="Hours, directions, and first-visit questions for Low Meadow on Orchard Street.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300..700&display=swap">
+<link rel="stylesheet" href="../../system/styles.css">
+<link rel="stylesheet" href="theme.css">
+<script src="../../system/components/lib/react.production.min.js"></script>
+<script src="../../system/components/lib/react-dom.production.min.js"></script>
+<script src="../../system/components/bundle.js"></script>
+<script src="site.js"></script>
+</head>
+<body class="dt-context-marketing">
+<div id="root"></div>
+<script>
+(function () {
+  var h = LM.h, NS = LM.NS;
+
+  var HOURS = [
+    { day: "Monday to Thursday", open: "10am to 9pm", note: "" },
+    { day: "Friday and Saturday", open: "10am to 10pm", note: "Busiest after 5pm" },
+    { day: "Sunday", open: "11am to 7pm", note: "Quiet mornings" }
+  ];
+
+  function Visit() {
+    var today = new Date().getDay();
+    var todayRow = today === 0 ? 2 : today >= 5 ? 1 : 0;
+
+    return h(React.Fragment, null,
+      h(LM.Section, null,
+        h("div", { className: "lm-hero" },
+          h(NS.Stack, { gap: "md" },
+            h(NS.Breadcrumbs, { items: [{ label: "Home", href: "index.html" }, { label: "Visit" }] }),
+            h("h1", { className: "lm-h1" }, "Come by Orchard Street"),
+            h("p", { className: "lm-lead" }, "We are two blocks from the park trail, with bike racks out front and 8 free parking spaces behind the building. Walk in any time, or reserve online and skip the line."),
+            h(NS.List, {
+              label: "Store details",
+              items: [
+                { id: "addr", title: "418 Orchard Street", description: "Between Fir and Laurel, next to the bakery" },
+                { id: "phone", title: "(555) 014-2090", description: "Staff answer from open to close" },
+                { id: "pickup", title: "Pickup window", description: "Reservations are held for 24 hours" }
+              ]
+            }),
+            h(NS.Inline, { gap: "sm", wrap: true },
+              h(NS.Button, { as: "a", href: "shop.html", size: "lg" }, "Reserve for pickup"),
+              h(NS.Button, { as: "a", href: "#faq", size: "lg", variant: "secondary" }, "Read the FAQ")
+            )
+          ),
+          h(NS.Cover, {
+            src: "img/friends-ride.png", alt: "Friends cycling through the park near the store",
+            ratio: "4:3", radius: "container", scrim: "gradient", align: "bottom",
+            eyebrow: "Getting here", title: "Ride the park trail",
+            body: "Racks for 12 bikes out front. Lock up and come in."
+          })
+        )
+      ),
+
+      h(LM.Section, { alt: true },
+        h("div", { className: "lm-two", style: { alignItems: "start" } },
+          h(NS.Stack, { gap: "md" },
+            h("span", { className: "lm-eyebrow" }, "Hours"),
+            h("h2", { className: "lm-h2" }, "Open every day of the week"),
+            h(NS.Table, {
+              caption: "Opening hours",
+              columns: [
+                { key: "day", header: "Day", render: function (r) {
+                  return h(NS.Inline, { gap: "xs", align: "center" }, r.day, r.today ? h(NS.Badge, { tone: "success" }, "Today") : null);
+                } },
+                { key: "open", header: "Hours" },
+                { key: "note", header: "Good to know" }
+              ],
+              rows: HOURS.map(function (r, i) { return Object.assign({ today: i === todayRow }, r); })
+            })
+          ),
+          h(NS.Stack, { gap: "md" },
+            h("span", { className: "lm-eyebrow" }, "What to bring"),
+            h("h2", { className: "lm-h2" }, "One thing, every time"),
+            h(NS.Callout, { tone: "important", title: "A valid government-issued photo ID" },
+              "We check ID at the door for everyone, whatever you look like. It has to be current and show that you are 21 or older: a driver's licence, a state ID card, or a passport."),
+            h(NS.Callout, { tone: "tip", title: "Cash or debit" },
+              "We take cash and debit cards. There is an ATM by the door. Credit cards are not accepted, which is a banking rule rather than ours.")
+          )
+        )
+      ),
+
+      h(LM.Section, { id: "faq" },
+        h(NS.Stack, { gap: "xs", className: "lm-center" },
+          h("span", { className: "lm-eyebrow" }, "First visit"),
+          h("h2", { className: "lm-h2" }, "Questions people ask at the counter")
+        ),
+        h("div", { style: { maxWidth: 760, margin: "0 auto" } },
+          h(NS.Accordion, {
+            label: "Frequently asked questions", defaultOpen: ["new"],
+            items: [
+              { id: "new", title: "I have never been to a dispensary. What happens?", content: "Show your ID at the door, then take your time. A staff member will ask what you are looking for and how you want to feel, and suggest two or three options with prices. Nobody will rush you, and you do not have to buy anything." },
+              { id: "sativa", title: "What is the difference between sativa, indica, and hybrid?", content: "They are useful shorthand, not guarantees. Guests tend to describe sativas as bright and social and indicas as calm and heavy. Terpenes and your own body matter as much as the label, so we list both on every product." },
+              { id: "amount", title: "How much should I start with?", content: "Less than you think. For flower, one or two small puffs, then wait 15 minutes. For your first visit we usually suggest Sunday mix, a 3:1 THC to CBD blend." },
+              { id: "grow", title: "Can I grow the seeds at home?", content: "Adults 21 and older can grow a small number of plants at home in many places, but the limit varies. Check your local rules before you plant. Our starter pack comes with a one-page grow card." },
+              { id: "consume", title: "Can I use cannabis in the store or out front?", content: "No. Consumption is not allowed on the premises or in the parking lot, and products stay sealed until you are home." }
+            ]
+          })
+        )
+      ),
+
+      h("section", { className: "lm-sec lm-alt" },
+        h("div", { className: "lm-two" },
+          h(NS.Stack, { gap: "md" },
+            h("span", { className: "lm-eyebrow" }, "Stay in the loop"),
+            h("h2", { className: "lm-h2" }, "Hear about new harvests first"),
+            h("p", { className: "lm-lead" }, "One email when a new jar lands on the shelf, usually twice a month. No daily deals, and you can leave any time."),
+            h(Signup)
+          ),
+          h(NS.Image, { src: "img/flower-jar.png", alt: "A glass jar of freshly cured flower", ratio: "4:3", radius: "container" })
+        )
+      )
+    );
+  }
+
+  function Signup() {
+    var email = React.useState("");
+    var err = React.useState("");
+    var done = React.useState(false);
+    if (done[0]) {
+      return h(NS.Alert, { tone: "success", title: "You are on the list" }, "We will write when the next harvest arrives.");
+    }
+    return h("form", {
+      noValidate: true,
+      onSubmit: function (e) {
+        e.preventDefault();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email[0])) { err[1]("Enter an email address like name@example.com."); return; }
+        done[1](true);
+      }
+    },
+      h(NS.Inline, { gap: "sm", align: "end", wrap: true },
+        h("div", { style: { flex: "1 1 240px" } },
+          h(NS.Input, { label: "Email", type: "email", value: email[0], error: err[0] || undefined, autoComplete: "email",
+            onChange: function (e) { email[1](e.target.value); err[1](""); } })),
+        h(NS.Button, { type: "submit" }, "Sign up")
+      )
+    );
+  }
+
+  LM.mount(Visit, "visit");
+})();
+</script>
+</body>
+</html>
