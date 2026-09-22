@@ -964,8 +964,11 @@ table.tokens .usage {
   color: var(--dt-text-on-selected);
 }
 
+/* The pill and the sheet it opens never need to show at once: closing the
+   sheet is the only way back to it, and the sheet's own close button already
+   covers that. */
 body.configure-open .configure-bar {
-  right: calc(var(--configure-width, 360px) + var(--dt-dim-4));
+  display: none;
 }
 
 .configure-swatch {
@@ -1031,9 +1034,36 @@ body.configure-open .configure-bar {
   text-wrap: pretty;
 }
 
-.configure-close {
+.configure-head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
   flex: none;
   margin-left: auto;
+}
+
+.configure-reset-btn {
+  flex: none;
+  height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-sm);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-secondary);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-medium);
+  cursor: pointer;
+  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+
+.configure-reset-btn:hover {
+  background: var(--dt-surface-action-ghost-hover);
+  color: var(--dt-text-primary);
+}
+
+.configure-close {
+  flex: none;
   width: var(--dt-size-control-sm);
   height: var(--dt-size-control-sm);
   border: 0;
@@ -1361,6 +1391,49 @@ body.configure-open .configure-bar {
   text-wrap: pretty;
 }
 
+.configure-ramphue-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+}
+
+.configure-ramphue-row {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+}
+
+.configure-ramphue-row .configure-swatch-btn {
+  flex: none;
+  width: var(--dt-dim-7);
+  height: var(--dt-dim-7);
+}
+
+.configure-ramphue-label {
+  flex: 1;
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-primary);
+}
+
+.configure-btn-mini {
+  flex: none;
+  height: var(--dt-dim-6);
+  padding: 0 var(--dt-space-inset-xs);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+  color: var(--dt-text-secondary);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-2xs);
+  font-weight: var(--dt-font-weight-medium);
+  cursor: pointer;
+}
+
+.configure-btn-mini:hover {
+  background: var(--dt-surface-action-ghost-hover);
+  color: var(--dt-text-primary);
+}
+
 /* On a narrow screen the sheet docks to the bottom. It takes a little over half
    the height and never dims or blocks the page, and the page gains padding to
    match, so anything on it can still be scrolled into the space above and
@@ -1392,11 +1465,6 @@ body.configure-open .configure-bar {
 
   body.configure-open {
     padding-bottom: calc(var(--configure-height) + var(--dt-dim-4));
-  }
-
-  body.configure-open .configure-bar {
-    right: var(--dt-space-inset-md);
-    bottom: calc(var(--configure-height) + var(--dt-dim-2));
   }
 
   .configure-bar {

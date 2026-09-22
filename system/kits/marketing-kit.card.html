@@ -21,6 +21,10 @@ h1.hero-h{margin:0;font-size:var(--dt-text-display-sm-size);line-height:var(--dt
 h2.sec-h{margin:0;font-size:var(--dt-text-heading-lg-size);line-height:var(--dt-text-heading-lg-line);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-text-heading-lg-tracking);text-wrap:balance}
 p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-body-lg-line);color:var(--dt-text-secondary);max-width:56ch;text-wrap:pretty}
 @media (max-width:900px){.sec{padding:48px 20px;gap:24px}.hero{grid-template-columns:1fr;gap:28px}.three{grid-template-columns:1fr}.two{grid-template-columns:1fr;gap:24px}}
+.cta-with-illustration{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:center;text-align:left}
+.cta-with-illustration .lead{text-align:left}
+.cta-illustration{width:auto;max-width:220px;justify-self:end}
+@media (max-width:900px){.cta-with-illustration{grid-template-columns:1fr;text-align:center}.cta-with-illustration .lead{text-align:center}.cta-illustration{justify-self:center}}
 </style>
 <script>
 /* Token-propagating asset loader. The page URL carries an auth token; project-relative
@@ -87,10 +91,37 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
 </script>
 </head><body class="dt-context-marketing"><div id="root"></div>
 <script type="text/babel">
-let Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, AspectRatio, Avatar, Stat, Inline, Stack, Divider;
+let Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Avatar, Stat, Inline, Stack, Divider;
+
+/* Reads the photo and illustration a reader dropped in the Configure panel's
+   Media tab. Both live under one localStorage key, same-origin with this
+   card's own page, so a native "storage" event is all it takes to pick up a
+   new upload without any message-passing between the two. */
+function useDovetailMedia() {
+  var KEY = "dovetail-docs-media";
+  function load() {
+    try {
+      return Object.assign({ photo: "", illustration: "" }, JSON.parse(localStorage.getItem(KEY)) || {});
+    } catch (e) {
+      return { photo: "", illustration: "" };
+    }
+  }
+  const [media, setMedia] = React.useState(load);
+  React.useEffect(function () {
+    function sync(e) {
+      if (!e || !e.key || e.key === KEY) setMedia(load());
+    }
+    window.addEventListener("storage", sync);
+    return function () {
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return media;
+}
 
 function App() {
   const [nav, setNav] = React.useState("product");
+  const media = useDovetailMedia();
   return (
     <main>
       <Navbar
@@ -114,7 +145,7 @@ function App() {
             </Inline>
             <Inline gap="xs" wrap><Tag>No lock-in</Tag><Tag>DTCG tokens</Tag><Tag>Light and dark</Tag></Inline>
           </Stack>
-          <AspectRatio ratio="4/3" style={{ background: "var(--dt-surface-sunken)", borderRadius: "var(--dt-radius-media)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" }} />
+          <Cover src={media.photo} alt="" ratio="4:3" placeholder="Product photo" scrim="none" style={{ border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" }} />
         </div>
       </section>
 
@@ -178,12 +209,13 @@ function App() {
         </div>
       </section>
 
-      <section className="sec alt">
-        <Stack gap="md" style={{ alignItems: "center", textAlign: "center" }}>
+      <section className={"sec alt" + (media.illustration ? " cta-with-illustration" : "")}>
+        <Stack gap="md" style={media.illustration ? undefined : { alignItems: "center", textAlign: "center" }}>
           <h2 className="sec-h">Ship your brand, not ours</h2>
-          <p className="lead" style={{ textAlign: "center" }}>Free while you evaluate. No card, no call.</p>
+          <p className="lead" style={media.illustration ? undefined : { textAlign: "center" }}>Free while you evaluate. No card, no call.</p>
           <Inline gap="sm"><Button>Start free</Button><Button variant="secondary">Talk to us</Button></Inline>
         </Stack>
+        {media.illustration && <img className="cta-illustration" src={media.illustration} alt="" />}
       </section>
     </main>
   );
@@ -222,8 +254,8 @@ function dsReady(required, done) {
   })();
 }
 
-dsReady(["Navbar","Button","Card","Badge","Tag","Quote","Accordion","Prose","Callout","AspectRatio","Avatar","Stat","Inline","Stack","Divider"], function (NS) {
-  ({ Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, AspectRatio, Avatar, Stat, Inline, Stack, Divider } = NS);
+dsReady(["Navbar","Button","Card","Badge","Tag","Quote","Accordion","Prose","Callout","Cover","Avatar","Stat","Inline","Stack","Divider"], function (NS) {
+  ({ Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Avatar, Stat, Inline, Stack, Divider } = NS);
   ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 });
 </script>

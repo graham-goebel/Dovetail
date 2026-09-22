@@ -53,6 +53,7 @@
     mediaRadius: "auto",
     whitespace: "balanced",
     media: "shown",
+    customIconInclude: "",
   };
 
   /* The type roles a display face takes over: the ones that carry a page's
@@ -62,6 +63,20 @@
     "display-lg", "display-md", "display-sm",
     "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs",
     "eyebrow",
+  ];
+
+  /* Every named ramp a hue shift can reach, independent of which one is
+     currently chosen as the accent. Shifting green also retunes success,
+     amber retunes warning, red retunes danger, and cyan retunes info, since
+     those semantic roles point at a ramp by this same name. */
+  var RAMP_KEYS = [
+    { key: "blue", label: "Blue" },
+    { key: "violet", label: "Violet" },
+    { key: "green", label: "Green (success)" },
+    { key: "amber", label: "Amber (warning)" },
+    { key: "red", label: "Red (danger)" },
+    { key: "cyan", label: "Cyan (info)" },
+    { key: "terracotta", label: "Terracotta" },
   ];
 
   /* Icon sizes are real tokens, so a scale step is a re-pointing, not a hack.
@@ -148,6 +163,19 @@
     return assign({ name: "", mark: "" }, brand || {});
   }
 
+  var MEDIA_KEY = "dovetail-docs-media";
+  var MEDIA_LIMIT = 768 * 1024;
+
+  function loadMedia() {
+    var media;
+    try {
+      media = JSON.parse(localStorage.getItem(MEDIA_KEY));
+    } catch (e) {
+      media = null;
+    }
+    return assign({ photo: "", illustration: "" }, media || {});
+  }
+
   function loadContext() {
     try {
       return localStorage.getItem(CONTEXT_KEY) || "";
@@ -183,18 +211,50 @@
     return h;
   }
 
-  function customRamp(hex) {
-    var hue = hexToOklchHue(hex);
+  /* Builds a ramp by taking a base ramp's lightness and chroma per step and
+     substituting one hue throughout. Used both for a fully custom accent
+     (base "blue") and for shifting any named ramp's own hue while it keeps
+     its own contrast profile and eleven steps. */
+  function rampWithHue(baseKey, hue) {
+    var base = DATA.ramps[baseKey];
     var ramp = {};
     DATA.steps.forEach(function (step) {
-      var parts = DATA.ramps.blue[step].match(/oklch\(([\d.]+) ([\d.]+) [\d.]+\)/);
+      var parts = base[step].match(/oklch\(([\d.]+) ([\d.]+) [\d.]+\)/);
       ramp[step] = "oklch(" + parts[1] + " " + parts[2] + " " + hue.toFixed(1) + ")";
     });
     return ramp;
   }
 
+  function customRamp(hex) {
+    return rampWithHue("blue", hexToOklchHue(hex));
+  }
+
+  /* A ramp with its own hue override applied, if the brand has set one. Every
+     other ramp using this same helper is how a hue shift on green (success)
+     or red (danger) reaches those roles without touching the accent. */
+  function baseRamp(cfg, key) {
+    var hex = cfg.rampHues && cfg.rampHues[key];
+    if (!hex || !DATA.ramps[key]) return DATA.ramps[key];
+    return rampWithHue(key, hexToOklchHue(hex));
+  }
+
   function rampFor(cfg) {
-    return cfg.accent === "custom" ? customRamp(cfg.customHex) : DATA.ramps[cfg.accent] || DATA.ramps.blue;
+    return cfg.accent === "custom" ? customRamp(cfg.customHex) : baseRamp(cfg, cfg.accent) || DATA.ramps.blue;
+  }
+
+  /* The media lab ships two real icon sets; a third slot is a placeholder for
+     whatever a brand already uses, described by hand rather than fetched at
+     build time. */
+  function iconLibInfo(key) {
+    return (
+      DATA.icons[key] || {
+        label: "Custom",
+        note: "Bring your own icon set.",
+        licence: "your licence",
+        stroke: 2,
+        include: (config && config.customIconInclude) || "<!-- paste your icon import here -->",
+      }
+    );
   }
 
   function fontHrefFor(cfg) {
@@ -217,6 +277,21 @@
     DATA.steps.forEach(function (step) {
       vars["--dt-color-accent-" + step] = ramp[step];
     });
+
+    /* A hue shift on any ramp writes its own primitives directly, so it also
+       reaches every semantic role that points at that ramp by name (success at
+       green, danger at red, warning at amber, info at cyan) and not only the
+       one currently chosen as the accent. */
+    if (cfg.rampHues) {
+      Object.keys(cfg.rampHues).forEach(function (key) {
+        var hex = cfg.rampHues[key];
+        if (!hex || !DATA.ramps[key]) return;
+        var shifted = rampWithHue(key, hexToOklchHue(hex));
+        DATA.steps.forEach(function (step) {
+          vars["--dt-color-" + key + "-" + step] = shifted[step];
+        });
+      });
+    }
 
     var radius = DATA.radii[cfg.radius] || DATA.radii.standard;
     vars["--dt-radius-control"] = radius.control;
@@ -258,7 +333,7 @@
        alone", not "leave the chrome at 2px", so the library default applies
        here even then. */
     vars["--site-icon-stroke"] = String(
-      cfg.iconStroke === "authored" ? (DATA.icons[cfg.iconLib] || DATA.icons.lucide).stroke : cfg.iconStroke
+      cfg.iconStroke === "authored" ? iconLibInfo(cfg.iconLib).stroke : cfg.iconStroke
     );
 
     var sizes = ICON_SIZES[cfg.iconSize];
@@ -398,6 +473,7 @@
   var config = load();
   var context = loadContext();
   var brand = loadBrand();
+  var media = loadMedia();
   var activeTab = (function () {
     try {
       return localStorage.getItem(TAB_KEY) || "brand";
@@ -455,6 +531,20 @@
     render();
   }
 
+  /* Photography and illustration are kept separate from the brand mark: the
+     mark is a small wordmark companion read by the chrome on every page,
+     while these are content a template composes into a layout, and a reader
+     may want one without the other. Held in the same localStorage origin a
+     template's own iframe already shares, so a template card picks up a new
+     upload from the native "storage" event without any message-passing of
+     its own. */
+  function setMedia(patch) {
+    assign(media, patch);
+    if (!media.photo && !media.illustration) store(MEDIA_KEY, null);
+    else store(MEDIA_KEY, JSON.stringify(media));
+    render();
+  }
+
   function commit(patch, options) {
     assign(config, patch || {});
     store(KEY, JSON.stringify(assign(assign({}, config), {
@@ -474,8 +564,10 @@
   function reset() {
     config = assign({}, DEFAULTS);
     brand = { name: "", mark: "" };
+    media = { photo: "", illustration: "" };
     store(KEY, null);
     store(BRAND_KEY, null);
+    store(MEDIA_KEY, null);
     setContext("");
     window.dispatchEvent(new Event("dovetail:theme-change"));
   }
@@ -496,6 +588,21 @@
     DATA.steps.forEach(function (step) {
       lines.push("  --dt-color-accent-" + step + ": " + ramp[step] + ";");
     });
+
+    var shiftedKeys = Object.keys(config.rampHues || {}).filter(function (key) {
+      return config.rampHues[key] && DATA.ramps[key];
+    });
+    if (shiftedKeys.length) {
+      lines.push("");
+      lines.push("  /* Ramp hues: shifted to match the brand. Lightness and chroma per step are unchanged. */");
+      shiftedKeys.forEach(function (key) {
+        var shifted = rampWithHue(key, hexToOklchHue(config.rampHues[key]));
+        DATA.steps.forEach(function (step) {
+          lines.push("  --dt-color-" + key + "-" + step + ": " + shifted[step] + ";");
+        });
+      });
+    }
+
     lines.push("");
     lines.push("  /* Shape: " + radius.label + " */");
     lines.push("  --dt-radius-control: " + radius.control + ";");
@@ -586,7 +693,7 @@
 
     lines.push("}");
 
-    var lib = DATA.icons[config.iconLib];
+    var lib = iconLibInfo(config.iconLib);
     lines.push("");
     lines.push("/* Iconography: " + lib.label + ", " + lib.licence + ".");
     lines.push("   The system ships no icon set. Load one and size it from --dt-size-icon-*;");
@@ -622,17 +729,6 @@
       return a.id === accentId;
     })[0];
     return hit ? hit.label : accentId;
-  }
-
-  function matchedPreset() {
-    var keys = Object.keys(DATA.presets);
-    for (var i = 0; i < keys.length; i++) {
-      var p = DATA.presets[keys[i]];
-      if (p.accent === config.accent && p.radius === config.radius && p.font === config.font && !config.displayFont && !!p.mono === !!config.mono) {
-        return keys[i];
-      }
-    }
-    return "custom";
   }
 
   /* ------------------------------------------------------------- the panel */
@@ -752,7 +848,16 @@
             text: "The tokens a brand is allowed to touch. Every change applies to this page, every other page, and every live card on them.",
           }),
         ]),
-        h("button", { type: "button", class: "configure-close", "aria-label": "Close", text: "×", onclick: close }),
+        h("div", { class: "configure-head-actions" }, [
+          h("button", {
+            type: "button",
+            class: "configure-reset-btn",
+            "data-bid": "reset",
+            text: "Reset",
+            onclick: reset,
+          }),
+          h("button", { type: "button", class: "configure-close", "aria-label": "Close", text: "×", onclick: close }),
+        ]),
       ])
     );
     el.sheet.appendChild(el.body);
@@ -951,7 +1056,71 @@
       )
     );
 
+    out.push(
+      field(
+        "Ramp hues",
+        "Shift any ramp's own hue to match a brand direction. Lightness and chroma stay put per step, so contrast and the eleven steps hold, the same as the accent's custom colour above.",
+        h(
+          "div",
+          { class: "configure-ramphue-list" },
+          RAMP_KEYS.map(function (item) {
+            return rampHueRow(item.key, item.label);
+          })
+        )
+      )
+    );
+
     return out;
+  }
+
+  function rampHueRow(key, label) {
+    var overrideHex = config.rampHues && config.rampHues[key];
+    var swatchBg = baseRamp(config, key)["600"];
+
+    var picker = h("input", {
+      type: "color",
+      class: "configure-color",
+      "data-bid": "ramphue:" + key,
+      value: overrideHex || "#808080",
+      "aria-label": label + " hue",
+      /* Same live-drag convention as the accent's own custom picker: input
+         previews without rebuilding the open control, change commits it. */
+      oninput: function (event) {
+        commitRampHue(key, event.target.value, { rebuild: false });
+      },
+      onchange: function (event) {
+        commitRampHue(key, event.target.value);
+      },
+    });
+
+    var row = [
+      h("span", { class: "configure-swatch-btn configure-swatch-custom", style: "background:" + swatchBg, title: label + " hue" }, [picker]),
+      h("span", { class: "configure-ramphue-label", text: label }),
+    ];
+
+    if (overrideHex) {
+      row.push(
+        h("button", {
+          type: "button",
+          class: "configure-btn-mini",
+          "data-bid": "ramphue-reset:" + key,
+          text: "Reset",
+          onclick: function () {
+            var next = assign({}, config.rampHues || {});
+            delete next[key];
+            commit({ rampHues: next });
+          },
+        })
+      );
+    }
+
+    return h("div", { class: "configure-ramphue-row" }, row);
+  }
+
+  function commitRampHue(key, hex, options) {
+    var next = assign({}, config.rampHues || {});
+    next[key] = hex;
+    commit({ rampHues: next }, options);
   }
 
   function shapeFields() {
@@ -1064,9 +1233,87 @@
     ];
   }
 
+  function mediaUploadField(kind, label, hint) {
+    var current = media[kind];
+    var lower = label.toLowerCase();
+
+    var file = h("input", {
+      type: "file",
+      accept: "image/*",
+      class: "configure-file",
+      "data-bid": "media-" + kind,
+      "aria-label": label,
+      onchange: function (event) {
+        readMediaFile(kind, event.target.files[0]);
+        event.target.value = "";
+      },
+    });
+
+    var drop = h(
+      "label",
+      {
+        class: "configure-drop",
+        ondragover: function (event) {
+          event.preventDefault();
+          drop.setAttribute("data-over", "");
+        },
+        ondragleave: function () {
+          drop.removeAttribute("data-over");
+        },
+        ondrop: function (event) {
+          event.preventDefault();
+          drop.removeAttribute("data-over");
+          readMediaFile(kind, event.dataTransfer.files[0]);
+        },
+      },
+      [h("span", { text: current ? "Replace the " + lower : "Drop a file here, or choose one" }), file]
+    );
+
+    var row = [drop];
+    if (current) {
+      row.push(
+        h("div", { class: "configure-mark-row" }, [
+          h("img", { class: "configure-mark", src: current, alt: "" }),
+          h("button", {
+            type: "button",
+            class: "configure-btn",
+            "data-bid": "media-" + kind + "-remove",
+            text: "Remove",
+            onclick: function () {
+              var patch = {};
+              patch[kind] = "";
+              setMedia(patch);
+              renderBody();
+            },
+          }),
+        ])
+      );
+    }
+    var err = el.mediaError && el.mediaError[kind];
+    if (err) row.push(h("p", { class: "configure-bad", role: "alert", text: err }));
+
+    return field(label, hint, h("div", { class: "configure-stack" }, row));
+  }
+
   function mediaFields() {
     var out = [];
-    var lib = DATA.icons[config.iconLib];
+    var lib = iconLibInfo(config.iconLib);
+
+    out.push(
+      mediaUploadField(
+        "photo",
+        "Photo",
+        "Populates the hero image in the marketing template. Up to " + Math.round(MEDIA_LIMIT / 1024) + "KB, held in this browser."
+      )
+    );
+
+    out.push(
+      mediaUploadField(
+        "illustration",
+        "Illustration",
+        "Kept separate from photography, for artwork that reads as drawn rather than shot. Shown beside the marketing template's closing section."
+      )
+    );
 
     out.push(
       field(
@@ -1075,18 +1322,33 @@
         segmented(
           "Icon library",
           "iconlib",
-          Object.keys(DATA.icons).map(function (key) {
-            return { value: key, label: DATA.icons[key].label };
-          }),
+          Object.keys(DATA.icons)
+            .map(function (key) {
+              return { value: key, label: DATA.icons[key].label };
+            })
+            .concat([{ value: "custom", label: "Custom" }]),
           config.iconLib,
           function (value) {
             /* Picking a library sets the stroke it is drawn at. It is a nudge,
-               not a lock: the next control still overrides it. */
-            commit({ iconLib: value, iconStroke: DATA.icons[value].stroke });
+               not a lock: the next control still overrides it. Custom has no
+               stroke of its own to nudge toward, so it leaves the current one. */
+            commit({ iconLib: value, iconStroke: DATA.icons[value] ? DATA.icons[value].stroke : config.iconStroke });
           }
         )
       )
     );
+
+    if (config.iconLib === "custom") {
+      out.push(
+        field(
+          "Custom import",
+          "The script tag, package import, or CDN URL for your own icon set. Carried into the exported theme's iconography note.",
+          textInput("Custom icon import", "custom-icon-include", config.customIconInclude || "", function (value) {
+            commit({ customIconInclude: value }, { rebuild: false });
+          })
+        )
+      );
+    }
 
     out.push(
       field(
@@ -1213,16 +1475,31 @@
       },
     });
 
+    el.download = h("button", {
+      type: "button",
+      class: "configure-btn",
+      "data-bid": "download",
+      text: "Download theme.css",
+      onclick: function () {
+        var blob = new Blob([el.export.value], { type: "text/css" });
+        var url = URL.createObjectURL(blob);
+        var link = h("a", { href: url, download: "theme-custom.css" });
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 1000);
+      },
+    });
+
     return [
       field(
         "Theme file",
-        "Paste this into tokens/themes/theme-custom.css and the theme ships with the repository, with no JavaScript.",
+        "Paste this into tokens/themes/theme-custom.css, or download it directly, and the theme ships with the repository, with no JavaScript.",
         h("div", { class: "configure-export-wrap" }, [
           el.export,
-          h("div", { class: "configure-actions" }, [
-            el.copy,
-            h("button", { type: "button", class: "configure-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
-          ]),
+          h("div", { class: "configure-actions" }, [el.copy, el.download]),
         ])
       ),
       h("p", {
@@ -1235,25 +1512,6 @@
   function paintBody() {
     var body = el.body;
     body.textContent = "";
-
-    var presetOptions = Object.keys(DATA.presets).map(function (key) {
-      return { value: key, label: DATA.presets[key].label };
-    });
-    var current = matchedPreset();
-    if (current === "custom") presetOptions.push({ value: "custom", label: "Custom" });
-
-    body.appendChild(
-      field(
-        "Theme",
-        "A starting point. Change anything and it becomes custom.",
-        select("Theme", "preset", presetOptions, current, function (value) {
-          if (value === "custom") return;
-          var preset = DATA.presets[value];
-          /* Take the choices, not the preset's own label. */
-          commit({ accent: preset.accent, radius: preset.radius, font: preset.font, displayFont: "", mono: !!preset.mono });
-        })
-      )
-    );
 
     var strip = h("div", { class: "configure-tabs", role: "tablist", "aria-label": "Configure groups" });
     TABS.forEach(function (tab) {
@@ -1333,6 +1591,34 @@
     };
     reader.onerror = function () {
       el.markError = "That file could not be read.";
+      renderBody();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function readMediaFile(kind, file) {
+    el.mediaError = el.mediaError || {};
+    el.mediaError[kind] = null;
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      el.mediaError[kind] = "That is not an image file.";
+      renderBody();
+      return;
+    }
+    if (file.size > MEDIA_LIMIT) {
+      el.mediaError[kind] = "That file is " + Math.round(file.size / 1024) + "KB. The limit is " + Math.round(MEDIA_LIMIT / 1024) + "KB, because it is held in this browser.";
+      renderBody();
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var patch = {};
+      patch[kind] = String(reader.result);
+      setMedia(patch);
+      renderBody();
+    };
+    reader.onerror = function () {
+      el.mediaError[kind] = "That file could not be read.";
       renderBody();
     };
     reader.readAsDataURL(file);

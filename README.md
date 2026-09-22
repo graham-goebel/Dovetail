@@ -153,19 +153,19 @@ against a library icon at every step of the scale.
 
 Every page carries a floating toolbar in the corner. It flips the colour mode, and it
 opens **Configure**, a sheet holding the decisions a brand actually makes, grouped the way
-the system is:
+the system is. The toolbar hides itself while the sheet is open, since the sheet's own
+close button already gets you back to it, and **Reset** lives in the sheet's own header,
+where it is always in reach rather than buried at the bottom of one tab:
 
 | Tab | Sets |
 | --- | --- |
-| Brand | Name and mark, accent ramp, monochrome, fill, texture |
+| Brand | Name and mark, accent ramp, ramp hues, monochrome, fill, texture |
 | Shape | Radius roles, media radius, focus ring width |
 | Type | Body family, display family, code family |
 | Space | Whitespace, control density, base unit |
-| Media | Icon library, icon stroke, icon size, media blocks |
+| Media | Photo, illustration, icon library, icon stroke, icon size, media blocks |
 | View | Colour mode, context |
-| Export | The theme as a file of token overrides |
-
-The theme preset sits above the tabs, because it sets several of them at once.
+| Export | The theme as a file of token overrides, copyable or downloadable |
 
 Changes apply live to the page, to the sidebar and chrome, and to every preview card on
 it, then follow you to every other page.
@@ -194,6 +194,22 @@ video and reserved box out of the page and the cards at once, which answers whet
 layout still works as words. There is no richer step because nothing in the repository
 would fill it. Bring your own imagery in the media lab.
 
+**Ramp hues** shift any of the seven named ramps, not only whichever one is chosen as the
+accent: dragging green's swatch also retunes success, amber retunes warning, red retunes
+danger, cyan retunes info. Each shift keeps the ramp's own lightness and chroma per step,
+the same math the custom accent colour already uses, so contrast and the eleven steps hold
+while only the hue moves toward the brand.
+
+**Photo** and **illustration** are two separate uploads, held in this browser rather than
+sent anywhere, because a reader often wants one without the other: a photo for the
+marketing template's hero, an illustration for artwork that should read as drawn rather
+than shot. Both are wired into the marketing template live, the same way a mark or an
+accent already is: the template reads the same localStorage key across the same origin, so
+a new upload reaches it through the browser's own `storage` event with no extra wiring in
+the page. **Icon library** now includes a **Custom** option: pick it and a text field
+appears for the script tag, package import, or CDN URL of your own icon set, carried into
+the exported theme's iconography note in place of Lucide or Heroicons.
+
 **Fill** sets `--dt-surface-brand`, a full-bleed role independent of the buttons: solid is
 one step of the accent ramp, gradient sweeps two. **Texture** sets `--dt-surface-texture`
 to a dot or line pattern built from two CSS gradients, in the border-strength colour, so
@@ -217,7 +233,9 @@ padding, so anything on it can be scrolled into the space above and watched whil
 controls move.
 
 The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
-file, not a token, and it has no business in a theme stylesheet.
+file, not a token, and it has no business in a theme stylesheet. The photo and
+illustration uploads share a third key, `dovetail-docs-media`, each capped at 768KB, for
+the same reason: content, not tokens.
 
 `assets/configure-data.js` is generated from `system/theme-configurator.html` and
 `previews/MediaLab.html`, so the panel offers exactly the configurator's presets and the
