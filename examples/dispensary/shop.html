@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop — Low Meadow</title>
+<meta name="description" content="The Low Meadow menu: flower, glass, and seeds, reserved online for pickup.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300..700&display=swap">
+<link rel="stylesheet" href="../../system/styles.css">
+<link rel="stylesheet" href="theme.css">
+<script src="../../system/components/lib/react.production.min.js"></script>
+<script src="../../system/components/lib/react-dom.production.min.js"></script>
+<script src="../../system/components/bundle.js"></script>
+<script src="site.js"></script>
+</head>
+<body class="dt-context-marketing">
+<div id="root"></div>
+<script>
+(function () {
+  var h = LM.h, NS = LM.NS;
+  var TYPES = ["Sativa", "Hybrid", "Indica", "Accessory"];
+
+  function initialCategory() {
+    var c = new URLSearchParams(location.search).get("category");
+    return LM.CATEGORIES.some(function (x) { return x.id === c; }) ? c : "all";
+  }
+
+  function Shop() {
+    var cat = React.useState(initialCategory);
+    var types = React.useState(TYPES);
+    var maxPrice = React.useState(200);
+    var sort = React.useState("featured");
+
+    function setCategory(id) {
+      cat[1](id);
+      var url = new URL(location.href);
+      if (id === "all") url.searchParams.delete("category"); else url.searchParams.set("category", id);
+      history.replaceState(null, "", url);
+    }
+
+    var list = LM.PRODUCTS.filter(function (p) {
+      return (cat[0] === "all" || p.category === cat[0]) &&
+        types[0].indexOf(p.type) !== -1 &&
+        p.price <= maxPrice[0];
+    });
+    if (sort[0] === "low") list = list.slice().sort(function (a, b) { return a.price - b.price; });
+    if (sort[0] === "high") list = list.slice().sort(function (a, b) { return b.price - a.price; });
+    if (sort[0] === "thc") list = list.slice().sort(function (a, b) { return (b.thc || 0) - (a.thc || 0); });
+
+    function count(id) {
+      return LM.PRODUCTS.filter(function (p) { return id === "all" || p.category === id; }).length;
+    }
+
+    return h(React.Fragment, null,
+      h(LM.Section, { className: "tight", alt: true },
+        h(NS.Stack, { gap: "sm" },
+          h(NS.Breadcrumbs, { items: [{ label: "Home", href: "index.html" }, { label: "Shop" }] }),
+          h("h1", { className: "lm-h1" }, "The menu"),
+          h("p", { className: "lm-lead" }, "Everything on this page is on our shelves today. Reserve it here and pick it up within 24 hours; you pay at the counter.")
+        )
+      ),
+
+      h(LM.Section, { className: "tight" },
+        h(NS.Stack, { gap: "lg" },
+          h(NS.Tabs, {
+            label: "Category", variant: "pill", value: cat[0], onChange: setCategory,
+            tabs: [{ id: "all", label: "Everything", count: count("all") }].concat(
+              LM.CATEGORIES.map(function (c) { return { id: c.id, label: c.label, count: count(c.id) }; }))
+          }),
+          h("div", { className: "lm-shop" },
+            h("aside", { className: "lm-filters", "aria-label": "Filters" },
+              h(NS.Stack, { gap: "lg" },
+                h(NS.CheckboxGroup, {
+                  label: "Type", value: types[0], onChange: types[1],
+                  options: TYPES.map(function (t) { return { value: t, label: t }; })
+                }),
+                h(NS.Slider, {
+                  label: "Price up to", min: 20, max: 200, step: 5, value: maxPrice[0], onChange: maxPrice[1],
+                  showValue: true, formatValue: function (v) { return "$" + v; }
+                }),
+                h(NS.Select, {
+                  label: "Sort by", value: sort[0], onChange: function (e) { sort[1](e.target.value); },
+                  options: [
+                    { value: "featured", label: "Staff order" },
+                    { value: "low", label: "Price, low to high" },
+                    { value: "high", label: "Price, high to low" },
+                    { value: "thc", label: "THC, highest first" }
+                  ]
+                })
+              )
+            ),
+            h(NS.Stack, { gap: "md" },
+              h("p", { className: "lm-small", "aria-live": "polite" }, list.length + (list.length === 1 ? " product" : " products")),
+              list.length
+                ? h(NS.Grid, { minColumnWidth: "240px", gap: "lg" },
+                    list.map(function (p) { return h(LM.ProductCard, { key: p.id, product: p }); }))
+                : h(NS.EmptyState, {
+                    title: "Nothing matches those filters",
+                    description: "Try a higher price limit or tick another type. Everything we stock is listed under Everything.",
+                    action: h(NS.Button, { variant: "secondary", onClick: function () { types[1](TYPES); maxPrice[1](200); setCategory("all"); } }, "Clear filters")
+                  }),
+              h(NS.Callout, { tone: "note", title: "Limits per visit" },
+                "Each visit is capped at 28g of flower and 12 seeds. We check your total at the counter before you pay.")
+            )
+          )
+        )
+      )
+    );
+  }
+
+  LM.mount(Shop, "shop");
+})();
+</script>
+</body>
+</html>
