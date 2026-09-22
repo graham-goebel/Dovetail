@@ -10,7 +10,7 @@ alternates between panels, not to sequence a task.
 - Arrow keys move between tabs and Home/End jump to the ends. That behaviour is built in;
   do not intercept keydown on the tablist.
 - Pair every `Tabs` with `TabPanel`. The panel wires `aria-controls` and
-  `aria-labelledby` — a bare div loses the relationship.
+  `aria-labelledby`; a bare div loses the relationship.
 - Three to six tabs. Beyond that use a Sidebar; tabs that scroll horizontally hide options.
 - Use `underline` inside page content and `pill` for compact filter switches in toolbars.
 

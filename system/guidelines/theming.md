@@ -26,7 +26,7 @@ Link it after `styles.css`:
 ### 2. Replace the accent ramp, not the semantic roles
 
 The cheapest correct theme changes eleven lines. Override the primitive accent ramp in
-place, and every semantic role that referenced it — actions, links, selection, focus —
+place, and every semantic role that referenced it (actions, links, selection, focus)
 follows automatically.
 
 ```css
@@ -46,8 +46,8 @@ existing lightness steps inherits the contrast behaviour the system was tested a
 
 ### 3. Override semantic roles only where the brand disagrees
 
-If your brand's action colour is not simply "accent 600" — say it needs to be darker for
-contrast, or a different hue from your links — override the semantic role directly.
+If your brand's action colour is not simply "accent 600", say it needs to be darker for
+contrast, or a different hue from your links, override the semantic role directly.
 
 ```css
 :root {
@@ -99,7 +99,7 @@ Five lines control the system's entire corner treatment.
 - Light and dark, side by side.
 - Every semantic pair at AA. `guidelines/accessibility.md` lists the pairs to check.
 - The focus ring, against your darkest and lightest surfaces.
-- A disabled control — disabled states are where themes most often lose contrast.
+- A disabled control, since disabled states are where themes most often lose contrast.
 
 ## What a theme must not do
 
@@ -119,11 +119,11 @@ stay chromatically distinct from success states. A monochrome error is a failure
 
 Two demo themes ship with the system, chosen to sit at opposite poles.
 
-**`theme-editorial.css`** — warm terracotta accent, warmed neutrals, serif display and
+**`theme-editorial.css`**: warm terracotta accent, warmed neutrals, serif display and
 headings, pill controls, generous radii, an off-white page ground. Changes hue, typeface,
 and shape at once.
 
-**`theme-mono.css`** — no brand hue at all. Action colour is the darkest neutral, corners
+**`theme-mono.css`**: no brand hue at all. Action colour is the darkest neutral, corners
 are square, elevation is expressed as border weight rather than shadow, and labels are set
 in mono. Feedback colours stay chromatic.
 
@@ -133,7 +133,7 @@ both, it is genuinely theme-independent.
 ## Density
 
 Density is a separate axis from brand, and they compose. `density-compact.css` retunes
-control heights and inset spacing only — type, colour, and shape are untouched, so a
+control heights and inset spacing only. Type, colour, and shape are untouched, so a
 compact view is recognisably the same product.
 
 Scope it to a subtree when only part of a screen is dense:

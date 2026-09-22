@@ -16,12 +16,12 @@ The full vocabulary, with the reasoning behind each group. For the architecture,
 | `--dt-text-on-action` | Semantic | the foreground paired with `surface-action` |
 | `--dt-button-primary-bg-hover` | Component | component, variant, property, state |
 
-Lowercase, hyphen-delimited, one convention throughout. Names are stable API — renaming
+Lowercase, hyphen-delimited, one convention throughout. Names are stable API, so renaming
 a token is a migration, so name it carefully the first time.
 
 ---
 
-## Tier 1 — Primitive
+## Tier 1: Primitive
 
 ### Colour
 
@@ -70,19 +70,19 @@ because half-pixel display type renders inconsistently across browsers.
 | `7xl` | 69 | 76 |
 
 Every line height is a multiple of 4, so text blocks align to the same grid as everything
-else. This is the one place the modular scale and the 4px grid are reconciled by hand —
+else. This is the one place the modular scale and the 4px grid are reconciled by hand:
 forcing font sizes themselves onto 4px multiples produces a lumpy, unusable scale.
 
 ### Motion and elevation
 
 Durations 0–600ms. Four easing curves: `standard`, `decelerate`, `accelerate`, `emphasis`.
 
-Six raw shadows, each a two-layer recipe — a tight contact shadow plus a soft ambient one.
+Six raw shadows, each a two-layer recipe: a tight contact shadow plus a soft ambient one.
 Single-layer shadows read as flat stickers once they get large.
 
 ---
 
-## Tier 2 — Semantic
+## Tier 2: Semantic
 
 The themeable layer. This is where a consumer spends their time.
 
@@ -115,16 +115,16 @@ Plus the `on-` roles, which exist only as halves of a pair: `--dt-text-on-action
 Four variants, each with resting, hover, active, and foreground roles:
 `action` · `action-secondary` · `action-ghost` · `action-danger`.
 
-Plus `action-disabled`, which is shared — a disabled button looks the same regardless of
+Plus `action-disabled`, which is shared, because a disabled button looks the same regardless of
 what variant it would otherwise be.
 
 ### Space
 
 Three axes. `16px` does not say what the gap is for; `--dt-space-stack-md` does.
 
-- `inset-*` — padding inside a container
-- `stack-*` — vertical gap between blocks
-- `inline-*` — horizontal gap between siblings
+- `inset-*`: padding inside a container
+- `stack-*`: vertical gap between blocks
+- `inline-*`: horizontal gap between siblings
 
 Naming the axis also lets a density theme retune one axis without touching the others.
 
@@ -140,7 +140,7 @@ A square-cornered theme flattens the entire system by re-pointing five lines.
 
 ### Elevation
 
-Six levels, and a z-index ladder to match. Keep every fixed-position layer on the ladder —
+Six levels, and a z-index ladder to match. Keep every fixed-position layer on the ladder;
 hand-picked z-index values are how overlay bugs start.
 
 ```
@@ -159,9 +159,9 @@ All four collapse to zero under `prefers-reduced-motion`.
 
 ---
 
-## Tier 3 — Component
+## Tier 3: Component
 
-Authored only for Button, Input, Card, Dialog, and Table — the components with a real
+Authored only for Button, Input, Card, Dialog, and Table: the components with a real
 override need. Adding Tier 3 to every component is a maintenance tax most teams never
 cash in.
 
@@ -185,7 +185,7 @@ a design system can ship.
 
 1. Pick the tier. If it has a usage meaning, it is semantic. If it is a raw value, it is
    primitive. If only one component will ever read it, it is component.
-2. Add it to `tokens/dovetail.tokens.json` first — a semantic `$value` must be a reference,
+2. Add it to `tokens/dovetail.tokens.json` first, because a semantic `$value` must be a reference,
    never a literal.
 3. Write the value in the DTCG type syntax for its `$type`, not as a CSS string. The file
    follows [Design Tokens Format Module 2025.10](https://www.designtokens.org/tr/2025.10/format/):

@@ -63,14 +63,14 @@
   <a href="../system/components/feedback/Dialog.md">Dialog.md</a>
 </p>
 
-<section class="card-block" id="dialog-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Dialog — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Dialog.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Dialog.html" title="Dialog — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Dialog.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -94,7 +94,7 @@
   &lt;/&gt;}
 /&gt;</code></pre>
 <h2 id="accessibility">Accessibility</h2>
-<p><code>role=&quot;dialog&quot;</code> with <code>aria-modal</code>. Escape and the scrim both close it. Focus trapping and return-focus are not yet implemented — track that before production use.</p>
+<p><code>role=&quot;dialog&quot;</code> with <code>aria-modal</code>. Escape and the scrim both close it. Focus trapping and return-focus are not yet implemented, so track that before production use.</p>
 <h2 id="tokens">Tokens</h2>
 <p><code>--dt-dialog-*</code>, shared with Drawer and Popover so every overlay reads as one system.</p>
 <h2 id="content">Content</h2>
@@ -122,6 +122,13 @@ export interface DialogProps {
 }
 
 export declare function Dialog(props: DialogProps): JSX.Element | null;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Dialog.jsx</code> resolves, read from the source: 13 component, 17 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-dialog-bg"><th scope="row"><a href="../tokens.html#token-dt-dialog-bg"><code>--dt-dialog-bg</code></a></th><td>component</td><td><code>var(--dt-surface-overlay)</code></td></tr><tr id="uses-dt-dialog-border-color"><th scope="row"><a href="../tokens.html#token-dt-dialog-border-color"><code>--dt-dialog-border-color</code></a></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-dialog-border-width"><th scope="row"><a href="../tokens.html#token-dt-dialog-border-width"><code>--dt-dialog-border-width</code></a></th><td>component</td><td><code>var(--dt-border-width-default)</code></td></tr><tr id="uses-dt-dialog-elevation"><th scope="row"><a href="../tokens.html#token-dt-dialog-elevation"><code>--dt-dialog-elevation</code></a></th><td>component</td><td><code>var(--dt-elevation-4)</code></td></tr><tr id="uses-dt-dialog-fg"><th scope="row"><a href="../tokens.html#token-dt-dialog-fg"><code>--dt-dialog-fg</code></a></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-dialog-gap"><th scope="row"><code>--dt-dialog-gap</code></th><td>component</td><td><code>var(--dt-space-stack-md)</code></td></tr><tr id="uses-dt-dialog-max-height"><th scope="row"><code>--dt-dialog-max-height</code></th><td>component</td><td><code>85vh</code></td></tr><tr id="uses-dt-dialog-padding"><th scope="row"><code>--dt-dialog-padding</code></th><td>component</td><td><code>var(--dt-space-inset-xl)</code></td></tr><tr id="uses-dt-dialog-radius"><th scope="row"><a href="../tokens.html#token-dt-dialog-radius"><code>--dt-dialog-radius</code></a></th><td>component</td><td><code>var(--dt-radius-overlay)</code></td></tr><tr id="uses-dt-dialog-scrim"><th scope="row"><a href="../tokens.html#token-dt-dialog-scrim"><code>--dt-dialog-scrim</code></a></th><td>component</td><td><code>var(--dt-surface-scrim)</code></td></tr><tr id="uses-dt-dialog-width-lg"><th scope="row"><code>--dt-dialog-width-lg</code></th><td>component</td><td><code>720px</code></td></tr><tr id="uses-dt-dialog-width-md"><th scope="row"><code>--dt-dialog-width-md</code></th><td>component</td><td><code>520px</code></td></tr><tr id="uses-dt-dialog-width-sm"><th scope="row"><code>--dt-dialog-width-sm</code></th><td>component</td><td><code>400px</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-size-control-sm"><th scope="row"><code>--dt-size-control-sm</code></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-lg"><th scope="row"><a href="../tokens.html#token-dt-space-inset-lg"><code>--dt-space-inset-lg</code></a></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-xl"><th scope="row"><a href="../tokens.html#token-dt-space-inset-xl"><code>--dt-space-inset-xl</code></a></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><code>--dt-text-body-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-heading-md-family"><th scope="row"><code>--dt-text-heading-md-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-md-line"><th scope="row"><code>--dt-text-heading-md-line</code></th><td>semantic</td><td><code>var(--dt-line-height-2xl)</code></td></tr><tr id="uses-dt-text-heading-md-size"><th scope="row"><code>--dt-text-heading-md-size</code></th><td>semantic</td><td><code>var(--dt-font-size-2xl)</code></td></tr><tr id="uses-dt-text-heading-md-tracking"><th scope="row"><code>--dt-text-heading-md-tracking</code></th><td>semantic</td><td><code>var(--dt-tracking-snug)</code></td></tr><tr id="uses-dt-text-heading-md-weight"><th scope="row"><code>--dt-text-heading-md-weight</code></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-z-dialog"><th scope="row"><a href="../tokens.html#token-dt-z-dialog"><code>--dt-z-dialog</code></a></th><td>semantic</td><td><code>400</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -204,7 +211,7 @@ export function Dialog({ open, onClose, title, description, footer, size = &quot
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

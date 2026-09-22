@@ -6,7 +6,7 @@ Dropdown for a known set of options. Uses a native select, so it gets the platfo
 - Five or more options, one answer.
 
 ## Don't use it when
-- Two or three options. Use Radio — visible options are faster than hidden ones.
+- Two or three options. Use Radio; visible options are faster than hidden ones.
 - The list is long enough to need search. That is a Combobox, which arrives in Phase 3.
 - Multiple answers. Use Checkbox.
 

@@ -63,14 +63,14 @@
   <a href="../system/components/content/BlockRenderer.md">BlockRenderer.md</a>
 </p>
 
-<section class="card-block" id="blockrenderer-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>BlockRenderer — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/BlockRenderer.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">One array of blocks, one registry, any headless source</p>
   <div class="frame" style="height:720px">
-    <iframe src="../previews/BlockRenderer.html" title="BlockRenderer — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/BlockRenderer.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -88,11 +88,11 @@
 &lt;BlockRenderer blocks={page.blocks} registry={registry} /&gt;</code></pre>
 <p>Each block is <code>{ _type, _key, ...props }</code>. The <code>_type</code> is looked up in the registry and the rest is spread as props, so a block's shape is the component's prop contract and nothing else.</p>
 <h2 id="unknown-types">Unknown types</h2>
-<p>A <code>_type</code> with no component renders a visible warning when <code>debug</code> is on, and nothing when it is off — loud in review, silent for the reader. <code>debug</code> defaults to true under a non-production <code>NODE_ENV</code> and false when there is no bundler to tell it apart, so a plain script tag in a browser stays quiet. Pass <code>onUnknown</code> to report the miss either way.</p>
+<p>A <code>_type</code> with no component renders a visible warning when <code>debug</code> is on, and nothing when it is off: loud in review, silent for the reader. <code>debug</code> defaults to true under a non-production <code>NODE_ENV</code> and false when there is no bundler to tell it apart, so a plain script tag in a browser stays quiet. Pass <code>onUnknown</code> to report the miss either way.</p>
 <h2 id="composition">Composition</h2>
 <p>Keep the registry outside the component that renders it, so it is one object rather than one per render. Registry values are ordinary components: Dovetail components, your own compositions, or a mix.</p>
 <h2 id="accessibility">Accessibility</h2>
-<p>BlockRenderer adds no markup of its own — it returns a fragment. Whatever the blocks render is the whole output, so heading order is the content's responsibility.</p>
+<p>BlockRenderer adds no markup of its own; it returns a fragment. Whatever the blocks render is the whole output, so heading order is the content's responsibility.</p>
 <h2 id="tradeoffs">Tradeoffs</h2>
 <p>An unknown block is the price of letting content drive structure. Keeping the registry small and reviewed is cheaper than a renderer that guesses.</p>
 </section>
@@ -123,6 +123,13 @@ export interface BlockRendererProps {
 }
 
 export declare function BlockRenderer(props: BlockRendererProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>BlockRenderer.jsx</code> resolves, read from the source: 11 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-danger"><th scope="row"><a href="../tokens.html#token-dt-border-danger"><code>--dt-border-danger</code></a></th><td>semantic</td><td><code>var(--dt-color-red-200)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-surface-danger-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-danger-subtle"><code>--dt-surface-danger-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-red-050)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><code>--dt-text-body-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-danger"><th scope="row"><a href="../tokens.html#token-dt-text-danger"><code>--dt-text-danger</code></a></th><td>semantic</td><td><code>var(--dt-color-red-800)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a></th><td>primitive</td><td><code>600</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -202,7 +209,7 @@ function UnknownBlock({ type }) {
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

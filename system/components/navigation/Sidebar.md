@@ -9,7 +9,7 @@ Persistent navigation for products with more destinations than a Navbar can hold
 - Icons are optional but all-or-nothing within a section. A mixed column reads as broken.
 - The active item carries `aria-current="page"` plus a filled surface. Do not rely on
   the surface alone.
-- Counts go in `trailing` as a Badge. Do not append them to the label string — they
+- Counts go in `trailing` as a Badge. Do not append them to the label string; they
   break truncation.
 - Below roughly 900px, move the sidebar into a Drawer rather than shrinking it.
 

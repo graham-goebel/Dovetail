@@ -4,7 +4,7 @@ Pairs media with a caption. Use it in editorial and article layouts where the im
 
 ## Caption is not alt text
 
-They serve different readers and must say different things. \`alt\` describes what the image shows, for someone who cannot see it. The caption adds context everyone needs — a date, a place, what to notice. Repeating one in the other wastes a screen reader's time.
+They serve different readers and must say different things. \`alt\` describes what the image shows, for someone who cannot see it. The caption adds context everyone needs: a date, a place, what to notice. Repeating one in the other wastes a screen reader's time.
 
 \`\`\`jsx
 <Figure caption="Throughput held steady through the March migration." credit="Photo: Internal">

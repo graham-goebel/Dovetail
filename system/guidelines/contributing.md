@@ -18,7 +18,7 @@ Four files, in the same directory.
 
 ```
 components/<group>/
-  Name.jsx        Named PascalCase export. React only — no npm packages, no CSS-in-JS.
+  Name.jsx        Named PascalCase export. React only, no npm packages, no CSS-in-JS.
   Name.d.ts       Props interface with JSDoc on every prop.
   Name.md         Agent-facing guidelines. See the template below.
   <group>.card.html   One per directory, tagged @dsCard, showing all key states.
@@ -27,7 +27,7 @@ components/<group>/
 ### The `.md` file
 
 This is the file an AI agent reads before using the component, and the one a designer
-reads to understand intent. It is not API documentation — the `.d.ts` is that.
+reads to understand intent. It is not API documentation; the `.d.ts` is that.
 
 ```md
 # Name
@@ -58,7 +58,7 @@ Which semantic tokens it reads. Which Tier 3 tokens it exposes, if any.
 Keyboard contract, required labels, ARIA roles it sets.
 
 ## Content
-Copy rules specific to this component — casing, length, verb form.
+Copy rules specific to this component: casing, length, verb form.
 ```
 
 ## Code rules

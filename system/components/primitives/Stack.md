@@ -25,4 +25,4 @@ Nests freely inside `Inline`, `Grid`, and itself. `as` lets it render as `sectio
 `--dt-space-stack-*`. The context layer retunes `xl` and `2xl`, so a marketing page gets more air than a dashboard from the same prop.
 
 ## Content
-None — Stack renders no text of its own.
+None. Stack renders no text of its own.

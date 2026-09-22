@@ -1,7 +1,7 @@
 /* Documentation chrome for the Dovetail site.
 
    Every value here is a Dovetail token. The site is built from the system it
-   documents, so a broken token shows up as a broken page — which is the point.
+   documents, so a broken token shows up as a broken page, which is the point.
    Load order: system/styles.css first, then this file. */
 
 :root {
@@ -81,7 +81,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--dt-space-inline-xs);
-  font-family: var(--dt-font-family-sans);
+  font-family: var(--dt-text-heading-sm-family);
   font-size: var(--dt-font-size-md);
   font-weight: var(--dt-font-weight-semibold);
   letter-spacing: var(--dt-tracking-tight);
@@ -202,8 +202,13 @@ body {
 
 /* ----------------------------------------------------------------- typography */
 
+/* The headings take their family from the type role rather than from the sans
+   primitive, so the site follows a display face the way a product built on the
+   system would. With no display face chosen the roles point at the sans
+   family, which is what they already did. */
 h1 {
   margin: 0 0 var(--dt-space-stack-sm);
+  font-family: var(--dt-text-heading-xl-family);
   font-size: var(--dt-font-size-4xl);
   line-height: var(--dt-line-height-4xl);
   font-weight: var(--dt-font-weight-semibold);
@@ -212,6 +217,7 @@ h1 {
 
 h2 {
   margin: var(--dt-dim-12) 0 var(--dt-space-stack-sm);
+  font-family: var(--dt-text-heading-lg-family);
   font-size: var(--dt-font-size-2xl);
   line-height: var(--dt-line-height-2xl);
   font-weight: var(--dt-font-weight-semibold);
@@ -220,6 +226,7 @@ h2 {
 
 h3 {
   margin: var(--dt-dim-8) 0 var(--dt-space-stack-xs);
+  font-family: var(--dt-text-heading-md-family);
   font-size: var(--dt-font-size-lg);
   line-height: var(--dt-line-height-lg);
   font-weight: var(--dt-font-weight-semibold);
@@ -227,6 +234,7 @@ h3 {
 
 h4 {
   margin: var(--dt-dim-6) 0 var(--dt-dim-2);
+  font-family: var(--dt-text-heading-sm-family);
   font-size: var(--dt-font-size-md);
   font-weight: var(--dt-font-weight-semibold);
 }
@@ -578,8 +586,48 @@ hr {
   color: var(--dt-text-tertiary) !important;
 }
 
+/* The tier key above a component's token list: three short lines, set apart
+   from body copy because they are a legend, not prose. */
+.tier-key {
+  list-style: none;
+  margin: 0 0 var(--dt-space-stack-sm);
+  padding: 0;
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-secondary);
+}
+
+.tier-key li + li {
+  margin-top: var(--dt-dim-1);
+}
+
+.tier-key strong {
+  display: inline-block;
+  min-width: 9ch;
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-medium);
+  color: var(--dt-text-primary);
+}
+
+/* A token the source asks for that no tier declares. It is a defect, so it is
+   marked as one rather than left as an empty cell. */
+.token-undefined {
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-danger);
+}
+
 .group + .group {
   margin-top: var(--dt-dim-12);
+}
+
+/* The sentence under a family heading. It reads at body size but in the
+   secondary role, so it sits between the heading and the cards rather than
+   competing with either. */
+.group-note {
+  max-width: 68ch;
+  margin: calc(var(--dt-dim-1) * -1) 0 var(--dt-space-stack-md);
+  color: var(--dt-text-secondary);
 }
 
 /* -------------------------------------------------------------- live cards */
@@ -761,15 +809,26 @@ table.tokens .usage {
 
 /* ----------------------------------------------------------------- footer */
 
+/* A colophon, not a navigation block: one line, set as the comment it is. The
+   delimiters are dimmer than the words so the sentence reads first, and they
+   are hidden from screen readers, which would otherwise spell them. */
 .site-footer {
-  padding: var(--dt-space-inset-lg) var(--dt-space-inset-xl);
-  border-top: var(--dt-border-width-default) solid var(--dt-border-default);
-  background: var(--dt-surface-subtle);
+  padding: var(--dt-dim-12) var(--dt-space-inset-xl) var(--dt-dim-16);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  text-align: center;
 }
 
-.site-footer code {
-  font-size: var(--dt-font-size-xs);
+.colophon {
+  display: inline-flex;
+  gap: var(--dt-space-inline-xs);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs);
+  letter-spacing: var(--dt-tracking-wider);
   color: var(--dt-text-tertiary);
+}
+
+.colophon-mark {
+  color: var(--dt-text-disabled);
 }
 
 /* ------------------------------------------------------------------ small */
@@ -779,21 +838,40 @@ table.tokens .usage {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* The drawer covers the page rather than pushing it down: a menu that moves
+     the thing you were reading costs you your place, and on a phone it moved
+     it by a screenful. It stops at the header, so the way out stays visible
+     and in the same spot as the way in. */
   .sidebar {
     display: none;
-    position: static;
+    position: fixed;
+    inset: var(--site-header) 0 0 0;
+    z-index: calc(var(--dt-z-sticky) - 1);
     height: auto;
+    overscroll-behavior: contain;
+    padding-bottom: var(--dt-dim-24);
+    background: var(--dt-surface-base);
     border-right: 0;
-    border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
   }
 
   .sidebar.open {
     display: block;
   }
 
+  /* The page behind the drawer must not scroll under it. */
+  body.nav-open {
+    overflow: hidden;
+  }
+
   .nav-toggle {
     display: inline-flex;
     align-items: center;
+  }
+
+  .nav-toggle[aria-expanded="true"] {
+    background: var(--dt-surface-selected);
+    color: var(--dt-text-on-selected);
+    border-color: var(--dt-surface-selected);
   }
 
   .wordmark-note {

@@ -8,7 +8,7 @@ Ship a \`defaultValue\`. An empty radio group forces a decision before the user 
 
 ## When to use a Select instead
 
-Radios show every option at once, which is their advantage and their cost. Past about five options they crowd the form — switch to \`Select\`. Below three, consider whether the choice is really a \`Switch\`.
+Radios show every option at once, which is their advantage and their cost. Past about five options they crowd the form, so switch to \`Select\`. Below three, consider whether the choice is really a \`Switch\`.
 
 \`\`\`jsx
 <RadioGroup

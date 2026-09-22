@@ -6,7 +6,7 @@ and optional settings.
 ## Rules
 
 - Only for content users consult, not content they read. Never collapse the main
-  explanation of a page — hidden text is unfindable and unsearchable.
+  explanation of a page. Hidden text is unfindable and unsearchable.
 - Titles are questions or nouns that say what is inside. "More information" is not a
   title.
 - `allowMultiple` for reference lists where users compare answers. Single-open for

@@ -61,12 +61,12 @@
 <h2 id="what-ships-with-every-component">What ships with every component</h2>
 <p>Four files, in the same directory.</p>
 <pre class="code"><code>components/&lt;group&gt;/
-  Name.jsx        Named PascalCase export. React only — no npm packages, no CSS-in-JS.
+  Name.jsx        Named PascalCase export. React only, no npm packages, no CSS-in-JS.
   Name.d.ts       Props interface with JSDoc on every prop.
   Name.md         Agent-facing guidelines. See the template below.
   &lt;group&gt;.card.html   One per directory, tagged @dsCard, showing all key states.</code></pre>
 <h3 id="the-md-file">The <code>.md</code> file</h3>
-<p>This is the file an AI agent reads before using the component, and the one a designer reads to understand intent. It is not API documentation — the <code>.d.ts</code> is that.</p>
+<p>This is the file an AI agent reads before using the component, and the one a designer reads to understand intent. It is not API documentation; the <code>.d.ts</code> is that.</p>
 <pre class="code" data-lang="md"><code># Name
 
 One sentence: what it is and when to reach for it.
@@ -93,7 +93,7 @@ Which semantic tokens it reads. Which Tier 3 tokens it exposes, if any.
 Keyboard contract, required labels, ARIA roles it sets.
 
 ## Content
-Copy rules specific to this component — casing, length, verb form.</code></pre>
+Copy rules specific to this component: casing, length, verb form.</code></pre>
 <h2 id="code-rules">Code rules</h2>
 <ul><li><strong>No literal values.</strong> Every colour, dimension, radius, shadow, and duration is a token. A hard-coded <code>12px</code> is a bug even when it happens to match a token.</li><li><strong>Read semantic tokens</strong>, or this component's own Tier 3 tokens. Never a primitive.</li><li><strong>No npm dependencies.</strong> React and the platform. A component that needs a date library is a product component.</li><li><strong>Props for content, never children for structured content.</strong> <code>children</code> is for a single slot of arbitrary content, not for four positional slots.</li><li><strong>Required accessible labels are typed as required.</strong> Make the type system enforce it.</li><li><strong>Forward refs and spread the rest.</strong> <code>...rest</code> onto the root element so consumers can pass <code>data-*</code>, <code>aria-*</code>, and event handlers without a wrapper.</li></ul>
 <h2 id="adding-a-token">Adding a token</h2>
@@ -110,7 +110,7 @@ Copy rules specific to this component — casing, length, verb form.</code></pre
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

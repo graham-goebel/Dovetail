@@ -63,14 +63,14 @@
   <a href="../system/components/display/Stat.md">Stat.md</a>
 </p>
 
-<section class="card-block" id="stat-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Stat — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Stat.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Stat.html" title="Stat — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Stat.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -79,7 +79,7 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>Puts one number where the eye lands first. Use it in dashboard headers, summary bars, and report openers.</p>
 <h2 id="rules">Rules</h2>
-<ul><li><code>deltaDirection</code> means good or bad, not up or down. A 12% drop in churn is <code>&quot;up&quot;</code>. Colour follows meaning; otherwise green reads as praise for a bad result.</li><li>Format <code>value</code> before passing it. The component does not round, abbreviate, or add separators — your locale rules belong in your data layer.</li><li>Always give <code>caption</code> a comparison period when a delta is shown. &quot;+12.4%&quot; against nothing is not a fact.</li><li>Group stats with Grid, three or four across. More than that and none of them is headline.</li></ul>
+<ul><li><code>deltaDirection</code> means good or bad, not up or down. A 12% drop in churn is <code>&quot;up&quot;</code>. Colour follows meaning; otherwise green reads as praise for a bad result.</li><li>Format <code>value</code> before passing it. The component does not round, abbreviate, or add separators; your locale rules belong in your data layer.</li><li>Always give <code>caption</code> a comparison period when a delta is shown. &quot;+12.4%&quot; against nothing is not a fact.</li><li>Group stats with Grid, three or four across. More than that and none of them is headline.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
 <p>Big type buys attention at the cost of space. In a dense operational view a Table row often communicates the same thing and lets the user compare twenty metrics instead of four.</p>
 </section>
@@ -108,6 +108,13 @@ export interface StatProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; {
 }
 
 export declare function Stat(props: StatProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Stat.jsx</code> resolves, read from the source: 19 semantic, 2 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-inline-xs"><th scope="row"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-body-xs-family"><th scope="row"><code>--dt-text-body-xs-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-xs-line"><th scope="row"><code>--dt-text-body-xs-line</code></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-body-xs-size"><th scope="row"><code>--dt-text-body-xs-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-danger"><th scope="row"><a href="../tokens.html#token-dt-text-danger"><code>--dt-text-danger</code></a></th><td>semantic</td><td><code>var(--dt-color-red-800)</code></td></tr><tr id="uses-dt-text-heading-lg-family"><th scope="row"><code>--dt-text-heading-lg-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-lg-line"><th scope="row"><code>--dt-text-heading-lg-line</code></th><td>semantic</td><td><code>var(--dt-line-height-3xl)</code></td></tr><tr id="uses-dt-text-heading-lg-size"><th scope="row"><code>--dt-text-heading-lg-size</code></th><td>semantic</td><td><code>var(--dt-font-size-3xl)</code></td></tr><tr id="uses-dt-text-heading-lg-tracking"><th scope="row"><code>--dt-text-heading-lg-tracking</code></th><td>semantic</td><td><code>var(--dt-tracking-snug)</code></td></tr><tr id="uses-dt-text-label-sm-family"><th scope="row"><code>--dt-text-label-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-sm-line"><th scope="row"><code>--dt-text-label-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><code>--dt-text-label-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-success"><th scope="row"><a href="../tokens.html#token-dt-text-success"><code>--dt-text-success</code></a></th><td>semantic</td><td><code>var(--dt-color-green-800)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a></th><td>primitive</td><td><code>500</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a></th><td>primitive</td><td><code>600</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -154,7 +161,7 @@ export function Stat({ label, value, unit, delta, deltaDirection, caption, align
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

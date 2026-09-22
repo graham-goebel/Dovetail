@@ -63,14 +63,14 @@
   <a href="../system/components/display/Card.md">Card.md</a>
 </p>
 
-<section class="card-block" id="card-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Card — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Card.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:928px">
-    <iframe src="../previews/Card.html" title="Card — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Card.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -81,7 +81,7 @@
 <h2 id="use-it-when">Use it when</h2>
 <ul><li>Grouping related content that could stand alone: a plan, a setting group, a dashboard panel, a feature block.</li></ul>
 <h2 id="don-t-use-it-when">Don't use it when</h2>
-<ul><li>Everything on the page is a card. Nesting cards inside cards means neither is doing any work — use <code>Stack</code> and a <code>Divider</code>.</li><li>It is a list of similar rows. Use one container with row borders.</li></ul>
+<ul><li>Everything on the page is a card. Nesting cards inside cards means neither is doing any work. Use <code>Stack</code> and a <code>Divider</code>.</li><li>It is a list of similar rows. Use one container with row borders.</li></ul>
 <h2 id="example">Example</h2>
 <pre class="code" data-lang="jsx"><code>&lt;Card
   eyebrow=&quot;Best value&quot;
@@ -96,7 +96,7 @@
 <h2 id="tokens">Tokens</h2>
 <p><code>--dt-card-*</code>. Override these to restyle every card; override <code>--dt-surface-raised</code> to move all raised surfaces together.</p>
 <h2 id="accessibility">Accessibility</h2>
-<p><code>interactive</code> is visual only. A clickable card needs a real control inside it, or <code>as=&quot;button&quot;</code> with an accessible name — a div with onClick is not keyboard operable.</p>
+<p><code>interactive</code> is visual only. A clickable card needs a real control inside it, or <code>as=&quot;button&quot;</code> with an accessible name. A div with onClick is not keyboard operable.</p>
 <h2 id="content">Content</h2>
 <p>Eyebrow is two or three words. Title is a noun phrase. Description is one sentence.</p>
 </section>
@@ -129,6 +129,13 @@ export interface CardProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
 }
 
 export declare function Card(props: CardProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Card.jsx</code> resolves, read from the source: 12 component, 15 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-card-bg"><th scope="row"><a href="../tokens.html#token-dt-card-bg"><code>--dt-card-bg</code></a></th><td>component</td><td><code>var(--dt-surface-raised)</code></td></tr><tr id="uses-dt-card-border-color"><th scope="row"><a href="../tokens.html#token-dt-card-border-color"><code>--dt-card-border-color</code></a></th><td>component</td><td><code>var(--dt-border-default)</code></td></tr><tr id="uses-dt-card-border-width"><th scope="row"><a href="../tokens.html#token-dt-card-border-width"><code>--dt-card-border-width</code></a></th><td>component</td><td><code>var(--dt-border-width-default)</code></td></tr><tr id="uses-dt-card-elevation"><th scope="row"><a href="../tokens.html#token-dt-card-elevation"><code>--dt-card-elevation</code></a></th><td>component</td><td><code>var(--dt-elevation-1)</code></td></tr><tr id="uses-dt-card-elevation-hover"><th scope="row"><a href="../tokens.html#token-dt-card-elevation-hover"><code>--dt-card-elevation-hover</code></a></th><td>component</td><td><code>var(--dt-elevation-2)</code></td></tr><tr id="uses-dt-card-fg"><th scope="row"><a href="../tokens.html#token-dt-card-fg"><code>--dt-card-fg</code></a></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-card-gap"><th scope="row"><code>--dt-card-gap</code></th><td>component</td><td><code>var(--dt-space-stack-sm)</code></td></tr><tr id="uses-dt-card-padding"><th scope="row"><code>--dt-card-padding</code></th><td>component</td><td><code>var(--dt-space-inset-lg)</code></td></tr><tr id="uses-dt-card-radius"><th scope="row"><a href="../tokens.html#token-dt-card-radius"><code>--dt-card-radius</code></a></th><td>component</td><td><code>var(--dt-radius-container)</code></td></tr><tr id="uses-dt-card-selected-bg"><th scope="row"><a href="../tokens.html#token-dt-card-selected-bg"><code>--dt-card-selected-bg</code></a></th><td>component</td><td><code>var(--dt-surface-selected)</code></td></tr><tr id="uses-dt-card-selected-border"><th scope="row"><a href="../tokens.html#token-dt-card-selected-border"><code>--dt-card-selected-border</code></a></th><td>component</td><td><code>var(--dt-border-selected)</code></td></tr><tr id="uses-dt-card-transition"><th scope="row"><a href="../tokens.html#token-dt-card-transition"><code>--dt-card-transition</code></a></th><td>component</td><td><code>var(--dt-motion-micro)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><code>--dt-text-body-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-eyebrow-family"><th scope="row"><code>--dt-text-eyebrow-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-eyebrow-line"><th scope="row"><code>--dt-text-eyebrow-line</code></th><td>semantic</td><td><code>var(--dt-line-height-2xs)</code></td></tr><tr id="uses-dt-text-eyebrow-size"><th scope="row"><code>--dt-text-eyebrow-size</code></th><td>semantic</td><td><code>var(--dt-font-size-2xs)</code></td></tr><tr id="uses-dt-text-eyebrow-tracking"><th scope="row"><code>--dt-text-eyebrow-tracking</code></th><td>semantic</td><td><code>var(--dt-tracking-wider)</code></td></tr><tr id="uses-dt-text-eyebrow-weight"><th scope="row"><code>--dt-text-eyebrow-weight</code></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-heading-sm-family"><th scope="row"><code>--dt-text-heading-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-sm-line"><th scope="row"><code>--dt-text-heading-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-xl)</code></td></tr><tr id="uses-dt-text-heading-sm-size"><th scope="row"><code>--dt-text-heading-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xl)</code></td></tr><tr id="uses-dt-text-heading-sm-tracking"><th scope="row"><code>--dt-text-heading-sm-tracking</code></th><td>semantic</td><td><code>var(--dt-tracking-normal)</code></td></tr><tr id="uses-dt-text-heading-sm-weight"><th scope="row"><code>--dt-text-heading-sm-weight</code></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -194,7 +201,7 @@ export function Card({ eyebrow, title, description, media, footer, interactive =
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

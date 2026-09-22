@@ -1,6 +1,6 @@
 # Banner
 
-Page-level message about the state of the whole view — trial expiry, degraded service,
+Page-level message about the state of the whole view: trial expiry, degraded service,
 a pending migration. Use Alert for messages scoped to one region or form.
 
 ## Rules

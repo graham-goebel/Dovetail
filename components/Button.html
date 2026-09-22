@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Button · Dovetail</title>
-<meta name="description" content="The system&#39;s action control. Use exactly one primary button per view — if two things are equally important, neither is.">
+<meta name="description" content="The system&#39;s action control. Use exactly one primary button per view. If two things are equally important, neither is.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -54,7 +54,7 @@
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Button</li></ol></nav>
 <h1>Button</h1>
-<p class="lede">The system's action control. Use exactly one <code>primary</code> button per view — if two things are equally important, neither is.</p>
+<p class="lede">The system's action control. Use exactly one <code>primary</code> button per view. If two things are equally important, neither is.</p>
 <p class="meta">
   <span class="pill">Actions</span>
   
@@ -63,30 +63,30 @@
   <a href="../system/components/actions/Button.md">Button.md</a>
 </p>
 
-<section class="card-block" id="button-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Button — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Button.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Reference and playground for Button</p>
   <div class="frame" style="height:807px">
-    <iframe src="../previews/Button.html" title="Button — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Button.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
-<section class="card-block" id="button-playground">
+<section class="card-block" id="playground">
   <div class="card-head">
-    <h2>Button — playground</h2>
+    <h2>Playground</h2>
     <a class="card-open" href="../previews/ButtonPlayground.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Button — Variants, sizes, loading and disabled — with props, code, tokens and an a11y audit</p>
   <div class="frame" style="height:868px">
-    <iframe src="../previews/ButtonPlayground.html" title="Button — playground preview" loading="lazy"></iframe>
+    <iframe src="../previews/ButtonPlayground.html" title="Playground preview" loading="lazy"></iframe>
   </div>
 </section>
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
-  <p>The system's action control. Use exactly one <code>primary</code> button per view — if two things are equally important, neither is.</p>
+  <p>The system's action control. Use exactly one <code>primary</code> button per view. If two things are equally important, neither is.</p>
 <h2 id="use-it-when">Use it when</h2>
 <ul><li>The user performs an action: save, delete, add, continue.</li></ul>
 <h2 id="don-t-use-it-when">Don't use it when</h2>
@@ -100,13 +100,13 @@
 <div class="table-wrap"><table><thead><tr><th>Variant</th><th>For</th></tr></thead><tbody><tr><td><code>primary</code></td><td>The one main action in the view</td></tr><tr><td><code>secondary</code></td><td>Everything else with equal visual weight to each other</td></tr><tr><td><code>ghost</code></td><td>Low-emphasis actions in toolbars and table rows</td></tr><tr><td><code>danger</code></td><td>Destructive actions, always behind a confirmation</td></tr></tbody></table></div>
 <p>Sizes <code>sm</code> / <code>md</code> / <code>lg</code>. In marketing context <code>md</code> is already 48px, so <code>lg</code> is rarely needed.</p>
 <h2 id="product-vs-marketing">Product vs marketing</h2>
-<p>The same component. Context tokens change its height, padding, and font size — <code>dt-context-product</code> gives a 40px/14px toolbar button, <code>dt-context-marketing</code> a 48px/16px CTA. Do not hand-size buttons per surface.</p>
+<p>The same component. Context tokens change its height, padding, and font size: <code>dt-context-product</code> gives a 40px/14px toolbar button, <code>dt-context-marketing</code> a 48px/16px CTA. Do not hand-size buttons per surface.</p>
 <h2 id="tokens">Tokens</h2>
 <p>Reads <code>--dt-button-*</code> (Tier 3), which resolve to <code>--dt-surface-action*</code> and <code>--dt-text-on-action*</code>. Override the Tier 3 tokens to restyle Button alone; override the semantic tokens to move every action surface together.</p>
 <h2 id="accessibility">Accessibility</h2>
 <p><code>loading</code> sets <code>aria-busy</code> and blocks clicks while keeping the label readable. Disabled buttons set both <code>disabled</code> and <code>aria-disabled</code>. Focus ring comes from the system.</p>
 <h2 id="content">Content</h2>
-<p>Verb-first, one to three words, sentence case. &quot;Save changes&quot;, not &quot;Submit&quot; or &quot;Click here&quot;. Never change the label to &quot;Loading…&quot; — the spinner says that already.</p>
+<p>Verb-first, one to three words, sentence case. &quot;Save changes&quot;, not &quot;Submit&quot; or &quot;Click here&quot;. Never change the label to &quot;Loading…&quot;; the spinner says that already.</p>
 </section>
 
 <section class="prose">
@@ -136,6 +136,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes&lt;HTMLButtonEle
 }
 
 export declare function Button(props: ButtonProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Button.jsx</code> resolves, read from the source: 38 component, 1 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-button-border-width"><th scope="row"><a href="../tokens.html#token-dt-button-border-width"><code>--dt-button-border-width</code></a></th><td>component</td><td><code>var(--dt-border-width-default)</code></td></tr><tr id="uses-dt-button-danger-bg"><th scope="row"><a href="../tokens.html#token-dt-button-danger-bg"><code>--dt-button-danger-bg</code></a></th><td>component</td><td><code>var(--dt-surface-action-danger)</code></td></tr><tr id="uses-dt-button-danger-bg-active"><th scope="row"><a href="../tokens.html#token-dt-button-danger-bg-active"><code>--dt-button-danger-bg-active</code></a></th><td>component</td><td><code>var(--dt-surface-action-danger-active)</code></td></tr><tr id="uses-dt-button-danger-bg-hover"><th scope="row"><a href="../tokens.html#token-dt-button-danger-bg-hover"><code>--dt-button-danger-bg-hover</code></a></th><td>component</td><td><code>var(--dt-surface-action-danger-hover)</code></td></tr><tr id="uses-dt-button-danger-border"><th scope="row"><a href="../tokens.html#token-dt-button-danger-border"><code>--dt-button-danger-border</code></a></th><td>component</td><td><code>var(--dt-color-transparent)</code></td></tr><tr id="uses-dt-button-danger-fg"><th scope="row"><a href="../tokens.html#token-dt-button-danger-fg"><code>--dt-button-danger-fg</code></a></th><td>component</td><td><code>var(--dt-text-on-action-danger)</code></td></tr><tr id="uses-dt-button-disabled-bg"><th scope="row"><a href="../tokens.html#token-dt-button-disabled-bg"><code>--dt-button-disabled-bg</code></a></th><td>component</td><td><code>var(--dt-surface-action-disabled)</code></td></tr><tr id="uses-dt-button-disabled-border"><th scope="row"><a href="../tokens.html#token-dt-button-disabled-border"><code>--dt-button-disabled-border</code></a></th><td>component</td><td><code>var(--dt-color-transparent)</code></td></tr><tr id="uses-dt-button-disabled-fg"><th scope="row"><a href="../tokens.html#token-dt-button-disabled-fg"><code>--dt-button-disabled-fg</code></a></th><td>component</td><td><code>var(--dt-text-on-action-disabled)</code></td></tr><tr id="uses-dt-button-font-family"><th scope="row"><code>--dt-button-font-family</code></th><td>component</td><td><code>var(--dt-text-label-md-family)</code></td></tr><tr id="uses-dt-button-font-size-lg"><th scope="row"><code>--dt-button-font-size-lg</code></th><td>component</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-button-font-size-md"><th scope="row"><code>--dt-button-font-size-md</code></th><td>component</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-button-font-size-sm"><th scope="row"><code>--dt-button-font-size-sm</code></th><td>component</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-button-font-weight"><th scope="row"><a href="../tokens.html#token-dt-button-font-weight"><code>--dt-button-font-weight</code></a></th><td>component</td><td><code>var(--dt-font-weight-medium)</code></td></tr><tr id="uses-dt-button-gap"><th scope="row"><code>--dt-button-gap</code></th><td>component</td><td><code>var(--dt-space-inline-xs)</code></td></tr><tr id="uses-dt-button-ghost-bg"><th scope="row"><a href="../tokens.html#token-dt-button-ghost-bg"><code>--dt-button-ghost-bg</code></a></th><td>component</td><td><code>var(--dt-surface-action-ghost)</code></td></tr><tr id="uses-dt-button-ghost-bg-active"><th scope="row"><a href="../tokens.html#token-dt-button-ghost-bg-active"><code>--dt-button-ghost-bg-active</code></a></th><td>component</td><td><code>var(--dt-surface-action-ghost-active)</code></td></tr><tr id="uses-dt-button-ghost-bg-hover"><th scope="row"><a href="../tokens.html#token-dt-button-ghost-bg-hover"><code>--dt-button-ghost-bg-hover</code></a></th><td>component</td><td><code>var(--dt-surface-action-ghost-hover)</code></td></tr><tr id="uses-dt-button-ghost-border"><th scope="row"><a href="../tokens.html#token-dt-button-ghost-border"><code>--dt-button-ghost-border</code></a></th><td>component</td><td><code>var(--dt-color-transparent)</code></td></tr><tr id="uses-dt-button-ghost-fg"><th scope="row"><a href="../tokens.html#token-dt-button-ghost-fg"><code>--dt-button-ghost-fg</code></a></th><td>component</td><td><code>var(--dt-text-on-action-ghost)</code></td></tr><tr id="uses-dt-button-height-lg"><th scope="row"><a href="../tokens.html#token-dt-button-height-lg"><code>--dt-button-height-lg</code></a></th><td>component</td><td><code>var(--dt-size-control-lg)</code></td></tr><tr id="uses-dt-button-height-md"><th scope="row"><a href="../tokens.html#token-dt-button-height-md"><code>--dt-button-height-md</code></a></th><td>component</td><td><code>var(--dt-size-control-md)</code></td></tr><tr id="uses-dt-button-height-sm"><th scope="row"><a href="../tokens.html#token-dt-button-height-sm"><code>--dt-button-height-sm</code></a></th><td>component</td><td><code>var(--dt-size-control-sm)</code></td></tr><tr id="uses-dt-button-padding-lg"><th scope="row"><code>--dt-button-padding-lg</code></th><td>component</td><td><code>var(--dt-space-inset-lg)</code></td></tr><tr id="uses-dt-button-padding-md"><th scope="row"><code>--dt-button-padding-md</code></th><td>component</td><td><code>var(--dt-space-inset-md)</code></td></tr><tr id="uses-dt-button-padding-sm"><th scope="row"><code>--dt-button-padding-sm</code></th><td>component</td><td><code>var(--dt-space-inset-sm)</code></td></tr><tr id="uses-dt-button-primary-bg"><th scope="row"><a href="../tokens.html#token-dt-button-primary-bg"><code>--dt-button-primary-bg</code></a></th><td>component</td><td><code>var(--dt-surface-action)</code></td></tr><tr id="uses-dt-button-primary-bg-active"><th scope="row"><a href="../tokens.html#token-dt-button-primary-bg-active"><code>--dt-button-primary-bg-active</code></a></th><td>component</td><td><code>var(--dt-surface-action-active)</code></td></tr><tr id="uses-dt-button-primary-bg-hover"><th scope="row"><a href="../tokens.html#token-dt-button-primary-bg-hover"><code>--dt-button-primary-bg-hover</code></a></th><td>component</td><td><code>var(--dt-surface-action-hover)</code></td></tr><tr id="uses-dt-button-primary-border"><th scope="row"><a href="../tokens.html#token-dt-button-primary-border"><code>--dt-button-primary-border</code></a></th><td>component</td><td><code>var(--dt-color-transparent)</code></td></tr><tr id="uses-dt-button-primary-fg"><th scope="row"><a href="../tokens.html#token-dt-button-primary-fg"><code>--dt-button-primary-fg</code></a></th><td>component</td><td><code>var(--dt-text-on-action)</code></td></tr><tr id="uses-dt-button-radius"><th scope="row"><a href="../tokens.html#token-dt-button-radius"><code>--dt-button-radius</code></a></th><td>component</td><td><code>var(--dt-radius-control)</code></td></tr><tr id="uses-dt-button-secondary-bg"><th scope="row"><a href="../tokens.html#token-dt-button-secondary-bg"><code>--dt-button-secondary-bg</code></a></th><td>component</td><td><code>var(--dt-surface-action-secondary)</code></td></tr><tr id="uses-dt-button-secondary-bg-active"><th scope="row"><a href="../tokens.html#token-dt-button-secondary-bg-active"><code>--dt-button-secondary-bg-active</code></a></th><td>component</td><td><code>var(--dt-surface-action-secondary-active)</code></td></tr><tr id="uses-dt-button-secondary-bg-hover"><th scope="row"><a href="../tokens.html#token-dt-button-secondary-bg-hover"><code>--dt-button-secondary-bg-hover</code></a></th><td>component</td><td><code>var(--dt-surface-action-secondary-hover)</code></td></tr><tr id="uses-dt-button-secondary-border"><th scope="row"><a href="../tokens.html#token-dt-button-secondary-border"><code>--dt-button-secondary-border</code></a></th><td>component</td><td><code>var(--dt-border-action-secondary)</code></td></tr><tr id="uses-dt-button-secondary-fg"><th scope="row"><a href="../tokens.html#token-dt-button-secondary-fg"><code>--dt-button-secondary-fg</code></a></th><td>component</td><td><code>var(--dt-text-on-action-secondary)</code></td></tr><tr id="uses-dt-button-transition"><th scope="row"><a href="../tokens.html#token-dt-button-transition"><code>--dt-button-transition</code></a></th><td>component</td><td><code>var(--dt-motion-micro)</code></td></tr><tr id="uses-dt-size-icon-sm"><th scope="row"><code>--dt-size-icon-sm</code></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -213,7 +220,7 @@ function Spinner() {
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

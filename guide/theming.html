@@ -67,7 +67,7 @@
 <pre class="code" data-lang="html"><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;styles.css&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;tokens/themes/theme-acme.css&quot;&gt;</code></pre>
 <h3 id="2-replace-the-accent-ramp-not-the-semantic-roles">2. Replace the accent ramp, not the semantic roles</h3>
-<p>The cheapest correct theme changes eleven lines. Override the primitive accent ramp in place, and every semantic role that referenced it — actions, links, selection, focus — follows automatically.</p>
+<p>The cheapest correct theme changes eleven lines. Override the primitive accent ramp in place, and every semantic role that referenced it (actions, links, selection, focus) follows automatically.</p>
 <pre class="code" data-lang="css"><code>:root {
   --dt-color-accent-050: oklch(0.970 0.015 340);
   --dt-color-accent-100: oklch(0.936 0.035 340);
@@ -76,7 +76,7 @@
 <p>This is the one case where a theme legitimately writes at Tier 1. You are replacing the raw material, not bypassing the contract.</p>
 <p><strong>Generating the ramp.</strong> Keep the lightness values from the default ramp and change only chroma and hue. OKLCH lightness is perceptually uniform, so an accent ramp built on the existing lightness steps inherits the contrast behaviour the system was tested against.</p>
 <h3 id="3-override-semantic-roles-only-where-the-brand-disagrees">3. Override semantic roles only where the brand disagrees</h3>
-<p>If your brand's action colour is not simply &quot;accent 600&quot; — say it needs to be darker for contrast, or a different hue from your links — override the semantic role directly.</p>
+<p>If your brand's action colour is not simply &quot;accent 600&quot;, say it needs to be darker for contrast, or a different hue from your links, override the semantic role directly.</p>
 <pre class="code" data-lang="css"><code>:root {
   --dt-surface-action: var(--dt-color-accent-700);
   --dt-text-on-action: var(--dt-color-white);
@@ -104,7 +104,7 @@
   --dt-radius-pill: var(--dt-radius-raw-full);
 }</code></pre>
 <h3 id="6-verify">6. Verify</h3>
-<ul><li>Light and dark, side by side.</li><li>Every semantic pair at AA. <code>guidelines/accessibility.md</code> lists the pairs to check.</li><li>The focus ring, against your darkest and lightest surfaces.</li><li>A disabled control — disabled states are where themes most often lose contrast.</li></ul>
+<ul><li>Light and dark, side by side.</li><li>Every semantic pair at AA. <code>guidelines/accessibility.md</code> lists the pairs to check.</li><li>The focus ring, against your darkest and lightest surfaces.</li><li>A disabled control, since disabled states are where themes most often lose contrast.</li></ul>
 <h2 id="what-a-theme-must-not-do">What a theme must not do</h2>
 <p><strong>Don't add new token names.</strong> A consumer switching themes would get undefined variables. If a name is missing, it belongs in the system, not in one theme.</p>
 <p><strong>Don't reach into component internals.</strong> No <code>.dt-button { … }</code> rules. If a component cannot be themed through its tokens, the component needs a token, not a CSS override.</p>
@@ -112,11 +112,11 @@
 <p><strong>Don't theme away accessibility.</strong> Feedback colours may shift hue, but error states must stay chromatically distinct from success states. A monochrome error is a failure.</p>
 <h2 id="worked-examples">Worked examples</h2>
 <p>Two demo themes ship with the system, chosen to sit at opposite poles.</p>
-<p><strong><code>theme-editorial.css</code></strong> — warm terracotta accent, warmed neutrals, serif display and headings, pill controls, generous radii, an off-white page ground. Changes hue, typeface, and shape at once.</p>
-<p><strong><code>theme-mono.css</code></strong> — no brand hue at all. Action colour is the darkest neutral, corners are square, elevation is expressed as border weight rather than shadow, and labels are set in mono. Feedback colours stay chromatic.</p>
+<p><strong><code>theme-editorial.css</code></strong>: warm terracotta accent, warmed neutrals, serif display and headings, pill controls, generous radii, an off-white page ground. Changes hue, typeface, and shape at once.</p>
+<p><strong><code>theme-mono.css</code></strong>: no brand hue at all. Action colour is the darkest neutral, corners are square, elevation is expressed as border weight rather than shadow, and labels are set in mono. Feedback colours stay chromatic.</p>
 <p>Between them they exercise every part of the contract. If a component looks right under both, it is genuinely theme-independent.</p>
 <h2 id="density">Density</h2>
-<p>Density is a separate axis from brand, and they compose. <code>density-compact.css</code> retunes control heights and inset spacing only — type, colour, and shape are untouched, so a compact view is recognisably the same product.</p>
+<p>Density is a separate axis from brand, and they compose. <code>density-compact.css</code> retunes control heights and inset spacing only. Type, colour, and shape are untouched, so a compact view is recognisably the same product.</p>
 <p>Scope it to a subtree when only part of a screen is dense:</p>
 <pre class="code" data-lang="html"><code>&lt;div class=&quot;dt-density-compact&quot;&gt;
   &lt;!-- data table --&gt;
@@ -127,7 +127,7 @@
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

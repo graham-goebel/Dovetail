@@ -63,14 +63,14 @@
   <a href="../system/components/display/Table.md">Table.md</a>
 </p>
 
-<section class="card-block" id="table-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Table — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Table.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:835px">
-    <iframe src="../previews/Table.html" title="Table — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Table.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -115,6 +115,13 @@ export interface TableProps extends React.TableHTMLAttributes&lt;HTMLTableElemen
 }
 
 export declare function Table(props: TableProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Table.jsx</code> resolves, read from the source: 14 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-default"><th scope="row"><a href="../tokens.html#token-dt-border-default"><code>--dt-border-default</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-200)</code></td></tr><tr id="uses-dt-border-subtle"><th scope="row"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-surface-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-subtle"><code>--dt-surface-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-label-sm-family"><th scope="row"><code>--dt-text-label-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><code>--dt-text-label-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a></th><td>primitive</td><td><code>500</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -167,7 +174,7 @@ export function Table({ columns = [], rows = [], caption, dense = false, zebra =
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

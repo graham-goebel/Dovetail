@@ -26,7 +26,7 @@ A modal that interrupts. Every dialog costs the user their place, so open one on
 ```
 
 ## Accessibility
-`role="dialog"` with `aria-modal`. Escape and the scrim both close it. Focus trapping and return-focus are not yet implemented — track that before production use.
+`role="dialog"` with `aria-modal`. Escape and the scrim both close it. Focus trapping and return-focus are not yet implemented, so track that before production use.
 
 ## Tokens
 `--dt-dialog-*`, shared with Drawer and Popover so every overlay reads as one system.

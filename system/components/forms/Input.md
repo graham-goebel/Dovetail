@@ -19,7 +19,7 @@ Single-line text field. Builds its own Field when given a label.
 --dt-input-*, shared with Textarea and Select so every field in a form has identical geometry.
 
 ## Accessibility
-Generates an id and wires htmlFor automatically. The error prop sets aria-invalid and announces in a live region. Placeholder is never a label — it disappears the moment someone types.
+Generates an id and wires htmlFor automatically. The error prop sets aria-invalid and announces in a live region. Placeholder is never a label; it disappears the moment someone types.
 
 ## Content
 Label is a sentence-case noun. Placeholder shows format, not instruction: "name@company.com", not "Enter your email".

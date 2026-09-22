@@ -19,4 +19,4 @@ A raw number is allowed for a one-off crop, but prefer a named ratio so a templa
 
 ## Rules
 
-Give it a width; it derives its own height. Never set a height on an AspectRatio — that defeats the reservation. Children are absolutely positioned against it, so a single child with \`inset: 0\` fills it exactly. That is what \`Image\` does.
+Give it a width; it derives its own height. Never set a height on an AspectRatio; that defeats the reservation. Children are absolutely positioned against it, so a single child with \`inset: 0\` fills it exactly. That is what \`Image\` does.

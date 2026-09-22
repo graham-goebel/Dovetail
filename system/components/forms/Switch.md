@@ -1,12 +1,12 @@
 # Switch
 
-An instant on/off setting. Flipping it applies the change — there is no Save button.
+An instant on/off setting. Flipping it applies the change; there is no Save button.
 
 ## Use it when
 - A preference takes effect immediately: notifications, dark mode, autopay.
 
 ## Don't use it when
-- The value is submitted with a form. Use Checkbox — a switch that needs saving lies about when it took effect.
+- The value is submitted with a form. Use Checkbox; a switch that needs saving lies about when it took effect.
 - The choice is not two opposite states.
 
 ## Example

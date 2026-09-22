@@ -1,8 +1,8 @@
 /* The files menu on a component card: read the guide, the typed contract or the
    source without leaving the index.
 
-   The three files are already served — the site publishes `system/` at the paths
-   the system was authored with — so this fetches the real file rather than a
+   The three files are already served, because the site publishes `system/` at
+   the paths the system was authored with, so this fetches the real file not a
    copy of it. Nothing here can show something the repository does not hold.
 
    The menu renders into a layer on <body> rather than inside the card, because

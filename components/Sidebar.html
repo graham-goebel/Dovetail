@@ -63,14 +63,14 @@
   <a href="../system/components/navigation/Sidebar.md">Sidebar.md</a>
 </p>
 
-<section class="card-block" id="sidebar-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Sidebar — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Sidebar.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:593px">
-    <iframe src="../previews/Sidebar.html" title="Sidebar — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Sidebar.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -79,7 +79,7 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>Persistent navigation for products with more destinations than a Navbar can hold.</p>
 <h2 id="rules">Rules</h2>
-<ul><li>Group with <code>sections</code> once you pass roughly seven items. The section eyebrow is the one place uppercase is allowed.</li><li>Icons are optional but all-or-nothing within a section. A mixed column reads as broken.</li><li>The active item carries <code>aria-current=&quot;page&quot;</code> plus a filled surface. Do not rely on the surface alone.</li><li>Counts go in <code>trailing</code> as a Badge. Do not append them to the label string — they break truncation.</li><li>Below roughly 900px, move the sidebar into a Drawer rather than shrinking it.</li></ul>
+<ul><li>Group with <code>sections</code> once you pass roughly seven items. The section eyebrow is the one place uppercase is allowed.</li><li>Icons are optional but all-or-nothing within a section. A mixed column reads as broken.</li><li>The active item carries <code>aria-current=&quot;page&quot;</code> plus a filled surface. Do not rely on the surface alone.</li><li>Counts go in <code>trailing</code> as a Badge. Do not append them to the label string; they break truncation.</li><li>Below roughly 900px, move the sidebar into a Drawer rather than shrinking it.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
 <p>A sidebar costs 240px of every screen forever in exchange for one-click access. On content-heavy pages, a collapsible rail buys the width back at the cost of a click.</p>
 </section>
@@ -122,6 +122,13 @@ export interface SidebarProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
 }
 
 export declare function Sidebar(props: SidebarProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Sidebar.jsx</code> resolves, read from the source: 18 semantic, 4 primitive, 2 undeclared. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li><li><strong>none</strong> Referenced by the source but declared by no tier, so it resolves to nothing.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-subtle"><th scope="row"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-stack-md"><th scope="row"><a href="../tokens.html#token-dt-space-stack-md"><code>--dt-space-stack-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-surface-selected"><th scope="row"><a href="../tokens.html#token-dt-surface-selected"><code>--dt-surface-selected</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-050)</code></td></tr><tr id="uses-dt-surface-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-subtle"><code>--dt-surface-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr><tr id="uses-dt-text-eyebrow-family"><th scope="row"><code>--dt-text-eyebrow-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-md-family"><th scope="row"><code>--dt-text-label-md-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-md-size"><th scope="row"><code>--dt-text-label-md-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><code>--dt-text-label-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-on-selected"><th scope="row"><a href="../tokens.html#token-dt-text-on-selected"><code>--dt-text-on-selected</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-font-family-mono"><th scope="row"><code>--dt-font-family-mono</code></th><td>primitive</td><td><code>&quot;Geist Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a></th><td>primitive</td><td><code>500</code></td></tr><tr id="uses-dt-font-weight-regular"><th scope="row"><a href="../tokens.html#token-dt-font-weight-regular"><code>--dt-font-weight-regular</code></a></th><td>primitive</td><td><code>400</code></td></tr><tr id="uses-dt-tracking-wide"><th scope="row"><a href="../tokens.html#token-dt-tracking-wide"><code>--dt-tracking-wide</code></a></th><td>primitive</td><td><code>0.02em</code></td></tr><tr id="uses-dt-motion-duration-fast"><th scope="row"><code>--dt-motion-duration-fast</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr><tr id="uses-dt-motion-easing-standard"><th scope="row"><code>--dt-motion-easing-standard</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -194,7 +201,7 @@ export function Sidebar({ sections = [], current, onNavigate, header, footer, la
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

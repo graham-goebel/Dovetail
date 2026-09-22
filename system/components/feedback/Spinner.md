@@ -4,7 +4,7 @@ Signals an indeterminate wait where the resulting content has no known shape.
 
 ## Rules
 
-- Use a spinner for actions — saving, submitting, connecting. Use Skeleton for content
+- Use a spinner for actions: saving, submitting, connecting. Use Skeleton for content
   that is about to fill a known layout.
 - Below roughly 300ms, show nothing. A flash of spinner reads as a glitch.
 - The `label` is announced via `role="status"`. Make it specific: "Saving changes"

@@ -20,7 +20,7 @@ A button whose only content is an icon. `label` is a required prop and the type 
 `ghost` (default) for toolbars and table rows. `solid` for a floating or primary action.
 
 ## Accessibility
-`label` becomes both `aria-label` and the native tooltip. On touch surfaces use `size="md"` or larger — `xs` and `sm` fall below the 44px target and need a padded hit area around them.
+`label` becomes both `aria-label` and the native tooltip. On touch surfaces use `size="md"` or larger: `xs` and `sm` fall below the 44px target and need a padded hit area around them.
 
 ## Content
 Label is a verb phrase naming the action and its object: "Close dialog", not "Close" or "X".

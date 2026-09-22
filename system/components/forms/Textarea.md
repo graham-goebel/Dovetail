@@ -6,7 +6,7 @@ Multi-line text field.
 - The answer is a sentence or longer: a description, a message, a note.
 
 ## Don't use it when
-- The answer is one short value. Use Input — a large box invites a long answer.
+- The answer is one short value. Use Input; a large box invites a long answer.
 
 ## Example
 \`\`\`jsx

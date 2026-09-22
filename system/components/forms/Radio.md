@@ -19,7 +19,7 @@ One choice from a mutually exclusive set, with all options visible.
 ```
 
 ## Accessibility
-Every radio in a group needs the same name — that is what gives the group arrow-key navigation and a single tab stop. Wrap the group in a fieldset with a legend, or a Field with role="radiogroup".
+Every radio in a group needs the same name: that is what gives the group arrow-key navigation and a single tab stop. Wrap the group in a fieldset with a legend, or a Field with role="radiogroup".
 
 ## Content
 Options are parallel in structure and length. Put price or consequence in the hint, not the label.

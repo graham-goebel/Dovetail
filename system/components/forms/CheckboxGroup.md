@@ -1,10 +1,10 @@
 # CheckboxGroup
 
-A labelled set of checkboxes answering one question. Use it whenever two or more checkboxes belong together — a loose column of \`Checkbox\` has no accessible name, so a screen reader reads the options without ever saying what they are for.
+A labelled set of checkboxes answering one question. Use it whenever two or more checkboxes belong together, because a loose column of \`Checkbox\` has no accessible name, so a screen reader reads the options without ever saying what they are for.
 
 ## Checkbox or radio
 
-Checkboxes mean any number, including none. Radios mean exactly one. If the answer is genuinely binary and independent, use a single \`Switch\` instead — it commits immediately, which is the right feel for a setting.
+Checkboxes mean any number, including none. Radios mean exactly one. If the answer is genuinely binary and independent, use a single \`Switch\` instead; it commits immediately, which is the right feel for a setting.
 
 ## Orientation
 

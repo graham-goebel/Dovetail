@@ -16,5 +16,5 @@ zero search results, and permission gaps.
 ## Tradeoffs
 
 An illustrated empty state is memorable on first run and tiresome on the fiftieth. For
-states a user hits routinely — a cleared filter, an empty inbox — keep it to text and one
+states a user hits routinely, such as a cleared filter or an empty inbox, keep it to text and one
 control.

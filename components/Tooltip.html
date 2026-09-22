@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tooltip · Dovetail</title>
-<meta name="description" content="Names a control whose purpose is not obvious from its face — most often an IconButton.">
+<meta name="description" content="Names a control whose purpose is not obvious from its face, most often an IconButton.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -54,7 +54,7 @@
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Tooltip</li></ol></nav>
 <h1>Tooltip</h1>
-<p class="lede">Names a control whose purpose is not obvious from its face — most often an IconButton.</p>
+<p class="lede">Names a control whose purpose is not obvious from its face, most often an IconButton.</p>
 <p class="meta">
   <span class="pill">Feedback</span>
   
@@ -63,25 +63,25 @@
   <a href="../system/components/feedback/Tooltip.md">Tooltip.md</a>
 </p>
 
-<section class="card-block" id="tooltip-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Tooltip — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Tooltip.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Tooltip.html" title="Tooltip — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Tooltip.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
-  <p>Names a control whose purpose is not obvious from its face — most often an IconButton.</p>
+  <p>Names a control whose purpose is not obvious from its face, most often an IconButton.</p>
 <h2 id="rules">Rules</h2>
 <ul><li>Tooltips are supplementary, never the only source of a label. An IconButton still needs its own <code>label</code> prop; the tooltip repeats it for sighted users.</li><li>Never put an action, a link, or anything the user must read inside a tooltip. It is unreachable on touch and invisible to keyboard users who do not focus the trigger.</li><li>The trigger must be focusable. A tooltip on a plain <code>span</code> never opens for keyboard users.</li><li>A few words. Anything longer is a Popover.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
-<p>Tooltips do not exist on touch devices. Any information you put in one is information a phone user will not get — plan the mobile affordance separately.</p>
+<p>Tooltips do not exist on touch devices. Any information you put in one is information a phone user will not get, so plan the mobile affordance separately.</p>
 </section>
 
 <section class="prose">
@@ -102,6 +102,13 @@ export interface TooltipProps extends React.HTMLAttributes&lt;HTMLSpanElement&gt
 }
 
 export declare function Tooltip(props: TooltipProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Tooltip.jsx</code> resolves, read from the source: 9 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-elevation-2"><th scope="row"><a href="../tokens.html#token-dt-elevation-2"><code>--dt-elevation-2</code></a></th><td>semantic</td><td><code>var(--dt-shadow-raw-2)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-space-inset-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-inset-2xs"><code>--dt-space-inset-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-surface-inverse"><th scope="row"><a href="../tokens.html#token-dt-surface-inverse"><code>--dt-surface-inverse</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-body-xs-family"><th scope="row"><code>--dt-text-body-xs-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-xs-line"><th scope="row"><code>--dt-text-body-xs-line</code></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-body-xs-size"><th scope="row"><code>--dt-text-body-xs-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-inverse"><th scope="row"><a href="../tokens.html#token-dt-text-inverse"><code>--dt-text-inverse</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -155,7 +162,7 @@ export function Tooltip({ content, children, placement = &quot;top&quot;, delay 
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

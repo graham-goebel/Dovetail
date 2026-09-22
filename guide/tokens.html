@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Token reference · Dovetail</title>
-<meta name="description" content="The full token contract, tier by tier.">
+<meta name="description" content="Every token, tier by tier.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -59,9 +59,9 @@
 <h2 id="naming-grammar">Naming grammar</h2>
 <pre class="code"><code>--dt-[category]-[role]-[variant]-[state]</code></pre>
 <div class="table-wrap"><table><thead><tr><th>Example</th><th>Tier</th><th>Reads as</th></tr></thead><tbody><tr><td><code>--dt-color-neutral-600</code></td><td>Primitive</td><td>category, hue, step</td></tr><tr><td><code>--dt-surface-action-hover</code></td><td>Semantic</td><td>category, role, state</td></tr><tr><td><code>--dt-text-on-action</code></td><td>Semantic</td><td>the foreground paired with <code>surface-action</code></td></tr><tr><td><code>--dt-button-primary-bg-hover</code></td><td>Component</td><td>component, variant, property, state</td></tr></tbody></table></div>
-<p>Lowercase, hyphen-delimited, one convention throughout. Names are stable API — renaming a token is a migration, so name it carefully the first time.</p>
+<p>Lowercase, hyphen-delimited, one convention throughout. Names are stable API, so renaming a token is a migration, so name it carefully the first time.</p>
 <hr>
-<h2 id="tier-1-primitive">Tier 1 — Primitive</h2>
+<h2 id="tier-1-primitive">Tier 1: Primitive</h2>
 <h3 id="colour">Colour</h3>
 <p>Seven ramps of eleven steps (<code>050</code>–<code>950</code>), all OKLCH.</p>
 <p><code>neutral</code> · <code>accent</code> · <code>green</code> · <code>amber</code> · <code>red</code> · <code>cyan</code> · <code>violet</code></p>
@@ -74,12 +74,12 @@
 <h3 id="typography">Typography</h3>
 <p>Sizes follow a 1.200 modular scale from a 16px base, rounded to whole pixels. Two rounds are deliberate: 13.33 → <strong>14</strong> because 14px is the workhorse UI size, and 57.33 → <strong>58</strong> because half-pixel display type renders inconsistently across browsers.</p>
 <div class="table-wrap"><table><thead><tr><th>Token</th><th>Size</th><th>Line height</th></tr></thead><tbody><tr><td><code>2xs</code></td><td>11</td><td>16</td></tr><tr><td><code>xs</code></td><td>12</td><td>16</td></tr><tr><td><code>sm</code></td><td>14</td><td>20</td></tr><tr><td><code>md</code></td><td>16</td><td>24</td></tr><tr><td><code>lg</code></td><td>19</td><td>28</td></tr><tr><td><code>xl</code></td><td>23</td><td>32</td></tr><tr><td><code>2xl</code></td><td>28</td><td>36</td></tr><tr><td><code>3xl</code></td><td>33</td><td>40</td></tr><tr><td><code>4xl</code></td><td>40</td><td>48</td></tr><tr><td><code>5xl</code></td><td>48</td><td>52</td></tr><tr><td><code>6xl</code></td><td>58</td><td>64</td></tr><tr><td><code>7xl</code></td><td>69</td><td>76</td></tr></tbody></table></div>
-<p>Every line height is a multiple of 4, so text blocks align to the same grid as everything else. This is the one place the modular scale and the 4px grid are reconciled by hand — forcing font sizes themselves onto 4px multiples produces a lumpy, unusable scale.</p>
+<p>Every line height is a multiple of 4, so text blocks align to the same grid as everything else. This is the one place the modular scale and the 4px grid are reconciled by hand: forcing font sizes themselves onto 4px multiples produces a lumpy, unusable scale.</p>
 <h3 id="motion-and-elevation">Motion and elevation</h3>
 <p>Durations 0–600ms. Four easing curves: <code>standard</code>, <code>decelerate</code>, <code>accelerate</code>, <code>emphasis</code>.</p>
-<p>Six raw shadows, each a two-layer recipe — a tight contact shadow plus a soft ambient one. Single-layer shadows read as flat stickers once they get large.</p>
+<p>Six raw shadows, each a two-layer recipe: a tight contact shadow plus a soft ambient one. Single-layer shadows read as flat stickers once they get large.</p>
 <hr>
-<h2 id="tier-2-semantic">Tier 2 — Semantic</h2>
+<h2 id="tier-2-semantic">Tier 2: Semantic</h2>
 <p>The themeable layer. This is where a consumer spends their time.</p>
 <h3 id="surfaces">Surfaces</h3>
 <div class="table-wrap"><table><thead><tr><th>Token</th><th>Use for</th></tr></thead><tbody><tr><td><code>--dt-surface-base</code></td><td>the page</td></tr><tr><td><code>--dt-surface-subtle</code></td><td>a quiet section band</td></tr><tr><td><code>--dt-surface-raised</code></td><td>cards, anything with elevation</td></tr><tr><td><code>--dt-surface-sunken</code></td><td>wells, code blocks, inset areas</td></tr><tr><td><code>--dt-surface-overlay</code></td><td>dialogs, popovers, menus</td></tr><tr><td><code>--dt-surface-inverse</code></td><td>a dark band on a light page</td></tr><tr><td><code>--dt-surface-scrim</code></td><td>behind a modal</td></tr></tbody></table></div>
@@ -89,17 +89,17 @@
 <p>Plus the <code>on-</code> roles, which exist only as halves of a pair: <code>--dt-text-on-action</code>, <code>--dt-text-on-success</code>, <code>--dt-text-on-selected</code>, and so on.</p>
 <h3 id="actions">Actions</h3>
 <p>Four variants, each with resting, hover, active, and foreground roles: <code>action</code> · <code>action-secondary</code> · <code>action-ghost</code> · <code>action-danger</code>.</p>
-<p>Plus <code>action-disabled</code>, which is shared — a disabled button looks the same regardless of what variant it would otherwise be.</p>
+<p>Plus <code>action-disabled</code>, which is shared, because a disabled button looks the same regardless of what variant it would otherwise be.</p>
 <h3 id="space">Space</h3>
 <p>Three axes. <code>16px</code> does not say what the gap is for; <code>--dt-space-stack-md</code> does.</p>
-<ul><li><code>inset-*</code> — padding inside a container</li><li><code>stack-*</code> — vertical gap between blocks</li><li><code>inline-*</code> — horizontal gap between siblings</li></ul>
+<ul><li><code>inset-*</code>: padding inside a container</li><li><code>stack-*</code>: vertical gap between blocks</li><li><code>inline-*</code>: horizontal gap between siblings</li></ul>
 <p>Naming the axis also lets a density theme retune one axis without touching the others.</p>
 <h3 id="size">Size</h3>
 <p>Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32. <code>--dt-size-touch-target</code> (44px) is the minimum hit area on touch surfaces.</p>
 <h3 id="shape">Shape</h3>
 <p>Radius is named by what it wraps: <code>control</code>, <code>container</code>, <code>overlay</code>, <code>media</code>, <code>pill</code>. A square-cornered theme flattens the entire system by re-pointing five lines.</p>
 <h3 id="elevation">Elevation</h3>
-<p>Six levels, and a z-index ladder to match. Keep every fixed-position layer on the ladder — hand-picked z-index values are how overlay bugs start.</p>
+<p>Six levels, and a z-index ladder to match. Keep every fixed-position layer on the ladder; hand-picked z-index values are how overlay bugs start.</p>
 <pre class="code"><code>0 flush        3 sticky headers, dropdowns
 1 cards        4 dialogs, drawers
 2 hover, popovers   5 toasts</code></pre>
@@ -107,8 +107,8 @@
 <p>Four roles. <code>micro</code> for state changes on screen, <code>enter</code> for arrivals, <code>exit</code> for departures, <code>emphasis</code> for changes that must be noticed. Exits are faster than entrances: people wait for arrivals, not departures.</p>
 <p>All four collapse to zero under <code>prefers-reduced-motion</code>.</p>
 <hr>
-<h2 id="tier-3-component">Tier 3 — Component</h2>
-<p>Authored only for Button, Input, Card, Dialog, and Table — the components with a real override need. Adding Tier 3 to every component is a maintenance tax most teams never cash in.</p>
+<h2 id="tier-3-component">Tier 3: Component</h2>
+<p>Authored only for Button, Input, Card, Dialog, and Table: the components with a real override need. Adding Tier 3 to every component is a maintenance tax most teams never cash in.</p>
 <p>The cascade is the point:</p>
 <pre class="code" data-lang="css"><code>/* Move every action surface in the system */
 --dt-surface-action: var(--dt-color-accent-700);
@@ -118,14 +118,14 @@
 <p><code>input.css</code> is shared by Input, Textarea, Select, and Combobox so every field in a form has identical geometry. A field 1px taller than its neighbour is the most visible failure a design system can ship.</p>
 <hr>
 <h2 id="adding-a-token">Adding a token</h2>
-<ol><li>Pick the tier. If it has a usage meaning, it is semantic. If it is a raw value, it is primitive. If only one component will ever read it, it is component.</li><li>Add it to <code>tokens/dovetail.tokens.json</code> first — a semantic <code>$value</code> must be a reference, never a literal.</li><li>Write the value in the DTCG type syntax for its <code>$type</code>, not as a CSS string. The file follows <a href="https://www.designtokens.org/tr/2025.10/format/">Design Tokens Format Module 2025.10</a>: colours are <code>{ &quot;colorSpace&quot;: &quot;oklch&quot;, &quot;components&quot;: [L, C, H] }</code> with an optional <code>alpha</code>, dimensions and durations are <code>{ &quot;value&quot;, &quot;unit&quot; }</code> objects (<code>px</code>/<code>rem</code>, <code>ms</code>/<code>s</code>), easings are four-number <code>cubicBezier</code> arrays, and elevation levels are <code>shadow</code> composites. Tracking is a unitless <code>number</code> because DTCG dimension has no <code>em</code>; the CSS generator adds the unit.</li><li>Port it to the matching CSS file.</li><li>Add it to the relevant spec card so it is visible in the Design System tab.</li><li>If it is a colour, verify contrast against its pair before committing.</li></ol>
+<ol><li>Pick the tier. If it has a usage meaning, it is semantic. If it is a raw value, it is primitive. If only one component will ever read it, it is component.</li><li>Add it to <code>tokens/dovetail.tokens.json</code> first, because a semantic <code>$value</code> must be a reference, never a literal.</li><li>Write the value in the DTCG type syntax for its <code>$type</code>, not as a CSS string. The file follows <a href="https://www.designtokens.org/tr/2025.10/format/">Design Tokens Format Module 2025.10</a>: colours are <code>{ &quot;colorSpace&quot;: &quot;oklch&quot;, &quot;components&quot;: [L, C, H] }</code> with an optional <code>alpha</code>, dimensions and durations are <code>{ &quot;value&quot;, &quot;unit&quot; }</code> objects (<code>px</code>/<code>rem</code>, <code>ms</code>/<code>s</code>), easings are four-number <code>cubicBezier</code> arrays, and elevation levels are <code>shadow</code> composites. Tracking is a unitless <code>number</code> because DTCG dimension has no <code>em</code>; the CSS generator adds the unit.</li><li>Port it to the matching CSS file.</li><li>Add it to the relevant spec card so it is visible in the Design System tab.</li><li>If it is a colour, verify contrast against its pair before committing.</li></ol>
 </article>
 <p class="muted">Source: <a href="../system/guidelines/tokens.md">system/guidelines/tokens.md</a></p>
 
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

@@ -63,14 +63,14 @@
   <a href="../system/components/forms/RadioGroup.md">RadioGroup.md</a>
 </p>
 
-<section class="card-block" id="radiogroup-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>RadioGroup — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/RadioGroup.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/RadioGroup.html" title="RadioGroup — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/RadioGroup.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -81,7 +81,7 @@
 <h2 id="always-preselect">Always preselect</h2>
 <p>Ship a <code>defaultValue</code>. An empty radio group forces a decision before the user has read the options and cannot be returned to its original state once touched. If no option is a safe default, the question is a <code>Select</code> with a placeholder, not a radio group.</p>
 <h2 id="when-to-use-a-select-instead">When to use a Select instead</h2>
-<p>Radios show every option at once, which is their advantage and their cost. Past about five options they crowd the form — switch to <code>Select</code>. Below three, consider whether the choice is really a <code>Switch</code>.</p>
+<p>Radios show every option at once, which is their advantage and their cost. Past about five options they crowd the form, so switch to <code>Select</code>. Below three, consider whether the choice is really a <code>Switch</code>.</p>
 <p>``<code>jsx &lt;RadioGroup   label=&quot;Deployment target&quot;   defaultValue=&quot;staging&quot;   options={[     { value: &quot;staging&quot;, label: &quot;Staging&quot;, hint: &quot;Rebuilt on every merge&quot; },     { value: &quot;canary&quot;, label: &quot;Canary&quot;, hint: &quot;Five percent of traffic&quot; },     { value: &quot;production&quot;, label: &quot;Production&quot; },   ]} /&gt; </code>``</p>
 </section>
 
@@ -116,6 +116,13 @@ export interface RadioGroupProps extends Omit&lt;React.HTMLAttributes&lt;HTMLEle
 }
 
 export declare function RadioGroup(props: RadioGroupProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>RadioGroup.jsx</code> resolves, read from the source: 2 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-inline-lg"><th scope="row"><a href="../tokens.html#token-dt-space-inline-lg"><code>--dt-space-inline-lg</code></a></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-stack-sm"><th scope="row"><a href="../tokens.html#token-dt-space-stack-sm"><code>--dt-space-stack-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -166,7 +173,7 @@ export function RadioGroup({ label, hint, error, required = false, options = [],
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

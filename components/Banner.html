@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Banner · Dovetail</title>
-<meta name="description" content="Page-level message about the state of the whole view — trial expiry, degraded service,">
+<meta name="description" content="Page-level message about the state of the whole view: trial expiry, degraded service,">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -54,7 +54,7 @@
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Banner</li></ol></nav>
 <h1>Banner</h1>
-<p class="lede">Page-level message about the state of the whole view — trial expiry, degraded service,</p>
+<p class="lede">Page-level message about the state of the whole view: trial expiry, degraded service,</p>
 <p class="meta">
   <span class="pill">Feedback</span>
   
@@ -63,21 +63,21 @@
   <a href="../system/components/feedback/Banner.md">Banner.md</a>
 </p>
 
-<section class="card-block" id="banner-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Banner — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Banner.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Banner.html" title="Banner — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Banner.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
-  <p>Page-level message about the state of the whole view — trial expiry, degraded service, a pending migration. Use Alert for messages scoped to one region or form.</p>
+  <p>Page-level message about the state of the whole view: trial expiry, degraded service, a pending migration. Use Alert for messages scoped to one region or form.</p>
 <h2 id="rules">Rules</h2>
 <ul><li>Banners run edge to edge at the top of the region they describe. A floating banner in the middle of a page is an Alert.</li><li>One banner at a time. Stacked banners push the actual page below the fold and train users to ignore the strip.</li><li><code>danger</code> announces as <code>role=&quot;alert&quot;</code>; the rest announce politely. Do not use danger for anything the user can safely finish reading later.</li><li>Persistent conditions get no dismiss button. Only offer <code>onDismiss</code> when dismissing it is a real decision.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
@@ -107,6 +107,13 @@ export interface BannerProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; 
 }
 
 export declare function Banner(props: BannerProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Banner.jsx</code> resolves, read from the source: 26 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-danger"><th scope="row"><a href="../tokens.html#token-dt-border-danger"><code>--dt-border-danger</code></a></th><td>semantic</td><td><code>var(--dt-color-red-200)</code></td></tr><tr id="uses-dt-border-info"><th scope="row"><a href="../tokens.html#token-dt-border-info"><code>--dt-border-info</code></a></th><td>semantic</td><td><code>var(--dt-color-cyan-200)</code></td></tr><tr id="uses-dt-border-success"><th scope="row"><a href="../tokens.html#token-dt-border-success"><code>--dt-border-success</code></a></th><td>semantic</td><td><code>var(--dt-color-green-200)</code></td></tr><tr id="uses-dt-border-warning"><th scope="row"><a href="../tokens.html#token-dt-border-warning"><code>--dt-border-warning</code></a></th><td>semantic</td><td><code>var(--dt-color-amber-200)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-inset-2xs"><code>--dt-space-inset-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-surface-danger-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-danger-subtle"><code>--dt-surface-danger-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-red-050)</code></td></tr><tr id="uses-dt-surface-info-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-info-subtle"><code>--dt-surface-info-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-cyan-050)</code></td></tr><tr id="uses-dt-surface-success-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-success-subtle"><code>--dt-surface-success-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-green-050)</code></td></tr><tr id="uses-dt-surface-warning-subtle"><th scope="row"><a href="../tokens.html#token-dt-surface-warning-subtle"><code>--dt-surface-warning-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-amber-050)</code></td></tr><tr id="uses-dt-text-body-md-size"><th scope="row"><code>--dt-text-body-md-size</code></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><code>--dt-text-body-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-danger"><th scope="row"><a href="../tokens.html#token-dt-text-danger"><code>--dt-text-danger</code></a></th><td>semantic</td><td><code>var(--dt-color-red-800)</code></td></tr><tr id="uses-dt-text-info"><th scope="row"><a href="../tokens.html#token-dt-text-info"><code>--dt-text-info</code></a></th><td>semantic</td><td><code>var(--dt-color-cyan-900)</code></td></tr><tr id="uses-dt-text-label-md-family"><th scope="row"><code>--dt-text-label-md-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-md-size"><th scope="row"><code>--dt-text-label-md-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-success"><th scope="row"><a href="../tokens.html#token-dt-text-success"><code>--dt-text-success</code></a></th><td>semantic</td><td><code>var(--dt-color-green-800)</code></td></tr><tr id="uses-dt-text-warning"><th scope="row"><a href="../tokens.html#token-dt-text-warning"><code>--dt-text-warning</code></a></th><td>semantic</td><td><code>var(--dt-color-amber-900)</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a></th><td>primitive</td><td><code>600</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -158,7 +165,7 @@ export function Banner({ tone = &quot;info&quot;, title, children, icon, action,
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

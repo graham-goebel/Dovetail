@@ -168,6 +168,10 @@ window.DovetailConfigure = {
       "label": "Sans — Geist",
       "value": "\"Geist\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif"
     },
+    "system": {
+      "label": "Sans — System UI",
+      "value": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif"
+    },
     "inter": {
       "label": "Sans — Inter",
       "value": "\"Inter\", ui-sans-serif, system-ui, sans-serif",
@@ -183,6 +187,26 @@ window.DovetailConfigure = {
       "value": "\"Manrope\", ui-sans-serif, system-ui, sans-serif",
       "googleFont": "Manrope:wght@400;500;600;700"
     },
+    "dmsans": {
+      "label": "Sans — DM Sans",
+      "value": "\"DM Sans\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "DM+Sans:wght@400;500;600;700"
+    },
+    "figtree": {
+      "label": "Sans — Figtree",
+      "value": "\"Figtree\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Figtree:wght@400;500;600;700"
+    },
+    "ibmplexsans": {
+      "label": "Sans — IBM Plex Sans",
+      "value": "\"IBM Plex Sans\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "IBM+Plex+Sans:wght@400;500;600;700"
+    },
+    "worksans": {
+      "label": "Sans — Work Sans",
+      "value": "\"Work Sans\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Work+Sans:wght@400;500;600;700"
+    },
     "serif": {
       "label": "Serif — Source Serif 4",
       "value": "\"Source Serif 4\", ui-serif, Georgia, serif",
@@ -193,6 +217,41 @@ window.DovetailConfigure = {
       "value": "\"Newsreader\", ui-serif, Georgia, serif",
       "googleFont": "Newsreader:wght@400;500;600;700"
     },
+    "lora": {
+      "label": "Serif — Lora",
+      "value": "\"Lora\", ui-serif, Georgia, serif",
+      "googleFont": "Lora:wght@400;500;600;700"
+    },
+    "baskerville": {
+      "label": "Serif — Libre Baskerville",
+      "value": "\"Libre Baskerville\", ui-serif, Georgia, serif",
+      "googleFont": "Libre+Baskerville:wght@400;700"
+    },
+    "fraunces": {
+      "label": "Display — Fraunces",
+      "value": "\"Fraunces\", ui-serif, Georgia, serif",
+      "googleFont": "Fraunces:opsz,wght@9..144,400..700"
+    },
+    "instrument": {
+      "label": "Display — Instrument Serif",
+      "value": "\"Instrument Serif\", ui-serif, Georgia, serif",
+      "googleFont": "Instrument+Serif"
+    },
+    "playfair": {
+      "label": "Display — Playfair Display",
+      "value": "\"Playfair Display\", ui-serif, Georgia, serif",
+      "googleFont": "Playfair+Display:wght@400;500;600;700"
+    },
+    "spacegrotesk": {
+      "label": "Display — Space Grotesk",
+      "value": "\"Space Grotesk\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Space+Grotesk:wght@400;500;600;700"
+    },
+    "outfit": {
+      "label": "Display — Outfit",
+      "value": "\"Outfit\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Outfit:wght@400;500;600;700"
+    },
     "mono": {
       "label": "Mono — Geist Mono",
       "value": "\"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, Consolas, monospace"
@@ -201,42 +260,192 @@ window.DovetailConfigure = {
       "label": "Mono — IBM Plex Mono",
       "value": "\"IBM Plex Mono\", ui-monospace, Menlo, Consolas, monospace",
       "googleFont": "IBM+Plex+Mono:wght@400;500;600"
+    },
+    "jetbrainsmono": {
+      "label": "Mono — JetBrains Mono",
+      "value": "\"JetBrains Mono\", ui-monospace, Menlo, Consolas, monospace",
+      "googleFont": "JetBrains+Mono:wght@400;500;600;700"
+    },
+    "spacemono": {
+      "label": "Mono — Space Mono",
+      "value": "\"Space Mono\", ui-monospace, Menlo, Consolas, monospace",
+      "googleFont": "Space+Mono:wght@400;700"
     }
   },
-  "interfaceFonts": [
+  "bodyFonts": [
     {
-      "value": "sans",
-      "label": "Geist"
+      "group": "Sans faces",
+      "options": [
+        {
+          "value": "sans",
+          "label": "Geist"
+        },
+        {
+          "value": "system",
+          "label": "System UI"
+        },
+        {
+          "value": "inter",
+          "label": "Inter"
+        },
+        {
+          "value": "jakarta",
+          "label": "Plus Jakarta Sans"
+        },
+        {
+          "value": "manrope",
+          "label": "Manrope"
+        },
+        {
+          "value": "dmsans",
+          "label": "DM Sans"
+        },
+        {
+          "value": "figtree",
+          "label": "Figtree"
+        },
+        {
+          "value": "ibmplexsans",
+          "label": "IBM Plex Sans"
+        },
+        {
+          "value": "worksans",
+          "label": "Work Sans"
+        }
+      ]
     },
     {
-      "value": "inter",
-      "label": "Inter"
+      "group": "Serif faces",
+      "options": [
+        {
+          "value": "serif",
+          "label": "Source Serif 4"
+        },
+        {
+          "value": "newsreader",
+          "label": "Newsreader"
+        },
+        {
+          "value": "lora",
+          "label": "Lora"
+        },
+        {
+          "value": "baskerville",
+          "label": "Libre Baskerville"
+        }
+      ]
+    }
+  ],
+  "displayFonts": [
+    {
+      "group": "Sans faces",
+      "options": [
+        {
+          "value": "sans",
+          "label": "Geist"
+        },
+        {
+          "value": "system",
+          "label": "System UI"
+        },
+        {
+          "value": "inter",
+          "label": "Inter"
+        },
+        {
+          "value": "jakarta",
+          "label": "Plus Jakarta Sans"
+        },
+        {
+          "value": "manrope",
+          "label": "Manrope"
+        },
+        {
+          "value": "dmsans",
+          "label": "DM Sans"
+        },
+        {
+          "value": "figtree",
+          "label": "Figtree"
+        },
+        {
+          "value": "ibmplexsans",
+          "label": "IBM Plex Sans"
+        },
+        {
+          "value": "worksans",
+          "label": "Work Sans"
+        }
+      ]
     },
     {
-      "value": "jakarta",
-      "label": "Plus Jakarta Sans"
+      "group": "Serif faces",
+      "options": [
+        {
+          "value": "serif",
+          "label": "Source Serif 4"
+        },
+        {
+          "value": "newsreader",
+          "label": "Newsreader"
+        },
+        {
+          "value": "lora",
+          "label": "Lora"
+        },
+        {
+          "value": "baskerville",
+          "label": "Libre Baskerville"
+        }
+      ]
     },
     {
-      "value": "manrope",
-      "label": "Manrope"
-    },
-    {
-      "value": "serif",
-      "label": "Source Serif 4"
-    },
-    {
-      "value": "newsreader",
-      "label": "Newsreader"
+      "group": "Display faces",
+      "options": [
+        {
+          "value": "fraunces",
+          "label": "Fraunces"
+        },
+        {
+          "value": "instrument",
+          "label": "Instrument Serif"
+        },
+        {
+          "value": "playfair",
+          "label": "Playfair Display"
+        },
+        {
+          "value": "spacegrotesk",
+          "label": "Space Grotesk"
+        },
+        {
+          "value": "outfit",
+          "label": "Outfit"
+        }
+      ]
     }
   ],
   "codeFonts": [
     {
-      "value": "mono",
-      "label": "Geist Mono"
-    },
-    {
-      "value": "ibmplexmono",
-      "label": "IBM Plex Mono"
+      "group": "Mono faces",
+      "options": [
+        {
+          "value": "mono",
+          "label": "Geist Mono"
+        },
+        {
+          "value": "ibmplexmono",
+          "label": "IBM Plex Mono"
+        },
+        {
+          "value": "jetbrainsmono",
+          "label": "JetBrains Mono"
+        },
+        {
+          "value": "spacemono",
+          "label": "Space Mono"
+        }
+      ]
     }
   ],
   "density": {

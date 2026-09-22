@@ -24,7 +24,7 @@ nothing else.
 
 ## Unknown types
 A `_type` with no component renders a visible warning when `debug` is on, and nothing when
-it is off — loud in review, silent for the reader. `debug` defaults to true under a
+it is off: loud in review, silent for the reader. `debug` defaults to true under a
 non-production `NODE_ENV` and false when there is no bundler to tell it apart, so a plain
 script tag in a browser stays quiet. Pass `onUnknown` to report the miss either way.
 
@@ -34,7 +34,7 @@ one per render. Registry values are ordinary components: Dovetail components, yo
 compositions, or a mix.
 
 ## Accessibility
-BlockRenderer adds no markup of its own — it returns a fragment. Whatever the blocks
+BlockRenderer adds no markup of its own; it returns a fragment. Whatever the blocks
 render is the whole output, so heading order is the content's responsibility.
 
 ## Tradeoffs

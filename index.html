@@ -56,7 +56,7 @@
   <p class="eyebrow">Design system</p>
   <h1>Dovetail</h1>
   <p class="hero-lede">A white-label design system. It ships unbranded on purpose: adopt the foundation, apply a theme, and the entire system becomes yours without a fork.</p>
-  <p class="hero-sub">Most design systems encode one company's taste. Dovetail encodes the structure that taste needs — a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.</p>
+  <p class="hero-sub">Most design systems encode one company's taste. Dovetail encodes the structure that taste needs: a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="foundations/index.html">Read the foundations</a>
     <a class="btn" href="components/index.html">Browse components</a>
@@ -84,14 +84,14 @@
 <hr>
 </section>
 
-<section class="card-block" id="the-tier-contract">
+<section class="card-block" id="the-three-tiers">
   <div class="card-head">
-    <h2>The tier contract</h2>
+    <h2>The three tiers</h2>
     <a class="card-open" href="previews/TierContract.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">The tier contract — Component reads semantic, semantic reads primitive. Nothing skips or reverses.</p>
   <div class="frame" style="height:198px">
-    <iframe src="previews/TierContract.html" title="The tier contract preview" loading="lazy"></iframe>
+    <iframe src="previews/TierContract.html" title="The three tiers preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -99,7 +99,7 @@
   <h2 id="how-the-system-is-put-together">How the system is put together</h2>
   <pre class="code"><code>styles.css              Global entry. Import lines only.
 tokens/
-  dovetail.tokens.json  DTCG source of truth — everything else is generated from it
+  dovetail.tokens.json  DTCG source of truth; everything else is generated from it
   primitive/            Tier 1: raw values, no meaning
   semantic/             Tier 2: purpose. The themeable layer.
   component/            Tier 3: per-component escape hatches
@@ -109,7 +109,7 @@ components/             React primitives, grouped by concern
 guidelines/             Foundations prose and spec cards
 integrations/           Adapters that turn a CMS payload into blocks
 tools/                  Style Dictionary config and the token pipeline</code></pre>
-<h3 id="the-token-contract">The token contract</h3>
+<h3 id="three-tiers-one-direction">Three tiers, one direction</h3>
 <p>Three tiers, referenced in one direction only:</p>
 <pre class="code"><code>component  →  semantic  →  primitive</code></pre>
 <p>A component reads semantic tokens. A semantic token reads a primitive. Nothing reads upward, and nothing skips a tier. This is the rule the whole system rests on, because it is what makes a rebrand a one-file change instead of a migration.</p>
@@ -124,7 +124,7 @@ tools/                  Style Dictionary config and the token pipeline</code></p
 <section class="prose">
   <h2 id="rules-checklist">Rules checklist</h2>
   <p>Self-audit against this before shipping anything built on Dovetail.</p>
-<ol><li>Every colour, dimension, radius, shadow, and duration is a token reference. No literals.</li><li>Components read semantic tokens. Only chart code reads primitives, and it says why.</li><li>Every background role is used with its paired foreground role.</li><li>All spacing is a multiple of 4px, taken from a <code>--dt-space-*</code> token.</li><li>Type uses a complete role — family, size, line-height, weight, tracking — not a loose size.</li><li>Interactive elements have a visible <code>:focus-visible</code> ring and a 44px minimum hit area on touch.</li><li>Contrast clears WCAG 2.2 AA: 4.5:1 body text, 3:1 large text and non-text.</li><li>The screen works in light and dark without component changes.</li><li>Motion uses a <code>--dt-motion-*</code> role and respects <code>prefers-reduced-motion</code>.</li><li>Copy is sentence case, verb-first on actions, no emoji.</li></ol>
+<ol><li>Every colour, dimension, radius, shadow, and duration is a token reference. No literals.</li><li>Components read semantic tokens. Only chart code reads primitives, and it says why.</li><li>Every background role is used with its paired foreground role.</li><li>All spacing is a multiple of 4px, taken from a <code>--dt-space-*</code> token.</li><li>Type uses a complete role (family, size, line-height, weight, tracking), not a loose size.</li><li>Interactive elements have a visible <code>:focus-visible</code> ring and a 44px minimum hit area on touch.</li><li>Contrast clears WCAG 2.2 AA: 4.5:1 body text, 3:1 large text and non-text.</li><li>The screen works in light and dark without component changes.</li><li>Motion uses a <code>--dt-motion-*</code> role and respects <code>prefers-reduced-motion</code>.</li><li>Copy is sentence case, verb-first on actions, no emoji.</li></ol>
 <hr>
   <p><a href="guide/readme.html">Read the full README</a> · <a href="guide/authoring-rules.html">Authoring rules</a></p>
 </section>
@@ -132,7 +132,7 @@ tools/                  Style Dictionary config and the token pipeline</code></p
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="assets/configure-data.js" defer></script>
 <script src="assets/theme.js" defer></script>

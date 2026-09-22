@@ -63,14 +63,14 @@
   <a href="../system/components/navigation/Navbar.md">Navbar.md</a>
 </p>
 
-<section class="card-block" id="navbar-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Navbar — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Navbar.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Navbar.html" title="Navbar — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Navbar.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -81,7 +81,7 @@
 <h2 id="rules">Rules</h2>
 <ul><li>Five links or fewer. A navbar is a shortlist, not a sitemap; deeper structures belong in a Sidebar or a footer.</li><li>The active link carries <code>aria-current=&quot;page&quot;</code> and a visible underline. Colour alone does not mark position.</li><li>One primary action in <code>actions</code>, at most. Two filled buttons side by side means neither is primary.</li><li>Do not put the current page's own section links here. Those are Tabs.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
-<p>Horizontal bars run out of room fast and scroll badly on narrow screens. Plan the mobile treatment — a Drawer — before you add the fourth link.</p>
+<p>Horizontal bars run out of room fast and scroll badly on narrow screens. Plan the mobile treatment, a Drawer, before you add the fourth link.</p>
 </section>
 
 <section class="prose">
@@ -113,6 +113,13 @@ export interface NavbarProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
 }
 
 export declare function Navbar(props: NavbarProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Navbar.jsx</code> resolves, read from the source: 14 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-selected"><th scope="row"><a href="../tokens.html#token-dt-border-selected"><code>--dt-border-selected</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-600)</code></td></tr><tr id="uses-dt-border-subtle"><th scope="row"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-space-inline-lg"><th scope="row"><a href="../tokens.html#token-dt-space-inline-lg"><code>--dt-space-inline-lg</code></a></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inline-md"><th scope="row"><a href="../tokens.html#token-dt-space-inline-md"><code>--dt-space-inline-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-inset-2xs"><code>--dt-space-inset-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inset-lg"><th scope="row"><a href="../tokens.html#token-dt-space-inset-lg"><code>--dt-space-inset-lg</code></a></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-surface-base"><th scope="row"><a href="../tokens.html#token-dt-surface-base"><code>--dt-surface-base</code></a></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-label-md-family"><th scope="row"><code>--dt-text-label-md-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-md-size"><th scope="row"><code>--dt-text-label-md-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a></th><td>primitive</td><td><code>500</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -166,7 +173,7 @@ export function Navbar({ brand, links = [], actions, current, onNavigate, label 
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

@@ -19,4 +19,4 @@ Groups related buttons. Detached by default; `attached` joins them into a segmen
 ```
 
 ## Accessibility
-Renders `role="group"` with the required `label`. For a segmented control where one option is selected, set `aria-pressed` on each button yourself — ButtonGroup does not manage selection state.
+Renders `role="group"` with the required `label`. For a segmented control where one option is selected, set `aria-pressed` on each button yourself, because ButtonGroup does not manage selection state.

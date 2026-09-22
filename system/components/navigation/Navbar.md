@@ -15,4 +15,4 @@ Top-level navigation for marketing pages and product shells with few destination
 ## Tradeoffs
 
 Horizontal bars run out of room fast and scroll badly on narrow screens. Plan the mobile
-treatment — a Drawer — before you add the fourth link.
+treatment, a Drawer, before you add the fourth link.

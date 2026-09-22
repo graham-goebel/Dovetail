@@ -63,24 +63,24 @@
   <a href="../system/components/actions/Link.md">Link.md</a>
 </p>
 
-<section class="card-block" id="link-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Link — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Link.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Reference and playground for Link</p>
   <div class="frame" style="height:576px">
-    <iframe src="../previews/Link.html" title="Link — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Link.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
-<section class="card-block" id="link-playground">
+<section class="card-block" id="playground">
   <div class="card-head">
-    <h2>Link — playground</h2>
+    <h2>Playground</h2>
     <a class="card-open" href="../previews/LinkPlayground.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Link — Navigation, external links, and underline policy in prose</p>
   <div class="frame" style="height:868px">
-    <iframe src="../previews/LinkPlayground.html" title="Link — playground preview" loading="lazy"></iframe>
+    <iframe src="../previews/LinkPlayground.html" title="Playground preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -90,12 +90,12 @@
 <h2 id="use-it-when">Use it when</h2>
 <ul><li>Navigating within the app or out to another site.</li></ul>
 <h2 id="don-t-use-it-when">Don't use it when</h2>
-<ul><li>It performs an action. Use <code>Button variant=&quot;ghost&quot;</code> — a link that deletes something is a trap.</li></ul>
+<ul><li>It performs an action. Use <code>Button variant=&quot;ghost&quot;</code>. A link that deletes something is a trap.</li></ul>
 <h2 id="example">Example</h2>
 <pre class="code" data-lang="jsx"><code>&lt;Link href=&quot;/settings&quot;&gt;Account settings&lt;/Link&gt;
 &lt;Link href=&quot;https://example.com&quot; external&gt;Read the spec&lt;/Link&gt;</code></pre>
 <h2 id="variants">Variants</h2>
-<p><code>underline=&quot;always&quot;</code> is the default and is correct inside prose — colour alone is not a sufficient signal. <code>underline=&quot;hover&quot;</code> is acceptable in navigation lists where position already marks the links.</p>
+<p><code>underline=&quot;always&quot;</code> is the default and is correct inside prose, because colour alone is not a sufficient signal. <code>underline=&quot;hover&quot;</code> is acceptable in navigation lists where position already marks the links.</p>
 <h2 id="accessibility">Accessibility</h2>
 <p><code>external</code> adds <code>rel=&quot;noopener noreferrer&quot;</code> and a visible icon, so a new tab is never a surprise.</p>
 <h2 id="content">Content</h2>
@@ -120,6 +120,13 @@ export interface LinkProps extends React.AnchorHTMLAttributes&lt;HTMLAnchorEleme
 }
 
 export declare function Link(props: LinkProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Link.jsx</code> resolves, read from the source: 4 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-motion-micro"><th scope="row"><a href="../tokens.html#token-dt-motion-micro"><code>--dt-motion-micro</code></a></th><td>semantic</td><td><code>var(--dt-duration-100) var(--dt-easing-standard)</code></td></tr><tr id="uses-dt-space-inline-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-inline-2xs"><code>--dt-space-inline-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-text-link"><th scope="row"><a href="../tokens.html#token-dt-text-link"><code>--dt-text-link</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-700)</code></td></tr><tr id="uses-dt-text-link-hover"><th scope="row"><a href="../tokens.html#token-dt-text-link-hover"><code>--dt-text-link-hover</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-800)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -170,7 +177,7 @@ export function Link({ href, external = false, underline = &quot;always&quot;, t
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

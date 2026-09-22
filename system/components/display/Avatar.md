@@ -1,7 +1,7 @@
 # Avatar
 
 Identifies a person or entity at a glance. Use it in lists, tables, comment threads, and
-account menus — anywhere a name alone reads slower than a face.
+account menus, anywhere a name alone reads slower than a face.
 
 ## Rules
 
@@ -9,7 +9,7 @@ account menus — anywhere a name alone reads slower than a face.
   fallback. An avatar with no name is unlabelled to a screen reader.
 - Use `xs` and `sm` inside dense rows, `md` as the default, `lg` and `xl` for profile
   headers only.
-- `status` is presence, not role or state. Do not repurpose it as a notification dot —
+- `status` is presence, not role or state. Do not repurpose it as a notification dot;
   use Badge for that.
 - Square avatars are for organisations and workspaces. Circles are for people.
 

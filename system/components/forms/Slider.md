@@ -1,6 +1,6 @@
 # Slider
 
-A range input for a value on a continuum where the approximate position matters more than the exact number — volume, opacity, a price ceiling.
+A range input for a value on a continuum where the approximate position matters more than the exact number: volume, opacity, a price ceiling.
 
 ## Not for precise numbers
 

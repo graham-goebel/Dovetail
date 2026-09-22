@@ -41,7 +41,7 @@ const slug = (s) =>
 /* A small CommonMark subset: headings, fenced code, tables, lists, quotes,
    rules, and the inline set the system's own documentation uses. */
 function inlineMd(t) {
-  /* Some of the system's markdown escapes its backticks — an artefact of files
+  /* Some of the system's markdown escapes its backticks, an artefact of files
      that once lived inside template literals. Unescaping first is what turns
      `\`Checkbox\`` back into the code span it was written to be, rather than a
      pair of stray backslashes on the page. */
@@ -155,7 +155,7 @@ function sections(src) {
 
 /* -------------------------------------------------------------------- icons */
 
-/* Dovetail ships no icon set — the README says to load one, and the media lab is
+/* Dovetail ships no icon set. The README says to load one, and the media lab is
    where you try them. These are the site's own chrome: drawn on the same 24px
    grid with round caps and joins, inherited colour, and no fill, which is the
    convention Lucide and Heroicons share and the one the system documents. They
@@ -308,10 +308,20 @@ function buildConfigureData() {
   const src = read(path.join(SYS, "theme-configurator.html"));
   const take = (name) => new Function(`return ${literal(src, name)}`)();
 
+  /* Each preset's label carries its kind, which is what sorts twenty-two
+     families into the three selects: text faces for body, everything but the
+     code faces for display, code faces for code. */
   const fonts = take("FONT_PRESETS");
-  const isCode = (key) => /^Mono/.test(fonts[key].label);
-  const options = (keys) =>
-    keys.map((key) => ({ value: key, label: fonts[key].label.replace(/^(Sans|Serif|Mono) — /, "") }));
+  const kindOf = (key) => (fonts[key].label.match(/^(Sans|Serif|Display|Mono)/) || [, "Sans"])[1];
+  const grouped = (kinds) =>
+    kinds
+      .map((kind) => ({
+        group: kind === "Display" ? "Display faces" : kind + " faces",
+        options: Object.keys(fonts)
+          .filter((key) => kindOf(key) === kind)
+          .map((key) => ({ value: key, label: fonts[key].label.replace(/^(Sans|Serif|Display|Mono) . /, "") })),
+      }))
+      .filter((g) => g.options.length);
 
   const data = {
     steps: take("STEPS"),
@@ -319,8 +329,9 @@ function buildConfigureData() {
     accents: take("ACCENTS"),
     radii: take("RADIUS_PRESETS"),
     fonts,
-    interfaceFonts: options(Object.keys(fonts).filter((k) => !isCode(k))),
-    codeFonts: options(Object.keys(fonts).filter(isCode)),
+    bodyFonts: grouped(["Sans", "Serif"]),
+    displayFonts: grouped(["Sans", "Serif", "Display"]),
+    codeFonts: grouped(["Mono"]),
     density: take("DENSITY_OVERRIDES"),
     monochrome: take("MONO_OVERRIDES"),
     presets: take("THEME_PRESETS"),
@@ -365,6 +376,19 @@ const GROUP_LABEL = {
   feedback: "Feedback",
   content: "Content",
 };
+/* One sentence per family, so the heading says what the group is for rather
+   than only naming it. What each family owns, and what it deliberately leaves
+   to another. */
+const GROUP_BLURB = {
+  primitives: "Layout with no opinion about content. These own spacing, stacking and rhythm, and they draw almost nothing themselves.",
+  actions: "Everything a person can press. One visual hierarchy across all of them, so importance reads the same whether the target is a button or a link.",
+  forms: "Inputs and the structure around them. Field owns the label, hint and error for every control, so validation looks and announces the same everywhere.",
+  display: "Read-only presentation of data that already exists. They render what they are given and never fetch, sort or filter it.",
+  navigation: "Moving between places, and showing where you are. Each one takes the current location as a prop rather than reading the URL, so they suit any router.",
+  feedback: "Telling someone what happened, or asking before it does. Severity is a prop, and the overlays share one layer, focus trap and dismissal behaviour.",
+  content: "Long-form and editorial shapes, including the pieces a CMS drives. Media reserves its space before it loads, so a page never jumps.",
+};
+
 const GROUP_DETAIL = {
   actions: ["ActionsDetail"],
   content: ["ContentDetail"],
@@ -443,7 +467,7 @@ const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === gr
 
 const GUIDE_PAGES = [
   ["readme", "README", "system/README.md", "The system's own manifest and design guide."],
-  ["tokens", "Token reference", "system/guidelines/tokens.md", "The full token contract, tier by tier."],
+  ["tokens", "Token reference", "system/guidelines/tokens.md", "Every token, tier by tier."],
   ["theming", "Theming", "system/guidelines/theming.md", "From a brand palette to a working theme."],
   ["accessibility", "Accessibility", "system/guidelines/accessibility.md", "What the system guarantees, and what you owe."],
   ["headless-integration", "Headless integration", "system/guidelines/headless-integration.md", "React, Sanity, and other content sources."],
@@ -513,7 +537,7 @@ function page({ title, lede, body, active, root, wide = false, scripts = "" }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(heading)}</title>
-<meta name="description" content="${attr(lede || "Dovetail — a white-label design system.")}">
+<meta name="description" content="${attr(lede || "Dovetail: a white-label design system.")}">
 <link rel="icon" href="${ICON}">
 <link rel="stylesheet" href="${root}system/styles.css">
 <link rel="stylesheet" href="${root}assets/site.css">
@@ -550,7 +574,7 @@ ${body}
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 ${scripts}<script src="${root}assets/configure-data.js" defer></script>
 <script src="${root}assets/theme.js" defer></script>
@@ -560,9 +584,104 @@ ${scripts}<script src="${root}assets/configure-data.js" defer></script>
 `;
 }
 
+/* ------------------------------------------------------------ token usage */
+
+/* Which tokens a component actually resolves, read out of its source rather
+   than out of its guide, so the list cannot fall behind the code. Every value
+   in a component is a custom property, so the references are all there is to
+   find. */
+const TOKEN_TIER_DIRS = [
+  ["primitive", "primitive"],
+  ["semantic", "semantic"],
+  ["component", "component"],
+];
+const TIER_RANK = { component: 0, semantic: 1, primitive: 2, undefined: 3 };
+
+const tokenDefs = new Map();
+for (const [dir, tier] of TOKEN_TIER_DIRS) {
+  const dirPath = path.join(SYS, "tokens", dir);
+  if (!exists(dirPath)) continue;
+  for (const file of fs.readdirSync(dirPath).filter((f) => f.endsWith(".css")).sort()) {
+    const css = read(path.join(dirPath, file));
+    for (const m of css.matchAll(/(--dt-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+      /* First definition wins: later files are themes and overrides of a token
+         the tier already declared. */
+      if (!tokenDefs.has(m[1])) tokenDefs.set(m[1], { tier, value: m[2].trim().replace(/\s+/g, " ") });
+    }
+  }
+}
+
+/* The names that have a row on the tokens page, so a link only ever points at
+   an anchor that exists. */
+const tokenRows = new Set();
+for (const family of Object.values(tokens)) {
+  if (family && Array.isArray(family.tokens)) for (const t of family.tokens) tokenRows.add("dt-" + String(t.name).replace(/^dt-/, ""));
+}
+
+function tokensUsedBy(relSource) {
+  const src = read(path.join(ROOT, relSource));
+  const used = new Map();
+  for (const m of src.matchAll(/--dt-[a-z0-9-]*/g)) {
+    const raw = m[0];
+    /* A size or variant suffix is interpolated: `--dt-button-height-${size}`.
+       The prefix is real, so it stands for every token that starts with it. */
+    const interpolated = src.slice(m.index + raw.length, m.index + raw.length + 2) === "${";
+    if (interpolated || (raw.endsWith("-") && !tokenDefs.has(raw))) {
+      for (const [name, def] of tokenDefs) if (name.startsWith(raw)) used.set(name, def);
+      continue;
+    }
+    used.set(raw, tokenDefs.get(raw) || null);
+  }
+  return [...used.entries()]
+    .map(([name, def]) => ({ name, tier: def ? def.tier : "undefined", value: def ? def.value : null }))
+    .sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || a.name.localeCompare(b.name));
+}
+
+const TIER_NOTE = {
+  component: "Its own tier. Override one of these and only this component moves.",
+  semantic: "Shared roles. Override one and everything using that role moves with it.",
+  primitive: "Raw values. A component reading one directly is a deliberate exception.",
+  undefined: "Referenced by the source but declared by no tier, so it resolves to nothing.",
+};
+
+function tokenUsageSection(c, root) {
+  if (!c.source) return "";
+  const used = tokensUsedBy(c.source);
+  if (!used.length) {
+    return `<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">None. <code>${esc(path.basename(c.source))}</code> resolves no custom property: it sets structure and nothing a theme can move.</p>
+</section>`;
+  }
+  const tiers = ["component", "semantic", "primitive", "undefined"].filter((t) => used.some((u) => u.tier === t));
+  const rows = used
+    .map((u) => {
+      const bare = u.name.slice(2);
+      const label = tokenRows.has(bare)
+        ? `<a href="${root}tokens.html#token-${attr(bare)}"><code>${esc(u.name)}</code></a>`
+        : `<code>${esc(u.name)}</code>`;
+      const value = u.value ? `${swatch(u.value)}<code>${esc(u.value)}</code>` : `<span class="token-undefined">not declared</span>`;
+      return `<tr id="uses-${attr(bare)}"><th scope="row">${label}</th><td>${esc(u.tier === "undefined" ? "none" : u.tier)}</td><td>${value}</td></tr>`;
+    })
+    .join("");
+  const counts = tiers.map((t) => `${used.filter((u) => u.tier === t).length} ${t === "undefined" ? "undeclared" : t}`);
+  return `<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>${esc(path.basename(c.source))}</code> resolves, read from the source: ${esc(counts.join(", "))}. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key">${tiers.map((t) => `<li><strong>${esc(t === "undefined" ? "none" : t)}</strong> ${esc(TIER_NOTE[t])}</li>`).join("")}</ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody>${rows}</tbody></table></div>
+</section>`;
+}
+
+/* A card's file name is its identifier, and a few of them are not sentences a
+   reader wants as a heading. The card keeps its name; the heading gets one. */
+const CARD_TITLE = {
+  TierContract: "The three tiers",
+};
+
 function cardBlock(card, root, { heading = null, level = 2 } = {}) {
   if (!card) return "";
-  const title = heading || card.name || card.id;
+  const title = heading || CARD_TITLE[card.id] || card.name || card.id;
   const height = Math.min(Number(card.height) || 600, 1100);
   const id = slug(title);
   return `<section class="card-block" id="${attr(id)}">
@@ -607,7 +726,7 @@ function buildHome() {
   <p class="eyebrow">Design system</p>
   <h1>Dovetail</h1>
   <p class="hero-lede">A white-label design system. It ships unbranded on purpose: adopt the foundation, apply a theme, and the entire system becomes yours without a fork.</p>
-  <p class="hero-sub">Most design systems encode one company's taste. Dovetail encodes the structure that taste needs — a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.</p>
+  <p class="hero-sub">Most design systems encode one company's taste. Dovetail encodes the structure that taste needs: a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.</p>
   <div class="hero-actions">
     <a class="btn btn-primary" href="foundations/index.html">Read the foundations</a>
     <a class="btn" href="components/index.html">Browse components</a>
@@ -629,7 +748,7 @@ function buildHome() {
   ${markdown(s.get("Start here") || "")}
 </section>
 
-${cardBlock(cards.get("TierContract"), "", { heading: "The tier contract" })}
+${cardBlock(cards.get("TierContract"), "", { heading: "The three tiers" })}
 
 <section class="prose">
   <h2 id="how-the-system-is-put-together">How the system is put together</h2>
@@ -666,7 +785,7 @@ ${FOUNDATIONS.map(([group, s, text, glyph]) => {
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Foundations", href: "foundations/index.html" }, { label: group }])}
 <h1>${esc(group)}</h1>
 <p class="lede">${esc(text)}</p>
-${list.map((c) => cardBlock(c, "../", { heading: c.name || c.id })).join("\n")}
+${list.map((c) => cardBlock(c, "../")).join("\n")}
 `;
     write(`foundations/${s}.html`, page({ title: group, lede: text, body, active: `foundations:${s}`, root: "../" }));
   }
@@ -678,11 +797,12 @@ function buildComponents() {
   const index = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Components" }])}
 <h1>Components</h1>
-<p class="lede">${components.length} components in seven families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one — it carries the rules the types cannot.</p>
+<p class="lede">${components.length} components in seven families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
 ${GROUP_ORDER.map((g) => {
   const list = byGroup(g);
   return `<section class="group">
   <h2 id="${attr(g)}">${esc(GROUP_LABEL[g])}</h2>
+  <p class="group-note">${esc(GROUP_BLURB[g])}</p>
   <div class="tiles compact">
   ${list
     .map((c) => {
@@ -754,8 +874,8 @@ ${breadcrumb("../", [
   ${c.guideFile ? `<a href="../${c.guideFile}">${esc(c.sourceName)}.md</a>` : ""}
 </p>
 
-${cardBlock(c.card, "../", { heading: `${c.name} — live` })}
-${c.playground ? cardBlock(c.playground, "../", { heading: `${c.name} — playground` }) : ""}
+${cardBlock(c.card, "../", { heading: "Live" })}
+${c.playground ? cardBlock(c.playground, "../", { heading: "Playground" }) : ""}
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
@@ -771,6 +891,8 @@ ${
 </section>`
     : ""
 }
+
+${tokenUsageSection(c, "../")}
 
 ${
   c.source
@@ -817,7 +939,7 @@ ${SHOWCASE.map(([group, s, text, glyph]) => {
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showcase", href: "showcase/index.html" }, { label: group }])}
 <h1>${esc(group)}</h1>
 <p class="lede">${esc(text)}</p>
-${list.map((c) => cardBlock(c, "../", { heading: c.name || c.id })).join("\n")}
+${list.map((c) => cardBlock(c, "../")).join("\n")}
 `;
     write(`showcase/${s}.html`, page({ title: group, lede: text, body, active: `showcase:${s}`, root: "../", wide: true }));
   }
@@ -869,7 +991,7 @@ function tokenTable(list, themes) {
             })
             .join("")
         : `<td><code>${esc(typeof t.value === "object" ? JSON.stringify(t.value) : t.value)}</code></td>`;
-      return `<tr><th scope="row"><code>--${esc(t.name)}</code></th>${cells}<td class="usage">${esc(t.usage || "")}</td></tr>`;
+      return `<tr id="token-${attr(t.name)}"><th scope="row"><code>--${esc(t.name)}</code></th>${cells}<td class="usage">${esc(t.usage || "")}</td></tr>`;
     })
     .join("");
   return `<div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th>${heads}<th>Usage</th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -930,7 +1052,7 @@ ${families
 
 <section class="prose">
   <h2 id="type">Type styles</h2>
-  <p class="muted">Families and the complete roles the system ships. A role travels as a set — family, size, line height, weight and tracking.</p>
+  <p class="muted">Families and the complete roles the system ships. A role travels as a set: family, size, line height, weight and tracking.</p>
   <div class="table-wrap"><table class="tokens"><thead><tr><th>Family</th><th>Stack</th></tr></thead><tbody>
   ${Object.entries((tokens.type && tokens.type.families) || {})
     .map(([k, v]) => `<tr><th scope="row"><code>--${esc(k)}</code></th><td><code>${esc(v)}</code></td></tr>`)

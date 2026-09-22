@@ -16,7 +16,7 @@ The wrapper that gives a control its label, hint, and error. Input, Textarea, an
 \`\`\`
 
 ## Accessibility
-htmlFor must point at the control's id. The error renders in role="alert" so it is announced when it appears. The required asterisk is aria-hidden — set required on the control so assistive tech hears it once, not twice.
+htmlFor must point at the control's id. The error renders in role="alert" so it is announced when it appears. The required asterisk is aria-hidden, so set required on the control so assistive tech hears it once, not twice.
 
 ## Content
 Labels are sentence case nouns without a colon. Hints explain the format or the consequence. Errors say what happened and what to do next: "That email is already in use. Try signing in instead."

@@ -1,6 +1,6 @@
 # Tooltip
 
-Names a control whose purpose is not obvious from its face — most often an IconButton.
+Names a control whose purpose is not obvious from its face, most often an IconButton.
 
 ## Rules
 
@@ -15,4 +15,4 @@ Names a control whose purpose is not obvious from its face — most often an Ico
 ## Tradeoffs
 
 Tooltips do not exist on touch devices. Any information you put in one is information a
-phone user will not get — plan the mobile affordance separately.
+phone user will not get, so plan the mobile affordance separately.

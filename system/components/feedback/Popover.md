@@ -1,6 +1,6 @@
 # Popover
 
-Anchored panel holding secondary controls or detail — a filter set, a field explanation,
+Anchored panel holding secondary controls or detail: a filter set, a field explanation,
 a small form. Opens on click, closes on outside click or Escape.
 
 ## Rules

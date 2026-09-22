@@ -1,6 +1,6 @@
 # Code
 
-Marks text that must be read literally — token names, file paths, commands, snippets.
+Marks text that must be read literally: token names, file paths, commands, snippets.
 
 ## Rules
 

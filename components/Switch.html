@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Switch · Dovetail</title>
-<meta name="description" content="An instant on/off setting. Flipping it applies the change — there is no Save button.">
+<meta name="description" content="An instant on/off setting. Flipping it applies the change; there is no Save button.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -54,7 +54,7 @@
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Switch</li></ol></nav>
 <h1>Switch</h1>
-<p class="lede">An instant on/off setting. Flipping it applies the change — there is no Save button.</p>
+<p class="lede">An instant on/off setting. Flipping it applies the change; there is no Save button.</p>
 <p class="meta">
   <span class="pill">Forms</span>
   
@@ -63,25 +63,25 @@
   <a href="../system/components/forms/Switch.md">Switch.md</a>
 </p>
 
-<section class="card-block" id="switch-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Switch — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Switch.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Switch.html" title="Switch — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Switch.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
-  <p>An instant on/off setting. Flipping it applies the change — there is no Save button.</p>
+  <p>An instant on/off setting. Flipping it applies the change; there is no Save button.</p>
 <h2 id="use-it-when">Use it when</h2>
 <ul><li>A preference takes effect immediately: notifications, dark mode, autopay.</li></ul>
 <h2 id="don-t-use-it-when">Don't use it when</h2>
-<ul><li>The value is submitted with a form. Use Checkbox — a switch that needs saving lies about when it took effect.</li><li>The choice is not two opposite states.</li></ul>
+<ul><li>The value is submitted with a form. Use Checkbox; a switch that needs saving lies about when it took effect.</li><li>The choice is not two opposite states.</li></ul>
 <h2 id="example">Example</h2>
 <pre class="code" data-lang="jsx"><code>&lt;Switch label=&quot;Autopay&quot; hint=&quot;Charge the card on file each month&quot; labelPosition=&quot;start&quot; defaultChecked /&gt;</code></pre>
 <h2 id="variants">Variants</h2>
@@ -110,6 +110,13 @@ export interface SwitchProps extends Omit&lt;React.InputHTMLAttributes&lt;HTMLIn
 }
 
 export declare function Switch(props: SwitchProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Switch.jsx</code> resolves, read from the source: 13 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-strong"><th scope="row"><a href="../tokens.html#token-dt-border-strong"><code>--dt-border-strong</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-400)</code></td></tr><tr id="uses-dt-elevation-1"><th scope="row"><a href="../tokens.html#token-dt-elevation-1"><code>--dt-elevation-1</code></a></th><td>semantic</td><td><code>var(--dt-shadow-raw-1)</code></td></tr><tr id="uses-dt-motion-micro"><th scope="row"><a href="../tokens.html#token-dt-motion-micro"><code>--dt-motion-micro</code></a></th><td>semantic</td><td><code>var(--dt-duration-100) var(--dt-easing-standard)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-surface-action"><th scope="row"><a href="../tokens.html#token-dt-surface-action"><code>--dt-surface-action</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-600)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><code>--dt-text-body-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><code>--dt-text-body-sm-line</code></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-body-xs-line"><th scope="row"><code>--dt-text-body-xs-line</code></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-body-xs-size"><th scope="row"><code>--dt-text-body-xs-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-color-white"><th scope="row"><a href="../tokens.html#token-dt-color-white"><code>--dt-color-white</code></a></th><td>primitive</td><td><span class="swatch" style="background:oklch(1 0 0)"></span><code>oklch(1 0 0)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -188,7 +195,7 @@ export function Switch({ label, hint, checked, defaultChecked = false, onChange,
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

@@ -1,6 +1,6 @@
 # List
 
-Presents a sequence of comparable records — files, members, notifications, settings.
+Presents a sequence of comparable records: files, members, notifications, settings.
 Use it when rows share a shape and the user scans down one column.
 
 ## Rules

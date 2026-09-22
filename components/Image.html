@@ -63,14 +63,14 @@
   <a href="../system/components/content/Image.md">Image.md</a>
 </p>
 
-<section class="card-block" id="image-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Image — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Image.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Image.html" title="Image — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Image.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -79,13 +79,13 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>A ratio-locked image with a built-in placeholder. Use it instead of a bare <code>&lt;img&gt;</code> anywhere in a template. It reserves space, crops predictably, and degrades to a labelled frame when the content system has not supplied a file yet.</p>
 <h2 id="alt-text-is-required">Alt text is required</h2>
-<p><code>alt</code> is a required prop, not an optional one. Pass an empty string for a purely decorative image — that is an explicit decision a reviewer can see. An omitted <code>alt</code> is a type error.</p>
+<p><code>alt</code> is a required prop, not an optional one. Pass an empty string for a purely decorative image; that is an explicit decision a reviewer can see. An omitted <code>alt</code> is a type error.</p>
 <h2 id="fit-and-focal-point">Fit and focal point</h2>
 <p><code>fit=&quot;cover&quot;</code> is the default and the right answer for nearly all editorial and marketing placements: the frame stays exact and the image crops. Use <code>contain</code> only for logos and screenshots where losing an edge is worse than leaving empty space.</p>
 <p>When cover crops the wrong part of a photo, move the focal point rather than changing the ratio:</p>
 <p>``<code>jsx &lt;Image src={hero} alt=&quot;Two engineers reviewing a schematic&quot; ratio=&quot;21:9&quot; position=&quot;center 30%&quot; /&gt; </code>``</p>
 <h2 id="placeholders">Placeholders</h2>
-<p>Without <code>src</code>, Image renders a dashed frame labelled with <code>placeholder</code> or <code>alt</code>. Templates ship this way on purpose — a consumer can see the intended ratio and subject before wiring up a CMS.</p>
+<p>Without <code>src</code>, Image renders a dashed frame labelled with <code>placeholder</code> or <code>alt</code>. Templates ship this way on purpose, so a consumer can see the intended ratio and subject before wiring up a CMS.</p>
 </section>
 
 <section class="prose">
@@ -115,6 +115,13 @@ export interface ImageProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&
 }
 
 export declare function Image(props: ImageProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Image.jsx</code> resolves, read from the source: 7 semantic, 2 primitive, 2 undeclared. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li><li><strong>none</strong> Referenced by the source but declared by no tier, so it resolves to nothing.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-subtle"><th scope="row"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-media"><th scope="row"><a href="../tokens.html#token-dt-radius-media"><code>--dt-radius-media</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-font-family-mono"><th scope="row"><code>--dt-font-family-mono</code></th><td>primitive</td><td><code>&quot;Geist Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</code></td></tr><tr id="uses-dt-font-size-xs"><th scope="row"><code>--dt-font-size-xs</code></th><td>primitive</td><td><code>12px</code></td></tr><tr id="uses-dt-border-width-hair"><th scope="row"><code>--dt-border-width-hair</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr><tr id="uses-dt-text-label-sm-font"><th scope="row"><code>--dt-text-label-sm-font</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -153,7 +160,7 @@ export function Image({ src, alt, ratio = &quot;16:9&quot;, fit = &quot;cover&qu
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

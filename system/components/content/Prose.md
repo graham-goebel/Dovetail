@@ -1,6 +1,6 @@
 # Prose
 
-Wraps long-form editorial text — articles, documentation, changelogs — in a readable
+Wraps long-form editorial text (articles, documentation, changelogs) in a readable
 measure with consistent vertical rhythm.
 
 ## Rules
@@ -15,5 +15,5 @@ measure with consistent vertical rhythm.
 
 ## Tradeoffs
 
-A fixed measure leaves white space on wide screens. That space is the point — full-width
+A fixed measure leaves white space on wide screens. That space is the point: full-width
 text at 1400px is unreadable regardless of how empty the margins look.

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Slider · Dovetail</title>
-<meta name="description" content="A range input for a value on a continuum where the approximate position matters more than the exact number — volume, opacity, a price ceiling.">
+<meta name="description" content="A range input for a value on a continuum where the approximate position matters more than the exact number: volume, opacity, a price ceiling.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../assets/site.css">
@@ -54,7 +54,7 @@
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Slider</li></ol></nav>
 <h1>Slider</h1>
-<p class="lede">A range input for a value on a continuum where the approximate position matters more than the exact number — volume, opacity, a price ceiling.</p>
+<p class="lede">A range input for a value on a continuum where the approximate position matters more than the exact number: volume, opacity, a price ceiling.</p>
 <p class="meta">
   <span class="pill">Forms</span>
   
@@ -63,21 +63,21 @@
   <a href="../system/components/forms/Slider.md">Slider.md</a>
 </p>
 
-<section class="card-block" id="slider-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Slider — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Slider.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Slider.html" title="Slider — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Slider.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
-  <p>A range input for a value on a continuum where the approximate position matters more than the exact number — volume, opacity, a price ceiling.</p>
+  <p>A range input for a value on a continuum where the approximate position matters more than the exact number: volume, opacity, a price ceiling.</p>
 <h2 id="not-for-precise-numbers">Not for precise numbers</h2>
 <p>If the user knows the value they want, a slider makes them hunt for it. Use a number input. A slider earns its place when the user is exploring rather than entering.</p>
 <h2 id="always-show-the-value">Always show the value</h2>
@@ -116,6 +116,13 @@ export interface SliderProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement
 }
 
 export declare function Slider(props: SliderProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Slider.jsx</code> resolves, read from the source: 6 semantic, 3 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-radius-pill"><th scope="row"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-space-inline-md"><th scope="row"><a href="../tokens.html#token-dt-space-inline-md"><code>--dt-space-inline-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-surface-action"><th scope="row"><a href="../tokens.html#token-dt-surface-action"><code>--dt-surface-action</code></a></th><td>semantic</td><td><code>var(--dt-color-accent-600)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><code>--dt-text-body-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-dim-5"><th scope="row"><a href="../tokens.html#token-dt-dim-5"><code>--dt-dim-5</code></a></th><td>primitive</td><td><code>20px</code></td></tr><tr id="uses-dt-dim-hair-2"><th scope="row"><a href="../tokens.html#token-dt-dim-hair-2"><code>--dt-dim-hair-2</code></a></th><td>primitive</td><td><code>2px</code></td></tr><tr id="uses-dt-font-family-mono"><th scope="row"><code>--dt-font-family-mono</code></th><td>primitive</td><td><code>&quot;Geist Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -170,7 +177,7 @@ export function Slider({ label, hint, error, min = 0, max = 100, step = 1, value
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

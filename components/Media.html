@@ -63,14 +63,14 @@
   <a href="../system/components/content/Media.md">Media.md</a>
 </p>
 
-<section class="card-block" id="media-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Media — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Media.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Media.html" title="Media — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Media.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -82,7 +82,7 @@
 <p>Stack several Media blocks and flip <code>reverse</code> on every other one. The zigzag gives a long page rhythm without any new layout code. Flipping them in an irregular order reads as a mistake.</p>
 <p>``<code>jsx &lt;Media media={&lt;Image src={a} alt=&quot;…&quot; ratio=&quot;4:3&quot; /&gt;} title=&quot;Ship the theme, not the fork&quot; body=&quot;…&quot; /&gt; &lt;Media media={&lt;Image src={b} alt=&quot;…&quot; ratio=&quot;4:3&quot; /&gt;} title=&quot;One contract, every surface&quot; body=&quot;…&quot; reverse /&gt; </code>``</p>
 <h2 id="one-primary-action">One primary action</h2>
-<p><code>actions</code> takes a row of controls. At most one is primary — everything else is secondary or a link. Three buttons in a marketing row means you have not decided what the section is for.</p>
+<p><code>actions</code> takes a row of controls. At most one is primary; everything else is secondary or a link. Three buttons in a marketing row means you have not decided what the section is for.</p>
 <h2 id="weighting-the-columns">Weighting the columns</h2>
 <p><code>mediaWidth</code> sets the media track. Use <code>&quot;1fr&quot;</code> for an even split, <code>&quot;1.2fr&quot;</code> when the image is the argument, and a fixed width like <code>&quot;360px&quot;</code> for a small supporting visual beside long copy.</p>
 </section>
@@ -118,6 +118,13 @@ export declare function Media(props: MediaProps): JSX.Element;</code></pre>
 </section>
 
 <section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Media.jsx</code> resolves, read from the source: 9 semantic, 10 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-inline-2xl"><th scope="row"><a href="../tokens.html#token-dt-space-inline-2xl"><code>--dt-space-inline-2xl</code></a></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-space-inline-lg"><th scope="row"><a href="../tokens.html#token-dt-space-inline-lg"><code>--dt-space-inline-lg</code></a></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inline-md"><th scope="row"><a href="../tokens.html#token-dt-space-inline-md"><code>--dt-space-inline-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inline-xl"><th scope="row"><a href="../tokens.html#token-dt-space-inline-xl"><code>--dt-space-inline-xl</code></a></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-stack-md"><th scope="row"><a href="../tokens.html#token-dt-space-stack-md"><code>--dt-space-stack-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-font-family-mono"><th scope="row"><code>--dt-font-family-mono</code></th><td>primitive</td><td><code>&quot;Geist Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</code></td></tr><tr id="uses-dt-font-family-sans"><th scope="row"><code>--dt-font-family-sans</code></th><td>primitive</td><td><code>&quot;Geist&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif</code></td></tr><tr id="uses-dt-font-size-2xl"><th scope="row"><code>--dt-font-size-2xl</code></th><td>primitive</td><td><code>28px</code></td></tr><tr id="uses-dt-font-size-md"><th scope="row"><code>--dt-font-size-md</code></th><td>primitive</td><td><code>16px</code></td></tr><tr id="uses-dt-font-size-xs"><th scope="row"><code>--dt-font-size-xs</code></th><td>primitive</td><td><code>12px</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a></th><td>primitive</td><td><code>600</code></td></tr><tr id="uses-dt-line-height-2xl"><th scope="row"><a href="../tokens.html#token-dt-line-height-2xl"><code>--dt-line-height-2xl</code></a></th><td>primitive</td><td><code>36px</code></td></tr><tr id="uses-dt-line-height-md"><th scope="row"><a href="../tokens.html#token-dt-line-height-md"><code>--dt-line-height-md</code></a></th><td>primitive</td><td><code>24px</code></td></tr><tr id="uses-dt-tracking-tight"><th scope="row"><a href="../tokens.html#token-dt-tracking-tight"><code>--dt-tracking-tight</code></a></th><td>primitive</td><td><code>-0.02em</code></td></tr><tr id="uses-dt-tracking-wide"><th scope="row"><a href="../tokens.html#token-dt-tracking-wide"><code>--dt-tracking-wide</code></a></th><td>primitive</td><td><code>0.02em</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
   <h2 id="source">Source</h2>
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
@@ -148,7 +155,7 @@ export function Media({ media, eyebrow, title, body, actions, reverse = false, a
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

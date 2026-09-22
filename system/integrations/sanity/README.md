@@ -42,5 +42,5 @@ commit. Generating them from the types is the next thing to build here.
 Accordion, Figure and Prose. A button is not a content type; it is a prop on one.
 
 **Images resolve to a URL and an alt string.** If you need Sanity's hotspot and crop, add
-the fields to `imageFragment` and read them in your own registry entry — `Image` takes a
+the fields to `imageFragment` and read them in your own registry entry. `Image` takes a
 `position`, which is where a hotspot lands.

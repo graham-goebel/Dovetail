@@ -8,7 +8,7 @@ arrives.
 - Match the real content's dimensions. A skeleton that is the wrong size causes the
   reflow it exists to prevent.
 - Skeletons are `aria-hidden`. Announce loading state on the container with
-  `aria-busy` — a screen reader user gains nothing from grey rectangles.
+  `aria-busy`. A screen reader user gains nothing from grey rectangles.
 - Use skeletons for content-shaped waits over roughly 300ms. Use Spinner for actions
   and indeterminate waits with no known shape.
 - Do not skeleton an entire page. Show the chrome that is already known and skeleton

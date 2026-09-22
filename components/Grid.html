@@ -63,14 +63,14 @@
   <a href="../system/components/primitives/Grid.md">Grid.md</a>
 </p>
 
-<section class="card-block" id="grid-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Grid — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Grid.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Grid.html" title="Grid — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Grid.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -114,6 +114,13 @@ export declare function Grid(props: GridProps): JSX.Element;</code></pre>
 </section>
 
 <section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Grid.jsx</code> resolves, read from the source: 6 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-inline-2xl"><th scope="row"><a href="../tokens.html#token-dt-space-inline-2xl"><code>--dt-space-inline-2xl</code></a></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-space-inline-lg"><th scope="row"><a href="../tokens.html#token-dt-space-inline-lg"><code>--dt-space-inline-lg</code></a></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inline-md"><th scope="row"><a href="../tokens.html#token-dt-space-inline-md"><code>--dt-space-inline-md</code></a></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inline-xl"><th scope="row"><a href="../tokens.html#token-dt-space-inline-xl"><code>--dt-space-inline-xl</code></a></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
   <h2 id="source">Source</h2>
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
@@ -141,7 +148,7 @@ export function Grid({ columns = 2, gap = &quot;md&quot;, minColumnWidth, align,
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

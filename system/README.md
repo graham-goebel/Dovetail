@@ -2,7 +2,7 @@
 
 A white-label design system. It ships unbranded on purpose: adopt the foundation, apply a theme, and the entire system becomes yours without a fork.
 
-Most design systems encode one company's taste. Dovetail encodes the *structure* that taste needs — a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.
+Most design systems encode one company's taste. Dovetail encodes the *structure* that taste needs: a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.
 
 ---
 
@@ -28,7 +28,7 @@ Dark mode needs no second stylesheet. Put `class="dark"` on `<html>`.
 ```
 styles.css              Global entry. Import lines only.
 tokens/
-  dovetail.tokens.json  DTCG source of truth — everything else is generated from it
+  dovetail.tokens.json  DTCG source of truth; everything else is generated from it
   primitive/            Tier 1: raw values, no meaning
   semantic/             Tier 2: purpose. The themeable layer.
   component/            Tier 3: per-component escape hatches
@@ -40,7 +40,7 @@ integrations/           Adapters that turn a CMS payload into blocks
 tools/                  Style Dictionary config and the token pipeline
 ```
 
-### The token contract
+### Three tiers, one direction
 
 Three tiers, referenced in one direction only:
 
@@ -72,15 +72,15 @@ The documented exception: data visualisation reads primitives directly, because 
 
 **Surfaces** are a hierarchy, not a pair. `base`, `subtle`, `raised`, `sunken`, `overlay`, `inverse`. Dense product UI needs more than a page colour and a card colour.
 
-**Type.** Geist for UI and Geist Mono for code, both overridable in one line. Sizes follow a 1.200 modular scale from 16px; line heights snap to the 4px grid so text aligns with everything around it. Five role families — display, heading, body, label, code — each shipping family, size, line-height, weight, and tracking together.
+**Type.** Geist for UI and Geist Mono for code, both overridable in one line. Sizes follow a 1.200 modular scale from 16px; line heights snap to the 4px grid so text aligns with everything around it. Five role families (display, heading, body, label, code), each shipping family, size, line-height, weight, and tracking together.
 
 **Space.** One base unit of 4px. Three semantic axes so intent is legible in markup: `inset` for padding, `stack` for vertical gaps, `inline` for horizontal gaps.
 
-**Shape.** Radius is named by what it wraps — `control`, `container`, `overlay`, `media`, `pill` — so a square-cornered theme flattens the system in five lines.
+**Shape.** Radius is named by what it wraps: `control`, `container`, `overlay`, `media`, `pill`. A square-cornered theme flattens the system in five lines.
 
 **Elevation** is a six-level z-order vocabulary, not a shadow menu. Shadows are two-layer: a tight contact shadow and a soft ambient one. In dark mode, elevation is carried by surface lightness instead, because shadows barely register on near-black.
 
-**Motion.** Four roles: `micro`, `enter`, `exit`, `emphasis`. Exits are faster than entrances — people wait for arrivals, not departures. Durations run 100–300ms. `prefers-reduced-motion` collapses all four to zero.
+**Motion.** Four roles: `micro`, `enter`, `exit`, `emphasis`. Exits are faster than entrances, because people wait for arrivals, not departures. Durations run 100–300ms. `prefers-reduced-motion` collapses all four to zero.
 
 **Focus.** One ring, one token, applied through `:focus-visible` on every interactive element. It is visible against every surface in every theme. This is not negotiable and not restyleable per component.
 
@@ -106,7 +106,7 @@ Dovetail's documentation teaches. It states the rule, then the reason, because a
 
 > Don't reference a primitive from a component. It will pass code review and break the first rebrand.
 
-**Mechanics.** Sentence case everywhere. No emoji. No exclamation points. No hype adjectives — nothing is powerful, seamless, or delightful. Oxford comma. Numerals for all numbers in UI copy. Write "16px", not "16 pixels".
+**Mechanics.** Sentence case everywhere. No emoji. No exclamation points. No hype adjectives: nothing is powerful, seamless, or delightful. Oxford comma. Numerals for all numbers in UI copy. Write "16px", not "16 pixels".
 
 **UI copy specifically.** Buttons are verb-first and one to three words: "Save changes", "Add member", "Delete". Error messages say what happened and what to do next: "That email is already in use. Try signing in instead." Empty states describe the thing that would be here and how to make one. Never blame the user, never apologise twice.
 
@@ -114,7 +114,7 @@ Dovetail's documentation teaches. It states the rule, then the reason, because a
 
 ## Iconography
 
-Dovetail ships no icon set. Use **Lucide** — 24×24 grid, 2px stroke, round caps and joins, `currentColor` fill. It is MIT licensed, comprehensive, and matches the system's stroke weight.
+Dovetail ships no icon set. Use **Lucide**: 24×24 grid, 2px stroke, round caps and joins, `currentColor` fill. It is MIT licensed, comprehensive, and matches the system's stroke weight.
 
 ```html
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -122,7 +122,7 @@ Dovetail ships no icon set. Use **Lucide** — 24×24 grid, 2px stroke, round ca
 
 Sizes come from `--dt-size-icon-*`: 16px inline with text, 20px in controls, 24px standalone. Icons inherit text colour; they are never given their own.
 
-No emoji as icons. No unicode glyphs as icons. No hand-drawn SVG illustration — if a design needs illustration, it needs an illustrator.
+No emoji as icons. No unicode glyphs as icons. No hand-drawn SVG illustration. If a design needs illustration, it needs an illustrator.
 
 ---
 
@@ -140,7 +140,7 @@ Self-audit against this before shipping anything built on Dovetail.
  2. Components read semantic tokens. Only chart code reads primitives, and it says why.
  3. Every background role is used with its paired foreground role.
  4. All spacing is a multiple of 4px, taken from a `--dt-space-*` token.
- 5. Type uses a complete role — family, size, line-height, weight, tracking — not a loose size.
+ 5. Type uses a complete role (family, size, line-height, weight, tracking), not a loose size.
  6. Interactive elements have a visible `:focus-visible` ring and a 44px minimum hit area on touch.
  7. Contrast clears WCAG 2.2 AA: 4.5:1 body text, 3:1 large text and non-text.
  8. The screen works in light and dark without component changes.
@@ -151,7 +151,7 @@ Self-audit against this before shipping anything built on Dovetail.
 
 ## Product and marketing contexts
 
-One component set serves both surfaces. A context is a fourth axis alongside brand theme, colour mode, and density — it retunes scale and rhythm, never colour or identity.
+One component set serves both surfaces. A context is a fourth axis alongside brand theme, colour mode, and density. It retunes scale and rhythm, never colour or identity.
 
 ```html
 <div class="dt-context-product">…</div>
@@ -170,57 +170,57 @@ Components do not know which context they are in, and no component takes a `cont
 
 ## Components
 
-**Primitives** — Stack, Inline, Grid, Spacer, Divider, VisuallyHidden
+**Primitives**: Stack, Inline, Grid, Spacer, Divider, VisuallyHidden
 
-**Actions** — Button, IconButton, ButtonGroup, Link
+**Actions**: Button, IconButton, ButtonGroup, Link
 
-**Forms** — Field, Input, Textarea, Select, Combobox, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider
+**Forms**: Field, Input, Textarea, Select, Combobox, Checkbox, CheckboxGroup, Radio, RadioGroup, Switch, Slider
 
-**Display** — Card, Badge, Tag, Avatar, AvatarGroup, List, Table, Stat, EmptyState, Skeleton, Code
+**Display**: Card, Badge, Tag, Avatar, AvatarGroup, List, Table, Stat, EmptyState, Skeleton, Code
 
-**Navigation** — Tabs, Breadcrumbs, Pagination, Stepper, Navbar, Sidebar
+**Navigation**: Tabs, Breadcrumbs, Pagination, Stepper, Navbar, Sidebar
 
-**Feedback** — Alert, Dialog, Toast, Drawer, Popover, Tooltip, Progress, Spinner, Banner
+**Feedback**: Alert, Dialog, Toast, Drawer, Popover, Tooltip, Progress, Spinner, Banner
 
-**Content** — AspectRatio, Image, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
+**Content**: AspectRatio, Image, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
 
 Each ships four files: `Name.jsx`, `Name.d.ts`, `Name.md` (read this before using it), and a directory spec card.
 
-Cards under **Component detail** carry the full reference, one per group — Actions, Primitives, Forms, Surfaces, Display, Navigation, Feedback, Content. Every component in the system appears on exactly one of them, as a shelf with three tabs: **Preview** (live specimens across states), **Props** (types, defaults, required markers) and **Usage** (the rules, including the tradeoff each component makes).
+Cards under **Component detail** carry the full reference, one per group: Actions, Primitives, Forms, Surfaces, Display, Navigation, Feedback, Content. Every component in the system appears on exactly one of them, as a shelf with three tabs: **Preview** (live specimens across states), **Props** (types, defaults, required markers) and **Usage** (the rules, including the tradeoff each component makes).
 
 `templates/settings-page/` is the first template: a product settings screen composed only from Dovetail components. Copy the folder, point the `base` line in `ds-base.js` at your bound design system, and replace the content.
 
 ## Status
 
-**Phase 1 complete** — token architecture, themes, foundations, spec cards.
+**Phase 1 complete**: token architecture, themes, foundations, spec cards.
 
-**Phase 2 complete** — product/marketing contexts, core components, state cards, and the settings-page template. Tokens are authored in [DTCG 2025.10](https://www.designtokens.org/tr/2025.10/format/) syntax in `tokens/dovetail.tokens.json`.
+**Phase 2 complete**: product/marketing contexts, core components, state cards, and the settings-page template. Tokens are authored in [DTCG 2025.10](https://www.designtokens.org/tr/2025.10/format/) syntax in `tokens/dovetail.tokens.json`.
 
-**Phase 3 complete** — the Display, Navigation, Feedback and Content groups, each with a reference card carrying live specimens, props tables and usage rules. The theme configurator commits a real theme into `tokens/themes/theme-custom.css`, so a theme judged in the browser ships without JavaScript.
+**Phase 3 complete**: the Display, Navigation, Feedback and Content groups, each with a reference card carrying live specimens, props tables and usage rules. The theme configurator commits a real theme into `tokens/themes/theme-custom.css`, so a theme judged in the browser ships without JavaScript.
 
-**Phase 4 complete** — the marketing and dashboard UI kits prove the theme and context swap
+**Phase 4 complete**: the marketing and dashboard UI kits prove the theme and context swap
 end to end, `Combobox` fills the last gap in Forms, and the headless layer the integration
 guide describes now exists: `BlockRenderer` maps a block array onto a registry, and
 `integrations/sanity/` ships the schemas, the PortableText serializer and the GROQ
 fragments.
 
-**Next** — generate the Sanity schemas from the `.d.ts` files rather than maintaining
+**Next**: generate the Sanity schemas from the `.d.ts` files rather than maintaining
 them by hand, and add the do/don't cards for the five most-violated rules.
 
 See `PLAN.md` for the full four-phase plan and the component inventory.
 
 ## Index
 
-- `PLAN.md` — the build plan, benchmarks, and phasing
-- `CLAUDE.md` — always-on authoring rules
-- `SKILL.md` — agent entry point
-- `guidelines/theming.md` — brand palette to working theme
-- `guidelines/tokens.md` — the full token reference
-- `guidelines/accessibility.md` — the accessibility contract
-- `guidelines/headless-integration.md` — React, Sanity, and other headless sources
-- `guidelines/contributing.md` — how to add to the system
-- `tools/README.md` — the token pipeline
-- `integrations/sanity/` — the Sanity adapter: schemas, serializer, GROQ fragments
+- `PLAN.md`: the build plan, benchmarks, and phasing
+- `CLAUDE.md`: always-on authoring rules
+- `SKILL.md`: agent entry point
+- `guidelines/theming.md`: brand palette to working theme
+- `guidelines/tokens.md`: the full token reference
+- `guidelines/accessibility.md`: the accessibility contract
+- `guidelines/headless-integration.md`: React, Sanity, and other headless sources
+- `guidelines/contributing.md`: how to add to the system
+- `tools/README.md`: the token pipeline
+- `integrations/sanity/`: the Sanity adapter, with schemas, serializer and GROQ fragments
 
 ## Migrated from a legacy design system
 

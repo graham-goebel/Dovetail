@@ -6,7 +6,7 @@ A content container. Card is the clearest demonstration of the context system: t
 - Grouping related content that could stand alone: a plan, a setting group, a dashboard panel, a feature block.
 
 ## Don't use it when
-- Everything on the page is a card. Nesting cards inside cards means neither is doing any work — use `Stack` and a `Divider`.
+- Everything on the page is a card. Nesting cards inside cards means neither is doing any work. Use `Stack` and a `Divider`.
 - It is a list of similar rows. Use one container with row borders.
 
 ## Example
@@ -35,7 +35,7 @@ If a card needs different treatment inside one context, that is a Tier 3 overrid
 `--dt-card-*`. Override these to restyle every card; override `--dt-surface-raised` to move all raised surfaces together.
 
 ## Accessibility
-`interactive` is visual only. A clickable card needs a real control inside it, or `as="button"` with an accessible name — a div with onClick is not keyboard operable.
+`interactive` is visual only. A clickable card needs a real control inside it, or `as="button"` with an accessible name. A div with onClick is not keyboard operable.
 
 ## Content
 Eyebrow is two or three words. Title is a noun phrase. Description is one sentence.

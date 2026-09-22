@@ -18,7 +18,7 @@ A small, non-interactive label. Badges report state; they never do anything.
 ```
 
 ## Variants
-`subtle` (default) for status in dense lists. `solid` sparingly — one solid badge draws the eye, five do not.
+`subtle` (default) for status in dense lists. `solid` sparingly: one solid badge draws the eye, five do not.
 
 ## Accessibility
 Colour never carries the meaning alone; the text does. `dot` is decorative and aria-hidden.

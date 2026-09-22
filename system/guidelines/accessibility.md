@@ -1,4 +1,4 @@
-# Accessibility contract
+# Accessibility
 
 Accessibility is encoded in the tokens and the component APIs, not left to the person
 using them. This page documents what the system guarantees and what you still owe.
@@ -27,7 +27,7 @@ WCAG 2.2 §2.5.8 sets the floor at 24px; 44px is the size people can actually hi
 needs a different offset, not a removal.
 
 **Labels are not optional.** Every icon-only control takes a required `label` prop. Every
-form field is associated with a `<label>`. Placeholder text is not a label — it disappears
+form field is associated with a `<label>`. Placeholder text is not a label, because it disappears
 the moment someone types.
 
 **Don't carry meaning in colour alone.** An error state needs an icon or text, not just a
@@ -62,7 +62,7 @@ If you override any of these surfaces, verify the paired foreground with it.
 | `--dt-surface-base` | `--dt-focus-ring-color` | 3:1 |
 
 Disabled states are exempt from the text contrast minimum under WCAG, but Dovetail still
-aims for 3:1 — a disabled control nobody can read is a usability problem even if it passes.
+aims for 3:1, because a disabled control nobody can read is a usability problem even if it passes.
 
 ## Testing
 
@@ -73,4 +73,4 @@ Automated checks catch roughly 30% of issues. The rest need a person.
 2. Operate it with the keyboard alone. No mouse, no trackpad.
 3. Run it at 200% browser zoom and 320px width.
 4. Turn on `prefers-reduced-motion` and confirm nothing animates.
-5. Check it in dark mode — contrast regressions hide there.
+5. Check it in dark mode, where contrast regressions hide.

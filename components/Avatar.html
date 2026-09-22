@@ -63,23 +63,23 @@
   <a href="../system/components/display/Avatar.md">Avatar.md</a>
 </p>
 
-<section class="card-block" id="avatar-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Avatar — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Avatar.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:573px">
-    <iframe src="../previews/Avatar.html" title="Avatar — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Avatar.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
-  <p>Identifies a person or entity at a glance. Use it in lists, tables, comment threads, and account menus — anywhere a name alone reads slower than a face.</p>
+  <p>Identifies a person or entity at a glance. Use it in lists, tables, comment threads, and account menus, anywhere a name alone reads slower than a face.</p>
 <h2 id="rules">Rules</h2>
-<ul><li><code>name</code> is required even when <code>src</code> is set. It is the image alt text and the initials fallback. An avatar with no name is unlabelled to a screen reader.</li><li>Use <code>xs</code> and <code>sm</code> inside dense rows, <code>md</code> as the default, <code>lg</code> and <code>xl</code> for profile headers only.</li><li><code>status</code> is presence, not role or state. Do not repurpose it as a notification dot — use Badge for that.</li><li>Square avatars are for organisations and workspaces. Circles are for people.</li></ul>
+<ul><li><code>name</code> is required even when <code>src</code> is set. It is the image alt text and the initials fallback. An avatar with no name is unlabelled to a screen reader.</li><li>Use <code>xs</code> and <code>sm</code> inside dense rows, <code>md</code> as the default, <code>lg</code> and <code>xl</code> for profile headers only.</li><li><code>status</code> is presence, not role or state. Do not repurpose it as a notification dot; use Badge for that.</li><li>Square avatars are for organisations and workspaces. Circles are for people.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
 <p>Initials collide often in large directories. If your data set has many shared initials, supply images or add a secondary identifier next to the avatar.</p>
 </section>
@@ -104,6 +104,13 @@ export interface AvatarProps extends React.HTMLAttributes&lt;HTMLSpanElement&gt;
 }
 
 export declare function Avatar(props: AvatarProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Avatar.jsx</code> resolves, read from the source: 16 semantic, 1 primitive, 1 undeclared. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li><li><strong>none</strong> Referenced by the source but declared by no tier, so it resolves to nothing.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-strong"><th scope="row"><a href="../tokens.html#token-dt-border-strong"><code>--dt-border-strong</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-400)</code></td></tr><tr id="uses-dt-border-subtle"><th scope="row"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-surface-base"><th scope="row"><a href="../tokens.html#token-dt-surface-base"><code>--dt-surface-base</code></a></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-surface-danger"><th scope="row"><a href="../tokens.html#token-dt-surface-danger"><code>--dt-surface-danger</code></a></th><td>semantic</td><td><code>var(--dt-color-red-600)</code></td></tr><tr id="uses-dt-surface-success"><th scope="row"><a href="../tokens.html#token-dt-surface-success"><code>--dt-surface-success</code></a></th><td>semantic</td><td><code>var(--dt-color-green-600)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-surface-warning"><th scope="row"><a href="../tokens.html#token-dt-surface-warning"><code>--dt-surface-warning</code></a></th><td>semantic</td><td><code>var(--dt-color-amber-500)</code></td></tr><tr id="uses-dt-text-heading-xs-size"><th scope="row"><code>--dt-text-heading-xs-size</code></th><td>semantic</td><td><code>var(--dt-font-size-lg)</code></td></tr><tr id="uses-dt-text-label-lg-size"><th scope="row"><code>--dt-text-label-lg-size</code></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-label-md-family"><th scope="row"><code>--dt-text-label-md-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-md-size"><th scope="row"><code>--dt-text-label-md-size</code></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><code>--dt-text-label-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a></th><td>primitive</td><td><code>500</code></td></tr><tr id="uses-dt-border-width-thick"><th scope="row"><code>--dt-border-width-thick</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -158,7 +165,7 @@ export function Avatar({ name, src, size = &quot;md&quot;, shape = &quot;circle&
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

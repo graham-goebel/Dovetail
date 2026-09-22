@@ -19,7 +19,7 @@ An inline message about the state of the page or a form. It sits in the layout a
 ```
 
 ## Accessibility
-`danger` renders `role="alert"` and interrupts; the other tones render `role="status"` and wait for a pause. Omit `onDismiss` when the user must act — a dismissible blocker is a dead end.
+`danger` renders `role="alert"` and interrupts; the other tones render `role="status"` and wait for a pause. Omit `onDismiss` when the user must act. A dismissible blocker is a dead end.
 
 ## Content
 Title says what happened. Body says what to do next. Never lead with an apology.

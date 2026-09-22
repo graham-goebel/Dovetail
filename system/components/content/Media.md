@@ -13,7 +13,7 @@ Stack several Media blocks and flip \`reverse\` on every other one. The zigzag g
 
 ## One primary action
 
-\`actions\` takes a row of controls. At most one is primary — everything else is secondary or a link. Three buttons in a marketing row means you have not decided what the section is for.
+\`actions\` takes a row of controls. At most one is primary; everything else is secondary or a link. Three buttons in a marketing row means you have not decided what the section is for.
 
 ## Weighting the columns
 

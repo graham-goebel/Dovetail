@@ -6,7 +6,7 @@ Navigation. The rule: if it changes the page, it is a Link; if it changes data, 
 - Navigating within the app or out to another site.
 
 ## Don't use it when
-- It performs an action. Use `Button variant="ghost"` — a link that deletes something is a trap.
+- It performs an action. Use `Button variant="ghost"`. A link that deletes something is a trap.
 
 ## Example
 ```jsx
@@ -15,7 +15,7 @@ Navigation. The rule: if it changes the page, it is a Link; if it changes data, 
 ```
 
 ## Variants
-`underline="always"` is the default and is correct inside prose — colour alone is not a sufficient signal. `underline="hover"` is acceptable in navigation lists where position already marks the links.
+`underline="always"` is the default and is correct inside prose, because colour alone is not a sufficient signal. `underline="hover"` is acceptable in navigation lists where position already marks the links.
 
 ## Accessibility
 `external` adds `rel="noopener noreferrer"` and a visible icon, so a new tab is never a surprise.

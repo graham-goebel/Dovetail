@@ -63,14 +63,14 @@
   <a href="../system/components/display/Skeleton.md">Skeleton.md</a>
 </p>
 
-<section class="card-block" id="skeleton-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Skeleton — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Skeleton.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:560px">
-    <iframe src="../previews/Skeleton.html" title="Skeleton — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Skeleton.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -79,7 +79,7 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>Holds the shape of content that is still loading, so the layout does not jump when data arrives.</p>
 <h2 id="rules">Rules</h2>
-<ul><li>Match the real content's dimensions. A skeleton that is the wrong size causes the reflow it exists to prevent.</li><li>Skeletons are <code>aria-hidden</code>. Announce loading state on the container with <code>aria-busy</code> — a screen reader user gains nothing from grey rectangles.</li><li>Use skeletons for content-shaped waits over roughly 300ms. Use Spinner for actions and indeterminate waits with no known shape.</li><li>Do not skeleton an entire page. Show the chrome that is already known and skeleton only the parts that depend on the request.</li></ul>
+<ul><li>Match the real content's dimensions. A skeleton that is the wrong size causes the reflow it exists to prevent.</li><li>Skeletons are <code>aria-hidden</code>. Announce loading state on the container with <code>aria-busy</code>. A screen reader user gains nothing from grey rectangles.</li><li>Use skeletons for content-shaped waits over roughly 300ms. Use Spinner for actions and indeterminate waits with no known shape.</li><li>Do not skeleton an entire page. Show the chrome that is already known and skeleton only the parts that depend on the request.</li></ul>
 <h2 id="tradeoffs">Tradeoffs</h2>
 <p>Skeletons make a wait feel shorter but a failed request feel longer, because the promise of content never resolves. Pair every skeleton with an error state.</p>
 </section>
@@ -102,6 +102,13 @@ export interface SkeletonProps extends React.HTMLAttributes&lt;HTMLSpanElement&g
 }
 
 export declare function Skeleton(props: SkeletonProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Skeleton.jsx</code> resolves, read from the source: 5 semantic, 2 undeclared. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>none</strong> Referenced by the source but declared by no tier, so it resolves to nothing.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-radius-container"><th scope="row"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-motion-duration-slower"><th scope="row"><code>--dt-motion-duration-slower</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr><tr id="uses-dt-motion-easing-standard"><th scope="row"><code>--dt-motion-easing-standard</code></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -137,7 +144,7 @@ export function Skeleton({ variant = &quot;text&quot;, width, height, lines = 1,
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

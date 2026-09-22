@@ -4,7 +4,7 @@ A ratio-locked image with a built-in placeholder. Use it instead of a bare \`<im
 
 ## Alt text is required
 
-\`alt\` is a required prop, not an optional one. Pass an empty string for a purely decorative image — that is an explicit decision a reviewer can see. An omitted \`alt\` is a type error.
+\`alt\` is a required prop, not an optional one. Pass an empty string for a purely decorative image; that is an explicit decision a reviewer can see. An omitted \`alt\` is a type error.
 
 ## Fit and focal point
 
@@ -18,4 +18,4 @@ When cover crops the wrong part of a photo, move the focal point rather than cha
 
 ## Placeholders
 
-Without \`src\`, Image renders a dashed frame labelled with \`placeholder\` or \`alt\`. Templates ship this way on purpose — a consumer can see the intended ratio and subject before wiring up a CMS.
+Without \`src\`, Image renders a dashed frame labelled with \`placeholder\` or \`alt\`. Templates ship this way on purpose, so a consumer can see the intended ratio and subject before wiring up a CMS.

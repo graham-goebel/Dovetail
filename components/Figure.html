@@ -63,14 +63,14 @@
   <a href="../system/components/content/Figure.md">Figure.md</a>
 </p>
 
-<section class="card-block" id="figure-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Figure — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Figure.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Figure.html" title="Figure — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Figure.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -79,7 +79,7 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>Pairs media with a caption. Use it in editorial and article layouts where the image carries information the surrounding prose does not.</p>
 <h2 id="caption-is-not-alt-text">Caption is not alt text</h2>
-<p>They serve different readers and must say different things. <code>alt</code> describes what the image shows, for someone who cannot see it. The caption adds context everyone needs — a date, a place, what to notice. Repeating one in the other wastes a screen reader's time.</p>
+<p>They serve different readers and must say different things. <code>alt</code> describes what the image shows, for someone who cannot see it. The caption adds context everyone needs: a date, a place, what to notice. Repeating one in the other wastes a screen reader's time.</p>
 <p>``<code>jsx &lt;Figure caption=&quot;Throughput held steady through the March migration.&quot; credit=&quot;Photo: Internal&quot;&gt;   &lt;Image src={chart} alt=&quot;Line chart of requests per second across three months&quot; ratio=&quot;4:3&quot; /&gt; &lt;/Figure&gt; </code>``</p>
 <h2 id="credit">Credit</h2>
 <p><code>credit</code> renders smaller and in the mono role, below the caption. Use it for attribution and licence text only. If the source matters to the argument, put it in the caption instead.</p>
@@ -103,6 +103,13 @@ export interface FigureProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
 }
 
 export declare function Figure(props: FigureProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Figure.jsx</code> resolves, read from the source: 4 semantic, 6 primitive. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-stack-2xs"><th scope="row"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-stack-sm"><th scope="row"><a href="../tokens.html#token-dt-space-stack-sm"><code>--dt-space-stack-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-font-family-mono"><th scope="row"><code>--dt-font-family-mono</code></th><td>primitive</td><td><code>&quot;Geist Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</code></td></tr><tr id="uses-dt-font-family-sans"><th scope="row"><code>--dt-font-family-sans</code></th><td>primitive</td><td><code>&quot;Geist&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif</code></td></tr><tr id="uses-dt-font-size-sm"><th scope="row"><code>--dt-font-size-sm</code></th><td>primitive</td><td><code>14px</code></td></tr><tr id="uses-dt-font-size-xs"><th scope="row"><code>--dt-font-size-xs</code></th><td>primitive</td><td><code>12px</code></td></tr><tr id="uses-dt-line-height-sm"><th scope="row"><a href="../tokens.html#token-dt-line-height-sm"><code>--dt-line-height-sm</code></a></th><td>primitive</td><td><code>20px</code></td></tr><tr id="uses-dt-line-height-xs"><th scope="row"><a href="../tokens.html#token-dt-line-height-xs"><code>--dt-line-height-xs</code></a></th><td>primitive</td><td><code>16px</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -134,7 +141,7 @@ export function Figure({ caption, credit, align = &quot;start&quot;, children, s
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

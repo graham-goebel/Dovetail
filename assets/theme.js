@@ -15,8 +15,16 @@
 (function () {
   "use strict";
 
+  /* The panel needs its presets, and the page that loaded us might be an old
+     one out of a browser cache, asking for a data file under a name the build
+     no longer writes. Rather than disappear, fetch the current data from our
+     own directory and run this script again. Chrome without its controls is a
+     worse failure than a slow first paint. */
   var DATA = window.DovetailConfigure;
-  if (!DATA) return;
+  if (!DATA) {
+    recover();
+    return;
+  }
 
   var KEY = "dovetail-theme-config";
   var CONTEXT_KEY = "dovetail-docs-context";
@@ -30,6 +38,7 @@
     customHex: "#3366cc",
     radius: "standard",
     font: "sans",
+    displayFont: "",
     codeFont: "mono",
     density: false,
     dark: false,
@@ -43,6 +52,15 @@
     whitespace: "balanced",
     media: "shown",
   };
+
+  /* The type roles a display face takes over: the ones that carry a page's
+     voice. Body, label and code keep the text family, because a display face
+     set at 14px is a legibility problem, not a brand. */
+  var DISPLAY_ROLES = [
+    "display-lg", "display-md", "display-sm",
+    "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs",
+    "eyebrow",
+  ];
 
   /* Icon sizes are real tokens, so a scale step is a re-pointing, not a hack.
      Each column is xs, sm, md, lg, xl in multiples of the base unit. */
@@ -76,7 +94,7 @@
   var SPACE_STEPS = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
 
   /* How much of a layout imagery carries. Dovetail ships no photography, so its
-     cards reserve a box rather than draw a picture — which is why this hides the
+     cards reserve a box rather than draw a picture, which is why this hides the
      reserved boxes and the placeholder frames as well as any real media. The
      override has to be !important: the components write display inline.
 
@@ -179,7 +197,7 @@
 
   function fontHrefFor(cfg) {
     var families = [];
-    [DATA.fonts[cfg.font], DATA.fonts[cfg.codeFont]].forEach(function (f) {
+    [DATA.fonts[cfg.font], DATA.fonts[cfg.displayFont], DATA.fonts[cfg.codeFont]].forEach(function (f) {
       if (f && f.googleFont && families.indexOf(f.googleFont) === -1) families.push(f.googleFont);
     });
     if (!families.length) return null;
@@ -188,7 +206,7 @@
 
   /* The full set of declarations a configuration produces. This is also what
      gets written to storage, so a page that only loads the system's theme
-     runtime — the tearsheet, the settings template — renders the same theme
+     runtime (the tearsheet, the settings template) renders the same theme
      without knowing anything about this panel. */
   function computeVars(cfg) {
     var vars = {};
@@ -209,6 +227,19 @@
     if (ui) vars["--dt-font-family-sans"] = ui.value;
     var code = DATA.fonts[cfg.codeFont];
     if (code) vars["--dt-font-family-mono"] = code.value;
+
+    /* A display face is a second family, not a second system. The system ships
+       one sans and points every role at it; choosing a display face adds the
+       family and re-points the roles that set a page's voice, leaving body,
+       label and code where they are. Left empty, nothing is written and the
+       whole page stays on one family, which is the system's own default. */
+    var display = DATA.fonts[cfg.displayFont];
+    if (display) {
+      vars["--dt-font-family-display"] = display.value;
+      DISPLAY_ROLES.forEach(function (role) {
+        vars["--dt-text-" + role + "-family"] = "var(--dt-font-family-display)";
+      });
+    }
 
     /* The name of a dimension token is its multiplier, so a different base unit
        is a re-derivation rather than an override list. */
@@ -446,32 +477,39 @@
 
     lines.push("/* A theme is a file of token overrides. Nothing below names a component. */");
     lines.push(":root {");
-    lines.push("  /* Accent — " + accentLabel + " */");
+    lines.push("  /* Accent: " + accentLabel + " */");
     DATA.steps.forEach(function (step) {
       lines.push("  --dt-color-accent-" + step + ": " + ramp[step] + ";");
     });
     lines.push("");
-    lines.push("  /* Shape — " + radius.label + " */");
+    lines.push("  /* Shape: " + radius.label + " */");
     lines.push("  --dt-radius-control: " + radius.control + ";");
     lines.push("  --dt-radius-container: " + radius.container + ";");
     lines.push("  --dt-radius-overlay: " + radius.overlay + ";");
     lines.push("  --dt-radius-media: " + radius.media + ";");
     lines.push("  --dt-radius-pill: " + radius.pill + ";");
     lines.push("");
-    lines.push("  /* Type — " + ui.label + ", " + code.label + " */");
+    var display = DATA.fonts[config.displayFont];
+    lines.push("  /* Type: " + ui.label + ", " + code.label + (display ? ", " + display.label + " for display" : "") + " */");
     lines.push("  --dt-font-family-sans: " + ui.value + ";");
     lines.push("  --dt-font-family-mono: " + code.value + ";");
+    if (display) {
+      lines.push("  --dt-font-family-display: " + display.value + ";");
+      DISPLAY_ROLES.forEach(function (role) {
+        lines.push("  --dt-text-" + role + "-family: var(--dt-font-family-display);");
+      });
+    }
 
     if (config.density) {
       lines.push("");
-      lines.push("  /* Density — compact */");
+      lines.push("  /* Density: compact */");
       Object.keys(DATA.density).forEach(function (name) {
         lines.push("  " + name + ": " + DATA.density[name] + ";");
       });
     }
     if (config.mono) {
       lines.push("");
-      lines.push("  /* Monochrome — action surfaces read as ink, not colour */");
+      lines.push("  /* Monochrome: action surfaces read as ink, not colour */");
       Object.keys(DATA.monochrome).forEach(function (name) {
         lines.push("  " + name + ": " + DATA.monochrome[name] + ";");
       });
@@ -479,7 +517,7 @@
 
     if (Number(config.baseUnit) !== 4) {
       lines.push("");
-      lines.push("  /* Space — " + config.baseUnit + "px base unit. The number in each name is still the multiplier. */");
+      lines.push("  /* Space: " + config.baseUnit + "px base unit. The number in each name is still the multiplier. */");
       DATA.dimSteps.forEach(function (step) {
         lines.push("  --dt-dim-" + step + ": " + step * Number(config.baseUnit) + "px;");
       });
@@ -494,7 +532,7 @@
     var sizes = ICON_SIZES[config.iconSize];
     if (sizes) {
       lines.push("");
-      lines.push("  /* Icon sizes — " + config.iconSize + " */");
+      lines.push("  /* Icon sizes: " + config.iconSize + " */");
       ["xs", "sm", "md", "lg", "xl"].forEach(function (name, i) {
         lines.push("  --dt-size-icon-" + name + ": var(--dt-dim-" + sizes[i] + ");");
       });
@@ -503,7 +541,7 @@
     var space = WHITESPACE[config.whitespace];
     if (space) {
       lines.push("");
-      lines.push("  /* Whitespace — " + config.whitespace + " */");
+      lines.push("  /* Whitespace: " + config.whitespace + " */");
       ["inset", "stack", "inline"].forEach(function (axis) {
         SPACE_STEPS.forEach(function (step, i) {
           lines.push("  --dt-space-" + axis + "-" + step + ": var(--dt-dim-" + space[axis][i] + ");");
@@ -523,7 +561,7 @@
 
     var lib = DATA.icons[config.iconLib];
     lines.push("");
-    lines.push("/* Iconography — " + lib.label + ", " + lib.licence + ".");
+    lines.push("/* Iconography: " + lib.label + ", " + lib.licence + ".");
     lines.push("   The system ships no icon set. Load one and size it from --dt-size-icon-*;");
     lines.push("   icons inherit text colour and are never given their own.");
     lines.push("     " + lib.include);
@@ -542,7 +580,7 @@
 
     if (brand.name || brand.mark) {
       lines.push("");
-      lines.push("/* Brand — the wordmark is the name set in the sans family at");
+      lines.push("/* Brand: the wordmark is the name set in the sans family at");
       lines.push("   --dt-font-weight-semibold with --dt-tracking-tight.");
       lines.push("     Name: " + (brand.name || "Dovetail"));
       if (brand.mark) lines.push("     Mark: supplied as a file; it is not a token and does not belong in this sheet.");
@@ -563,7 +601,7 @@
     var keys = Object.keys(DATA.presets);
     for (var i = 0; i < keys.length; i++) {
       var p = DATA.presets[keys[i]];
-      if (p.accent === config.accent && p.radius === config.radius && p.font === config.font && !!p.mono === !!config.mono) {
+      if (p.accent === config.accent && p.radius === config.radius && p.font === config.font && !config.displayFont && !!p.mono === !!config.mono) {
         return keys[i];
       }
     }
@@ -626,8 +664,17 @@
           onPick(node.value);
         },
       },
+      /* A list of twenty-two families needs its groups: the data arrives
+         either flat or as { group, options }, and both render here. */
       options.map(function (option) {
-        return h("option", { value: option.value, text: option.label });
+        if (!option.options) return h("option", { value: option.value, text: option.label });
+        return h(
+          "optgroup",
+          { label: option.group },
+          option.options.map(function (inner) {
+            return h("option", { value: inner.value, text: inner.label });
+          })
+        );
       })
     );
     node.value = current;
@@ -897,11 +944,24 @@
   function typeFields() {
     return [
       field(
-        "Interface",
-        "Sets --dt-font-family-sans. Every type role inherits it.",
-        select("Interface type", "font", DATA.interfaceFonts, config.font, function (value) {
+        "Body",
+        "Sets --dt-font-family-sans, which every type role inherits unless a display face takes some of them.",
+        select("Body type", "font", DATA.bodyFonts, config.font, function (value) {
           commit({ font: value });
         })
+      ),
+      field(
+        "Display",
+        "Headings, display sizes and the eyebrow. Same as body writes nothing, which is how the system ships.",
+        select(
+          "Display type",
+          "displayFont",
+          [{ value: "", label: "Same as body" }].concat(DATA.displayFonts),
+          config.displayFont || "",
+          function (value) {
+            commit({ displayFont: value });
+          }
+        )
       ),
       field(
         "Code",
@@ -937,7 +997,7 @@
       ),
       field(
         "Base unit",
-        "Every dimension is a multiple, and the number in each name is the multiplier — so the names stay true when the unit moves. Below 4px, control heights drop under the 40px the system asks for.",
+        "Every dimension is a multiple, and the number in each name is the multiplier, so the names stay true when the unit moves. Below 4px, control heights drop under the 40px the system asks for.",
         segmented("Base unit", "unit", [{ value: 3, label: "3px" }, { value: 4, label: "4px" }, { value: 5, label: "5px" }], Number(config.baseUnit), function (value) {
           commit({ baseUnit: value });
         })
@@ -1130,7 +1190,7 @@
           if (value === "custom") return;
           var preset = DATA.presets[value];
           /* Take the choices, not the preset's own label. */
-          commit({ accent: preset.accent, radius: preset.radius, font: preset.font, mono: !!preset.mono });
+          commit({ accent: preset.accent, radius: preset.radius, font: preset.font, displayFont: "", mono: !!preset.mono });
         })
       )
     );
@@ -1293,4 +1353,25 @@
   });
 
   window.DovetailConfigurePanel = { open: open, close: close, reset: reset, config: function () { return assign({}, config); } };
+
+  /* Once, and only from the directory this file was served out of, so a page
+     at any depth recovers and a data file that loads without defining the
+     global cannot put us in a loop. */
+  function recover() {
+    if (window.__dovetailConfigureRecovering) return;
+    var here = document.currentScript && document.currentScript.src;
+    if (!here) return;
+    window.__dovetailConfigureRecovering = true;
+    var dir = here.slice(0, here.lastIndexOf("/") + 1);
+    fetchScript(dir + "configure-data.js", function () {
+      if (window.DovetailConfigure) fetchScript(here, null);
+    });
+  }
+
+  function fetchScript(src, done) {
+    var tag = document.createElement("script");
+    tag.src = src;
+    if (done) tag.onload = done;
+    document.head.appendChild(tag);
+  }
 })();

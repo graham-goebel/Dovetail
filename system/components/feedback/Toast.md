@@ -16,5 +16,5 @@ the user just took.
 
 ## Tradeoffs
 
-Toasts are easy to miss — they appear away from the point of action and vanish. For
+Toasts are easy to miss: they appear away from the point of action and vanish. For
 anything the user must acknowledge, use a Dialog or an inline Alert.

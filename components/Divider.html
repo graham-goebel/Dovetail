@@ -63,14 +63,14 @@
   <a href="../system/components/primitives/Divider.md">Divider.md</a>
 </p>
 
-<section class="card-block" id="divider-live">
+<section class="card-block" id="live">
   <div class="card-head">
-    <h2>Divider — live</h2>
+    <h2>Live</h2>
     <a class="card-open" href="../previews/Divider.html" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Divider.html" title="Divider — live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Divider.html" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -111,6 +111,13 @@ export declare function Divider(props: DividerProps): JSX.Element;</code></pre>
 </section>
 
 <section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Divider.jsx</code> resolves, read from the source: 9 semantic. Component tier first, because that is the one to reach for.</p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-border-default"><th scope="row"><a href="../tokens.html#token-dt-border-default"><code>--dt-border-default</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-200)</code></td></tr><tr id="uses-dt-border-strong"><th scope="row"><a href="../tokens.html#token-dt-border-strong"><code>--dt-border-strong</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-400)</code></td></tr><tr id="uses-dt-border-subtle"><th scope="row"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-text-label-sm-family"><th scope="row"><code>--dt-text-label-sm-family</code></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><code>--dt-text-label-sm-size</code></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-label-sm-weight"><th scope="row"><code>--dt-text-label-sm-weight</code></th><td>semantic</td><td><code>var(--dt-font-weight-medium)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
   <h2 id="source">Source</h2>
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
@@ -142,7 +149,7 @@ export function Divider({ orientation = &quot;horizontal&quot;, label, tone = &q
 </main>
 </div>
 <footer class="site-footer">
-  <code>form follows function</code>
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <script src="../assets/configure-data.js" defer></script>
 <script src="../assets/theme.js" defer></script>

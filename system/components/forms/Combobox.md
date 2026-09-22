@@ -4,7 +4,7 @@ A text input that filters a known list. Reach for it when a `Select` has grown p
 the point where someone can scan it.
 
 ## Use it when
-- The list is long enough that typing beats scrolling — roughly a dozen options and up.
+- The list is long enough that typing beats scrolling, roughly a dozen options and up.
 - The options are known and fixed. A combobox filters; it does not create.
 
 ## Don't use it when
@@ -25,7 +25,7 @@ the point where someone can scan it.
 />
 ```
 
-## Keyboard contract
+## Keyboard
 | Key | Does |
 |---|---|
 | `Down` / `Up` | Opens the list, then moves the active option |
@@ -38,7 +38,7 @@ the point where someone can scan it.
 The input is `role="combobox"` with `aria-expanded`, `aria-controls` and
 `aria-autocomplete="list"`; the active option is pointed at with `aria-activedescendant`
 rather than being focused, so focus never leaves the input. Options carry `aria-selected`.
-Give it a `label` — a combobox with placeholder text and no label is the most common
+Give it a `label`. A combobox with placeholder text and no label is the most common
 failure in this pattern.
 
 ## Tokens
