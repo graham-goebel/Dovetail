@@ -19,7 +19,7 @@ downloads.html      How to take the system into a project
 
 system/             The design system itself, at the paths it was authored with
 previews/           The @dsCard preview documents, one per card
-assets/             Site chrome: site.css, site.js, theme.js (bases), specimens.js,
+assets/             Site chrome: site.css, site.js, theme.js (Configure), specimens.js,
                     file-menu.js
 tools/build-site.mjs   The generator
 ```
@@ -112,13 +112,13 @@ The tiles on the overview, foundations, showcase and guide pages carry inline SV
 drawn on the same 24px grid the system documents — round caps, inherited colour, no fill.
 They are the site's own chrome, not copies of a library's glyphs: Dovetail ships no icon
 set, and the media lab is where you try real ones. They are stroked, so the icon controls
-in the bases sheet move them, and their weight follows whichever library is selected —
+in the Configure sheet move them, and their weight follows whichever library is selected —
 2px for Lucide, 1.5px for Heroicons.
 
-## The bases panel
+## The Configure panel
 
 Every page carries a floating toolbar in the corner. It flips the colour mode, and it
-opens **Bases** — a sheet holding the decisions a brand actually makes, grouped the way
+opens **Configure** — a sheet holding the decisions a brand actually makes, grouped the way
 the system is:
 
 | Tab | Sets |
@@ -169,7 +169,7 @@ controls move.
 The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
 file, not a token, and it has no business in a theme stylesheet.
 
-`assets/bases-data.js` is generated from `system/theme-configurator.html` and
+`assets/configure-data.js` is generated from `system/theme-configurator.html` and
 `previews/MediaLab.html`, so the panel offers exactly the configurator's presets and the
 lab's icon libraries and can't drift from either. Two refinements over the configurator
 card: the monochrome preset is carried into what gets saved and exported, where the card

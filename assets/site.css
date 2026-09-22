@@ -434,7 +434,7 @@ hr {
   height: var(--dt-size-icon-lg);
   margin-bottom: var(--dt-space-stack-xs);
   color: var(--dt-text-link);
-  /* The chrome follows whichever icon library the bases sheet has selected:
+  /* The chrome follows whichever icon library the Configure sheet has selected:
      each library is drawn at its own weight, and an explicit stroke wins. */
   stroke-width: var(--site-icon-stroke, 2);
 }
@@ -762,14 +762,14 @@ table.tokens .usage {
 /* ----------------------------------------------------------------- footer */
 
 .site-footer {
-  padding: var(--dt-dim-12) var(--dt-space-inset-xl);
+  padding: var(--dt-space-inset-lg) var(--dt-space-inset-xl);
   border-top: var(--dt-border-width-default) solid var(--dt-border-default);
   background: var(--dt-surface-subtle);
 }
 
-.site-footer p {
-  max-width: var(--site-measure);
-  color: var(--dt-text-secondary);
+.site-footer code {
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-tertiary);
 }
 
 /* ------------------------------------------------------------------ small */
@@ -810,7 +810,7 @@ table.tokens .usage {
   }
 }
 
-/* ------------------------------------------------------- bases: the toolbar */
+/* ------------------------------------------------------- configure: the toolbar */
 
 /* The toolbar floats above everything and never moves. Two controls: the one
    people flip constantly, and the one that opens the rest. */
@@ -821,11 +821,11 @@ table.tokens .usage {
    colour mode. Where backdrop-filter is unsupported the surface goes solid,
    because unreadable chrome is worse than flat chrome. */
 :root {
-  --bases-glass: color-mix(in oklab, var(--dt-surface-overlay) 82%, transparent);
-  --bases-blur: saturate(1.8) blur(20px);
+  --configure-glass: color-mix(in oklab, var(--dt-surface-overlay) 82%, transparent);
+  --configure-blur: saturate(1.8) blur(20px);
 }
 
-.bases-bar {
+.configure-bar {
   position: fixed;
   right: var(--dt-space-inset-lg);
   bottom: var(--dt-space-inset-lg);
@@ -834,9 +834,9 @@ table.tokens .usage {
   align-items: center;
   gap: var(--dt-dim-1);
   padding: var(--dt-dim-1);
-  background: var(--bases-glass);
-  -webkit-backdrop-filter: var(--bases-blur);
-  backdrop-filter: var(--bases-blur);
+  background: var(--configure-glass);
+  -webkit-backdrop-filter: var(--configure-blur);
+  backdrop-filter: var(--configure-blur);
   border: var(--dt-border-width-default) solid var(--dt-border-default);
   border-radius: var(--dt-radius-pill);
   box-shadow: var(--dt-elevation-4);
@@ -844,12 +844,12 @@ table.tokens .usage {
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
-    --bases-glass: var(--dt-surface-overlay);
+    --configure-glass: var(--dt-surface-overlay);
   }
 }
 
-.bases-icon-btn,
-.bases-open-btn {
+.configure-icon-btn,
+.configure-open-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -866,38 +866,38 @@ table.tokens .usage {
   transition: background var(--dt-motion-micro);
 }
 
-.bases-icon-btn {
+.configure-icon-btn {
   width: var(--dt-size-control-sm);
   font-size: var(--dt-font-size-md);
   line-height: 1;
 }
 
-.bases-open-btn {
+.configure-open-btn {
   padding: 0 var(--dt-space-inset-sm) 0 var(--dt-dim-1);
 }
 
-.bases-icon-btn:hover,
-.bases-open-btn:hover {
+.configure-icon-btn:hover,
+.configure-open-btn:hover {
   background: var(--dt-surface-action-ghost-hover);
 }
 
-.bases-open-btn[aria-expanded="true"] {
+.configure-open-btn[aria-expanded="true"] {
   background: var(--dt-surface-selected);
   color: var(--dt-text-on-selected);
 }
 
-body.bases-open .bases-bar {
-  right: calc(var(--bases-width, 360px) + var(--dt-dim-4));
+body.configure-open .configure-bar {
+  right: calc(var(--configure-width, 360px) + var(--dt-dim-4));
 }
 
-.bases-swatch {
+.configure-swatch {
   width: var(--dt-size-icon-md);
   height: var(--dt-size-icon-md);
   border-radius: var(--dt-radius-pill);
   box-shadow: inset 0 0 0 var(--dt-border-width-default) oklch(0 0 0 / 0.12);
 }
 
-/* --------------------------------------------------------- bases: the sheet */
+/* --------------------------------------------------------- configure: the sheet */
 
 /* The sheet never dims the page: the point of it is watching the system change
    alongside. On a wide screen it floats over the page as frosted glass, so what
@@ -905,7 +905,7 @@ body.bases-open .bases-bar {
    bottom and the page is padded to match, because at that width blurred glass
    over the content is not readable enough to count as visible. */
 
-.bases-sheet {
+.configure-sheet {
   position: fixed;
   top: calc(var(--site-header) + var(--dt-dim-2));
   right: var(--dt-dim-2);
@@ -913,11 +913,11 @@ body.bases-open .bases-bar {
   z-index: var(--dt-z-dialog);
   display: flex;
   flex-direction: column;
-  width: var(--bases-width, 360px);
+  width: var(--configure-width, 360px);
   max-width: calc(100vw - var(--dt-dim-4));
-  background: var(--bases-glass);
-  -webkit-backdrop-filter: var(--bases-blur);
-  backdrop-filter: var(--bases-blur);
+  background: var(--configure-glass);
+  -webkit-backdrop-filter: var(--configure-blur);
+  backdrop-filter: var(--configure-blur);
   border: var(--dt-border-width-default) solid var(--dt-border-default);
   border-radius: var(--dt-radius-overlay);
   box-shadow: var(--dt-elevation-5);
@@ -925,11 +925,11 @@ body.bases-open .bases-bar {
 
 /* A class selector outranks the user agent's [hidden] rule, so display: none
    has to be said here or the sheet never closes. */
-.bases-sheet[hidden] {
+.configure-sheet[hidden] {
   display: none;
 }
 
-.bases-head {
+.configure-head {
   display: flex;
   align-items: flex-start;
   gap: var(--dt-space-inline-sm);
@@ -937,14 +937,14 @@ body.bases-open .bases-bar {
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
 }
 
-.bases-head h2 {
+.configure-head h2 {
   margin: 0;
   font-size: var(--dt-font-size-lg);
   line-height: var(--dt-line-height-lg);
   font-weight: var(--dt-font-weight-semibold);
 }
 
-.bases-sub {
+.configure-sub {
   margin: var(--dt-dim-1) 0 0;
   max-width: none;
   font-size: var(--dt-font-size-xs);
@@ -953,7 +953,7 @@ body.bases-open .bases-bar {
   text-wrap: pretty;
 }
 
-.bases-close {
+.configure-close {
   flex: none;
   margin-left: auto;
   width: var(--dt-size-control-sm);
@@ -967,12 +967,12 @@ body.bases-open .bases-bar {
   cursor: pointer;
 }
 
-.bases-close:hover {
+.configure-close:hover {
   background: var(--dt-surface-action-ghost-hover);
   color: var(--dt-text-primary);
 }
 
-.bases-body {
+.configure-body {
   flex: 1;
   overflow-y: auto;
   padding: var(--dt-space-inset-lg);
@@ -981,7 +981,7 @@ body.bases-open .bases-bar {
   gap: var(--dt-space-stack-lg);
 }
 
-.bases-tabs {
+.configure-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: var(--dt-dim-1);
@@ -990,7 +990,7 @@ body.bases-open .bases-bar {
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
 }
 
-.bases-tab {
+.configure-tab {
   flex: none;
   height: var(--dt-dim-8);
   padding: 0 var(--dt-space-inset-sm);
@@ -1006,39 +1006,39 @@ body.bases-open .bases-bar {
   transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
 }
 
-.bases-tab:hover {
+.configure-tab:hover {
   background: var(--dt-surface-action-ghost-hover);
   color: var(--dt-text-primary);
 }
 
-.bases-tab[aria-selected="true"] {
+.configure-tab[aria-selected="true"] {
   background: var(--dt-surface-action);
   color: var(--dt-text-on-action);
 }
 
-.bases-panel {
+.configure-panel {
   display: flex;
   flex-direction: column;
   gap: var(--dt-space-stack-lg);
 }
 
-.bases-panel:focus {
+.configure-panel:focus {
   outline: none;
 }
 
-.bases-field {
+.configure-field {
   display: flex;
   flex-direction: column;
   gap: var(--dt-dim-2);
 }
 
-.bases-label {
+.configure-label {
   font-size: var(--dt-font-size-sm);
   font-weight: var(--dt-font-weight-medium);
   color: var(--dt-text-primary);
 }
 
-.bases-hint {
+.configure-hint {
   margin-top: -2px;
   font-size: var(--dt-font-size-xs);
   line-height: var(--dt-line-height-xs);
@@ -1046,7 +1046,7 @@ body.bases-open .bases-bar {
   text-wrap: pretty;
 }
 
-.bases-rule {
+.configure-rule {
   margin: 0;
   height: 0;
   border: 0;
@@ -1055,7 +1055,7 @@ body.bases-open .bases-bar {
 
 /* Controls */
 
-.bases-select {
+.configure-select {
   width: 100%;
   height: var(--dt-size-control-md);
   padding: 0 var(--dt-space-inset-sm);
@@ -1067,14 +1067,14 @@ body.bases-open .bases-bar {
   border-radius: var(--dt-input-radius);
 }
 
-.bases-seg {
+.configure-seg {
   display: flex;
   padding: 2px;
   background: var(--dt-surface-sunken);
   border-radius: var(--dt-radius-control);
 }
 
-.bases-seg-btn {
+.configure-seg-btn {
   flex: 1;
   height: var(--dt-dim-8);
   padding: 0 var(--dt-space-inset-xs);
@@ -1089,23 +1089,23 @@ body.bases-open .bases-bar {
   transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
 }
 
-.bases-seg-btn:hover {
+.configure-seg-btn:hover {
   color: var(--dt-text-primary);
 }
 
-.bases-seg-btn[aria-pressed="true"] {
+.configure-seg-btn[aria-pressed="true"] {
   background: var(--dt-surface-raised);
   color: var(--dt-text-primary);
   box-shadow: var(--dt-elevation-1);
 }
 
-.bases-swatches {
+.configure-swatches {
   display: flex;
   flex-wrap: wrap;
   gap: var(--dt-space-inline-xs);
 }
 
-.bases-swatch-btn {
+.configure-swatch-btn {
   position: relative;
   width: var(--dt-dim-7);
   height: var(--dt-dim-7);
@@ -1117,22 +1117,22 @@ body.bases-open .bases-bar {
   transition: transform var(--dt-motion-micro);
 }
 
-.bases-swatch-btn:hover {
+.configure-swatch-btn:hover {
   transform: translateY(-1px);
 }
 
-.bases-swatch-btn[aria-pressed="true"] {
+.configure-swatch-btn[aria-pressed="true"] {
   outline: var(--dt-focus-ring-width) solid var(--dt-text-primary);
   outline-offset: var(--dt-focus-ring-offset);
 }
 
-.bases-swatch-custom {
+.configure-swatch-custom {
   display: inline-flex;
   overflow: hidden;
   background: linear-gradient(135deg, var(--dt-color-red-500), var(--dt-color-violet-500), var(--dt-color-cyan-500));
 }
 
-.bases-color {
+.configure-color {
   width: 100%;
   height: 100%;
   padding: 0;
@@ -1142,7 +1142,7 @@ body.bases-open .bases-bar {
   cursor: pointer;
 }
 
-.bases-group {
+.configure-group {
   margin: var(--dt-space-stack-sm) 0 calc(-1 * var(--dt-space-stack-xs));
   padding-top: var(--dt-space-stack-sm);
   border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
@@ -1154,13 +1154,13 @@ body.bases-open .bases-bar {
   color: var(--dt-text-tertiary);
 }
 
-.bases-stack {
+.configure-stack {
   display: flex;
   flex-direction: column;
   gap: var(--dt-space-stack-xs);
 }
 
-.bases-text {
+.configure-text {
   width: 100%;
   height: var(--dt-size-control-md);
   padding: 0 var(--dt-space-inset-sm);
@@ -1172,7 +1172,7 @@ body.bases-open .bases-bar {
   border-radius: var(--dt-input-radius);
 }
 
-.bases-drop {
+.configure-drop {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1188,46 +1188,46 @@ body.bases-open .bases-bar {
   transition: border-color var(--dt-motion-micro), background var(--dt-motion-micro);
 }
 
-.bases-drop:hover,
-.bases-drop[data-over] {
+.configure-drop:hover,
+.configure-drop[data-over] {
   border-color: var(--dt-border-selected);
   background: var(--dt-surface-selected);
 }
 
-.bases-file {
+.configure-file {
   position: absolute;
   width: 1px;
   height: 1px;
   opacity: 0;
 }
 
-.bases-mark-row {
+.configure-mark-row {
   display: flex;
   align-items: center;
   gap: var(--dt-space-inline-sm);
 }
 
-.bases-mark {
+.configure-mark {
   width: auto;
   height: var(--dt-dim-8);
   max-width: var(--dt-dim-24);
   object-fit: contain;
 }
 
-.bases-bad {
+.configure-bad {
   margin: 0;
   max-width: none;
   font-size: var(--dt-font-size-xs);
   color: var(--dt-text-danger);
 }
 
-.bases-export-wrap {
+.configure-export-wrap {
   display: flex;
   flex-direction: column;
   gap: var(--dt-space-stack-xs);
 }
 
-.bases-export {
+.configure-export {
   width: 100%;
   resize: vertical;
   padding: var(--dt-space-inset-sm);
@@ -1240,12 +1240,12 @@ body.bases-open .bases-bar {
   line-height: var(--dt-line-height-xs);
 }
 
-.bases-actions {
+.configure-actions {
   display: flex;
   gap: var(--dt-space-inline-xs);
 }
 
-.bases-btn {
+.configure-btn {
   flex: 1;
   height: var(--dt-size-control-md);
   padding: 0 var(--dt-space-inset-md);
@@ -1260,21 +1260,21 @@ body.bases-open .bases-bar {
   transition: background var(--dt-motion-micro);
 }
 
-.bases-btn:hover {
+.configure-btn:hover {
   background: var(--dt-button-secondary-bg-hover);
 }
 
-.bases-btn-primary {
+.configure-btn-primary {
   border-color: var(--dt-color-transparent);
   background: var(--dt-button-primary-bg);
   color: var(--dt-button-primary-fg);
 }
 
-.bases-btn-primary:hover {
+.configure-btn-primary:hover {
   background: var(--dt-button-primary-bg-hover);
 }
 
-.bases-note {
+.configure-note {
   margin: 0;
   max-width: none;
   font-size: var(--dt-font-size-xs);
@@ -1289,39 +1289,39 @@ body.bases-open .bases-bar {
    watched while the controls move. */
 @media (max-width: 720px) {
   :root {
-    --bases-height: 58vh;
+    --configure-height: 58vh;
   }
 
-  .bases-sheet {
+  .configure-sheet {
     top: auto;
     right: 0;
     bottom: 0;
     left: 0;
     width: auto;
     max-width: none;
-    height: var(--bases-height);
+    height: var(--configure-height);
     border-width: var(--dt-border-width-default) 0 0;
     border-radius: var(--dt-radius-overlay) var(--dt-radius-overlay) 0 0;
   }
 
-  .bases-head {
+  .configure-head {
     padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-sm);
   }
 
-  .bases-body {
+  .configure-body {
     padding: var(--dt-space-inset-md);
   }
 
-  body.bases-open {
-    padding-bottom: calc(var(--bases-height) + var(--dt-dim-4));
+  body.configure-open {
+    padding-bottom: calc(var(--configure-height) + var(--dt-dim-4));
   }
 
-  body.bases-open .bases-bar {
+  body.configure-open .configure-bar {
     right: var(--dt-space-inset-md);
-    bottom: calc(var(--bases-height) + var(--dt-dim-2));
+    bottom: calc(var(--configure-height) + var(--dt-dim-2));
   }
 
-  .bases-bar {
+  .configure-bar {
     right: var(--dt-space-inset-md);
     bottom: var(--dt-space-inset-md);
   }
@@ -1338,9 +1338,9 @@ body.bases-open .bases-bar {
   z-index: var(--dt-z-dropdown);
   min-width: var(--dt-dim-56);
   padding: var(--dt-space-inset-2xs);
-  background: var(--bases-glass);
-  -webkit-backdrop-filter: var(--bases-blur);
-  backdrop-filter: var(--bases-blur);
+  background: var(--configure-glass);
+  -webkit-backdrop-filter: var(--configure-blur);
+  backdrop-filter: var(--configure-blur);
   border: var(--dt-border-width-default) solid var(--dt-border-subtle);
   border-radius: var(--dt-radius-container);
   box-shadow: var(--dt-elevation-3);

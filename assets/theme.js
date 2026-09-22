@@ -1,4 +1,4 @@
-/* The bases panel: a floating toolbar and sheet that set the tokens a brand is
+/* The Configure panel: a floating toolbar and sheet that set the tokens a brand is
    allowed to touch, and show the result everywhere at once.
 
    State lives in one localStorage key, `dovetail-theme-config`, which is the
@@ -8,14 +8,14 @@
    iframe, the tearsheet, the settings template, and the theme configurator
    card itself, which writes the same payload when you press Save there.
 
-   The presets come from `assets/bases-data.js`, extracted from the
+   The presets come from `assets/configure-data.js`, extracted from the
    configurator at build time, so the panel and the configurator can never
    drift apart. */
 
 (function () {
   "use strict";
 
-  var DATA = window.DovetailBases;
+  var DATA = window.DovetailConfigure;
   if (!DATA) return;
 
   var KEY = "dovetail-theme-config";
@@ -590,20 +590,20 @@
   }
 
   function field(label, hint, control) {
-    var parts = [h("span", { class: "bases-label", text: label })];
-    if (hint) parts.push(h("span", { class: "bases-hint", text: hint }));
+    var parts = [h("span", { class: "configure-label", text: label })];
+    if (hint) parts.push(h("span", { class: "configure-hint", text: hint }));
     parts.push(control);
-    return h("div", { class: "bases-field" }, parts);
+    return h("div", { class: "configure-field" }, parts);
   }
 
   function segmented(name, bid, options, current, onPick) {
     return h(
       "div",
-      { class: "bases-seg", role: "group", "aria-label": name },
+      { class: "configure-seg", role: "group", "aria-label": name },
       options.map(function (option) {
         return h("button", {
           type: "button",
-          class: "bases-seg-btn",
+          class: "configure-seg-btn",
           "data-bid": bid + ":" + option.value,
           "aria-pressed": String(option.value === current),
           text: option.label,
@@ -619,7 +619,7 @@
     var node = h(
       "select",
       {
-        class: "bases-select",
+        class: "configure-select",
         "data-bid": bid,
         "aria-label": name,
         onchange: function () {
@@ -635,10 +635,10 @@
   }
 
   function buildPanel() {
-    el.toolbar = h("div", { class: "bases-bar", role: "group", "aria-label": "Theme controls" }, [
+    el.toolbar = h("div", { class: "configure-bar", role: "group", "aria-label": "Configure the system" }, [
       (el.mode = h("button", {
         type: "button",
-        class: "bases-icon-btn",
+        class: "configure-icon-btn",
         title: "Toggle dark mode",
         "aria-pressed": "false",
         onclick: function () {
@@ -647,38 +647,38 @@
       })),
       (el.open = h("button", {
         type: "button",
-        class: "bases-open-btn",
+        class: "configure-open-btn",
         "aria-expanded": "false",
-        "aria-controls": "bases-sheet",
+        "aria-controls": "configure-sheet",
         onclick: toggle,
       })),
     ]);
 
-    el.swatch = h("span", { class: "bases-swatch", "aria-hidden": "true" });
-    el.openLabel = h("span", { text: "Bases" });
+    el.swatch = h("span", { class: "configure-swatch", "aria-hidden": "true" });
+    el.openLabel = h("span", { text: "Configure" });
     el.open.appendChild(el.swatch);
     el.open.appendChild(el.openLabel);
 
     el.sheet = h("aside", {
-      id: "bases-sheet",
-      class: "bases-sheet",
+      id: "configure-sheet",
+      class: "configure-sheet",
       role: "dialog",
-      "aria-labelledby": "bases-title",
+      "aria-labelledby": "configure-title",
       hidden: true,
     });
 
-    el.body = h("div", { class: "bases-body" });
+    el.body = h("div", { class: "configure-body" });
 
     el.sheet.appendChild(
-      h("header", { class: "bases-head" }, [
+      h("header", { class: "configure-head" }, [
         h("div", {}, [
-          h("h2", { id: "bases-title", text: "Bases" }),
+          h("h2", { id: "configure-title", text: "Configure" }),
           h("p", {
-            class: "bases-sub",
+            class: "configure-sub",
             text: "The tokens a brand is allowed to touch. Every change applies to this page, every other page, and every live card on them.",
           }),
         ]),
-        h("button", { type: "button", class: "bases-close", "aria-label": "Close", text: "×", onclick: close }),
+        h("button", { type: "button", class: "configure-close", "aria-label": "Close", text: "×", onclick: close }),
       ])
     );
     el.sheet.appendChild(el.body);
@@ -708,7 +708,7 @@
   function textInput(label, bid, value, onCommit) {
     var node = h("input", {
       type: "text",
-      class: "bases-text",
+      class: "configure-text",
       "data-bid": bid,
       "aria-label": label,
       value: value,
@@ -750,7 +750,7 @@
     var markFile = h("input", {
       type: "file",
       accept: "image/*",
-      class: "bases-file",
+      class: "configure-file",
       "data-bid": "brand-mark",
       "aria-label": "Brand mark image",
       onchange: function (event) {
@@ -762,7 +762,7 @@
     var drop = h(
       "label",
       {
-        class: "bases-drop",
+        class: "configure-drop",
         ondragover: function (event) {
           event.preventDefault();
           drop.setAttribute("data-over", "");
@@ -782,11 +782,11 @@
     var markRow = [drop];
     if (brand.mark) {
       markRow.push(
-        h("div", { class: "bases-mark-row" }, [
-          h("img", { class: "bases-mark", src: brand.mark, alt: "" }),
+        h("div", { class: "configure-mark-row" }, [
+          h("img", { class: "configure-mark", src: brand.mark, alt: "" }),
           h("button", {
             type: "button",
-            class: "bases-btn",
+            class: "configure-btn",
             "data-bid": "brand-mark-remove",
             text: "Remove mark",
             onclick: function () {
@@ -796,14 +796,14 @@
         ])
       );
     }
-    if (el.markError) markRow.push(h("p", { class: "bases-bad", role: "alert", text: el.markError }));
+    if (el.markError) markRow.push(h("p", { class: "configure-bad", role: "alert", text: el.markError }));
 
-    out.push(field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "bases-stack" }, markRow)));
+    out.push(field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "configure-stack" }, markRow)));
 
     var swatches = DATA.accents.map(function (accent) {
       return h("button", {
         type: "button",
-        class: "bases-swatch-btn",
+        class: "configure-swatch-btn",
         "data-bid": "accent:" + accent.id,
         style: "background:" + DATA.ramps[accent.id]["600"],
         title: accent.label,
@@ -817,7 +817,7 @@
 
     var picker = h("input", {
       type: "color",
-      class: "bases-color",
+      class: "configure-color",
       "data-bid": "accent:custom",
       value: config.customHex,
       "aria-label": "Custom accent colour",
@@ -831,9 +831,9 @@
         commit({ accent: "custom", customHex: event.target.value });
       },
     });
-    swatches.push(h("span", { class: "bases-swatch-btn bases-swatch-custom", "aria-pressed": String(config.accent === "custom"), title: "Custom colour" }, [picker]));
+    swatches.push(h("span", { class: "configure-swatch-btn configure-swatch-custom", "aria-pressed": String(config.accent === "custom"), title: "Custom colour" }, [picker]));
 
-    out.push(field("Accent", "One hue drives eleven steps. Lightness and chroma stay put, so contrast holds.", h("div", { class: "bases-swatches" }, swatches)));
+    out.push(field("Accent", "One hue drives eleven steps. Lightness and chroma stay put, so contrast holds.", h("div", { class: "configure-swatches" }, swatches)));
 
     out.push(
       field(
@@ -1023,7 +1023,7 @@
     );
 
     out.push(
-      h("p", { class: "bases-note" }, [
+      h("p", { class: "configure-note" }, [
         h("span", { text: "Browse a whole set, try the solid style, and drop in your own photography in the " }),
         h("a", { href: siteRoot() + "showcase/tools.html", text: "media lab" }),
         h("span", { text: ". It loads the libraries themselves, which needs a connection to jsDelivr." }),
@@ -1061,12 +1061,12 @@
   }
 
   function exportFields() {
-    el.export = h("textarea", { class: "bases-export", readonly: true, rows: "14", spellcheck: "false", "aria-label": "Theme CSS" });
+    el.export = h("textarea", { class: "configure-export", readonly: true, rows: "14", spellcheck: "false", "aria-label": "Theme CSS" });
     el.export.value = exportCss();
 
     el.copy = h("button", {
       type: "button",
-      class: "bases-btn bases-btn-primary",
+      class: "configure-btn configure-btn-primary",
       "data-bid": "copy",
       text: "Copy theme CSS",
       onclick: function () {
@@ -1097,16 +1097,16 @@
       field(
         "Theme file",
         "Paste this into tokens/themes/theme-custom.css and the theme ships with the repository, with no JavaScript.",
-        h("div", { class: "bases-export-wrap" }, [
+        h("div", { class: "configure-export-wrap" }, [
           el.export,
-          h("div", { class: "bases-actions" }, [
+          h("div", { class: "configure-actions" }, [
             el.copy,
-            h("button", { type: "button", class: "bases-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
+            h("button", { type: "button", class: "configure-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
           ]),
         ])
       ),
       h("p", {
-        class: "bases-note",
+        class: "configure-note",
         text: "Held in this browser only, under the key the system's own theme runtime reads. Nothing here edits a file.",
       }),
     ];
@@ -1135,18 +1135,18 @@
       )
     );
 
-    var strip = h("div", { class: "bases-tabs", role: "tablist", "aria-label": "Bases groups" });
+    var strip = h("div", { class: "configure-tabs", role: "tablist", "aria-label": "Configure groups" });
     TABS.forEach(function (tab) {
       var selected = tab.id === activeTab;
       strip.appendChild(
         h("button", {
           type: "button",
-          class: "bases-tab",
+          class: "configure-tab",
           role: "tab",
-          id: "bases-tab-" + tab.id,
+          id: "configure-tab-" + tab.id,
           "data-bid": "tab:" + tab.id,
           "aria-selected": String(selected),
-          "aria-controls": "bases-panel",
+          "aria-controls": "configure-panel",
           tabindex: selected ? "0" : "-1",
           text: tab.label,
           onclick: function () {
@@ -1172,10 +1172,10 @@
 
     var tab = TABS.filter(function (t) { return t.id === activeTab; })[0] || TABS[0];
     var panel = h("div", {
-      class: "bases-panel",
-      id: "bases-panel",
+      class: "configure-panel",
+      id: "configure-panel",
       role: "tabpanel",
-      "aria-labelledby": "bases-tab-" + tab.id,
+      "aria-labelledby": "configure-tab-" + tab.id,
       tabindex: "0",
     }, tab.fields());
     body.appendChild(panel);
@@ -1225,7 +1225,7 @@
   function open() {
     lastFocus = document.activeElement;
     el.sheet.hidden = false;
-    document.body.classList.add("bases-open");
+    document.body.classList.add("configure-open");
     el.open.setAttribute("aria-expanded", "true");
     var first = el.sheet.querySelector("select, button, input");
     if (first) first.focus();
@@ -1233,7 +1233,7 @@
 
   function close() {
     el.sheet.hidden = true;
-    document.body.classList.remove("bases-open");
+    document.body.classList.remove("configure-open");
     el.open.setAttribute("aria-expanded", "false");
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
@@ -1292,5 +1292,5 @@
     if (event.key === "Escape" && !el.sheet.hidden) close();
   });
 
-  window.DovetailBasesPanel = { open: open, close: close, reset: reset, config: function () { return assign({}, config); } };
+  window.DovetailConfigurePanel = { open: open, close: close, reset: reset, config: function () { return assign({}, config); } };
 })();

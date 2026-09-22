@@ -1,6 +1,6 @@
 /* Site chrome behaviour: the navigation drawer and the navigation filter.
 
-   Theming — colour mode, context, and everything in the bases sheet — lives in
+   Theming — colour mode, context, and everything in the Configure sheet — lives in
    assets/theme.js, which owns the one piece of state both the site and the
    system's own theme runtime read. */
 
