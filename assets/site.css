@@ -410,6 +410,7 @@ hr {
 }
 
 .tile {
+  position: relative;
   display: block;
   padding: var(--dt-card-padding);
   background: var(--dt-card-bg);
@@ -452,11 +453,81 @@ hr {
 
 .tile p {
   margin: 0;
-  max-width: none;
+  /* Three lines, so a long summary does not make one card twice the height of
+     its neighbour. The whole description is on the component's own page. */
+  max-width: 46ch;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
   font-size: var(--dt-font-size-sm);
   line-height: var(--dt-line-height-sm);
   color: var(--dt-text-secondary);
   text-wrap: pretty;
+}
+
+.tile-meta,
+.tile-specimen-note {
+  -webkit-line-clamp: none;
+  line-clamp: none;
+  display: block;
+}
+
+/* A component card holds a link rather than being one, because a menu button
+   cannot sit inside an anchor. The link is stretched over the card instead. */
+.tile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--dt-space-inline-xs);
+}
+
+.tile-head h3 {
+  margin: 0 0 var(--dt-dim-1);
+}
+
+.tile-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tile-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.tile-menu-btn {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-sm);
+  height: var(--dt-size-control-sm);
+  margin: calc(-1 * var(--dt-dim-1)) calc(-1 * var(--dt-dim-1)) 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  cursor: pointer;
+  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+
+.tile-menu-btn svg {
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+  stroke-width: var(--site-icon-stroke, 2);
+}
+
+.tile-menu-btn:hover,
+.tile-menu-btn[aria-expanded="true"] {
+  background: var(--dt-surface-action-ghost-hover);
+  color: var(--dt-text-primary);
 }
 
 /* A specimen is the component itself, rendered small. It sits inside a link, so
@@ -1253,5 +1324,235 @@ body.bases-open .bases-bar {
   .bases-bar {
     right: var(--dt-space-inset-md);
     bottom: var(--dt-space-inset-md);
+  }
+}
+
+/* ------------------------------------------------------- the files menu */
+
+/* Drawn on <body>, positioned against the button: on a narrow screen the card
+   is inside a horizontal scroller, and a popup drawn in the card would be
+   clipped by that overflow. */
+
+.file-menu {
+  position: fixed;
+  z-index: var(--dt-z-dropdown);
+  min-width: var(--dt-dim-56);
+  padding: var(--dt-space-inset-2xs);
+  background: var(--bases-glass);
+  -webkit-backdrop-filter: var(--bases-blur);
+  backdrop-filter: var(--bases-blur);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container);
+  box-shadow: var(--dt-elevation-3);
+}
+
+.file-menu-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--dt-space-inline-md);
+  width: 100%;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dt-motion-micro);
+}
+
+.file-menu-item:hover {
+  background: var(--dt-surface-action-ghost-hover);
+}
+
+.file-menu-name {
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs);
+  color: var(--dt-text-tertiary);
+}
+
+/* ------------------------------------------------------ the file viewer */
+
+.file-viewer[hidden] {
+  display: none;
+}
+
+.file-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--dt-z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--dt-space-inset-lg);
+}
+
+.file-viewer-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--dt-surface-scrim);
+}
+
+.file-viewer-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: 100%;
+  background: var(--dt-surface-overlay);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-overlay);
+  box-shadow: var(--dt-elevation-5);
+  overflow: hidden;
+}
+
+.file-viewer-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dt-space-inline-sm);
+  padding: var(--dt-space-inset-lg) var(--dt-space-inset-lg) var(--dt-space-inset-sm);
+}
+
+.file-viewer-head h2 {
+  margin: 0;
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-md);
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.file-viewer-note {
+  margin: var(--dt-dim-1) 0 0;
+  max-width: none;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-secondary);
+}
+
+.file-viewer-close {
+  margin-left: auto;
+  width: var(--dt-size-control-sm);
+  height: var(--dt-size-control-sm);
+  flex: none;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.file-viewer-close:hover {
+  background: var(--dt-surface-action-ghost-hover);
+  color: var(--dt-text-primary);
+}
+
+.file-viewer-tabs {
+  display: flex;
+  gap: var(--dt-dim-1);
+  padding: 0 var(--dt-space-inset-lg) var(--dt-space-inset-sm);
+}
+
+.file-viewer-tab {
+  height: var(--dt-dim-8);
+  padding: 0 var(--dt-space-inset-sm);
+  border: 0;
+  border-radius: var(--dt-radius-pill);
+  background: transparent;
+  color: var(--dt-text-secondary);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-medium);
+  cursor: pointer;
+}
+
+.file-viewer-tab:hover {
+  background: var(--dt-surface-action-ghost-hover);
+  color: var(--dt-text-primary);
+}
+
+.file-viewer-tab[aria-selected="true"] {
+  background: var(--dt-surface-action);
+  color: var(--dt-text-on-action);
+}
+
+.file-viewer-body {
+  flex: 1;
+  overflow: auto;
+  margin: 0;
+  padding: var(--dt-space-inset-md) var(--dt-space-inset-lg);
+  background: var(--dt-surface-sunken);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  line-height: var(--dt-line-height-sm);
+  color: var(--dt-text-primary);
+  white-space: pre;
+  tab-size: 2;
+}
+
+.file-viewer-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-md);
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-lg);
+}
+
+.file-viewer-link {
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-link);
+}
+
+body.file-viewer-open {
+  overflow: hidden;
+}
+
+/* --------------------------------------------------- cards on a phone */
+
+/* Every card grid becomes one swipeable row per group. Cards are equal height
+   because the row is a flex line, the next one peeks past the edge so the
+   swipe is discoverable, and the row bleeds to the page edges so nothing looks
+   cropped by the gutter. */
+@media (max-width: 720px) {
+  .tiles {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--dt-space-inline-sm);
+    margin-inline: calc(-1 * var(--dt-space-inset-md));
+    padding-inline: var(--dt-space-inset-md);
+    padding-block: var(--dt-dim-1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--dt-space-inset-md);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tiles::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tiles > * {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+  }
+
+  .tile-specimen {
+    height: var(--dt-dim-20);
+  }
+
+  .file-viewer {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .file-viewer-panel {
+    max-height: 88vh;
+    border-radius: var(--dt-radius-overlay) var(--dt-radius-overlay) 0 0;
+    border-width: var(--dt-border-width-default) 0 0;
   }
 }

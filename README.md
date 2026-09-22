@@ -19,7 +19,8 @@ downloads.html      How to take the system into a project
 
 system/             The design system itself, at the paths it was authored with
 previews/           The @dsCard preview documents, one per card
-assets/             Site chrome: site.css, site.js, theme.js (bases), specimens.js
+assets/             Site chrome: site.css, site.js, theme.js (bases), specimens.js,
+                    file-menu.js
 tools/build-site.mjs   The generator
 ```
 
@@ -82,6 +83,28 @@ component: the smallest honest use of it, with real props and real content.
 Four cards carry a line of text instead. Dialog, Drawer and ToastRegion mount fixed to
 the viewport, so a specimen would cover the page rather than sit in a card, and
 VisuallyHidden renders nothing by design.
+
+Each card also carries a files menu — the ellipsis — that opens the component's guide,
+typed contract or source in a reader without leaving the index. It fetches the real file
+from `system/`, at the path the system was authored with, so it cannot show something the
+repository does not hold. The menu is drawn on `<body>` rather than inside the card,
+because on a phone the card sits in a scroller that would clip it, and it follows its
+button on scroll rather than closing, since a tap inside a scroller often scrolls a
+little.
+
+A card holds a link now rather than being one: a menu button cannot sit inside an anchor,
+so the heading's link is stretched over the card and the button is raised above it.
+Descriptions are clamped to three lines, so one long summary cannot make a card twice the
+height of its neighbour — the whole thing is on the component's own page.
+
+## Cards on a phone
+
+Every card grid becomes one swipeable row per group, in the manner of a product page:
+cards are equal height because the row is a flex line, the next card peeks past the edge
+so the swipe is discoverable, and the row bleeds to the page edges so nothing looks
+cropped by the gutter. Scroll snapping makes each swipe land on a card. It saves most of
+the vertical space a stacked grid costs — 58 components in seven rows rather than 58
+screens of scrolling.
 
 ## Chrome icons
 

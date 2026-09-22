@@ -686,12 +686,29 @@ ${GROUP_ORDER.map((g) => {
   <h2 id="${attr(g)}">${esc(GROUP_LABEL[g])}</h2>
   <div class="tiles compact">
   ${list
-    .map(
-      (c) =>
-        `<a class="tile tile-component" href="${c.name}.html">` +
+    .map((c) => {
+      /* The card is not a link any more: it holds one. A menu button cannot sit
+         inside an anchor, so the heading's link is stretched over the card and
+         the button is raised above it. */
+      const files = [
+        c.guideFile ? `data-md="../${attr(c.guideFile)}"` : "",
+        c.types ? `data-types="../${attr(c.types)}"` : "",
+        c.source ? `data-source="../${attr(c.source)}"` : "",
+      ].filter(Boolean).join(" ");
+      return (
+        `<article class="tile tile-component">` +
         `<div class="tile-specimen" data-specimen="${attr(c.name)}" aria-hidden="true"></div>` +
-        `<h3>${esc(c.name)}</h3><p>${inlineMd(c.summary)}</p></a>`
-    )
+        `<div class="tile-head">` +
+        `<h3><a class="tile-link" href="${c.name}.html">${esc(c.name)}</a></h3>` +
+        `<button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false"` +
+        ` aria-label="Files for ${attr(c.name)}" data-component="${attr(c.name)}" ${files}>` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">` +
+        `<path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg>` +
+        `</button>` +
+        `</div>` +
+        `<p class="tile-desc">${inlineMd(c.summary)}</p></article>`
+      );
+    })
     .join("\n  ")}
   </div>
 </section>`;
@@ -704,7 +721,8 @@ ${GROUP_ORDER.map((g) => {
     `<script src="../system/components/lib/react.production.min.js" defer></script>\n` +
     `<script src="../system/components/lib/react-dom.production.min.js" defer></script>\n` +
     `<script src="../system/components/bundle.js" defer></script>\n` +
-    `<script src="../assets/specimens.js" defer></script>\n`;
+    `<script src="../assets/specimens.js" defer></script>\n` +
+    `<script src="../assets/file-menu.js" defer></script>\n`;
 
   write(
     "components/index.html",
