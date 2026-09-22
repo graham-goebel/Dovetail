@@ -27,6 +27,18 @@
 
   --dt-focus-ring-color: var(--dt-color-neutral-950);
 
+  /* Brand fills follow action: ink, not colour. The gradient stays a token in
+     case a component asks for it directly, but nothing here points at it. */
+  --dt-surface-brand: var(--dt-color-neutral-950);
+  --dt-surface-brand-gradient: var(--dt-color-neutral-950);
+  --dt-text-on-brand: var(--dt-color-white);
+
+  --dt-surface-brand-muted: var(--dt-color-neutral-100);
+  --dt-text-on-brand-muted: var(--dt-color-neutral-950);
+  --dt-border-brand: var(--dt-color-neutral-300);
+
+  --dt-pattern-ink: var(--dt-color-neutral-950);
+
   /* Square, high-contrast shape. Borders carry the structure. */
   --dt-radius-control: var(--dt-radius-raw-0);
   --dt-radius-container: var(--dt-radius-raw-0);

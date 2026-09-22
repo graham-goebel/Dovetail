@@ -90,6 +90,17 @@
   --dt-focus-ring-color: var(--dt-color-accent-400);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
+  /* A saturated fill steps down in the dark, same as action above; the muted
+     tint goes the other way, toward the ramp's darkest step rather than its
+     palest, because a "soft" band on a near-black page is a dark one. */
+  --dt-surface-brand: var(--dt-color-accent-500);
+  --dt-surface-brand-gradient: linear-gradient(135deg, var(--dt-color-accent-400), var(--dt-color-accent-700));
+  --dt-text-on-brand: var(--dt-color-neutral-950);
+
+  --dt-surface-brand-muted: var(--dt-color-accent-950);
+  --dt-text-on-brand-muted: var(--dt-color-accent-100);
+  --dt-border-brand: var(--dt-color-accent-800);
+
   --dt-viz-1: var(--dt-color-accent-400);
   --dt-viz-2: var(--dt-color-violet-400);
   --dt-viz-3: var(--dt-color-cyan-400);

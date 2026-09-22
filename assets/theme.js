@@ -43,6 +43,8 @@
     density: false,
     dark: false,
     mono: false,
+    brandFill: "solid",
+    texture: "none",
     baseUnit: 4,
     focusRing: 2,
     iconLib: "lucide",
@@ -286,9 +288,22 @@
       vars["--dt-space-section"] = "var(--dt-dim-" + space.section + ")";
       vars["--dt-space-gutter"] = "var(--dt-dim-" + space.gutter + ")";
     }
+
+    /* --dt-surface-brand is one role either way; solid is the system default
+       and needs nothing written, so only the gradient choice has to say
+       anything. A component never sees which one it got. */
+    if (cfg.brandFill === "gradient") vars["--dt-surface-brand"] = "var(--dt-surface-brand-gradient)";
+
+    /* Same shape: a texture is a second role, --dt-surface-texture, pointed at
+       one of the two patterns the system ships. None writes nothing, which is
+       the stylesheet's own default. */
+    if (cfg.texture && cfg.texture !== "none") vars["--dt-surface-texture"] = "var(--dt-pattern-" + cfg.texture + ")";
+
     /* The configurator previews the monochrome overrides but leaves them out of
        what it saves, so the preset could not survive a reload. They are carried
-       here, and in the export, for the same reason every other choice is. */
+       here, and in the export, for the same reason every other choice is. Last,
+       so a mono brand always reads as ink even with a gradient or a texture
+       chosen. */
     if (cfg.mono) assign(vars, DATA.monochrome);
 
     return vars;
@@ -498,6 +513,18 @@
       DISPLAY_ROLES.forEach(function (role) {
         lines.push("  --dt-text-" + role + "-family: var(--dt-font-family-display);");
       });
+    }
+
+    if (config.brandFill === "gradient") {
+      lines.push("");
+      lines.push("  /* Fill: gradient */");
+      lines.push("  --dt-surface-brand: var(--dt-surface-brand-gradient);");
+    }
+
+    if (config.texture && config.texture !== "none") {
+      lines.push("");
+      lines.push("  /* Texture: " + config.texture + " */");
+      lines.push("  --dt-surface-texture: var(--dt-pattern-" + config.texture + ");");
     }
 
     if (config.density) {
@@ -889,6 +916,38 @@
         segmented("Monochrome", "mono", [{ value: "off", label: "Off" }, { value: "on", label: "On" }], config.mono ? "on" : "off", function (value) {
           commit({ mono: value === "on" });
         })
+      )
+    );
+
+    out.push(
+      field(
+        "Fill",
+        "Sets --dt-surface-brand for a full-bleed section. Solid is one step of the ramp; gradient sweeps two.",
+        segmented(
+          "Fill",
+          "brandFill",
+          [{ value: "solid", label: "Solid" }, { value: "gradient", label: "Gradient" }],
+          config.brandFill,
+          function (value) {
+            commit({ brandFill: value });
+          }
+        )
+      )
+    );
+
+    out.push(
+      field(
+        "Texture",
+        "A dot or line grid behind a full-bleed section, in the border-strength colour so it never fights the fill. Sets --dt-surface-texture.",
+        segmented(
+          "Texture",
+          "texture",
+          [{ value: "none", label: "None" }, { value: "dots", label: "Dots" }, { value: "grid", label: "Grid" }],
+          config.texture,
+          function (value) {
+            commit({ texture: value });
+          }
+        )
       )
     );
 

@@ -19,3 +19,17 @@ When cover crops the wrong part of a photo, move the focal point rather than cha
 ## Placeholders
 
 Without \`src\`, Image renders a dashed frame labelled with \`placeholder\` or \`alt\`. Templates ship this way on purpose, so a consumer can see the intended ratio and subject before wiring up a CMS.
+
+## Letting someone upload one
+
+Pass \`onFile\` and the same frame becomes a drop target: drag a file onto it, or click through to a picker. It is called with the browser's own \`File\` and does nothing else; Image does not read it, resize it or send it anywhere. A template's job is everything after that:
+
+\`\`\`jsx
+function Cover() {
+  const [file, setFile] = React.useState(null);
+  const src = file ? URL.createObjectURL(file) : undefined;
+  return <Image src={src} alt="" placeholder="Cover image" onFile={setFile} />;
+}
+\`\`\`
+
+Revoke the object URL when the file changes or the component unmounts, the same as anywhere else you create one. Uploading it to storage is the template's own concern; Image only gets you to a File.

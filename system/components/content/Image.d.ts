@@ -5,7 +5,7 @@ import { AspectRatioProps } from "./AspectRatio";
 export interface ImageProps extends Omit<React.HTMLAttributes<HTMLElement>, "placeholder"> {
   /** Image URL. Omit to render the placeholder frame. */
   src?: string;
-  /** Alternative text. Required — pass an empty string only for decorative images. */
+  /** Alternative text. Required; pass an empty string only for decorative images. */
   alt: string;
   /** @default "16:9" */
   ratio?: AspectRatioProps["ratio"];
@@ -19,6 +19,14 @@ export interface ImageProps extends Omit<React.HTMLAttributes<HTMLElement>, "pla
   loading?: "lazy" | "eager";
   /** Text shown in the placeholder frame. Falls back to \`alt\`. */
   placeholder?: string;
+  /**
+   * Turns the placeholder into a drop target. Called with the browser's own
+   * File from either a drop or the file picker; nothing is read, resized or
+   * sent anywhere. A template stores the file, derives an object URL for a
+   * live preview, and passes that back in as \`src\` once it has one. Omit
+   * this to keep the placeholder a plain frame, as it was before.
+   */
+  onFile?: (file: File) => void;
 }
 
 export declare function Image(props: ImageProps): JSX.Element;

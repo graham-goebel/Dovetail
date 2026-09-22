@@ -501,6 +501,8 @@ const CARD_SECTIONS = {
       ["ColorNeutral", "ColorAccent", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
     ["Roles", "What a component actually reads. Each one resolves to a step of a ramp above.",
       ["ColorSurfaces", "ColorText", "ColorBorders", "ColorPairs", "ColorActions", "ColorFeedback", "ColorDark"]],
+    ["Brand and texture", "Full-bleed roles for a section, not a control: a solid or gradient fill, a muted tint, and a pattern built from two gradients rather than an image.",
+      ["BrandFills"]],
   ],
 };
 
@@ -1140,8 +1142,54 @@ ${markdown(src)}
 function swatch(value) {
   if (typeof value !== "string") return "";
   const v = value.trim();
-  if (!/^(#|oklch|rgb|hsl|color\()/i.test(v)) return "";
+  if (!/^(#|oklch|rgb|hsl|color\(|linear-gradient\(|radial-gradient\()/i.test(v)) return "";
   return `<span class="swatch" style="background:${attr(v)}"></span>`;
+}
+
+/* system/tokens.json stores a colour value either as a literal or as the DTCG
+   reference syntax its own pipeline uses, `{dt-color-accent-600}`, and neither
+   the light nor the dark column ever resolved that reference to something a
+   swatch could read: most of the colour cells on this page have been printing
+   that placeholder text instead of a chip. tokenDefs already holds every value
+   the CSS declares, keyed the same way the graph and the component token
+   tables read it, so resolving here needs no second index. The dark column is
+   the one exception: it has to prefer whatever base-dark.css re-points before
+   falling back to the light-tier definition, or a dark cell that references
+   another semantic role would resolve to that role's light value. */
+const darkDefs = new Map();
+{
+  const darkFile = path.join(SYS, "tokens", "themes", "base-dark.css");
+  if (exists(darkFile)) {
+    for (const m of read(darkFile).matchAll(/(--dt-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+      if (!darkDefs.has(m[1])) darkDefs.set(m[1], m[2].trim());
+    }
+  }
+}
+
+function lookupTokenValue(name, isDark) {
+  const dark = isDark && darkDefs.get(name);
+  if (dark) return dark;
+  const def = tokenDefs.get(name);
+  return def ? def.value : null;
+}
+
+function resolveTokenValue(value, isDark, depth) {
+  if (typeof value !== "string" || (depth || 0) > 8) return value;
+  const bareVar = value.match(/^var\((--dt-[a-z0-9-]+)\)$/);
+  if (bareVar) {
+    const next = lookupTokenValue(bareVar[1], isDark);
+    return next != null ? resolveTokenValue(next, isDark, (depth || 0) + 1) : value;
+  }
+  /* A {ref} can sit alone or inside a larger shorthand, such as the two colour
+     stops of a gradient token, so every occurrence in the string is a
+     candidate, not only a whole-string match. */
+  if (!/\{[a-z0-9.-]+\}/i.test(value)) return value;
+  const substituted = value.replace(/\{([a-z0-9.-]+)\}/gi, (whole, ref) => {
+    const name = "--dt-" + ref.replace(/^dt-/, "").replace(/\./g, "-");
+    const next = lookupTokenValue(name, isDark);
+    return next != null ? resolveTokenValue(next, isDark, (depth || 0) + 1) : whole;
+  });
+  return substituted === value ? value : resolveTokenValue(substituted, isDark, (depth || 0) + 1);
 }
 
 function tokenTable(list, themes) {
@@ -1151,7 +1199,8 @@ function tokenTable(list, themes) {
       const cells = themes
         ? themes
             .map((th) => {
-              const v = typeof t.value === "object" && t.value ? t.value[th.id] ?? "" : th.id === themes[0].id ? t.value : "";
+              const raw = typeof t.value === "object" && t.value ? t.value[th.id] ?? "" : th.id === themes[0].id ? t.value : "";
+              const v = resolveTokenValue(raw, th.id === "dark");
               return `<td>${v ? `${swatch(v)}<code>${esc(v)}</code>` : '<span class="muted">—</span>'}</td>`;
             })
             .join("")
@@ -1241,6 +1290,7 @@ function buildTokens() {
     ["fontWeight", "Font weight", tokens.fontWeight && tokens.fontWeight.tokens],
     ["letterSpacing", "Letter spacing", tokens.letterSpacing && tokens.letterSpacing.tokens],
     ["other", "Elevation, z-order and the rest", tokens.other && tokens.other.tokens],
+    ["texture", "Texture", tokens.texture && tokens.texture.tokens],
   ]
     .filter(([, , list]) => Array.isArray(list) && list.length)
     .map(([id, label, list]) => [id, label, list, columnsFor(list)]);

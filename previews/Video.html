@@ -1,0 +1,76 @@
+<!-- @dsCard group="Content" height=520 name="Video" subtitle="Video — Ratio-locked, upload-ready, Image's sibling." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  #root { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--dt-space-inline-lg); max-width: 1000px; margin: 0 auto; align-items: start; }
+  .spec { display: flex; flex-direction: column; gap: var(--dt-space-stack-xs); }
+  .spec > h3 { margin: 0; font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  .readout { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-xs); color: var(--dt-text-secondary); }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+
+  function Spec(props) {
+    return e("div", { className: "spec" }, e("h3", null, props.name), props.children);
+  }
+
+  function UploadDemo() {
+    var state = React.useState(null);
+    var file = state[0];
+    var url = React.useMemo(function () { return file ? URL.createObjectURL(file) : undefined; }, [file]);
+    React.useEffect(function () {
+      return function () { if (url) URL.revokeObjectURL(url); };
+    }, [url]);
+    return e(
+      React.Fragment,
+      null,
+      e(NS.Video, { src: url, label: "Product walkthrough", placeholder: "Walkthrough clip", onFile: state[1] }),
+      e("span", { className: "readout" }, file ? "onFile: " + file.name : "onFile: (nothing dropped yet)")
+    );
+  }
+
+  function Page() {
+    return e(
+      React.Fragment,
+      null,
+      e(Spec, { name: "Placeholder, no src" },
+        e(NS.Video, { label: "Product walkthrough", placeholder: "Walkthrough clip" })
+      ),
+      e(Spec, { name: "Upload-ready, drop or pick a file" },
+        e(UploadDemo)
+      ),
+      e(Spec, { name: "9:16, no controls chrome" },
+        e(NS.Video, { label: "Ambient loop", ratio: "9:16", placeholder: "Ambient loop", controls: false })
+      ),
+      e(Spec, { name: "Square, container radius" },
+        e(NS.Video, { label: "Square clip", ratio: "square", radius: "container", placeholder: "Square clip" })
+      )
+    );
+  }
+
+  function start() {
+    if (!NS.Video || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

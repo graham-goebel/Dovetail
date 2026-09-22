@@ -9,6 +9,7 @@
 @import "tokens/primitive/elevation.css";
 
 @import "tokens/semantic/color.css";
+@import "tokens/semantic/texture.css";
 @import "tokens/semantic/space.css";
 @import "tokens/semantic/typography.css";
 @import "tokens/semantic/shape.css";

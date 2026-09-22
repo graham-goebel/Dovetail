@@ -97,13 +97,22 @@ so the heading's link is stretched over the card and the button is raised above 
 Descriptions are clamped to three lines, so one long summary cannot make a card twice the
 height of its neighbour. The whole thing is on the component's own page.
 
+## Letting someone upload media
+
+`Image` and `Video` take an optional `onFile`, and their placeholder becomes a real drop
+target: drag a file onto it or click through to a picker, and it hands back the browser's
+own `File`. Neither component reads it, stores it or sends it anywhere; a template derives
+an object URL for a live preview and passes that back in as `src` once it has one. This is
+the system's card on the request for upload, and it stops exactly where a design system
+should: at the file, not at storage.
+
 ## Cards on a phone
 
 Every card grid becomes one swipeable row per group, in the manner of a product page:
 cards are equal height because the row is a flex line, the next card peeks past the edge
 so the swipe is discoverable, and the row bleeds to the page edges so nothing looks
 cropped by the gutter. Scroll snapping makes each swipe land on a card. It saves most of
-the vertical space a stacked grid costs: 58 components in seven rows rather than 58
+the vertical space a stacked grid costs: 59 components in seven rows rather than 59
 screens of scrolling.
 
 ## Chrome icons
@@ -115,6 +124,17 @@ set, and the media lab is where you try real ones. They are stroked, so the icon
 in the Configure sheet move them, and their weight follows whichever library is selected:
 2px for Lucide, 1.5px for Heroicons.
 
+## Sketch marks
+
+`system/assets/icons/sketch/` is a second icon voice: six hand-drawn marks (sun, leaf,
+spark, heart, wave, loop) built to the same rules as the interface set, 24×24, one
+`currentColor` stroke, sized only from `--dt-size-icon-*`, so they sit in a sentence next
+to a library glyph without a size mismatch. They are not interface icons and are never
+swapped in through the library picker: a hand-drawn line in a toolbar reads as a mistake.
+They exist for the moments a page is allowed to feel like a person drew it: an empty
+state, a callout, a marketing accent. The `Sketch marks` foundation card compares one
+against a library icon at every step of the scale.
+
 ## The Configure panel
 
 Every page carries a floating toolbar in the corner. It flips the colour mode, and it
@@ -123,7 +143,7 @@ the system is:
 
 | Tab | Sets |
 | --- | --- |
-| Brand | Name and mark, accent ramp, monochrome |
+| Brand | Name and mark, accent ramp, monochrome, fill, texture |
 | Shape | Radius roles, media radius, focus ring width |
 | Type | Body family, display family, code family |
 | Space | Whitespace, control density, base unit |
@@ -159,6 +179,13 @@ reserve a box where a picture goes rather than drawing one; hiding them takes ev
 video and reserved box out of the page and the cards at once, which answers whether the
 layout still works as words. There is no richer step because nothing in the repository
 would fill it. Bring your own imagery in the media lab.
+
+**Fill** sets `--dt-surface-brand`, a full-bleed role independent of the buttons: solid is
+one step of the accent ramp, gradient sweeps two. **Texture** sets `--dt-surface-texture`
+to a dot or line pattern built from two CSS gradients, in the border-strength colour, so
+it never becomes a second colour decision. Both are read straight off the ramp, so
+changing the accent moves them with everything else; neither is a range, because a section
+either wants the brand's presence or it does not.
 
 It works by writing one localStorage key, `dovetail-theme-config`, the key the system's
 own `templates/_support/theme-runtime.js` already reads. Using that key rather than a

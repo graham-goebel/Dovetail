@@ -98,6 +98,28 @@
   --dt-focus-ring-color: var(--dt-color-accent-600);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
+  /* ---- Brand fills ------------------------------------------------
+     A full-bleed section painted in the brand's own colour, independent of
+     the action tokens above: a hero band is not a button, and a theme should
+     be free to point a section fill somewhere the buttons never go. A
+     component reads --dt-surface-brand and nothing else; whether that
+     resolves to a flat step or the gradient below is a choice made once, in
+     Configure's Fill control, not a second prop a component has to expose.
+     Solid is the value here because it is the one every ramp can make: a
+     gradient of two steps of the same hue always exists to switch to. */
+  --dt-surface-brand: var(--dt-color-accent-600);
+  --dt-surface-brand-gradient: linear-gradient(135deg, var(--dt-color-accent-500), var(--dt-color-accent-800));
+  --dt-text-on-brand: var(--dt-color-white);
+
+  /* The muted counterpart: full-bleed, but a soft tint rather than a solid
+     step, for a section that wants presence without shouting. It reads the
+     same ramp, so the tint is whatever the brand's own hue looks like this
+     pale: a warm brand lands on tan or peach, a cool one on pale blue. The
+     token does not choose the hue. The brand does. */
+  --dt-surface-brand-muted: var(--dt-color-accent-050);
+  --dt-text-on-brand-muted: var(--dt-color-accent-900);
+  --dt-border-brand: var(--dt-color-accent-200);
+
   /* ---- Data visualisation ---------------------------------------
      The documented exception to the no-primitives rule. Chart series need a
      palette with no semantic meaning, ordered for categorical distinctness. */

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video · Dovetail</title>
+<meta name="description" content="A ratio-locked video, built the same way as Image and sharing its placeholder: reserve">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html" aria-current="page">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Video</li></ol></nav>
+<h1>Video</h1>
+<p class="lede">A ratio-locked video, built the same way as Image and sharing its placeholder: reserve</p>
+<p class="meta">
+  <span class="pill">Content</span>
+  
+  <a href="../system/components/content/Video.jsx">Video.jsx</a>
+  <a href="../system/components/content/Video.d.ts">Video.d.ts</a>
+  <a href="../system/components/content/Video.md">Video.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Video.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Video — Ratio-locked, upload-ready, Image's sibling.</p>
+  <div class="frame" style="height:520px">
+    <iframe src="../previews/Video.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A ratio-locked video, built the same way as Image and sharing its placeholder: reserve the space, degrade to a labelled drop target when there is nothing to show yet, upgrade to the real thing the moment there is.</p>
+<h2 id="rules">Rules</h2>
+<ul><li>Give it a <code>label</code>. It becomes <code>aria-label</code> on the video and the placeholder's text, the same job <code>alt</code> does on Image, and there is no other way to name a video for someone who cannot see it.</li><li><code>controls</code> defaults to true. Turn it off only for a background loop the page is driving on its own, and pair that with <code>autoPlay</code> and <code>loop</code>.</li><li><code>autoPlay</code> mutes itself unless you set <code>muted</code> explicitly. No browser plays audible video without a person starting it, so an autoplay prop with sound is not a stricter choice, it is a broken one.</li></ul>
+<h2 id="letting-someone-upload-one">Letting someone upload one</h2>
+<p>Pass <code>onFile</code> and the placeholder becomes a drop target, identical to Image's: a drag or a picker hands you the browser's own <code>File</code>, and Video does nothing else with it.</p>
+<pre class="code" data-lang="jsx"><code>function Clip() {
+  const [file, setFile] = React.useState(null);
+  const src = file ? URL.createObjectURL(file) : undefined;
+  return &lt;Video src={src} label=&quot;Product walkthrough&quot; placeholder=&quot;Walkthrough clip&quot; onFile={setFile} /&gt;;
+}</code></pre>
+<p>Revoke the object URL when it is no longer needed. Storing, transcoding or streaming the file is a template's own concern; Video only gets you to a File.</p>
+<h2 id="tradeoffs">Tradeoffs</h2>
+<p>A poster image is worth setting whenever the video is not autoplaying: without one, the frame is the flat placeholder colour until playback starts, which reads as broken sooner than it reads as loading.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Video.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+import { AspectRatioProps } from &quot;./AspectRatio&quot;;
+
+/** A ratio-locked video, Image's sibling. Renders the same upload-ready placeholder when \`src\` is absent. */
+export interface VideoProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
+  /** Video URL. Omit to render the placeholder frame. */
+  src?: string;
+  /** Poster frame, shown before playback starts. */
+  poster?: string;
+  /** Accessible name. Also shown in the placeholder frame in place of \`placeholder\`. */
+  label?: string;
+  /** @default &quot;16:9&quot; */
+  ratio?: AspectRatioProps[&quot;ratio&quot;];
+  /** How the video fills its frame. @default &quot;cover&quot; */
+  fit?: &quot;cover&quot; | &quot;contain&quot; | &quot;fill&quot; | &quot;none&quot; | &quot;scale-down&quot;;
+  /** @default &quot;media&quot; */
+  radius?: &quot;none&quot; | &quot;media&quot; | &quot;container&quot; | &quot;pill&quot;;
+  /** @default true */
+  controls?: boolean;
+  /**
+   * Requires \`muted\`, which is defaulted to true whenever this is true and
+   * \`muted\` is not given explicitly: no browser honours autoplay on audible
+   * video, so an unmuted autoplay prop would silently do nothing.
+   * @default false
+   */
+  autoPlay?: boolean;
+  /** @default false */
+  loop?: boolean;
+  muted?: boolean;
+  /** Text shown in the placeholder frame. Falls back to \`label\`. */
+  placeholder?: string;
+  /**
+   * Turns the placeholder into a drop target, exactly as Image's does.
+   * Called with the browser's own File; nothing is read, transcoded or sent
+   * anywhere. Omit this to keep the placeholder a plain frame.
+   */
+  onFile?: (file: File) =&gt; void;
+}
+
+export declare function Video(props: VideoProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Video.jsx</code> resolves, read from the source: 5 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Video">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-media"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-media"><code>--dt-radius-media</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-media" title="Show what --dt-radius-media connects to" aria-label="Graph for --dt-radius-media"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-icon-lg"><th scope="row"><span class="token-cell"><code>--dt-size-icon-lg</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-lg" title="Show what --dt-size-icon-lg connects to" aria-label="Graph for --dt-size-icon-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-sunken" title="Show what --dt-surface-sunken connects to" aria-label="Graph for --dt-surface-sunken"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { AspectRatio } from &quot;./AspectRatio.jsx&quot;;
+import { UploadFrame } from &quot;./Image.jsx&quot;;
+
+const RADII = { none: &quot;0&quot;, media: &quot;var(--dt-radius-media)&quot;, container: &quot;var(--dt-radius-container)&quot;, pill: &quot;var(--dt-radius-pill)&quot; };
+
+const PLACEHOLDER_ICON = (
+  &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;1.5&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; style={{ width: &quot;var(--dt-size-icon-lg)&quot;, height: &quot;var(--dt-size-icon-lg)&quot; }} aria-hidden=&quot;true&quot;&gt;
+    &lt;rect x=&quot;2&quot; y=&quot;4&quot; width=&quot;20&quot; height=&quot;16&quot; rx=&quot;2&quot; /&gt;
+    &lt;path d=&quot;m10 9 5 3-5 3Z&quot; /&gt;
+  &lt;/svg&gt;
+);
+
+export function Video({ src, poster, label, ratio = &quot;16:9&quot;, fit = &quot;cover&quot;, radius = &quot;media&quot;, controls = true, autoPlay = false, loop = false, muted, placeholder, onFile, style, ...rest }) {
+  const frame = { background: &quot;var(--dt-surface-sunken)&quot;, borderRadius: RADII[radius] || RADII.media, ...style };
+  if (!src) {
+    return (
+      &lt;AspectRatio ratio={ratio} style={frame} {...rest}&gt;
+        &lt;UploadFrame icon={PLACEHOLDER_ICON} label={placeholder || label || &quot;Video&quot;} hint=&quot;Drop a video, or choose a file&quot; accept=&quot;video/*&quot; onFile={onFile} /&gt;
+      &lt;/AspectRatio&gt;
+    );
+  }
+  /* Autoplay that is not muted is a policy no browser honours, so an unmuted
+     autoplay prop would silently stop working the moment someone shipped it.
+     Defaulting to muted when muted is not given makes the common case, a
+     background loop, work without a second prop to remember. */
+  const isMuted = muted == null ? autoPlay : muted;
+  return (
+    &lt;AspectRatio ratio={ratio} style={frame} {...rest}&gt;
+      &lt;video
+        src={src}
+        poster={poster}
+        controls={controls}
+        autoPlay={autoPlay}
+        loop={loop}
+        muted={isMuted}
+        playsInline
+        aria-label={label}
+        style={{ position: &quot;absolute&quot;, inset: 0, width: &quot;100%&quot;, height: &quot;100%&quot;, objectFit: fit, display: &quot;block&quot; }}
+      /&gt;
+    &lt;/AspectRatio&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Video also appears on the content reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#contentdetail">ContentDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+<script src="../assets/graph.js" defer></script>
+</body>
+</html>

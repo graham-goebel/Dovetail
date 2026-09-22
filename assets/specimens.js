@@ -273,6 +273,9 @@
     Image: function () {
       return e(NS.Image, { alt: "Ridge line above a cloud inversion", ratio: "16:9" });
     },
+    Video: function () {
+      return e(NS.Video, { label: "Ridge line above a cloud inversion", ratio: "16:9" });
+    },
     Figure: function () {
       return e(NS.Figure, { caption: "Throughput held steady through the migration." }, e(NS.Image, { alt: "Line chart of requests per second", ratio: "3:2" }));
     },

@@ -4,6 +4,12 @@
   "namespace": "BeamMobileDesignSystem_e33121",
   "files": [
     "PLAN.md",
+    "assets/icons/sketch/heart.svg",
+    "assets/icons/sketch/leaf.svg",
+    "assets/icons/sketch/loop.svg",
+    "assets/icons/sketch/spark.svg",
+    "assets/icons/sketch/sun.svg",
+    "assets/icons/sketch/wave.svg",
     "assets/notes/CLAUDE.from-standalone.md",
     "assets/notes/MIGRATION-REPORT.md",
     "assets/notes/SKILL.from-standalone.md",
@@ -54,6 +60,9 @@
     "components/content/Quote.d.ts",
     "components/content/Quote.jsx",
     "components/content/Quote.md",
+    "components/content/Video.d.ts",
+    "components/content/Video.jsx",
+    "components/content/Video.md",
     "components/content/content-detail.card.html",
     "components/content/content.card.html",
     "components/display/Avatar.d.ts",
@@ -333,6 +342,9 @@
     },
     {
       "name": "Image"
+    },
+    {
+      "name": "Video"
     },
     {
       "name": "Media"

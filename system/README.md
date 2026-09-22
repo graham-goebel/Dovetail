@@ -124,6 +124,8 @@ Sizes come from `--dt-size-icon-*`: 16px inline with text, 20px in controls, 24p
 
 No emoji as icons. No unicode glyphs as icons. No hand-drawn SVG illustration. If a design needs illustration, it needs an illustrator.
 
+That rule is about the interface icon set staying one voice: a toolbar with half its glyphs on a compass and half free-hand reads as a mistake, not a choice. `system/assets/icons/sketch/` is a separate, small, opt-in layer for the moments a page is allowed a second voice: an empty state, a callout, a marketing accent. Six ship today (sun, leaf, spark, heart, wave, loop), drawn to the icon set's own rules rather than around them: 24×24, one `currentColor` stroke, sized only from `--dt-size-icon-*`. They are not swapped in through the icon library picker and they never sit in a button, a nav item, or a form control. The `Sketch marks` foundation card compares one against a library icon at every size to show the two share a box.
+
 ---
 
 ## Brand mark
@@ -182,7 +184,7 @@ Components do not know which context they are in, and no component takes a `cont
 
 **Feedback**: Alert, Dialog, Toast, Drawer, Popover, Tooltip, Progress, Spinner, Banner
 
-**Content**: AspectRatio, Image, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
+**Content**: AspectRatio, Image, Video, Figure, Media, Prose, Quote, Accordion, Callout, BlockRenderer
 
 Each ships four files: `Name.jsx`, `Name.d.ts`, `Name.md` (read this before using it), and a directory spec card.
 
@@ -203,6 +205,16 @@ end to end, `Combobox` fills the last gap in Forms, and the headless layer the i
 guide describes now exists: `BlockRenderer` maps a block array onto a registry, and
 `integrations/sanity/` ships the schemas, the PortableText serializer and the GROQ
 fragments.
+
+**Phase 5 complete**: `Video`, Image's sibling, so a template reserves space for motion the
+same way it does for a photo; both take an optional `onFile` and turn their placeholder
+into a real drop target, without either component reading, storing or sending the file
+anywhere. A social context. Two full-bleed surface roles, `--dt-surface-brand` and
+`--dt-surface-brand-muted`, independent of the action tokens, plus a dot and a grid
+texture built from two CSS gradients rather than an image; Configure can switch a solid
+brand fill to a gradient of the same ramp, and `Callout` takes both as a `tone` and a
+`texture` prop. `system/assets/icons/sketch/` is a second, opt-in icon voice for the
+moments a page is allowed to feel hand-drawn, kept off the interface icon set on purpose.
 
 **Next**: generate the Sanity schemas from the `.d.ts` files rather than maintaining
 them by hand, and add the do/don't cards for the five most-violated rules.

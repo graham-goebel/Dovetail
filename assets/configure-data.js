@@ -511,7 +511,13 @@ window.DovetailConfigure = {
     "--dt-surface-selected": "var(--dt-color-neutral-100)",
     "--dt-text-on-selected": "var(--dt-color-neutral-950)",
     "--dt-border-selected": "var(--dt-color-neutral-950)",
-    "--dt-focus-ring-color": "var(--dt-color-neutral-950)"
+    "--dt-focus-ring-color": "var(--dt-color-neutral-950)",
+    "--dt-surface-brand": "var(--dt-color-neutral-950)",
+    "--dt-surface-brand-gradient": "var(--dt-color-neutral-950)",
+    "--dt-text-on-brand": "var(--dt-color-white)",
+    "--dt-surface-brand-muted": "var(--dt-color-neutral-100)",
+    "--dt-text-on-brand-muted": "var(--dt-color-neutral-950)",
+    "--dt-border-brand": "var(--dt-color-neutral-300)"
   },
   "presets": {
     "base": {

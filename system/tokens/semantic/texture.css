@@ -1,0 +1,23 @@
+/* TIER 2 — SEMANTIC TEXTURE
+   Background presence for a section that would otherwise be flat colour: a dot
+   grid or a line grid, at one size, in one ink. Not a raster asset and not an
+   SVG file — two CSS gradients, repeated, so a texture themes with the surface
+   underneath it and costs the page nothing to ship.
+
+   --dt-surface-texture is the role a component reads, same shape as every
+   other role in this tier: one name, and Configure or a theme decides what it
+   resolves to. Left at its default it paints nothing. */
+
+:root {
+  --dt-pattern-size: var(--dt-dim-6);      /* the repeat interval, on the grid */
+  --dt-pattern-ink: var(--dt-border-strong);
+
+  --dt-pattern-dots: radial-gradient(var(--dt-pattern-ink) 1px, transparent 1.5px)
+    0 0 / var(--dt-pattern-size) var(--dt-pattern-size);
+
+  --dt-pattern-grid:
+    linear-gradient(var(--dt-pattern-ink) 1px, transparent 1px) 0 0 / var(--dt-pattern-size) var(--dt-pattern-size),
+    linear-gradient(90deg, var(--dt-pattern-ink) 1px, transparent 1px) 0 0 / var(--dt-pattern-size) var(--dt-pattern-size);
+
+  --dt-surface-texture: none;
+}

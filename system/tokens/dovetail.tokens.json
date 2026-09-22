@@ -1643,6 +1643,15 @@
       },
       "info": {
         "$value": "{primitive.color.cyan.600}"
+      },
+      "brand": {
+        "$value": "{primitive.color.accent.600}"
+      },
+      "brand-gradient": {
+        "$value": "linear-gradient(135deg, {primitive.color.accent.500}, {primitive.color.accent.800})"
+      },
+      "brand-muted": {
+        "$value": "{primitive.color.accent.050}"
       }
     },
     "text": {
@@ -1674,6 +1683,12 @@
       },
       "on-selected": {
         "$value": "{primitive.color.accent.900}"
+      },
+      "on-brand": {
+        "$value": "{primitive.color.white}"
+      },
+      "on-brand-muted": {
+        "$value": "{primitive.color.accent.900}"
       }
     },
     "border": {
@@ -1689,6 +1704,9 @@
       },
       "selected": {
         "$value": "{primitive.color.accent.600}"
+      },
+      "brand": {
+        "$value": "{primitive.color.accent.200}"
       }
     },
     "space": {
