@@ -6,7 +6,7 @@
 <script src="../system/components/lib/react-dom.production.min.js"></script>
 <script src="../system/components/bundle.js"></script>
 <script>/* The Design System page's theme picker sets data-theme on <html>; Dovetail's own CSS keys dark mode and contexts on classes. */
-(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8"><style data-from="../styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
+(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8"><style data-from="../styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
    Load order matters: primitives, then semantics, then component tokens, then base element styles.
    Themes are opt-in — link a file from tokens/themes/ after this one. */
 
@@ -1153,6 +1153,8 @@ img, svg, video, canvas { display: block; max-width: 100%; }
 .lbl{font-size:11px;color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono)}
 table{border-collapse:collapse;width:100%;font-size:12px}td{padding:4px 10px 4px 0;vertical-align:middle}
 td.k{font-family:var(--dt-font-family-mono);color:var(--dt-text-secondary);white-space:nowrap}
-td.v{color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono);white-space:nowrap}</style></head><body>
+td.v{color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono);white-space:nowrap}</style>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body>
 <table><tr><td class="k" style="width:170px">--dt-motion-micro</td><td class="v" style="width:150px">100ms standard</td><td style="color:var(--dt-text-secondary)">state change on screen</td></tr><tr><td class="k" style="width:170px">--dt-motion-enter</td><td class="v" style="width:150px">200ms decelerate</td><td style="color:var(--dt-text-secondary)">something arriving</td></tr><tr><td class="k" style="width:170px">--dt-motion-exit</td><td class="v" style="width:150px">150ms accelerate</td><td style="color:var(--dt-text-secondary)">something leaving</td></tr><tr><td class="k" style="width:170px">--dt-motion-emphasis</td><td class="v" style="width:150px">300ms emphasis</td><td style="color:var(--dt-text-secondary)">a change that must be noticed</td></tr></table><div style="margin-top:10px;font-size:11px;color:var(--dt-text-tertiary)">All four collapse to 0ms under prefers-reduced-motion.</div>
 </body></html>

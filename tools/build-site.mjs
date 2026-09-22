@@ -221,6 +221,10 @@ function parseCard(html) {
 }
 
 const RUNTIME_MARKER = "dovetail-site-runtime";
+const CONTEXT_LINKS =
+  '<link rel="stylesheet" href="../system/tokens/contexts/context-product.css">' +
+  '<link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">' +
+  '<link rel="stylesheet" href="../system/tokens/contexts/context-social.css">';
 
 /* The previews were authored against a host that pre-loaded React and the
    component bundle. Standalone they have to load both themselves. */
@@ -244,6 +248,23 @@ function patchPreview(file) {
      write in their own project, and there they are correct. */
   out = out.replace(/src="templates\/_support\//g, 'src="../system/templates/_support/');
   out = out.replace(/"\.\/templates\/settings-page\//g, '"../system/templates/settings-page/');
+
+  /* Each card carries its own copy of the system's CSS, inlined when it was
+     authored. A context added to the system afterwards has no rules in there at
+     all, and the contexts that were inlined lose anyway: they sit before the
+     :root they are meant to override, and a class beats :root only on source
+     order. So all three are linked in after that block, last in the head. The
+     stylesheets stay in step with what the system ships, and switching context
+     now reaches inside a card rather than only around it. */
+  if (!out.includes(CONTEXT_LINKS)) {
+    out = out.replace(/<link rel="stylesheet" href="\.\.\/system\/tokens\/contexts\/[^"]+">/g, "");
+    out = out.replace(/<\/head>/i, `${CONTEXT_LINKS}\n</head>`);
+  }
+
+  /* The same cards sync a data-theme attribute onto the html element against a
+     hardcoded list of contexts. Adding one to the system means adding it here
+     too, or the card ignores it. */
+  out = out.replace(/\['dt-context-product','dt-context-marketing'\]/g, "['dt-context-product','dt-context-marketing','dt-context-social']");
 
   if (out === src) return false;
   fs.writeFileSync(file, out);
@@ -401,13 +422,20 @@ const GROUP_DETAIL = {
 /* Two components are exported from a sibling's source file. */
 const EXPORTED_FROM = { ToastRegion: ["feedback", "Toast"], TabPanel: ["navigation", "Tabs"] };
 
+const GROUP_ALIAS = { "UI kits": "Templates" };
+
 const cards = new Map();
 for (const file of fs.readdirSync(PREVIEWS).filter((f) => f.endsWith(".html")).sort()) {
   const full = path.join(PREVIEWS, file);
   patchPreview(full);
   const name = file.replace(/\.html$/, "");
   const card = parseCard(read(full));
-  if (card) cards.set(name, { ...card, id: name, href: `previews/${file}` });
+  /* The two kit cards were authored into a group of their own. They are whole
+     screens assembled from the system, which is what a template is, so they
+     join Templates. The name UI kits is being kept for what it usually means:
+     a kit for a particular surface or vertical, a voice-only interface say,
+     which is a different thing and does not exist yet. */
+  if (card) cards.set(name, { ...card, group: GROUP_ALIAS[card.group] || card.group, id: name, href: `previews/${file}` });
 }
 
 const components = [];
@@ -459,11 +487,22 @@ const SHOWCASE = [
   ["Components", "overviews", "Each component family at a glance.", "box"],
   ["Component detail", "detail", "Full reference cards: specimens, props and usage rules.", "list"],
   ["Playground", "playground", "Controls you can drive, with the code that produced them.", "sliders"],
-  ["UI kits", "ui-kits", "Whole screens built only from Dovetail components.", "layout"],
-  ["Templates", "templates", "Starting points to copy into a product.", "file"],
+  ["Templates", "templates", "Whole screens to copy into a product, built only from Dovetail components.", "layout"],
   ["Tools", "tools", "The theme configurator and the media lab.", "wrench"],
 ];
 const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === group);
+
+/* Some foundation pages are two subjects in one list. Colour is the clear case:
+   seven raw ramps and seven semantic roles, interleaved by whatever order the
+   cards happened to sort in. Named here, the page reads as the tiers do. */
+const CARD_SECTIONS = {
+  Color: [
+    ["Ramps", "The raw hues, eleven steps each. Nothing in a component names one.",
+      ["ColorNeutral", "ColorAccent", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
+    ["Roles", "What a component actually reads. Each one resolves to a step of a ramp above.",
+      ["ColorSurfaces", "ColorText", "ColorBorders", "ColorPairs", "ColorActions", "ColorFeedback", "ColorDark"]],
+  ],
+};
 
 const GUIDE_PAGES = [
   ["readme", "README", "system/README.md", "The system's own manifest and design guide."],
@@ -749,11 +788,34 @@ function tokenUsageSection(c, root) {
    reader wants as a heading. The card keeps its name; the heading gets one. */
 const CARD_TITLE = {
   TierContract: "The three tiers",
+  DashboardKit: "Dashboard screen",
+  MarketingKit: "Marketing page",
 };
+
+/* Most cards open their subtitle with the name a reader wants: ColorCyan is
+   subtitled "Cyan ramp — Info". That label is a better heading than the file
+   name, so it is promoted and the rest stays as the subtitle. Component cards
+   have no such label and keep their component name, which is what you want
+   there anyway. */
+function cardLabel(card) {
+  const cut = String(card.subtitle || "").indexOf(" \u2014 ");
+  if (cut < 1) return null;
+  const label = card.subtitle.slice(0, cut).trim();
+  /* A label as long as a sentence is not a label. */
+  if (!label || label.length > 40) return null;
+  return { label, rest: card.subtitle.slice(cut + 3).trim() };
+}
 
 function cardBlock(card, root, { heading = null, level = 2 } = {}) {
   if (!card) return "";
-  const title = heading || CARD_TITLE[card.id] || card.name || card.id;
+  const split = cardLabel(card);
+  const title = heading || CARD_TITLE[card.id] || card.name || (split && split.label) || card.id;
+  /* The reference cards subtitle themselves "Actions — detail — ...", and on
+     the page that says Component detail at the top, the middle word is noise. */
+  /* Whatever the heading ends up being, the subtitle should not repeat it. The
+     one exception is a heading passed in by the caller, where the card's own
+     label is still the useful sentence. */
+  const subtitle = split && !heading ? split.rest.replace(/^detail \u2014 /, "") : card.subtitle;
   const height = Math.min(Number(card.height) || 600, 1100);
   const id = slug(title);
   return `<section class="card-block" id="${attr(id)}">
@@ -761,7 +823,7 @@ function cardBlock(card, root, { heading = null, level = 2 } = {}) {
     <h${level}>${esc(title)}</h${level}>
     <a class="card-open" href="${root}${card.href}" target="_blank" rel="noopener">Open full card</a>
   </div>
-  ${card.subtitle ? `<p class="card-sub">${esc(card.subtitle)}</p>` : ""}
+  ${subtitle ? `<p class="card-sub">${esc(subtitle)}</p>` : ""}
   <div class="frame" style="height:${height}px">
     <iframe src="${root}${card.href}" title="${attr(title + " preview")}" loading="lazy"></iframe>
   </div>
@@ -789,7 +851,7 @@ function buildHome() {
     ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
     ["components/index.html", "Components", `${components.length} components across seven families, with props, source and usage rules.`, "blocks"],
     ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
-    ["showcase/index.html", "Showcase", "Detail cards, playgrounds, UI kits and templates.", "monitor"],
+    ["showcase/index.html", "Showcase", "Detail cards, playgrounds, templates and tools.", "monitor"],
     ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
     ["downloads.html", "Download", "Take the stylesheets, tokens and components into your project.", "download"],
   ];
@@ -820,7 +882,7 @@ function buildHome() {
   ${markdown(s.get("Start here") || "")}
 </section>
 
-${cardBlock(cards.get("TierContract"), "", { heading: "The three tiers" })}
+${cardBlock(cards.get("TierContract"), "")}
 
 <section class="prose">
   <h2 id="how-the-system-is-put-together">How the system is put together</h2>
@@ -853,11 +915,35 @@ ${FOUNDATIONS.map(([group, s, text, glyph]) => {
 
   for (const [group, s, text] of FOUNDATIONS) {
     const list = cardsInGroup(group);
+    const sections = CARD_SECTIONS[group];
+    let cardsHtml;
+    if (sections) {
+      const placed = new Set(sections.flatMap(([, , ids]) => ids));
+      const parts = sections.map(
+        ([name, note, ids]) => `<section class="group">
+  <h2 id="${attr(slug(name))}">${esc(name)}</h2>
+  <p class="group-note">${esc(note)}</p>
+  ${ids.map((id) => cards.get(id)).filter(Boolean).map((c) => cardBlock(c, "../", { level: 3 })).join("\n")}
+</section>`
+      );
+      /* Anything a section does not name still gets shown: a new card must not
+         be able to disappear because this list was not updated. */
+      const rest = list.filter((c) => !placed.has(c.id));
+      if (rest.length) {
+        parts.push(`<section class="group">
+  <h2 id="more">More</h2>
+  ${rest.map((c) => cardBlock(c, "../", { level: 3 })).join("\n")}
+</section>`);
+      }
+      cardsHtml = parts.join("\n");
+    } else {
+      cardsHtml = list.map((c) => cardBlock(c, "../")).join("\n");
+    }
     const body = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Foundations", href: "foundations/index.html" }, { label: group }])}
 <h1>${esc(group)}</h1>
 <p class="lede">${esc(text)}</p>
-${list.map((c) => cardBlock(c, "../")).join("\n")}
+${cardsHtml}
 `;
     write(`foundations/${s}.html`, page({ title: group, lede: text, body, active: `foundations:${s}`, root: "../" }));
   }
@@ -992,6 +1078,12 @@ ${
 
 /* ----------------------------------------------------------- showcase pages */
 
+/* A page that needs a paragraph the index tile should not carry. */
+const SHOWCASE_NOTE = {
+  Templates:
+    "These were two groups until now, templates and UI kits, which was a distinction without a difference: both are whole screens assembled from the system. The name UI kits is held back for what it usually means, a kit for one surface or vertical such as a voice-only interface, and nothing here is that yet.",
+};
+
 function buildShowcase() {
   const index = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showcase" }])}
@@ -1003,7 +1095,7 @@ ${SHOWCASE.map(([group, s, text, glyph]) => {
   return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
 </div>`;
-  write("showcase/index.html", page({ title: "Showcase", lede: "Reference cards, playgrounds, UI kits and templates.", body: index, active: "showcase", root: "../" }));
+  write("showcase/index.html", page({ title: "Showcase", lede: "Reference cards, playgrounds, templates and tools.", body: index, active: "showcase", root: "../" }));
 
   for (const [group, s, text] of SHOWCASE) {
     const list = cardsInGroup(group);
@@ -1011,6 +1103,7 @@ ${SHOWCASE.map(([group, s, text, glyph]) => {
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showcase", href: "showcase/index.html" }, { label: group }])}
 <h1>${esc(group)}</h1>
 <p class="lede">${esc(text)}</p>
+${SHOWCASE_NOTE[group] ? `<p class="group-note">${esc(SHOWCASE_NOTE[group])}</p>` : ""}
 ${list.map((c) => cardBlock(c, "../")).join("\n")}
 `;
     write(`showcase/${s}.html`, page({ title: group, lede: text, body, active: `showcase:${s}`, root: "../", wide: true }));
@@ -1076,23 +1169,81 @@ const THEME_LABEL = {
   dark: "Dark",
   "dt-context-product": "Product context",
   "dt-context-marketing": "Marketing context",
+  "dt-context-social": "Social context",
 };
 
+/* The context columns on the tokens page were empty: tokens.json carries the
+   light and dark values but not a single context value, so Product and
+   Marketing have been three hundred dashes since the page was built. The values
+   do exist, in the stylesheets the browser loads, so they are read from there
+   and merged in at build time. Social arrives the same way, which is also why
+   it needed no hand-edit of a derived data file. */
+function mergeContexts() {
+  const dir = path.join(SYS, "tokens", "contexts");
+  if (!exists(dir)) return;
+  const columns = [];
+
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".css")).sort()) {
+    const id = "dt-" + file.replace(/^context-/, "context-").replace(/\.css$/, "");
+    const values = new Map();
+    for (const m of read(path.join(dir, file)).matchAll(/(--dt-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+      values.set(m[1].slice(2), m[2].trim());
+    }
+    if (!values.size) continue;
+    columns.push([id, values]);
+  }
+
+  for (const family of Object.values(tokens)) {
+    if (!family || !Array.isArray(family.tokens)) continue;
+    for (const t of family.tokens) {
+      for (const [id, values] of columns) {
+        const hit = values.get(t.name);
+        if (!hit) continue;
+        if (typeof t.value !== "object" || !t.value) t.value = { light: t.value };
+        t.value[id] = hit;
+      }
+    }
+  }
+
+  const list = tokens.color && tokens.color.themes;
+  if (!list) return;
+  for (const [id] of columns) {
+    if (!list.some((t) => t.id === id)) list.push({ id, name: id });
+  }
+}
+
 function buildTokens() {
+  mergeContexts();
   const themes = ((tokens.color && tokens.color.themes) || [{ id: "light", name: "Light" }]).map((t) => ({
     ...t,
     name: THEME_LABEL[t.id] || t.name,
   }));
+  /* A family gets a column per theme that actually says something in it. Colour
+     is the only family light and dark both speak to; the contexts speak to
+     spacing, size and type and say nothing about hue. Choosing the columns per
+     family is what keeps the page from being mostly dashes. */
+  const columnsFor = (list) => {
+    const seen = new Set();
+    for (const t of list) {
+      if (t.value && typeof t.value === "object") for (const id of Object.keys(t.value)) seen.add(id);
+      else seen.add("light");
+    }
+    const used = themes.filter((t) => seen.has(t.id));
+    return used.length > 1 ? used : null;
+  };
+
   const families = [
-    ["color", "Colour", tokens.color && tokens.color.tokens, themes],
-    ["spacing", "Spacing and dimension", tokens.spacing && tokens.spacing.tokens, null],
-    ["radius", "Radius", tokens.radius && tokens.radius.tokens, null],
-    ["motion", "Motion", tokens.motion && tokens.motion.tokens, null],
-    ["lineHeight", "Line height", tokens.lineHeight && tokens.lineHeight.tokens, null],
-    ["fontWeight", "Font weight", tokens.fontWeight && tokens.fontWeight.tokens, null],
-    ["letterSpacing", "Letter spacing", tokens.letterSpacing && tokens.letterSpacing.tokens, null],
-    ["other", "Elevation, z-order and the rest", tokens.other && tokens.other.tokens, null],
-  ].filter(([, , list]) => Array.isArray(list) && list.length);
+    ["color", "Colour", tokens.color && tokens.color.tokens],
+    ["spacing", "Spacing and dimension", tokens.spacing && tokens.spacing.tokens],
+    ["radius", "Radius", tokens.radius && tokens.radius.tokens],
+    ["motion", "Motion", tokens.motion && tokens.motion.tokens],
+    ["lineHeight", "Line height", tokens.lineHeight && tokens.lineHeight.tokens],
+    ["fontWeight", "Font weight", tokens.fontWeight && tokens.fontWeight.tokens],
+    ["letterSpacing", "Letter spacing", tokens.letterSpacing && tokens.letterSpacing.tokens],
+    ["other", "Elevation, z-order and the rest", tokens.other && tokens.other.tokens],
+  ]
+    .filter(([, , list]) => Array.isArray(list) && list.length)
+    .map(([id, label, list]) => [id, label, list, columnsFor(list)]);
 
   const typeStyles = (tokens.type && tokens.type.groups) || [];
   const body = `
@@ -1231,7 +1382,7 @@ ${groups
 
 <section class="prose">
   <h2 id="everything">Everything else</h2>
-  <p>Component sources, typed contracts, per-component guides, the foundation spec cards and the UI kits all sit under <code>system/</code> in the repository, unchanged from how they were authored. The preview documents in <code>previews/</code> are the same cards with three script tags added so each one runs on its own.</p>
+  <p>Component sources, typed contracts, per-component guides, the foundation spec cards and the templates all sit under <code>system/</code> in the repository, unchanged from how they were authored. The preview documents in <code>previews/</code> are the same cards with three script tags added so each one runs on its own.</p>
 </section>
 `;
   write("downloads.html", page({ title: "Download", lede: "Take the stylesheets, tokens and components into your project.", body, active: "downloads", root: "" }));

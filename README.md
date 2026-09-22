@@ -12,7 +12,7 @@ broken token shows up as a broken page.
 index.html          Overview
 foundations/        Colour, type, space, shape, size, elevation, motion, themes
 components/         One page per component: live card, guidelines, props, source
-showcase/           Family reference cards, playgrounds, UI kits, templates, tools
+showcase/           Family reference cards, playgrounds, templates, tools
 guide/              README, theming, accessibility, contributing, token pipeline
 tokens.html         Every token, with its value in each theme
 downloads.html      How to take the system into a project
@@ -209,6 +209,35 @@ left blank. There are ten of them across the system, among them
 `--dt-motion-duration-fast` and `--dt-surface-hover`, and they silently resolve to
 nothing today. Surfacing them is the point of reading the source rather than the guide.
 
+## Contexts
+
+Three now, not two: product, marketing and **social**. A context is a fourth axis beside
+brand theme, colour mode and density, and it retunes scale and rhythm rather than colour.
+Social is a feed read on a phone with one thumb, so the furniture recedes (a post is a
+borderless, unshadowed Card separated by space), the body runs at 16px because the text is
+what someone came for, targets are thumb-sized, and actions take the pill shape the
+convention expects. It is the one context that moves a shape role, and
+`system/tokens/contexts/context-social.css` says why in the file.
+
+Two things fell out of adding it. The context columns on the tokens page were empty:
+`tokens.json` carries light and dark but not one context value, so Product and Marketing
+had been three hundred dashes. The values live in the stylesheets the browser loads, so
+they are read from there and merged in at build time, and each family now shows only the
+columns that say something in it. And switching context did not reach inside a preview
+card: each card inlines its own copy of the system CSS, where the context rules sit
+*before* the `:root` they override and a class beats `:root` only on source order. All
+three context stylesheets are now linked in at the end of each card's head, so a context
+change moves the card as well as the page around it.
+
+## Copying code
+
+Every code block carries a copy button, added by `assets/site.js` rather than emitted into
+the markup: the generator writes a `<pre>` in three places, the file viewer writes a
+fourth at runtime, and a button that does nothing without JavaScript has no business in
+the HTML. The async clipboard needs a secure context, which a site opened from a file or
+served over plain HTTP on a LAN is not, so the old selection trick is the fallback rather
+than a failure.
+
 ## The node graph
 
 The tier rule is a claim about direction, so the site draws the graph the claim
@@ -276,6 +305,15 @@ authored that way and both need network access to render fully.
 
 One line, set as the comment it is. The delimiters are dimmer than the words and hidden
 from assistive technology, which would otherwise spell them out.
+
+## Templates, and the name UI kits
+
+Templates and UI kits were two showcase groups, which was a distinction without a
+difference: both are whole screens assembled from the system. They are one group now,
+Templates. The name **UI kits** is held back for what it usually means, a kit for one
+surface or vertical such as a voice-only interface, and nothing in the repository is that
+yet. The cards keep their authored group in `previews/`; the generator aliases it, so
+nothing in the artifact content had to be rewritten to make the change.
 
 ## Provenance
 

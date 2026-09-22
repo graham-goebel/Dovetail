@@ -6,7 +6,7 @@
 <script src="../system/components/lib/react-dom.production.min.js"></script>
 <script src="../system/components/bundle.js"></script>
 <script>/* The Design System page's theme picker sets data-theme on <html>; Dovetail's own CSS keys dark mode and contexts on classes. */
-(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8">
+(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
 <style>#root-ref{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
@@ -3166,7 +3166,9 @@ Object.assign(window, { DT_PG: PG, dtMountPlayground: PG.mount });
 .dt-cardnav-seg button:focus-visible{outline:var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);outline-offset:var(--dt-focus-ring-offset)}
 .dt-view-ref{padding:24px;background:var(--dt-surface-subtle)}
 #root-pg{height:820px}
-</style></head><body><nav class="dt-cardnav" aria-label="Button views">
+</style>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><nav class="dt-cardnav" aria-label="Button views">
 <strong>Button</strong>
 <div class="dt-cardnav-seg" role="tablist">
 <button type="button" role="tab" id="tab-ref" aria-controls="view-ref" aria-selected="true">Reference</button>

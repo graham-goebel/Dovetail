@@ -150,7 +150,10 @@
       '<div class="file-viewer-panel" role="dialog" aria-modal="true" aria-labelledby="file-viewer-title">' +
       '  <header class="file-viewer-head">' +
       '    <div><h2 id="file-viewer-title"></h2><p class="file-viewer-note"></p></div>' +
-      '    <button type="button" class="file-viewer-close" aria-label="Close" data-close>&times;</button>' +
+      '    <div class="file-viewer-actions">' +
+      '      <button type="button" class="copy-btn" data-copy aria-live="polite">Copy</button>' +
+      '      <button type="button" class="file-viewer-close" aria-label="Close" data-close>&times;</button>' +
+      "    </div>" +
       "  </header>" +
       '  <div class="file-viewer-tabs" role="tablist"></div>' +
       '  <pre class="file-viewer-body"><code></code></pre>' +
@@ -162,6 +165,21 @@
 
     Array.prototype.forEach.call(viewer.querySelectorAll("[data-close]"), function (el) {
       el.addEventListener("click", closeViewer);
+    });
+
+    var copyBtn = viewer.querySelector("[data-copy]");
+    copyBtn.addEventListener("click", function () {
+      var body = viewer.querySelector(".file-viewer-body code");
+      var write = window.DovetailCopy && window.DovetailCopy.write;
+      if (!write) return;
+      write(body ? body.textContent : "", function (ok) {
+        copyBtn.textContent = ok ? "Copied" : "Press Ctrl+C";
+        copyBtn.classList.toggle("is-done", ok);
+        window.setTimeout(function () {
+          copyBtn.textContent = "Copy";
+          copyBtn.classList.remove("is-done");
+        }, 1600);
+      });
     });
     document.body.appendChild(viewer);
   }

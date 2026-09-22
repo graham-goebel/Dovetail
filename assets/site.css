@@ -1635,6 +1635,68 @@ body.file-viewer-open {
   }
 }
 
+/* --------------------------------------------------------------- copying */
+
+.code-wrap {
+  position: relative;
+}
+
+/* Quiet until the block is under the pointer, like the graph row buttons: a
+   page of eight code blocks should not read as a page of eight buttons. */
+.copy-btn {
+  position: absolute;
+  top: var(--dt-space-inset-sm);
+  right: var(--dt-space-inset-sm);
+  height: var(--dt-size-control-xs);
+  padding: 0 var(--dt-space-inset-sm);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-2xs);
+  color: var(--dt-text-secondary);
+  background: var(--dt-surface-base);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+
+.code-wrap:hover .copy-btn,
+.copy-btn:focus-visible,
+.copy-btn.is-done {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  color: var(--dt-text-primary);
+}
+
+.copy-btn.is-done {
+  color: var(--dt-text-success);
+  border-color: var(--dt-text-success);
+}
+
+/* Touch has no hover. */
+@media (hover: none) {
+  .copy-btn {
+    opacity: 1;
+  }
+}
+
+/* In the file viewer the button lives in the header, so it is always visible
+   and sits beside the close control rather than over the code. */
+.file-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+}
+
+.file-viewer-actions .copy-btn {
+  position: static;
+  height: var(--dt-size-control-sm);
+  font-size: var(--dt-font-size-xs);
+  opacity: 1;
+}
+
 /* ------------------------------------------------------- the node graph */
 
 /* The visualiser is a dialog over the page, unlike the Configure sheet: there

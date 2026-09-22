@@ -6,7 +6,7 @@
 <script src="../system/components/lib/react-dom.production.min.js"></script>
 <script src="../system/components/bundle.js"></script>
 <script>/* The Design System page's theme picker sets data-theme on <html>; Dovetail's own CSS keys dark mode and contexts on classes. */
-(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8"><style data-from="../styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
+(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8"><style data-from="../styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
    Load order matters: primitives, then semantics, then component tokens, then base element styles.
    Themes are opt-in — link a file from tokens/themes/ after this one. */
 
@@ -1153,6 +1153,8 @@ img, svg, video, canvas { display: block; max-width: 100%; }
 .lbl{font-size:11px;color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono)}
 table{border-collapse:collapse;width:100%;font-size:12px}td{padding:4px 10px 4px 0;vertical-align:middle}
 td.k{font-family:var(--dt-font-family-mono);color:var(--dt-text-secondary);white-space:nowrap}
-td.v{color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono);white-space:nowrap}</style></head><body>
+td.v{color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono);white-space:nowrap}</style>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body>
 <div class="row"><div class="sw" style="background:var(--dt-color-violet-050);color:var(--dt-color-neutral-900)"><b>050</b></div><div class="sw" style="background:var(--dt-color-violet-100);color:var(--dt-color-neutral-900)"><b>100</b></div><div class="sw" style="background:var(--dt-color-violet-200);color:var(--dt-color-neutral-900)"><b>200</b></div><div class="sw" style="background:var(--dt-color-violet-300);color:var(--dt-color-neutral-900)"><b>300</b></div><div class="sw" style="background:var(--dt-color-violet-400);color:var(--dt-color-white)"><b>400</b></div><div class="sw" style="background:var(--dt-color-violet-500);color:var(--dt-color-white)"><b>500</b></div><div class="sw" style="background:var(--dt-color-violet-600);color:var(--dt-color-white)"><b>600</b></div><div class="sw" style="background:var(--dt-color-violet-700);color:var(--dt-color-white)"><b>700</b></div><div class="sw" style="background:var(--dt-color-violet-800);color:var(--dt-color-white)"><b>800</b></div><div class="sw" style="background:var(--dt-color-violet-900);color:var(--dt-color-white)"><b>900</b></div><div class="sw" style="background:var(--dt-color-violet-950);color:var(--dt-color-white)"><b>950</b></div></div>
 </body></html>

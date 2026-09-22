@@ -207,6 +207,21 @@ window.DovetailConfigure = {
       "value": "\"Work Sans\", ui-sans-serif, system-ui, sans-serif",
       "googleFont": "Work+Sans:wght@400;500;600;700"
     },
+    "zalando": {
+      "label": "Sans — Zalando Sans",
+      "value": "\"Zalando Sans\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Zalando+Sans:wght@400;500;600;700"
+    },
+    "urbanist": {
+      "label": "Sans — Urbanist",
+      "value": "\"Urbanist\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Urbanist:wght@400;500;600;700"
+    },
+    "instrumentsans": {
+      "label": "Sans — Instrument Sans",
+      "value": "\"Instrument Sans\", ui-sans-serif, system-ui, sans-serif",
+      "googleFont": "Instrument+Sans:wght@400;500;600;700"
+    },
     "serif": {
       "label": "Serif — Source Serif 4",
       "value": "\"Source Serif 4\", ui-serif, Georgia, serif",
@@ -311,6 +326,18 @@ window.DovetailConfigure = {
         {
           "value": "worksans",
           "label": "Work Sans"
+        },
+        {
+          "value": "zalando",
+          "label": "Zalando Sans"
+        },
+        {
+          "value": "urbanist",
+          "label": "Urbanist"
+        },
+        {
+          "value": "instrumentsans",
+          "label": "Instrument Sans"
         }
       ]
     },
@@ -375,6 +402,18 @@ window.DovetailConfigure = {
         {
           "value": "worksans",
           "label": "Work Sans"
+        },
+        {
+          "value": "zalando",
+          "label": "Zalando Sans"
+        },
+        {
+          "value": "urbanist",
+          "label": "Urbanist"
+        },
+        {
+          "value": "instrumentsans",
+          "label": "Instrument Sans"
         }
       ]
     },

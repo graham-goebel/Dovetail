@@ -198,7 +198,7 @@ Cards under **Component detail** carry the full reference, one per group: Action
 
 **Phase 3 complete**: the Display, Navigation, Feedback and Content groups, each with a reference card carrying live specimens, props tables and usage rules. The theme configurator commits a real theme into `tokens/themes/theme-custom.css`, so a theme judged in the browser ships without JavaScript.
 
-**Phase 4 complete**: the marketing and dashboard UI kits prove the theme and context swap
+**Phase 4 complete**: the marketing and dashboard templates prove the theme and context swap
 end to end, `Combobox` fills the last gap in Forms, and the headless layer the integration
 guide describes now exists: `BlockRenderer` maps a block array onto a registry, and
 `integrations/sanity/` ships the schemas, the PortableText serializer and the GROQ

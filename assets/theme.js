@@ -30,7 +30,7 @@
   var CONTEXT_KEY = "dovetail-docs-context";
   var BRAND_KEY = "dovetail-docs-brand";
   var TAB_KEY = "dovetail-docs-tab";
-  var CONTEXTS = ["dt-context-product", "dt-context-marketing"];
+  var CONTEXTS = ["dt-context-product", "dt-context-marketing", "dt-context-social"];
   var MARK_LIMIT = 512 * 1024;
 
   var DEFAULTS = {
@@ -1112,6 +1112,7 @@
             { value: "", label: "Default" },
             { value: "dt-context-product", label: "Product" },
             { value: "dt-context-marketing", label: "Marketing" },
+            { value: "dt-context-social", label: "Social" },
           ],
           context,
           setContext

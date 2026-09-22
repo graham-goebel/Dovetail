@@ -6,7 +6,7 @@
 <script src="../system/components/lib/react-dom.production.min.js"></script>
 <script src="../system/components/bundle.js"></script>
 <script>/* The Design System page's theme picker sets data-theme on <html>; Dovetail's own CSS keys dark mode and contexts on classes. */
-(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8">
+(function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();</script><meta charset="utf-8">
 <style data-from="./styles.css">/* Dovetail — global entry point. Import lines only; never write rules here.
    Load order matters: primitives, then semantics, then component tokens, then base element styles.
    Themes are opt-in — link a file from tokens/themes/ after this one. */
@@ -1181,6 +1181,8 @@ h1{margin:0;font-size:28px;font-weight:600}
 @keyframes dt-spin{to{transform:rotate(360deg)}}
 </style>
 
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
 </head><body><div id="root"></div>
 
 <script>const NS = window.BeamMobileDesignSystem_e33121 || {};

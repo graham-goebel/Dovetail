@@ -1,0 +1,79 @@
+/* CONTEXT: SOCIAL
+   The third context, and the one with the least room for the system's own voice.
+
+   A social surface is a feed of other people's content, read on a phone, one
+   thumb, for a long time. Three things follow from that. The page furniture has
+   to recede, because the payload is the post and not the frame. Anything
+   tappable has to be a comfortable target, which is closer to marketing than to
+   product. And the rhythm is tight vertically and generous inside a post, the
+   opposite of a dashboard, where density is the point.
+
+   Same components, same tokens. A Card here is a post: no border, no shadow,
+   separated from the next by space rather than by a box. The Card does not know.
+
+   Apply on the page shell:
+     <div class="dt-context-social"> … </div>
+
+   Composes with everything:
+     <html class="dark"><body class="dt-context-social"> */
+
+.dt-context-social {
+  /* Display type barely appears in a feed. Where it does, it is a profile name
+     or an empty state, not a hero. */
+  --dt-text-display-lg-size: var(--dt-font-size-3xl);
+  --dt-text-display-lg-line: var(--dt-line-height-3xl);
+  --dt-text-display-md-size: var(--dt-font-size-2xl);
+  --dt-text-display-md-line: var(--dt-line-height-2xl);
+  --dt-text-display-sm-size: var(--dt-font-size-xl);
+  --dt-text-display-sm-line: var(--dt-line-height-xl);
+
+  --dt-text-heading-xl-size: var(--dt-font-size-xl);
+  --dt-text-heading-xl-line: var(--dt-line-height-xl);
+  --dt-text-heading-lg-size: var(--dt-font-size-lg);
+  --dt-text-heading-lg-line: var(--dt-line-height-lg);
+  --dt-text-heading-md-size: var(--dt-font-size-md);
+  --dt-text-heading-md-line: var(--dt-line-height-md);
+
+  /* 16px body, the largest of the three contexts. Product can run 14px because
+     its text is labels; here the text is what someone came to read. */
+  --dt-text-body-md-size: var(--dt-font-size-md);
+  --dt-text-body-md-line: var(--dt-line-height-lg);
+  --dt-text-body-sm-size: var(--dt-font-size-sm);
+  --dt-text-body-sm-line: var(--dt-line-height-md);
+
+  /* Metadata carries a feed: the handle, the timestamp, the counts. It sits one
+     step below body and must stay legible at arm's length. */
+  --dt-text-label-sm-size: var(--dt-font-size-sm);
+
+  /* Tight between posts, generous within one. */
+  --dt-space-section: var(--dt-dim-16);
+  --dt-space-gutter: var(--dt-space-inset-md);
+  --dt-space-stack-xl: var(--dt-dim-6);
+  --dt-space-stack-2xl: var(--dt-dim-10);
+
+  /* A post is not a box. Borderless, unshadowed, full width, with the reading
+     space on the inside. */
+  --dt-card-padding: var(--dt-space-inset-lg);
+  --dt-card-border-width: var(--dt-border-width-none);
+  --dt-card-elevation: var(--dt-elevation-0);
+  --dt-card-elevation-hover: var(--dt-elevation-0);
+  --dt-card-radius: var(--dt-radius-overlay);
+
+  /* Thumb-sized targets, and the pill shape social actions are read as: follow,
+     like, share. This is the one context that changes a shape role, because the
+     affordance is the convention here rather than a decoration. */
+  --dt-size-control-md: var(--dt-dim-11);
+  --dt-button-height-md: var(--dt-dim-11);
+  --dt-button-font-size-md: var(--dt-font-size-sm);
+  --dt-button-padding-md: var(--dt-space-inset-lg);
+  --dt-button-radius: var(--dt-radius-pill);
+
+  /* Media is the post as often as text is, so it gets the softer corner and
+     sits closer to the edge than it would in a product panel. */
+  --dt-radius-media: var(--dt-radius-container);
+
+  /* Avatars and the action row read as icons at a glance, so both come up a
+     step from the product default. */
+  --dt-size-icon-md: var(--dt-dim-6);
+  --dt-size-icon-lg: var(--dt-dim-8);
+}
