@@ -121,6 +121,61 @@ window.MV_DATA = (function () {
     }
   ];
 
+  /* Five scenes for the full-screen atmosphere section. Each one "layers" is a build
+     order — background wash, then a mid crop, then the sharp foreground — so the scene
+     assembles itself rather than just appearing. Today each layer is the same flattened
+     illustration cropped and blurred differently to fake depth; real separated artwork
+     (a transparent background/midground/foreground cutout per scene) drops straight into
+     the same three slots — same crop/blur fields, now describing a real cutout's own
+     framing instead of a synthetic one, no change to the component that plays them. */
+  var ATMOSPHERE = [
+    {
+      id: "amalfi", place: "Amalfi Coast, Italy",
+      caption: "An arch, a plunge pool, and the whole coast for a view.",
+      layers: [
+        { src: SCENE + "amalfi.webp", crop: "none", position: "50% 50%", scale: 1.12 },
+        { src: SCENE + "amalfi.webp", crop: "10% 2% 2% 22%", position: "72% 45%", scale: 1.05 },
+        { src: SCENE + "amalfi.webp", crop: "38% 4% 2% 46%", position: "84% 88%", scale: 1 }
+      ]
+    },
+    {
+      id: "alpine", place: "Lake Tahoe, United States",
+      caption: "Glass to the ridgeline, and the lake close enough to swim before coffee.",
+      layers: [
+        { src: SCENE + "alpine.webp", crop: "none", position: "50% 50%", scale: 1.12 },
+        { src: SCENE + "alpine.webp", crop: "14% 2% 4% 34%", position: "76% 48%", scale: 1.05 },
+        { src: SCENE + "alpine.webp", crop: "40% 4% 4% 46%", position: "80% 85%", scale: 1 }
+      ]
+    },
+    {
+      id: "rome", place: "Rome, Italy",
+      caption: "A terrace door that opens straight onto the dome.",
+      layers: [
+        { src: SCENE + "rome.webp", crop: "none", position: "50% 50%", scale: 1.12 },
+        { src: SCENE + "rome.webp", crop: "6% 4% 4% 4%", position: "50% 45%", scale: 1.05 },
+        { src: SCENE + "rome.webp", crop: "20% 6% 30% 30%", position: "50% 35%", scale: 1 }
+      ]
+    },
+    {
+      id: "tropical", place: "Koh Yao Noi, Thailand",
+      caption: "A plunge pool under the palms, and nowhere to be.",
+      layers: [
+        { src: SCENE + "tropical.webp", crop: "none", position: "50% 50%", scale: 1.12 },
+        { src: SCENE + "tropical.webp", crop: "18% 0% 2% 30%", position: "74% 46%", scale: 1.05 },
+        { src: SCENE + "tropical.webp", crop: "45% 2% 2% 40%", position: "78% 85%", scale: 1 }
+      ]
+    },
+    {
+      id: "lakehouse", place: "Lake Bled, Slovenia",
+      caption: "A wood-fired sauna on the jetty, lit by dusk.",
+      layers: [
+        { src: SCENE + "lakehouse.webp", crop: "none", position: "50% 50%", scale: 1.12 },
+        { src: SCENE + "lakehouse.webp", crop: "12% 0% 4% 30%", position: "74% 48%", scale: 1.05 },
+        { src: SCENE + "lakehouse.webp", crop: "42% 2% 2% 42%", position: "78% 82%", scale: 1 }
+      ]
+    }
+  ];
+
   var STORY = [
     {
       id: "choose", title: "Tell us the shape of the week",
@@ -140,7 +195,7 @@ window.MV_DATA = (function () {
   ];
 
   return {
-    AMENITIES: AMENITIES, COLLECTIONS: COLLECTIONS, STAYS: STAYS, STORY: STORY,
+    AMENITIES: AMENITIES, COLLECTIONS: COLLECTIONS, STAYS: STAYS, STORY: STORY, ATMOSPHERE: ATMOSPHERE,
     ICON: ICON, TEX: TEX, SCENE: SCENE, PHOTO: PHOTO
   };
 })();

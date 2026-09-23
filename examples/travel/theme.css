@@ -501,6 +501,89 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
 }
 .mv-band[data-wash="deep"] { color: var(--dt-text-primary); }
 
+/* ------------------------------------------------------------------ atmosphere
+   A full-screen stage where a scene assembles itself wash by wash, holds, then recedes
+   into the next. It is a fixed dark stage rather than a card that follows the page's own
+   light/dark toggle — a theatre doesn't relight when you turn a lamp on at home — so its
+   ground is a primitive, not the surface-inverse role, which would flip the other way
+   under a dark page; and its text is pinned the same way the tan band's is, for the same
+   reason. Layer entrance/exit is driven entirely by data attributes app.js sets on a
+   timer: this file only says what "on" and "receding" look like. */
+.mv-atmosphere {
+  position: relative; min-height: 100svh; overflow: hidden; isolation: isolate;
+  display: flex; align-items: flex-end;
+  background: var(--dt-color-neutral-950);
+  --dt-text-primary: var(--dt-color-neutral-050);
+  --dt-text-secondary: var(--dt-color-neutral-100);
+  color: var(--dt-text-primary);
+}
+
+/* A permanently present, heavily softened echo of the current scene, so the stage is
+   never briefly empty between one scene's layers receding and the next scene's own wash
+   arriving — the crossfade a viewer actually sees is this, not the sharper layers above
+   it, which is why it alone gets a plain opacity crossfade instead of the build/recede
+   choreography. */
+.mv-atmosphere-base { position: absolute; inset: 0; z-index: 0; }
+.mv-atmosphere-base img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  filter: blur(36px) saturate(85%) brightness(0.6); transform: scale(1.15);
+  opacity: 0; transition: opacity 1800ms var(--dt-easing-standard);
+}
+.mv-atmosphere-base img[data-on="true"] { opacity: 1; }
+
+.mv-atmosphere-stage { position: absolute; inset: 0; z-index: 1; }
+.mv-av-layer {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; filter: blur(14px) saturate(88%);
+  transform: scale(calc(var(--av-scale, 1) * 1.06)) translateY(16px);
+  transition:
+    opacity 1600ms var(--dt-easing-decelerate),
+    transform 1600ms var(--dt-easing-decelerate),
+    filter 1600ms var(--dt-easing-decelerate);
+  transition-delay: var(--av-delay, 0ms);
+}
+.mv-av-layer[data-on="true"] {
+  opacity: 1; filter: blur(0) saturate(100%);
+  transform: scale(var(--av-scale, 1)) translateY(0);
+}
+.mv-av-layer[data-recede="true"] {
+  opacity: 0; filter: blur(10px) saturate(88%);
+  transform: scale(calc(var(--av-scale, 1) * 1.03)) translateY(-10px);
+  transition-duration: 1100ms; transition-timing-function: var(--dt-easing-accelerate);
+  transition-delay: var(--av-recede-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-atmosphere-base img, .mv-av-layer { transition: none; }
+}
+
+/* One pass of the scrim role does not reliably clear body-text contrast against bright
+   watercolour, the same finding the hero's own scrim was sized against — so this stacks
+   it the same way, three passes concentrated under where the copy actually sits. */
+.mv-atmosphere-scrim {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    linear-gradient(to top, var(--dt-surface-scrim) 0%, transparent 68%),
+    linear-gradient(to top, var(--dt-surface-scrim) 0%, transparent 68%),
+    linear-gradient(to top, var(--dt-surface-scrim) 0%, transparent 55%);
+}
+.mv-atmosphere-copy {
+  position: relative; z-index: 3; width: 100%;
+  padding: var(--dt-space-section) var(--dt-space-inset-xl);
+}
+.mv-atmosphere-place {
+  margin: 0; text-wrap: balance;
+  font-family: var(--dt-text-display-sm-family); font-size: var(--dt-text-display-sm-size);
+  line-height: var(--dt-text-display-sm-line); font-weight: var(--dt-text-display-sm-weight);
+  letter-spacing: var(--dt-text-display-sm-tracking);
+}
+.mv-atmosphere-dots { display: flex; gap: var(--dt-space-inline-xs); margin-block-start: var(--dt-space-stack-md); }
+.mv-atmosphere-dot {
+  width: var(--dt-dim-2); height: var(--dt-dim-2); padding: 0; border: 0; cursor: pointer;
+  border-radius: var(--dt-radius-pill); background: color-mix(in oklch, var(--dt-color-neutral-050) 35%, transparent);
+  transition: background var(--dt-motion-enter), width var(--dt-motion-enter);
+}
+.mv-atmosphere-dot[aria-selected="true"] { width: var(--dt-dim-5); background: var(--dt-color-neutral-050); }
+
 /* ------------------------------------------------------------------ amenity icons */
 
 .mv-icons { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--dt-space-inline-md); }
@@ -583,6 +666,8 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
   .mv-header-bar { gap: var(--dt-space-inline-sm); }
   .mv-hero { min-height: 92svh; }
   .mv-scroll-cue { display: none; }
+  .mv-atmosphere { min-height: 92svh; }
+  .mv-atmosphere-copy { padding: var(--dt-space-stack-2xl) var(--dt-space-inset-md); }
   /* The bar becomes three stacked rows rather than three squeezed columns: a tab strip
      that scrolls, then the price, then the sort. */
   .mv-filterbar {
