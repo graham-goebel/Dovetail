@@ -156,7 +156,7 @@ body { margin: 0; }
 main { flex: 1; }
 :target { scroll-margin-top: 96px; }
 html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .mv-tiles { scroll-behavior: auto; } }
 
 .mv-shell { width: 100%; max-width: var(--mv-measure, 1160px); margin-inline: auto; padding-inline: var(--dt-space-inset-xl); }
 .mv-shell--wide { --mv-measure: 1320px; }
@@ -392,6 +392,7 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
 }
 .mv-tile[aria-pressed="true"] { outline: 2px solid var(--dt-surface-action); outline-offset: 2px; }
 .mv-tile[aria-pressed="true"] .mv-tile-label { color: var(--dt-text-link); }
+.mv-dots { display: none; }
 
 /* ------------------------------------------------------------------ listings */
 
@@ -468,6 +469,27 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
 .mv-band > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
 .mv-band::before { content: ""; position: absolute; inset: 0; z-index: -1; }
 .mv-band[data-wash="paper"]::before { background: color-mix(in oklch, var(--dt-surface-base) 68%, transparent); }
+/* A tan scrim: a warm card the band sits on, rather than a photo darkened for text to
+   sit over. Its background is dominated by the amber primitive on purpose, so it stays
+   a light ground whether or not the page around it is in dark mode — and because it
+   does not flip with the page, its text cannot be the semantic roles either, which do.
+   Both are pinned here, scoped to the band: the wash's own colour, and text-primary /
+   -secondary / -tertiary re-pointed to the neutral ramp's light-mode steps. Every
+   Dovetail component inside reads the same three roles, Stat included, so scoping the
+   roles carries the fix to all of them rather than restyling each one by hand. */
+/* No surface-base in the mix: that role is what makes it a fixed card rather than a
+   page-mode-following wash, so blending it back in would reopen the exact problem the
+   comment above describes — the wash a little darker, and a little less readable, only
+   when the page happens to be in dark mode. */
+.mv-band[data-wash="tan"]::before {
+  background: color-mix(in oklch, var(--dt-color-amber-200) 94%, transparent);
+}
+.mv-band[data-wash="tan"] {
+  --dt-text-primary: var(--dt-color-neutral-900);
+  --dt-text-secondary: var(--dt-color-neutral-700);
+  --dt-text-tertiary: var(--dt-color-neutral-600);
+  color: var(--dt-text-primary);
+}
 /* The scrim role is tuned for a modal over a page, where the page behind it is quiet.
    A painting is not quiet, so the same token is stacked until body text clears it. No
    new colour is invented, and a re-themed brand still moves it. */
@@ -568,8 +590,29 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
     flex-direction: column; align-items: stretch; gap: var(--dt-space-stack-sm);
   }
   .mv-filterbar > * { min-width: 0 !important; width: 100%; }
+
+  /* Collections become one swipeable, auto-advancing row rather than a squeezed grid:
+     cards keep their full size, the next one peeks past the edge so the swipe is
+     discoverable, and the row bleeds to the page edges rather than sitting cropped
+     inside the shell's own gutter. Scroll snapping makes each swipe (or autoplay tick)
+     land square on a card; the dots below say where in the row you are. */
+  .mv-tiles {
+    display: flex; flex-wrap: nowrap; gap: var(--dt-space-inline-md);
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    padding-inline: var(--dt-space-inset-md);
+    margin-inline: calc(var(--dt-space-inset-md) * -1);
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .mv-tiles::-webkit-scrollbar { display: none; }
+  .mv-tile { flex: 0 0 78%; scroll-snap-align: center; }
+  .mv-dots { display: flex; justify-content: center; gap: var(--dt-space-inline-xs); margin-block-start: var(--dt-space-stack-md); }
+  .mv-dot {
+    width: var(--dt-dim-2); height: var(--dt-dim-2); padding: 0; border: 0; cursor: pointer;
+    border-radius: var(--dt-radius-pill); background: var(--dt-border-default);
+    transition: background var(--dt-motion-enter), width var(--dt-motion-enter);
+  }
+  .mv-dot[aria-selected="true"] { width: var(--dt-dim-5); background: var(--dt-surface-action); }
 }
 @media (max-width: 560px) {
-  .mv-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mv-icons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

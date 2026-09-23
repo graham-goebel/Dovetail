@@ -417,6 +417,111 @@
     );
   }
 
+  function isNarrow() {
+    try { return window.matchMedia("(max-width: 860px)").matches; } catch (e) { return false; }
+  }
+  function watchNarrow(setFn) {
+    var mq = window.matchMedia("(max-width: 860px)");
+    function sync() { setFn(mq.matches); }
+    if (mq.addEventListener) mq.addEventListener("change", sync); else mq.addListener(sync);
+    return function () {
+      if (mq.removeEventListener) mq.removeEventListener("change", sync); else mq.removeListener(sync);
+    };
+  }
+
+  /* The collection tiles: a grid down to tablet width, and below 860px a single row the
+     CSS turns into a swipeable, scroll-snapped strip (see .mv-tiles in theme.css). This
+     component adds the autoplay and the dots; the grid layout ignores both, since the
+     row itself only becomes a horizontal scroller once the CSS says so. */
+  function Collections(props) {
+    var items = D.COLLECTIONS;
+    var trackRef = useRef(null);
+    var indexRef = useRef(0);
+    var mobileRef = useRef(isNarrow());
+    var pausedRef = useRef(false);
+    var slide = useState(0);
+
+    var goTo = useCallback(function (i, smooth) {
+      var n = items.length;
+      var idx = ((i % n) + n) % n;
+      indexRef.current = idx;
+      slide[1](idx);
+      var track = trackRef.current;
+      var card = track && track.children[idx];
+      if (track && card) {
+        track.scrollTo({
+          left: card.offsetLeft - track.offsetLeft,
+          behavior: smooth === false || reduceMotion ? "auto" : "smooth"
+        });
+      }
+    }, []);
+
+    useEffect(function () { return watchNarrow(function (v) { mobileRef.current = v; }); }, []);
+
+    /* Autoplay only ever moves the strip while it is actually a carousel (mobile) and
+       nothing is mid-swipe. It is a no-op the rest of the time rather than gated out
+       entirely, so a resize across the breakpoint picks it up with no extra wiring. */
+    useEffect(function () {
+      if (reduceMotion) return;
+      var id = setInterval(function () {
+        if (!mobileRef.current || pausedRef.current) return;
+        goTo(indexRef.current + 1);
+      }, 4200);
+      return function () { clearInterval(id); };
+    }, [goTo]);
+
+    /* A manual swipe pauses autoplay immediately and, once the swipe settles, becomes
+       the new position: the nearest card to the strip's centre, found the same way the
+       browser's own snap already chose it, so the two never disagree. */
+    useEffect(function () {
+      var track = trackRef.current;
+      if (!track) return;
+      var t = null;
+      function onScroll() {
+        pausedRef.current = true;
+        clearTimeout(t);
+        t = setTimeout(function () {
+          var children = [].slice.call(track.children);
+          var centre = track.scrollLeft + track.clientWidth / 2;
+          var nearest = 0, best = Infinity;
+          children.forEach(function (c, i) {
+            var d = Math.abs((c.offsetLeft + c.offsetWidth / 2) - centre);
+            if (d < best) { best = d; nearest = i; }
+          });
+          indexRef.current = nearest;
+          slide[1](nearest);
+          pausedRef.current = false;
+        }, 160);
+      }
+      track.addEventListener("scroll", onScroll, { passive: true });
+      return function () { track.removeEventListener("scroll", onScroll); clearTimeout(t); };
+    }, []);
+
+    return h(F, null,
+      h("div", { className: "mv-tiles", ref: trackRef },
+        items.map(function (c, i) {
+          return h(CollectionTile, {
+            key: c.id, collection: c, index: i,
+            active: props.selected === c.id, onPick: props.onPick
+          });
+        })
+      ),
+      h("div", { className: "mv-dots", role: "tablist", "aria-label": "Collection, slide" },
+        items.map(function (c, i) {
+          return h("button", {
+            key: c.id, type: "button", className: "mv-dot", role: "tab",
+            "aria-selected": i === slide[0] ? "true" : "false", "aria-label": "Show " + c.label,
+            onClick: function () {
+              pausedRef.current = true;
+              goTo(i);
+              setTimeout(function () { pausedRef.current = false; }, 5000);
+            }
+          });
+        })
+      )
+    );
+  }
+
   /* ----------------------------------------------------------------- listing card */
 
   function StayCard(props) {
@@ -646,6 +751,7 @@
   function Story() {
     var active = useState(0);
     var refs = useRef([]);
+    var mobileRef = useRef(isNarrow());
     useEffect(function () {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
@@ -654,6 +760,22 @@
       }, { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
       refs.current.forEach(function (n) { if (n) io.observe(n); });
       return function () { io.disconnect(); };
+    }, []);
+
+    /* The visual is sticky only above 860px (see .mv-story-visual in theme.css); below
+       that it sits once, above the steps, and scrolls away with the rest of the page, so
+       the reader never lingers on it the way the sticky version assumes. There it cycles
+       on a timer instead. Both this and the observer above write the same active index,
+       so a real scroll through the steps still wins the moment it happens; the timer
+       only fills the gap while nothing is scrolling. */
+    useEffect(function () {
+      var stop = watchNarrow(function (v) { mobileRef.current = v; });
+      if (reduceMotion) return stop;
+      var id = setInterval(function () {
+        if (!mobileRef.current) return;
+        active[1](function (i) { return (i + 1) % D.STORY.length; });
+      }, 3200);
+      return function () { clearInterval(id); stop(); };
     }, []);
 
     return h("section", { className: "mv-sec", id: "how" },
@@ -806,44 +928,35 @@
                 h("p", { className: "mv-small", style: { maxWidth: "36ch" } },
                   "Five kinds of week. Choose one and the list below follows.")
               ),
-              h("div", { className: "mv-tiles" },
-                D.COLLECTIONS.map(function (c, i) {
-                  return h(CollectionTile, {
-                    key: c.id, collection: c, index: i,
-                    active: collection[0] === c.id, onPick: pickCollection
-                  });
-                })
-              )
+              h(Collections, { selected: collection[0], onPick: pickCollection })
             )
           )
         ),
 
         /* ---------------------------------------------------------- featured */
-        featured ? h("section", { className: "mv-band mv-sec", "data-wash": "deep" },
+        featured ? h("section", { className: "mv-band mv-sec", "data-wash": "tan" },
           h("img", { src: D.TEX + "patchwork.webp", alt: "", loading: "lazy" }),
-          h("div", { className: "dark mv-on-photo" },
-            h("div", { className: "mv-shell mv-shell--wide" },
-              h(NS.Media, {
-                gap: "2xl", align: "center", minColumnWidth: "320px",
-                media: h("div", { "data-reveal": "", style: { borderRadius: "var(--dt-radius-container)", overflow: "hidden", boxShadow: "var(--dt-elevation-4)" } },
-                  h("img", { src: featured.gallery[0], alt: featured.name, loading: "lazy",
-                    style: { width: "100%", aspectRatio: "4 / 3", objectFit: "cover", display: "block" } })),
-                eyebrow: h("span", { className: "mv-eyebrow", style: { color: "inherit", opacity: 0.85 } }, "House of the season"),
-                title: h("h2", { className: "mv-h2" }, featured.name),
-                body: h(NS.Stack, { gap: "md" },
-                  h("p", { className: "mv-lead", style: { color: "inherit", opacity: 0.88 } }, featured.story),
-                  h(NS.Inline, { gap: "xl", wrap: true },
-                    h(NS.Stat, { label: "From", value: money(featured.rate), caption: "a night, all in" }),
-                    h(NS.Stat, { label: "Sleeps", value: String(featured.guests), caption: featured.beds + " bedrooms" }),
-                    h(NS.Stat, { label: "Rated", value: featured.rating.toFixed(2), caption: featured.reviews + " stays" })
-                  )
-                ),
-                actions: h(NS.Inline, { gap: "sm", wrap: true },
-                  h(NS.Button, { size: "lg", onClick: function () { booking[1](featured); } }, "Check availability"),
-                  h(NS.Button, { size: "lg", variant: "secondary", onClick: function () { detail[1](featured); } }, "See the house")
+          h("div", { className: "mv-shell mv-shell--wide" },
+            h(NS.Media, {
+              gap: "2xl", align: "center", minColumnWidth: "320px",
+              media: h("div", { "data-reveal": "", style: { borderRadius: "var(--dt-radius-container)", overflow: "hidden", boxShadow: "var(--dt-elevation-4)" } },
+                h("img", { src: featured.gallery[0], alt: featured.name, loading: "lazy",
+                  style: { width: "100%", aspectRatio: "4 / 3", objectFit: "cover", display: "block" } })),
+              eyebrow: h("span", { className: "mv-eyebrow" }, "House of the season"),
+              title: h("h2", { className: "mv-h2" }, featured.name),
+              body: h(NS.Stack, { gap: "md" },
+                h("p", { className: "mv-lead" }, featured.story),
+                h(NS.Inline, { gap: "xl", wrap: true },
+                  h(NS.Stat, { label: "From", value: money(featured.rate), caption: "a night, all in" }),
+                  h(NS.Stat, { label: "Sleeps", value: String(featured.guests), caption: featured.beds + " bedrooms" }),
+                  h(NS.Stat, { label: "Rated", value: featured.rating.toFixed(2), caption: featured.reviews + " stays" })
                 )
-              })
-            )
+              ),
+              actions: h(NS.Inline, { gap: "sm", wrap: true },
+                h(NS.Button, { size: "lg", onClick: function () { booking[1](featured); } }, "Check availability"),
+                h(NS.Button, { size: "lg", variant: "secondary", onClick: function () { detail[1](featured); } }, "See the house")
+              )
+            })
           )
         ) : null,
 
