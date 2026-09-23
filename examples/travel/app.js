@@ -746,6 +746,158 @@
     );
   }
 
+  /* ----------------------------------------------------------------- atmosphere
+     A full-screen stage that plays each scene as a small build: its layers arrive back
+     to front (background wash, then a mid crop, then the sharp foreground), hold
+     together, then leave front to back while the next scene's wash is already arriving
+     underneath, so the stage is never empty between the two. The whole sequence is one
+     data-driven timeline (buildTimeline below) rather than a chain of hand-timed
+     setTimeouts scattered through the component: the number of layers is the only input,
+     and adding a fourth layer to a scene's data needs no change here. */
+
+  /* A crop describes a rectangle ("top right bottom left", matching inset()'s own
+     order) that a layer wants visible. Rather than clip to it with a hard edge, this
+     turns the same numbers into a radial mask centred on that rectangle, so what shows
+     fades out toward the rectangle's own edges instead of stopping at them — a soft
+     reveal instead of a window, which is the point of calling this a wash. */
+  function cropMask(crop) {
+    if (crop === "none") return undefined;
+    var n = crop.split(" ").map(parseFloat);
+    var top = n[0], right = n[1], bottom = n[2], left = n[3];
+    var cx = left + (100 - left - right) / 2;
+    var cy = top + (100 - top - bottom) / 2;
+    var rx = (100 - left - right) / 2 + 14;
+    var ry = (100 - top - bottom) / 2 + 14;
+    return "radial-gradient(" + rx + "% " + ry + "% at " + cx + "% " + cy + "%, #000 50%, transparent 100%)";
+  }
+
+  function buildTimeline(layerCount) {
+    var BUILD_STEP = 750;   /* ms between one layer starting and the next */
+    var LAYER_IN = 1600;    /* matches .mv-av-layer's transition-duration */
+    var HOLD = 2600;        /* ms the fully-built scene sits before it starts to leave */
+    var RECEDE_STEP = 550;  /* ms between one layer leaving and the next */
+    var LAYER_OUT = 1100;   /* matches .mv-av-layer[data-recede]'s transition-duration */
+
+    var events = [];
+    for (var i = 0; i < layerCount; i++) events.push({ i: i, on: true, at: i * BUILD_STEP });
+
+    var buildEnd = (layerCount - 1) * BUILD_STEP + LAYER_IN;
+    var recedeStart = buildEnd + HOLD;
+    /* Front (the last, sharpest layer) leaves first, back (the wash) leaves last — the
+       build in reverse, so the scene reads as dissolving rather than just cutting. */
+    for (var j = 0; j < layerCount; j++) {
+      events.push({ i: layerCount - 1 - j, on: false, at: recedeStart + j * RECEDE_STEP });
+    }
+
+    var total = recedeStart + (layerCount - 1) * RECEDE_STEP + LAYER_OUT;
+    return { events: events, total: total, baseSwapAt: Math.max(0, recedeStart - 200) };
+  }
+
+  function Atmosphere() {
+    var scenes = D.ATMOSPHERE;
+    var sceneIndex = useState(0);
+    var layerOn = useState(function () { return scenes[0].layers.map(function () { return false; }); });
+    var recede = useState(false);
+    var sectionRef = useRef(null);
+    var inView = useState(false);
+    var timers = useRef([]);
+
+    useEffect(function () {
+      var el = sectionRef.current;
+      if (!el) return;
+      var io = new IntersectionObserver(function (entries) {
+        inView[1](entries[0].isIntersecting);
+      }, { threshold: 0.35 });
+      io.observe(el);
+      return function () { io.disconnect(); };
+    }, []);
+
+    useEffect(function () {
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
+
+      var scene = scenes[sceneIndex[0]];
+      layerOn[1](scene.layers.map(function () { return false; }));
+      recede[1](false);
+
+      /* Off screen, or asking for less motion: show the scene fully built, at rest, and
+         do not schedule the chain that would otherwise move it along or advance it. */
+      if (!inView[0] || reduceMotion) {
+        layerOn[1](scene.layers.map(function () { return true; }));
+        return;
+      }
+
+      var tl = buildTimeline(scene.layers.length);
+      tl.events.forEach(function (e) {
+        timers.current.push(setTimeout(function () {
+          if (!e.on) recede[1](true);
+          layerOn[1](function (prev) {
+            var next = prev.slice();
+            next[e.i] = e.on;
+            return next;
+          });
+        }, e.at));
+      });
+      timers.current.push(setTimeout(function () {
+        sceneIndex[1](function (i) { return (i + 1) % scenes.length; });
+      }, tl.total));
+
+      return function () { timers.current.forEach(clearTimeout); timers.current = []; };
+    }, [sceneIndex[0], inView[0]]);
+
+    var scene = scenes[sceneIndex[0]];
+
+    return h("section", { className: "mv-atmosphere", ref: sectionRef, "aria-roledescription": "carousel", "aria-label": "A few of the scenes" },
+      h("div", { className: "mv-atmosphere-base" },
+        scenes.map(function (s, i) {
+          return h("img", {
+            key: s.id, src: s.layers[0].src, alt: "",
+            "data-on": i === sceneIndex[0] ? "true" : "false"
+          });
+        })
+      ),
+      h("div", { className: "mv-atmosphere-stage" },
+        scene.layers.map(function (layer, i) {
+          return h("img", {
+            key: scene.id + i, className: "mv-av-layer", src: layer.src, alt: i === scene.layers.length - 1 ? scene.place : "",
+            "data-on": layerOn[0][i] ? "true" : "false",
+            "data-recede": recede[0] && !layerOn[0][i] ? "true" : "false",
+            style: {
+              /* Real cutout artwork carries its own alpha edge and needs neither of
+                 these: a layer only gets a mask when it is cropped from the flattened
+                 source, which today's placeholder layers are and a real layer would not
+                 be. */
+              WebkitMaskImage: cropMask(layer.crop), maskImage: cropMask(layer.crop),
+              objectPosition: layer.position,
+              "--av-scale": layer.scale,
+              "--av-delay": i * 750 + "ms",
+              "--av-recede-delay": (scene.layers.length - 1 - i) * 550 + "ms"
+            }
+          });
+        })
+      ),
+      h("div", { className: "mv-atmosphere-scrim", "aria-hidden": "true" }),
+      h("div", { className: "mv-atmosphere-copy" },
+        h("div", { className: "mv-shell" },
+          h(NS.Stack, { gap: "xs" },
+            h("span", { className: "mv-eyebrow" }, "A few of the scenes"),
+            h("h2", { className: "mv-atmosphere-place" }, scene.place),
+            h("p", { className: "mv-lead", style: { color: "inherit" } }, scene.caption)
+          ),
+          h("div", { className: "mv-atmosphere-dots", role: "tablist", "aria-label": "Scene" },
+            scenes.map(function (s, i) {
+              return h("button", {
+                key: s.id, type: "button", className: "mv-atmosphere-dot", role: "tab",
+                "aria-selected": i === sceneIndex[0] ? "true" : "false", "aria-label": "Show " + s.place,
+                onClick: function () { sceneIndex[1](i); }
+              });
+            })
+          )
+        )
+      )
+    );
+  }
+
   /* ----------------------------------------------------------------- story */
 
   function Story() {
@@ -932,6 +1084,9 @@
             )
           )
         ),
+
+        /* ---------------------------------------------------------- atmosphere */
+        h(Atmosphere),
 
         /* ---------------------------------------------------------- featured */
         featured ? h("section", { className: "mv-band mv-sec", "data-wash": "tan" },
