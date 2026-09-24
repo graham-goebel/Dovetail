@@ -1588,25 +1588,27 @@ body.configure-open .configure-bar {
   color: var(--dt-text-primary);
 }
 
-/* On a narrow screen the sheet docks to the bottom. It takes a little over half
-   the height and never dims or blocks the page, and the page gains padding to
-   match, so anything on it can still be scrolled into the space above and
-   watched while the controls move. */
+/* On a narrow screen the sheet takes the whole screen. At phone width there is
+   no room to watch the page change beside it, and a half-height sheet left the
+   controls cramped; closing it shows the result. The surface goes solid,
+   because blurred glass over a full screen of content is not readable, and
+   the page behind stops scrolling so a swipe moves the controls, not the page. */
 @media (max-width: 720px) {
-  :root {
-    --configure-height: 58vh;
-  }
-
   .configure-sheet {
-    top: auto;
+    top: 0;
     right: 0;
     bottom: 0;
     left: 0;
     width: auto;
     max-width: none;
-    height: var(--configure-height);
-    border-width: var(--dt-border-width-default) 0 0;
-    border-radius: var(--dt-radius-overlay) var(--dt-radius-overlay) 0 0;
+    height: 100vh;
+    height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--dt-surface-overlay);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .configure-head {
@@ -1615,10 +1617,11 @@ body.configure-open .configure-bar {
 
   .configure-body {
     padding: var(--dt-space-inset-md);
+    overscroll-behavior: contain;
   }
 
   body.configure-open {
-    padding-bottom: calc(var(--configure-height) + var(--dt-dim-4));
+    overflow: hidden;
   }
 
   .configure-bar {

@@ -281,9 +281,8 @@ The sheet never dims or blocks the page, because watching the system change is t
 of the control. On a wide screen it floats over the page as frosted glass, so what is
 behind it stays readable through the blur; where `backdrop-filter` is unsupported the
 surface goes solid, since unreadable chrome is worse than flat chrome. On a narrow screen
-it docks to the bottom at a little over half the height and the page gains matching
-padding, so anything on it can be scrolled into the space above and watched while the
-controls move.
+it takes the whole screen on a solid surface, and the page behind stops scrolling so a
+swipe moves the controls; closing it shows the result.
 
 The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
 file, not a token, and it has no business in a theme stylesheet. The photo and
