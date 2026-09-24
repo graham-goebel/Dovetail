@@ -347,7 +347,7 @@ function buildConfigureData() {
   const data = {
     steps: take("STEPS"),
     ramps: take("RAMPS"),
-    accents: take("ACCENTS"),
+    brandRamps: take("BRAND_RAMPS"),
     radii: take("RADIUS_PRESETS"),
     fonts,
     bodyFonts: grouped(["Sans", "Serif"]),
@@ -387,9 +387,10 @@ const manifest = JSON.parse(read(path.join(SYS, "manifest.json")));
 const tokens = JSON.parse(read(path.join(SYS, "tokens.json")));
 const readme = read(path.join(SYS, "README.md"));
 
-const GROUP_ORDER = ["primitives", "actions", "forms", "display", "navigation", "feedback", "content"];
+const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content"];
 const GROUP_LABEL = {
   primitives: "Primitives",
+  typography: "Typography",
   actions: "Actions",
   forms: "Forms",
   display: "Display",
@@ -402,6 +403,7 @@ const GROUP_LABEL = {
    to another. */
 const GROUP_BLURB = {
   primitives: "Layout with no opinion about content. These own spacing, stacking and rhythm, and they draw almost nothing themselves.",
+  typography: "Headings and running text, set from the type roles. Level and size are separate props, so a page's outline and its visual scale can each be right.",
   actions: "Everything a person can press. One visual hierarchy across all of them, so importance reads the same whether the target is a button or a link.",
   forms: "Inputs and the structure around them. Field owns the label, hint and error for every control, so validation looks and announces the same everywhere.",
   display: "Read-only presentation of data that already exists. They render what they are given and never fetch, sort or filter it.",
@@ -498,7 +500,7 @@ const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === gr
 const CARD_SECTIONS = {
   Color: [
     ["Ramps", "The raw hues, eleven steps each. Nothing in a component names one.",
-      ["ColorNeutral", "ColorAccent", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
+      ["ColorNeutral", "ColorPrimary", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
     ["Roles", "What a component actually reads. Each one resolves to a step of a ramp above.",
       ["ColorSurfaces", "ColorText", "ColorBorders", "ColorPairs", "ColorActions", "ColorFeedback", "ColorDark"]],
     ["Brand and texture", "Full-bleed roles for a section, not a control: a solid or gradient fill, a muted tint, and a pattern built from two gradients rather than an image.",
@@ -743,7 +745,7 @@ function busiestToken() {
   for (const [, def] of tokenDefs) {
     for (const m of def.value.matchAll(/var\((--dt-[a-z0-9-]+)/g)) counts.set(m[1], (counts.get(m[1]) || 0) + 1);
   }
-  let best = "--dt-color-accent-600";
+  let best = "--dt-color-primary-600";
   let most = -1;
   for (const [name, n] of counts) if (n > most) ((most = n), (best = name));
   return best;
@@ -851,7 +853,7 @@ function buildHome() {
   const s = sections(readme);
   const tiles = [
     ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
-    ["components/index.html", "Components", `${components.length} components across seven families, with props, source and usage rules.`, "blocks"],
+    ["components/index.html", "Components", `${components.length} components across eight families, with props, source and usage rules.`, "blocks"],
     ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
     ["showcase/index.html", "Showcase", "Detail cards, playgrounds, templates and tools.", "monitor"],
     ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
@@ -867,7 +869,7 @@ function buildHome() {
     <a class="btn btn-primary" href="foundations/index.html">Read the foundations</a>
     <a class="btn" href="components/index.html">Browse components</a>
   </div>
-  <p class="hero-note">Open <strong>Configure</strong> in the corner to set the accent, radius, type, density and mode. Every page and every live card on this site follows, and the panel hands you the theme file at the end.</p>
+  <p class="hero-note">Open <strong>Configure</strong> in the corner to set the brand colours, radius, type, density and mode. Every page and every live card on this site follows, and the panel hands you the theme file at the end.</p>
 </section>
 
 <section class="tiles">
@@ -957,7 +959,7 @@ function buildComponents() {
   const index = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Components" }])}
 <h1>Components</h1>
-<p class="lede">${components.length} components in seven families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
+<p class="lede">${components.length} components in eight families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
 ${GROUP_ORDER.map((g) => {
   const list = byGroup(g);
   return `<section class="group">
@@ -1147,7 +1149,7 @@ function swatch(value) {
 }
 
 /* system/tokens.json stores a colour value either as a literal or as the DTCG
-   reference syntax its own pipeline uses, `{dt-color-accent-600}`, and neither
+   reference syntax its own pipeline uses, `{dt-color-primary-600}`, and neither
    the light nor the dark column ever resolved that reference to something a
    swatch could read: most of the colour cells on this page have been printing
    that placeholder text instead of a chip. tokenDefs already holds every value
@@ -1381,7 +1383,7 @@ function buildDownloads() {
       "Themes",
       [
         ["system/tokens/themes/base-dark.css", "Dark mode. Re-points the same semantic names."],
-        ["system/tokens/themes/theme-editorial.css", "Warm accent, serif headings, pill controls."],
+        ["system/tokens/themes/theme-editorial.css", "Warm primary colour, serif headings, pill controls."],
         ["system/tokens/themes/theme-mono.css", "No brand hue, square corners, borders over shadows."],
         ["system/tokens/themes/density-compact.css", "Compact control heights and insets."],
         ["system/tokens/themes/theme-custom.css", "Where the configurator commits a theme."],

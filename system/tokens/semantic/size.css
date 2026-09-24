@@ -26,4 +26,11 @@
 
   /* The minimum hit area for any interactive element on touch. */
   --dt-size-touch-target: var(--dt-dim-11); /* 44 */
+
+  /* Layout widths. The measure tokens bound a line of text; these bound a
+     page. Narrow is a reading column with room for media, default is the
+     page shell, wide is a hero or a gallery that still wants a margin. */
+  --dt-size-container-narrow: var(--dt-dim-container-md);  /* 768 */
+  --dt-size-container-default: var(--dt-dim-container-xl); /* 1280 */
+  --dt-size-container-wide: var(--dt-dim-container-2xl);   /* 1536 */
 }

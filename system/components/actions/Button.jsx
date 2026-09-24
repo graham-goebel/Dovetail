@@ -38,6 +38,7 @@ export function Button({ variant = "primary", size = "md", disabled = false, loa
         border: `var(--dt-button-border-width) solid ${bd}`,
         borderRadius: "var(--dt-button-radius)",
         cursor: isOff ? "not-allowed" : "pointer",
+        textDecoration: "none",
         transition: "background var(--dt-button-transition), border-color var(--dt-button-transition)",
         width: fullWidth ? "100%" : undefined,
         whiteSpace: "nowrap",

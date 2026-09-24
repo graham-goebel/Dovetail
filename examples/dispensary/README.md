@@ -9,7 +9,7 @@ index.html     Home: full-bleed photo hero and bands, photo category tiles, staf
 shop.html      Menu: category tabs, type / price / sort filters, product grid
 product.html   Product detail (?id=meadow-haze): quantity, effects, details table, FAQ
 visit.html     Hours, directions, what to bring, first-visit FAQ, email signup
-theme.css      The brand: a green accent ramp, warm neutrals, Fraunces display, and layout
+theme.css      The brand: a green primary ramp, warm neutrals, Fraunces display, and layout
 site.js        Shared data and chrome: header, pickup bag drawer, footer, age check, toasts
 img/           Product and lifestyle photography
 ```

@@ -13,6 +13,8 @@ a Popover and less interruption than a full page.
   while the body scrolls.
 - A drawer is modal. If the user needs to reference the page behind it while working,
   use an inline panel instead.
+- It sits at `--dt-z-overlay`, above every sticky role, so a fixed page header never
+  floats over the drawer's own scrim. Do not lower a header's z-index to make room.
 
 ## Tradeoffs
 

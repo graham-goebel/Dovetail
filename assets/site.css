@@ -1391,6 +1391,17 @@ body.configure-open .configure-bar {
   text-wrap: pretty;
 }
 
+.configure-steps-preview {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 2px;
+  height: var(--dt-dim-6);
+}
+
+.configure-steps-preview span {
+  border-radius: var(--dt-radius-raw-2);
+}
+
 .configure-ramphue-list {
   display: flex;
   flex-direction: column;
@@ -2004,15 +2015,15 @@ body.graph-open .configure-sheet {
 /* The tier a node belongs to is the one thing you read before its name, so it
    is the left edge rather than a badge you have to find. */
 .graph-node[data-tier="primitive"] {
-  border-left-color: var(--dt-color-accent-300);
+  border-left-color: var(--dt-color-primary-300);
 }
 
 .graph-node[data-tier="semantic"] {
-  border-left-color: var(--dt-color-accent-500);
+  border-left-color: var(--dt-color-primary-500);
 }
 
 .graph-node[data-tier="component"] {
-  border-left-color: var(--dt-color-accent-700);
+  border-left-color: var(--dt-color-primary-700);
 }
 
 .graph-node[data-tier="consumer"] {

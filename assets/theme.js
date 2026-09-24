@@ -34,8 +34,12 @@
   var MARK_LIMIT = 512 * 1024;
 
   var DEFAULTS = {
-    accent: "blue",
-    customHex: "#3366cc",
+    primary: "blue",
+    primaryHex: "#3366cc",
+    secondary: "violet",
+    secondaryHex: "#8a4fd6",
+    secondaryFont: "",
+    steps: 0,
     radius: "standard",
     font: "sans",
     displayFont: "",
@@ -62,11 +66,16 @@
   var DISPLAY_ROLES = [
     "display-lg", "display-md", "display-sm",
     "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs",
-    "eyebrow",
   ];
 
+  /* The roles the secondary face carries: the small UI voice of labels,
+     buttons, badges, tabs and eyebrows. The stylesheet already points them at
+     --dt-font-family-secondary; they are re-pointed here as well so a card that
+     froze an older copy of the stylesheet follows too. */
+  var SECONDARY_ROLES = ["label-lg", "label-md", "label-sm", "eyebrow"];
+
   /* Every named ramp a hue shift can reach, independent of which one is
-     currently chosen as the accent. Shifting green also retunes success,
+     currently chosen as the primary. Shifting green also retunes success,
      amber retunes warning, red retunes danger, and cyan retunes info, since
      those semantic roles point at a ramp by this same name. */
   var RAMP_KEYS = [
@@ -212,7 +221,7 @@
   }
 
   /* Builds a ramp by taking a base ramp's lightness and chroma per step and
-     substituting one hue throughout. Used both for a fully custom accent
+     substituting one hue throughout. Used both for a fully custom brand hue
      (base "blue") and for shifting any named ramp's own hue while it keeps
      its own contrast profile and eleven steps. */
   function rampWithHue(baseKey, hue) {
@@ -231,7 +240,7 @@
 
   /* A ramp with its own hue override applied, if the brand has set one. Every
      other ramp using this same helper is how a hue shift on green (success)
-     or red (danger) reaches those roles without touching the accent. */
+     or red (danger) reaches those roles without touching the primary. */
   function baseRamp(cfg, key) {
     var hex = cfg.rampHues && cfg.rampHues[key];
     if (!hex || !DATA.ramps[key]) return DATA.ramps[key];
@@ -239,7 +248,72 @@
   }
 
   function rampFor(cfg) {
-    return cfg.accent === "custom" ? customRamp(cfg.customHex) : baseRamp(cfg, cfg.accent) || DATA.ramps.blue;
+    return cfg.primary === "custom" ? customRamp(cfg.primaryHex) : baseRamp(cfg, cfg.primary) || DATA.ramps.blue;
+  }
+
+  function secondaryRampFor(cfg) {
+    return cfg.secondary === "custom" ? customRamp(cfg.secondaryHex) : baseRamp(cfg, cfg.secondary) || DATA.ramps.violet;
+  }
+
+  /* ---------------------------------------------------------- ramp steps */
+
+  /* A brand can publish fewer steps than the system's eleven. The steps it
+     keeps are spread evenly across the ramp, always including the lightest
+     and the darkest, and every named step is then pointed at a kept one. The
+     direction of that snap is what keeps contrast: a step at 500 or lighter
+     is used as a light surface or as text on a dark one, so it only ever
+     snaps lighter; a step at 600 or darker is used under light text or as
+     text on a light surface, so it only ever snaps darker. Either way the
+     pair it belongs to ends up at least as far apart as before. What can be
+     lost is a state: with few steps, hover and pressed may land on the same
+     colour as rest. The panel says so when that happens. */
+  function keptSteps(n) {
+    var last = DATA.steps.length - 1;
+    var kept = [];
+    for (var i = 0; i < n; i++) {
+      var idx = Math.round((i * last) / (n - 1));
+      if (kept.indexOf(idx) === -1) kept.push(idx);
+    }
+    return kept;
+  }
+
+  function stepMap(n) {
+    var steps = DATA.steps;
+    if (!n || n >= steps.length) return steps.map(function (_, i) { return i; });
+    var kept = keptSteps(n);
+    var pivot = steps.indexOf("500");
+    return steps.map(function (_, i) {
+      if (kept.indexOf(i) !== -1) return i;
+      var pick = null;
+      kept.forEach(function (k) {
+        if (i <= pivot ? k < i && (pick === null || k > pick) : k > i && (pick === null || k < pick)) pick = k;
+      });
+      return pick;
+    });
+  }
+
+  function quantize(ramp, n) {
+    var map = stepMap(n);
+    var out = {};
+    DATA.steps.forEach(function (step, i) {
+      out[step] = ramp[DATA.steps[map[i]]];
+    });
+    return out;
+  }
+
+  /* Every chromatic ramp the configuration writes, final values: primary,
+     secondary, and each named ramp once any hue shift or step count touches
+     it. Neutral is left alone: it carries every surface, border and line of
+     text, and a coarser neutral would merge them. */
+  function brandRamps(cfg) {
+    var n = Number(cfg.steps) || 0;
+    var q = function (r) { return n ? quantize(r, n) : r; };
+    var out = { primary: q(rampFor(cfg)), secondary: q(secondaryRampFor(cfg)) };
+    RAMP_KEYS.forEach(function (item) {
+      var hue = cfg.rampHues && cfg.rampHues[item.key];
+      if (hue || n) out[item.key] = q(baseRamp(cfg, item.key));
+    });
+    return out;
   }
 
   /* The media lab ships two real icon sets; a third slot is a placeholder for
@@ -259,7 +333,7 @@
 
   function fontHrefFor(cfg) {
     var families = [];
-    [DATA.fonts[cfg.font], DATA.fonts[cfg.displayFont], DATA.fonts[cfg.codeFont]].forEach(function (f) {
+    [DATA.fonts[cfg.font], DATA.fonts[cfg.displayFont], DATA.fonts[cfg.secondaryFont], DATA.fonts[cfg.codeFont]].forEach(function (f) {
       if (f && f.googleFont && families.indexOf(f.googleFont) === -1) families.push(f.googleFont);
     });
     if (!families.length) return null;
@@ -272,26 +346,17 @@
      without knowing anything about this panel. */
   function computeVars(cfg) {
     var vars = {};
-    var ramp = rampFor(cfg);
-
-    DATA.steps.forEach(function (step) {
-      vars["--dt-color-accent-" + step] = ramp[step];
-    });
-
-    /* A hue shift on any ramp writes its own primitives directly, so it also
-       reaches every semantic role that points at that ramp by name (success at
-       green, danger at red, warning at amber, info at cyan) and not only the
-       one currently chosen as the accent. */
-    if (cfg.rampHues) {
-      Object.keys(cfg.rampHues).forEach(function (key) {
-        var hex = cfg.rampHues[key];
-        if (!hex || !DATA.ramps[key]) return;
-        var shifted = rampWithHue(key, hexToOklchHue(hex));
-        DATA.steps.forEach(function (step) {
-          vars["--dt-color-" + key + "-" + step] = shifted[step];
-        });
+    /* Ramps are written as primitives, so every semantic role that points at
+       one follows: actions and links at primary, the secondary brand fills at
+       secondary, success at green, danger at red, warning at amber, info at
+       cyan. A hue shift or a step count on a named ramp reaches its roles the
+       same way, whichever ramp is currently the primary. */
+    var ramps = brandRamps(cfg);
+    Object.keys(ramps).forEach(function (key) {
+      DATA.steps.forEach(function (step) {
+        vars["--dt-color-" + key + "-" + step] = ramps[key][step];
       });
-    }
+    });
 
     var radius = DATA.radii[cfg.radius] || DATA.radii.standard;
     vars["--dt-radius-control"] = radius.control;
@@ -315,6 +380,14 @@
       vars["--dt-font-family-display"] = display.value;
       DISPLAY_ROLES.forEach(function (role) {
         vars["--dt-text-" + role + "-family"] = "var(--dt-font-family-display)";
+      });
+    }
+
+    var secondaryFace = DATA.fonts[cfg.secondaryFont];
+    if (secondaryFace) {
+      vars["--dt-font-family-secondary"] = secondaryFace.value;
+      SECONDARY_ROLES.forEach(function (role) {
+        vars["--dt-text-" + role + "-family"] = "var(--dt-font-family-secondary)";
       });
     }
 
@@ -368,6 +441,7 @@
        and needs nothing written, so only the gradient choice has to say
        anything. A component never sees which one it got. */
     if (cfg.brandFill === "gradient") vars["--dt-surface-brand"] = "var(--dt-surface-brand-gradient)";
+    if (cfg.brandFill === "duotone") vars["--dt-surface-brand"] = "var(--dt-surface-brand-duotone)";
 
     /* Same shape: a texture is a second role, --dt-surface-texture, pointed at
        one of the two patterns the system ships. None writes nothing, which is
@@ -575,30 +649,38 @@
   /* --------------------------------------------------------------- the CSS */
 
   function exportCss() {
-    var ramp = rampFor(config);
+    var ramps = brandRamps(config);
     var radius = DATA.radii[config.radius];
     var ui = DATA.fonts[config.font];
     var code = DATA.fonts[config.codeFont];
-    var accentLabel = config.accent === "custom" ? "Custom (" + config.customHex + ")" : labelFor(config.accent);
+    var n = Number(config.steps) || 0;
     var lines = [];
+    var rampLines = function (key, title) {
+      lines.push("  /* " + title + " */");
+      DATA.steps.forEach(function (step) {
+        lines.push("  --dt-color-" + key + "-" + step + ": " + ramps[key][step] + ";");
+      });
+    };
 
     lines.push("/* A theme is a file of token overrides. Nothing below names a component. */");
     lines.push(":root {");
-    lines.push("  /* Accent: " + accentLabel + " */");
-    DATA.steps.forEach(function (step) {
-      lines.push("  --dt-color-accent-" + step + ": " + ramp[step] + ";");
-    });
-
-    var shiftedKeys = Object.keys(config.rampHues || {}).filter(function (key) {
-      return config.rampHues[key] && DATA.ramps[key];
-    });
-    if (shiftedKeys.length) {
+    if (n) {
+      lines.push("  /* Steps: " + n + " per ramp (" + keptSteps(n).map(function (i) { return DATA.steps[i]; }).join(", ") + ").");
+      lines.push("     Every named step still exists and points at a kept one, lighter steps");
+      lines.push("     snapping lighter and darker steps darker, so no pair loses contrast. */");
       lines.push("");
-      lines.push("  /* Ramp hues: shifted to match the brand. Lightness and chroma per step are unchanged. */");
-      shiftedKeys.forEach(function (key) {
-        var shifted = rampWithHue(key, hexToOklchHue(config.rampHues[key]));
+    }
+    rampLines("primary", "Primary: " + brandLabel(config.primary, config.primaryHex));
+    lines.push("");
+    rampLines("secondary", "Secondary: " + brandLabel(config.secondary, config.secondaryHex));
+
+    var named = RAMP_KEYS.filter(function (item) { return ramps[item.key]; });
+    if (named.length) {
+      lines.push("");
+      lines.push("  /* Named ramps" + (Object.keys(config.rampHues || {}).some(function (k) { return config.rampHues[k]; }) ? ", with the brand's hue shifts. Lightness and chroma per step are unchanged." : ".") + " */");
+      named.forEach(function (item) {
         DATA.steps.forEach(function (step) {
-          lines.push("  --dt-color-" + key + "-" + step + ": " + shifted[step] + ";");
+          lines.push("  --dt-color-" + item.key + "-" + step + ": " + ramps[item.key][step] + ";");
         });
       });
     }
@@ -612,9 +694,16 @@
     lines.push("  --dt-radius-pill: " + radius.pill + ";");
     lines.push("");
     var display = DATA.fonts[config.displayFont];
-    lines.push("  /* Type: " + ui.label + ", " + code.label + (display ? ", " + display.label + " for display" : "") + " */");
+    var secondaryFace = DATA.fonts[config.secondaryFont];
+    lines.push("  /* Type: " + ui.label + ", " + code.label + (display ? ", " + display.label + " for display" : "") + (secondaryFace ? ", " + secondaryFace.label + " as the secondary face" : "") + " */");
     lines.push("  --dt-font-family-sans: " + ui.value + ";");
     lines.push("  --dt-font-family-mono: " + code.value + ";");
+    if (secondaryFace) {
+      lines.push("  --dt-font-family-secondary: " + secondaryFace.value + ";");
+      SECONDARY_ROLES.forEach(function (role) {
+        lines.push("  --dt-text-" + role + "-family: var(--dt-font-family-secondary);");
+      });
+    }
     if (display) {
       lines.push("  --dt-font-family-display: " + display.value + ";");
       DISPLAY_ROLES.forEach(function (role) {
@@ -622,10 +711,10 @@
       });
     }
 
-    if (config.brandFill === "gradient") {
+    if (config.brandFill === "gradient" || config.brandFill === "duotone") {
       lines.push("");
-      lines.push("  /* Fill: gradient */");
-      lines.push("  --dt-surface-brand: var(--dt-surface-brand-gradient);");
+      lines.push("  /* Fill: " + config.brandFill + " */");
+      lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + config.brandFill + ");");
     }
 
     if (config.texture && config.texture !== "none") {
@@ -724,11 +813,12 @@
     return lines.join("\n");
   }
 
-  function labelFor(accentId) {
-    var hit = DATA.accents.filter(function (a) {
-      return a.id === accentId;
+  function brandLabel(id, hex) {
+    if (id === "custom") return "Custom (" + hex + ")";
+    var hit = DATA.brandRamps.filter(function (r) {
+      return r.id === id;
     })[0];
-    return hit ? hit.label : accentId;
+    return hit ? hit.label : id;
   }
 
   /* ------------------------------------------------------------- the panel */
@@ -979,40 +1069,8 @@
 
     out.push(field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "configure-stack" }, markRow)));
 
-    var swatches = DATA.accents.map(function (accent) {
-      return h("button", {
-        type: "button",
-        class: "configure-swatch-btn",
-        "data-bid": "accent:" + accent.id,
-        style: "background:" + DATA.ramps[accent.id]["600"],
-        title: accent.label,
-        "aria-label": accent.label,
-        "aria-pressed": String(config.accent === accent.id),
-        onclick: function () {
-          commit({ accent: accent.id });
-        },
-      });
-    });
-
-    var picker = h("input", {
-      type: "color",
-      class: "configure-color",
-      "data-bid": "accent:custom",
-      value: config.customHex,
-      "aria-label": "Custom accent colour",
-      /* Dragging in the picker fires input continuously. Rebuilding the body
-         on each event would replace the open control, so the live pass leaves
-         the markup alone and change does the full rebuild at the end. */
-      oninput: function (event) {
-        commit({ accent: "custom", customHex: event.target.value }, { rebuild: false });
-      },
-      onchange: function (event) {
-        commit({ accent: "custom", customHex: event.target.value });
-      },
-    });
-    swatches.push(h("span", { class: "configure-swatch-btn configure-swatch-custom", "aria-pressed": String(config.accent === "custom"), title: "Custom colour" }, [picker]));
-
-    out.push(field("Accent", "One hue drives eleven steps. Lightness and chroma stay put, so contrast holds.", h("div", { class: "configure-swatches" }, swatches)));
+    out.push(field("Primary", "Actions, links, selection and focus. One hue drives the ramp; lightness and chroma stay put, so contrast holds.", brandSwatches("primary")));
+    out.push(field("Secondary", "A second brand hue for fills and highlights beside the primary: --dt-surface-brand-secondary, the duotone fill, and the second chart colour. It never drives an action.", brandSwatches("secondary")));
 
     out.push(
       field(
@@ -1027,11 +1085,11 @@
     out.push(
       field(
         "Fill",
-        "Sets --dt-surface-brand for a full-bleed section. Solid is one step of the ramp; gradient sweeps two.",
+        "Sets --dt-surface-brand for a full-bleed section. Solid is one step of the primary; gradient sweeps two; duotone sweeps primary into secondary.",
         segmented(
           "Fill",
           "brandFill",
-          [{ value: "solid", label: "Solid" }, { value: "gradient", label: "Gradient" }],
+          [{ value: "solid", label: "Solid" }, { value: "gradient", label: "Gradient" }, { value: "duotone", label: "Duotone" }],
           config.brandFill,
           function (value) {
             commit({ brandFill: value });
@@ -1059,7 +1117,7 @@
     out.push(
       field(
         "Ramp hues",
-        "Shift any ramp's own hue to match a brand direction. Lightness and chroma stay put per step, so contrast and the eleven steps hold, the same as the accent's custom colour above.",
+        "Shift any ramp's own hue to match a brand direction. Lightness and chroma stay put per step, so contrast holds, the same as the primary's custom colour above.",
         h(
           "div",
           { class: "configure-ramphue-list" },
@@ -1070,7 +1128,85 @@
       )
     );
 
+    out.push(stepsField());
+
     return out;
+  }
+
+  /* One picker for either brand ramp: the named ramps as swatches, and a
+     native colour input for a custom hue. */
+  function brandSwatches(which) {
+    var hexKey = which + "Hex";
+    var swatches = DATA.brandRamps.map(function (ramp) {
+      return h("button", {
+        type: "button",
+        class: "configure-swatch-btn",
+        "data-bid": which + ":" + ramp.id,
+        style: "background:" + baseRamp(config, ramp.id)["600"],
+        title: ramp.label,
+        "aria-label": ramp.label,
+        "aria-pressed": String(config[which] === ramp.id),
+        onclick: function () {
+          var patch = {};
+          patch[which] = ramp.id;
+          commit(patch);
+        },
+      });
+    });
+    var pick = function (value, options) {
+      var patch = {};
+      patch[which] = "custom";
+      patch[hexKey] = value;
+      commit(patch, options);
+    };
+    var picker = h("input", {
+      type: "color",
+      class: "configure-color",
+      "data-bid": which + ":custom",
+      value: config[hexKey],
+      "aria-label": "Custom " + which + " colour",
+      /* Dragging in the picker fires input continuously. Rebuilding the body
+         on each event would replace the open control, so the live pass leaves
+         the markup alone and change does the full rebuild at the end. */
+      oninput: function (event) {
+        pick(event.target.value, { rebuild: false });
+      },
+      onchange: function (event) {
+        pick(event.target.value);
+      },
+    });
+    var custom = config[which] === "custom";
+    swatches.push(h("span", { class: "configure-swatch-btn configure-swatch-custom", style: custom ? "background:" + customRamp(config[hexKey])["600"] : null, "aria-pressed": String(custom), title: "Custom colour" }, [picker]));
+    return h("div", { class: "configure-swatches" }, swatches);
+  }
+
+  function stepsField() {
+    var n = Number(config.steps) || 0;
+    var options = [{ value: "0", label: "All 11 (as shipped)" }];
+    for (var i = 10; i >= 4; i--) options.push({ value: String(i), label: i + " steps" });
+
+    var map = stepMap(n);
+    var at = function (step) { return map[DATA.steps.indexOf(step)]; };
+    var parts = [
+      select("Steps per ramp", "steps", options, String(n), function (value) {
+        commit({ steps: Number(value) });
+      }),
+    ];
+    if (n) {
+      parts.push(h("p", { class: "configure-note", text: "Kept: " + keptSteps(n).map(function (i) { return DATA.steps[i]; }).join(", ") + ". Every other step points at the nearest kept one in the direction that keeps its contrast." }));
+      var restMerged = at("600") === at("700") || at("700") === at("800");
+      if (restMerged) parts.push(h("p", { class: "configure-bad", role: "status", text: "At " + n + " steps, a button's hover or pressed colour lands on the same step as its resting colour. Text contrast still holds." }));
+      parts.push(
+        h(
+          "div",
+          { class: "configure-steps-preview", "aria-hidden": "true" },
+          DATA.steps.map(function (step) {
+            return h("span", { style: "background:var(--dt-color-primary-" + step + ")", title: step });
+          })
+        )
+      );
+    }
+    return field("Steps per ramp", "How many distinct shades each chromatic ramp publishes, from 4 to 10. Neutral keeps all eleven, because it carries every surface, border and line of text.", h("div", { class: "configure-stack" }, parts));
   }
 
   function rampHueRow(key, label) {
@@ -1083,7 +1219,7 @@
       "data-bid": "ramphue:" + key,
       value: overrideHex || "#808080",
       "aria-label": label + " hue",
-      /* Same live-drag convention as the accent's own custom picker: input
+      /* Same live-drag convention as the brand pickers: input
          previews without rebuilding the open control, change commits it. */
       oninput: function (event) {
         commitRampHue(key, event.target.value, { rebuild: false });
@@ -1180,7 +1316,7 @@
       ),
       field(
         "Display",
-        "Headings, display sizes and the eyebrow. Same as body writes nothing, which is how the system ships.",
+        "Display sizes and headings. Same as body writes nothing, which is how the system ships.",
         select(
           "Display type",
           "displayFont",
@@ -1188,6 +1324,19 @@
           config.displayFont || "",
           function (value) {
             commit({ displayFont: value });
+          }
+        )
+      ),
+      field(
+        "Secondary",
+        "Sets --dt-font-family-secondary: the small UI voice of labels, buttons, badges, tabs and eyebrows. Same as body writes nothing.",
+        select(
+          "Secondary type",
+          "secondaryFont",
+          [{ value: "", label: "Same as body" }].concat(DATA.displayFonts, DATA.codeFonts),
+          config.secondaryFont || "",
+          function (value) {
+            commit({ secondaryFont: value });
           }
         )
       ),

@@ -40,18 +40,18 @@
   --dt-color-neutral-900: oklch(0.205 0.006 264);
   --dt-color-neutral-950: oklch(0.145 0.005 264);
 
-  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
-  --dt-color-accent-050: oklch(0.970 0.014 259);
-  --dt-color-accent-100: oklch(0.936 0.032 259);
-  --dt-color-accent-200: oklch(0.885 0.059 259);
-  --dt-color-accent-300: oklch(0.809 0.096 259);
-  --dt-color-accent-400: oklch(0.714 0.143 259);
-  --dt-color-accent-500: oklch(0.623 0.188 259);
-  --dt-color-accent-600: oklch(0.546 0.215 259);
-  --dt-color-accent-700: oklch(0.476 0.196 259);
-  --dt-color-accent-800: oklch(0.404 0.162 259);
-  --dt-color-accent-900: oklch(0.344 0.128 259);
-  --dt-color-accent-950: oklch(0.256 0.093 259);
+  /* Primary — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-primary-050: oklch(0.970 0.014 259);
+  --dt-color-primary-100: oklch(0.936 0.032 259);
+  --dt-color-primary-200: oklch(0.885 0.059 259);
+  --dt-color-primary-300: oklch(0.809 0.096 259);
+  --dt-color-primary-400: oklch(0.714 0.143 259);
+  --dt-color-primary-500: oklch(0.623 0.188 259);
+  --dt-color-primary-600: oklch(0.546 0.215 259);
+  --dt-color-primary-700: oklch(0.476 0.196 259);
+  --dt-color-primary-800: oklch(0.404 0.162 259);
+  --dt-color-primary-900: oklch(0.344 0.128 259);
+  --dt-color-primary-950: oklch(0.256 0.093 259);
 
   /* Green */
   --dt-color-green-050: oklch(0.972 0.021 150);
@@ -315,8 +315,8 @@
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-400);
   --dt-text-inverse: var(--dt-color-neutral-050);
-  --dt-text-link: var(--dt-color-accent-700);
-  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link: var(--dt-color-primary-700);
+  --dt-text-link-hover: var(--dt-color-primary-800);
   --dt-text-link-visited: var(--dt-color-violet-700);
 
   /* ---- Borders --------------------------------------------------- */
@@ -327,9 +327,9 @@
   --dt-border-disabled: var(--dt-color-neutral-200);
 
   /* ---- Actions --------------------------------------------------- */
-  --dt-surface-action: var(--dt-color-accent-600);
-  --dt-surface-action-hover: var(--dt-color-accent-700);
-  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-surface-action: var(--dt-color-primary-600);
+  --dt-surface-action-hover: var(--dt-color-primary-700);
+  --dt-surface-action-active: var(--dt-color-primary-800);
   --dt-text-on-action: var(--dt-color-white);
 
   --dt-surface-action-secondary: var(--dt-color-white);
@@ -352,10 +352,10 @@
   --dt-text-on-action-disabled: var(--dt-color-neutral-400);
 
   /* ---- Selection ------------------------------------------------- */
-  --dt-surface-selected: var(--dt-color-accent-050);
-  --dt-surface-selected-hover: var(--dt-color-accent-100);
-  --dt-text-on-selected: var(--dt-color-accent-900);
-  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-selected: var(--dt-color-primary-050);
+  --dt-surface-selected-hover: var(--dt-color-primary-100);
+  --dt-text-on-selected: var(--dt-color-primary-900);
+  --dt-border-selected: var(--dt-color-primary-600);
 
   /* ---- Feedback -------------------------------------------------- */
   --dt-surface-success: var(--dt-color-green-600);
@@ -383,13 +383,13 @@
   --dt-text-on-info: var(--dt-color-white);
 
   /* ---- Focus ----------------------------------------------------- */
-  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-color: var(--dt-color-primary-600);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
   /* ---- Data visualisation ---------------------------------------
      The documented exception to the no-primitives rule. Chart series need a
      palette with no semantic meaning, ordered for categorical distinctness. */
-  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-1: var(--dt-color-primary-600);
   --dt-viz-2: var(--dt-color-violet-500);
   --dt-viz-3: var(--dt-color-cyan-600);
   --dt-viz-4: var(--dt-color-amber-500);
@@ -685,7 +685,7 @@
    Two rules that make dark mode work:
    1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
       invisible on a dark ground, so raised surfaces get lighter instead.
-   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+   2. Saturated fills step down one level. A 600-step primary that reads correctly on
       white is too hot on near-black; 500 carries the same weight.
 
    Applies on .dark, and automatically when the OS asks for it. */
@@ -705,8 +705,8 @@
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-600);
   --dt-text-inverse: var(--dt-color-neutral-900);
-  --dt-text-link: var(--dt-color-accent-400);
-  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link: var(--dt-color-primary-400);
+  --dt-text-link-hover: var(--dt-color-primary-300);
   --dt-text-link-visited: var(--dt-color-violet-400);
 
   --dt-border-subtle: var(--dt-color-neutral-800);
@@ -715,9 +715,9 @@
   --dt-border-inverse: var(--dt-color-neutral-300);
   --dt-border-disabled: var(--dt-color-neutral-800);
 
-  --dt-surface-action: var(--dt-color-accent-500);
-  --dt-surface-action-hover: var(--dt-color-accent-400);
-  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-surface-action: var(--dt-color-primary-500);
+  --dt-surface-action-hover: var(--dt-color-primary-400);
+  --dt-surface-action-active: var(--dt-color-primary-300);
   --dt-text-on-action: var(--dt-color-neutral-950);
 
   --dt-surface-action-secondary: var(--dt-color-neutral-900);
@@ -740,8 +740,8 @@
 
   --dt-surface-selected: oklch(0.256 0.093 259);
   --dt-surface-selected-hover: oklch(0.344 0.128 259);
-  --dt-text-on-selected: var(--dt-color-accent-100);
-  --dt-border-selected: var(--dt-color-accent-500);
+  --dt-text-on-selected: var(--dt-color-primary-100);
+  --dt-border-selected: var(--dt-color-primary-500);
 
   --dt-surface-success: var(--dt-color-green-500);
   --dt-surface-success-subtle: var(--dt-color-green-950);
@@ -767,10 +767,10 @@
   --dt-text-info: var(--dt-color-cyan-300);
   --dt-text-on-info: var(--dt-color-neutral-950);
 
-  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-color: var(--dt-color-primary-400);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
-  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-1: var(--dt-color-primary-400);
   --dt-viz-2: var(--dt-color-violet-400);
   --dt-viz-3: var(--dt-color-cyan-400);
   --dt-viz-4: var(--dt-color-amber-400);
@@ -1422,18 +1422,18 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-color-neutral-900: oklch(0.205 0.006 264);
   --dt-color-neutral-950: oklch(0.145 0.005 264);
 
-  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
-  --dt-color-accent-050: oklch(0.970 0.014 259);
-  --dt-color-accent-100: oklch(0.936 0.032 259);
-  --dt-color-accent-200: oklch(0.885 0.059 259);
-  --dt-color-accent-300: oklch(0.809 0.096 259);
-  --dt-color-accent-400: oklch(0.714 0.143 259);
-  --dt-color-accent-500: oklch(0.623 0.188 259);
-  --dt-color-accent-600: oklch(0.546 0.215 259);
-  --dt-color-accent-700: oklch(0.476 0.196 259);
-  --dt-color-accent-800: oklch(0.404 0.162 259);
-  --dt-color-accent-900: oklch(0.344 0.128 259);
-  --dt-color-accent-950: oklch(0.256 0.093 259);
+  /* Primary — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-primary-050: oklch(0.970 0.014 259);
+  --dt-color-primary-100: oklch(0.936 0.032 259);
+  --dt-color-primary-200: oklch(0.885 0.059 259);
+  --dt-color-primary-300: oklch(0.809 0.096 259);
+  --dt-color-primary-400: oklch(0.714 0.143 259);
+  --dt-color-primary-500: oklch(0.623 0.188 259);
+  --dt-color-primary-600: oklch(0.546 0.215 259);
+  --dt-color-primary-700: oklch(0.476 0.196 259);
+  --dt-color-primary-800: oklch(0.404 0.162 259);
+  --dt-color-primary-900: oklch(0.344 0.128 259);
+  --dt-color-primary-950: oklch(0.256 0.093 259);
 
   /* Green */
   --dt-color-green-050: oklch(0.972 0.021 150);
@@ -1697,8 +1697,8 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-400);
   --dt-text-inverse: var(--dt-color-neutral-050);
-  --dt-text-link: var(--dt-color-accent-700);
-  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link: var(--dt-color-primary-700);
+  --dt-text-link-hover: var(--dt-color-primary-800);
   --dt-text-link-visited: var(--dt-color-violet-700);
 
   /* ---- Borders --------------------------------------------------- */
@@ -1709,9 +1709,9 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-border-disabled: var(--dt-color-neutral-200);
 
   /* ---- Actions --------------------------------------------------- */
-  --dt-surface-action: var(--dt-color-accent-600);
-  --dt-surface-action-hover: var(--dt-color-accent-700);
-  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-surface-action: var(--dt-color-primary-600);
+  --dt-surface-action-hover: var(--dt-color-primary-700);
+  --dt-surface-action-active: var(--dt-color-primary-800);
   --dt-text-on-action: var(--dt-color-white);
 
   --dt-surface-action-secondary: var(--dt-color-white);
@@ -1734,10 +1734,10 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-text-on-action-disabled: var(--dt-color-neutral-400);
 
   /* ---- Selection ------------------------------------------------- */
-  --dt-surface-selected: var(--dt-color-accent-050);
-  --dt-surface-selected-hover: var(--dt-color-accent-100);
-  --dt-text-on-selected: var(--dt-color-accent-900);
-  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-selected: var(--dt-color-primary-050);
+  --dt-surface-selected-hover: var(--dt-color-primary-100);
+  --dt-text-on-selected: var(--dt-color-primary-900);
+  --dt-border-selected: var(--dt-color-primary-600);
 
   /* ---- Feedback -------------------------------------------------- */
   --dt-surface-success: var(--dt-color-green-600);
@@ -1765,13 +1765,13 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-text-on-info: var(--dt-color-white);
 
   /* ---- Focus ----------------------------------------------------- */
-  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-color: var(--dt-color-primary-600);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
   /* ---- Data visualisation ---------------------------------------
      The documented exception to the no-primitives rule. Chart series need a
      palette with no semantic meaning, ordered for categorical distinctness. */
-  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-1: var(--dt-color-primary-600);
   --dt-viz-2: var(--dt-color-violet-500);
   --dt-viz-3: var(--dt-color-cyan-600);
   --dt-viz-4: var(--dt-color-amber-500);
@@ -2067,7 +2067,7 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
    Two rules that make dark mode work:
    1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
       invisible on a dark ground, so raised surfaces get lighter instead.
-   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+   2. Saturated fills step down one level. A 600-step primary that reads correctly on
       white is too hot on near-black; 500 carries the same weight.
 
    Applies on .dark, and automatically when the OS asks for it. */
@@ -2087,8 +2087,8 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-600);
   --dt-text-inverse: var(--dt-color-neutral-900);
-  --dt-text-link: var(--dt-color-accent-400);
-  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link: var(--dt-color-primary-400);
+  --dt-text-link-hover: var(--dt-color-primary-300);
   --dt-text-link-visited: var(--dt-color-violet-400);
 
   --dt-border-subtle: var(--dt-color-neutral-800);
@@ -2097,9 +2097,9 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-border-inverse: var(--dt-color-neutral-300);
   --dt-border-disabled: var(--dt-color-neutral-800);
 
-  --dt-surface-action: var(--dt-color-accent-500);
-  --dt-surface-action-hover: var(--dt-color-accent-400);
-  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-surface-action: var(--dt-color-primary-500);
+  --dt-surface-action-hover: var(--dt-color-primary-400);
+  --dt-surface-action-active: var(--dt-color-primary-300);
   --dt-text-on-action: var(--dt-color-neutral-950);
 
   --dt-surface-action-secondary: var(--dt-color-neutral-900);
@@ -2122,8 +2122,8 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
 
   --dt-surface-selected: oklch(0.256 0.093 259);
   --dt-surface-selected-hover: oklch(0.344 0.128 259);
-  --dt-text-on-selected: var(--dt-color-accent-100);
-  --dt-border-selected: var(--dt-color-accent-500);
+  --dt-text-on-selected: var(--dt-color-primary-100);
+  --dt-border-selected: var(--dt-color-primary-500);
 
   --dt-surface-success: var(--dt-color-green-500);
   --dt-surface-success-subtle: var(--dt-color-green-950);
@@ -2149,10 +2149,10 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
   --dt-text-info: var(--dt-color-cyan-300);
   --dt-text-on-info: var(--dt-color-neutral-950);
 
-  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-color: var(--dt-color-primary-400);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
-  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-1: var(--dt-color-primary-400);
   --dt-viz-2: var(--dt-color-violet-400);
   --dt-viz-3: var(--dt-color-cyan-400);
   --dt-viz-4: var(--dt-color-amber-400);
@@ -2741,7 +2741,7 @@ DT_SPECS.Link = {
         { name: "href", control: "text", default: "#" },
         { name: "external", control: "boolean", default: false, notes: "New tab, safe rel, and an indicator icon." },
         { name: "underline", control: "select", options: ["always", "hover", "never"], default: "always" },
-        { name: "tone", control: "select", options: ["accent", "inherit"], default: "accent" },
+        { name: "tone", control: "select", options: ["primary", "inherit"], default: "primary" },
     ],
     render: (p, NS) => e("p", {
         style: { margin: 0, maxWidth: "48ch", fontSize: "var(--dt-text-body-md-size)", lineHeight: "var(--dt-text-body-md-line)", color: "var(--dt-text-secondary)", textAlign: "left" },
@@ -2779,7 +2779,7 @@ DT_SPECS.Link = {
     usage: [
         "Behaviour decides this, not styling. A Button styled as a link is still a button.",
         "Keep underline=\"always\" in prose. Reserve hover and never for navigation lists where position already marks the links.",
-        "tone=\"inherit\" is for links inside a coloured block where accent would clash.",
+        "tone=\"inherit\" is for links inside a coloured block where the primary colour would clash.",
     ],
 };
 /* ---------- index shown in the sidebar ---------- */
@@ -3273,7 +3273,7 @@ function Page() {
                 { name: "href", type: "string", required: true },
                 { name: "external", type: "boolean", notes: "New tab, safe rel, and an indicator icon." },
                 { name: "underline", type: '"always" | "hover" | "never"', default: '"always"', notes: "always is correct for links in prose." },
-                { name: "tone", type: '"accent" | "inherit"', default: '"accent"', notes: "inherit inside a coloured block where accent would clash." },
+                { name: "tone", type: '"primary" | "inherit"', default: '"primary"', notes: "inherit inside a coloured block where the primary colour would clash." },
             ], guidance: [
                 "If it changes the page, it is a Link. If it changes data, it is a Button. Styling does not decide this — behaviour does.",
                 'Keep underline="always" in body copy. Colour alone fails for readers who cannot distinguish it.',

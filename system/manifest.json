@@ -211,7 +211,7 @@
     "components/primitives/primitives.card.html",
     "docs/_ds_manifest.json",
     "guidelines/accessibility.md",
-    "guidelines/color-accent.html",
+    "guidelines/color-primary.html",
     "guidelines/color-actions.html",
     "guidelines/color-amber.html",
     "guidelines/color-borders.html",
@@ -302,7 +302,16 @@
     "tokens/themes/theme-custom.css",
     "tokens/themes/theme-editorial.css",
     "tokens/themes/theme-mono.css",
-    "tools/README.md"
+    "tools/README.md",
+    "components/typography/Heading.d.ts",
+    "components/typography/Heading.jsx",
+    "components/typography/Heading.md",
+    "components/typography/Text.d.ts",
+    "components/typography/Text.jsx",
+    "components/typography/Text.md",
+    "components/primitives/Section.d.ts",
+    "components/primitives/Section.jsx",
+    "components/primitives/Section.md"
   ],
   "libraries": [
     {
@@ -498,6 +507,15 @@
     },
     {
       "name": "BlockRenderer"
+    },
+    {
+      "name": "Heading"
+    },
+    {
+      "name": "Text"
+    },
+    {
+      "name": "Section"
     }
   ],
   "lastChange": {

@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Section · Dovetail</title>
+<meta name="description" content="A page section: a column bounded by a container width, the section rhythm above and below, and an optional surface. With media it becomes a full-bleed photo band. It is the scaffold both example sites built for themselves before it existed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html" aria-current="page">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/playground.html">Playground</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Section</li></ol></nav>
+<h1>Section</h1>
+<p class="lede">A page section: a column bounded by a container width, the section rhythm above and below, and an optional surface. With <code>media</code> it becomes a full-bleed photo band. It is the scaffold both example sites built for themselves before it existed.</p>
+<p class="meta">
+  <span class="pill">Primitives</span>
+  
+  <a href="../system/components/primitives/Section.jsx">Section.jsx</a>
+  <a href="../system/components/primitives/Section.d.ts">Section.d.ts</a>
+  <a href="../system/components/primitives/Section.md">Section.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Section.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Section — Page width, section rhythm, a tone, a scoped dark band, or a photo band.</p>
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/Section.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A page section: a column bounded by a container width, the section rhythm above and below, and an optional surface. With <code>media</code> it becomes a full-bleed photo band. It is the scaffold both example sites built for themselves before it existed.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>Every top-level band of a marketing or editorial page.</li><li>A band should be a fixed brand colour, or a photograph with text over it.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>Inside an app shell. Product screens are panels and grids, not stacked bands; use <code>Stack</code> and <code>Grid</code>.</li><li>The image is the content. A photo someone should look at is an <code>Image</code> or a <code>Cover</code>, with alt text.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>&lt;Section tone=&quot;brand-muted&quot; texture&gt;
+  &lt;Stack gap=&quot;md&quot;&gt;
+    &lt;Text variant=&quot;eyebrow&quot;&gt;Why it holds&lt;/Text&gt;
+    &lt;Heading level={2}&gt;Three tiers, referenced one way&lt;/Heading&gt;
+  &lt;/Stack&gt;
+&lt;/Section&gt;
+
+&lt;Section media=&quot;/img/ridge.webp&quot; align=&quot;bottom&quot; width=&quot;wide&quot;&gt;
+  &lt;Heading level={2} size=&quot;display-sm&quot;&gt;Quiet mornings&lt;/Heading&gt;
+  &lt;Text variant=&quot;lead&quot;&gt;Somewhere without a signal.&lt;/Text&gt;
+&lt;/Section&gt;</code></pre>
+<h2 id="tones">Tones</h2>
+<p>A tone is a surface and the text roles that go on it. <code>brand</code> and <code>secondary</code> are full fills; the <code>-muted</code> tones are the pale tint of the same hue. The section re-points <code>--dt-text-primary</code>, <code>-secondary</code> and <code>-tertiary</code> on itself, so everything inside that reads the semantic text roles, <code>Stat</code> and <code>Card</code> descriptions included, follows the band. That is also how to build a band that should not follow the page's light or dark mode: its colours come from the brand roles, not the page surface.</p>
+<p>On a <code>brand</code> fill the primary button and the fill are the same colour. Use a secondary or ghost button there, or a <code>-muted</code> tone.</p>
+<h2 id="dark-and-photo-bands">Dark and photo bands</h2>
+<p><code>dark</code> puts the <code>dark</code> class on the section, so the semantic tier and the component tier both re-resolve as dark inside it while the rest of the page stays light. A <code>media</code> band is scoped dark by default. Its text reads <code>--dt-text-on-scrim</code>, which stays light in both modes, because a scrim over a photograph is dark whatever the page is doing.</p>
+<p>A scrim's alpha does not tell you the contrast over a specific photograph. Check it the way <code>guidelines/accessibility.md</code> describes: hide the text, sample the pixels behind where it sat, and take the worst case.</p>
+<h2 id="tokens">Tokens</h2>
+<p><code>--dt-size-container-*</code>, <code>--dt-space-section</code>, <code>--dt-space-section-compact</code>, <code>--dt-space-gutter</code>, <code>--dt-surface-brand*</code>, <code>--dt-text-on-brand*</code>, <code>--dt-surface-scrim</code>, <code>--dt-text-on-scrim*</code>, <code>--dt-surface-texture</code>.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Section.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/**
+ * A page section: a page-width column, the section rhythm above and below it,
+ * and an optional surface. Pass `media` and it becomes a full-bleed photo band
+ * with a scrim, scoped dark so everything inside it reads as light on dark.
+ */
+export interface SectionProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
+  /** The inner column. full removes the bound. @default &quot;default&quot; */
+  width?: &quot;narrow&quot; | &quot;default&quot; | &quot;wide&quot; | &quot;full&quot;;
+  /**
+   * The surface, and the text roles that belong on it. Brand and secondary
+   * tones re-point --dt-text-primary, -secondary and -tertiary on the section,
+   * so Heading and Text inside follow without a prop. Ignored when `media` is set.
+   * @default &quot;base&quot;
+   */
+  tone?: &quot;base&quot; | &quot;subtle&quot; | &quot;brand&quot; | &quot;brand-muted&quot; | &quot;secondary&quot; | &quot;secondary-muted&quot;;
+  /** Scopes dark mode to this section: every semantic and component colour inside re-resolves as dark. Defaults to true when `media` is set. */
+  dark?: boolean;
+  /** Layers --dt-surface-texture over the tone. @default false */
+  texture?: boolean;
+  /** Vertical padding: --dt-space-section, -section-compact, or none. @default &quot;default&quot; */
+  spacing?: &quot;default&quot; | &quot;compact&quot; | &quot;none&quot;;
+  /** Image URL. Turns the section into a full-bleed photo band. The image is decorative; say what matters in the text. */
+  media?: string;
+  /** With media: gradient fades from the edge the content sits on, solid washes the whole band. @default &quot;gradient&quot; */
+  scrim?: &quot;gradient&quot; | &quot;solid&quot; | &quot;none&quot;;
+  /** With media: where the content sits. @default &quot;bottom&quot; */
+  align?: &quot;top&quot; | &quot;center&quot; | &quot;bottom&quot;;
+  /** With media: the band's minimum height. @default &quot;min(70vh, 640px)&quot; */
+  minHeight?: string;
+  /** @default &quot;section&quot; */
+  as?: keyof JSX.IntrinsicElements;
+  children?: React.ReactNode;
+}
+
+export declare function Section(props: SectionProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Section.jsx</code> resolves, read from the source: 23 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Section">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-size-container-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-size-container-default"><code>--dt-size-container-default</code></a><button type="button" class="graph-btn" data-graph="--dt-size-container-default" title="Show what --dt-size-container-default connects to" aria-label="Graph for --dt-size-container-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-container-xl)</code></td></tr><tr id="uses-dt-size-container-narrow"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-size-container-narrow"><code>--dt-size-container-narrow</code></a><button type="button" class="graph-btn" data-graph="--dt-size-container-narrow" title="Show what --dt-size-container-narrow connects to" aria-label="Graph for --dt-size-container-narrow"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-container-md)</code></td></tr><tr id="uses-dt-size-container-wide"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-size-container-wide"><code>--dt-size-container-wide</code></a><button type="button" class="graph-btn" data-graph="--dt-size-container-wide" title="Show what --dt-size-container-wide connects to" aria-label="Graph for --dt-size-container-wide"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-container-2xl)</code></td></tr><tr id="uses-dt-space-gutter"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-gutter"><code>--dt-space-gutter</code></a><button type="button" class="graph-btn" data-graph="--dt-space-gutter" title="Show what --dt-space-gutter connects to" aria-label="Graph for --dt-space-gutter"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-section"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-section"><code>--dt-space-section</code></a><button type="button" class="graph-btn" data-graph="--dt-space-section" title="Show what --dt-space-section connects to" aria-label="Graph for --dt-space-section"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-24)</code></td></tr><tr id="uses-dt-space-section-compact"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-section-compact"><code>--dt-space-section-compact</code></a><button type="button" class="graph-btn" data-graph="--dt-space-section-compact" title="Show what --dt-space-section-compact connects to" aria-label="Graph for --dt-space-section-compact"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-16)</code></td></tr><tr id="uses-dt-surface-base"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-base"><code>--dt-surface-base</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-base" title="Show what --dt-surface-base connects to" aria-label="Graph for --dt-surface-base"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-surface-brand"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand"><code>--dt-surface-brand</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand" title="Show what --dt-surface-brand connects to" aria-label="Graph for --dt-surface-brand"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-600)</code></td></tr><tr id="uses-dt-surface-brand-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand-muted"><code>--dt-surface-brand-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand-muted" title="Show what --dt-surface-brand-muted connects to" aria-label="Graph for --dt-surface-brand-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-050)</code></td></tr><tr id="uses-dt-surface-brand-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand-secondary"><code>--dt-surface-brand-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand-secondary" title="Show what --dt-surface-brand-secondary connects to" aria-label="Graph for --dt-surface-brand-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-secondary-600)</code></td></tr><tr id="uses-dt-surface-brand-secondary-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand-secondary-muted"><code>--dt-surface-brand-secondary-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand-secondary-muted" title="Show what --dt-surface-brand-secondary-muted connects to" aria-label="Graph for --dt-surface-brand-secondary-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-secondary-050)</code></td></tr><tr id="uses-dt-surface-scrim"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-scrim"><code>--dt-surface-scrim</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-scrim" title="Show what --dt-surface-scrim connects to" aria-label="Graph for --dt-surface-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><span class="swatch" style="background:oklch(0.145 0.005 264 / 0.5)"></span><code>oklch(0.145 0.005 264 / 0.5)</code></td></tr><tr id="uses-dt-surface-subtle"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-subtle"><code>--dt-surface-subtle</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-subtle" title="Show what --dt-surface-subtle connects to" aria-label="Graph for --dt-surface-subtle"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr><tr id="uses-dt-surface-texture"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-texture"><code>--dt-surface-texture</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-texture" title="Show what --dt-surface-texture connects to" aria-label="Graph for --dt-surface-texture"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>none</code></td></tr><tr id="uses-dt-text-on-brand"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand"><code>--dt-text-on-brand</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand" title="Show what --dt-text-on-brand connects to" aria-label="Graph for --dt-text-on-brand"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-on-brand-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand-muted"><code>--dt-text-on-brand-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand-muted" title="Show what --dt-text-on-brand-muted connects to" aria-label="Graph for --dt-text-on-brand-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-900)</code></td></tr><tr id="uses-dt-text-on-brand-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand-secondary"><code>--dt-text-on-brand-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand-secondary" title="Show what --dt-text-on-brand-secondary connects to" aria-label="Graph for --dt-text-on-brand-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-on-brand-secondary-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand-secondary-muted"><code>--dt-text-on-brand-secondary-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand-secondary-muted" title="Show what --dt-text-on-brand-secondary-muted connects to" aria-label="Graph for --dt-text-on-brand-secondary-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-secondary-900)</code></td></tr><tr id="uses-dt-text-on-scrim"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-scrim"><code>--dt-text-on-scrim</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-scrim" title="Show what --dt-text-on-scrim connects to" aria-label="Graph for --dt-text-on-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr><tr id="uses-dt-text-on-scrim-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-scrim-secondary"><code>--dt-text-on-scrim-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-scrim-secondary" title="Show what --dt-text-on-scrim-secondary connects to" aria-label="Graph for --dt-text-on-scrim-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-200)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-primary" title="Show what --dt-text-primary connects to" aria-label="Graph for --dt-text-primary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-secondary" title="Show what --dt-text-secondary connects to" aria-label="Graph for --dt-text-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-tertiary" title="Show what --dt-text-tertiary connects to" aria-label="Graph for --dt-text-tertiary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-dim-container-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-container-sm"><code>--dt-dim-container-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-container-sm" title="Show what --dt-dim-container-sm connects to" aria-label="Graph for --dt-dim-container-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>640px</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+const WIDTHS = {
+  narrow: &quot;var(--dt-size-container-narrow)&quot;,
+  default: &quot;var(--dt-size-container-default)&quot;,
+  wide: &quot;var(--dt-size-container-wide)&quot;,
+  full: &quot;none&quot;,
+};
+const SPACING = { default: &quot;var(--dt-space-section)&quot;, compact: &quot;var(--dt-space-section-compact)&quot;, none: &quot;0&quot; };
+const ALIGN = { top: &quot;flex-start&quot;, center: &quot;center&quot;, bottom: &quot;flex-end&quot; };
+
+/* Each tone is a surface and the text roles that belong on it. The text roles
+   are re-pointed on the section itself, so a Heading or Text inside it that
+   reads --dt-text-secondary gets the fill's own secondary rather than the
+   page's grey. That is the &quot;fixed card&quot; pattern: the band decides its colours,
+   and everything inside it follows without a prop. */
+function onFill(fg) {
+  return {
+    &quot;--dt-text-primary&quot;: fg,
+    &quot;--dt-text-secondary&quot;: `color-mix(in oklab, ${fg} 88%, transparent)`,
+    &quot;--dt-text-tertiary&quot;: `color-mix(in oklab, ${fg} 76%, transparent)`,
+    color: fg,
+  };
+}
+const TONES = {
+  base: { background: &quot;var(--dt-surface-base)&quot; },
+  subtle: { background: &quot;var(--dt-surface-subtle)&quot; },
+  brand: { background: &quot;var(--dt-surface-brand)&quot;, ...onFill(&quot;var(--dt-text-on-brand)&quot;) },
+  &quot;brand-muted&quot;: { background: &quot;var(--dt-surface-brand-muted)&quot;, ...onFill(&quot;var(--dt-text-on-brand-muted)&quot;) },
+  secondary: { background: &quot;var(--dt-surface-brand-secondary)&quot;, ...onFill(&quot;var(--dt-text-on-brand-secondary)&quot;) },
+  &quot;secondary-muted&quot;: { background: &quot;var(--dt-surface-brand-secondary-muted)&quot;, ...onFill(&quot;var(--dt-text-on-brand-secondary-muted)&quot;) },
+};
+
+function scrimImage(scrim, align) {
+  if (scrim === &quot;none&quot;) return &quot;none&quot;;
+  if (scrim === &quot;solid&quot; || align === &quot;center&quot;) return &quot;var(--dt-surface-scrim)&quot;;
+  const to = align === &quot;bottom&quot; ? &quot;to top&quot; : &quot;to bottom&quot;;
+  return `linear-gradient(${to}, var(--dt-surface-scrim), var(--dt-surface-scrim) 30%, transparent 90%)`;
+}
+
+export function Section({
+  width = &quot;default&quot;,
+  tone = &quot;base&quot;,
+  dark,
+  texture = false,
+  spacing = &quot;default&quot;,
+  media,
+  scrim = &quot;gradient&quot;,
+  align = &quot;bottom&quot;,
+  minHeight,
+  as: Tag = &quot;section&quot;,
+  className,
+  children,
+  style,
+  ...rest
+}) {
+  const photo = !!media;
+  const scoped = dark === undefined ? photo : dark;
+  const surface = photo ? { background: &quot;var(--dt-surface-base)&quot;, ...onFill(&quot;var(--dt-text-on-scrim)&quot;), &quot;--dt-text-secondary&quot;: &quot;var(--dt-text-on-scrim-secondary)&quot; } : TONES[tone] || TONES.base;
+  const fill = texture &amp;&amp; surface.background ? `var(--dt-surface-texture), ${surface.background}` : surface.background;
+  const pad = SPACING[spacing] || SPACING.default;
+
+  return (
+    &lt;Tag
+      className={[scoped ? &quot;dark&quot; : null, className].filter(Boolean).join(&quot; &quot;) || undefined}
+      style={{
+        position: &quot;relative&quot;,
+        overflow: photo ? &quot;hidden&quot; : undefined,
+        ...surface,
+        background: fill,
+        color: surface.color || &quot;var(--dt-text-primary)&quot;,
+        display: photo ? &quot;flex&quot; : undefined,
+        flexDirection: photo ? &quot;column&quot; : undefined,
+        justifyContent: photo ? ALIGN[align] || ALIGN.bottom : undefined,
+        minHeight: minHeight || (photo ? &quot;min(70vh, var(--dt-dim-container-sm))&quot; : undefined),
+        paddingBlock: pad,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      {photo &amp;&amp; &lt;img src={media} alt=&quot;&quot; aria-hidden=&quot;true&quot; style={{ position: &quot;absolute&quot;, inset: 0, width: &quot;100%&quot;, height: &quot;100%&quot;, objectFit: &quot;cover&quot;, display: &quot;block&quot; }} /&gt;}
+      {photo &amp;&amp; scrim !== &quot;none&quot; &amp;&amp; &lt;div aria-hidden=&quot;true&quot; style={{ position: &quot;absolute&quot;, inset: 0, backgroundImage: scrimImage(scrim, align) }} /&gt;}
+      &lt;div
+        style={{
+          position: photo ? &quot;relative&quot; : undefined,
+          width: &quot;100%&quot;,
+          maxWidth: WIDTHS[width] || WIDTHS.default,
+          marginInline: &quot;auto&quot;,
+          paddingInline: &quot;var(--dt-space-gutter)&quot;,
+          boxSizing: &quot;border-box&quot;,
+        }}
+      &gt;
+        {children}
+      &lt;/div&gt;
+    &lt;/Tag&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Section also appears on the primitives reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#primitivesdetail">PrimitivesDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+<script src="../assets/graph.js" defer></script>
+</body>
+</html>

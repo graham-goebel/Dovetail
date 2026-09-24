@@ -1,0 +1,63 @@
+<!-- @dsCard group="Typography" height=620 name="Text" subtitle="Text — Eyebrow, lead, body, small, fine and label, from the type roles." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  .spec > h3 { margin: 0 0 var(--dt-space-stack-xs); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  #root { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--dt-space-inline-lg); max-width: 1000px; margin: 0 auto; align-items: start; }
+  .panel { background: var(--dt-surface-base); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); padding: var(--dt-space-inset-lg); display: flex; flex-direction: column; gap: var(--dt-space-stack-sm); }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+  function Spec(props) {
+    return e("div", { className: "spec" + (props.className ? " " + props.className : "") }, e("h3", null, props.name), props.children);
+  }
+  function Page() {
+    return e(React.Fragment, null,
+      e(Spec, { name: "Every variant" },
+        e("div", { className: "panel" },
+          e(NS.Text, { variant: "eyebrow" }, "Eyebrow, secondary"),
+          e(NS.Text, { variant: "lead" }, "Lead. The opening paragraph, one step up and one tone down."),
+          e(NS.Text, { variant: "body" }, "Body. Running copy at body-md, bounded at the default measure so a line never runs wider than it can be read."),
+          e(NS.Text, { variant: "small" }, "Small. Supporting copy under a card title."),
+          e(NS.Text, { variant: "fine" }, "Fine. Terms, footnotes and the small print, in the tertiary tone."),
+          e(NS.Text, { variant: "label" }, "Label, for a value or a name"))),
+      e(Spec, { name: "A price, with tabular numerals" },
+        e("div", { className: "panel" },
+          e(NS.Text, { variant: "eyebrow" }, "Ridge loop, 4 days"),
+          e(NS.Heading, { level: 3, size: "heading-sm" }, "Hut-to-hut, fully supported"),
+          e(NS.Text, { variant: "label", weight: "semibold", numeric: true, style: { fontSize: "var(--dt-text-heading-sm-size)" } }, "$1,480.00"),
+          e(NS.Text, { variant: "fine" }, "Per person, twin share. Tax calculated at checkout."))),
+      e(Spec, { name: "On a muted brand band" },
+        e(NS.Section, { tone: "brand-muted", spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+          e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" } },
+            e(NS.Text, { variant: "eyebrow" }, "Follows the band"),
+            e(NS.Text, { variant: "lead" }, "Secondary here is the band's own secondary, not the page's grey."),
+            e(NS.Text, { variant: "fine" }, "Tertiary too."))))
+    );
+  }
+  function start() {
+    if (!NS.Text || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

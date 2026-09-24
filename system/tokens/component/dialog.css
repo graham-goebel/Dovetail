@@ -27,3 +27,16 @@
   --dt-popover-padding: var(--dt-space-inset-md);
   --dt-popover-elevation: var(--dt-elevation-3); /* @kind other */
 }
+
+/* Colour aliases again, under .dark. A custom property resolves where it is
+   declared, so an alias set only on :root keeps its light value inside a
+   .dark scoped to a band or a hero. Repeating it here makes the alias
+   resolve against the band's own roles. Only colour is repeated: sizing,
+   shape and elevation aliases stay on :root so a context's retuning of
+   them still reaches inside the band. */
+.dark {
+  --dt-dialog-bg: var(--dt-surface-overlay);
+  --dt-dialog-fg: var(--dt-text-primary);
+  --dt-dialog-border-color: var(--dt-border-subtle);
+  --dt-dialog-scrim: var(--dt-surface-scrim);
+}

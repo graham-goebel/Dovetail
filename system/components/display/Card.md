@@ -34,8 +34,15 @@ If a card needs different treatment inside one context, that is a Tier 3 overrid
 ## Tokens
 `--dt-card-*`. Override these to restyle every card; override `--dt-surface-raised` to move all raised surfaces together.
 
+## As a link
+Pass `href` and the whole card goes there. The title becomes the one link a screen reader announces and a keyboard reaches; a copy of it, hidden from assistive technology, stretches over the card so a click anywhere lands. Put a real button in `footer`: it sits above the stretched link and keeps its own click.
+
+```jsx
+<Card href="/trips/ridge" title="Ridge loop" description="Four days, three huts." footer={<Button size="sm" variant="secondary">Save</Button>} />
+```
+
 ## Accessibility
-`interactive` is visual only. A clickable card needs a real control inside it, or `as="button"` with an accessible name. A div with onClick is not keyboard operable.
+`interactive` is visual only. A clickable card needs a real control inside it, `href`, or `as="button"` with an accessible name. A div with onClick is not keyboard operable.
 
 ## Content
 Eyebrow is two or three words. Title is a noun phrase. Description is one sentence.

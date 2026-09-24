@@ -10,7 +10,7 @@ and dark: 4.5:1 for body text, 3:1 for large text (19px bold / 23px regular and 
 non-text elements like borders and icons.
 
 **Focus.** One ring, defined by `--dt-focus-ring-*` and applied through `:focus-visible` in
-`tokens/base.css`. It is 2px, offset 2px, and uses the accent colour, which is contrast-
+`tokens/base.css`. It is 2px, offset 2px, and uses the primary colour, which is contrast-
 checked against every surface in the system. Pointer users never see it; keyboard users
 always do.
 
@@ -55,6 +55,10 @@ If you override any of these surfaces, verify the paired foreground with it.
 | `--dt-surface-action` | `--dt-text-on-action` | 4.5:1 |
 | `--dt-surface-action-danger` | `--dt-text-on-action-danger` | 4.5:1 |
 | `--dt-surface-inverse` | `--dt-text-inverse` | 4.5:1 |
+| `--dt-surface-brand` | `--dt-text-on-brand` | 4.5:1 |
+| `--dt-surface-brand-secondary` | `--dt-text-on-brand-secondary` | 4.5:1 |
+| `--dt-surface-brand-muted` | `--dt-text-on-brand-muted` | 4.5:1 |
+| `--dt-surface-scrim` over a photo | `--dt-text-on-scrim` | 4.5:1, measured on the pixels (below) |
 | `--dt-surface-selected` | `--dt-text-on-selected` | 4.5:1 |
 | `--dt-surface-success` | `--dt-text-on-success` | 4.5:1 |
 | `--dt-surface-warning` | `--dt-text-on-warning` | 4.5:1 |
@@ -63,6 +67,32 @@ If you override any of these surfaces, verify the paired foreground with it.
 
 Disabled states are exempt from the text contrast minimum under WCAG, but Dovetail still
 aims for 3:1, because a disabled control nobody can read is a usability problem even if it passes.
+
+## Contrast over imagery
+
+Every pair above assumes a solid surface. Text over a photograph does not have one: a
+scrim's alpha says how much it darkens, not what is behind any particular line of text on
+any particular photo. One pass of `--dt-surface-scrim` can pass on a dark forest and fail
+on a snowfield. Measure the pixels instead of the tokens.
+
+1. Render the page at the widths you ship, with the real photograph in place.
+2. Hide the text (`visibility: hidden`, so the layout does not move) and screenshot.
+3. Sample the pixels in each text line's bounding box. Take the lightest one, not the
+   average: the reader's eye stops on the worst run of letters, not the mean.
+4. Compute the contrast of `--dt-text-on-scrim` against that pixel. Body text needs 4.5:1,
+   large display text 3:1.
+5. If it fails, strengthen the scrim where the text sits (a second gradient stop, a solid
+   wash behind the caption), move the text, or crop the photo. Do not lighten the text
+   or drop the scrim to "let the photo breathe".
+
+Repeat it for every photo a template can receive. A CMS-driven hero needs a scrim that
+passes against the brightest image an editor might upload, which in practice means a
+`solid` scrim or a gradient that stays dark across the whole caption, not one that fades
+out halfway through the title.
+
+`Cover` and `Section` with `media` both read `--dt-text-on-scrim`, which stays light in
+dark mode as well: a scrim over a photograph is dark whatever the page is doing, so the
+text on it must not flip with the page the way `--dt-text-inverse` does.
 
 ## Testing
 

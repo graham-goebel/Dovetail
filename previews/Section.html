@@ -1,0 +1,68 @@
+<!-- @dsCard group="Primitives" height=1180 name="Section" subtitle="Section — Page width, section rhythm, a tone, a scoped dark band, or a photo band." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  .spec > h3 { margin: 0 0 var(--dt-space-stack-xs); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  body { padding: 0; }
+  #root { display: flex; flex-direction: column; }
+  .spec > h3 { padding: var(--dt-space-inset-sm) var(--dt-space-inset-lg) 0; margin: 0; background: var(--dt-surface-subtle); }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+  function Spec(props) {
+    return e("div", { className: "spec" + (props.className ? " " + props.className : "") }, e("h3", null, props.name), props.children);
+  }
+  var TONES = ["base", "subtle", "brand", "brand-muted", "secondary", "secondary-muted"];
+  function Band(tone) {
+    return e(Spec, { name: "tone=\"" + tone + "\"", key: tone },
+      e(NS.Section, { tone: tone, spacing: "compact" },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" } },
+          e(NS.Text, { variant: "eyebrow" }, "Section tone"),
+          e(NS.Heading, { level: 2, size: "heading-md" }, "Three tiers, referenced one way"),
+          e(NS.Text, { variant: "small", tone: "secondary" }, "Secondary text re-pointed for this surface."))));
+  }
+  function Page() {
+    return e(React.Fragment, null,
+      TONES.map(Band),
+      e(Spec, { name: "dark, scoped to one band" },
+        e(NS.Section, { dark: true, spacing: "compact" },
+          e("div", { style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-sm)", alignItems: "center" } },
+            e(NS.Heading, { level: 2, size: "heading-md", style: { marginRight: "auto" } }, "A dark band on a light page"),
+            e(NS.Button, { variant: "ghost" }, "Ghost button"),
+            e(NS.Button, { variant: "secondary" }, "Secondary"),
+            e(NS.Button, null, "Primary")))),
+      e(Spec, { name: "media, a full-bleed photo band" },
+        e(NS.Section, { media: "../examples/travel/img/photo/alpine.webp", minHeight: "360px", width: "default" },
+          e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" } },
+            e(NS.Text, { variant: "eyebrow" }, "New season"),
+            e(NS.Heading, { level: 2, size: "display-sm" }, "Built for the trail"),
+            e(NS.Text, { variant: "lead" }, "Text on scrim stays light in both colour modes."),
+            e("div", null, e(NS.Button, { variant: "secondary" }, "See the routes")))))
+    );
+  }
+  function start() {
+    if (!NS.Section || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

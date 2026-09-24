@@ -10,8 +10,8 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: React.ReactNode;
   /** Show the percentage on the right. @default false */
   showValue?: boolean;
-  /** @default "accent" */
-  tone?: "accent" | "success" | "warning" | "danger";
+  /** @default "primary" */
+  tone?: "primary" | "success" | "warning" | "danger";
   /** @default "md" */
   size?: "sm" | "md" | "lg";
 }

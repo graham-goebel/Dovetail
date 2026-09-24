@@ -6,7 +6,7 @@
 
    The palette is taken from the artwork rather than invented next to it. The page ground
    is the paper the illustrations were painted on (#f9f5f0), so an illustration sits on the
-   page with no edge, and the accent is the dusty blue in the shutters, the sea and the
+   page with no edge, and the primary colour is the dusty blue in the shutters, the sea and the
    signposts.
 
    Link after system/styles.css. */
@@ -14,17 +14,17 @@
 :root {
   /* Accent: the dusty blue of the artwork. Low chroma on purpose — a pale blue that
      stays a colour rather than becoming a highlighter. Step 600 carries white text. */
-  --dt-color-accent-050: oklch(0.977 0.006 240);
-  --dt-color-accent-100: oklch(0.953 0.014 240);
-  --dt-color-accent-200: oklch(0.910 0.028 240);
-  --dt-color-accent-300: oklch(0.852 0.042 240);
-  --dt-color-accent-400: oklch(0.770 0.058 240);
-  --dt-color-accent-500: oklch(0.672 0.072 240);
-  --dt-color-accent-600: oklch(0.556 0.080 242);
-  --dt-color-accent-700: oklch(0.470 0.072 244);
-  --dt-color-accent-800: oklch(0.398 0.060 246);
-  --dt-color-accent-900: oklch(0.340 0.048 248);
-  --dt-color-accent-950: oklch(0.248 0.034 250);
+  --dt-color-primary-050: oklch(0.977 0.006 240);
+  --dt-color-primary-100: oklch(0.953 0.014 240);
+  --dt-color-primary-200: oklch(0.910 0.028 240);
+  --dt-color-primary-300: oklch(0.852 0.042 240);
+  --dt-color-primary-400: oklch(0.770 0.058 240);
+  --dt-color-primary-500: oklch(0.672 0.072 240);
+  --dt-color-primary-600: oklch(0.556 0.080 242);
+  --dt-color-primary-700: oklch(0.470 0.072 244);
+  --dt-color-primary-800: oklch(0.398 0.060 246);
+  --dt-color-primary-900: oklch(0.340 0.048 248);
+  --dt-color-primary-950: oklch(0.248 0.034 250);
 
   /* Neutrals warmed to the paper. Cool greys fight watercolour. */
   --dt-color-neutral-050: oklch(0.975 0.006 78);
@@ -362,9 +362,9 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
 /* Hover carries more specificity than a plain attribute selector, so without this it
    would repaint the day the pointer happens to be resting on — which is always the one
    just chosen. The chosen days opt out of hover rather than fighting it. */
-.mv-day:hover:not(:disabled):not([data-edge]):not([data-in="true"]) { background: var(--dt-color-accent-100); }
+.mv-day:hover:not(:disabled):not([data-edge]):not([data-in="true"]) { background: var(--dt-color-primary-100); }
 .mv-day:disabled { color: var(--dt-text-disabled); cursor: default; }
-.mv-day[data-in="true"] { background: var(--dt-color-accent-100); border-radius: 0; }
+.mv-day[data-in="true"] { background: var(--dt-color-primary-100); border-radius: 0; }
 .mv-day[data-edge="start"] { background: var(--dt-surface-action); color: var(--dt-text-on-action); border-start-end-radius: 0; border-end-end-radius: 0; }
 .mv-day[data-edge="end"] { background: var(--dt-surface-action); color: var(--dt-text-on-action); border-start-start-radius: 0; border-end-start-radius: 0; }
 .mv-day[data-edge="only"] { background: var(--dt-surface-action); color: var(--dt-text-on-action); }

@@ -33,6 +33,9 @@ The same component. Context tokens change its height, padding, and font size: `d
 ## Tokens
 Reads `--dt-button-*` (Tier 3), which resolve to `--dt-surface-action*` and `--dt-text-on-action*`. Override the Tier 3 tokens to restyle Button alone; override the semantic tokens to move every action surface together.
 
+## As a link
+`as="a"` with an `href` makes a real link that looks like a button. Button sets `text-decoration: none`, so the system's global link underline does not reach it; `Link` is the component that keeps the underline.
+
 ## Accessibility
 `loading` sets `aria-busy` and blocks clicks while keeping the label readable. Disabled buttons set both `disabled` and `aria-disabled`. Focus ring comes from the system.
 

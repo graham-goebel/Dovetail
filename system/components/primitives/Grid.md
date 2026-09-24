@@ -17,5 +17,12 @@ Equal-width column layout. Tracks use `minmax(0, 1fr)` so a long word in one cel
 
 Prefer `minColumnWidth` over `columns`. It is responsive without a media query, and it degrades to one column on a phone automatically.
 
+## When the count can change
+`minColumnWidth` uses `auto-fit`, which lets the columns that exist grow to fill the row. That is right for a grid whose count never changes, and wrong for one a filter can narrow: a single result stretches across the whole row. Pass `track="fill"` and the empty tracks are kept, so one card stays one card wide.
+
+```jsx
+<Grid minColumnWidth="260px" track="fill">{results.map(renderCard)}</Grid>
+```
+
 ## Tokens
 `--dt-space-inline-*`.

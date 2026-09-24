@@ -24,18 +24,33 @@
   --dt-color-neutral-900: oklch(0.205 0.006 264);
   --dt-color-neutral-950: oklch(0.145 0.005 264);
 
-  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
-  --dt-color-accent-050: oklch(0.970 0.014 259);
-  --dt-color-accent-100: oklch(0.936 0.032 259);
-  --dt-color-accent-200: oklch(0.885 0.059 259);
-  --dt-color-accent-300: oklch(0.809 0.096 259);
-  --dt-color-accent-400: oklch(0.714 0.143 259);
-  --dt-color-accent-500: oklch(0.623 0.188 259);
-  --dt-color-accent-600: oklch(0.546 0.215 259);
-  --dt-color-accent-700: oklch(0.476 0.196 259);
-  --dt-color-accent-800: oklch(0.404 0.162 259);
-  --dt-color-accent-900: oklch(0.344 0.128 259);
-  --dt-color-accent-950: oklch(0.256 0.093 259);
+  /* Primary — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-primary-050: oklch(0.970 0.014 259);
+  --dt-color-primary-100: oklch(0.936 0.032 259);
+  --dt-color-primary-200: oklch(0.885 0.059 259);
+  --dt-color-primary-300: oklch(0.809 0.096 259);
+  --dt-color-primary-400: oklch(0.714 0.143 259);
+  --dt-color-primary-500: oklch(0.623 0.188 259);
+  --dt-color-primary-600: oklch(0.546 0.215 259);
+  --dt-color-primary-700: oklch(0.476 0.196 259);
+  --dt-color-primary-800: oklch(0.404 0.162 259);
+  --dt-color-primary-900: oklch(0.344 0.128 259);
+  --dt-color-primary-950: oklch(0.256 0.093 259);
+
+  /* Secondary — a second brand hue, for fills and accents that sit beside the
+     primary rather than compete with it. Ships with the violet ramp's values;
+     a theme replaces it wholesale, the same way it replaces primary. */
+  --dt-color-secondary-050: oklch(0.977 0.014 305);
+  --dt-color-secondary-100: oklch(0.946 0.033 305);
+  --dt-color-secondary-200: oklch(0.902 0.063 305);
+  --dt-color-secondary-300: oklch(0.827 0.110 305);
+  --dt-color-secondary-400: oklch(0.740 0.163 305);
+  --dt-color-secondary-500: oklch(0.667 0.200 305);
+  --dt-color-secondary-600: oklch(0.594 0.216 305);
+  --dt-color-secondary-700: oklch(0.518 0.190 305);
+  --dt-color-secondary-800: oklch(0.444 0.158 305);
+  --dt-color-secondary-900: oklch(0.381 0.128 305);
+  --dt-color-secondary-950: oklch(0.279 0.095 305);
 
   /* Green */
   --dt-color-green-050: oklch(0.972 0.021 150);

@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"aac4309aeb16","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"486783235f65","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"5dfe99647b13","components/display/Card.jsx":"d456bfba390d","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"27babae5c860","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"d0cc7e99ccc6","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"855d720a77f7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"04a11b22175c","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"6f96d93775ee"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"d42c8028bf33","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"0d57286592e9","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"41a9a4f3c6a4","components/typography/Heading.jsx":"9db3a4241ce0","components/typography/Text.jsx":"4574abfd2b52","components/primitives/Section.jsx":"d6076d356eb0"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -10,7 +10,6 @@ const __ds_scope = {};
 
 // components/actions/Button.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const V = {
   primary: {
     bg: "--dt-button-primary-bg",
@@ -60,7 +59,7 @@ function Button({
   const bg = isOff ? "var(--dt-button-disabled-bg)" : `var(${state === "active" ? v.active : state === "hover" ? v.hover : v.bg})`;
   const fg = isOff ? "var(--dt-button-disabled-fg)" : `var(${v.fg})`;
   const bd = isOff ? "var(--dt-button-disabled-border)" : `var(${v.border})`;
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  return /*#__PURE__*/React.createElement(Tag, {
     disabled: Tag === "button" ? isOff : undefined,
     "aria-disabled": isOff || undefined,
     "aria-busy": loading || undefined,
@@ -84,12 +83,14 @@ function Button({
       border: `var(--dt-button-border-width) solid ${bd}`,
       borderRadius: "var(--dt-button-radius)",
       cursor: isOff ? "not-allowed" : "pointer",
+      textDecoration: "none",
       transition: "background var(--dt-button-transition), border-color var(--dt-button-transition)",
       width: fullWidth ? "100%" : undefined,
       whiteSpace: "nowrap",
       ...style
-    }
-  }, rest), loading ? /*#__PURE__*/React.createElement(Spinner, null) : iconStart, children, iconEnd);
+    },
+    ...rest
+  }, loading ? /*#__PURE__*/React.createElement(Spinner, null) : iconStart, children, iconEnd);
 }
 function Spinner() {
   return /*#__PURE__*/React.createElement("svg", {
@@ -112,10 +113,8 @@ function Spinner() {
 }
 Object.assign(__ds_scope, { Button });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/actions/Button.jsx", error: String((e && e.message) || e) }); }
-
 // components/actions/ButtonGroup.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function ButtonGroup({
   label,
   attached = false,
@@ -124,15 +123,16 @@ function ButtonGroup({
   ...rest
 }) {
   const items = React.Children.toArray(children);
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: "group",
     "aria-label": label,
     style: {
       display: "inline-flex",
       gap: attached ? 0 : "var(--dt-space-inline-xs)",
       ...style
-    }
-  }, rest), attached ? items.map((child, i) => React.isValidElement(child) ? React.cloneElement(child, {
+    },
+    ...rest
+  }, attached ? items.map((child, i) => React.isValidElement(child) ? React.cloneElement(child, {
     key: i,
     style: {
       borderRadius: i === 0 ? "var(--dt-button-radius) 0 0 var(--dt-button-radius)" : i === items.length - 1 ? "0 var(--dt-button-radius) var(--dt-button-radius) 0" : 0,
@@ -143,10 +143,8 @@ function ButtonGroup({
 }
 Object.assign(__ds_scope, { ButtonGroup });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/actions/ButtonGroup.jsx", error: String((e && e.message) || e) }); }
-
 // components/actions/IconButton.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function IconButton({
   label,
   variant = "ghost",
@@ -159,7 +157,7 @@ function IconButton({
   const [state, setState] = React.useState("idle");
   const solid = variant === "solid";
   const bg = disabled ? "var(--dt-button-disabled-bg)" : solid ? `var(--dt-button-primary-bg${state === "active" ? "-active" : state === "hover" ? "-hover" : ""})` : `var(--dt-button-ghost-bg${state === "active" ? "-active" : state === "hover" ? "-hover" : ""})`;
-  return /*#__PURE__*/React.createElement("button", _extends({
+  return /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": label,
     title: label,
@@ -182,27 +180,26 @@ function IconButton({
       cursor: disabled ? "not-allowed" : "pointer",
       transition: "background var(--dt-button-transition)",
       ...style
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { IconButton });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/actions/IconButton.jsx", error: String((e && e.message) || e) }); }
-
 // components/actions/Link.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Link({
   href,
   external = false,
   underline = "always",
-  tone = "accent",
+  tone = "primary",
   children,
   style,
   ...rest
 }) {
   const [hover, setHover] = React.useState(false);
   const color = tone === "inherit" ? "inherit" : hover ? "var(--dt-text-link-hover)" : "var(--dt-text-link)";
-  return /*#__PURE__*/React.createElement("a", _extends({
+  return /*#__PURE__*/React.createElement("a", {
     href: href,
     target: external ? "_blank" : undefined,
     rel: external ? "noopener noreferrer" : undefined,
@@ -218,8 +215,9 @@ function Link({
       gap: external ? "var(--dt-space-inline-2xs)" : undefined,
       transition: "color var(--dt-motion-micro)",
       ...style
-    }
-  }, rest), children, external && /*#__PURE__*/React.createElement("svg", {
+    },
+    ...rest
+  }, children, external && /*#__PURE__*/React.createElement("svg", {
     width: "12",
     height: "12",
     viewBox: "0 0 24 24",
@@ -239,10 +237,8 @@ function Link({
 }
 Object.assign(__ds_scope, { Link });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/actions/Link.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Accordion.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Accordion({
   items = [],
   allowMultiple = false,
@@ -259,15 +255,16 @@ function Accordion({
       return next;
     });
   }
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: "group",
     "aria-label": label,
     style: {
       display: "flex",
       flexDirection: "column",
       ...style
-    }
-  }, rest), items.map((it, i) => {
+    },
+    ...rest
+  }, items.map((it, i) => {
     const id = it.id ?? String(i);
     const on = open.has(id);
     return /*#__PURE__*/React.createElement("div", {
@@ -316,7 +313,7 @@ function Accordion({
         transform: on ? "rotate(180deg)" : "none",
         transition: "transform var(--dt-motion-duration-fast) var(--dt-motion-easing-standard)"
       }
-    }, "\u2304"))), on && /*#__PURE__*/React.createElement("div", {
+    }, "⌄"))), on && /*#__PURE__*/React.createElement("div", {
       id: "acc-panel-" + id,
       role: "region",
       "aria-labelledby": "acc-btn-" + id,
@@ -334,10 +331,8 @@ function Accordion({
 }
 Object.assign(__ds_scope, { Accordion });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Accordion.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/AspectRatio.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const RATIOS = {
   square: 1,
   "4:3": 4 / 3,
@@ -355,19 +350,19 @@ function AspectRatio({
   ...rest
 }) {
   const value = typeof ratio === "number" ? ratio : RATIOS[ratio] || RATIOS["16:9"];
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  return /*#__PURE__*/React.createElement(Tag, {
     style: {
       position: "relative",
       width: "100%",
       aspectRatio: String(value),
       overflow: "hidden",
       ...style
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { AspectRatio });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/AspectRatio.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Callout.jsx
 try { (() => {
 const TONES = {
@@ -458,10 +453,8 @@ function Callout({
 }
 Object.assign(__ds_scope, { Callout });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Callout.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Figure.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Figure({
   caption,
   credit,
@@ -470,15 +463,16 @@ function Figure({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement("figure", _extends({
+  return /*#__PURE__*/React.createElement("figure", {
     style: {
       margin: 0,
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-space-stack-sm)",
       ...style
-    }
-  }, rest), children, (caption || credit) && /*#__PURE__*/React.createElement("figcaption", {
+    },
+    ...rest
+  }, children, (caption || credit) && /*#__PURE__*/React.createElement("figcaption", {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -504,10 +498,8 @@ function Figure({
 }
 Object.assign(__ds_scope, { Figure });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Figure.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Image.jsx
 try { (() => {
-const { AspectRatio } = __ds_scope;
 const RADII = {
   none: "0",
   media: "var(--dt-radius-media)",
@@ -646,7 +638,7 @@ function Image({
     ...style
   };
   if (!src) {
-    return /*#__PURE__*/React.createElement(AspectRatio, {
+    return /*#__PURE__*/React.createElement(__ds_scope.AspectRatio, {
       ratio: ratio,
       style: frame,
       ...rest
@@ -658,7 +650,7 @@ function Image({
       onFile: onFile
     }));
   }
-  return /*#__PURE__*/React.createElement(AspectRatio, {
+  return /*#__PURE__*/React.createElement(__ds_scope.AspectRatio, {
     ratio: ratio,
     style: frame,
     ...rest
@@ -679,10 +671,8 @@ function Image({
 }
 Object.assign(__ds_scope, { UploadFrame, Image });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Image.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Media.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const GAPS = {
   md: "var(--dt-space-inline-md)",
   lg: "var(--dt-space-inline-lg)",
@@ -703,15 +693,16 @@ function Media({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  return /*#__PURE__*/React.createElement(Tag, {
     style: {
       display: "grid",
       gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${minColumnWidth}), 1fr))`,
       gap: GAPS[gap] || GAPS.xl,
       alignItems: align === "center" ? "center" : "start",
       ...style
-    }
-  }, rest), /*#__PURE__*/React.createElement("div", {
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       order: reverse ? 2 : 1,
       minWidth: 0
@@ -762,10 +753,8 @@ function Media({
 }
 Object.assign(__ds_scope, { Media });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Media.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Prose.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Prose({
   children,
   size = "md",
@@ -774,7 +763,7 @@ function Prose({
   ...rest
 }) {
   const body = size === "lg" ? "lg" : size === "sm" ? "sm" : "md";
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     className: "dt-prose",
     style: {
       maxWidth: measure,
@@ -787,15 +776,14 @@ function Prose({
       flexDirection: "column",
       gap: "var(--dt-space-stack-md)",
       ...style
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { Prose });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Prose.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Quote.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Quote({
   children,
   attribution,
@@ -806,15 +794,16 @@ function Quote({
   ...rest
 }) {
   const t = size === "lg" ? "heading-sm" : "body-lg";
-  return /*#__PURE__*/React.createElement("figure", _extends({
+  return /*#__PURE__*/React.createElement("figure", {
     style: {
       margin: 0,
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-space-stack-sm)",
       ...style
-    }
-  }, rest), /*#__PURE__*/React.createElement("blockquote", {
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("blockquote", {
     style: {
       margin: 0,
       fontFamily: `var(--dt-text-${t}-family)`,
@@ -853,10 +842,8 @@ function Quote({
 }
 Object.assign(__ds_scope, { Quote });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Quote.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Avatar.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const SIZES = {
   xs: 20,
   sm: 24,
@@ -891,14 +878,15 @@ function Avatar({
     away: "var(--dt-surface-warning)",
     offline: "var(--dt-border-strong)"
   }[status];
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     style: {
       position: "relative",
       display: "inline-flex",
       flex: "none",
       ...style
-    }
-  }, rest), /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("span", {
     "aria-label": src ? undefined : name,
     role: src ? undefined : "img",
     style: {
@@ -942,10 +930,8 @@ function Avatar({
 }
 Object.assign(__ds_scope, { Avatar });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Avatar.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/AvatarGroup.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const SIZES = {
   xs: 20,
   sm: 24,
@@ -964,15 +950,16 @@ function AvatarGroup({
   const shown = people.slice(0, max);
   const overflow = people.length - shown.length;
   const px = SIZES[size] || SIZES.md;
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     role: "group",
     "aria-label": label,
     style: {
       display: "inline-flex",
       alignItems: "center",
       ...style
-    }
-  }, rest), shown.map((p, i) => /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, shown.map((p, i) => /*#__PURE__*/React.createElement("span", {
     key: p.name + i,
     style: {
       marginLeft: i === 0 ? 0 : -(px * 0.3),
@@ -980,9 +967,10 @@ function AvatarGroup({
       boxShadow: "0 0 0 2px var(--dt-surface-base)",
       display: "inline-flex"
     }
-  }, /*#__PURE__*/React.createElement(__ds_scope.Avatar, _extends({}, p, {
+  }, /*#__PURE__*/React.createElement(__ds_scope.Avatar, {
+    ...p,
     size: size
-  })))), overflow > 0 && /*#__PURE__*/React.createElement("span", {
+  }))), overflow > 0 && /*#__PURE__*/React.createElement("span", {
     style: {
       marginLeft: -(px * 0.3),
       width: px,
@@ -1003,17 +991,15 @@ function AvatarGroup({
 }
 Object.assign(__ds_scope, { AvatarGroup });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/AvatarGroup.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Badge.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const TONES = {
   neutral: {
     bg: "var(--dt-surface-sunken)",
     fg: "var(--dt-text-secondary)",
     bd: "var(--dt-border-default)"
   },
-  accent: {
+  primary: {
     bg: "var(--dt-surface-selected)",
     fg: "var(--dt-text-on-selected)",
     bd: "var(--dt-border-selected)"
@@ -1051,7 +1037,7 @@ function Badge({
   const solid = variant === "solid";
   const solidBg = {
     neutral: "var(--dt-surface-inverse)",
-    accent: "var(--dt-surface-action)",
+    primary: "var(--dt-surface-action)",
     success: "var(--dt-surface-success)",
     warning: "var(--dt-surface-warning)",
     danger: "var(--dt-surface-danger)",
@@ -1059,13 +1045,13 @@ function Badge({
   }[tone];
   const solidFg = {
     neutral: "var(--dt-text-inverse)",
-    accent: "var(--dt-text-on-action)",
+    primary: "var(--dt-text-on-action)",
     success: "var(--dt-text-on-success)",
     warning: "var(--dt-text-on-warning)",
     danger: "var(--dt-text-on-danger)",
     info: "var(--dt-text-on-info)"
   }[tone];
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     style: {
       display: "inline-flex",
       alignItems: "center",
@@ -1081,8 +1067,9 @@ function Badge({
       border: solid ? "var(--dt-border-width-default) solid transparent" : `var(--dt-border-width-default) solid ${t.bd}`,
       whiteSpace: "nowrap",
       ...style
-    }
-  }, rest), dot && /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, dot && /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
       width: 6,
@@ -1095,16 +1082,15 @@ function Badge({
 }
 Object.assign(__ds_scope, { Badge });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Badge.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Card.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Card({
   eyebrow,
   title,
   description,
   media,
   footer,
+  href,
   interactive = false,
   selected = false,
   as: Tag = "div",
@@ -1113,9 +1099,11 @@ function Card({
   ...rest
 }) {
   const [hover, setHover] = React.useState(false);
-  return /*#__PURE__*/React.createElement(Tag, _extends({
-    onMouseEnter: () => interactive && setHover(true),
-    onMouseLeave: () => interactive && setHover(false),
+  const linked = !!href;
+  const lift = interactive || linked;
+  return /*#__PURE__*/React.createElement(Tag, {
+    onMouseEnter: () => lift && setHover(true),
+    onMouseLeave: () => lift && setHover(false),
     style: {
       display: "flex",
       flexDirection: "column",
@@ -1127,10 +1115,12 @@ function Card({
       padding: "var(--dt-card-padding)",
       boxShadow: hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
       transition: "box-shadow var(--dt-card-transition), border-color var(--dt-card-transition)",
-      cursor: interactive ? "pointer" : undefined,
+      cursor: lift ? "pointer" : undefined,
+      position: linked ? "relative" : undefined,
       ...style
-    }
-  }, rest), media, eyebrow && /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, media, eyebrow && /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: "var(--dt-text-eyebrow-family)",
       fontSize: "var(--dt-text-eyebrow-size)",
@@ -1148,25 +1138,41 @@ function Card({
       fontWeight: "var(--dt-text-heading-sm-weight)",
       letterSpacing: "var(--dt-text-heading-sm-tracking)"
     }
-  }, title), description && /*#__PURE__*/React.createElement("span", {
+  }, linked ? /*#__PURE__*/React.createElement("a", {
+    href: href,
+    style: {
+      color: "inherit",
+      textDecoration: hover ? "underline" : "none",
+      textUnderlineOffset: 2
+    }
+  }, title) : title), description && /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: "var(--dt-text-body-sm-family)",
       fontSize: "var(--dt-text-body-sm-size)",
       lineHeight: "var(--dt-text-body-sm-line)",
       color: "var(--dt-text-secondary)"
     }
-  }, description), children, footer && /*#__PURE__*/React.createElement("div", {
+  }, description), children, linked && /*#__PURE__*/React.createElement("a", {
+    href: href,
+    "aria-hidden": "true",
+    tabIndex: -1,
     style: {
-      marginTop: "var(--dt-space-stack-xs)"
+      position: "absolute",
+      inset: 0,
+      borderRadius: "inherit"
+    }
+  }), footer && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "var(--dt-space-stack-xs)",
+      position: linked ? "relative" : undefined,
+      zIndex: linked ? 1 : undefined
     }
   }, footer));
 }
 Object.assign(__ds_scope, { Card });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Card.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Code.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Code({
   children,
   block = false,
@@ -1182,25 +1188,27 @@ function Code({
     border: "var(--dt-border-width-default) solid var(--dt-border-subtle)"
   };
   if (!block) {
-    return /*#__PURE__*/React.createElement("code", _extends({
+    return /*#__PURE__*/React.createElement("code", {
       style: {
         ...shared,
         padding: "1px var(--dt-space-inset-2xs, 4px)",
         borderRadius: "var(--dt-radius-control)",
         whiteSpace: "nowrap",
         ...style
-      }
-    }, rest), children);
+      },
+      ...rest
+    }, children);
   }
-  return /*#__PURE__*/React.createElement("figure", _extends({
+  return /*#__PURE__*/React.createElement("figure", {
     style: {
       margin: 0,
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-space-stack-2xs)",
       ...style
-    }
-  }, rest), label && /*#__PURE__*/React.createElement("figcaption", {
+    },
+    ...rest
+  }, label && /*#__PURE__*/React.createElement("figcaption", {
     style: {
       fontFamily: "var(--dt-font-family-mono)",
       fontSize: "var(--dt-text-body-xs-size)",
@@ -1219,10 +1227,8 @@ function Code({
 }
 Object.assign(__ds_scope, { Code });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Code.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/EmptyState.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function EmptyState({
   title,
   description,
@@ -1234,7 +1240,7 @@ function EmptyState({
   ...rest
 }) {
   const pad = size === "sm" ? "var(--dt-space-inset-lg)" : "var(--dt-space-inset-xl)";
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -1243,8 +1249,9 @@ function EmptyState({
       gap: "var(--dt-space-stack-sm)",
       padding: pad,
       ...style
-    }
-  }, rest), icon && /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, icon && /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
       color: "var(--dt-text-tertiary)",
@@ -1278,10 +1285,8 @@ function EmptyState({
 }
 Object.assign(__ds_scope, { EmptyState });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/EmptyState.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/List.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function List({
   items = [],
   divided = true,
@@ -1290,7 +1295,7 @@ function List({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement("ul", _extends({
+  return /*#__PURE__*/React.createElement("ul", {
     role: "list",
     "aria-label": label,
     style: {
@@ -1298,8 +1303,9 @@ function List({
       margin: 0,
       padding: 0,
       ...style
-    }
-  }, rest), items.map((it, i) => {
+    },
+    ...rest
+  }, items.map((it, i) => {
     const clickable = interactive && it.onClick;
     const Row = clickable ? "button" : "div";
     return /*#__PURE__*/React.createElement("li", {
@@ -1369,10 +1375,8 @@ function List({
 }
 Object.assign(__ds_scope, { List });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/List.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Skeleton.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Skeleton({
   variant = "text",
   width,
@@ -1388,7 +1392,7 @@ function Skeleton({
     animation: "dt-skeleton-pulse var(--dt-motion-duration-slower, 1400ms) var(--dt-motion-easing-standard) infinite"
   };
   if (variant === "text") {
-    return /*#__PURE__*/React.createElement("span", _extends({
+    return /*#__PURE__*/React.createElement("span", {
       "aria-hidden": "true",
       style: {
         display: "flex",
@@ -1396,8 +1400,9 @@ function Skeleton({
         gap: "var(--dt-space-stack-2xs)",
         width: width || "100%",
         ...style
-      }
-    }, rest), Array.from({
+      },
+      ...rest
+    }, Array.from({
       length: lines
     }).map((_, i) => /*#__PURE__*/React.createElement("span", {
       key: i,
@@ -1409,7 +1414,7 @@ function Skeleton({
       }
     })));
   }
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
       ...base,
@@ -1417,15 +1422,14 @@ function Skeleton({
       width: width || (variant === "circle" ? 32 : "100%"),
       height: height || (variant === "circle" ? 32 : 80),
       ...style
-    }
-  }, rest));
+    },
+    ...rest
+  });
 }
 Object.assign(__ds_scope, { Skeleton });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Skeleton.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Stat.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Stat({
   label,
   value,
@@ -1438,15 +1442,16 @@ function Stat({
   ...rest
 }) {
   const dc = deltaDirection === "up" ? "var(--dt-text-success)" : deltaDirection === "down" ? "var(--dt-text-danger)" : "var(--dt-text-secondary)";
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-space-stack-2xs)",
       textAlign: align,
       ...style
-    }
-  }, rest), /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: "var(--dt-text-label-sm-family)",
       fontSize: "var(--dt-text-label-sm-size)",
@@ -1496,10 +1501,8 @@ function Stat({
 }
 Object.assign(__ds_scope, { Stat });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Stat.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Table.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Table({
   columns = [],
   rows = [],
@@ -1510,15 +1513,16 @@ function Table({
   ...rest
 }) {
   const pad = dense ? "var(--dt-space-inset-xs) var(--dt-space-inset-sm)" : "var(--dt-space-inset-sm) var(--dt-space-inset-md)";
-  return /*#__PURE__*/React.createElement("table", _extends({
+  return /*#__PURE__*/React.createElement("table", {
     style: {
       width: "100%",
       borderCollapse: "collapse",
       fontFamily: "var(--dt-text-body-sm-family)",
       fontSize: "var(--dt-text-body-sm-size)",
       ...style
-    }
-  }, rest), caption && /*#__PURE__*/React.createElement("caption", {
+    },
+    ...rest
+  }, caption && /*#__PURE__*/React.createElement("caption", {
     style: {
       captionSide: "top",
       textAlign: "left",
@@ -1558,10 +1562,8 @@ function Table({
 }
 Object.assign(__ds_scope, { Table });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Table.jsx", error: String((e && e.message) || e) }); }
-
 // components/display/Tag.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Tag({
   selected = false,
   onRemove,
@@ -1572,7 +1574,7 @@ function Tag({
 }) {
   const [hover, setHover] = React.useState(false);
   const interactive = !!rest.onClick;
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     onMouseEnter: () => setHover(true),
     onMouseLeave: () => setHover(false),
     role: interactive ? "button" : undefined,
@@ -1596,8 +1598,9 @@ function Tag({
       opacity: disabled ? 0.6 : 1,
       transition: "background var(--dt-motion-micro), border-color var(--dt-motion-micro)",
       ...style
-    }
-  }, rest), children, onRemove && /*#__PURE__*/React.createElement("button", {
+    },
+    ...rest
+  }, children, onRemove && /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": `Remove ${typeof children === "string" ? children : "tag"}`,
     onClick: e => {
@@ -1628,10 +1631,8 @@ function Tag({
 }
 Object.assign(__ds_scope, { Tag });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Tag.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Alert.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const TONES = {
   info: {
     bg: "var(--dt-surface-info-subtle)",
@@ -1672,7 +1673,7 @@ function Alert({
   ...rest
 }) {
   const t = TONES[tone] || TONES.info;
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: tone === "danger" ? "alert" : "status",
     style: {
       display: "flex",
@@ -1682,8 +1683,9 @@ function Alert({
       border: `var(--dt-border-width-default) solid ${t.bd}`,
       borderRadius: "var(--dt-radius-container)",
       ...style
-    }
-  }, rest), /*#__PURE__*/React.createElement("svg", {
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("svg", {
     "aria-hidden": "true",
     viewBox: "0 0 24 24",
     fill: "none",
@@ -1758,10 +1760,8 @@ function Alert({
 }
 Object.assign(__ds_scope, { Alert });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Alert.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Banner.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const TONES = {
   info: {
     bg: "var(--dt-surface-info-subtle)",
@@ -1796,7 +1796,7 @@ function Banner({
   ...rest
 }) {
   const t = TONES[tone] || TONES.info;
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: tone === "danger" ? "alert" : "status",
     style: {
       display: "flex",
@@ -1809,8 +1809,9 @@ function Banner({
       width: "100%",
       boxSizing: "border-box",
       ...style
-    }
-  }, rest), icon && /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, icon && /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
       color: t.fg,
@@ -1860,11 +1861,10 @@ function Banner({
       padding: "var(--dt-space-inset-2xs, 4px)",
       borderRadius: "var(--dt-radius-control)"
     }
-  }, "\xD7"));
+  }, "×"));
 }
 Object.assign(__ds_scope, { Banner });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Banner.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Dialog.jsx
 try { (() => {
 function Dialog({
@@ -1978,10 +1978,8 @@ function Dialog({
 }
 Object.assign(__ds_scope, { Dialog });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Dialog.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Drawer.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Drawer({
   open,
   onClose,
@@ -2012,7 +2010,7 @@ function Drawer({
     style: {
       position: "fixed",
       inset: 0,
-      zIndex: 60,
+      zIndex: "var(--dt-z-overlay)",
       display: "flex",
       justifyContent: side === "right" ? "flex-end" : "flex-start",
       alignItems: side === "bottom" ? "flex-end" : "stretch"
@@ -2024,7 +2022,7 @@ function Drawer({
       inset: 0,
       background: "var(--dt-surface-scrim, rgba(0,0,0,0.4))"
     }
-  }), /*#__PURE__*/React.createElement("div", _extends({
+  }), /*#__PURE__*/React.createElement("div", {
     ref: panel,
     role: "dialog",
     "aria-modal": "true",
@@ -2047,8 +2045,9 @@ function Drawer({
       borderTopLeftRadius: side === "bottom" ? "var(--dt-radius-overlay)" : 0,
       borderTopRightRadius: side === "bottom" ? "var(--dt-radius-overlay)" : 0,
       ...style
-    }
-  }, rest), title && /*#__PURE__*/React.createElement("header", {
+    },
+    ...rest
+  }, title && /*#__PURE__*/React.createElement("header", {
     style: {
       display: "flex",
       alignItems: "center",
@@ -2079,7 +2078,7 @@ function Drawer({
       padding: "var(--dt-space-inset-2xs, 4px)",
       borderRadius: "var(--dt-radius-control)"
     }
-  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
+  }, "×")), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       overflowY: "auto",
@@ -2101,10 +2100,8 @@ function Drawer({
 }
 Object.assign(__ds_scope, { Drawer });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Drawer.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Popover.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Popover({
   trigger,
   children,
@@ -2154,14 +2151,15 @@ function Popover({
       right: 0
     }
   }[placement];
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     ref: wrap,
     style: {
       position: "relative",
       display: "inline-flex",
       ...style
-    }
-  }, rest), React.isValidElement(trigger) ? React.cloneElement(trigger, {
+    },
+    ...rest
+  }, React.isValidElement(trigger) ? React.cloneElement(trigger, {
     onClick: e => {
       trigger.props.onClick && trigger.props.onClick(e);
       setOpen(!open);
@@ -2191,16 +2189,14 @@ function Popover({
 }
 Object.assign(__ds_scope, { Popover });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Popover.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Progress.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Progress({
   value,
   max = 100,
   label,
   showValue = false,
-  tone = "accent",
+  tone = "primary",
   size = "md",
   style,
   ...rest
@@ -2209,19 +2205,20 @@ function Progress({
   const pct = indeterminate ? 0 : Math.min(100, Math.max(0, value / max * 100));
   const h = size === "sm" ? 4 : size === "lg" ? 10 : 6;
   const fill = {
-    accent: "var(--dt-surface-action)",
+    primary: "var(--dt-surface-action)",
     success: "var(--dt-surface-success)",
     warning: "var(--dt-surface-warning)",
     danger: "var(--dt-surface-danger)"
   }[tone];
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-space-stack-2xs)",
       ...style
-    }
-  }, rest), (label || showValue) && /*#__PURE__*/React.createElement("div", {
+    },
+    ...rest
+  }, (label || showValue) && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
@@ -2266,10 +2263,8 @@ function Progress({
 }
 Object.assign(__ds_scope, { Progress });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Progress.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Spinner.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const SIZES = {
   sm: 14,
   md: 18,
@@ -2283,7 +2278,7 @@ function Spinner({
   ...rest
 }) {
   const px = SIZES[size] || SIZES.md;
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     role: "status",
     "aria-live": "polite",
     style: {
@@ -2291,8 +2286,9 @@ function Spinner({
       alignItems: "center",
       gap: "var(--dt-space-inline-xs)",
       ...style
-    }
-  }, rest), /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
       width: px,
@@ -2319,10 +2315,8 @@ function Spinner({
 }
 Object.assign(__ds_scope, { Spinner });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Spinner.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Toast.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const TONES = {
   neutral: {
     bd: "var(--dt-border-default)",
@@ -2353,7 +2347,7 @@ function Toast({
   ...rest
 }) {
   const t = TONES[tone] || TONES.neutral;
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: tone === "danger" ? "alert" : "status",
     "aria-live": tone === "danger" ? "assertive" : "polite",
     style: {
@@ -2370,8 +2364,9 @@ function Toast({
       maxWidth: 420,
       boxSizing: "border-box",
       ...style
-    }
-  }, rest), icon && /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, icon && /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
     style: {
       color: t.fg,
@@ -2421,7 +2416,7 @@ function Toast({
       padding: "var(--dt-space-inset-2xs, 4px)",
       borderRadius: "var(--dt-radius-control)"
     }
-  }, "\xD7"));
+  }, "×"));
 }
 function ToastRegion({
   children,
@@ -2453,7 +2448,7 @@ function ToastRegion({
       alignItems: "center"
     }
   }[placement];
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: "region",
     "aria-label": label,
     style: {
@@ -2465,8 +2460,9 @@ function ToastRegion({
       pointerEvents: "none",
       ...pos,
       ...style
-    }
-  }, rest), React.Children.map(children, c => /*#__PURE__*/React.createElement("div", {
+    },
+    ...rest
+  }, React.Children.map(children, c => /*#__PURE__*/React.createElement("div", {
     style: {
       pointerEvents: "auto"
     }
@@ -2474,10 +2470,8 @@ function ToastRegion({
 }
 Object.assign(__ds_scope, { Toast, ToastRegion });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Toast.jsx", error: String((e && e.message) || e) }); }
-
 // components/feedback/Tooltip.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Tooltip({
   content,
   children,
@@ -2526,7 +2520,7 @@ function Tooltip({
       transform: "translateY(-50%)"
     }
   }[placement];
-  return /*#__PURE__*/React.createElement("span", _extends({
+  return /*#__PURE__*/React.createElement("span", {
     style: {
       position: "relative",
       display: "inline-flex",
@@ -2535,8 +2529,9 @@ function Tooltip({
     onMouseEnter: show,
     onMouseLeave: hide,
     onFocus: show,
-    onBlur: hide
-  }, rest), React.isValidElement(children) ? React.cloneElement(children, {
+    onBlur: hide,
+    ...rest
+  }, React.isValidElement(children) ? React.cloneElement(children, {
     "aria-describedby": open ? id : undefined
   }) : children, open && /*#__PURE__*/React.createElement("span", {
     role: "tooltip",
@@ -2561,10 +2556,8 @@ function Tooltip({
 }
 Object.assign(__ds_scope, { Tooltip });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Tooltip.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Checkbox.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Checkbox({
   label,
   hint,
@@ -2596,7 +2589,7 @@ function Checkbox({
       opacity: disabled ? 0.6 : 1,
       ...style
     }
-  }, /*#__PURE__*/React.createElement("input", _extends({
+  }, /*#__PURE__*/React.createElement("input", {
     ref: ref,
     type: "checkbox",
     id: boxId,
@@ -2608,8 +2601,9 @@ function Checkbox({
       opacity: 0,
       width: 0,
       height: 0
-    }
-  }, rest)), /*#__PURE__*/React.createElement("label", {
+    },
+    ...rest
+  }), /*#__PURE__*/React.createElement("label", {
     htmlFor: boxId,
     style: {
       display: "flex",
@@ -2676,10 +2670,8 @@ function Checkbox({
 }
 Object.assign(__ds_scope, { Checkbox });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Checkbox.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Field.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Field({
   label,
   hint,
@@ -2690,14 +2682,15 @@ function Field({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-input-label-gap)",
       ...style
-    }
-  }, rest), label && /*#__PURE__*/React.createElement("label", {
+    },
+    ...rest
+  }, label && /*#__PURE__*/React.createElement("label", {
     htmlFor: htmlFor,
     style: {
       fontFamily: "var(--dt-text-label-md-family)",
@@ -2724,10 +2717,8 @@ function Field({
 }
 Object.assign(__ds_scope, { Field });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Field.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/CheckboxGroup.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function CheckboxGroup({
   label,
   hint,
@@ -2750,13 +2741,14 @@ function CheckboxGroup({
     if (value === undefined) setInternal(next);
     onChange && onChange(next);
   };
-  return /*#__PURE__*/React.createElement(__ds_scope.Field, _extends({
+  return /*#__PURE__*/React.createElement(__ds_scope.Field, {
     label: label,
     hint: hint,
     error: error,
     required: required,
-    style: style
-  }, rest), /*#__PURE__*/React.createElement("div", {
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
     role: "group",
     style: {
       display: "flex",
@@ -2776,10 +2768,8 @@ function CheckboxGroup({
 }
 Object.assign(__ds_scope, { CheckboxGroup });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/CheckboxGroup.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Input.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Input({
   label,
   hint,
@@ -2811,7 +2801,7 @@ function Input({
       color: "var(--dt-text-tertiary)",
       pointerEvents: "none"
     }
-  }, iconStart), /*#__PURE__*/React.createElement("input", _extends({
+  }, iconStart), /*#__PURE__*/React.createElement("input", {
     id: inputId,
     required: required,
     "aria-invalid": error ? true : undefined,
@@ -2832,8 +2822,9 @@ function Input({
       outline: "none",
       transition: "border-color var(--dt-input-transition)",
       boxSizing: "border-box"
-    }
-  }, rest)));
+    },
+    ...rest
+  }));
   if (!label && !hint && !error) return /*#__PURE__*/React.createElement("div", {
     style: style
   }, control);
@@ -2848,10 +2839,8 @@ function Input({
 }
 Object.assign(__ds_scope, { Input });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Input.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Radio.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Radio({
   label,
   hint,
@@ -2880,7 +2869,7 @@ function Radio({
       opacity: disabled ? 0.6 : 1,
       ...style
     }
-  }, /*#__PURE__*/React.createElement("input", _extends({
+  }, /*#__PURE__*/React.createElement("input", {
     type: "radio",
     id: radioId,
     name: name,
@@ -2893,8 +2882,9 @@ function Radio({
       opacity: 0,
       width: 0,
       height: 0
-    }
-  }, rest)), /*#__PURE__*/React.createElement("label", {
+    },
+    ...rest
+  }), /*#__PURE__*/React.createElement("label", {
     htmlFor: radioId,
     style: {
       display: "flex",
@@ -2938,10 +2928,8 @@ function Radio({
 }
 Object.assign(__ds_scope, { Radio });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Radio.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/RadioGroup.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function RadioGroup({
   label,
   hint,
@@ -2965,13 +2953,14 @@ function RadioGroup({
     if (value === undefined) setInternal(optValue);
     onChange && onChange(optValue);
   };
-  return /*#__PURE__*/React.createElement(__ds_scope.Field, _extends({
+  return /*#__PURE__*/React.createElement(__ds_scope.Field, {
     label: label,
     hint: hint,
     error: error,
     required: required,
-    style: style
-  }, rest), /*#__PURE__*/React.createElement("div", {
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
     role: "radiogroup",
     style: {
       display: "flex",
@@ -2992,10 +2981,8 @@ function RadioGroup({
 }
 Object.assign(__ds_scope, { RadioGroup });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/RadioGroup.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Select.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Select({
   label,
   hint,
@@ -3018,7 +3005,7 @@ function Select({
       display: "flex",
       alignItems: "center"
     }
-  }, /*#__PURE__*/React.createElement("select", _extends({
+  }, /*#__PURE__*/React.createElement("select", {
     id: selectId,
     required: required,
     "aria-invalid": error ? true : undefined,
@@ -3039,8 +3026,9 @@ function Select({
       cursor: "pointer",
       transition: "border-color var(--dt-input-transition)",
       boxSizing: "border-box"
-    }
-  }, rest), placeholder && /*#__PURE__*/React.createElement("option", {
+    },
+    ...rest
+  }, placeholder && /*#__PURE__*/React.createElement("option", {
     value: ""
   }, placeholder), options.map(o => {
     const opt = typeof o === "string" ? {
@@ -3084,10 +3072,8 @@ function Select({
 }
 Object.assign(__ds_scope, { Select });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Select.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Slider.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Slider({
   label,
   hint,
@@ -3116,13 +3102,14 @@ function Slider({
     onChange && onChange(next);
   };
   const shown = formatValue ? formatValue(current) : String(current);
-  return /*#__PURE__*/React.createElement(__ds_scope.Field, _extends({
+  return /*#__PURE__*/React.createElement(__ds_scope.Field, {
     label: label,
     hint: hint,
     error: error,
     htmlFor: inputId,
-    style: style
-  }, rest), /*#__PURE__*/React.createElement("div", {
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
@@ -3166,10 +3153,8 @@ function Slider({
 }
 Object.assign(__ds_scope, { Slider });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Slider.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Switch.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Switch({
   label,
   hint,
@@ -3240,7 +3225,7 @@ function Switch({
       opacity: disabled ? 0.6 : 1,
       ...style
     }
-  }, /*#__PURE__*/React.createElement("input", _extends({
+  }, /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
     role: "switch",
     id: switchId,
@@ -3252,8 +3237,9 @@ function Switch({
       opacity: 0,
       width: 0,
       height: 0
-    }
-  }, rest)), /*#__PURE__*/React.createElement("label", {
+    },
+    ...rest
+  }), /*#__PURE__*/React.createElement("label", {
     htmlFor: switchId,
     style: {
       display: "flex",
@@ -3268,10 +3254,8 @@ function Switch({
 }
 Object.assign(__ds_scope, { Switch });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Switch.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Textarea.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Textarea({
   label,
   hint,
@@ -3286,7 +3270,7 @@ function Textarea({
   const auto = React.useId();
   const areaId = id || auto;
   const border = error ? "var(--dt-input-border-error)" : focus ? "var(--dt-input-border-focus)" : "var(--dt-input-border)";
-  const control = /*#__PURE__*/React.createElement("textarea", _extends({
+  const control = /*#__PURE__*/React.createElement("textarea", {
     id: areaId,
     rows: rows,
     required: required,
@@ -3307,8 +3291,9 @@ function Textarea({
       resize: "vertical",
       transition: "border-color var(--dt-input-transition)",
       boxSizing: "border-box"
-    }
-  }, rest));
+    },
+    ...rest
+  });
   if (!label && !hint && !error) return /*#__PURE__*/React.createElement("div", {
     style: style
   }, control);
@@ -3323,10 +3308,8 @@ function Textarea({
 }
 Object.assign(__ds_scope, { Textarea });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Textarea.jsx", error: String((e && e.message) || e) }); }
-
 // components/navigation/Breadcrumbs.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Breadcrumbs({
   items = [],
   label = "Breadcrumb",
@@ -3334,10 +3317,11 @@ function Breadcrumbs({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement("nav", _extends({
+  return /*#__PURE__*/React.createElement("nav", {
     "aria-label": label,
-    style: style
-  }, rest), /*#__PURE__*/React.createElement("ol", {
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("ol", {
     style: {
       listStyle: "none",
       margin: 0,
@@ -3391,10 +3375,37 @@ function Breadcrumbs({
 }
 Object.assign(__ds_scope, { Breadcrumbs });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Breadcrumbs.jsx", error: String((e && e.message) || e) }); }
-
 // components/navigation/Navbar.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function MenuIcon() {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    style: {
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)"
+    },
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M4 7h16M4 12h16M4 17h16"
+  }));
+}
+function useNarrow(below) {
+  const query = below ? `(max-width: ${below - 1}px)` : null;
+  const [narrow, setNarrow] = React.useState(() => !!(query && typeof window !== "undefined" && window.matchMedia && window.matchMedia(query).matches));
+  React.useEffect(() => {
+    if (!query || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [query]);
+  return narrow;
+}
 function Navbar({
   brand,
   links = [],
@@ -3403,10 +3414,17 @@ function Navbar({
   onNavigate,
   label = "Main",
   sticky = false,
+  collapseBelow = 640,
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement("nav", _extends({
+  const narrow = useNarrow(collapseBelow) && links.length > 0;
+  const [open, setOpen] = React.useState(false);
+  const go = id => {
+    setOpen(false);
+    if (onNavigate) onNavigate(id);
+  };
+  return /*#__PURE__*/React.createElement("nav", {
     "aria-label": label,
     style: {
       display: "flex",
@@ -3417,16 +3435,17 @@ function Navbar({
       borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
       position: sticky ? "sticky" : "static",
       top: 0,
-      zIndex: 10,
+      zIndex: sticky ? "var(--dt-z-sticky)" : undefined,
       ...style
-    }
-  }, rest), brand && /*#__PURE__*/React.createElement("span", {
+    },
+    ...rest
+  }, brand && /*#__PURE__*/React.createElement("span", {
     style: {
       display: "flex",
       alignItems: "center",
       flex: "none"
     }
-  }, brand), /*#__PURE__*/React.createElement("ul", {
+  }, brand), !narrow && /*#__PURE__*/React.createElement("ul", {
     style: {
       listStyle: "none",
       margin: 0,
@@ -3462,21 +3481,74 @@ function Navbar({
         borderBottom: `2px solid ${on ? "var(--dt-border-selected)" : "transparent"}`
       }
     }, l.label));
-  })), actions && /*#__PURE__*/React.createElement("span", {
+  })), actions && !narrow && /*#__PURE__*/React.createElement("span", {
     style: {
       display: "flex",
       alignItems: "center",
       gap: "var(--dt-space-inline-sm)",
       flex: "none"
     }
-  }, actions));
+  }, actions), narrow && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "aria-label": "Open menu",
+    "aria-expanded": open,
+    onClick: () => setOpen(true),
+    style: {
+      marginLeft: "auto",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "var(--dt-size-control-md)",
+      height: "var(--dt-size-control-md)",
+      border: 0,
+      borderRadius: "var(--dt-radius-control)",
+      background: "transparent",
+      color: "var(--dt-text-primary)",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(MenuIcon, null)), narrow && /*#__PURE__*/React.createElement(__ds_scope.Drawer, {
+    open: open,
+    onClose: () => setOpen(false),
+    side: "right",
+    title: "Menu",
+    label: label + " menu",
+    footer: actions
+  }, /*#__PURE__*/React.createElement("ul", {
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, links.map(l => {
+    const on = l.id === current;
+    return /*#__PURE__*/React.createElement("li", {
+      key: l.id
+    }, /*#__PURE__*/React.createElement("a", {
+      href: l.href || "#",
+      "aria-current": on ? "page" : undefined,
+      onClick: e => {
+        if (onNavigate) e.preventDefault();
+        go(l.id);
+      },
+      style: {
+        display: "block",
+        padding: "var(--dt-space-inset-sm) 0",
+        fontFamily: "var(--dt-text-label-lg-family)",
+        fontSize: "var(--dt-text-label-lg-size)",
+        fontWeight: "var(--dt-font-weight-medium)",
+        textDecoration: "none",
+        color: on ? "var(--dt-text-primary)" : "var(--dt-text-secondary)",
+        borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)"
+      }
+    }, l.label));
+  }))));
 }
 Object.assign(__ds_scope, { Navbar });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Navbar.jsx", error: String((e && e.message) || e) }); }
-
 // components/navigation/Pagination.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function pages(page, total) {
   if (total <= 7) return Array.from({
     length: total
@@ -3511,10 +3583,11 @@ function Pagination({
     cursor: disabled ? "not-allowed" : "pointer",
     transition: "background var(--dt-motion-duration-fast) var(--dt-motion-easing-standard)"
   });
-  return /*#__PURE__*/React.createElement("nav", _extends({
+  return /*#__PURE__*/React.createElement("nav", {
     "aria-label": label,
-    style: style
-  }, rest), /*#__PURE__*/React.createElement("ul", {
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("ul", {
     style: {
       listStyle: "none",
       margin: 0,
@@ -3530,7 +3603,7 @@ function Pagination({
     onClick: () => onChange && onChange(page - 1),
     style: btn(false, page <= 1),
     "aria-label": "Previous page"
-  }, "\u2039")), pages(page, totalPages).map((p, i) => p === "…" ? /*#__PURE__*/React.createElement("li", {
+  }, "‹")), pages(page, totalPages).map((p, i) => p === "…" ? /*#__PURE__*/React.createElement("li", {
     key: "gap" + i
   }, /*#__PURE__*/React.createElement("span", {
     "aria-hidden": "true",
@@ -3538,7 +3611,7 @@ function Pagination({
       padding: "0 var(--dt-space-inline-2xs)",
       color: "var(--dt-text-tertiary)"
     }
-  }, "\u2026")) : /*#__PURE__*/React.createElement("li", {
+  }, "…")) : /*#__PURE__*/React.createElement("li", {
     key: p
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -3552,14 +3625,12 @@ function Pagination({
     onClick: () => onChange && onChange(page + 1),
     style: btn(false, page >= totalPages),
     "aria-label": "Next page"
-  }, "\u203A"))));
+  }, "›"))));
 }
 Object.assign(__ds_scope, { Pagination });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Pagination.jsx", error: String((e && e.message) || e) }); }
-
 // components/navigation/Sidebar.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Sidebar({
   sections = [],
   current,
@@ -3571,7 +3642,7 @@ function Sidebar({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement("nav", _extends({
+  return /*#__PURE__*/React.createElement("nav", {
     "aria-label": label,
     style: {
       width,
@@ -3584,8 +3655,9 @@ function Sidebar({
       borderRight: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
       boxSizing: "border-box",
       ...style
-    }
-  }, rest), header, sections.map((s, si) => /*#__PURE__*/React.createElement("div", {
+    },
+    ...rest
+  }, header, sections.map((s, si) => /*#__PURE__*/React.createElement("div", {
     key: s.title || si,
     style: {
       display: "flex",
@@ -3659,10 +3731,8 @@ function Sidebar({
 }
 Object.assign(__ds_scope, { Sidebar });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Sidebar.jsx", error: String((e && e.message) || e) }); }
-
 // components/navigation/Stepper.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Stepper({
   steps = [],
   current = 0,
@@ -3672,10 +3742,11 @@ function Stepper({
   ...rest
 }) {
   const horiz = orientation === "horizontal";
-  return /*#__PURE__*/React.createElement("nav", _extends({
+  return /*#__PURE__*/React.createElement("nav", {
     "aria-label": label,
-    style: style
-  }, rest), /*#__PURE__*/React.createElement("ol", {
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("ol", {
     style: {
       listStyle: "none",
       margin: 0,
@@ -3754,10 +3825,8 @@ function Stepper({
 }
 Object.assign(__ds_scope, { Stepper });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Stepper.jsx", error: String((e && e.message) || e) }); }
-
 // components/navigation/Tabs.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Tabs({
   tabs = [],
   value,
@@ -3781,7 +3850,7 @@ function Tabs({
     refs.current[next] && refs.current[next].focus();
   }
   const pill = variant === "pill";
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: "tablist",
     "aria-label": label,
     onKeyDown: onKeyDown,
@@ -3794,8 +3863,9 @@ function Tabs({
       borderRadius: pill ? "var(--dt-radius-control)" : 0,
       overflowX: "auto",
       ...style
-    }
-  }, rest), tabs.map((t, i) => {
+    },
+    ...rest
+  }, tabs.map((t, i) => {
     const on = t.id === value;
     return /*#__PURE__*/React.createElement("button", {
       key: t.id,
@@ -3845,20 +3915,19 @@ function TabPanel({
   ...rest
 }) {
   if (id !== value) return null;
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: "tabpanel",
     id: "panel-" + id,
     "aria-labelledby": "tab-" + id,
     tabIndex: 0,
-    style: style
-  }, rest), children);
+    style: style,
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { Tabs, TabPanel });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Tabs.jsx", error: String((e && e.message) || e) }); }
-
 // components/primitives/Divider.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function Divider({
   orientation = "horizontal",
   label,
@@ -3868,7 +3937,7 @@ function Divider({
 }) {
   const color = tone === "strong" ? "var(--dt-border-strong)" : tone === "default" ? "var(--dt-border-default)" : "var(--dt-border-subtle)";
   if (orientation === "vertical") {
-    return /*#__PURE__*/React.createElement("div", _extends({
+    return /*#__PURE__*/React.createElement("div", {
       role: "separator",
       "aria-orientation": "vertical",
       style: {
@@ -3876,19 +3945,21 @@ function Divider({
         alignSelf: "stretch",
         background: color,
         ...style
-      }
-    }, rest));
+      },
+      ...rest
+    });
   }
   if (label) {
-    return /*#__PURE__*/React.createElement("div", _extends({
+    return /*#__PURE__*/React.createElement("div", {
       role: "separator",
       style: {
         display: "flex",
         alignItems: "center",
         gap: "var(--dt-space-inline-sm)",
         ...style
-      }
-    }, rest), /*#__PURE__*/React.createElement("span", {
+      },
+      ...rest
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
         height: "var(--dt-border-width-default)",
         background: color,
@@ -3909,22 +3980,21 @@ function Divider({
       }
     }));
   }
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     role: "separator",
     style: {
       height: "var(--dt-border-width-default)",
       background: color,
       width: "100%",
       ...style
-    }
-  }, rest));
+    },
+    ...rest
+  });
 }
 Object.assign(__ds_scope, { Divider });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Divider.jsx", error: String((e && e.message) || e) }); }
-
 // components/primitives/Grid.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const GAPS = {
   xs: "var(--dt-space-inline-xs)",
   sm: "var(--dt-space-inline-sm)",
@@ -3937,29 +4007,29 @@ function Grid({
   columns = 2,
   gap = "md",
   minColumnWidth,
+  track = "fit",
   align,
   as: Tag = "div",
   children,
   style,
   ...rest
 }) {
-  const template = minColumnWidth ? `repeat(auto-fit, minmax(min(${minColumnWidth}, 100%), 1fr))` : `repeat(${columns}, minmax(0, 1fr))`;
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  const template = minColumnWidth ? `repeat(${track === "fill" ? "auto-fill" : "auto-fit"}, minmax(min(${minColumnWidth}, 100%), 1fr))` : `repeat(${columns}, minmax(0, 1fr))`;
+  return /*#__PURE__*/React.createElement(Tag, {
     style: {
       display: "grid",
       gridTemplateColumns: template,
       gap: GAPS[gap] || GAPS.md,
       alignItems: align,
       ...style
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { Grid });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Grid.jsx", error: String((e && e.message) || e) }); }
-
 // components/primitives/Inline.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const GAPS = {
   "2xs": "var(--dt-space-inline-2xs)",
   xs: "var(--dt-space-inline-xs)",
@@ -3979,7 +4049,7 @@ function Inline({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  return /*#__PURE__*/React.createElement(Tag, {
     style: {
       display: "flex",
       flexDirection: "row",
@@ -3988,15 +4058,14 @@ function Inline({
       justifyContent: justify,
       flexWrap: wrap ? "wrap" : "nowrap",
       ...style
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { Inline });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Inline.jsx", error: String((e && e.message) || e) }); }
-
 // components/primitives/Spacer.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const SIZES = {
   "2xs": "var(--dt-space-stack-2xs)",
   xs: "var(--dt-space-stack-xs)",
@@ -4013,31 +4082,31 @@ function Spacer({
   ...rest
 }) {
   if (size === undefined) {
-    return /*#__PURE__*/React.createElement("div", _extends({
+    return /*#__PURE__*/React.createElement("div", {
       "aria-hidden": "true",
       style: {
         flex: 1,
         ...style
-      }
-    }, rest));
+      },
+      ...rest
+    });
   }
   const value = SIZES[size] || SIZES.md;
-  return /*#__PURE__*/React.createElement("div", _extends({
+  return /*#__PURE__*/React.createElement("div", {
     "aria-hidden": "true",
     style: {
       flex: "none",
       width: axis === "horizontal" ? value : undefined,
       height: axis === "vertical" ? value : undefined,
       ...style
-    }
-  }, rest));
+    },
+    ...rest
+  });
 }
 Object.assign(__ds_scope, { Spacer });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Spacer.jsx", error: String((e && e.message) || e) }); }
-
 // components/primitives/Stack.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const GAPS = {
   "2xs": "var(--dt-space-stack-2xs)",
   xs: "var(--dt-space-stack-xs)",
@@ -4056,7 +4125,7 @@ function Stack({
   style,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  return /*#__PURE__*/React.createElement(Tag, {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -4064,21 +4133,20 @@ function Stack({
       alignItems: align,
       justifyContent: justify,
       ...style
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { Stack });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Stack.jsx", error: String((e && e.message) || e) }); }
-
 // components/primitives/VisuallyHidden.jsx
 try { (() => {
-function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function VisuallyHidden({
   as: Tag = "span",
   children,
   ...rest
 }) {
-  return /*#__PURE__*/React.createElement(Tag, _extends({
+  return /*#__PURE__*/React.createElement(Tag, {
     style: {
       position: "absolute",
       width: 1,
@@ -4090,15 +4158,14 @@ function VisuallyHidden({
       clipPath: "inset(50%)",
       whiteSpace: "nowrap",
       border: 0
-    }
-  }, rest), children);
+    },
+    ...rest
+  }, children);
 }
 Object.assign(__ds_scope, { VisuallyHidden });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/VisuallyHidden.jsx", error: String((e && e.message) || e) }); }
-
 // components/forms/Combobox.jsx
 try { (() => {
-const { Field } = __ds_scope;
 const norm = o => typeof o === "string" ? {
   value: o,
   label: o
@@ -4339,7 +4406,7 @@ function Combobox({
   if (!label && !hint && !error) return /*#__PURE__*/React.createElement("div", {
     style: style
   }, control);
-  return /*#__PURE__*/React.createElement(Field, {
+  return /*#__PURE__*/React.createElement(__ds_scope.Field, {
     label: label,
     hint: hint,
     error: error,
@@ -4350,7 +4417,6 @@ function Combobox({
 }
 Object.assign(__ds_scope, { Combobox });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Combobox.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/BlockRenderer.jsx
 try { (() => {
 /* The layer that makes any headless source work. A block is `{ _type, _key, ...props }`;
@@ -4426,10 +4492,8 @@ function UnknownBlock({
 }
 Object.assign(__ds_scope, { BlockRenderer });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/BlockRenderer.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Video.jsx
 try { (() => {
-const { UploadFrame, AspectRatio } = __ds_scope;
 const RADII = {
   none: "0",
   media: "var(--dt-radius-media)",
@@ -4479,11 +4543,11 @@ function Video({
     ...style
   };
   if (!src) {
-    return /*#__PURE__*/React.createElement(AspectRatio, {
+    return /*#__PURE__*/React.createElement(__ds_scope.AspectRatio, {
       ratio: ratio,
       style: frame,
       ...rest
-    }, /*#__PURE__*/React.createElement(UploadFrame, {
+    }, /*#__PURE__*/React.createElement(__ds_scope.UploadFrame, {
       icon: PLACEHOLDER_ICON,
       label: placeholder || label || "Video",
       hint: "Drop a video, or choose a file",
@@ -4496,7 +4560,7 @@ function Video({
      Defaulting to muted when muted is not given makes the common case, a
      background loop, work without a second prop to remember. */
   const isMuted = muted == null ? autoPlay : muted;
-  return /*#__PURE__*/React.createElement(AspectRatio, {
+  return /*#__PURE__*/React.createElement(__ds_scope.AspectRatio, {
     ratio: ratio,
     style: frame,
     ...rest
@@ -4521,10 +4585,8 @@ function Video({
 }
 Object.assign(__ds_scope, { Video });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Video.jsx", error: String((e && e.message) || e) }); }
-
 // components/content/Cover.jsx
 try { (() => {
-const { AspectRatio, UploadFrame } = __ds_scope;
 const RADII = {
   none: "0",
   media: "var(--dt-radius-media)",
@@ -4608,7 +4670,7 @@ function Cover({
     ...style
   };
   const hasContent = eyebrow || title || body || actions;
-  return /*#__PURE__*/React.createElement(AspectRatio, {
+  return /*#__PURE__*/React.createElement(__ds_scope.AspectRatio, {
     ratio: ratio,
     style: frame,
     ...rest
@@ -4624,7 +4686,7 @@ function Cover({
       objectFit: fit,
       display: "block"
     }
-  }) : /*#__PURE__*/React.createElement(UploadFrame, {
+  }) : /*#__PURE__*/React.createElement(__ds_scope.UploadFrame, {
     icon: PLACEHOLDER_ICON,
     label: placeholder || alt || "Cover image",
     hint: "Drop an image, or choose a file",
@@ -4659,7 +4721,7 @@ function Cover({
       letterSpacing: "var(--dt-text-eyebrow-tracking)",
       fontWeight: "var(--dt-text-eyebrow-weight)",
       textTransform: "uppercase",
-      color: "var(--dt-text-inverse)"
+      color: "var(--dt-text-on-scrim)"
     }
   }, eyebrow), title && /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -4670,7 +4732,7 @@ function Cover({
       lineHeight: "var(--dt-text-heading-lg-line)",
       fontWeight: "var(--dt-text-heading-lg-weight)",
       letterSpacing: "var(--dt-text-heading-lg-tracking)",
-      color: "var(--dt-text-inverse)",
+      color: "var(--dt-text-on-scrim)",
       textWrap: "pretty"
     }
   }, title), body && /*#__PURE__*/React.createElement("div", {
@@ -4679,8 +4741,7 @@ function Cover({
       fontFamily: "var(--dt-text-body-md-family)",
       fontSize: "var(--dt-text-body-md-size)",
       lineHeight: "var(--dt-text-body-md-line)",
-      color: "var(--dt-text-inverse)",
-      opacity: 0.9,
+      color: "var(--dt-text-on-scrim-secondary)",
       textWrap: "pretty"
     }
   }, body), actions && /*#__PURE__*/React.createElement("div", {
@@ -4694,7 +4755,291 @@ function Cover({
 }
 Object.assign(__ds_scope, { Cover });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/Cover.jsx", error: String((e && e.message) || e) }); }
+// components/typography/Heading.jsx
+try { (() => {
+const DEFAULT_SIZE = {
+  1: "heading-xl",
+  2: "heading-lg",
+  3: "heading-md",
+  4: "heading-sm",
+  5: "heading-xs",
+  6: "heading-xs"
+};
+const SIZES = ["display-lg", "display-md", "display-sm", "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs"];
+const TONES = {
+  inherit: "inherit",
+  primary: "var(--dt-text-primary)",
+  secondary: "var(--dt-text-secondary)"
+};
+const MEASURES = {
+  narrow: "var(--dt-measure-narrow)",
+  default: "var(--dt-measure-default)",
+  wide: "var(--dt-measure-wide)",
+  none: "none"
+};
+function Heading({
+  level = 2,
+  size,
+  tone = "inherit",
+  align,
+  measure = "none",
+  balance = true,
+  children,
+  style,
+  ...rest
+}) {
+  const lvl = Math.min(6, Math.max(1, Number(level) || 2));
+  const Tag = "h" + lvl;
+  const role = SIZES.indexOf(size) !== -1 ? size : DEFAULT_SIZE[lvl];
+  return /*#__PURE__*/React.createElement(Tag, {
+    style: {
+      margin: 0,
+      fontFamily: `var(--dt-text-${role}-family)`,
+      fontSize: `var(--dt-text-${role}-size)`,
+      lineHeight: `var(--dt-text-${role}-line)`,
+      fontWeight: `var(--dt-text-${role}-weight)`,
+      letterSpacing: `var(--dt-text-${role}-tracking)`,
+      color: TONES[tone] || TONES.inherit,
+      textAlign: align,
+      maxWidth: MEASURES[measure] || MEASURES.none,
+      textWrap: balance ? "balance" : undefined,
+      ...style
+    },
+    ...rest
+  }, children);
+}
+Object.assign(__ds_scope, { Heading });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/typography/Heading.jsx", error: String((e && e.message) || e) }); }
+// components/typography/Text.jsx
+try { (() => {
+const VARIANTS = {
+  eyebrow: {
+    role: "eyebrow",
+    tag: "span",
+    tone: "secondary",
+    measure: "none",
+    upper: true
+  },
+  lead: {
+    role: "body-lg",
+    tag: "p",
+    tone: "secondary",
+    measure: "default"
+  },
+  body: {
+    role: "body-md",
+    tag: "p",
+    tone: "inherit",
+    measure: "default"
+  },
+  small: {
+    role: "body-sm",
+    tag: "p",
+    tone: "inherit",
+    measure: "default"
+  },
+  fine: {
+    role: "body-xs",
+    tag: "p",
+    tone: "tertiary",
+    measure: "default"
+  },
+  label: {
+    role: "label-md",
+    tag: "span",
+    tone: "inherit",
+    measure: "none"
+  }
+};
+const TONES = {
+  inherit: "inherit",
+  primary: "var(--dt-text-primary)",
+  secondary: "var(--dt-text-secondary)",
+  tertiary: "var(--dt-text-tertiary)",
+  link: "var(--dt-text-link)"
+};
+const MEASURES = {
+  narrow: "var(--dt-measure-narrow)",
+  default: "var(--dt-measure-default)",
+  wide: "var(--dt-measure-wide)",
+  none: "none"
+};
+const WEIGHTS = {
+  regular: "var(--dt-font-weight-regular)",
+  medium: "var(--dt-font-weight-medium)",
+  semibold: "var(--dt-font-weight-semibold)"
+};
+function Text({
+  variant = "body",
+  tone,
+  measure,
+  weight,
+  align,
+  numeric = false,
+  as,
+  children,
+  style,
+  ...rest
+}) {
+  const v = VARIANTS[variant] || VARIANTS.body;
+  const Tag = as || v.tag;
+  const role = v.role;
+  return /*#__PURE__*/React.createElement(Tag, {
+    style: {
+      margin: 0,
+      fontFamily: `var(--dt-text-${role}-family)`,
+      fontSize: `var(--dt-text-${role}-size)`,
+      lineHeight: `var(--dt-text-${role}-line)`,
+      fontWeight: WEIGHTS[weight] || `var(--dt-text-${role}-weight)`,
+      letterSpacing: `var(--dt-text-${role}-tracking)`,
+      textTransform: v.upper ? "uppercase" : undefined,
+      color: TONES[tone || v.tone] || TONES.inherit,
+      maxWidth: MEASURES[measure || v.measure] || MEASURES.none,
+      textAlign: align,
+      textWrap: v.tag === "p" ? "pretty" : undefined,
+      fontVariantNumeric: numeric ? "tabular-nums" : undefined,
+      ...style
+    },
+    ...rest
+  }, children);
+}
+Object.assign(__ds_scope, { Text });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/typography/Text.jsx", error: String((e && e.message) || e) }); }
+// components/primitives/Section.jsx
+try { (() => {
+const WIDTHS = {
+  narrow: "var(--dt-size-container-narrow)",
+  default: "var(--dt-size-container-default)",
+  wide: "var(--dt-size-container-wide)",
+  full: "none"
+};
+const SPACING = {
+  default: "var(--dt-space-section)",
+  compact: "var(--dt-space-section-compact)",
+  none: "0"
+};
+const ALIGN = {
+  top: "flex-start",
+  center: "center",
+  bottom: "flex-end"
+};
 
+/* Each tone is a surface and the text roles that belong on it. The text roles
+   are re-pointed on the section itself, so a Heading or Text inside it that
+   reads --dt-text-secondary gets the fill's own secondary rather than the
+   page's grey. That is the "fixed card" pattern: the band decides its colours,
+   and everything inside it follows without a prop. */
+function onFill(fg) {
+  return {
+    "--dt-text-primary": fg,
+    "--dt-text-secondary": `color-mix(in oklab, ${fg} 88%, transparent)`,
+    "--dt-text-tertiary": `color-mix(in oklab, ${fg} 76%, transparent)`,
+    color: fg
+  };
+}
+const TONES = {
+  base: {
+    background: "var(--dt-surface-base)"
+  },
+  subtle: {
+    background: "var(--dt-surface-subtle)"
+  },
+  brand: {
+    background: "var(--dt-surface-brand)",
+    ...onFill("var(--dt-text-on-brand)")
+  },
+  "brand-muted": {
+    background: "var(--dt-surface-brand-muted)",
+    ...onFill("var(--dt-text-on-brand-muted)")
+  },
+  secondary: {
+    background: "var(--dt-surface-brand-secondary)",
+    ...onFill("var(--dt-text-on-brand-secondary)")
+  },
+  "secondary-muted": {
+    background: "var(--dt-surface-brand-secondary-muted)",
+    ...onFill("var(--dt-text-on-brand-secondary-muted)")
+  }
+};
+function scrimImage(scrim, align) {
+  if (scrim === "none") return "none";
+  if (scrim === "solid" || align === "center") return "var(--dt-surface-scrim)";
+  const to = align === "bottom" ? "to top" : "to bottom";
+  return `linear-gradient(${to}, var(--dt-surface-scrim), var(--dt-surface-scrim) 30%, transparent 90%)`;
+}
+function Section({
+  width = "default",
+  tone = "base",
+  dark,
+  texture = false,
+  spacing = "default",
+  media,
+  scrim = "gradient",
+  align = "bottom",
+  minHeight,
+  as: Tag = "section",
+  className,
+  children,
+  style,
+  ...rest
+}) {
+  const photo = !!media;
+  const scoped = dark === undefined ? photo : dark;
+  const surface = photo ? {
+    background: "var(--dt-surface-base)",
+    ...onFill("var(--dt-text-on-scrim)"),
+    "--dt-text-secondary": "var(--dt-text-on-scrim-secondary)"
+  } : TONES[tone] || TONES.base;
+  const fill = texture && surface.background ? `var(--dt-surface-texture), ${surface.background}` : surface.background;
+  const pad = SPACING[spacing] || SPACING.default;
+  return /*#__PURE__*/React.createElement(Tag, {
+    className: [scoped ? "dark" : null, className].filter(Boolean).join(" ") || undefined,
+    style: {
+      position: "relative",
+      overflow: photo ? "hidden" : undefined,
+      ...surface,
+      background: fill,
+      color: surface.color || "var(--dt-text-primary)",
+      display: photo ? "flex" : undefined,
+      flexDirection: photo ? "column" : undefined,
+      justifyContent: photo ? ALIGN[align] || ALIGN.bottom : undefined,
+      minHeight: minHeight || (photo ? "min(70vh, var(--dt-dim-container-sm))" : undefined),
+      paddingBlock: pad,
+      ...style
+    },
+    ...rest
+  }, photo && /*#__PURE__*/React.createElement("img", {
+    src: media,
+    alt: "",
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      display: "block"
+    }
+  }), photo && scrim !== "none" && /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      backgroundImage: scrimImage(scrim, align)
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: photo ? "relative" : undefined,
+      width: "100%",
+      maxWidth: WIDTHS[width] || WIDTHS.default,
+      marginInline: "auto",
+      paddingInline: "var(--dt-space-gutter)",
+      boxSizing: "border-box"
+    }
+  }, children));
+}
+Object.assign(__ds_scope, { Section });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Section.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -4814,5 +5159,11 @@ __ds_ns.Video = __ds_scope.Video;
 __ds_ns.BlockRenderer = __ds_scope.BlockRenderer;
 
 __ds_ns.Combobox = __ds_scope.Combobox;
+
+__ds_ns.Heading = __ds_scope.Heading;
+
+__ds_ns.Text = __ds_scope.Text;
+
+__ds_ns.Section = __ds_scope.Section;
 
 })();

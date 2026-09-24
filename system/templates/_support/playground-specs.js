@@ -196,7 +196,7 @@ DT_SPECS.Link = {
     { name: "href", control: "text", default: "#" },
     { name: "external", control: "boolean", default: false, notes: "New tab, safe rel, and an indicator icon." },
     { name: "underline", control: "select", options: ["always", "hover", "never"], default: "always" },
-    { name: "tone", control: "select", options: ["accent", "inherit"], default: "accent" },
+    { name: "tone", control: "select", options: ["primary", "inherit"], default: "primary" },
   ],
   render: (p, NS) => e("p", {
     style: { margin: 0, maxWidth: "48ch", fontSize: "var(--dt-text-body-md-size)", lineHeight: "var(--dt-text-body-md-line)", color: "var(--dt-text-secondary)", textAlign: "left" },
@@ -229,7 +229,7 @@ DT_SPECS.Link = {
   usage: [
     "Behaviour decides this, not styling. A Button styled as a link is still a button.",
     "Keep underline=\"always\" in prose. Reserve hover and never for navigation lists where position already marks the links.",
-    "tone=\"inherit\" is for links inside a coloured block where accent would clash.",
+    "tone=\"inherit\" is for links inside a coloured block where the primary colour would clash.",
   ],
 };
 

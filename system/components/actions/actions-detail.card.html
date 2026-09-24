@@ -213,7 +213,7 @@ function Page() {
           { name: "href", type: "string", required: true },
           { name: "external", type: "boolean", notes: "New tab, safe rel, and an indicator icon." },
           { name: "underline", type: '"always" | "hover" | "never"', default: '"always"', notes: "always is correct for links in prose." },
-          { name: "tone", type: '"accent" | "inherit"', default: '"accent"', notes: "inherit inside a coloured block where accent would clash." },
+          { name: "tone", type: '"primary" | "inherit"', default: '"primary"', notes: "inherit inside a coloured block where the primary colour would clash." },
         ]}
         guidance={[
           "If it changes the page, it is a Link. If it changes data, it is a Button. Styling does not decide this — behaviour does.",

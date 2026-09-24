@@ -168,7 +168,7 @@ function App() {
             <h2 className="sec-h">The audit that took a week now runs in CI</h2>
             <p className="lead">The adherence lint rejects literal values before review. If a colour is not a token, the build says so.</p>
             <Inline gap="xl" wrap>
-              <Stat label="Components" value="56" caption="across seven groups" />
+              <Stat label="Components" value="63" caption="across eight groups" />
               <Stat label="Tokens" value="658" caption="three tiers, DTCG authored" />
               <Stat label="Themes" value="4" caption="base, dark, editorial, mono" />
             </Inline>
@@ -192,7 +192,7 @@ function App() {
         </Stack>
         <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
           <Accordion label="Adoption questions" defaultOpen={["a"]} items={[
-            { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply an accent ramp and a type family; every component picks them up through the semantic tier." },
+            { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply an primary ramp and a type family; every component picks them up through the semantic tier." },
             { id: "b", title: "Does it work outside React?", content: "The tokens do. They are authored in DTCG format and build to CSS custom properties, so any framework can consume them. The component layer is React." },
             { id: "c", title: "What about dark mode and density?", content: "Both are axes alongside brand theme and context. A component never knows which combination it is rendering under — it reads roles, and the roles are retuned." },
           ]} />

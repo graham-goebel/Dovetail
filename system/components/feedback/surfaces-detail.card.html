@@ -106,7 +106,7 @@ function Page() {
           { name: "media", type: "ReactNode", notes: "Image slot, rendered above everything." },
           { name: "footer", type: "ReactNode", notes: "Action row at the bottom." },
           { name: "interactive", type: "boolean", notes: "Raises elevation on hover and sets a pointer cursor." },
-          { name: "selected", type: "boolean", notes: "Accent border and tinted background for a chosen option." },
+          { name: "selected", type: "boolean", notes: "Primary-colour border and tinted background for a chosen option." },
         ]}
         guidance={[
           "Cards inherit padding and radius from the context. The same Card is compact under dt-context-product and generous under dt-context-marketing — do not override either.",
@@ -138,7 +138,7 @@ function Page() {
         name="Badge"
         summary="Small non-interactive label for status or metadata."
         props={[
-          { name: "tone", type: '"neutral" | "accent" | "success" | "warning" | "danger" | "info"', default: '"neutral"' },
+          { name: "tone", type: '"neutral" | "primary" | "success" | "warning" | "danger" | "info"', default: '"neutral"' },
           { name: "variant", type: '"subtle" | "solid"', default: '"subtle"', notes: "solid is a filled chip for high emphasis." },
           { name: "dot", type: "boolean", notes: "Leading status dot." },
         ]}
@@ -151,13 +151,13 @@ function Page() {
       >
         <Specimen label="Tones" bg="var(--dt-surface-base)">
           <Inline gap="sm" wrap>
-            <Badge>Neutral</Badge><Badge tone="accent">Accent</Badge><Badge tone="success">Paid</Badge>
+            <Badge>Neutral</Badge><Badge tone="primary">Primary</Badge><Badge tone="success">Paid</Badge>
             <Badge tone="warning">Due soon</Badge><Badge tone="danger">Past due</Badge><Badge tone="info">Draft</Badge>
           </Inline>
         </Specimen>
         <Specimen label="Solid and dotted" bg="var(--dt-surface-base)">
           <Inline gap="sm" wrap>
-            <Badge variant="solid">Neutral</Badge><Badge variant="solid" tone="accent">Accent</Badge>
+            <Badge variant="solid">Neutral</Badge><Badge variant="solid" tone="primary">Primary</Badge>
             <Badge variant="solid" tone="success">Paid</Badge><Badge variant="solid" tone="danger">Past due</Badge>
             <Badge dot tone="success">Live</Badge><Badge dot tone="warning">Syncing</Badge><Badge dot tone="danger">Failed</Badge>
           </Inline>

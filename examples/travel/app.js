@@ -533,7 +533,7 @@
           style: s.heroFocus ? { objectPosition: s.heroFocus } : undefined
         }),
         s.tags && s.tags[0] ? h("span", { className: "mv-card-flag" },
-          h(NS.Badge, { variant: "solid", tone: s.illustrated ? "accent" : "neutral" }, s.tags[0])) : null,
+          h(NS.Badge, { variant: "solid", tone: s.illustrated ? "primary" : "neutral" }, s.tags[0])) : null,
         h("span", { className: "mv-card-actions" },
           h("button", {
             type: "button", className: "mv-save", "aria-pressed": props.saved,

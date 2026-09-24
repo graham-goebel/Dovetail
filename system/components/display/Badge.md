@@ -14,7 +14,7 @@ A small, non-interactive label. Badges report state; they never do anything.
 ```jsx
 <Badge tone="success" dot>Active</Badge>
 <Badge tone="danger">Past due</Badge>
-<Badge tone="accent" variant="solid">New</Badge>
+<Badge tone="primary" variant="solid">New</Badge>
 ```
 
 ## Variants

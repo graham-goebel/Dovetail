@@ -14,5 +14,7 @@ Top-level navigation for marketing pages and product shells with few destination
 
 ## Tradeoffs
 
-Horizontal bars run out of room fast and scroll badly on narrow screens. Plan the mobile
-treatment, a Drawer, before you add the fourth link.
+Horizontal bars run out of room fast. Below `collapseBelow` (640px by default) the link
+row becomes a menu button that opens the same links in a Drawer, with `actions` moved to
+the drawer's footer, so a phone never gets a sideways-scrolling strip of links. Pass
+`collapseBelow={0}` only when the bar holds so few links it fits at every width.

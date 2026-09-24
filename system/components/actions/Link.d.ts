@@ -7,8 +7,8 @@ export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
   external?: boolean;
   /** "always" is correct for links in prose. @default "always" */
   underline?: "always" | "hover" | "never";
-  /** "inherit" for links inside a coloured block where accent would clash. @default "accent" */
-  tone?: "accent" | "inherit";
+  /** "inherit" for links inside a coloured block where the primary colour would clash. @default "primary" */
+  tone?: "primary" | "inherit";
   children?: React.ReactNode;
 }
 

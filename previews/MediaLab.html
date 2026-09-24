@@ -36,18 +36,18 @@
   --dt-color-neutral-900: oklch(0.205 0.006 264);
   --dt-color-neutral-950: oklch(0.145 0.005 264);
 
-  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
-  --dt-color-accent-050: oklch(0.970 0.014 259);
-  --dt-color-accent-100: oklch(0.936 0.032 259);
-  --dt-color-accent-200: oklch(0.885 0.059 259);
-  --dt-color-accent-300: oklch(0.809 0.096 259);
-  --dt-color-accent-400: oklch(0.714 0.143 259);
-  --dt-color-accent-500: oklch(0.623 0.188 259);
-  --dt-color-accent-600: oklch(0.546 0.215 259);
-  --dt-color-accent-700: oklch(0.476 0.196 259);
-  --dt-color-accent-800: oklch(0.404 0.162 259);
-  --dt-color-accent-900: oklch(0.344 0.128 259);
-  --dt-color-accent-950: oklch(0.256 0.093 259);
+  /* Primary — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-primary-050: oklch(0.970 0.014 259);
+  --dt-color-primary-100: oklch(0.936 0.032 259);
+  --dt-color-primary-200: oklch(0.885 0.059 259);
+  --dt-color-primary-300: oklch(0.809 0.096 259);
+  --dt-color-primary-400: oklch(0.714 0.143 259);
+  --dt-color-primary-500: oklch(0.623 0.188 259);
+  --dt-color-primary-600: oklch(0.546 0.215 259);
+  --dt-color-primary-700: oklch(0.476 0.196 259);
+  --dt-color-primary-800: oklch(0.404 0.162 259);
+  --dt-color-primary-900: oklch(0.344 0.128 259);
+  --dt-color-primary-950: oklch(0.256 0.093 259);
 
   /* Green */
   --dt-color-green-050: oklch(0.972 0.021 150);
@@ -311,8 +311,8 @@
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-400);
   --dt-text-inverse: var(--dt-color-neutral-050);
-  --dt-text-link: var(--dt-color-accent-700);
-  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link: var(--dt-color-primary-700);
+  --dt-text-link-hover: var(--dt-color-primary-800);
   --dt-text-link-visited: var(--dt-color-violet-700);
 
   /* ---- Borders --------------------------------------------------- */
@@ -323,9 +323,9 @@
   --dt-border-disabled: var(--dt-color-neutral-200);
 
   /* ---- Actions --------------------------------------------------- */
-  --dt-surface-action: var(--dt-color-accent-600);
-  --dt-surface-action-hover: var(--dt-color-accent-700);
-  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-surface-action: var(--dt-color-primary-600);
+  --dt-surface-action-hover: var(--dt-color-primary-700);
+  --dt-surface-action-active: var(--dt-color-primary-800);
   --dt-text-on-action: var(--dt-color-white);
 
   --dt-surface-action-secondary: var(--dt-color-white);
@@ -348,10 +348,10 @@
   --dt-text-on-action-disabled: var(--dt-color-neutral-400);
 
   /* ---- Selection ------------------------------------------------- */
-  --dt-surface-selected: var(--dt-color-accent-050);
-  --dt-surface-selected-hover: var(--dt-color-accent-100);
-  --dt-text-on-selected: var(--dt-color-accent-900);
-  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-selected: var(--dt-color-primary-050);
+  --dt-surface-selected-hover: var(--dt-color-primary-100);
+  --dt-text-on-selected: var(--dt-color-primary-900);
+  --dt-border-selected: var(--dt-color-primary-600);
 
   /* ---- Feedback -------------------------------------------------- */
   --dt-surface-success: var(--dt-color-green-600);
@@ -379,13 +379,13 @@
   --dt-text-on-info: var(--dt-color-white);
 
   /* ---- Focus ----------------------------------------------------- */
-  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-color: var(--dt-color-primary-600);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
   /* ---- Data visualisation ---------------------------------------
      The documented exception to the no-primitives rule. Chart series need a
      palette with no semantic meaning, ordered for categorical distinctness. */
-  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-1: var(--dt-color-primary-600);
   --dt-viz-2: var(--dt-color-violet-500);
   --dt-viz-3: var(--dt-color-cyan-600);
   --dt-viz-4: var(--dt-color-amber-500);
@@ -681,7 +681,7 @@
    Two rules that make dark mode work:
    1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
       invisible on a dark ground, so raised surfaces get lighter instead.
-   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+   2. Saturated fills step down one level. A 600-step primary that reads correctly on
       white is too hot on near-black; 500 carries the same weight.
 
    Applies on .dark, and automatically when the OS asks for it. */
@@ -701,8 +701,8 @@
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-600);
   --dt-text-inverse: var(--dt-color-neutral-900);
-  --dt-text-link: var(--dt-color-accent-400);
-  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link: var(--dt-color-primary-400);
+  --dt-text-link-hover: var(--dt-color-primary-300);
   --dt-text-link-visited: var(--dt-color-violet-400);
 
   --dt-border-subtle: var(--dt-color-neutral-800);
@@ -711,9 +711,9 @@
   --dt-border-inverse: var(--dt-color-neutral-300);
   --dt-border-disabled: var(--dt-color-neutral-800);
 
-  --dt-surface-action: var(--dt-color-accent-500);
-  --dt-surface-action-hover: var(--dt-color-accent-400);
-  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-surface-action: var(--dt-color-primary-500);
+  --dt-surface-action-hover: var(--dt-color-primary-400);
+  --dt-surface-action-active: var(--dt-color-primary-300);
   --dt-text-on-action: var(--dt-color-neutral-950);
 
   --dt-surface-action-secondary: var(--dt-color-neutral-900);
@@ -736,8 +736,8 @@
 
   --dt-surface-selected: oklch(0.256 0.093 259);
   --dt-surface-selected-hover: oklch(0.344 0.128 259);
-  --dt-text-on-selected: var(--dt-color-accent-100);
-  --dt-border-selected: var(--dt-color-accent-500);
+  --dt-text-on-selected: var(--dt-color-primary-100);
+  --dt-border-selected: var(--dt-color-primary-500);
 
   --dt-surface-success: var(--dt-color-green-500);
   --dt-surface-success-subtle: var(--dt-color-green-950);
@@ -763,10 +763,10 @@
   --dt-text-info: var(--dt-color-cyan-300);
   --dt-text-on-info: var(--dt-color-neutral-950);
 
-  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-color: var(--dt-color-primary-400);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
-  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-1: var(--dt-color-primary-400);
   --dt-viz-2: var(--dt-color-violet-400);
   --dt-viz-3: var(--dt-color-cyan-400);
   --dt-viz-4: var(--dt-color-amber-400);
@@ -1480,7 +1480,7 @@ function IconBrowser({ set, lib, stroke }) {
         return (s ? names.filter((n) => kebab(n).includes(s)) : names);
     }, [q, names]);
     const shown = hits.slice(0, 96);
-    return h("section", { className: "ml-scene" }, h("header", null, h("h3", null, "Icon set"), h("p", null, set ? names.length.toLocaleString() + " icons in " + LIBS[lib].label + ". Showing " + shown.length + (hits.length > shown.length ? " of " + hits.length.toLocaleString() : "") + "." : "Loading…")), h("div", { className: "ml-iconbar" }, h("label", { className: "ml-search" }, h(Icon, { slot: "search", size: 16 }), h("input", { id: "ml-icon-search", type: "search", placeholder: "Search icons", value: q, onChange: (e) => setQ(e.target.value), "aria-label": "Search icons" })), h("div", { className: "ml-seg", role: "group", "aria-label": "Preview size" }, [16, 20, 24, 32].map((s) => h("button", { key: s, type: "button", "aria-pressed": size === s, onClick: () => setSize(s) }, s + "px")))), h("div", { className: "ml-icons" }, shown.map((n) => h("div", { key: n, className: "ml-icon", title: kebab(n) }, h(Glyph, { data: set[n], size, stroke: lib === "lucide" ? stroke : null }), h("span", null, kebab(n))))), h("div", { className: "ml-context" }, h("p", { className: "ml-label" }, "In context"), h(Inline, { gap: "sm", align: "center", wrap: true }, h(Button, { iconStart: h(Icon, { slot: "plus", size: 16 }) }, "New trip"), h(Button, { variant: "secondary", iconEnd: h(Icon, { slot: "arrow", size: 16 }) }, "Continue"), h(IconButton, { label: "More", size: "sm" }, h(Icon, { slot: "more" })), h(IconButton, { label: "Settings" }, h(Icon, { slot: "settings" })), h(IconButton, { label: "Close", variant: "solid" }, h(Icon, { slot: "close" })), h(Badge, { tone: "accent" }, "Beta"))));
+    return h("section", { className: "ml-scene" }, h("header", null, h("h3", null, "Icon set"), h("p", null, set ? names.length.toLocaleString() + " icons in " + LIBS[lib].label + ". Showing " + shown.length + (hits.length > shown.length ? " of " + hits.length.toLocaleString() : "") + "." : "Loading…")), h("div", { className: "ml-iconbar" }, h("label", { className: "ml-search" }, h(Icon, { slot: "search", size: 16 }), h("input", { id: "ml-icon-search", type: "search", placeholder: "Search icons", value: q, onChange: (e) => setQ(e.target.value), "aria-label": "Search icons" })), h("div", { className: "ml-seg", role: "group", "aria-label": "Preview size" }, [16, 20, 24, 32].map((s) => h("button", { key: s, type: "button", "aria-pressed": size === s, onClick: () => setSize(s) }, s + "px")))), h("div", { className: "ml-icons" }, shown.map((n) => h("div", { key: n, className: "ml-icon", title: kebab(n) }, h(Glyph, { data: set[n], size, stroke: lib === "lucide" ? stroke : null }), h("span", null, kebab(n))))), h("div", { className: "ml-context" }, h("p", { className: "ml-label" }, "In context"), h(Inline, { gap: "sm", align: "center", wrap: true }, h(Button, { iconStart: h(Icon, { slot: "plus", size: 16 }) }, "New trip"), h(Button, { variant: "secondary", iconEnd: h(Icon, { slot: "arrow", size: 16 }) }, "Continue"), h(IconButton, { label: "More", size: "sm" }, h(Icon, { slot: "more" })), h(IconButton, { label: "Settings" }, h(Icon, { slot: "settings" })), h(IconButton, { label: "Close", variant: "solid" }, h(Icon, { slot: "close" })), h(Badge, { tone: "primary" }, "Beta"))));
 }
 /* ---------- the tool ---------- */
 const WIDTHS = [{ id: "phone", label: "Phone", w: 390 }, { id: "tablet", label: "Tablet", w: 768 }, { id: "desktop", label: "Desktop", w: 1200 }];
