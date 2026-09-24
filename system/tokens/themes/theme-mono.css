@@ -36,6 +36,7 @@
   --dt-surface-brand-muted: var(--dt-color-neutral-100);
   --dt-text-on-brand-muted: var(--dt-color-neutral-950);
   --dt-border-brand: var(--dt-color-neutral-300);
+  --dt-text-brand: var(--dt-color-neutral-950);
   --dt-surface-brand-secondary: var(--dt-color-neutral-700);
   --dt-text-on-brand-secondary: var(--dt-color-white);
   --dt-surface-brand-secondary-muted: var(--dt-color-neutral-050);

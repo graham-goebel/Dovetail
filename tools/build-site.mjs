@@ -500,7 +500,7 @@ const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === gr
 const CARD_SECTIONS = {
   Color: [
     ["Ramps", "The raw hues, eleven steps each. Nothing in a component names one.",
-      ["ColorNeutral", "ColorPrimary", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
+      ["ColorNeutral", "ColorPrimary", "ColorSecondary", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
     ["Roles", "What a component actually reads. Each one resolves to a step of a ramp above.",
       ["ColorSurfaces", "ColorText", "ColorBorders", "ColorPairs", "ColorActions", "ColorFeedback", "ColorDark"]],
     ["Brand and texture", "Full-bleed roles for a section, not a control: a solid or gradient fill, a muted tint, and a pattern built from two gradients rather than an image.",

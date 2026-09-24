@@ -159,9 +159,9 @@ where it is always in reach rather than buried at the bottom of one tab:
 
 | Tab | Sets |
 | --- | --- |
-| Brand | Name and mark, primary and secondary colours, monochrome, fill, texture, ramp hues, steps per ramp |
+| Brand | Name, mark and wordmark colour, primary and secondary colours, monochrome, fill, texture, ramp hues, steps per ramp |
 | Shape | Radius roles, media radius, focus ring width |
-| Type | Body family, display family, secondary family, code family |
+| Type | Display family, body family, secondary family, code family |
 | Space | Whitespace, control density, base unit |
 | Media | Photo, illustration, icon library, icon stroke, icon size, media blocks |
 | View | Colour mode, context |
@@ -211,6 +211,17 @@ text and surface pair ends up at least as far apart as before. What a low count 
 is a state, since a button's hover may land on its resting colour, and the panel says so
 when it does. Neutral always keeps eleven: it carries every surface, border and line of
 text, and merging them would cost more than it saves.
+
+The ramp cards on the Color page follow both: a secondary ramp card sits beside the
+primary, and each chromatic card shows only the steps the theme publishes, with a line
+naming them. `system/templates/_support/ramp-steps.js` does the hiding, reading the
+saved configuration the same way the theme runtime does.
+
+**Wordmark colour** sets `--dt-text-wordmark`: **Ink** is the monochrome wordmark, and
+**Primary** or **Secondary** set the name in a brand hue through a text role, so it keeps
+text contrast in either mode. With a mark uploaded, **Mark colour** either keeps the file's
+own colours or uses its shape as a mask filled with the wordmark colour, so the mark goes
+monochrome with Ink and flips with dark mode.
 
 **Secondary family** is the small UI voice. The label and eyebrow roles read
 `--dt-font-family-secondary`, so buttons, form labels, badges, tabs and eyebrows follow it

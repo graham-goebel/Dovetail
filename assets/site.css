@@ -85,7 +85,7 @@ body {
   font-size: var(--dt-font-size-md);
   font-weight: var(--dt-font-weight-semibold);
   letter-spacing: var(--dt-tracking-tight);
-  color: var(--dt-text-primary);
+  color: var(--dt-text-wordmark, var(--dt-text-primary));
   text-decoration: none;
 }
 
@@ -94,6 +94,23 @@ body {
   width: auto;
   max-width: var(--dt-dim-32);
   object-fit: contain;
+}
+
+/* The system's base sheet gives img display: block, which outranks the
+   browser's own [hidden] rule, so hidden has to be said here. */
+.wordmark-mark[hidden] {
+  display: none;
+}
+
+/* The uploaded mark as a mask over the wordmark's colour. */
+.wordmark-mark-tint {
+  display: inline-block;
+  height: var(--dt-size-icon-lg);
+  aspect-ratio: 1;
+  max-width: var(--dt-dim-32);
+  background: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
 }
 
 .wordmark-note {

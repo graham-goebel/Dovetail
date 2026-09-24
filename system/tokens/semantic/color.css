@@ -126,6 +126,13 @@
   --dt-surface-brand-muted: var(--dt-color-primary-050);
   --dt-text-on-brand-muted: var(--dt-color-primary-900);
   --dt-border-brand: var(--dt-color-primary-200);
+  --dt-text-brand: var(--dt-color-primary-700);
+
+  /* The wordmark's colour. Ink by default, which is the monochrome mark; a
+     theme points it at --dt-text-brand or --dt-text-brand-secondary to set the
+     name in a brand hue. Both of those are text roles, so the name keeps text
+     contrast in either mode. */
+  --dt-text-wordmark: var(--dt-text-primary);
 
   /* The secondary brand hue, as the same three pairs. A second fill for a
      section that sits beside a primary one, a muted tint for a quieter band,

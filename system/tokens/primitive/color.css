@@ -104,7 +104,7 @@
   --dt-color-cyan-900: oklch(0.366 0.077 230);
   --dt-color-cyan-950: oklch(0.262 0.056 230);
 
-  /* Violet — the spare hue. Reserved for data visualisation. */
+  /* Violet — a spare hue for illustration and charts. Secondary ships with these values. */
   --dt-color-violet-050: oklch(0.977 0.014 305);
   --dt-color-violet-100: oklch(0.946 0.033 305);
   --dt-color-violet-200: oklch(0.902 0.063 305);

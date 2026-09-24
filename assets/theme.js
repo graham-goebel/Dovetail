@@ -40,6 +40,8 @@
     secondaryHex: "#8a4fd6",
     secondaryFont: "",
     steps: 0,
+    wordmarkColor: "ink",
+    markTint: false,
     radius: "standard",
     font: "sans",
     displayFont: "",
@@ -73,6 +75,12 @@
      --dt-font-family-secondary; they are re-pointed here as well so a card that
      froze an older copy of the stylesheet follows too. */
   var SECONDARY_ROLES = ["label-lg", "label-md", "label-sm", "eyebrow"];
+
+  var WORDMARK = {
+    ink: null,
+    primary: "var(--dt-text-brand, var(--dt-text-link))",
+    secondary: "var(--dt-text-brand-secondary, var(--dt-text-link))",
+  };
 
   /* Every named ramp a hue shift can reach, independent of which one is
      currently chosen as the primary. Shifting green also retunes success,
@@ -443,6 +451,11 @@
     if (cfg.brandFill === "gradient") vars["--dt-surface-brand"] = "var(--dt-surface-brand-gradient)";
     if (cfg.brandFill === "duotone") vars["--dt-surface-brand"] = "var(--dt-surface-brand-duotone)";
 
+    /* Ink writes nothing: the wordmark role already points at the primary
+       text colour, which is the monochrome mark. The fallbacks cover a card
+       that froze a stylesheet from before the brand text roles existed. */
+    if (WORDMARK[cfg.wordmarkColor]) vars["--dt-text-wordmark"] = WORDMARK[cfg.wordmarkColor];
+
     /* Same shape: a texture is a second role, --dt-surface-texture, pointed at
        one of the two patterns the system ships. None writes nothing, which is
        the stylesheet's own default. */
@@ -584,6 +597,33 @@
       } else {
         mark.removeAttribute("src");
         mark.hidden = true;
+      }
+
+      /* A tinted mark is the uploaded file used as a mask over the wordmark's
+         own colour, so it follows ink, primary or secondary with the name and
+         flips with dark mode. The shape is the brand's; the colour is the
+         system's. */
+      var tint = mark.parentNode.querySelector(".wordmark-mark-tint");
+      if (brand.mark && config.markTint) {
+        if (!tint) {
+          tint = document.createElement("span");
+          tint.className = "wordmark-mark-tint";
+          tint.setAttribute("aria-hidden", "true");
+          mark.parentNode.insertBefore(tint, mark);
+        }
+        var url = 'url("' + brand.mark.replace(/"/g, "%22") + '")';
+        tint.style.webkitMaskImage = url;
+        tint.style.maskImage = url;
+        /* The box takes the file's own proportions once it has loaded, so a
+           wide logotype stays wide. */
+        var ratio = function () {
+          if (mark.naturalWidth && mark.naturalHeight) tint.style.aspectRatio = mark.naturalWidth + " / " + mark.naturalHeight;
+        };
+        ratio();
+        mark.onload = ratio;
+        mark.hidden = true;
+      } else if (tint) {
+        tint.remove();
       }
     }
 
@@ -774,6 +814,12 @@
       lines.push("  --dt-space-gutter: var(--dt-dim-" + space.gutter + ");");
     }
 
+    if (WORDMARK[config.wordmarkColor]) {
+      lines.push("");
+      lines.push("  /* Wordmark: " + config.wordmarkColor + " */");
+      lines.push("  --dt-text-wordmark: " + WORDMARK[config.wordmarkColor].replace(/, var\(--dt-text-link\)\)$/, ")") + ";");
+    }
+
     if (MEDIA_RADII[config.mediaRadius]) {
       lines.push("");
       lines.push("  /* Imagery */");
@@ -806,6 +852,7 @@
       lines.push("/* Brand: the wordmark is the name set in the sans family at");
       lines.push("   --dt-font-weight-semibold with --dt-tracking-tight.");
       lines.push("     Name: " + (brand.name || "Dovetail"));
+      lines.push("     Colour: " + (config.wordmarkColor === "ink" ? "ink (--dt-text-primary)" : config.wordmarkColor + ", set in the :root block above"));
       if (brand.mark) lines.push("     Mark: supplied as a file; it is not a token and does not belong in this sheet.");
       lines.push(" */");
     }
@@ -1069,6 +1116,34 @@
 
     out.push(field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "configure-stack" }, markRow)));
 
+    out.push(
+      field(
+        "Wordmark colour",
+        "Ink is the monochrome wordmark. Primary and secondary set the name in a brand hue, through --dt-text-wordmark, at text contrast in either mode.",
+        segmented(
+          "Wordmark colour",
+          "wordmark",
+          [{ value: "ink", label: "Ink" }, { value: "primary", label: "Primary" }, { value: "secondary", label: "Secondary" }],
+          config.wordmarkColor,
+          function (value) {
+            commit({ wordmarkColor: value });
+          }
+        )
+      )
+    );
+
+    if (brand.mark) {
+      out.push(
+        field(
+          "Mark colour",
+          "Original keeps the file's own colours. Match wordmark uses its shape only, filled with the wordmark colour, so it goes monochrome with Ink and flips with dark mode.",
+          segmented("Mark colour", "marktint", [{ value: "original", label: "Original" }, { value: "match", label: "Match wordmark" }], config.markTint ? "match" : "original", function (value) {
+            commit({ markTint: value === "match" });
+          })
+        )
+      );
+    }
+
     out.push(field("Primary", "Actions, links, selection and focus. One hue drives the ramp; lightness and chroma stay put, so contrast holds.", brandSwatches("primary")));
     out.push(field("Secondary", "A second brand hue for fills and highlights beside the primary: --dt-surface-brand-secondary, the duotone fill, and the second chart colour. It never drives an action.", brandSwatches("secondary")));
 
@@ -1308,13 +1383,6 @@
   function typeFields() {
     return [
       field(
-        "Body",
-        "Sets --dt-font-family-sans, which every type role inherits unless a display face takes some of them.",
-        select("Body type", "font", DATA.bodyFonts, config.font, function (value) {
-          commit({ font: value });
-        })
-      ),
-      field(
         "Display",
         "Display sizes and headings. Same as body writes nothing, which is how the system ships.",
         select(
@@ -1326,6 +1394,13 @@
             commit({ displayFont: value });
           }
         )
+      ),
+      field(
+        "Body",
+        "Running text, labels and everything a display or secondary face does not take. Sets --dt-font-family-sans.",
+        select("Body type", "font", DATA.bodyFonts, config.font, function (value) {
+          commit({ font: value });
+        })
       ),
       field(
         "Secondary",

@@ -1831,6 +1831,13 @@
       },
       "on-scrim-secondary": {
         "$value": "{primitive.color.neutral.200}"
+      },
+      "brand": {
+        "$value": "{primitive.color.primary.700}"
+      },
+      "wordmark": {
+        "$value": "{semantic.text.primary}",
+        "$description": "The wordmark. Ink by default; a theme points it at a brand text role."
       }
     },
     "border": {
