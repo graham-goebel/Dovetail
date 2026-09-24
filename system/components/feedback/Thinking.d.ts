@@ -3,8 +3,8 @@ import * as React from "react";
 export type ThinkingState = "connecting" | "listening" | "thinking" | "searching" | "speaking";
 
 /**
- * An assistant's loading and thinking states, as a fluid animation that
- * reads the system's tokens. One component, two placements: inline beside a
+ * An assistant's loading and thinking states, as a fluid or textural
+ * animation that reads the system's tokens. One component, two placements: inline beside a
  * chat message, or as a full-screen overlay for voice.
  */
 export interface ThinkingProps extends Omit<React.HTMLAttributes<HTMLElement>, "color"> {
@@ -18,11 +18,16 @@ export interface ThinkingProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   /** inline sits in a line of text; overlay covers the screen for a voice session. @default "inline" */
   mode?: "inline" | "overlay";
   /**
-   * blob: free fluid. orb and tile: fluid inside a well, tile rounded by
-   * --dt-radius-container. dots: the chat convention. bars: the voice
-   * convention. @default "blob"
+   * Fluid shapes. blob: free fluid. orb and tile: fluid inside a well, tile
+   * rounded by --dt-radius-container. dots: the chat convention. bars: the
+   * voice convention.
+   *
+   * Textural shapes, drawn from many small marks. matrix: a dot display.
+   * ascii: glyphs of rising density in --dt-font-family-mono. particles: a
+   * point cloud turning in 3D. sequence: a ring of dots lit in order.
+   * @default "blob"
    */
-  shape?: "blob" | "orb" | "tile" | "dots" | "bars";
+  shape?: "blob" | "orb" | "tile" | "dots" | "bars" | "matrix" | "ascii" | "particles" | "sequence";
   /** Which gradient the fluid sweeps. brand reads --dt-thinking-color-start and -end. @default "brand" */
   tone?: "brand" | "primary" | "secondary" | "duotone" | "neutral";
   /** Two CSS colours, start and end, overriding tone. Token references work: ["var(--dt-color-green-400)", "var(--dt-color-green-700)"]. */
@@ -31,7 +36,7 @@ export interface ThinkingProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   size?: "sm" | "md" | "lg" | "xl" | string;
   /** Multiplies the pace set by --dt-thinking-duration. @default 1 */
   speed?: number;
-  /** How far the fluid is allowed to travel and deform, 0 to 1. @default 0.6 */
+  /** How far the figure is allowed to travel and deform, 0 to 1. @default 0.6 */
   intensity?: number;
   /**
    * A live level from 0 to 1, a microphone's or the reply's amplitude. Drives

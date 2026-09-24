@@ -363,6 +363,16 @@ reply that listening and speaking follow. Under reduced motion the fluid holds s
 still follows `level`. The Thinking card on the Feedback page has controls for every input
 and opens the voice overlay.
 
+Four more shapes are textural rather than fluid: they build the figure from many small marks,
+closer to a dot display or ascii art. `matrix` is a grid of dots that swell into the figure,
+`ascii` draws the same figure in glyphs of rising density (` .·:-=+*#%@`) set in the mono
+token, `particles` is a point cloud turning in 3D perspective, and `sequence` is a ring of
+dots lit in order. matrix and ascii sample one field per state (a shrinking ring, a lit
+sphere that swells with `level`, a spiral, a radar sweep, ripples); the sphere is shaded from
+above left, which gives the flat marks depth. They draw on a canvas and read the tone
+colours and the mono family back from the page about twice a second, so Configure and dark
+mode reach them too. The card's "Every shape, one state" row compares all nine side by side.
+
 ## What two example sites changed
 
 `examples/dispensary/` and `examples/travel/` were built on the system without touching

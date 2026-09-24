@@ -1,4 +1,4 @@
-<!-- @dsCard group="Feedback" height=760 name="Thinking" subtitle="Thinking — Five fluid assistant states, inline for chat or as a voice overlay." -->
+<!-- @dsCard group="Feedback" height=1080 name="Thinking" subtitle="Thinking — Five assistant states in fluid and textural shapes, inline for chat or as a voice overlay." -->
 <!DOCTYPE html>
 <html><head>
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
@@ -26,6 +26,9 @@
   .chat { display: flex; flex-direction: column; gap: var(--dt-space-stack-sm); padding: var(--dt-space-inset-md); background: var(--dt-surface-base); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); }
   .msg { align-self: flex-start; max-width: 80%; padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm); border-radius: var(--dt-radius-overlay); background: var(--dt-surface-sunken); font-size: var(--dt-font-size-sm); }
   .msg.me { align-self: flex-end; background: var(--dt-surface-selected); color: var(--dt-text-on-selected); }
+  .shapes { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .shapes .cell { padding: var(--dt-space-inset-lg) var(--dt-space-inset-md); }
+  .kind { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); color: var(--dt-text-tertiary); }
   @media (max-width: 720px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 <script>
@@ -40,7 +43,9 @@
   var NS = window.BeamMobileDesignSystem_e33121 || {};
   var e = React.createElement;
   var STATES = ["connecting", "listening", "thinking", "searching", "speaking"];
-  var SHAPES = ["blob", "orb", "tile", "dots", "bars"];
+  var FLUID = ["blob", "orb", "tile", "dots", "bars"];
+  var TEXTURE = ["matrix", "ascii", "particles", "sequence"];
+  var SHAPES = FLUID.concat(TEXTURE);
   var TONES = ["brand", "secondary", "duotone", "neutral"];
   var CHAT = {
     connecting: "Starting a session",
@@ -64,7 +69,7 @@
   }
 
   function Page() {
-    var s = React.useState, shape = s("blob"), tone = s("brand"), speed = s(1), intensity = s(0.6), voice = s(null);
+    var s = React.useState, shape = s("blob"), compare = s("thinking"), tone = s("brand"), speed = s(1), intensity = s(0.6), voice = s(null);
     var common = { shape: shape[0], tone: tone[0], speed: speed[0], intensity: intensity[0] };
     return e(React.Fragment, null,
       e("div", { className: "controls" },
@@ -76,6 +81,18 @@
       e("p", { className: "row-h" }, "Standalone, size lg"),
       e("div", { className: "grid" }, STATES.map(function (st) {
         return e("div", { className: "cell", key: st }, e(NS.Thinking, Object.assign({ state: st, size: "lg", showLabel: false }, common)), e("code", null, st));
+      })),
+      e("div", { style: { display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "var(--dt-space-inline-md)" } },
+        e("p", { className: "row-h" }, "Every shape, one state"),
+        e(Seg, { name: "State", options: STATES, value: compare[0], onChange: compare[1] })),
+      e("div", { className: "grid shapes" }, SHAPES.map(function (sh) {
+        return e("button", {
+          key: sh, type: "button", className: "cell", "aria-pressed": String(shape[0] === sh), onClick: function () { shape[1](sh); },
+          style: { cursor: "pointer", font: "inherit", color: "inherit", outline: shape[0] === sh ? "var(--dt-border-width-strong) solid var(--dt-focus-ring-color)" : undefined, outlineOffset: -1 },
+        },
+          e(NS.Thinking, { state: compare[0], shape: sh, tone: tone[0], speed: speed[0], intensity: intensity[0], size: "var(--dt-dim-24)", showLabel: false }),
+          e("code", null, sh),
+          e("span", { className: "kind" }, TEXTURE.indexOf(sh) >= 0 ? "texture" : "fluid"));
       })),
       e("p", { className: "row-h" }, "Inline in a chat"),
       e("div", { className: "grid chat-grid" }, STATES.map(function (st) {
