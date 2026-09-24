@@ -223,14 +223,18 @@ body {
    primitive, so the site follows a display face the way a product built on the
    system would. With no display face chosen the roles point at the sans
    family, which is what they already did. */
+/* Every page title is set in Display 1, the whole role: family, size, line,
+   weight and tracking. A display face, a context or a theme that retunes
+   Display 1 retunes the docs' headers with it. */
 h1 {
   margin: 0 0 var(--dt-space-stack-sm);
   color: var(--dt-text-headline, var(--dt-text-primary));
-  font-family: var(--dt-text-heading-xl-family);
-  font-size: var(--dt-font-size-4xl);
-  line-height: var(--dt-line-height-4xl);
-  font-weight: var(--dt-font-weight-semibold);
-  letter-spacing: var(--dt-tracking-tight);
+  font-family: var(--dt-text-display-lg-family);
+  font-size: var(--dt-text-display-lg-size);
+  line-height: var(--dt-text-display-lg-line);
+  font-weight: var(--dt-text-display-lg-weight);
+  letter-spacing: var(--dt-text-display-lg-tracking);
+  text-wrap: balance;
 }
 
 h2 {
@@ -353,12 +357,6 @@ hr {
   letter-spacing: var(--dt-tracking-wider);
   text-transform: uppercase;
   color: var(--dt-text-tertiary);
-}
-
-.hero h1 {
-  font-size: var(--dt-font-size-6xl);
-  line-height: var(--dt-line-height-6xl);
-  letter-spacing: var(--dt-tracking-tighter);
 }
 
 .hero-lede {
@@ -902,9 +900,13 @@ table.tokens .usage {
     padding: var(--dt-space-inset-md);
   }
 
-  .hero h1 {
-    font-size: var(--dt-font-size-4xl);
-    line-height: var(--dt-line-height-4xl);
+  /* Display 1 at phone width, capped by the screen so a long component
+     name still fits on one line; the line height follows the size it
+     lands on. */
+  h1 {
+    font-size: min(var(--dt-text-display-lg-size), 10.5vw);
+    line-height: 1.1;
+    overflow-wrap: break-word;
   }
 }
 
