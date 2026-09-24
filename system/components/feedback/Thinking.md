@@ -30,6 +30,7 @@ What an assistant is doing while you wait: connecting, listening, thinking, sear
 <Thinking mode="overlay" state="listening" level={micLevel} tone="duotone" onDismiss={end}>
   {transcript}
 </Thinking>
+<Thinking mode="overlay" screen="light" state="speaking" shape="particles" onDismiss={end} />
 ```
 
 ## Inputs
@@ -43,10 +44,11 @@ What an assistant is doing while you wait: connecting, listening, thinking, sear
   matrix and ascii share one field per state: a shrinking ring for connecting, a lit sphere that swells with `level` for listening, a spiral for thinking, a radar sweep for searching and ripples for speaking. The sphere is shaded as if lit from above left, which is what gives the flat marks their depth. These shapes draw on a canvas and read the tone colours back from the page about twice a second, so Configure and dark mode reach them without a re-render.
 - **tone** or **colors**: the gradient the fluid sweeps. `brand` reads `--dt-thinking-color-start` and `-end`, which point at the primary ramp; `duotone` sweeps primary into secondary. `colors` takes any two CSS colours, token references included.
 - **speed** multiplies the pace set by `--dt-thinking-duration`; **intensity** sets how far the fluid travels and deforms.
+- **screen** (overlay only): `dark` dims the page behind the scrim and sets the label in white. `light` is a bright frosted screen with dark text, for light products and daytime voice UIs. It stays light on a dark page, because it points the figure's gradient stops and the text roles at light values inside the overlay.
 - **level** drives listening and speaking from a real signal. Without it they follow a built-in rhythm.
 
 ## Accessibility
 The container is a polite live region, and the label is announced when the state changes, whether or not it is shown. The animation itself is hidden from assistive technology. Under `prefers-reduced-motion` the figure holds still; it still follows `level`, because that is information rather than decoration. The overlay closes on Escape when `onDismiss` is set.
 
 ## Tokens
-`--dt-thinking-*` (Tier 3): the start and end colour of each tone, the brand pair, the well surface, the label colour, the overlay scrim, the duration, and the inline and overlay sizes. Colour aliases are repeated under `.dark`, so the fluid keeps its contrast in a dark band and in the overlay.
+`--dt-thinking-*` (Tier 3): the start and end colour of each tone, the brand pair, the well surface, the label colour, the overlay scrim, the light screen and its text and gradient stops (`--dt-thinking-screen-light*`, `--dt-thinking-light-*`), the duration, and the inline and overlay sizes. Colour aliases are repeated under `.dark`, so the fluid keeps its contrast in a dark band and in the overlay.

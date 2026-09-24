@@ -69,7 +69,7 @@
   }
 
   function Page() {
-    var s = React.useState, shape = s("blob"), compare = s("thinking"), tone = s("brand"), speed = s(1), intensity = s(0.6), voice = s(null);
+    var s = React.useState, shape = s("blob"), compare = s("thinking"), screen = s("dark"), tone = s("brand"), speed = s(1), intensity = s(0.6), voice = s(null);
     var common = { shape: shape[0], tone: tone[0], speed: speed[0], intensity: intensity[0] };
     return e(React.Fragment, null,
       e("div", { className: "controls" },
@@ -77,6 +77,7 @@
         e(Seg, { name: "Tone", options: TONES, value: tone[0], onChange: tone[1] }),
         e(Range, { name: "Speed", min: 0.25, max: 2.5, value: speed[0], onChange: speed[1] }),
         e(Range, { name: "Intensity", min: 0, max: 1, value: intensity[0], onChange: intensity[1] }),
+        e(Seg, { name: "Screen", options: ["dark", "light"], value: screen[0], onChange: screen[1] }),
         e(NS.Button, { size: "sm", variant: "secondary", onClick: function () { voice[1]("listening"); } }, "Open voice overlay")),
       e("p", { className: "row-h" }, "Standalone, size lg"),
       e("div", { className: "grid" }, STATES.map(function (st) {
@@ -100,7 +101,7 @@
           e("div", { className: "msg me" }, "What changed in v2?"),
           e("div", { className: "msg" }, e(NS.Thinking, Object.assign({ state: st, label: CHAT[st] }, common))));
       })),
-      voice[0] && e(NS.Thinking, Object.assign({}, common, { mode: "overlay", state: voice[0], tone: tone[0] === "brand" ? "duotone" : tone[0], onDismiss: function () { voice[1](null); } }),
+      voice[0] && e(NS.Thinking, Object.assign({}, common, { mode: "overlay", screen: screen[0], state: voice[0], tone: tone[0] === "brand" ? "duotone" : tone[0], onDismiss: function () { voice[1](null); } }),
         e("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--dt-space-stack-md)" } },
           e("span", null, voice[0] === "listening" ? "“Book a table for four on Friday…”" : "Try each state:"),
           e("div", { className: "seg", role: "group", "aria-label": "Voice state" }, STATES.map(function (st) {

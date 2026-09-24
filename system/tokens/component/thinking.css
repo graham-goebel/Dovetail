@@ -22,6 +22,22 @@
   --dt-thinking-label-color: var(--dt-text-secondary);
   --dt-thinking-scrim: var(--dt-surface-scrim);
 
+  /* The light screen: a bright, frosted overlay for voice, chosen with
+     screen="light". It is light in either colour mode, so these are not
+     repeated under .dark; the figure on it sweeps the light-mode stops. */
+  --dt-thinking-screen-light: color-mix(in oklab, var(--dt-color-neutral-050) 92%, transparent);
+  --dt-thinking-screen-light-text: var(--dt-color-neutral-900);
+  --dt-thinking-screen-light-text-secondary: var(--dt-color-neutral-600);
+  --dt-thinking-light-primary-start: var(--dt-color-primary-400);
+  --dt-thinking-light-primary-end: var(--dt-color-primary-700);
+  --dt-thinking-light-secondary-start: var(--dt-color-secondary-400);
+  --dt-thinking-light-secondary-end: var(--dt-color-secondary-700);
+  --dt-thinking-light-neutral-start: var(--dt-color-neutral-400);
+  --dt-thinking-light-neutral-end: var(--dt-color-neutral-800);
+  --dt-thinking-light-color-start: var(--dt-thinking-light-primary-start);
+  --dt-thinking-light-color-end: var(--dt-thinking-light-primary-end);
+  --dt-thinking-light-surface: var(--dt-color-primary-100);
+
   /* One beat of the animation. Every state's motion is paced from it. */
   --dt-thinking-duration: var(--dt-duration-600);
   --dt-thinking-size-inline: var(--dt-size-icon-md);

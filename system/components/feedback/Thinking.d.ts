@@ -47,6 +47,12 @@ export interface ThinkingProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   label?: string;
   /** Inline only: show the label beside the animation. It is announced either way. @default true */
   showLabel?: boolean;
+  /**
+   * Overlay only. dark dims the page with the scrim and sets white text on
+   * it. light is a bright frosted screen with dark text, light in either
+   * colour mode. @default "dark"
+   */
+  screen?: "dark" | "light";
   /** Overlay only: adds a close button and closes on Escape. */
   onDismiss?: () => void;
   /** Overlay: a caption or live transcript under the label. Inline: content after the label. */

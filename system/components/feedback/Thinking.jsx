@@ -592,6 +592,36 @@ function Field({ state, shape, colors, size, speed, intensity, level }) {
   );
 }
 
+/* The light screen stays light on a dark page too. Custom properties resolve
+   where they are declared, so the gradient stops, and the text, surface and
+   border roles a caption reads, are pointed at light values right here. */
+const LIGHT_BLUR = "var(--dt-backdrop-glass, saturate(1.4) blur(16px))";
+const LIGHT_SCREEN = {
+  "--dt-thinking-primary-start": "var(--dt-thinking-light-primary-start)",
+  "--dt-thinking-primary-end": "var(--dt-thinking-light-primary-end)",
+  "--dt-thinking-secondary-start": "var(--dt-thinking-light-secondary-start)",
+  "--dt-thinking-secondary-end": "var(--dt-thinking-light-secondary-end)",
+  "--dt-thinking-neutral-start": "var(--dt-thinking-light-neutral-start)",
+  "--dt-thinking-neutral-end": "var(--dt-thinking-light-neutral-end)",
+  "--dt-thinking-color-start": "var(--dt-thinking-light-color-start)",
+  "--dt-thinking-color-end": "var(--dt-thinking-light-color-end)",
+  "--dt-thinking-surface": "var(--dt-thinking-light-surface)",
+  "--dt-text-primary": "var(--dt-thinking-screen-light-text)",
+  "--dt-text-secondary": "var(--dt-thinking-screen-light-text-secondary)",
+  "--dt-text-tertiary": "var(--dt-thinking-screen-light-text-secondary)",
+  /* The light scale's own surface and border values, so a control in the
+     caption reads as it would on a light page. */
+  "--dt-surface-base": "var(--dt-color-white)",
+  "--dt-surface-raised": "var(--dt-color-white)",
+  "--dt-surface-overlay": "var(--dt-color-white)",
+  "--dt-surface-subtle": "var(--dt-color-neutral-050)",
+  "--dt-surface-sunken": "var(--dt-color-neutral-100)",
+  "--dt-border-subtle": "var(--dt-color-neutral-100)",
+  "--dt-border-default": "var(--dt-color-neutral-200)",
+  "--dt-border-strong": "var(--dt-color-neutral-400)",
+  color: "var(--dt-thinking-screen-light-text)",
+};
+
 export function Thinking({
   state = "thinking",
   mode = "inline",
@@ -604,6 +634,7 @@ export function Thinking({
   level,
   label,
   showLabel = true,
+  screen = "dark",
   onDismiss,
   children,
   style,
@@ -612,6 +643,7 @@ export function Thinking({
   const text = label || LABELS[state] || LABELS.thinking;
   const pair = Array.isArray(colors) && colors.length === 2 ? colors : TONES[tone] || TONES.brand;
   const overlay = mode === "overlay";
+  const light = overlay && screen === "light";
 
   React.useEffect(() => {
     if (!overlay || !onDismiss) return undefined;
@@ -632,17 +664,18 @@ export function Thinking({
           position: "fixed", inset: 0, zIndex: "var(--dt-z-overlay)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           gap: "var(--dt-space-stack-lg)", padding: "var(--dt-space-inset-xl)", boxSizing: "border-box",
-          background: "var(--dt-thinking-scrim, var(--dt-surface-scrim))",
-          backdropFilter: "blur(var(--dt-dialog-scrim-blur, 2px))",
-          WebkitBackdropFilter: "blur(var(--dt-dialog-scrim-blur, 2px))",
+          background: light ? "var(--dt-thinking-screen-light)" : "var(--dt-thinking-scrim, var(--dt-surface-scrim))",
+          backdropFilter: light ? LIGHT_BLUR : "blur(var(--dt-dialog-scrim-blur, 2px))",
+          WebkitBackdropFilter: light ? LIGHT_BLUR : "blur(var(--dt-dialog-scrim-blur, 2px))",
+          ...(light ? LIGHT_SCREEN : null),
           ...style,
         }}
         {...rest}
       >
         {fluid}
-        <span style={{ fontFamily: "var(--dt-text-heading-sm-family)", fontSize: "var(--dt-text-heading-sm-size)", lineHeight: "var(--dt-text-heading-sm-line)", fontWeight: "var(--dt-text-heading-sm-weight)", color: "var(--dt-text-on-scrim, var(--dt-color-neutral-050))" }}>{text}</span>
+        <span style={{ fontFamily: "var(--dt-text-heading-sm-family)", fontSize: "var(--dt-text-heading-sm-size)", lineHeight: "var(--dt-text-heading-sm-line)", fontWeight: "var(--dt-text-heading-sm-weight)", color: light ? "var(--dt-thinking-screen-light-text)" : "var(--dt-text-on-scrim, var(--dt-color-neutral-050))" }}>{text}</span>
         {children && (
-          <div style={{ maxWidth: "var(--dt-measure-narrow)", textAlign: "center", fontFamily: "var(--dt-text-body-md-family)", fontSize: "var(--dt-text-body-md-size)", lineHeight: "var(--dt-text-body-md-line)", color: "var(--dt-text-on-scrim-secondary, var(--dt-color-neutral-200))" }}>{children}</div>
+          <div style={{ maxWidth: "var(--dt-measure-narrow)", textAlign: "center", fontFamily: "var(--dt-text-body-md-family)", fontSize: "var(--dt-text-body-md-size)", lineHeight: "var(--dt-text-body-md-line)", color: light ? "var(--dt-thinking-screen-light-text-secondary)" : "var(--dt-text-on-scrim-secondary, var(--dt-color-neutral-200))" }}>{children}</div>
         )}
         {onDismiss && (
           <button
@@ -653,7 +686,7 @@ export function Thinking({
               position: "absolute", top: "var(--dt-space-inset-lg)", right: "var(--dt-space-inset-lg)",
               width: "var(--dt-size-control-md)", height: "var(--dt-size-control-md)", border: 0,
               borderRadius: "var(--dt-radius-pill)", background: "transparent", cursor: "pointer",
-              color: "var(--dt-text-on-scrim, var(--dt-color-neutral-050))", fontSize: "var(--dt-font-size-xl)", lineHeight: 1,
+              color: light ? "var(--dt-thinking-screen-light-text)" : "var(--dt-text-on-scrim, var(--dt-color-neutral-050))", fontSize: "var(--dt-font-size-xl)", lineHeight: 1,
             }}
           >×</button>
         )}

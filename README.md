@@ -347,7 +347,10 @@ selected chips follow it in dark mode too.
 **thinking** (bodies orbit, merge and split), **searching** (a comet orbits the centre) and
 **speaking** (pulses outward with the reply). It sits inline beside a chat message, or with
 `mode="overlay"` it fills the screen for a voice session, with a caption or live transcript
-under the label.
+under the label. The overlay comes in two screens: `screen="dark"` (the default) dims the page
+behind the scrim, and `screen="light"` is a bright frosted screen with dark text that stays
+light on a dark page too, its figure sweeping the light-mode gradient stops
+(`--dt-thinking-screen-light*`, `--dt-thinking-light-*`).
 
 The motion is fluid because it is metaballs: a handful of circles, blurred and
 alpha-thresholded in one SVG filter so they merge like liquid, moved every frame by a
