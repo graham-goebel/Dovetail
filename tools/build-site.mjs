@@ -468,7 +468,6 @@ for (const { name } of manifest.components) {
     guideFile: exists(guidePath) ? `system/components/${group}/${sourceName}.md` : null,
     exportedFrom: alias ? alias[1] : null,
     card: cards.get(name) || null,
-    playground: cards.get(`${name}Playground`) || null,
   });
 }
 const byGroup = (g) => components.filter((c) => c.group === g);
@@ -488,7 +487,6 @@ const FOUNDATIONS = [
 const SHOWCASE = [
   ["Components", "overviews", "Each component family at a glance.", "box"],
   ["Component detail", "detail", "Full reference cards: specimens, props and usage rules.", "list"],
-  ["Playground", "playground", "Controls you can drive, with the code that produced them.", "sliders"],
   ["Templates", "templates", "Whole screens to copy into a product, built only from Dovetail components.", "layout"],
   ["Tools", "tools", "The theme configurator and the media lab.", "wrench"],
 ];
@@ -855,7 +853,7 @@ function buildHome() {
     ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
     ["components/index.html", "Components", `${components.length} components across eight families, with props, source and usage rules.`, "blocks"],
     ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
-    ["showcase/index.html", "Showcase", "Detail cards, playgrounds, templates and tools.", "monitor"],
+    ["showcase/index.html", "Showcase", "Detail cards, templates and tools.", "monitor"],
     ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
     ["downloads.html", "Download", "Take the stylesheets, tokens and components into your project.", "download"],
   ];
@@ -1037,7 +1035,6 @@ ${breadcrumb("../", [
 </p>
 
 ${cardBlock(c.card, "../", { heading: "Live" })}
-${c.playground ? cardBlock(c.playground, "../", { heading: "Playground" }) : ""}
 
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
@@ -1092,14 +1089,14 @@ function buildShowcase() {
   const index = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showcase" }])}
 <h1>Showcase</h1>
-<p class="lede">The system assembled: family reference cards, driveable playgrounds, whole screens, and the tools that produce a theme.</p>
+<p class="lede">The system assembled: family reference cards, whole screens, and the tools that produce a theme.</p>
 <div class="tiles">
 ${SHOWCASE.map(([group, s, text, glyph]) => {
   const n = cardsInGroup(group).length;
   return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
 </div>`;
-  write("showcase/index.html", page({ title: "Showcase", lede: "Reference cards, playgrounds, templates and tools.", body: index, active: "showcase", root: "../" }));
+  write("showcase/index.html", page({ title: "Showcase", lede: "Reference cards, templates and tools.", body: index, active: "showcase", root: "../" }));
 
   for (const [group, s, text] of SHOWCASE) {
     const list = cardsInGroup(group);
@@ -1402,7 +1399,6 @@ function buildDownloads() {
       [
         ["system/templates/settings-page/SettingsPage.dc.html", "A product settings screen, composed from Dovetail only."],
         ["system/theme-configurator.html", "Tune a theme live and export the CSS."],
-        ["system/tearsheet.html", "Every component, token and style on one filterable page."],
       ],
     ],
   ];

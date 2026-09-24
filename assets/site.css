@@ -1408,6 +1408,129 @@ body.configure-open .configure-bar {
   text-wrap: pretty;
 }
 
+.configure-hex-row {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+}
+
+.configure-hex-row .configure-hint {
+  margin: 0;
+  flex: none;
+}
+
+.configure-hex {
+  flex: 1;
+  font-family: var(--dt-font-family-mono);
+  text-transform: lowercase;
+}
+
+.configure-ramp {
+  display: grid;
+  gap: 3px;
+}
+
+.configure-ramp-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.configure-ramp-swatch {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: var(--dt-dim-8);
+  border-radius: var(--dt-radius-raw-4);
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) oklch(0 0 0 / 0.08);
+}
+
+.configure-ramp-swatch .configure-color {
+  position: absolute;
+  inset: 0;
+}
+
+.configure-ramp-chip[data-anchor] .configure-ramp-swatch,
+.configure-ramp-chip[data-edited] .configure-ramp-swatch {
+  outline: var(--dt-focus-ring-width) solid var(--dt-text-primary);
+  outline-offset: 1px;
+}
+
+.configure-ramp-chip[data-edited] .configure-ramp-swatch {
+  outline-style: dashed;
+}
+
+.configure-ramp-chip:focus-within .configure-ramp-swatch {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+}
+
+.configure-ramp-step,
+.configure-ramp-tag {
+  font-family: var(--dt-font-family-mono);
+  font-size: 9px;
+  line-height: 1.2;
+  color: var(--dt-text-tertiary);
+}
+
+.configure-ramp-tag {
+  min-height: 1.2em;
+  color: var(--dt-text-secondary);
+}
+
+.configure-good {
+  color: var(--dt-text-success);
+}
+
+.configure-checks-wrap summary {
+  cursor: pointer;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-secondary);
+}
+
+.configure-checks {
+  list-style: none;
+  margin: var(--dt-space-stack-xs) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  font-size: var(--dt-font-size-xs);
+}
+
+.configure-checks li {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+}
+
+.configure-check-mark {
+  flex: none;
+  width: 1.2em;
+  text-align: center;
+  font-weight: var(--dt-font-weight-semibold);
+  color: var(--dt-text-success);
+}
+
+.configure-checks .is-fail .configure-check-mark,
+.configure-checks .is-fail .configure-check-ratio {
+  color: var(--dt-text-danger);
+}
+
+.configure-check-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--dt-text-secondary);
+}
+
+.configure-check-ratio {
+  flex: none;
+  font-family: var(--dt-font-family-mono);
+  color: var(--dt-text-tertiary);
+}
+
 .configure-steps-preview {
   display: grid;
   grid-template-columns: repeat(11, minmax(0, 1fr));
@@ -2019,7 +2142,6 @@ body.graph-open .configure-sheet {
   text-align: left;
   background: var(--dt-surface-base);
   border: var(--dt-border-width-default) solid var(--dt-border-default);
-  border-left: var(--dt-dim-1) solid var(--dt-border-default);
   border-radius: var(--dt-radius-container);
   cursor: pointer;
   transition: background var(--dt-motion-micro), border-color var(--dt-motion-micro);
@@ -2029,26 +2151,23 @@ body.graph-open .configure-sheet {
   background: var(--dt-surface-subtle);
 }
 
-/* The tier a node belongs to is the one thing you read before its name, so it
-   is the left edge rather than a badge you have to find. */
-.graph-node[data-tier="primitive"] {
-  border-left-color: var(--dt-color-primary-300);
-}
+/* The tier a node belongs to is marked by a dot before its tier label. */
+.graph-node { --graph-tier: var(--dt-border-default); }
+.graph-node[data-tier="primitive"] { --graph-tier: var(--dt-color-primary-300); }
+.graph-node[data-tier="semantic"] { --graph-tier: var(--dt-color-primary-500); }
+.graph-node[data-tier="component"] { --graph-tier: var(--dt-color-primary-700); }
+.graph-node[data-tier="consumer"] { --graph-tier: var(--dt-text-primary); }
+.graph-node[data-tier="undeclared"] { --graph-tier: var(--dt-text-danger); }
 
-.graph-node[data-tier="semantic"] {
-  border-left-color: var(--dt-color-primary-500);
-}
-
-.graph-node[data-tier="component"] {
-  border-left-color: var(--dt-color-primary-700);
-}
-
-.graph-node[data-tier="consumer"] {
-  border-left-color: var(--dt-text-primary);
-}
-
-.graph-node[data-tier="undeclared"] {
-  border-left-color: var(--dt-text-danger);
+.graph-node-meta::before {
+  content: "";
+  display: inline-block;
+  width: var(--dt-dim-2);
+  height: var(--dt-dim-2);
+  margin-right: var(--dt-space-inline-2xs);
+  border-radius: var(--dt-radius-pill);
+  background: var(--graph-tier);
+  vertical-align: 0.05em;
 }
 
 .graph-node.is-focus {

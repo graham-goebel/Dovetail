@@ -336,7 +336,7 @@ ${STEPS.map(s => `  --dt-color-primary-${s}: ${activeRamp[s]};`).join("\n")}
           <p className="grouplbl">Export</p>
           <textarea className="exportbox" readOnly value={exportCss} />
           <Button size="sm" style={{ marginTop: 8, width: "100%" }} onClick={copyExport}>Copy theme CSS</Button>
-          <p style={{ fontSize: 12, color: "var(--dt-text-tertiary)", marginTop: 8, lineHeight: 1.5 }}>Save applies the theme across every page that loads <code>templates/_support/theme-runtime.js</code>, including the tearsheet — reload it to see the change. That is a preview held in this browser. To commit the theme, paste the CSS above into <code>tokens/themes/theme-custom.css</code>; it then ships with the repository and needs no JavaScript.</p>
+          <p style={{ fontSize: 12, color: "var(--dt-text-tertiary)", marginTop: 8, lineHeight: 1.5 }}>Save applies the theme across every page that loads <code>templates/_support/theme-runtime.js</code>, including the templates. Reload one to see the change. That is a preview held in this browser. To commit the theme, paste the CSS above into <code>tokens/themes/theme-custom.css</code>; it then ships with the repository and needs no JavaScript.</p>
         </div>
 
         {dirty && (

@@ -12,7 +12,7 @@ broken token shows up as a broken page.
 index.html          Overview
 foundations/        Colour, type, space, shape, size, elevation, motion, themes
 components/         One page per component: live card, guidelines, props, source
-showcase/           Family reference cards, playgrounds, templates, tools
+showcase/           Family reference cards, templates, tools
 guide/              README, theming, accessibility, contributing, token pipeline
 tokens.html         Every token, with its value in each theme
 downloads.html      How to take the system into a project
@@ -199,9 +199,19 @@ colour: `--dt-color-primary-*`, the ramp behind actions, links, selection and fo
 **secondary** colour is a second brand ramp, `--dt-color-secondary-*`, with its own fills
 (`--dt-surface-brand-secondary` and its muted tint), a text role, the **Duotone** fill that
 sweeps primary into secondary, and the second chart colour. It never drives an action, so
-adding it cannot change what a button looks like. Both pickers take a named ramp or any
-colour; a custom colour keeps the blue ramp's lightness and chroma per step, so its
-contrast is the one the system was tested against.
+adding it cannot change what a button looks like.
+
+**Your brand colour, exactly.** Both pickers take a tuned ramp or your own colour, typed as
+hex or picked. Your colour is used exactly as given, at the step nearest it in lightness,
+and the panel says which step that is. The other steps are spaced lighter and darker from
+it in its hue, on the system's lightness rhythm; where a screen cannot show your colour's
+saturation at a step's lightness, the chroma is lowered there and the panel lists those
+steps. Click any step to set it by hand. Nothing is then moved behind your back: every
+pair the ramp is used in (white text on a button, links on the page, dark-mode buttons and
+links, the selected tint, the focus ring) is measured on the colours that will ship, and a
+failing pair shows its ratio and a **Darken** or **Lighten** button that edits one step and
+says what it changed. **Undo edits** puts the ramp back. With fewer steps per ramp, the step
+your colour sits on is always one of the kept ones.
 
 **Steps per ramp** publishes 4 to 10 shades per chromatic ramp instead of eleven. The kept
 steps are spread evenly and always include the lightest and darkest. Every named step still
@@ -252,9 +262,9 @@ either wants the brand's presence or it does not.
 
 It works by writing one localStorage key, `dovetail-theme-config`, the key the system's
 own `templates/_support/theme-runtime.js` already reads. Using that key rather than a
-site-only one is what makes a change reach the whole system, including the tearsheet, the
+site-only one is what makes a change reach the whole system, including the
 settings-page template, and the theme configurator card in the showcase, which writes the
-same payload when you press Save there. set a primary colour in the configurator card and the
+same payload when you press Save there. Set a primary colour in the configurator card and the
 site follows; set it in the sheet and the configurator agrees.
 
 The sheet never dims or blocks the page, because watching the system change is the point

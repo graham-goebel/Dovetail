@@ -25,20 +25,28 @@
     return out;
   }
 
-  function steps() {
+  function saved() {
     try {
-      var cfg = JSON.parse(localStorage.getItem(KEY)) || {};
-      var n = Number(cfg.steps) || 0;
-      return n >= 4 && n < STEPS.length ? n : 0;
+      return JSON.parse(localStorage.getItem(KEY)) || {};
     } catch (e) {
-      return 0;
+      return {};
     }
   }
 
+  /* The panel saves which steps each ramp keeps, since a brand ramp always
+     keeps the step its colour sits on. Anything it did not list falls back to
+     the even spread. */
+  function keptFor(cfg, ramp) {
+    var n = Number(cfg.steps) || 0;
+    if (!(n >= 4 && n < STEPS.length) || ramp === "neutral") return null;
+    var listed = cfg.kept && (cfg.kept[ramp] || cfg.kept["default"]);
+    return listed && listed.length ? listed : kept(n);
+  }
+
   function paint() {
-    var n = steps();
+    var cfg = saved();
     Array.prototype.forEach.call(document.querySelectorAll("[data-ramp]"), function (row) {
-      var keep = n && row.getAttribute("data-ramp") !== "neutral" ? kept(n) : null;
+      var keep = keptFor(cfg, row.getAttribute("data-ramp"));
       Array.prototype.forEach.call(row.querySelectorAll(".sw"), function (sw, i) {
         sw.style.display = keep && keep.indexOf(i) === -1 ? "none" : "";
       });
