@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"d42c8028bf33","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"0d57286592e9","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"41a9a4f3c6a4","components/typography/Heading.jsx":"9db3a4241ce0","components/typography/Text.jsx":"4574abfd2b52","components/primitives/Section.jsx":"d6076d356eb0"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"d42c8028bf33","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"0d57286592e9","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"41a9a4f3c6a4","components/typography/Heading.jsx":"9db3a4241ce0","components/typography/Text.jsx":"4574abfd2b52","components/primitives/Section.jsx":"d6076d356eb0","components/feedback/Thinking.jsx":"cf0263ccd33a"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -5040,6 +5040,473 @@ function Section({
 }
 Object.assign(__ds_scope, { Section });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Section.jsx", error: String((e && e.message) || e) }); }
+// components/feedback/Thinking.jsx
+try { (() => {
+const LABELS = {
+  connecting: "Connecting",
+  listening: "Listening",
+  thinking: "Thinking",
+  searching: "Searching",
+  speaking: "Speaking"
+};
+const SIZES = {
+  sm: "var(--dt-thinking-size-inline, var(--dt-size-icon-md))",
+  md: "var(--dt-size-icon-xl)",
+  lg: "var(--dt-dim-16)",
+  xl: "var(--dt-thinking-size-overlay, var(--dt-dim-40))"
+};
+const TONES = {
+  brand: ["var(--dt-thinking-color-start, var(--dt-color-primary-400))", "var(--dt-thinking-color-end, var(--dt-color-primary-700))"],
+  primary: ["var(--dt-thinking-primary-start, var(--dt-color-primary-400))", "var(--dt-thinking-primary-end, var(--dt-color-primary-700))"],
+  secondary: ["var(--dt-thinking-secondary-start, var(--dt-color-secondary-400))", "var(--dt-thinking-secondary-end, var(--dt-color-secondary-700))"],
+  duotone: ["var(--dt-thinking-primary-start, var(--dt-color-primary-400))", "var(--dt-thinking-secondary-end, var(--dt-color-secondary-700))"],
+  neutral: ["var(--dt-thinking-neutral-start, var(--dt-color-neutral-400))", "var(--dt-thinking-neutral-end, var(--dt-color-neutral-800))"]
+};
+const WELLS = {
+  orb: "var(--dt-radius-pill)",
+  tile: "var(--dt-radius-container)"
+};
+const PARTICLES = 7;
+const BARS = 5;
+const TAU = Math.PI * 2;
+const ENVELOPE = [0.55, 0.8, 1, 0.8, 0.55];
+
+/* Smooth pseudo-noise in -1..1: two detuned sines per index, so each particle
+   drifts on its own path and the whole never visibly repeats. */
+function noise(i, t) {
+  return 0.5 * Math.sin(t * (1.3 + i * 0.37) + i * 2.1) + 0.5 * Math.sin(t * (0.7 + i * 0.23) + i * 5.3);
+}
+
+/* What listening and speaking follow when no live level is passed: a restless
+   hum for listening, a syllable rhythm for speaking. */
+function synthLevel(state, t) {
+  if (state === "listening") return 0.35 + 0.25 * noise(9, t * 2.2);
+  if (state === "speaking") return Math.min(1, 0.12 + Math.abs(Math.sin(t * 6.3)) * (0.55 + 0.45 * Math.sin(t * 1.7)));
+  return 0;
+}
+function ring(cx, cy, a, d, r) {
+  return {
+    x: cx + Math.cos(a) * d,
+    y: cy + Math.sin(a) * d,
+    r: r
+  };
+}
+
+/* The fluid shapes: blob, orb and tile. A centre body and its satellites,
+   blurred and thresholded so they merge like liquid. Coordinates are in a
+   100 by 100 box. */
+function blobParts(state, t, lvl, k) {
+  const P = [];
+  const spread = 0.6 + 0.6 * k;
+  if (state === "connecting") {
+    const breathe = 0.5 + 0.5 * Math.sin(t * 1.5);
+    P.push({
+      x: 50,
+      y: 50,
+      r: 8 + 6 * breathe
+    });
+    for (let i = 0; i < 6; i++) P.push(ring(50, 50, t * 0.6 + i * TAU / 6, 8 + 20 * (1 - breathe) * spread, 6.5));
+  } else if (state === "listening") {
+    P.push({
+      x: 50,
+      y: 50,
+      r: 15 + 8 * lvl
+    });
+    for (let i = 0; i < 5; i++) {
+      const d = 11 + 13 * lvl * (0.5 + 0.5 * noise(i + 3, t * 2)) * spread;
+      P.push(ring(50, 50, i * TAU / 5 + t * 0.25 + noise(i, t) * 0.5, d, 8 + 2 * noise(i + 7, t)));
+    }
+  } else if (state === "thinking") {
+    P.push({
+      x: 50,
+      y: 50,
+      r: 15
+    });
+    for (let i = 0; i < 5; i++) {
+      const dir = i % 2 ? -1 : 1;
+      P.push(ring(50, 50, dir * t * (0.8 + i * 0.17) + i * 1.3, 10 + (7 + 6 * noise(i, t)) * spread, 9 + 3 * noise(i + 4, t * 1.3)));
+    }
+  } else if (state === "searching") {
+    P.push({
+      x: 50,
+      y: 50,
+      r: 13 + 1.5 * Math.sin(t * 2)
+    });
+    const a = t * 1.6;
+    const d = 24 + 5 * k;
+    [7.5, 6, 4.8, 3.8, 2.9].forEach((r, j) => P.push(ring(50, 50, a - j * 0.34, d, r)));
+  } else {
+    P.push({
+      x: 50,
+      y: 50,
+      r: 13 + 9 * lvl
+    });
+    for (let i = 0; i < 6; i++) {
+      const pulse = Math.max(0, Math.sin(t * 4 - i * 0.9)) * lvl;
+      P.push(ring(50, 50, i * TAU / 6 + t * 0.3, 10 + 18 * pulse * spread, 6.5 + 4 * pulse));
+    }
+  }
+  /* Sized so the bodies overlap enough to read as one fluid after the
+     threshold eats their soft edges. */
+  return P.map(p => ({
+    x: p.x,
+    y: p.y,
+    r: p.r * 1.35
+  }));
+}
+
+/* Three dots, the chat convention, still thresholded so they can touch and
+   merge. */
+function dotParts(state, t, lvl, k) {
+  const xs = [26, 50, 74];
+  const P = [];
+  if (state === "connecting") {
+    xs.forEach((x, i) => P.push({
+      x: x,
+      y: 50,
+      r: 5 + 4 * (0.5 + 0.5 * Math.sin(t * 2.2 - i * 0.9))
+    }));
+  } else if (state === "listening") {
+    xs.forEach((x, i) => P.push({
+      x: x,
+      y: 50,
+      r: 6 + 8 * lvl * (0.6 + 0.4 * noise(i, t * 2))
+    }));
+  } else if (state === "thinking") {
+    xs.forEach((x, i) => P.push({
+      x: x,
+      y: 50 - (8 + 8 * k) * Math.max(0, Math.sin(t * 3 - i * 0.7)),
+      r: 8
+    }));
+  } else if (state === "searching") {
+    xs.forEach(x => P.push({
+      x: x,
+      y: 50,
+      r: 6
+    }));
+    P.push({
+      x: 50 + 30 * Math.sin(t * 1.8),
+      y: 50,
+      r: 9 + 2 * k
+    });
+  } else {
+    xs.forEach((x, i) => P.push({
+      x: x,
+      y: 50,
+      r: 5 + 10 * lvl * Math.max(0.25, Math.abs(Math.sin(t * 5 - i * 1.1)))
+    }));
+  }
+  return P.map(p => ({
+    x: p.x,
+    y: p.y,
+    r: p.r * 1.15
+  }));
+}
+
+/* Five bars, the voice convention. Heights are fractions of the box. */
+function barHeights(state, t, lvl, k) {
+  const H = [];
+  for (let i = 0; i < BARS; i++) {
+    let h;
+    if (state === "connecting") h = 0.2 + 0.18 * (0.5 + 0.5 * Math.sin(t * 2 - i * 0.8));else if (state === "listening") h = 0.16 + 0.78 * lvl * ENVELOPE[i] * (0.7 + 0.3 * noise(i, t * 3));else if (state === "thinking") h = 0.25 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.4 - i * 0.9)) * (0.6 + 0.6 * k);else if (state === "searching") {
+      const p = 2 + 2 * Math.sin(t * 1.6);
+      h = 0.18 + 0.7 * Math.exp(-((i - p) * (i - p)) / 0.8);
+    } else h = 0.14 + 0.82 * lvl * ENVELOPE[i] * Math.abs(Math.sin(t * 6 + i * 1.7));
+    H.push(Math.max(0.1, Math.min(1, h)));
+  }
+  return H;
+}
+
+/* The duration token, in milliseconds, read from the element itself so a
+   theme or context that retunes it is honoured. */
+function readDuration(node) {
+  const raw = node ? getComputedStyle(node).getPropertyValue("--dt-thinking-duration").trim() : "";
+  const n = parseFloat(raw);
+  if (!n) return 600;
+  return /ms$/.test(raw) ? n : n * 1000;
+}
+function useReducedMotion() {
+  const query = "(prefers-reduced-motion: reduce)";
+  const [reduced, setReduced] = React.useState(() => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia(query).matches);
+  React.useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const sync = () => setReduced(mq.matches);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return reduced;
+}
+function Fluid({
+  state,
+  shape,
+  colors,
+  size,
+  speed,
+  intensity,
+  level
+}) {
+  const uid = "dt-thinking-" + React.useId().replace(/[^a-zA-Z0-9-]/g, "");
+  const box = React.useRef(null);
+  const circles = React.useRef([]);
+  const bars = React.useRef([]);
+  const gradient = React.useRef(null);
+  const live = React.useRef({});
+  const clock = React.useRef({
+    t: 0,
+    level: 0
+  });
+  const reduced = useReducedMotion();
+  live.current = {
+    state,
+    shape,
+    speed,
+    intensity,
+    level
+  };
+  const wide = shape === "dots" || shape === "bars";
+  const well = WELLS[shape];
+  const dim = SIZES[size] || size || SIZES.sm;
+  React.useEffect(() => {
+    let frame = 0;
+    let last = performance.now();
+    const c = clock.current;
+    const beat = readDuration(box.current) / 600;
+    function draw(now) {
+      const o = live.current;
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      if (!reduced) c.t += dt * Math.max(0.1, Number(o.speed) || 1) / beat;
+      const t = reduced ? 1.3 : c.t;
+      const k = Math.max(0, Math.min(1, o.intensity == null ? 0.6 : Number(o.intensity)));
+      const target = o.level == null ? synthLevel(o.state, t) : Math.max(0, Math.min(1, Number(o.level)));
+      c.level += (target - c.level) * (reduced ? 1 : 0.25);
+      const smooth = c.level;
+      if (o.shape === "bars") {
+        const H = barHeights(o.state, t, smooth, k);
+        bars.current.forEach((rect, i) => {
+          if (!rect) return;
+          const h = H[i] * 56;
+          rect.setAttribute("y", String(50 - h / 2));
+          rect.setAttribute("height", String(h));
+        });
+      } else {
+        const P = o.shape === "dots" ? dotParts(o.state, t, smooth, k) : blobParts(o.state, t, smooth, k);
+        circles.current.forEach((node, i) => {
+          if (!node) return;
+          const p = P[i];
+          node.setAttribute("cx", p ? p.x.toFixed(2) : "50");
+          node.setAttribute("cy", p ? p.y.toFixed(2) : "50");
+          node.setAttribute("r", p ? Math.max(0, p.r).toFixed(2) : "0");
+        });
+      }
+      if (gradient.current) gradient.current.setAttribute("gradientTransform", "rotate(" + (t * 24 % 360).toFixed(1) + " 50 50)");
+      if (!reduced) frame = requestAnimationFrame(draw);
+    }
+    frame = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(frame);
+    /* The clock lives in a ref, so a state or shape change carries on from
+       where the motion was. A live level is read each frame; only a frozen,
+       reduced-motion render needs redrawing when it changes. */
+  }, [reduced, state, shape, reduced ? level : null]);
+  const viewBox = wide ? "0 18.75 100 62.5" : well ? "8 8 84 84" : "12 12 76 76";
+  return /*#__PURE__*/React.createElement("span", {
+    ref: box,
+    "aria-hidden": "true",
+    style: {
+      display: "inline-block",
+      flex: "none",
+      position: "relative",
+      height: dim,
+      width: wide ? `calc(${dim} * 1.6)` : dim,
+      borderRadius: well,
+      overflow: well ? "hidden" : undefined,
+      background: well ? "var(--dt-thinking-surface, var(--dt-surface-brand-muted))" : undefined,
+      verticalAlign: "middle"
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: viewBox,
+    width: "100%",
+    height: "100%",
+    style: {
+      display: "block",
+      overflow: "visible"
+    }
+  }, /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("linearGradient", {
+    id: uid + "-g",
+    ref: gradient,
+    gradientUnits: "userSpaceOnUse",
+    x1: "28",
+    y1: "28",
+    x2: "72",
+    y2: "72"
+  }, /*#__PURE__*/React.createElement("stop", {
+    offset: "0",
+    style: {
+      stopColor: colors[0]
+    }
+  }), /*#__PURE__*/React.createElement("stop", {
+    offset: "1",
+    style: {
+      stopColor: colors[1]
+    }
+  })), /*#__PURE__*/React.createElement("filter", {
+    id: uid + "-f",
+    x: "-30%",
+    y: "-30%",
+    width: "160%",
+    height: "160%",
+    colorInterpolationFilters: "sRGB"
+  }, /*#__PURE__*/React.createElement("feGaussianBlur", {
+    in: "SourceGraphic",
+    stdDeviation: "3.5",
+    result: "blur"
+  }), /*#__PURE__*/React.createElement("feColorMatrix", {
+    in: "blur",
+    values: "1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"
+  }))), shape === "bars" ? /*#__PURE__*/React.createElement("g", {
+    fill: `url(#${uid}-g)`
+  }, Array.from({
+    length: BARS
+  }, (_, i) => /*#__PURE__*/React.createElement("rect", {
+    key: i,
+    ref: n => bars.current[i] = n,
+    x: 13 + i * 16,
+    y: "44",
+    width: "10",
+    height: "12",
+    rx: "5"
+  }))) : /*#__PURE__*/React.createElement("g", {
+    filter: `url(#${uid}-f)`,
+    fill: `url(#${uid}-g)`
+  }, Array.from({
+    length: PARTICLES
+  }, (_, i) => /*#__PURE__*/React.createElement("circle", {
+    key: i,
+    ref: n => circles.current[i] = n,
+    cx: "50",
+    cy: "50",
+    r: "0"
+  })))));
+}
+function Thinking({
+  state = "thinking",
+  mode = "inline",
+  shape = "blob",
+  tone = "brand",
+  colors,
+  size,
+  speed = 1,
+  intensity = 0.6,
+  level,
+  label,
+  showLabel = true,
+  onDismiss,
+  children,
+  style,
+  ...rest
+}) {
+  const text = label || LABELS[state] || LABELS.thinking;
+  const pair = Array.isArray(colors) && colors.length === 2 ? colors : TONES[tone] || TONES.brand;
+  const overlay = mode === "overlay";
+  React.useEffect(() => {
+    if (!overlay || !onDismiss) return undefined;
+    const onKey = e => {
+      if (e.key === "Escape") onDismiss();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [overlay, onDismiss]);
+  const fluid = /*#__PURE__*/React.createElement(Fluid, {
+    state: state,
+    shape: shape,
+    colors: pair,
+    size: size || (overlay ? "xl" : "sm"),
+    speed: speed,
+    intensity: intensity,
+    level: level
+  });
+  if (overlay) {
+    return /*#__PURE__*/React.createElement("div", {
+      role: "status",
+      "aria-live": "polite",
+      style: {
+        position: "fixed",
+        inset: 0,
+        zIndex: "var(--dt-z-overlay)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "var(--dt-space-stack-lg)",
+        padding: "var(--dt-space-inset-xl)",
+        boxSizing: "border-box",
+        background: "var(--dt-thinking-scrim, var(--dt-surface-scrim))",
+        backdropFilter: "blur(var(--dt-dialog-scrim-blur, 2px))",
+        WebkitBackdropFilter: "blur(var(--dt-dialog-scrim-blur, 2px))",
+        ...style
+      },
+      ...rest
+    }, fluid, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "var(--dt-text-heading-sm-family)",
+        fontSize: "var(--dt-text-heading-sm-size)",
+        lineHeight: "var(--dt-text-heading-sm-line)",
+        fontWeight: "var(--dt-text-heading-sm-weight)",
+        color: "var(--dt-text-on-scrim, var(--dt-color-neutral-050))"
+      }
+    }, text), children && /*#__PURE__*/React.createElement("div", {
+      style: {
+        maxWidth: "var(--dt-measure-narrow)",
+        textAlign: "center",
+        fontFamily: "var(--dt-text-body-md-family)",
+        fontSize: "var(--dt-text-body-md-size)",
+        lineHeight: "var(--dt-text-body-md-line)",
+        color: "var(--dt-text-on-scrim-secondary, var(--dt-color-neutral-200))"
+      }
+    }, children), onDismiss && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      "aria-label": "Close",
+      onClick: onDismiss,
+      style: {
+        position: "absolute",
+        top: "var(--dt-space-inset-lg)",
+        right: "var(--dt-space-inset-lg)",
+        width: "var(--dt-size-control-md)",
+        height: "var(--dt-size-control-md)",
+        border: 0,
+        borderRadius: "var(--dt-radius-pill)",
+        background: "transparent",
+        cursor: "pointer",
+        color: "var(--dt-text-on-scrim, var(--dt-color-neutral-050))",
+        fontSize: "var(--dt-font-size-xl)",
+        lineHeight: 1
+      }
+    }, "×"));
+  }
+  return /*#__PURE__*/React.createElement("span", {
+    role: "status",
+    "aria-live": "polite",
+    "aria-label": showLabel ? undefined : text,
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)",
+      verticalAlign: "middle",
+      ...style
+    },
+    ...rest
+  }, fluid, showLabel && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "var(--dt-text-body-sm-family)",
+      fontSize: "var(--dt-text-body-sm-size)",
+      lineHeight: "var(--dt-text-body-sm-line)",
+      color: "var(--dt-thinking-label-color, var(--dt-text-secondary))"
+    }
+  }, text), children);
+}
+Object.assign(__ds_scope, { Thinking });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Thinking.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -5165,5 +5632,7 @@ __ds_ns.Heading = __ds_scope.Heading;
 __ds_ns.Text = __ds_scope.Text;
 
 __ds_ns.Section = __ds_scope.Section;
+
+__ds_ns.Thinking = __ds_scope.Thinking;
 
 })();

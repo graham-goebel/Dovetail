@@ -1,0 +1,101 @@
+<!-- @dsCard group="Feedback" height=760 name="Thinking" subtitle="Thinking — Five fluid assistant states, inline for chat or as a voice overlay." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); color: var(--dt-text-primary); font-family: var(--dt-font-family-sans); }
+  #root { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--dt-space-stack-lg); }
+  .controls { display: flex; flex-wrap: wrap; gap: var(--dt-space-inline-lg); align-items: flex-end; padding: var(--dt-space-inset-md); background: var(--dt-surface-base); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); }
+  .ctl { display: flex; flex-direction: column; gap: var(--dt-space-stack-2xs); font-size: var(--dt-font-size-xs); color: var(--dt-text-secondary); }
+  .seg { display: inline-flex; padding: 2px; background: var(--dt-surface-sunken); border-radius: var(--dt-radius-control); }
+  .seg button { font: inherit; font-size: var(--dt-font-size-xs); padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs); border: 0; background: transparent; color: var(--dt-text-secondary); border-radius: calc(var(--dt-radius-control) - 1px); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--dt-surface-raised); color: var(--dt-text-primary); box-shadow: var(--dt-elevation-1); }
+  .ctl input[type=range] { width: 120px; accent-color: var(--dt-surface-action); }
+  .grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--dt-space-inline-md); }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: var(--dt-space-stack-xs); padding: var(--dt-space-inset-md); background: var(--dt-surface-base); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); }
+  .cell code { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); color: var(--dt-text-tertiary); }
+  .row-h { margin: 0; font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  .chat-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .chat { display: flex; flex-direction: column; gap: var(--dt-space-stack-sm); padding: var(--dt-space-inset-md); background: var(--dt-surface-base); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); }
+  .msg { align-self: flex-start; max-width: 80%; padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm); border-radius: var(--dt-radius-overlay); background: var(--dt-surface-sunken); font-size: var(--dt-font-size-sm); }
+  .msg.me { align-self: flex-end; background: var(--dt-surface-selected); color: var(--dt-text-on-selected); }
+  @media (max-width: 720px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+  var STATES = ["connecting", "listening", "thinking", "searching", "speaking"];
+  var SHAPES = ["blob", "orb", "tile", "dots", "bars"];
+  var TONES = ["brand", "secondary", "duotone", "neutral"];
+  var CHAT = {
+    connecting: "Starting a session",
+    listening: "Hearing you",
+    thinking: "Working out an answer",
+    searching: "Checking three sources",
+    speaking: "Answering",
+  };
+
+  function Seg(props) {
+    return e("div", { className: "ctl" }, props.name,
+      e("div", { className: "seg", role: "group", "aria-label": props.name },
+        props.options.map(function (o) {
+          return e("button", { key: o, type: "button", "aria-pressed": String(props.value === o), onClick: function () { props.onChange(o); } }, o);
+        })));
+  }
+
+  function Range(props) {
+    return e("label", { className: "ctl" }, props.name + " " + props.value.toFixed(2),
+      e("input", { type: "range", min: props.min, max: props.max, step: 0.05, value: props.value, onChange: function (ev) { props.onChange(Number(ev.target.value)); } }));
+  }
+
+  function Page() {
+    var s = React.useState, shape = s("blob"), tone = s("brand"), speed = s(1), intensity = s(0.6), voice = s(null);
+    var common = { shape: shape[0], tone: tone[0], speed: speed[0], intensity: intensity[0] };
+    return e(React.Fragment, null,
+      e("div", { className: "controls" },
+        e(Seg, { name: "Shape", options: SHAPES, value: shape[0], onChange: shape[1] }),
+        e(Seg, { name: "Tone", options: TONES, value: tone[0], onChange: tone[1] }),
+        e(Range, { name: "Speed", min: 0.25, max: 2.5, value: speed[0], onChange: speed[1] }),
+        e(Range, { name: "Intensity", min: 0, max: 1, value: intensity[0], onChange: intensity[1] }),
+        e(NS.Button, { size: "sm", variant: "secondary", onClick: function () { voice[1]("listening"); } }, "Open voice overlay")),
+      e("p", { className: "row-h" }, "Standalone, size lg"),
+      e("div", { className: "grid" }, STATES.map(function (st) {
+        return e("div", { className: "cell", key: st }, e(NS.Thinking, Object.assign({ state: st, size: "lg", showLabel: false }, common)), e("code", null, st));
+      })),
+      e("p", { className: "row-h" }, "Inline in a chat"),
+      e("div", { className: "grid chat-grid" }, STATES.map(function (st) {
+        return e("div", { className: "chat", key: st },
+          e("div", { className: "msg me" }, "What changed in v2?"),
+          e("div", { className: "msg" }, e(NS.Thinking, Object.assign({ state: st, label: CHAT[st] }, common))));
+      })),
+      voice[0] && e(NS.Thinking, Object.assign({}, common, { mode: "overlay", state: voice[0], tone: tone[0] === "brand" ? "duotone" : tone[0], onDismiss: function () { voice[1](null); } }),
+        e("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--dt-space-stack-md)" } },
+          e("span", null, voice[0] === "listening" ? "“Book a table for four on Friday…”" : "Try each state:"),
+          e("div", { className: "seg", role: "group", "aria-label": "Voice state" }, STATES.map(function (st) {
+            return e("button", { key: st, type: "button", "aria-pressed": String(voice[0] === st), onClick: function () { voice[1](st); } }, st);
+          }))))
+    );
+  }
+  function start() {
+    if (!NS.Thinking || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

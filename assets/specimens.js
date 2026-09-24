@@ -276,6 +276,9 @@
     Video: function () {
       return e(NS.Video, { label: "Ridge line above a cloud inversion", ratio: "16:9" });
     },
+    Thinking: function () {
+      return e(NS.Thinking, { state: "thinking", size: "md" });
+    },
     Heading: function () {
       return e(NS.Heading, { level: 3, size: "heading-md" }, "Quiet mornings");
     },

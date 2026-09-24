@@ -304,7 +304,11 @@
     "components/typography/Text.md",
     "components/primitives/Section.d.ts",
     "components/primitives/Section.jsx",
-    "components/primitives/Section.md"
+    "components/primitives/Section.md",
+    "components/feedback/Thinking.d.ts",
+    "components/feedback/Thinking.jsx",
+    "components/feedback/Thinking.md",
+    "tokens/component/thinking.css"
   ],
   "libraries": [
     {
@@ -509,6 +513,9 @@
     },
     {
       "name": "Section"
+    },
+    {
+      "name": "Thinking"
     }
   ],
   "lastChange": {

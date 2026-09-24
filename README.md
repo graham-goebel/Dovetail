@@ -297,6 +297,29 @@ overrides. Paste it into `system/tokens/themes/theme-custom.css` and the theme s
 the repository, needing no JavaScript. Nothing in the panel edits a file; it is a preview
 held in one browser.
 
+## Thinking states
+
+`Thinking` is what an assistant shows while you wait, in five states: **connecting**
+(satellites gather and breathe), **listening** (swells and wobbles with the voice),
+**thinking** (bodies orbit, merge and split), **searching** (a comet orbits the centre) and
+**speaking** (pulses outward with the reply). It sits inline beside a chat message, or with
+`mode="overlay"` it fills the screen for a voice session, with a caption or live transcript
+under the label.
+
+The motion is fluid because it is metaballs: a handful of circles, blurred and
+alpha-thresholded in one SVG filter so they merge like liquid, moved every frame by a
+`requestAnimationFrame` loop that writes attributes directly rather than re-rendering. It
+stays on the system's tokens throughout. The colours are the `--dt-thinking-*` gradient
+stops, which point at the primary and secondary ramps and are repeated under `.dark`; the
+`tile` shape takes its corners from `--dt-radius-container`; the pace is
+`--dt-thinking-duration`, which points at `--dt-duration-600`; and the sizes are the icon
+and dimension tokens. On top of the tokens, props change the base animation: `shape` (blob,
+orb, tile, dots, bars), `tone` or two `colors` of your own, `speed`, `intensity` (how far the
+fluid travels and deforms) and `level`, a live 0 to 1 amplitude from a microphone or the
+reply that listening and speaking follow. Under reduced motion the fluid holds still but
+still follows `level`. The Thinking card on the Feedback page has controls for every input
+and opens the voice overlay.
+
 ## What two example sites changed
 
 `examples/dispensary/` and `examples/travel/` were built on the system without touching

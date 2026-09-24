@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thinking · Dovetail</title>
+<meta name="description" content="What an assistant is doing while you wait: connecting, listening, thinking, searching or speaking. Five states of one fluid animation, drawn from the system&#39;s tokens, that sit inline in a chat or fill the screen for a voice session.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html" aria-current="page">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Thinking</li></ol></nav>
+<h1>Thinking</h1>
+<p class="lede">What an assistant is doing while you wait: connecting, listening, thinking, searching or speaking. Five states of one fluid animation, drawn from the system's tokens, that sit inline in a chat or fill the screen for a voice session.</p>
+<p class="meta">
+  <span class="pill">Feedback</span>
+  
+  <a href="../system/components/feedback/Thinking.jsx">Thinking.jsx</a>
+  <a href="../system/components/feedback/Thinking.d.ts">Thinking.d.ts</a>
+  <a href="../system/components/feedback/Thinking.md">Thinking.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Thinking.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">Thinking — Five fluid assistant states, inline for chat or as a voice overlay.</p>
+  <div class="frame" style="height:760px">
+    <iframe src="../previews/Thinking.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>What an assistant is doing while you wait: connecting, listening, thinking, searching or speaking. Five states of one fluid animation, drawn from the system's tokens, that sit inline in a chat or fill the screen for a voice session.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>A chat is waiting on a reply. Put it inline where the reply will appear.</li><li>A voice session is live. Use <code>mode=&quot;overlay&quot;</code> and pass the microphone or reply amplitude as <code>level</code>.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>The wait has a known length or a known amount of work. Use <code>Progress</code>.</li><li>It is a page or a button loading. Use <code>Spinner</code> or the button's own <code>loading</code>. This component speaks for an assistant, not for the interface.</li></ul>
+<h2 id="states">States</h2>
+<div class="table-wrap"><table><thead><tr><th>state</th><th>motion</th><th>when</th></tr></thead><tbody><tr><td><code>connecting</code></td><td>satellites gather and breathe</td><td>before the session is live</td></tr><tr><td><code>listening</code></td><td>swells and wobbles with <code>level</code></td><td>the person is speaking</td></tr><tr><td><code>thinking</code></td><td>bodies orbit and merge</td><td>the reply is being prepared</td></tr><tr><td><code>searching</code></td><td>a comet orbits the centre</td><td>tools or sources are being consulted</td></tr><tr><td><code>speaking</code></td><td>pulses outward with <code>level</code></td><td>the reply is being spoken or streamed</td></tr></tbody></table></div>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>{/* Chat */}
+&lt;Thinking state=&quot;thinking&quot; /&gt;
+&lt;Thinking state=&quot;searching&quot; shape=&quot;dots&quot; label=&quot;Checking three sources&quot; /&gt;
+
+{/* Voice */}
+&lt;Thinking mode=&quot;overlay&quot; state=&quot;listening&quot; level={micLevel} tone=&quot;duotone&quot; onDismiss={end}&gt;
+  {transcript}
+&lt;/Thinking&gt;</code></pre>
+<h2 id="inputs">Inputs</h2>
+<ul><li><strong>shape</strong>: <code>blob</code> is free fluid. <code>orb</code> and <code>tile</code> hold the fluid in a well tinted with <code>--dt-thinking-surface</code>; the tile follows <code>--dt-radius-container</code>, so it changes with the Shape setting. <code>dots</code> and <code>bars</code> are the chat and voice conventions, animated the same five ways.</li><li><strong>tone</strong> or <strong>colors</strong>: the gradient the fluid sweeps. <code>brand</code> reads <code>--dt-thinking-color-start</code> and <code>-end</code>, which point at the primary ramp; <code>duotone</code> sweeps primary into secondary. <code>colors</code> takes any two CSS colours, token references included.</li><li><strong>speed</strong> multiplies the pace set by <code>--dt-thinking-duration</code>; <strong>intensity</strong> sets how far the fluid travels and deforms.</li><li><strong>level</strong> drives listening and speaking from a real signal. Without it they follow a built-in rhythm.</li></ul>
+<h2 id="accessibility">Accessibility</h2>
+<p>The container is a polite live region, and the label is announced when the state changes, whether or not it is shown. The animation itself is hidden from assistive technology. Under <code>prefers-reduced-motion</code> the fluid holds still; it still follows <code>level</code>, because that is information rather than decoration. The overlay closes on Escape when <code>onDismiss</code> is set.</p>
+<h2 id="tokens">Tokens</h2>
+<p><code>--dt-thinking-*</code> (Tier 3): the start and end colour of each tone, the brand pair, the well surface, the label colour, the overlay scrim, the duration, and the inline and overlay sizes. Colour aliases are repeated under <code>.dark</code>, so the fluid keeps its contrast in a dark band and in the overlay.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Thinking.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+export type ThinkingState = &quot;connecting&quot; | &quot;listening&quot; | &quot;thinking&quot; | &quot;searching&quot; | &quot;speaking&quot;;
+
+/**
+ * An assistant's loading and thinking states, as a fluid animation that
+ * reads the system's tokens. One component, two placements: inline beside a
+ * chat message, or as a full-screen overlay for voice.
+ */
+export interface ThinkingProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;color&quot;&gt; {
+  /**
+   * connecting: gathering, before a session is live. listening: follows the
+   * person's voice. thinking: a merging swirl while a reply is prepared.
+   * searching: an orbit, while tools or sources are consulted. speaking:
+   * pulses with the reply. @default &quot;thinking&quot;
+   */
+  state?: ThinkingState;
+  /** inline sits in a line of text; overlay covers the screen for a voice session. @default &quot;inline&quot; */
+  mode?: &quot;inline&quot; | &quot;overlay&quot;;
+  /**
+   * blob: free fluid. orb and tile: fluid inside a well, tile rounded by
+   * --dt-radius-container. dots: the chat convention. bars: the voice
+   * convention. @default &quot;blob&quot;
+   */
+  shape?: &quot;blob&quot; | &quot;orb&quot; | &quot;tile&quot; | &quot;dots&quot; | &quot;bars&quot;;
+  /** Which gradient the fluid sweeps. brand reads --dt-thinking-color-start and -end. @default &quot;brand&quot; */
+  tone?: &quot;brand&quot; | &quot;primary&quot; | &quot;secondary&quot; | &quot;duotone&quot; | &quot;neutral&quot;;
+  /** Two CSS colours, start and end, overriding tone. Token references work: [&quot;var(--dt-color-green-400)&quot;, &quot;var(--dt-color-green-700)&quot;]. */
+  colors?: [string, string];
+  /** sm is the inline icon size, xl the overlay size; or any CSS length. @default &quot;sm&quot; inline, &quot;xl&quot; overlay */
+  size?: &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot; | &quot;xl&quot; | string;
+  /** Multiplies the pace set by --dt-thinking-duration. @default 1 */
+  speed?: number;
+  /** How far the fluid is allowed to travel and deform, 0 to 1. @default 0.6 */
+  intensity?: number;
+  /**
+   * A live level from 0 to 1, a microphone's or the reply's amplitude. Drives
+   * listening and speaking; omit it and they follow a built-in rhythm.
+   */
+  level?: number;
+  /** Announced to assistive technology, and shown unless showLabel is false. Defaults to the state's name. */
+  label?: string;
+  /** Inline only: show the label beside the animation. It is announced either way. @default true */
+  showLabel?: boolean;
+  /** Overlay only: adds a close button and closes on Escape. */
+  onDismiss?: () =&gt; void;
+  /** Overlay: a caption or live transcript under the label. Inline: content after the label. */
+  children?: React.ReactNode;
+}
+
+export declare function Thinking(props: ThinkingProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Thinking.jsx</code> resolves, read from the source: 15 component, 25 semantic, 12 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Thinking">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-dialog-scrim-blur"><th scope="row"><span class="token-cell"><code>--dt-dialog-scrim-blur</code><button type="button" class="graph-btn" data-graph="--dt-dialog-scrim-blur" title="Show what --dt-dialog-scrim-blur connects to" aria-label="Graph for --dt-dialog-scrim-blur"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>2px</code></td></tr><tr id="uses-dt-thinking-color-end"><th scope="row"><span class="token-cell"><code>--dt-thinking-color-end</code><button type="button" class="graph-btn" data-graph="--dt-thinking-color-end" title="Show what --dt-thinking-color-end connects to" aria-label="Graph for --dt-thinking-color-end"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-thinking-primary-end)</code></td></tr><tr id="uses-dt-thinking-color-start"><th scope="row"><span class="token-cell"><code>--dt-thinking-color-start</code><button type="button" class="graph-btn" data-graph="--dt-thinking-color-start" title="Show what --dt-thinking-color-start connects to" aria-label="Graph for --dt-thinking-color-start"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-thinking-primary-start)</code></td></tr><tr id="uses-dt-thinking-duration"><th scope="row"><span class="token-cell"><code>--dt-thinking-duration</code><button type="button" class="graph-btn" data-graph="--dt-thinking-duration" title="Show what --dt-thinking-duration connects to" aria-label="Graph for --dt-thinking-duration"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-duration-600)</code></td></tr><tr id="uses-dt-thinking-label-color"><th scope="row"><span class="token-cell"><code>--dt-thinking-label-color</code><button type="button" class="graph-btn" data-graph="--dt-thinking-label-color" title="Show what --dt-thinking-label-color connects to" aria-label="Graph for --dt-thinking-label-color"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-secondary)</code></td></tr><tr id="uses-dt-thinking-neutral-end"><th scope="row"><span class="token-cell"><code>--dt-thinking-neutral-end</code><button type="button" class="graph-btn" data-graph="--dt-thinking-neutral-end" title="Show what --dt-thinking-neutral-end connects to" aria-label="Graph for --dt-thinking-neutral-end"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-color-neutral-800)</code></td></tr><tr id="uses-dt-thinking-neutral-start"><th scope="row"><span class="token-cell"><code>--dt-thinking-neutral-start</code><button type="button" class="graph-btn" data-graph="--dt-thinking-neutral-start" title="Show what --dt-thinking-neutral-start connects to" aria-label="Graph for --dt-thinking-neutral-start"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-color-neutral-400)</code></td></tr><tr id="uses-dt-thinking-primary-end"><th scope="row"><span class="token-cell"><code>--dt-thinking-primary-end</code><button type="button" class="graph-btn" data-graph="--dt-thinking-primary-end" title="Show what --dt-thinking-primary-end connects to" aria-label="Graph for --dt-thinking-primary-end"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-color-primary-700)</code></td></tr><tr id="uses-dt-thinking-primary-start"><th scope="row"><span class="token-cell"><code>--dt-thinking-primary-start</code><button type="button" class="graph-btn" data-graph="--dt-thinking-primary-start" title="Show what --dt-thinking-primary-start connects to" aria-label="Graph for --dt-thinking-primary-start"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-color-primary-400)</code></td></tr><tr id="uses-dt-thinking-scrim"><th scope="row"><span class="token-cell"><code>--dt-thinking-scrim</code><button type="button" class="graph-btn" data-graph="--dt-thinking-scrim" title="Show what --dt-thinking-scrim connects to" aria-label="Graph for --dt-thinking-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-scrim)</code></td></tr><tr id="uses-dt-thinking-secondary-end"><th scope="row"><span class="token-cell"><code>--dt-thinking-secondary-end</code><button type="button" class="graph-btn" data-graph="--dt-thinking-secondary-end" title="Show what --dt-thinking-secondary-end connects to" aria-label="Graph for --dt-thinking-secondary-end"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-color-secondary-700)</code></td></tr><tr id="uses-dt-thinking-secondary-start"><th scope="row"><span class="token-cell"><code>--dt-thinking-secondary-start</code><button type="button" class="graph-btn" data-graph="--dt-thinking-secondary-start" title="Show what --dt-thinking-secondary-start connects to" aria-label="Graph for --dt-thinking-secondary-start"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-color-secondary-400)</code></td></tr><tr id="uses-dt-thinking-size-inline"><th scope="row"><span class="token-cell"><code>--dt-thinking-size-inline</code><button type="button" class="graph-btn" data-graph="--dt-thinking-size-inline" title="Show what --dt-thinking-size-inline connects to" aria-label="Graph for --dt-thinking-size-inline"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-icon-md)</code></td></tr><tr id="uses-dt-thinking-size-overlay"><th scope="row"><span class="token-cell"><code>--dt-thinking-size-overlay</code><button type="button" class="graph-btn" data-graph="--dt-thinking-size-overlay" title="Show what --dt-thinking-size-overlay connects to" aria-label="Graph for --dt-thinking-size-overlay"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-dim-40)</code></td></tr><tr id="uses-dt-thinking-surface"><th scope="row"><span class="token-cell"><code>--dt-thinking-surface</code><button type="button" class="graph-btn" data-graph="--dt-thinking-surface" title="Show what --dt-thinking-surface connects to" aria-label="Graph for --dt-thinking-surface"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-brand-muted)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-control-md"><th scope="row"><span class="token-cell"><code>--dt-size-control-md</code><button type="button" class="graph-btn" data-graph="--dt-size-control-md" title="Show what --dt-size-control-md connects to" aria-label="Graph for --dt-size-control-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-10)</code></td></tr><tr id="uses-dt-size-icon-md"><th scope="row"><span class="token-cell"><code>--dt-size-icon-md</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-md" title="Show what --dt-size-icon-md connects to" aria-label="Graph for --dt-size-icon-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-5)</code></td></tr><tr id="uses-dt-size-icon-xl"><th scope="row"><span class="token-cell"><code>--dt-size-icon-xl</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-xl" title="Show what --dt-size-icon-xl connects to" aria-label="Graph for --dt-size-icon-xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-lg"><code>--dt-space-inset-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-lg" title="Show what --dt-space-inset-lg connects to" aria-label="Graph for --dt-space-inset-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inset-xl"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xl"><code>--dt-space-inset-xl</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xl" title="Show what --dt-space-inset-xl connects to" aria-label="Graph for --dt-space-inset-xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-stack-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-lg"><code>--dt-space-stack-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-lg" title="Show what --dt-space-stack-lg connects to" aria-label="Graph for --dt-space-stack-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-surface-brand-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand-muted"><code>--dt-surface-brand-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand-muted" title="Show what --dt-surface-brand-muted connects to" aria-label="Graph for --dt-surface-brand-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-050)</code></td></tr><tr id="uses-dt-surface-scrim"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-scrim"><code>--dt-surface-scrim</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-scrim" title="Show what --dt-surface-scrim connects to" aria-label="Graph for --dt-surface-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><span class="swatch" style="background:oklch(0.145 0.005 264 / 0.5)"></span><code>oklch(0.145 0.005 264 / 0.5)</code></td></tr><tr id="uses-dt-text-body-md-family"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-family</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-family" title="Show what --dt-text-body-md-family connects to" aria-label="Graph for --dt-text-body-md-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-md-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-line" title="Show what --dt-text-body-md-line connects to" aria-label="Graph for --dt-text-body-md-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-md)</code></td></tr><tr id="uses-dt-text-body-md-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-size" title="Show what --dt-text-body-md-size connects to" aria-label="Graph for --dt-text-body-md-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-body-sm-family"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-family</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-family" title="Show what --dt-text-body-sm-family connects to" aria-label="Graph for --dt-text-body-sm-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-line" title="Show what --dt-text-body-sm-line connects to" aria-label="Graph for --dt-text-body-sm-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-size" title="Show what --dt-text-body-sm-size connects to" aria-label="Graph for --dt-text-body-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-heading-sm-family"><th scope="row"><span class="token-cell"><code>--dt-text-heading-sm-family</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-sm-family" title="Show what --dt-text-heading-sm-family connects to" aria-label="Graph for --dt-text-heading-sm-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-sm-line"><th scope="row"><span class="token-cell"><code>--dt-text-heading-sm-line</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-sm-line" title="Show what --dt-text-heading-sm-line connects to" aria-label="Graph for --dt-text-heading-sm-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-xl)</code></td></tr><tr id="uses-dt-text-heading-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-sm-size" title="Show what --dt-text-heading-sm-size connects to" aria-label="Graph for --dt-text-heading-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-xl)</code></td></tr><tr id="uses-dt-text-heading-sm-weight"><th scope="row"><span class="token-cell"><code>--dt-text-heading-sm-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-sm-weight" title="Show what --dt-text-heading-sm-weight connects to" aria-label="Graph for --dt-text-heading-sm-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-on-scrim"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-scrim"><code>--dt-text-on-scrim</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-scrim" title="Show what --dt-text-on-scrim connects to" aria-label="Graph for --dt-text-on-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-050)</code></td></tr><tr id="uses-dt-text-on-scrim-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-scrim-secondary"><code>--dt-text-on-scrim-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-scrim-secondary" title="Show what --dt-text-on-scrim-secondary connects to" aria-label="Graph for --dt-text-on-scrim-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-200)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-secondary" title="Show what --dt-text-secondary connects to" aria-label="Graph for --dt-text-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-z-overlay"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-z-overlay"><code>--dt-z-overlay</code></a><button type="button" class="graph-btn" data-graph="--dt-z-overlay" title="Show what --dt-z-overlay connects to" aria-label="Graph for --dt-z-overlay"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>300</code></td></tr><tr id="uses-dt-color-neutral-050"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-neutral-050"><code>--dt-color-neutral-050</code></a><button type="button" class="graph-btn" data-graph="--dt-color-neutral-050" title="Show what --dt-color-neutral-050 connects to" aria-label="Graph for --dt-color-neutral-050"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.985 0.001 264)"></span><code>oklch(0.985 0.001 264)</code></td></tr><tr id="uses-dt-color-neutral-200"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-neutral-200"><code>--dt-color-neutral-200</code></a><button type="button" class="graph-btn" data-graph="--dt-color-neutral-200" title="Show what --dt-color-neutral-200 connects to" aria-label="Graph for --dt-color-neutral-200"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.925 0.003 264)"></span><code>oklch(0.925 0.003 264)</code></td></tr><tr id="uses-dt-color-neutral-400"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-neutral-400"><code>--dt-color-neutral-400</code></a><button type="button" class="graph-btn" data-graph="--dt-color-neutral-400" title="Show what --dt-color-neutral-400 connects to" aria-label="Graph for --dt-color-neutral-400"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.708 0.007 264)"></span><code>oklch(0.708 0.007 264)</code></td></tr><tr id="uses-dt-color-neutral-800"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-neutral-800"><code>--dt-color-neutral-800</code></a><button type="button" class="graph-btn" data-graph="--dt-color-neutral-800" title="Show what --dt-color-neutral-800 connects to" aria-label="Graph for --dt-color-neutral-800"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.273 0.007 264)"></span><code>oklch(0.273 0.007 264)</code></td></tr><tr id="uses-dt-color-primary-400"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-primary-400"><code>--dt-color-primary-400</code></a><button type="button" class="graph-btn" data-graph="--dt-color-primary-400" title="Show what --dt-color-primary-400 connects to" aria-label="Graph for --dt-color-primary-400"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.714 0.143 259)"></span><code>oklch(0.714 0.143 259)</code></td></tr><tr id="uses-dt-color-primary-700"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-primary-700"><code>--dt-color-primary-700</code></a><button type="button" class="graph-btn" data-graph="--dt-color-primary-700" title="Show what --dt-color-primary-700 connects to" aria-label="Graph for --dt-color-primary-700"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.476 0.196 259)"></span><code>oklch(0.476 0.196 259)</code></td></tr><tr id="uses-dt-color-secondary-400"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-secondary-400"><code>--dt-color-secondary-400</code></a><button type="button" class="graph-btn" data-graph="--dt-color-secondary-400" title="Show what --dt-color-secondary-400 connects to" aria-label="Graph for --dt-color-secondary-400"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.740 0.163 305)"></span><code>oklch(0.740 0.163 305)</code></td></tr><tr id="uses-dt-color-secondary-700"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-color-secondary-700"><code>--dt-color-secondary-700</code></a><button type="button" class="graph-btn" data-graph="--dt-color-secondary-700" title="Show what --dt-color-secondary-700 connects to" aria-label="Graph for --dt-color-secondary-700"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><span class="swatch" style="background:oklch(0.518 0.190 305)"></span><code>oklch(0.518 0.190 305)</code></td></tr><tr id="uses-dt-dim-16"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-16"><code>--dt-dim-16</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-16" title="Show what --dt-dim-16 connects to" aria-label="Graph for --dt-dim-16"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>64px</code></td></tr><tr id="uses-dt-dim-40"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-40"><code>--dt-dim-40</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-40" title="Show what --dt-dim-40 connects to" aria-label="Graph for --dt-dim-40"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>160px</code></td></tr><tr id="uses-dt-font-size-xl"><th scope="row"><span class="token-cell"><code>--dt-font-size-xl</code><button type="button" class="graph-btn" data-graph="--dt-font-size-xl" title="Show what --dt-font-size-xl connects to" aria-label="Graph for --dt-font-size-xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>23px</code></td></tr><tr id="uses-dt-measure-narrow"><th scope="row"><span class="token-cell"><code>--dt-measure-narrow</code><button type="button" class="graph-btn" data-graph="--dt-measure-narrow" title="Show what --dt-measure-narrow connects to" aria-label="Graph for --dt-measure-narrow"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>45ch</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+const LABELS = { connecting: &quot;Connecting&quot;, listening: &quot;Listening&quot;, thinking: &quot;Thinking&quot;, searching: &quot;Searching&quot;, speaking: &quot;Speaking&quot; };
+
+const SIZES = {
+  sm: &quot;var(--dt-thinking-size-inline, var(--dt-size-icon-md))&quot;,
+  md: &quot;var(--dt-size-icon-xl)&quot;,
+  lg: &quot;var(--dt-dim-16)&quot;,
+  xl: &quot;var(--dt-thinking-size-overlay, var(--dt-dim-40))&quot;,
+};
+
+const TONES = {
+  brand: [&quot;var(--dt-thinking-color-start, var(--dt-color-primary-400))&quot;, &quot;var(--dt-thinking-color-end, var(--dt-color-primary-700))&quot;],
+  primary: [&quot;var(--dt-thinking-primary-start, var(--dt-color-primary-400))&quot;, &quot;var(--dt-thinking-primary-end, var(--dt-color-primary-700))&quot;],
+  secondary: [&quot;var(--dt-thinking-secondary-start, var(--dt-color-secondary-400))&quot;, &quot;var(--dt-thinking-secondary-end, var(--dt-color-secondary-700))&quot;],
+  duotone: [&quot;var(--dt-thinking-primary-start, var(--dt-color-primary-400))&quot;, &quot;var(--dt-thinking-secondary-end, var(--dt-color-secondary-700))&quot;],
+  neutral: [&quot;var(--dt-thinking-neutral-start, var(--dt-color-neutral-400))&quot;, &quot;var(--dt-thinking-neutral-end, var(--dt-color-neutral-800))&quot;],
+};
+
+const WELLS = { orb: &quot;var(--dt-radius-pill)&quot;, tile: &quot;var(--dt-radius-container)&quot; };
+
+const PARTICLES = 7;
+const BARS = 5;
+const TAU = Math.PI * 2;
+const ENVELOPE = [0.55, 0.8, 1, 0.8, 0.55];
+
+/* Smooth pseudo-noise in -1..1: two detuned sines per index, so each particle
+   drifts on its own path and the whole never visibly repeats. */
+function noise(i, t) {
+  return 0.5 * Math.sin(t * (1.3 + i * 0.37) + i * 2.1) + 0.5 * Math.sin(t * (0.7 + i * 0.23) + i * 5.3);
+}
+
+/* What listening and speaking follow when no live level is passed: a restless
+   hum for listening, a syllable rhythm for speaking. */
+function synthLevel(state, t) {
+  if (state === &quot;listening&quot;) return 0.35 + 0.25 * noise(9, t * 2.2);
+  if (state === &quot;speaking&quot;) return Math.min(1, 0.12 + Math.abs(Math.sin(t * 6.3)) * (0.55 + 0.45 * Math.sin(t * 1.7)));
+  return 0;
+}
+
+function ring(cx, cy, a, d, r) {
+  return { x: cx + Math.cos(a) * d, y: cy + Math.sin(a) * d, r: r };
+}
+
+/* The fluid shapes: blob, orb and tile. A centre body and its satellites,
+   blurred and thresholded so they merge like liquid. Coordinates are in a
+   100 by 100 box. */
+function blobParts(state, t, lvl, k) {
+  const P = [];
+  const spread = 0.6 + 0.6 * k;
+  if (state === &quot;connecting&quot;) {
+    const breathe = 0.5 + 0.5 * Math.sin(t * 1.5);
+    P.push({ x: 50, y: 50, r: 8 + 6 * breathe });
+    for (let i = 0; i &lt; 6; i++) P.push(ring(50, 50, t * 0.6 + (i * TAU) / 6, 8 + 20 * (1 - breathe) * spread, 6.5));
+  } else if (state === &quot;listening&quot;) {
+    P.push({ x: 50, y: 50, r: 15 + 8 * lvl });
+    for (let i = 0; i &lt; 5; i++) {
+      const d = 11 + 13 * lvl * (0.5 + 0.5 * noise(i + 3, t * 2)) * spread;
+      P.push(ring(50, 50, (i * TAU) / 5 + t * 0.25 + noise(i, t) * 0.5, d, 8 + 2 * noise(i + 7, t)));
+    }
+  } else if (state === &quot;thinking&quot;) {
+    P.push({ x: 50, y: 50, r: 15 });
+    for (let i = 0; i &lt; 5; i++) {
+      const dir = i % 2 ? -1 : 1;
+      P.push(ring(50, 50, dir * t * (0.8 + i * 0.17) + i * 1.3, 10 + (7 + 6 * noise(i, t)) * spread, 9 + 3 * noise(i + 4, t * 1.3)));
+    }
+  } else if (state === &quot;searching&quot;) {
+    P.push({ x: 50, y: 50, r: 13 + 1.5 * Math.sin(t * 2) });
+    const a = t * 1.6;
+    const d = 24 + 5 * k;
+    [7.5, 6, 4.8, 3.8, 2.9].forEach((r, j) =&gt; P.push(ring(50, 50, a - j * 0.34, d, r)));
+  } else {
+    P.push({ x: 50, y: 50, r: 13 + 9 * lvl });
+    for (let i = 0; i &lt; 6; i++) {
+      const pulse = Math.max(0, Math.sin(t * 4 - i * 0.9)) * lvl;
+      P.push(ring(50, 50, (i * TAU) / 6 + t * 0.3, 10 + 18 * pulse * spread, 6.5 + 4 * pulse));
+    }
+  }
+  /* Sized so the bodies overlap enough to read as one fluid after the
+     threshold eats their soft edges. */
+  return P.map((p) =&gt; ({ x: p.x, y: p.y, r: p.r * 1.35 }));
+}
+
+/* Three dots, the chat convention, still thresholded so they can touch and
+   merge. */
+function dotParts(state, t, lvl, k) {
+  const xs = [26, 50, 74];
+  const P = [];
+  if (state === &quot;connecting&quot;) {
+    xs.forEach((x, i) =&gt; P.push({ x: x, y: 50, r: 5 + 4 * (0.5 + 0.5 * Math.sin(t * 2.2 - i * 0.9)) }));
+  } else if (state === &quot;listening&quot;) {
+    xs.forEach((x, i) =&gt; P.push({ x: x, y: 50, r: 6 + 8 * lvl * (0.6 + 0.4 * noise(i, t * 2)) }));
+  } else if (state === &quot;thinking&quot;) {
+    xs.forEach((x, i) =&gt; P.push({ x: x, y: 50 - (8 + 8 * k) * Math.max(0, Math.sin(t * 3 - i * 0.7)), r: 8 }));
+  } else if (state === &quot;searching&quot;) {
+    xs.forEach((x) =&gt; P.push({ x: x, y: 50, r: 6 }));
+    P.push({ x: 50 + 30 * Math.sin(t * 1.8), y: 50, r: 9 + 2 * k });
+  } else {
+    xs.forEach((x, i) =&gt; P.push({ x: x, y: 50, r: 5 + 10 * lvl * Math.max(0.25, Math.abs(Math.sin(t * 5 - i * 1.1))) }));
+  }
+  return P.map((p) =&gt; ({ x: p.x, y: p.y, r: p.r * 1.15 }));
+}
+
+/* Five bars, the voice convention. Heights are fractions of the box. */
+function barHeights(state, t, lvl, k) {
+  const H = [];
+  for (let i = 0; i &lt; BARS; i++) {
+    let h;
+    if (state === &quot;connecting&quot;) h = 0.2 + 0.18 * (0.5 + 0.5 * Math.sin(t * 2 - i * 0.8));
+    else if (state === &quot;listening&quot;) h = 0.16 + 0.78 * lvl * ENVELOPE[i] * (0.7 + 0.3 * noise(i, t * 3));
+    else if (state === &quot;thinking&quot;) h = 0.25 + 0.4 * (0.5 + 0.5 * Math.sin(t * 2.4 - i * 0.9)) * (0.6 + 0.6 * k);
+    else if (state === &quot;searching&quot;) {
+      const p = 2 + 2 * Math.sin(t * 1.6);
+      h = 0.18 + 0.7 * Math.exp(-((i - p) * (i - p)) / 0.8);
+    } else h = 0.14 + 0.82 * lvl * ENVELOPE[i] * Math.abs(Math.sin(t * 6 + i * 1.7));
+    H.push(Math.max(0.1, Math.min(1, h)));
+  }
+  return H;
+}
+
+/* The duration token, in milliseconds, read from the element itself so a
+   theme or context that retunes it is honoured. */
+function readDuration(node) {
+  const raw = node ? getComputedStyle(node).getPropertyValue(&quot;--dt-thinking-duration&quot;).trim() : &quot;&quot;;
+  const n = parseFloat(raw);
+  if (!n) return 600;
+  return /ms$/.test(raw) ? n : n * 1000;
+}
+
+function useReducedMotion() {
+  const query = &quot;(prefers-reduced-motion: reduce)&quot;;
+  const [reduced, setReduced] = React.useState(() =&gt; typeof window !== &quot;undefined&quot; &amp;&amp; !!window.matchMedia &amp;&amp; window.matchMedia(query).matches);
+  React.useEffect(() =&gt; {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const sync = () =&gt; setReduced(mq.matches);
+    mq.addEventListener(&quot;change&quot;, sync);
+    return () =&gt; mq.removeEventListener(&quot;change&quot;, sync);
+  }, []);
+  return reduced;
+}
+
+function Fluid({ state, shape, colors, size, speed, intensity, level }) {
+  const uid = &quot;dt-thinking-&quot; + React.useId().replace(/[^a-zA-Z0-9-]/g, &quot;&quot;);
+  const box = React.useRef(null);
+  const circles = React.useRef([]);
+  const bars = React.useRef([]);
+  const gradient = React.useRef(null);
+  const live = React.useRef({});
+  const clock = React.useRef({ t: 0, level: 0 });
+  const reduced = useReducedMotion();
+  live.current = { state, shape, speed, intensity, level };
+
+  const wide = shape === &quot;dots&quot; || shape === &quot;bars&quot;;
+  const well = WELLS[shape];
+  const dim = SIZES[size] || size || SIZES.sm;
+
+  React.useEffect(() =&gt; {
+    let frame = 0;
+    let last = performance.now();
+    const c = clock.current;
+    const beat = readDuration(box.current) / 600;
+
+    function draw(now) {
+      const o = live.current;
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      if (!reduced) c.t += (dt * Math.max(0.1, Number(o.speed) || 1)) / beat;
+      const t = reduced ? 1.3 : c.t;
+      const k = Math.max(0, Math.min(1, o.intensity == null ? 0.6 : Number(o.intensity)));
+      const target = o.level == null ? synthLevel(o.state, t) : Math.max(0, Math.min(1, Number(o.level)));
+      c.level += (target - c.level) * (reduced ? 1 : 0.25);
+      const smooth = c.level;
+
+      if (o.shape === &quot;bars&quot;) {
+        const H = barHeights(o.state, t, smooth, k);
+        bars.current.forEach((rect, i) =&gt; {
+          if (!rect) return;
+          const h = H[i] * 56;
+          rect.setAttribute(&quot;y&quot;, String(50 - h / 2));
+          rect.setAttribute(&quot;height&quot;, String(h));
+        });
+      } else {
+        const P = o.shape === &quot;dots&quot; ? dotParts(o.state, t, smooth, k) : blobParts(o.state, t, smooth, k);
+        circles.current.forEach((node, i) =&gt; {
+          if (!node) return;
+          const p = P[i];
+          node.setAttribute(&quot;cx&quot;, p ? p.x.toFixed(2) : &quot;50&quot;);
+          node.setAttribute(&quot;cy&quot;, p ? p.y.toFixed(2) : &quot;50&quot;);
+          node.setAttribute(&quot;r&quot;, p ? Math.max(0, p.r).toFixed(2) : &quot;0&quot;);
+        });
+      }
+      if (gradient.current) gradient.current.setAttribute(&quot;gradientTransform&quot;, &quot;rotate(&quot; + ((t * 24) % 360).toFixed(1) + &quot; 50 50)&quot;);
+      if (!reduced) frame = requestAnimationFrame(draw);
+    }
+
+    frame = requestAnimationFrame(draw);
+    return () =&gt; cancelAnimationFrame(frame);
+    /* The clock lives in a ref, so a state or shape change carries on from
+       where the motion was. A live level is read each frame; only a frozen,
+       reduced-motion render needs redrawing when it changes. */
+  }, [reduced, state, shape, reduced ? level : null]);
+
+  const viewBox = wide ? &quot;0 18.75 100 62.5&quot; : well ? &quot;8 8 84 84&quot; : &quot;12 12 76 76&quot;;
+
+  return (
+    &lt;span
+      ref={box}
+      aria-hidden=&quot;true&quot;
+      style={{
+        display: &quot;inline-block&quot;,
+        flex: &quot;none&quot;,
+        position: &quot;relative&quot;,
+        height: dim,
+        width: wide ? `calc(${dim} * 1.6)` : dim,
+        borderRadius: well,
+        overflow: well ? &quot;hidden&quot; : undefined,
+        background: well ? &quot;var(--dt-thinking-surface, var(--dt-surface-brand-muted))&quot; : undefined,
+        verticalAlign: &quot;middle&quot;,
+      }}
+    &gt;
+      &lt;svg viewBox={viewBox} width=&quot;100%&quot; height=&quot;100%&quot; style={{ display: &quot;block&quot;, overflow: &quot;visible&quot; }}&gt;
+        &lt;defs&gt;
+          &lt;linearGradient id={uid + &quot;-g&quot;} ref={gradient} gradientUnits=&quot;userSpaceOnUse&quot; x1=&quot;28&quot; y1=&quot;28&quot; x2=&quot;72&quot; y2=&quot;72&quot;&gt;
+            &lt;stop offset=&quot;0&quot; style={{ stopColor: colors[0] }} /&gt;
+            &lt;stop offset=&quot;1&quot; style={{ stopColor: colors[1] }} /&gt;
+          &lt;/linearGradient&gt;
+          &lt;filter id={uid + &quot;-f&quot;} x=&quot;-30%&quot; y=&quot;-30%&quot; width=&quot;160%&quot; height=&quot;160%&quot; colorInterpolationFilters=&quot;sRGB&quot;&gt;
+            &lt;feGaussianBlur in=&quot;SourceGraphic&quot; stdDeviation=&quot;3.5&quot; result=&quot;blur&quot; /&gt;
+            &lt;feColorMatrix in=&quot;blur&quot; values=&quot;1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8&quot; /&gt;
+          &lt;/filter&gt;
+        &lt;/defs&gt;
+        {shape === &quot;bars&quot; ? (
+          &lt;g fill={`url(#${uid}-g)`}&gt;
+            {Array.from({ length: BARS }, (_, i) =&gt; (
+              &lt;rect key={i} ref={(n) =&gt; (bars.current[i] = n)} x={13 + i * 16} y=&quot;44&quot; width=&quot;10&quot; height=&quot;12&quot; rx=&quot;5&quot; /&gt;
+            ))}
+          &lt;/g&gt;
+        ) : (
+          &lt;g filter={`url(#${uid}-f)`} fill={`url(#${uid}-g)`}&gt;
+            {Array.from({ length: PARTICLES }, (_, i) =&gt; (
+              &lt;circle key={i} ref={(n) =&gt; (circles.current[i] = n)} cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;0&quot; /&gt;
+            ))}
+          &lt;/g&gt;
+        )}
+      &lt;/svg&gt;
+    &lt;/span&gt;
+  );
+}
+
+export function Thinking({
+  state = &quot;thinking&quot;,
+  mode = &quot;inline&quot;,
+  shape = &quot;blob&quot;,
+  tone = &quot;brand&quot;,
+  colors,
+  size,
+  speed = 1,
+  intensity = 0.6,
+  level,
+  label,
+  showLabel = true,
+  onDismiss,
+  children,
+  style,
+  ...rest
+}) {
+  const text = label || LABELS[state] || LABELS.thinking;
+  const pair = Array.isArray(colors) &amp;&amp; colors.length === 2 ? colors : TONES[tone] || TONES.brand;
+  const overlay = mode === &quot;overlay&quot;;
+
+  React.useEffect(() =&gt; {
+    if (!overlay || !onDismiss) return undefined;
+    const onKey = (e) =&gt; { if (e.key === &quot;Escape&quot;) onDismiss(); };
+    document.addEventListener(&quot;keydown&quot;, onKey);
+    return () =&gt; document.removeEventListener(&quot;keydown&quot;, onKey);
+  }, [overlay, onDismiss]);
+
+  const fluid = &lt;Fluid state={state} shape={shape} colors={pair} size={size || (overlay ? &quot;xl&quot; : &quot;sm&quot;)} speed={speed} intensity={intensity} level={level} /&gt;;
+
+  if (overlay) {
+    return (
+      &lt;div
+        role=&quot;status&quot;
+        aria-live=&quot;polite&quot;
+        style={{
+          position: &quot;fixed&quot;, inset: 0, zIndex: &quot;var(--dt-z-overlay)&quot;,
+          display: &quot;flex&quot;, flexDirection: &quot;column&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;center&quot;,
+          gap: &quot;var(--dt-space-stack-lg)&quot;, padding: &quot;var(--dt-space-inset-xl)&quot;, boxSizing: &quot;border-box&quot;,
+          background: &quot;var(--dt-thinking-scrim, var(--dt-surface-scrim))&quot;,
+          backdropFilter: &quot;blur(var(--dt-dialog-scrim-blur, 2px))&quot;,
+          WebkitBackdropFilter: &quot;blur(var(--dt-dialog-scrim-blur, 2px))&quot;,
+          ...style,
+        }}
+        {...rest}
+      &gt;
+        {fluid}
+        &lt;span style={{ fontFamily: &quot;var(--dt-text-heading-sm-family)&quot;, fontSize: &quot;var(--dt-text-heading-sm-size)&quot;, lineHeight: &quot;var(--dt-text-heading-sm-line)&quot;, fontWeight: &quot;var(--dt-text-heading-sm-weight)&quot;, color: &quot;var(--dt-text-on-scrim, var(--dt-color-neutral-050))&quot; }}&gt;{text}&lt;/span&gt;
+        {children &amp;&amp; (
+          &lt;div style={{ maxWidth: &quot;var(--dt-measure-narrow)&quot;, textAlign: &quot;center&quot;, fontFamily: &quot;var(--dt-text-body-md-family)&quot;, fontSize: &quot;var(--dt-text-body-md-size)&quot;, lineHeight: &quot;var(--dt-text-body-md-line)&quot;, color: &quot;var(--dt-text-on-scrim-secondary, var(--dt-color-neutral-200))&quot; }}&gt;{children}&lt;/div&gt;
+        )}
+        {onDismiss &amp;&amp; (
+          &lt;button
+            type=&quot;button&quot;
+            aria-label=&quot;Close&quot;
+            onClick={onDismiss}
+            style={{
+              position: &quot;absolute&quot;, top: &quot;var(--dt-space-inset-lg)&quot;, right: &quot;var(--dt-space-inset-lg)&quot;,
+              width: &quot;var(--dt-size-control-md)&quot;, height: &quot;var(--dt-size-control-md)&quot;, border: 0,
+              borderRadius: &quot;var(--dt-radius-pill)&quot;, background: &quot;transparent&quot;, cursor: &quot;pointer&quot;,
+              color: &quot;var(--dt-text-on-scrim, var(--dt-color-neutral-050))&quot;, fontSize: &quot;var(--dt-font-size-xl)&quot;, lineHeight: 1,
+            }}
+          &gt;×&lt;/button&gt;
+        )}
+      &lt;/div&gt;
+    );
+  }
+
+  return (
+    &lt;span
+      role=&quot;status&quot;
+      aria-live=&quot;polite&quot;
+      aria-label={showLabel ? undefined : text}
+      style={{ display: &quot;inline-flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, verticalAlign: &quot;middle&quot;, ...style }}
+      {...rest}
+    &gt;
+      {fluid}
+      {showLabel &amp;&amp; (
+        &lt;span style={{ fontFamily: &quot;var(--dt-text-body-sm-family)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-thinking-label-color, var(--dt-text-secondary))&quot; }}&gt;{text}&lt;/span&gt;
+      )}
+      {children}
+    &lt;/span&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Thinking also appears on the feedback reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#feedbackdetail">FeedbackDetail</a></li><li><a href="../showcase/detail.html#surfacesdetail">SurfacesDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+<script src="../assets/graph.js" defer></script>
+</body>
+</html>
