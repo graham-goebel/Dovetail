@@ -308,7 +308,14 @@
     "components/feedback/Thinking.d.ts",
     "components/feedback/Thinking.jsx",
     "components/feedback/Thinking.md",
-    "tokens/component/thinking.css"
+    "tokens/component/thinking.css",
+    "components/navigation/AppShell.d.ts",
+    "components/navigation/AppShell.jsx",
+    "components/navigation/AppShell.md",
+    "components/navigation/BottomNav.d.ts",
+    "components/navigation/BottomNav.jsx",
+    "components/navigation/BottomNav.md",
+    "tokens/component/appshell.css"
   ],
   "libraries": [
     {
@@ -516,6 +523,12 @@
     },
     {
       "name": "Thinking"
+    },
+    {
+      "name": "AppShell"
+    },
+    {
+      "name": "BottomNav"
     }
   ],
   "lastChange": {

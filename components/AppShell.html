@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AppShell · Dovetail</title>
+<meta name="description" content="The frame of a phone app: a top bar, a body that scrolls, and a bottom navigation. It honours the device&#39;s safe areas on every side, so nothing sits under the notch, the home indicator or a rounded corner in landscape.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html" aria-current="page">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">AppShell</li></ol></nav>
+<h1>AppShell</h1>
+<p class="lede">The frame of a phone app: a top bar, a body that scrolls, and a bottom navigation. It honours the device's safe areas on every side, so nothing sits under the notch, the home indicator or a rounded corner in landscape.</p>
+<p class="meta">
+  <span class="pill">Navigation</span>
+  
+  <a href="../system/components/navigation/AppShell.jsx">AppShell.jsx</a>
+  <a href="../system/components/navigation/AppShell.d.ts">AppShell.d.ts</a>
+  <a href="../system/components/navigation/AppShell.md">AppShell.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/AppShell.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">AppShell — A phone app frame: top bar, scrolling body, bottom nav, safe areas honoured.</p>
+  <div class="frame" style="height:860px">
+    <iframe src="../previews/AppShell.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>The frame of a phone app: a top bar, a body that scrolls, and a bottom navigation. It honours the device's safe areas on every side, so nothing sits under the notch, the home indicator or a rounded corner in landscape.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>Building a phone app screen, or a mobile web app meant to feel like one.</li><li>Showing an app screen inside a device frame, a dialog or a docs card: <code>scroll=&quot;contained&quot;</code>.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>It is a website. Use <code>Navbar</code> and <code>Section</code>.</li><li>It is a desktop product. Use <code>Sidebar</code> and a page layout.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>&lt;AppShell
+  title=&quot;Today&quot;
+  leading={&lt;Avatar name=&quot;Ada Lovelace&quot; size=&quot;sm&quot; /&gt;}
+  trailing={&lt;IconButton label=&quot;Notifications&quot;&gt;&lt;BellIcon /&gt;&lt;/IconButton&gt;}
+  bottomNav={&lt;BottomNav items={tabs} current={tab} onNavigate={setTab} /&gt;}
+&gt;
+  &lt;Stack gap=&quot;md&quot; style={{ padding: &quot;var(--dt-space-inset-md)&quot; }}&gt;…&lt;/Stack&gt;
+&lt;/AppShell&gt;</code></pre>
+<h2 id="how-it-scrolls">How it scrolls</h2>
+<p>The bars are sticky inside whatever scrolls. With <code>scroll=&quot;page&quot;</code>, the default, the document scrolls, which lets a phone browser collapse its own bars; the shell is at least the screen's height. With <code>scroll=&quot;contained&quot;</code> the shell fills its parent and scrolls itself. Either way content scrolls beneath glass bars, which is why they are translucent by default. Pass <code>translucent={false}</code> for solid bars.</p>
+<h2 id="immersive-screens">Immersive screens</h2>
+<p><code>backdrop</code> takes a layer that stays put behind everything: a photograph, a gradient, an illustration. Pair it with <code>dark</code> to scope dark mode to the app, <code>BottomNav variant=&quot;floating&quot;</code>, and <code>Card surface=&quot;glass-inverse&quot;</code> for cards that stay readable over the picture. Measure text against the real image, as <code>guidelines/accessibility.md</code> describes.</p>
+<h2 id="tokens">Tokens</h2>
+<p><code>--dt-appshell-*</code> (Tier 3): the bar height, surface and border, the shell background, and the phone width. The bars read <code>--dt-surface-glass</code> and <code>--dt-backdrop-glass</code>.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>AppShell.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/**
+ * The frame of a phone app: a top bar, a body that scrolls, and a bottom
+ * navigation, with the device's safe areas honoured on every side.
+ */
+export interface AppShellProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; {
+  /** Title in the default top bar, set in the heading-xs role and the headline colour. */
+  title?: React.ReactNode;
+  /** Left slot of the default top bar: a back button, an avatar. */
+  leading?: React.ReactNode;
+  /** Right slot of the default top bar: one or two IconButtons. */
+  trailing?: React.ReactNode;
+  /** Replaces the default top bar entirely. Pass null for no top bar. */
+  header?: React.ReactNode;
+  /** Usually a BottomNav. Sticky to the bottom of whatever scrolls. */
+  bottomNav?: React.ReactNode;
+  /** A layer behind everything that does not scroll: a photograph, a gradient, an illustration. */
+  backdrop?: React.ReactNode;
+  /**
+   * page: the document scrolls and the shell is at least the screen's height,
+   * the right choice for a real app so the browser's own bars collapse.
+   * contained: the shell fills its parent and scrolls itself, for a device
+   * frame, a dialog or a docs card. @default &quot;page&quot;
+   */
+  scroll?: &quot;page&quot; | &quot;contained&quot;;
+  /** phone centres the shell at --dt-appshell-max-width on a wide screen. @default &quot;full&quot; */
+  width?: &quot;full&quot; | &quot;phone&quot;;
+  /** Glass bars that content scrolls beneath. Off gives solid bars. @default true */
+  translucent?: boolean;
+  /** Scopes dark mode to the app, whatever the page is doing. */
+  dark?: boolean;
+  children?: React.ReactNode;
+}
+
+export declare function AppShell(props: AppShellProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>AppShell.jsx</code> resolves, read from the source: 5 component, 15 semantic, 2 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:AppShell">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-appshell-bar-bg"><th scope="row"><span class="token-cell"><code>--dt-appshell-bar-bg</code><button type="button" class="graph-btn" data-graph="--dt-appshell-bar-bg" title="Show what --dt-appshell-bar-bg connects to" aria-label="Graph for --dt-appshell-bar-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-glass)</code></td></tr><tr id="uses-dt-appshell-bar-border"><th scope="row"><span class="token-cell"><code>--dt-appshell-bar-border</code><button type="button" class="graph-btn" data-graph="--dt-appshell-bar-border" title="Show what --dt-appshell-bar-border connects to" aria-label="Graph for --dt-appshell-bar-border"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-glass)</code></td></tr><tr id="uses-dt-appshell-bar-height"><th scope="row"><span class="token-cell"><code>--dt-appshell-bar-height</code><button type="button" class="graph-btn" data-graph="--dt-appshell-bar-height" title="Show what --dt-appshell-bar-height connects to" aria-label="Graph for --dt-appshell-bar-height"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-dim-14)</code></td></tr><tr id="uses-dt-appshell-bg"><th scope="row"><span class="token-cell"><code>--dt-appshell-bg</code><button type="button" class="graph-btn" data-graph="--dt-appshell-bg" title="Show what --dt-appshell-bg connects to" aria-label="Graph for --dt-appshell-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-base)</code></td></tr><tr id="uses-dt-appshell-max-width"><th scope="row"><span class="token-cell"><code>--dt-appshell-max-width</code><button type="button" class="graph-btn" data-graph="--dt-appshell-max-width" title="Show what --dt-appshell-max-width connects to" aria-label="Graph for --dt-appshell-max-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-dim-container-sm)</code></td></tr><tr id="uses-dt-backdrop-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-backdrop-glass"><code>--dt-backdrop-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-backdrop-glass" title="Show what --dt-backdrop-glass connects to" aria-label="Graph for --dt-backdrop-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>saturate(1.4) blur(var(--dt-blur-glass))</code></td></tr><tr id="uses-dt-border-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-glass"><code>--dt-border-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-border-glass" title="Show what --dt-border-glass connects to" aria-label="Graph for --dt-border-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-text-primary) 10%, transparent)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-sm" title="Show what --dt-space-inset-sm connects to" aria-label="Graph for --dt-space-inset-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-surface-base"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-base"><code>--dt-surface-base</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-base" title="Show what --dt-surface-base connects to" aria-label="Graph for --dt-surface-base"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-surface-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-glass"><code>--dt-surface-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-glass" title="Show what --dt-surface-glass connects to" aria-label="Graph for --dt-surface-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)</code></td></tr><tr id="uses-dt-text-heading-xs-family"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-family</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-family" title="Show what --dt-text-heading-xs-family connects to" aria-label="Graph for --dt-text-heading-xs-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-xs-line"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-line</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-line" title="Show what --dt-text-heading-xs-line connects to" aria-label="Graph for --dt-text-heading-xs-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-lg)</code></td></tr><tr id="uses-dt-text-heading-xs-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-size" title="Show what --dt-text-heading-xs-size connects to" aria-label="Graph for --dt-text-heading-xs-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-lg)</code></td></tr><tr id="uses-dt-text-heading-xs-weight"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-weight" title="Show what --dt-text-heading-xs-weight connects to" aria-label="Graph for --dt-text-heading-xs-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-semibold)</code></td></tr><tr id="uses-dt-text-headline"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-headline"><code>--dt-text-headline</code></a><button type="button" class="graph-btn" data-graph="--dt-text-headline" title="Show what --dt-text-headline connects to" aria-label="Graph for --dt-text-headline"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-primary" title="Show what --dt-text-primary connects to" aria-label="Graph for --dt-text-primary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-z-sticky"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-z-sticky"><code>--dt-z-sticky</code></a><button type="button" class="graph-btn" data-graph="--dt-z-sticky" title="Show what --dt-z-sticky connects to" aria-label="Graph for --dt-z-sticky"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>100</code></td></tr><tr id="uses-dt-dim-14"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-14"><code>--dt-dim-14</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-14" title="Show what --dt-dim-14 connects to" aria-label="Graph for --dt-dim-14"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>56px</code></td></tr><tr id="uses-dt-dim-container-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-container-sm"><code>--dt-dim-container-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-container-sm" title="Show what --dt-dim-container-sm connects to" aria-label="Graph for --dt-dim-container-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>640px</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+const GLASS = &quot;var(--dt-backdrop-glass, saturate(1.4) blur(16px))&quot;;
+
+/* The default top bar: a leading slot, a title and a trailing slot, with the
+   title centred on the bar rather than on the space between the slots. */
+function TopBar({ title, leading, trailing, translucent }) {
+  return (
+    &lt;div
+      style={{
+        display: &quot;grid&quot;, gridTemplateColumns: &quot;1fr auto 1fr&quot;, alignItems: &quot;center&quot;,
+        gap: &quot;var(--dt-space-inline-sm)&quot;,
+        minHeight: &quot;var(--dt-appshell-bar-height, var(--dt-dim-14))&quot;,
+        padding: &quot;0 var(--dt-space-inset-sm)&quot;,
+        paddingTop: &quot;env(safe-area-inset-top, 0px)&quot;,
+        boxSizing: &quot;content-box&quot;,
+        background: translucent ? &quot;var(--dt-appshell-bar-bg, var(--dt-surface-glass))&quot; : &quot;var(--dt-appshell-bg, var(--dt-surface-base))&quot;,
+        backdropFilter: translucent ? GLASS : undefined,
+        WebkitBackdropFilter: translucent ? GLASS : undefined,
+        borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-appshell-bar-border, var(--dt-border-glass))&quot;,
+      }}
+    &gt;
+      &lt;span style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, justifySelf: &quot;start&quot;, minWidth: 0 }}&gt;{leading}&lt;/span&gt;
+      &lt;span
+        style={{
+          minWidth: 0, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot;, whiteSpace: &quot;nowrap&quot;,
+          fontFamily: &quot;var(--dt-text-heading-xs-family)&quot;, fontSize: &quot;var(--dt-text-heading-xs-size)&quot;,
+          lineHeight: &quot;var(--dt-text-heading-xs-line)&quot;, fontWeight: &quot;var(--dt-text-heading-xs-weight)&quot;,
+          color: &quot;var(--dt-text-headline, var(--dt-text-primary))&quot;,
+        }}
+      &gt;
+        {title}
+      &lt;/span&gt;
+      &lt;span style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, justifySelf: &quot;end&quot;, minWidth: 0 }}&gt;{trailing}&lt;/span&gt;
+    &lt;/div&gt;
+  );
+}
+
+export function AppShell({
+  title,
+  leading,
+  trailing,
+  header,
+  bottomNav,
+  backdrop,
+  scroll = &quot;page&quot;,
+  width = &quot;full&quot;,
+  translucent = true,
+  dark,
+  className,
+  children,
+  style,
+  ...rest
+}) {
+  const contained = scroll === &quot;contained&quot;;
+  const bar = header !== undefined ? header : title || leading || trailing ? &lt;TopBar title={title} leading={leading} trailing={trailing} translucent={translucent} /&gt; : null;
+
+  /* Bars are sticky inside whatever scrolls: the document for a whole-page
+     app, the shell itself when it is contained in a frame or a dialog. Either
+     way content scrolls beneath them, which is what makes glass worth having. */
+  const column = (
+    &lt;div
+      style={{
+        position: &quot;relative&quot;,
+        display: &quot;flex&quot;, flexDirection: &quot;column&quot;,
+        minHeight: contained ? &quot;100%&quot; : &quot;100dvh&quot;,
+        height: contained ? &quot;100%&quot; : undefined,
+        overflowY: contained ? &quot;auto&quot; : undefined,
+        overscrollBehavior: contained ? &quot;contain&quot; : undefined,
+        paddingLeft: &quot;env(safe-area-inset-left, 0px)&quot;,
+        paddingRight: &quot;env(safe-area-inset-right, 0px)&quot;,
+        boxSizing: &quot;border-box&quot;,
+      }}
+    &gt;
+      {bar &amp;&amp; &lt;header style={{ position: &quot;sticky&quot;, top: 0, zIndex: &quot;var(--dt-z-sticky)&quot; }}&gt;{bar}&lt;/header&gt;}
+      &lt;main style={{ flex: 1, minWidth: 0, position: &quot;relative&quot; }}&gt;{children}&lt;/main&gt;
+      {bottomNav &amp;&amp; &lt;footer style={{ position: &quot;sticky&quot;, bottom: 0, zIndex: &quot;var(--dt-z-sticky)&quot; }}&gt;{bottomNav}&lt;/footer&gt;}
+    &lt;/div&gt;
+  );
+
+  return (
+    &lt;div
+      className={[dark ? &quot;dark&quot; : null, className].filter(Boolean).join(&quot; &quot;) || undefined}
+      style={{
+        position: &quot;relative&quot;,
+        isolation: &quot;isolate&quot;,
+        width: &quot;100%&quot;,
+        maxWidth: width === &quot;phone&quot; ? &quot;var(--dt-appshell-max-width, var(--dt-dim-container-sm))&quot; : undefined,
+        marginInline: width === &quot;phone&quot; ? &quot;auto&quot; : undefined,
+        height: contained ? &quot;100%&quot; : undefined,
+        overflow: contained ? &quot;hidden&quot; : undefined,
+        background: &quot;var(--dt-appshell-bg, var(--dt-surface-base))&quot;,
+        color: &quot;var(--dt-text-primary)&quot;,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      {backdrop &amp;&amp; (
+        &lt;div aria-hidden=&quot;true&quot; style={{ position: contained ? &quot;absolute&quot; : &quot;fixed&quot;, inset: 0, zIndex: -1, overflow: &quot;hidden&quot; }}&gt;
+          {backdrop}
+        &lt;/div&gt;
+      )}
+      {column}
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>AppShell also appears on the navigation reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#navigationdetail">NavigationDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+<script src="../assets/graph.js" defer></script>
+</body>
+</html>

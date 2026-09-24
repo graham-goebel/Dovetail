@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"d42c8028bf33","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"0d57286592e9","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"41a9a4f3c6a4","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"0f9c3769610e","components/feedback/Thinking.jsx":"cf0263ccd33a"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"d42c8028bf33","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"109d1522ba5a","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"cf0263ccd33a","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -1084,6 +1084,25 @@ Object.assign(__ds_scope, { Badge });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/display/Badge.jsx", error: String((e && e.message) || e) }); }
 // components/display/Card.jsx
 try { (() => {
+const GLASS = "var(--dt-backdrop-glass, saturate(1.4) blur(16px))";
+
+/* Glass surfaces for a card that sits over other content. Glass follows the
+   colour mode; inverse glass is dark in both, for a card over a photograph,
+   and scopes dark mode so everything inside it reads light on dark. */
+const SURFACES = {
+  glass: {
+    bg: "var(--dt-surface-glass)",
+    bd: "var(--dt-border-glass)"
+  },
+  "glass-strong": {
+    bg: "var(--dt-surface-glass-strong)",
+    bd: "var(--dt-border-glass)"
+  },
+  "glass-inverse": {
+    bg: "var(--dt-surface-glass-inverse)",
+    bd: "var(--dt-border-glass-inverse)"
+  }
+};
 function Card({
   eyebrow,
   title,
@@ -1093,7 +1112,9 @@ function Card({
   href,
   interactive = false,
   selected = false,
+  surface = "raised",
   as: Tag = "div",
+  className,
   children,
   style,
   ...rest
@@ -1101,19 +1122,23 @@ function Card({
   const [hover, setHover] = React.useState(false);
   const linked = !!href;
   const lift = interactive || linked;
+  const glass = SURFACES[surface];
   return /*#__PURE__*/React.createElement(Tag, {
+    className: [surface === "glass-inverse" ? "dark" : null, className].filter(Boolean).join(" ") || undefined,
     onMouseEnter: () => lift && setHover(true),
     onMouseLeave: () => lift && setHover(false),
     style: {
       display: "flex",
       flexDirection: "column",
       gap: "var(--dt-card-gap)",
-      background: selected ? "var(--dt-card-selected-bg)" : "var(--dt-card-bg)",
+      background: selected ? "var(--dt-card-selected-bg)" : glass ? glass.bg : "var(--dt-card-bg)",
+      backdropFilter: glass ? GLASS : undefined,
+      WebkitBackdropFilter: glass ? GLASS : undefined,
       color: "var(--dt-card-fg)",
-      border: `var(--dt-card-border-width) solid ${selected ? "var(--dt-card-selected-border)" : "var(--dt-card-border-color)"}`,
+      border: `var(--dt-card-border-width) solid ${selected ? "var(--dt-card-selected-border)" : glass ? glass.bd : "var(--dt-card-border-color)"}`,
       borderRadius: "var(--dt-card-radius)",
       padding: "var(--dt-card-padding)",
-      boxShadow: hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
+      boxShadow: glass ? "none" : hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
       transition: "box-shadow var(--dt-card-transition), border-color var(--dt-card-transition)",
       cursor: lift ? "pointer" : undefined,
       position: linked ? "relative" : undefined,
@@ -4641,9 +4666,8 @@ const PLACEHOLDER_ICON = /*#__PURE__*/React.createElement("svg", {
    one edge of it. */
 function scrimImage(scrim, align) {
   if (scrim === "none") return "none";
-  if (scrim === "solid" || align === "center") return "var(--dt-surface-scrim)";
-  const to = align === "bottom" ? "to top" : "to bottom";
-  return `linear-gradient(${to}, var(--dt-surface-scrim), transparent 65%)`;
+  if (scrim === "solid" || align === "center") return "var(--dt-scrim-full, var(--dt-surface-scrim))";
+  return align === "bottom" ? "var(--dt-scrim-bottom, linear-gradient(to top, var(--dt-surface-scrim), transparent 65%))" : "var(--dt-scrim-top, linear-gradient(to bottom, var(--dt-surface-scrim), transparent 65%))";
 }
 function Cover({
   src,
@@ -4698,7 +4722,7 @@ function Cover({
     style: {
       position: "absolute",
       inset: 0,
-      backgroundImage: scrimImage(scrim, align),
+      background: scrimImage(scrim, align),
       borderRadius: "inherit"
     }
   }), hasContent && /*#__PURE__*/React.createElement("div", {
@@ -4969,9 +4993,11 @@ const TONES = {
 };
 function scrimImage(scrim, align) {
   if (scrim === "none") return "none";
-  if (scrim === "solid" || align === "center") return "var(--dt-surface-scrim)";
+  if (scrim === "solid" || align === "center") return "var(--dt-scrim-full, var(--dt-surface-scrim))";
   const to = align === "bottom" ? "to top" : "to bottom";
-  return `linear-gradient(${to}, var(--dt-surface-scrim), var(--dt-surface-scrim) 30%, transparent 90%)`;
+  /* A band's text block runs taller than a card's caption, so the scrim holds
+     at full strength for its first third before it fades. */
+  return `linear-gradient(${to}, var(--dt-scrim-full, var(--dt-surface-scrim)) 30%, transparent 90%)`;
 }
 function Section({
   width = "default",
@@ -5031,7 +5057,7 @@ function Section({
     style: {
       position: "absolute",
       inset: 0,
-      backgroundImage: scrimImage(scrim, align)
+      background: scrimImage(scrim, align)
     }
   }), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -5513,6 +5539,329 @@ function Thinking({
 }
 Object.assign(__ds_scope, { Thinking });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Thinking.jsx", error: String((e && e.message) || e) }); }
+// components/navigation/AppShell.jsx
+try { (() => {
+const GLASS = "var(--dt-backdrop-glass, saturate(1.4) blur(16px))";
+
+/* The default top bar: a leading slot, a title and a trailing slot, with the
+   title centred on the bar rather than on the space between the slots. */
+function TopBar({
+  title,
+  leading,
+  trailing,
+  translucent
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr auto 1fr",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)",
+      minHeight: "var(--dt-appshell-bar-height, var(--dt-dim-14))",
+      padding: "0 var(--dt-space-inset-sm)",
+      paddingTop: "env(safe-area-inset-top, 0px)",
+      boxSizing: "content-box",
+      background: translucent ? "var(--dt-appshell-bar-bg, var(--dt-surface-glass))" : "var(--dt-appshell-bg, var(--dt-surface-base))",
+      backdropFilter: translucent ? GLASS : undefined,
+      WebkitBackdropFilter: translucent ? GLASS : undefined,
+      borderBottom: "var(--dt-border-width-default) solid var(--dt-appshell-bar-border, var(--dt-border-glass))"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)",
+      justifySelf: "start",
+      minWidth: 0
+    }
+  }, leading), /*#__PURE__*/React.createElement("span", {
+    style: {
+      minWidth: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      fontFamily: "var(--dt-text-heading-xs-family)",
+      fontSize: "var(--dt-text-heading-xs-size)",
+      lineHeight: "var(--dt-text-heading-xs-line)",
+      fontWeight: "var(--dt-text-heading-xs-weight)",
+      color: "var(--dt-text-headline, var(--dt-text-primary))"
+    }
+  }, title), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)",
+      justifySelf: "end",
+      minWidth: 0
+    }
+  }, trailing));
+}
+function AppShell({
+  title,
+  leading,
+  trailing,
+  header,
+  bottomNav,
+  backdrop,
+  scroll = "page",
+  width = "full",
+  translucent = true,
+  dark,
+  className,
+  children,
+  style,
+  ...rest
+}) {
+  const contained = scroll === "contained";
+  const bar = header !== undefined ? header : title || leading || trailing ? /*#__PURE__*/React.createElement(TopBar, {
+    title: title,
+    leading: leading,
+    trailing: trailing,
+    translucent: translucent
+  }) : null;
+
+  /* Bars are sticky inside whatever scrolls: the document for a whole-page
+     app, the shell itself when it is contained in a frame or a dialog. Either
+     way content scrolls beneath them, which is what makes glass worth having. */
+  const column = /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      minHeight: contained ? "100%" : "100dvh",
+      height: contained ? "100%" : undefined,
+      overflowY: contained ? "auto" : undefined,
+      overscrollBehavior: contained ? "contain" : undefined,
+      paddingLeft: "env(safe-area-inset-left, 0px)",
+      paddingRight: "env(safe-area-inset-right, 0px)",
+      boxSizing: "border-box"
+    }
+  }, bar && /*#__PURE__*/React.createElement("header", {
+    style: {
+      position: "sticky",
+      top: 0,
+      zIndex: "var(--dt-z-sticky)"
+    }
+  }, bar), /*#__PURE__*/React.createElement("main", {
+    style: {
+      flex: 1,
+      minWidth: 0,
+      position: "relative"
+    }
+  }, children), bottomNav && /*#__PURE__*/React.createElement("footer", {
+    style: {
+      position: "sticky",
+      bottom: 0,
+      zIndex: "var(--dt-z-sticky)"
+    }
+  }, bottomNav));
+  return /*#__PURE__*/React.createElement("div", {
+    className: [dark ? "dark" : null, className].filter(Boolean).join(" ") || undefined,
+    style: {
+      position: "relative",
+      isolation: "isolate",
+      width: "100%",
+      maxWidth: width === "phone" ? "var(--dt-appshell-max-width, var(--dt-dim-container-sm))" : undefined,
+      marginInline: width === "phone" ? "auto" : undefined,
+      height: contained ? "100%" : undefined,
+      overflow: contained ? "hidden" : undefined,
+      background: "var(--dt-appshell-bg, var(--dt-surface-base))",
+      color: "var(--dt-text-primary)",
+      ...style
+    },
+    ...rest
+  }, backdrop && /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: contained ? "absolute" : "fixed",
+      inset: 0,
+      zIndex: -1,
+      overflow: "hidden"
+    }
+  }, backdrop), column);
+}
+Object.assign(__ds_scope, { AppShell });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/AppShell.jsx", error: String((e && e.message) || e) }); }
+// components/navigation/BottomNav.jsx
+try { (() => {
+const GLASS = "var(--dt-backdrop-glass, saturate(1.4) blur(16px))";
+const SAFE_BOTTOM = "env(safe-area-inset-bottom, 0px)";
+function NavBadge({
+  value
+}) {
+  if (!value) return null;
+  const dot = value === true;
+  return /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      top: dot ? 0 : -4,
+      right: dot ? 0 : -8,
+      minWidth: dot ? "var(--dt-dim-2)" : "var(--dt-dim-4)",
+      height: dot ? "var(--dt-dim-2)" : "var(--dt-dim-4)",
+      padding: dot ? 0 : "0 var(--dt-dim-1)",
+      boxSizing: "border-box",
+      borderRadius: "var(--dt-radius-pill)",
+      background: "var(--dt-bottomnav-badge-bg, var(--dt-surface-danger))",
+      color: "var(--dt-bottomnav-badge-fg, var(--dt-text-on-danger))",
+      fontFamily: "var(--dt-text-label-sm-family)",
+      fontSize: "var(--dt-font-size-2xs)",
+      lineHeight: "var(--dt-dim-4)",
+      fontWeight: "var(--dt-font-weight-semibold)",
+      textAlign: "center"
+    }
+  }, dot ? null : value > 99 ? "99+" : value);
+}
+function BottomNav({
+  items = [],
+  current,
+  onNavigate,
+  variant = "bar",
+  translucent = true,
+  action,
+  label = "Main",
+  style,
+  ...rest
+}) {
+  const floating = variant === "floating";
+  const surface = translucent ? {
+    background: "var(--dt-bottomnav-bg, var(--dt-surface-glass))",
+    backdropFilter: GLASS,
+    WebkitBackdropFilter: GLASS
+  } : {
+    background: "var(--dt-surface-overlay)"
+  };
+  const list = /*#__PURE__*/React.createElement("ul", {
+    style: {
+      listStyle: "none",
+      margin: 0,
+      flex: 1,
+      minWidth: 0,
+      display: "grid",
+      gridTemplateColumns: `repeat(${Math.max(1, items.length)}, minmax(0, 1fr))`,
+      padding: floating ? "var(--dt-space-inset-2xs)" : "var(--dt-space-inset-2xs) var(--dt-space-inset-xs)",
+      ...(floating ? {
+        ...surface,
+        borderRadius: "var(--dt-radius-pill)",
+        border: "var(--dt-border-width-default) solid var(--dt-bottomnav-border, var(--dt-border-glass))"
+      } : null)
+    }
+  }, items.map(item => {
+    const on = item.id === current;
+    const Tag = item.href ? "a" : "button";
+    const badgeText = item.badge === true ? ", new" : item.badge ? ", " + item.badge + " new" : "";
+    return /*#__PURE__*/React.createElement("li", {
+      key: item.id,
+      style: {
+        display: "flex",
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement(Tag, {
+      ...(item.href ? {
+        href: item.href
+      } : {
+        type: "button"
+      }),
+      "aria-current": on ? "page" : undefined,
+      "aria-label": typeof item.label === "string" ? item.label + badgeText : undefined,
+      onClick: e => {
+        if (!onNavigate) return;
+        if (item.href) e.preventDefault();
+        onNavigate(item.id);
+      },
+      style: {
+        flex: 1,
+        minWidth: 0,
+        minHeight: "var(--dt-size-touch-target, 44px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "var(--dt-space-stack-2xs)",
+        padding: "var(--dt-space-inset-2xs) 0",
+        border: 0,
+        borderRadius: floating ? "var(--dt-radius-pill)" : "var(--dt-radius-control)",
+        background: floating && on ? "var(--dt-bottomnav-indicator-floating, var(--dt-surface-glass-tint))" : "transparent",
+        color: on ? "var(--dt-bottomnav-fg-active, var(--dt-text-primary))" : "var(--dt-bottomnav-fg, var(--dt-text-secondary))",
+        textDecoration: "none",
+        cursor: "pointer",
+        font: "inherit",
+        transition: "color var(--dt-motion-micro), background var(--dt-motion-micro)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        position: "relative",
+        display: "grid",
+        placeItems: "center",
+        width: floating ? "var(--dt-size-icon-lg)" : "var(--dt-dim-14)",
+        height: "var(--dt-dim-7)",
+        borderRadius: "var(--dt-radius-pill)",
+        background: !floating && on ? "var(--dt-bottomnav-indicator, var(--dt-surface-selected))" : "transparent",
+        transition: "background var(--dt-motion-micro)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: "grid",
+        placeItems: "center",
+        width: "var(--dt-size-icon-lg)",
+        height: "var(--dt-size-icon-lg)"
+      }
+    }, item.icon), /*#__PURE__*/React.createElement(NavBadge, {
+      value: item.badge
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        fontFamily: "var(--dt-text-label-sm-family)",
+        fontSize: "var(--dt-text-label-sm-size)",
+        lineHeight: "var(--dt-text-label-sm-line)",
+        fontWeight: on ? "var(--dt-font-weight-semibold)" : "var(--dt-text-label-sm-weight)"
+      }
+    }, item.label)));
+  }));
+  if (floating) {
+    return /*#__PURE__*/React.createElement("nav", {
+      "aria-label": label,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--dt-space-inline-sm)",
+        padding: `var(--dt-space-inset-md) var(--dt-space-inset-md) calc(var(--dt-space-inset-md) + ${SAFE_BOTTOM})`,
+        background: "var(--dt-scrim-fade-bottom, transparent)",
+        ...style
+      },
+      ...rest
+    }, list, action && /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: "none",
+        display: "flex"
+      }
+    }, action));
+  }
+  return /*#__PURE__*/React.createElement("nav", {
+    "aria-label": label,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)",
+      paddingBottom: SAFE_BOTTOM,
+      borderTop: "var(--dt-border-width-default) solid var(--dt-bottomnav-border, var(--dt-border-glass))",
+      ...surface,
+      ...style
+    },
+    ...rest
+  }, list, action && /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: "none",
+      display: "flex",
+      paddingRight: "var(--dt-space-inset-sm)"
+    }
+  }, action));
+}
+Object.assign(__ds_scope, { BottomNav });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/BottomNav.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -5640,5 +5989,9 @@ __ds_ns.Text = __ds_scope.Text;
 __ds_ns.Section = __ds_scope.Section;
 
 __ds_ns.Thinking = __ds_scope.Thinking;
+
+__ds_ns.AppShell = __ds_scope.AppShell;
+
+__ds_ns.BottomNav = __ds_scope.BottomNav;
 
 })();

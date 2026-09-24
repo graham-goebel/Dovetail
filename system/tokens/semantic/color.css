@@ -34,6 +34,28 @@
      never re-declares them. Pair them with --dt-surface-scrim. */
   --dt-text-on-scrim: var(--dt-color-neutral-050);
   --dt-text-on-scrim-secondary: var(--dt-color-neutral-200);
+
+  /* ---- Layers --------------------------------------------------------
+     Surfaces that sit over other content: an app bar over a scrolling feed,
+     a card over a photograph, a chip over a video. Glass is the overlay
+     surface made translucent, so it follows the colour mode; the inverse
+     glass and the scrims are dark in both modes, because what they sit on is
+     a picture, not the page. Always pair glass with --dt-backdrop-glass. */
+  --dt-surface-glass: color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent);
+  --dt-surface-glass-strong: color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent);
+  --dt-surface-glass-tint: color-mix(in oklab, var(--dt-text-primary) 8%, transparent);
+  --dt-surface-glass-inverse: color-mix(in oklab, var(--dt-color-neutral-950) 58%, transparent);
+  --dt-border-glass: color-mix(in oklab, var(--dt-text-primary) 10%, transparent);
+  --dt-border-glass-inverse: color-mix(in oklab, var(--dt-color-neutral-050) 14%, transparent);
+
+  /* Image scrims. Each is dark enough at its dense end for --dt-text-on-scrim
+     over a bright photograph; still measure a real image, as
+     guidelines/accessibility.md describes. The fade takes the page surface
+     instead, for a bar that content scrolls away beneath. */
+  --dt-scrim-bottom: linear-gradient(to top, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent);
+  --dt-scrim-top: linear-gradient(to bottom, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent);
+  --dt-scrim-full: color-mix(in oklab, var(--dt-color-neutral-950) 55%, transparent);
+  --dt-scrim-fade-bottom: linear-gradient(to top, var(--dt-surface-base) 40%, transparent);
   --dt-text-link: var(--dt-color-primary-700);
   --dt-text-link-hover: var(--dt-color-primary-800);
   --dt-text-link-visited: var(--dt-color-violet-700);

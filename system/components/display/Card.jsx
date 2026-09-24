@@ -1,21 +1,36 @@
 import React from "react";
 
-export function Card({ eyebrow, title, description, media, footer, href, interactive = false, selected = false, as: Tag = "div", children, style, ...rest }) {
+const GLASS = "var(--dt-backdrop-glass, saturate(1.4) blur(16px))";
+
+/* Glass surfaces for a card that sits over other content. Glass follows the
+   colour mode; inverse glass is dark in both, for a card over a photograph,
+   and scopes dark mode so everything inside it reads light on dark. */
+const SURFACES = {
+  glass: { bg: "var(--dt-surface-glass)", bd: "var(--dt-border-glass)" },
+  "glass-strong": { bg: "var(--dt-surface-glass-strong)", bd: "var(--dt-border-glass)" },
+  "glass-inverse": { bg: "var(--dt-surface-glass-inverse)", bd: "var(--dt-border-glass-inverse)" },
+};
+
+export function Card({ eyebrow, title, description, media, footer, href, interactive = false, selected = false, surface = "raised", as: Tag = "div", className, children, style, ...rest }) {
   const [hover, setHover] = React.useState(false);
   const linked = !!href;
   const lift = interactive || linked;
+  const glass = SURFACES[surface];
   return (
     <Tag
+      className={[surface === "glass-inverse" ? "dark" : null, className].filter(Boolean).join(" ") || undefined}
       onMouseEnter={() => lift && setHover(true)}
       onMouseLeave={() => lift && setHover(false)}
       style={{
         display: "flex", flexDirection: "column", gap: "var(--dt-card-gap)",
-        background: selected ? "var(--dt-card-selected-bg)" : "var(--dt-card-bg)",
+        background: selected ? "var(--dt-card-selected-bg)" : glass ? glass.bg : "var(--dt-card-bg)",
+        backdropFilter: glass ? GLASS : undefined,
+        WebkitBackdropFilter: glass ? GLASS : undefined,
         color: "var(--dt-card-fg)",
-        border: `var(--dt-card-border-width) solid ${selected ? "var(--dt-card-selected-border)" : "var(--dt-card-border-color)"}`,
+        border: `var(--dt-card-border-width) solid ${selected ? "var(--dt-card-selected-border)" : glass ? glass.bd : "var(--dt-card-border-color)"}`,
         borderRadius: "var(--dt-card-radius)",
         padding: "var(--dt-card-padding)",
-        boxShadow: hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
+        boxShadow: glass ? "none" : hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
         transition: "box-shadow var(--dt-card-transition), border-color var(--dt-card-transition)",
         cursor: lift ? "pointer" : undefined,
         position: linked ? "relative" : undefined,

@@ -20,6 +20,14 @@ export interface CardProps extends React.HTMLAttributes<HTMLElement> {
    * `footer` stay clickable above it; put interactive content there, not in
    * children. Implies the interactive hover lift.
    */
+  /**
+   * raised is the card surface. glass and glass-strong are the overlay made
+   * translucent, blurring what is behind, for a card over a feed or a map;
+   * they follow the colour mode. glass-inverse is dark in both modes, for a
+   * card over a photograph, and scopes dark mode so its contents read light.
+   * @default "raised"
+   */
+  surface?: "raised" | "glass" | "glass-strong" | "glass-inverse";
   href?: string;
   interactive?: boolean;
   /** Primary-colour border and tinted background for a chosen option. */

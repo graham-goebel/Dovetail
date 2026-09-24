@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BottomNav · Dovetail</title>
+<meta name="description" content="A phone app&#39;s primary navigation: three to five destinations docked to the bottom of the screen, where a thumb can reach them, with the home indicator&#39;s safe area kept clear.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html" aria-current="page">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">BottomNav</li></ol></nav>
+<h1>BottomNav</h1>
+<p class="lede">A phone app's primary navigation: three to five destinations docked to the bottom of the screen, where a thumb can reach them, with the home indicator's safe area kept clear.</p>
+<p class="meta">
+  <span class="pill">Navigation</span>
+  
+  <a href="../system/components/navigation/BottomNav.jsx">BottomNav.jsx</a>
+  <a href="../system/components/navigation/BottomNav.d.ts">BottomNav.d.ts</a>
+  <a href="../system/components/navigation/BottomNav.md">BottomNav.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/BottomNav.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  <p class="card-sub">BottomNav — The primary navigation of a phone app, docked or floating, with badges.</p>
+  <div class="frame" style="height:560px">
+    <iframe src="../previews/BottomNav.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A phone app's primary navigation: three to five destinations docked to the bottom of the screen, where a thumb can reach them, with the home indicator's safe area kept clear.</p>
+<h2 id="use-it-when">Use it when</h2>
+<ul><li>A phone app has a handful of top-level destinations a person moves between often.</li><li>Inside an <code>AppShell</code>, passed as <code>bottomNav</code>.</li></ul>
+<h2 id="don-t-use-it-when">Don't use it when</h2>
+<ul><li>There are more than five destinations. Put the rest behind a &quot;More&quot; item or in a Drawer.</li><li>It is a website rather than an app. Use <code>Navbar</code>, which collapses to a menu on a phone.</li><li>The choices are views of one screen. Those are <code>Tabs</code>.</li></ul>
+<h2 id="variants">Variants</h2>
+<ul><li><code>bar</code>: a full-width docked bar, glass by default, with an indicator pill behind the active icon.</li><li><code>floating</code>: an inset glass pill that sits over a fade of the page surface, with room for an <code>action</code> beside it, such as an add or record button. Good over imagery and dark, immersive screens.</li></ul>
+<h2 id="example">Example</h2>
+<pre class="code" data-lang="jsx"><code>&lt;BottomNav
+  current={tab}
+  onNavigate={setTab}
+  items={[
+    { id: &quot;today&quot;, label: &quot;Today&quot;, icon: &lt;HomeIcon /&gt; },
+    { id: &quot;trends&quot;, label: &quot;Trends&quot;, icon: &lt;ChartIcon /&gt;, badge: 2 },
+    { id: &quot;me&quot;, label: &quot;Me&quot;, icon: &lt;UserIcon /&gt; },
+  ]}
+/&gt;</code></pre>
+<p>Every item is at least <code>--dt-size-touch-target</code> tall. The current item carries <code>aria-current=&quot;page&quot;</code>, and a badge is announced with its label (&quot;Trends, 2 new&quot;), so it is not colour alone.</p>
+<h2 id="tokens">Tokens</h2>
+<p><code>--dt-bottomnav-*</code> (Tier 3): the bar surface and border, the item colours at rest and active, the indicator for each variant, and the badge. The bar reads <code>--dt-surface-glass</code> and <code>--dt-backdrop-glass</code>; the floating variant sits on <code>--dt-scrim-fade-bottom</code>.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>BottomNav.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+export interface BottomNavItem {
+  id: string;
+  label: React.ReactNode;
+  /** A 24px glyph. It inherits the item's colour. */
+  icon: React.ReactNode;
+  /** Renders the item as a link. Without it the item is a button. */
+  href?: string;
+  /** A count, or true for a dot. Announced with the label. */
+  badge?: number | boolean;
+}
+
+/**
+ * A phone app's primary navigation, docked to the bottom of the screen with
+ * the home indicator's safe area kept clear. Three to five destinations.
+ */
+export interface BottomNavProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
+  items: BottomNavItem[];
+  /** Id of the current destination. */
+  current?: string;
+  /** Called with an item's id. When set, link items are intercepted and routed through it. */
+  onNavigate?: (id: string) =&gt; void;
+  /**
+   * bar is a full-width docked bar with an indicator pill behind the active
+   * icon. floating is an inset glass pill over a fade of the page surface,
+   * with room for an action button beside it. @default &quot;bar&quot;
+   */
+  variant?: &quot;bar&quot; | &quot;floating&quot;;
+  /** Glass that content scrolls beneath. Off gives a solid overlay surface. @default true */
+  translucent?: boolean;
+  /** A primary action beside the destinations, usually a round IconButton: add, compose, record. */
+  action?: React.ReactNode;
+  /** @default &quot;Main&quot; */
+  label?: string;
+}
+
+export declare function BottomNav(props: BottomNavProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>BottomNav.jsx</code> resolves, read from the source: 8 component, 27 semantic, 7 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:BottomNav">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-bottomnav-badge-bg"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-badge-bg</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-badge-bg" title="Show what --dt-bottomnav-badge-bg connects to" aria-label="Graph for --dt-bottomnav-badge-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-danger)</code></td></tr><tr id="uses-dt-bottomnav-badge-fg"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-badge-fg</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-badge-fg" title="Show what --dt-bottomnav-badge-fg connects to" aria-label="Graph for --dt-bottomnav-badge-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-on-danger)</code></td></tr><tr id="uses-dt-bottomnav-bg"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-bg</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-bg" title="Show what --dt-bottomnav-bg connects to" aria-label="Graph for --dt-bottomnav-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-glass)</code></td></tr><tr id="uses-dt-bottomnav-border"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-border</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-border" title="Show what --dt-bottomnav-border connects to" aria-label="Graph for --dt-bottomnav-border"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-glass)</code></td></tr><tr id="uses-dt-bottomnav-fg"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-fg</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-fg" title="Show what --dt-bottomnav-fg connects to" aria-label="Graph for --dt-bottomnav-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-secondary)</code></td></tr><tr id="uses-dt-bottomnav-fg-active"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-fg-active</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-fg-active" title="Show what --dt-bottomnav-fg-active connects to" aria-label="Graph for --dt-bottomnav-fg-active"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-bottomnav-indicator"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-indicator</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-indicator" title="Show what --dt-bottomnav-indicator connects to" aria-label="Graph for --dt-bottomnav-indicator"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-selected)</code></td></tr><tr id="uses-dt-bottomnav-indicator-floating"><th scope="row"><span class="token-cell"><code>--dt-bottomnav-indicator-floating</code><button type="button" class="graph-btn" data-graph="--dt-bottomnav-indicator-floating" title="Show what --dt-bottomnav-indicator-floating connects to" aria-label="Graph for --dt-bottomnav-indicator-floating"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-glass-tint)</code></td></tr><tr id="uses-dt-backdrop-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-backdrop-glass"><code>--dt-backdrop-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-backdrop-glass" title="Show what --dt-backdrop-glass connects to" aria-label="Graph for --dt-backdrop-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>saturate(1.4) blur(var(--dt-blur-glass))</code></td></tr><tr id="uses-dt-border-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-glass"><code>--dt-border-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-border-glass" title="Show what --dt-border-glass connects to" aria-label="Graph for --dt-border-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-text-primary) 10%, transparent)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-motion-micro"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-motion-micro"><code>--dt-motion-micro</code></a><button type="button" class="graph-btn" data-graph="--dt-motion-micro" title="Show what --dt-motion-micro connects to" aria-label="Graph for --dt-motion-micro"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-duration-100) var(--dt-easing-standard)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-control" title="Show what --dt-radius-control connects to" aria-label="Graph for --dt-radius-control"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-6)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-scrim-fade-bottom"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-scrim-fade-bottom"><code>--dt-scrim-fade-bottom</code></a><button type="button" class="graph-btn" data-graph="--dt-scrim-fade-bottom" title="Show what --dt-scrim-fade-bottom connects to" aria-label="Graph for --dt-scrim-fade-bottom"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><span class="swatch" style="background:linear-gradient(to top, var(--dt-surface-base) 40%, transparent)"></span><code>linear-gradient(to top, var(--dt-surface-base) 40%, transparent)</code></td></tr><tr id="uses-dt-size-icon-lg"><th scope="row"><span class="token-cell"><code>--dt-size-icon-lg</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-lg" title="Show what --dt-size-icon-lg connects to" aria-label="Graph for --dt-size-icon-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-size-touch-target"><th scope="row"><span class="token-cell"><code>--dt-size-touch-target</code><button type="button" class="graph-btn" data-graph="--dt-size-touch-target" title="Show what --dt-size-touch-target connects to" aria-label="Graph for --dt-size-touch-target"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-11)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-2xs"><code>--dt-space-inset-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-2xs" title="Show what --dt-space-inset-2xs connects to" aria-label="Graph for --dt-space-inset-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-md" title="Show what --dt-space-inset-md connects to" aria-label="Graph for --dt-space-inset-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-sm" title="Show what --dt-space-inset-sm connects to" aria-label="Graph for --dt-space-inset-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xs" title="Show what --dt-space-inset-xs connects to" aria-label="Graph for --dt-space-inset-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-2xs" title="Show what --dt-space-stack-2xs connects to" aria-label="Graph for --dt-space-stack-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-surface-danger"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-danger"><code>--dt-surface-danger</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-danger" title="Show what --dt-surface-danger connects to" aria-label="Graph for --dt-surface-danger"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-red-600)</code></td></tr><tr id="uses-dt-surface-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-glass"><code>--dt-surface-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-glass" title="Show what --dt-surface-glass connects to" aria-label="Graph for --dt-surface-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)</code></td></tr><tr id="uses-dt-surface-glass-tint"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-glass-tint"><code>--dt-surface-glass-tint</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-glass-tint" title="Show what --dt-surface-glass-tint connects to" aria-label="Graph for --dt-surface-glass-tint"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-text-primary) 8%, transparent)</code></td></tr><tr id="uses-dt-surface-overlay"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-overlay"><code>--dt-surface-overlay</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-overlay" title="Show what --dt-surface-overlay connects to" aria-label="Graph for --dt-surface-overlay"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-surface-selected"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-selected"><code>--dt-surface-selected</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-selected" title="Show what --dt-surface-selected connects to" aria-label="Graph for --dt-surface-selected"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-050)</code></td></tr><tr id="uses-dt-text-label-sm-family"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-family</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-family" title="Show what --dt-text-label-sm-family connects to" aria-label="Graph for --dt-text-label-sm-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-secondary)</code></td></tr><tr id="uses-dt-text-label-sm-line"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-line</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-line" title="Show what --dt-text-label-sm-line connects to" aria-label="Graph for --dt-text-label-sm-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-size" title="Show what --dt-text-label-sm-size connects to" aria-label="Graph for --dt-text-label-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-label-sm-weight"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-weight" title="Show what --dt-text-label-sm-weight connects to" aria-label="Graph for --dt-text-label-sm-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-medium)</code></td></tr><tr id="uses-dt-text-on-danger"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-danger"><code>--dt-text-on-danger</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-danger" title="Show what --dt-text-on-danger connects to" aria-label="Graph for --dt-text-on-danger"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-primary" title="Show what --dt-text-primary connects to" aria-label="Graph for --dt-text-primary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-secondary" title="Show what --dt-text-secondary connects to" aria-label="Graph for --dt-text-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-dim-1"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-1"><code>--dt-dim-1</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-1" title="Show what --dt-dim-1 connects to" aria-label="Graph for --dt-dim-1"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>4px</code></td></tr><tr id="uses-dt-dim-14"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-14"><code>--dt-dim-14</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-14" title="Show what --dt-dim-14 connects to" aria-label="Graph for --dt-dim-14"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>56px</code></td></tr><tr id="uses-dt-dim-2"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-2"><code>--dt-dim-2</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-2" title="Show what --dt-dim-2 connects to" aria-label="Graph for --dt-dim-2"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>8px</code></td></tr><tr id="uses-dt-dim-4"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-4"><code>--dt-dim-4</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-4" title="Show what --dt-dim-4 connects to" aria-label="Graph for --dt-dim-4"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>16px</code></td></tr><tr id="uses-dt-dim-7"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dim-7"><code>--dt-dim-7</code></a><button type="button" class="graph-btn" data-graph="--dt-dim-7" title="Show what --dt-dim-7 connects to" aria-label="Graph for --dt-dim-7"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>28px</code></td></tr><tr id="uses-dt-font-size-2xs"><th scope="row"><span class="token-cell"><code>--dt-font-size-2xs</code><button type="button" class="graph-btn" data-graph="--dt-font-size-2xs" title="Show what --dt-font-size-2xs connects to" aria-label="Graph for --dt-font-size-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>11px</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-semibold" title="Show what --dt-font-weight-semibold connects to" aria-label="Graph for --dt-font-weight-semibold"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>600</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+const GLASS = &quot;var(--dt-backdrop-glass, saturate(1.4) blur(16px))&quot;;
+const SAFE_BOTTOM = &quot;env(safe-area-inset-bottom, 0px)&quot;;
+
+function NavBadge({ value }) {
+  if (!value) return null;
+  const dot = value === true;
+  return (
+    &lt;span
+      aria-hidden=&quot;true&quot;
+      style={{
+        position: &quot;absolute&quot;, top: dot ? 0 : -4, right: dot ? 0 : -8,
+        minWidth: dot ? &quot;var(--dt-dim-2)&quot; : &quot;var(--dt-dim-4)&quot;, height: dot ? &quot;var(--dt-dim-2)&quot; : &quot;var(--dt-dim-4)&quot;,
+        padding: dot ? 0 : &quot;0 var(--dt-dim-1)&quot;, boxSizing: &quot;border-box&quot;,
+        borderRadius: &quot;var(--dt-radius-pill)&quot;,
+        background: &quot;var(--dt-bottomnav-badge-bg, var(--dt-surface-danger))&quot;,
+        color: &quot;var(--dt-bottomnav-badge-fg, var(--dt-text-on-danger))&quot;,
+        fontFamily: &quot;var(--dt-text-label-sm-family)&quot;, fontSize: &quot;var(--dt-font-size-2xs)&quot;, lineHeight: &quot;var(--dt-dim-4)&quot;,
+        fontWeight: &quot;var(--dt-font-weight-semibold)&quot;, textAlign: &quot;center&quot;,
+      }}
+    &gt;
+      {dot ? null : value &gt; 99 ? &quot;99+&quot; : value}
+    &lt;/span&gt;
+  );
+}
+
+export function BottomNav({ items = [], current, onNavigate, variant = &quot;bar&quot;, translucent = true, action, label = &quot;Main&quot;, style, ...rest }) {
+  const floating = variant === &quot;floating&quot;;
+  const surface = translucent
+    ? { background: &quot;var(--dt-bottomnav-bg, var(--dt-surface-glass))&quot;, backdropFilter: GLASS, WebkitBackdropFilter: GLASS }
+    : { background: &quot;var(--dt-surface-overlay)&quot; };
+
+  const list = (
+    &lt;ul
+      style={{
+        listStyle: &quot;none&quot;, margin: 0, flex: 1, minWidth: 0,
+        display: &quot;grid&quot;, gridTemplateColumns: `repeat(${Math.max(1, items.length)}, minmax(0, 1fr))`,
+        padding: floating ? &quot;var(--dt-space-inset-2xs)&quot; : &quot;var(--dt-space-inset-2xs) var(--dt-space-inset-xs)&quot;,
+        ...(floating
+          ? { ...surface, borderRadius: &quot;var(--dt-radius-pill)&quot;, border: &quot;var(--dt-border-width-default) solid var(--dt-bottomnav-border, var(--dt-border-glass))&quot; }
+          : null),
+      }}
+    &gt;
+      {items.map((item) =&gt; {
+        const on = item.id === current;
+        const Tag = item.href ? &quot;a&quot; : &quot;button&quot;;
+        const badgeText = item.badge === true ? &quot;, new&quot; : item.badge ? &quot;, &quot; + item.badge + &quot; new&quot; : &quot;&quot;;
+        return (
+          &lt;li key={item.id} style={{ display: &quot;flex&quot;, minWidth: 0 }}&gt;
+            &lt;Tag
+              {...(item.href ? { href: item.href } : { type: &quot;button&quot; })}
+              aria-current={on ? &quot;page&quot; : undefined}
+              aria-label={typeof item.label === &quot;string&quot; ? item.label + badgeText : undefined}
+              onClick={(e) =&gt; {
+                if (!onNavigate) return;
+                if (item.href) e.preventDefault();
+                onNavigate(item.id);
+              }}
+              style={{
+                flex: 1, minWidth: 0, minHeight: &quot;var(--dt-size-touch-target, 44px)&quot;,
+                display: &quot;flex&quot;, flexDirection: &quot;column&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;center&quot;,
+                gap: &quot;var(--dt-space-stack-2xs)&quot;, padding: &quot;var(--dt-space-inset-2xs) 0&quot;,
+                border: 0, borderRadius: floating ? &quot;var(--dt-radius-pill)&quot; : &quot;var(--dt-radius-control)&quot;,
+                background: floating &amp;&amp; on ? &quot;var(--dt-bottomnav-indicator-floating, var(--dt-surface-glass-tint))&quot; : &quot;transparent&quot;,
+                color: on ? &quot;var(--dt-bottomnav-fg-active, var(--dt-text-primary))&quot; : &quot;var(--dt-bottomnav-fg, var(--dt-text-secondary))&quot;,
+                textDecoration: &quot;none&quot;, cursor: &quot;pointer&quot;, font: &quot;inherit&quot;,
+                transition: &quot;color var(--dt-motion-micro), background var(--dt-motion-micro)&quot;,
+              }}
+            &gt;
+              &lt;span
+                style={{
+                  position: &quot;relative&quot;, display: &quot;grid&quot;, placeItems: &quot;center&quot;,
+                  width: floating ? &quot;var(--dt-size-icon-lg)&quot; : &quot;var(--dt-dim-14)&quot;, height: &quot;var(--dt-dim-7)&quot;,
+                  borderRadius: &quot;var(--dt-radius-pill)&quot;,
+                  background: !floating &amp;&amp; on ? &quot;var(--dt-bottomnav-indicator, var(--dt-surface-selected))&quot; : &quot;transparent&quot;,
+                  transition: &quot;background var(--dt-motion-micro)&quot;,
+                }}
+              &gt;
+                &lt;span style={{ display: &quot;grid&quot;, placeItems: &quot;center&quot;, width: &quot;var(--dt-size-icon-lg)&quot;, height: &quot;var(--dt-size-icon-lg)&quot; }}&gt;{item.icon}&lt;/span&gt;
+                &lt;NavBadge value={item.badge} /&gt;
+              &lt;/span&gt;
+              &lt;span
+                style={{
+                  maxWidth: &quot;100%&quot;, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot;, whiteSpace: &quot;nowrap&quot;,
+                  fontFamily: &quot;var(--dt-text-label-sm-family)&quot;, fontSize: &quot;var(--dt-text-label-sm-size)&quot;,
+                  lineHeight: &quot;var(--dt-text-label-sm-line)&quot;, fontWeight: on ? &quot;var(--dt-font-weight-semibold)&quot; : &quot;var(--dt-text-label-sm-weight)&quot;,
+                }}
+              &gt;
+                {item.label}
+              &lt;/span&gt;
+            &lt;/Tag&gt;
+          &lt;/li&gt;
+        );
+      })}
+    &lt;/ul&gt;
+  );
+
+  if (floating) {
+    return (
+      &lt;nav
+        aria-label={label}
+        style={{
+          display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;,
+          padding: `var(--dt-space-inset-md) var(--dt-space-inset-md) calc(var(--dt-space-inset-md) + ${SAFE_BOTTOM})`,
+          background: &quot;var(--dt-scrim-fade-bottom, transparent)&quot;,
+          ...style,
+        }}
+        {...rest}
+      &gt;
+        {list}
+        {action &amp;&amp; &lt;span style={{ flex: &quot;none&quot;, display: &quot;flex&quot; }}&gt;{action}&lt;/span&gt;}
+      &lt;/nav&gt;
+    );
+  }
+
+  return (
+    &lt;nav
+      aria-label={label}
+      style={{
+        display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;,
+        paddingBottom: SAFE_BOTTOM,
+        borderTop: &quot;var(--dt-border-width-default) solid var(--dt-bottomnav-border, var(--dt-border-glass))&quot;,
+        ...surface,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      {list}
+      {action &amp;&amp; &lt;span style={{ flex: &quot;none&quot;, display: &quot;flex&quot;, paddingRight: &quot;var(--dt-space-inset-sm)&quot; }}&gt;{action}&lt;/span&gt;}
+    &lt;/nav&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>BottomNav also appears on the navigation reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#navigationdetail">NavigationDetail</a></li></ul>
+</section>
+
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+<script src="../assets/graph.js" defer></script>
+</body>
+</html>

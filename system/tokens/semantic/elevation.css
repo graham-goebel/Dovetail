@@ -26,4 +26,11 @@
   --dt-z-dialog: 400; /* @kind other */
   --dt-z-toast: 500; /* @kind other */
   --dt-z-tooltip: 600; /* @kind other */
+
+  /* Backdrop blur. Glass is a surface over other content: it blurs what is
+     behind it so text on it stays readable. One role for bars and cards, a
+     lighter one for small chips, and the full filter as one value. */
+  --dt-blur-glass: var(--dt-blur-raw-16);
+  --dt-blur-chip: var(--dt-blur-raw-8);
+  --dt-backdrop-glass: saturate(1.4) blur(var(--dt-blur-glass));
 }

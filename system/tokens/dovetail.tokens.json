@@ -1710,7 +1710,7 @@
     }
   },
   "semantic": {
-    "$description": "Tier 2. Purpose-driven. The themeable layer \u2014 a brand theme overrides these and nothing else. No value words permitted in names.",
+    "$description": "Tier 2. Purpose-driven. The themeable layer — a brand theme overrides these and nothing else. No value words permitted in names.",
     "surface": {
       "$type": "color",
       "base": {
@@ -1778,6 +1778,18 @@
       },
       "brand-duotone": {
         "$value": "linear-gradient(135deg, {primitive.color.primary.600}, {primitive.color.secondary.600})"
+      },
+      "glass": {
+        "$value": "color-mix(in oklab, {semantic.surface.overlay} 72%, transparent)"
+      },
+      "glass-strong": {
+        "$value": "color-mix(in oklab, {semantic.surface.overlay} 88%, transparent)"
+      },
+      "glass-tint": {
+        "$value": "color-mix(in oklab, {semantic.text.primary} 8%, transparent)"
+      },
+      "glass-inverse": {
+        "$value": "color-mix(in oklab, {primitive.color.neutral.950} 58%, transparent)"
       }
     },
     "text": {
@@ -1863,6 +1875,12 @@
       },
       "brand-secondary": {
         "$value": "{primitive.color.secondary.200}"
+      },
+      "glass": {
+        "$value": "color-mix(in oklab, {semantic.text.primary} 10%, transparent)"
+      },
+      "glass-inverse": {
+        "$value": "color-mix(in oklab, {primitive.color.neutral.050} 14%, transparent)"
       }
     },
     "space": {
@@ -2066,7 +2084,7 @@
           }
         }
       },
-      "$description": "Tier 2. Complete type roles \u2014 family, size, line height, weight and tracking travel together. letterSpacing is resolved to rem here because DTCG dimension has no em unit; the authored tracking scale lives in primitive.tracking."
+      "$description": "Tier 2. Complete type roles — family, size, line height, weight and tracking travel together. letterSpacing is resolved to rem here because DTCG dimension has no em unit; the authored tracking scale lives in primitive.tracking."
     },
     "motion": {
       "$type": "transition",
@@ -2133,9 +2151,39 @@
         "$description": "Toasts, anything above a dialog."
       },
       "$type": "shadow",
-      "$description": "Tier 2. Elevation is a z-order vocabulary, not a shadow menu: pick the level that matches what the element is. Level 0 is flush with the page and carries no shadow, so it has no token here \u2014 use no shadow at all.",
+      "$description": "Tier 2. Elevation is a z-order vocabulary, not a shadow menu: pick the level that matches what the element is. Level 0 is flush with the page and carries no shadow, so it has no token here — use no shadow at all.",
       "inset": {
         "$value": "{primitive.shadow.inset}"
+      }
+    },
+    "scrim": {
+      "$description": "Image scrims, dark in both modes.",
+      "bottom": {
+        "$value": "linear-gradient(to top, color-mix(in oklab, {primitive.color.neutral.950} 80%, transparent), color-mix(in oklab, {primitive.color.neutral.950} 40%, transparent) 45%, transparent)"
+      },
+      "top": {
+        "$value": "linear-gradient(to bottom, color-mix(in oklab, {primitive.color.neutral.950} 80%, transparent), color-mix(in oklab, {primitive.color.neutral.950} 40%, transparent) 45%, transparent)"
+      },
+      "full": {
+        "$value": "color-mix(in oklab, {primitive.color.neutral.950} 55%, transparent)"
+      },
+      "fade-bottom": {
+        "$value": "linear-gradient(to top, {semantic.surface.base} 40%, transparent)"
+      }
+    },
+    "blur": {
+      "$type": "dimension",
+      "glass": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "chip": {
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        }
       }
     }
   },

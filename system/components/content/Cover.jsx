@@ -23,9 +23,10 @@ const PLACEHOLDER_ICON = (
    one edge of it. */
 function scrimImage(scrim, align) {
   if (scrim === "none") return "none";
-  if (scrim === "solid" || align === "center") return "var(--dt-surface-scrim)";
-  const to = align === "bottom" ? "to top" : "to bottom";
-  return `linear-gradient(${to}, var(--dt-surface-scrim), transparent 65%)`;
+  if (scrim === "solid" || align === "center") return "var(--dt-scrim-full, var(--dt-surface-scrim))";
+  return align === "bottom"
+    ? "var(--dt-scrim-bottom, linear-gradient(to top, var(--dt-surface-scrim), transparent 65%))"
+    : "var(--dt-scrim-top, linear-gradient(to bottom, var(--dt-surface-scrim), transparent 65%))";
 }
 
 export function Cover({
@@ -62,7 +63,7 @@ export function Cover({
          wired in, the same reason Image's own placeholder reserves the ratio
          rather than collapsing to nothing. */}
       {scrim !== "none" && (
-        <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: scrimImage(scrim, align), borderRadius: "inherit" }} />
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: scrimImage(scrim, align), borderRadius: "inherit" }} />
       )}
 
       {hasContent && (

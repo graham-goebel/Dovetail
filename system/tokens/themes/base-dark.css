@@ -58,8 +58,8 @@
   --dt-surface-action-disabled: var(--dt-color-neutral-800);
   --dt-text-on-action-disabled: var(--dt-color-neutral-600);
 
-  --dt-surface-selected: oklch(0.256 0.093 259);
-  --dt-surface-selected-hover: oklch(0.344 0.128 259);
+  --dt-surface-selected: var(--dt-color-primary-950);
+  --dt-surface-selected-hover: var(--dt-color-primary-900);
   --dt-text-on-selected: var(--dt-color-primary-100);
   --dt-border-selected: var(--dt-color-primary-500);
 
@@ -103,6 +103,14 @@
   --dt-text-brand: var(--dt-color-primary-400);
   --dt-text-wordmark: var(--dt-text-primary);
   --dt-text-headline: var(--dt-text-primary);
+
+  /* Layer roles read the overlay, text and page roles, so they are declared
+     again here to resolve against the dark ones. */
+  --dt-surface-glass: color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent);
+  --dt-surface-glass-strong: color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent);
+  --dt-surface-glass-tint: color-mix(in oklab, var(--dt-text-primary) 8%, transparent);
+  --dt-border-glass: color-mix(in oklab, var(--dt-text-primary) 10%, transparent);
+  --dt-scrim-fade-bottom: linear-gradient(to top, var(--dt-surface-base) 40%, transparent);
   --dt-surface-brand-secondary: var(--dt-color-secondary-500);
   --dt-text-on-brand-secondary: var(--dt-color-neutral-950);
   --dt-surface-brand-secondary-muted: var(--dt-color-secondary-950);

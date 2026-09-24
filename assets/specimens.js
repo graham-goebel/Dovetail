@@ -276,6 +276,22 @@
     Video: function () {
       return e(NS.Video, { label: "Ridge line above a cloud inversion", ratio: "16:9" });
     },
+    BottomNav: function () {
+      var dot = function (d) { return glyph([d]); };
+      return e("div", { style: { width: "100%", maxWidth: 280 } }, e(NS.BottomNav, {
+        current: "home",
+        items: [
+          { id: "home", label: "Home", icon: dot("M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5") },
+          { id: "saved", label: "Saved", icon: dot("M19.5 12.6 12 20l-7.5-7.4A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 7.5 6.6z"), badge: 3 },
+          { id: "me", label: "Me", icon: dot("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0") },
+        ],
+      }));
+    },
+    AppShell: function () {
+      return e("div", { style: { width: 180, height: 150, borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+        e(NS.AppShell, { scroll: "contained", title: "Today", bottomNav: e("div", { style: { height: 28, background: "var(--dt-surface-glass)", borderTop: "var(--dt-border-width-default) solid var(--dt-border-glass)" } }) },
+          e("div", { style: { padding: "var(--dt-space-inset-xs)", display: "grid", gap: 6 } }, [1, 2, 3].map(function (i) { return e("div", { key: i, style: swatch }); }))));
+    },
     Thinking: function () {
       return e(NS.Thinking, { state: "thinking", size: "md" });
     },

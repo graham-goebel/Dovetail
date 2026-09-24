@@ -10,4 +10,13 @@
   --dt-shadow-raw-4: 0 4px 8px -2px oklch(0.145 0.005 264 / 0.06), 0 12px 24px -4px oklch(0.145 0.005 264 / 0.12); /* @kind other */
   --dt-shadow-raw-5: 0 8px 16px -4px oklch(0.145 0.005 264 / 0.08), 0 24px 48px -8px oklch(0.145 0.005 264 / 0.16); /* @kind other */
   --dt-shadow-raw-inset: inset 0 1px 2px 0 oklch(0.145 0.005 264 / 0.08); /* @kind other */
+
+  /* Raw blur radii for backdrop filters. Glass reads these through the
+     semantic blur roles, never directly. */
+  --dt-blur-raw-4: 4px;
+  --dt-blur-raw-8: 8px;
+  --dt-blur-raw-12: 12px;
+  --dt-blur-raw-16: 16px;
+  --dt-blur-raw-24: 24px;
+  --dt-blur-raw-40: 40px;
 }

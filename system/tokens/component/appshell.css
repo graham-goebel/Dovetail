@@ -1,0 +1,36 @@
+/* TIER 3 — APP SHELL AND BOTTOM NAV
+   The phone app layer: a top bar, a scrolling body and a bottom navigation,
+   with the device's safe areas honoured. Bars are glass by default, so
+   content scrolls beneath them and stays faintly visible. Colour aliases are
+   repeated under .dark, like every component tier. */
+
+:root {
+  --dt-appshell-bar-height: var(--dt-dim-14);
+  --dt-appshell-max-width: var(--dt-dim-container-sm);
+  --dt-appshell-bar-bg: var(--dt-surface-glass);
+  --dt-appshell-bar-border: var(--dt-border-glass);
+  --dt-appshell-bg: var(--dt-surface-base);
+
+  --dt-bottomnav-bg: var(--dt-surface-glass);
+  --dt-bottomnav-border: var(--dt-border-glass);
+  --dt-bottomnav-fg: var(--dt-text-secondary);
+  --dt-bottomnav-fg-active: var(--dt-text-primary);
+  --dt-bottomnav-indicator: var(--dt-surface-selected);
+  --dt-bottomnav-indicator-floating: var(--dt-surface-glass-tint);
+  --dt-bottomnav-badge-bg: var(--dt-surface-danger);
+  --dt-bottomnav-badge-fg: var(--dt-text-on-danger);
+}
+
+.dark {
+  --dt-appshell-bar-bg: var(--dt-surface-glass);
+  --dt-appshell-bar-border: var(--dt-border-glass);
+  --dt-appshell-bg: var(--dt-surface-base);
+  --dt-bottomnav-bg: var(--dt-surface-glass);
+  --dt-bottomnav-border: var(--dt-border-glass);
+  --dt-bottomnav-fg: var(--dt-text-secondary);
+  --dt-bottomnav-fg-active: var(--dt-text-primary);
+  --dt-bottomnav-indicator: var(--dt-surface-selected);
+  --dt-bottomnav-indicator-floating: var(--dt-surface-glass-tint);
+  --dt-bottomnav-badge-bg: var(--dt-surface-danger);
+  --dt-bottomnav-badge-fg: var(--dt-text-on-danger);
+}

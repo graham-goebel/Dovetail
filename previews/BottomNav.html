@@ -1,0 +1,75 @@
+<!-- @dsCard group="Navigation" height=560 name="BottomNav" subtitle="BottomNav — The primary navigation of a phone app, docked or floating, with badges." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); color: var(--dt-text-primary); font-family: var(--dt-font-family-sans); }
+  .spec > h3 { margin: 0 0 var(--dt-space-stack-xs); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  #root { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--dt-space-inline-lg); max-width: 1000px; margin: 0 auto; }
+  .stage { position: relative; height: 200px; border-radius: var(--dt-radius-container); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; border: var(--dt-border-width-default) solid var(--dt-border-subtle); background: var(--dt-surface-base); }
+  .stage > .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .stage > nav { position: relative; }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+  function Spec(props) {
+    return e("div", { className: "spec" }, e("h3", null, props.name), props.children);
+  }
+  function icon(paths) {
+    return e("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", style: { width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)" }, "aria-hidden": true },
+      paths.map(function (d, i) { return e("path", { key: i, d: d }); }));
+  }
+  var I = {
+    home: icon(["M3 10.5 12 3l9 7.5", "M5 9.5V21h14V9.5", "M10 21v-6h4v6"]),
+    compass: icon(["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "m15.5 8.5-2 5-5 2 2-5z"]),
+    heart: icon(["M19.5 12.6 12 20l-7.5-7.4A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 7.5 6.6z"]),
+    user: icon(["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M4 21a8 8 0 0 1 16 0"]),
+    plus: icon(["M12 5v14", "M5 12h14"]),
+    bell: icon(["M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9", "M10.3 21a1.9 1.9 0 0 0 3.4 0"]),
+    chart: icon(["M4 20V10", "M10 20V4", "M16 20v-7", "M22 20H2"]),
+  };
+  var ITEMS = [
+    { id: "home", label: "Home", icon: I.home },
+    { id: "explore", label: "Explore", icon: I.compass },
+    { id: "saved", label: "Saved", icon: I.heart, badge: 12 },
+    { id: "me", label: "Me", icon: I.user, badge: true },
+  ];
+  function Demo(props) {
+    var s = React.useState(props.start || "home");
+    return e(NS.BottomNav, Object.assign({ items: props.items || ITEMS, current: s[0], onNavigate: s[1] }, props.nav));
+  }
+  function Page() {
+    return e(React.Fragment, null,
+      e(Spec, { name: "bar" }, e("div", { className: "stage" }, e(Demo, {}))),
+      e(Spec, { name: "bar, dark" }, e("div", { className: "stage dark" }, e(Demo, { start: "saved" }))),
+      e(Spec, { name: "floating, with an action" }, e("div", { className: "stage" },
+        e(Demo, { items: ITEMS.slice(0, 3), nav: { variant: "floating", action: e(NS.IconButton, { label: "Add", variant: "solid", style: { width: "var(--dt-dim-12)", height: "var(--dt-dim-12)", borderRadius: "var(--dt-radius-pill)" } }, I.plus) } }))),
+      e(Spec, { name: "floating over a photograph, dark" }, e("div", { className: "stage dark" },
+        e("img", { className: "bg", src: "../examples/travel/img/photo/alpine.webp", alt: "" }),
+        e(Demo, { items: ITEMS.slice(0, 3), start: "explore", nav: { variant: "floating", style: { background: "var(--dt-scrim-bottom)" } } }))));
+  }
+  function start() {
+    if (!NS.BottomNav || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+
+})();
+</script>
+</body></html>

@@ -306,6 +306,40 @@ overrides. Paste it into `system/tokens/themes/theme-custom.css` and the theme s
 the repository, needing no JavaScript. Nothing in the panel edits a file; it is a preview
 held in one browser.
 
+## The mobile app layer
+
+The example builds, the Solace wellness screen most of all, kept hand-writing the same
+three things around the components: a phone frame with a bottom tab bar, translucent
+cards over a photograph, and blur. The system now ships them.
+
+- **`AppShell`** is a phone app's frame: a top bar (a title with leading and trailing
+  slots, or any header you pass), a body that scrolls, and a bottom navigation, with the
+  safe areas honoured on every side so nothing sits under the notch or the home
+  indicator. The bars are sticky inside whatever scrolls, the document by default or the
+  shell itself with `scroll="contained"` for a device frame or a dialog, so content
+  scrolls beneath them. `backdrop` takes a picture that stays put behind everything, and
+  `dark` scopes dark mode to the app.
+- **`BottomNav`** is the tab bar: three to five destinations with icons, labels and
+  badges, 44px-plus touch targets, `aria-current` on the active item and badges announced
+  with their label. `variant="bar"` docks full width with an indicator pill behind the
+  active icon; `variant="floating"` is an inset glass pill over a fade of the page, with
+  an `action` slot beside it.
+- **Layered surface tokens.** `--dt-surface-glass` and `-glass-strong` are the overlay
+  surface made translucent, following the colour mode; `--dt-surface-glass-tint` is a
+  faint wash of ink; `--dt-surface-glass-inverse` is dark glass in both modes for a card
+  over a photograph, with matching `--dt-border-glass*`. `--dt-scrim-bottom`, `-top` and
+  `-full` are image scrims dense enough at their dark end for `--dt-text-on-scrim`, and
+  `--dt-scrim-fade-bottom` fades the page up behind a floating bar. `--dt-blur-glass`,
+  `--dt-blur-chip` and `--dt-backdrop-glass` give every glass surface the same blur.
+- **`Card surface`** takes `glass`, `glass-strong` or `glass-inverse`; the inverse glass
+  scopes dark mode so a card's text and buttons read light over the picture. `Cover` and
+  `Section` now draw their scrims from the same tokens, which also fixed their solid scrim,
+  set as a background image it could not be and so never drawn.
+
+The same build found that dark mode declared the selected surface as a literal blue;
+`--dt-surface-selected` and its hover now point at the primary ramp, so a retuned brand's
+selected chips follow it in dark mode too.
+
 ## Thinking states
 
 `Thinking` is what an assistant shows while you wait, in five states: **connecting**

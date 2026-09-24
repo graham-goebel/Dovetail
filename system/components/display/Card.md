@@ -41,6 +41,13 @@ Pass `href` and the whole card goes there. The title becomes the one link a scre
 <Card href="/trips/ridge" title="Ridge loop" description="Four days, three huts." footer={<Button size="sm" variant="secondary">Save</Button>} />
 ```
 
+## Over other content
+`surface="glass"` makes the card the overlay surface, translucent, with `--dt-backdrop-glass` blurring whatever is behind it: a feed scrolling under it, a map, a soft gradient. It follows the colour mode. `surface="glass-inverse"` is dark in both modes, for a card over a photograph, and puts the `dark` class on the card so its title, text and any buttons inside read light on dark. Check the text against the real image behind it, as `guidelines/accessibility.md` describes.
+
+```jsx
+<Card surface="glass-inverse" title="Recovery" description="Your body is ready for a harder session." />
+```
+
 ## Accessibility
 `interactive` is visual only. A clickable card needs a real control inside it, `href`, or `as="button"` with an accessible name. A div with onClick is not keyboard operable.
 

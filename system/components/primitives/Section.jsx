@@ -34,9 +34,11 @@ const TONES = {
 
 function scrimImage(scrim, align) {
   if (scrim === "none") return "none";
-  if (scrim === "solid" || align === "center") return "var(--dt-surface-scrim)";
+  if (scrim === "solid" || align === "center") return "var(--dt-scrim-full, var(--dt-surface-scrim))";
   const to = align === "bottom" ? "to top" : "to bottom";
-  return `linear-gradient(${to}, var(--dt-surface-scrim), var(--dt-surface-scrim) 30%, transparent 90%)`;
+  /* A band's text block runs taller than a card's caption, so the scrim holds
+     at full strength for its first third before it fades. */
+  return `linear-gradient(${to}, var(--dt-scrim-full, var(--dt-surface-scrim)) 30%, transparent 90%)`;
 }
 
 export function Section({
@@ -80,7 +82,7 @@ export function Section({
       {...rest}
     >
       {photo && <img src={media} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
-      {photo && scrim !== "none" && <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: scrimImage(scrim, align) }} />}
+      {photo && scrim !== "none" && <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: scrimImage(scrim, align) }} />}
       <div
         style={{
           position: photo ? "relative" : undefined,
