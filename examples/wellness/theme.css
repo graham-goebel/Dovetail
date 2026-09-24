@@ -1,0 +1,263 @@
+/* THEME — SOLACE
+   A dark-only wellness app, recreated as a single "Today" screen to test how far Dovetail
+   stretches toward a native mobile look. The page is dark by construction (`class="dark"`
+   on <html>), so base-dark.css does the re-pointing and this file only tunes ramps,
+   families and a handful of roles. Because .dark sits on the root element itself, the
+   component-tier aliases re-resolve correctly here — the scoped-dark bug recorded in
+   system/assets/notes/EXAMPLES-FINDINGS.md does not apply to this page.
+
+   Link after system/styles.css. */
+
+:root {
+  /* Cool slate neutrals, pulled toward the sea behind everything. */
+  --dt-color-neutral-050: oklch(0.970 0.004 250);
+  --dt-color-neutral-100: oklch(0.935 0.006 250);
+  --dt-color-neutral-200: oklch(0.880 0.008 250);
+  --dt-color-neutral-300: oklch(0.800 0.010 250);
+  --dt-color-neutral-400: oklch(0.700 0.012 250);
+  --dt-color-neutral-500: oklch(0.580 0.012 250);
+  --dt-color-neutral-600: oklch(0.470 0.012 250);
+  --dt-color-neutral-700: oklch(0.370 0.012 250);
+  --dt-color-neutral-800: oklch(0.285 0.012 250);
+  --dt-color-neutral-900: oklch(0.215 0.012 250);
+  --dt-color-neutral-950: oklch(0.160 0.012 250);
+
+  /* The accent is almost not a colour: a pale, cool white. The product's voice is the
+     photograph and the type, not a brand hue, so actions read as light on dark glass. */
+  --dt-color-accent-300: oklch(0.930 0.010 250);
+  --dt-color-accent-400: oklch(0.900 0.012 250);
+  --dt-color-accent-500: oklch(0.860 0.014 250);
+
+  /* A narrow editorial serif for the one sentence the screen exists to say. */
+  --dt-font-family-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --dt-text-display-md-family: var(--dt-font-family-display);
+  --dt-text-display-sm-family: var(--dt-font-family-display);
+  --dt-text-display-md-weight: var(--dt-font-weight-regular);
+  --dt-text-display-sm-weight: var(--dt-font-weight-regular);
+  --dt-text-display-md-tracking: -0.01em;
+  --dt-text-eyebrow-tracking: 0.14em;
+
+  --dt-radius-control: var(--dt-radius-raw-full);
+  --dt-radius-container: var(--dt-radius-raw-24);
+  --dt-radius-overlay: var(--dt-radius-raw-24);
+
+  /* Secondary actions are frosted glass over the sea rather than a solid chip. */
+  --dt-surface-action-secondary: color-mix(in oklch, var(--dt-color-neutral-050) 12%, transparent);
+  --dt-surface-action-secondary-hover: color-mix(in oklch, var(--dt-color-neutral-050) 18%, transparent);
+  --dt-surface-action-secondary-active: color-mix(in oklch, var(--dt-color-neutral-050) 24%, transparent);
+  --dt-border-action-secondary: transparent;
+  --dt-text-on-action-secondary: var(--dt-color-neutral-050);
+
+  /* Selection is a lit glass chip, not the default blue: this brand has no hue. */
+  --dt-surface-selected: color-mix(in oklch, var(--dt-color-neutral-050) 88%, transparent);
+  --dt-surface-selected-hover: var(--dt-color-neutral-050);
+  --dt-text-on-selected: var(--dt-color-neutral-950);
+  --dt-border-selected: var(--dt-color-neutral-050);
+
+  /* Page ground behind the phone frame on a wide screen. */
+  --dt-surface-base: var(--dt-color-neutral-950);
+  --dt-surface-raised: var(--dt-color-neutral-900);
+  --dt-surface-overlay: var(--dt-color-neutral-900);
+}
+
+/* ------------------------------------------------------------------ frame */
+
+html, body { margin: 0; background: oklch(0.110 0.010 250); }
+body { min-height: 100svh; }
+#root { display: flex; justify-content: center; }
+
+/* The app is a phone column. On a wide screen it sits centred on a darker ground; on a
+   phone it simply is the screen. */
+.sl-app {
+  /* clip, not hidden: hidden would make this the scroll container and the tab bar's
+     position: sticky would stick to it instead of to the viewport. */
+  position: relative; isolation: isolate; overflow: clip;
+  width: 100%; max-width: 430px; min-height: 100svh;
+  color: var(--dt-text-primary);
+  background: var(--dt-color-neutral-950);
+}
+@media (min-width: 520px) {
+  body { padding-block: var(--dt-space-stack-xl); }
+  .sl-app { min-height: 880px; border-radius: 44px; box-shadow: var(--dt-elevation-5); }
+}
+
+/* ------------------------------------------------------------------ the sea
+   Painted, not photographed: an SVG turbulence field tinted slate and darkened toward
+   the bottom, so the upper third reads as rolling water and the lower two thirds as the
+   dim ground the headline sits on. */
+.sl-sea { position: absolute; inset: 0; z-index: -1; }
+.sl-sea svg { position: absolute; inset: 0; width: 100%; height: 62%; }
+.sl-sea::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(to bottom,
+      color-mix(in oklch, var(--dt-color-neutral-950) 58%, transparent) 0%,
+      color-mix(in oklch, var(--dt-color-neutral-950) 48%, transparent) 22%,
+      color-mix(in oklch, var(--dt-color-neutral-950) 62%, transparent) 40%,
+      var(--dt-color-neutral-950) 64%);
+}
+
+/* ------------------------------------------------------------------ chrome */
+
+.sl-top {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: var(--dt-space-inset-lg) var(--dt-space-inset-md) var(--dt-space-inset-sm);
+}
+.sl-top > :last-child { justify-self: end; display: flex; gap: var(--dt-space-inline-2xs); }
+.sl-wordmark {
+  font-family: var(--dt-font-family-sans); font-weight: var(--dt-font-weight-regular);
+  font-size: var(--dt-text-heading-sm-size); letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ score rings */
+
+.sl-scores {
+  display: flex; gap: var(--dt-space-inline-2xs); overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md) var(--dt-space-inset-md);
+  scrollbar-width: none;
+}
+.sl-scores::-webkit-scrollbar { display: none; }
+.sl-score {
+  flex: none; scroll-snap-align: start; width: var(--dt-dim-24, 96px);
+  display: grid; justify-items: center; gap: var(--dt-space-stack-xs);
+  border: 0; padding: 0; background: none; color: inherit; cursor: pointer;
+  font: inherit;
+}
+.sl-ring {
+  position: relative; display: grid; place-items: center; gap: var(--dt-space-stack-2xs);
+  width: 80px; height: 80px; border-radius: var(--dt-radius-pill);
+  background: color-mix(in oklch, var(--dt-color-neutral-050) 9%, transparent);
+  backdrop-filter: blur(10px) saturate(120%);
+  transition: background var(--dt-motion-enter), transform var(--dt-motion-enter);
+}
+.sl-score:hover .sl-ring, .sl-score:focus-visible .sl-ring { background: color-mix(in oklch, var(--dt-color-neutral-050) 16%, transparent); }
+.sl-score:active .sl-ring { transform: scale(0.96); }
+.sl-ring svg.sl-arc { position: absolute; inset: 0; transform: rotate(-90deg); }
+.sl-ring-value {
+  font-size: var(--dt-text-heading-lg-size); line-height: 1;
+  font-weight: var(--dt-font-weight-regular); font-variant-numeric: tabular-nums;
+}
+.sl-score-label { font-size: var(--dt-text-body-md-size); color: var(--dt-text-primary); opacity: 0.92; }
+
+/* ------------------------------------------------------------------ glass cards */
+
+.sl-body { padding-inline: var(--dt-space-inset-md); display: grid; gap: var(--dt-space-stack-sm); }
+.sl-chip {
+  justify-self: start; display: inline-flex; align-items: center;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md);
+  border-radius: var(--dt-radius-pill);
+  background: color-mix(in oklch, var(--dt-color-neutral-950) 55%, transparent);
+  backdrop-filter: blur(12px);
+  font-size: var(--dt-text-body-lg-size);
+}
+.sl-row { display: flex; align-items: center; justify-content: space-between; gap: var(--dt-space-inline-sm); }
+.sl-glass {
+  display: grid; gap: var(--dt-space-stack-md);
+  padding: var(--dt-space-inset-lg);
+  border-radius: var(--dt-radius-container);
+  background: color-mix(in oklch, var(--dt-color-neutral-900) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(120%);
+  transition: opacity 360ms var(--dt-easing-accelerate), transform 360ms var(--dt-easing-accelerate), max-height 420ms var(--dt-easing-standard), padding 420ms var(--dt-easing-standard), margin 420ms var(--dt-easing-standard);
+  max-height: 400px; overflow: hidden;
+}
+.sl-glass[data-gone="true"] { opacity: 0; transform: translateY(-8px) scale(0.98); max-height: 0; padding-block: 0; margin-block-start: calc(var(--dt-space-stack-sm) * -1); }
+.sl-meta { display: flex; align-items: center; gap: var(--dt-space-inline-sm); color: var(--dt-text-secondary); font-size: var(--dt-text-body-lg-size); font-variant-numeric: tabular-nums; }
+.sl-badge-icon {
+  display: grid; place-items: center; width: var(--dt-dim-8); height: var(--dt-dim-8);
+  border-radius: var(--dt-radius-pill); background: var(--dt-color-neutral-050); color: var(--dt-color-neutral-950);
+}
+.sl-title { font-size: var(--dt-text-heading-sm-size); }
+
+/* ------------------------------------------------------------------ stress insight */
+
+.sl-insight { display: grid; justify-items: center; text-align: center; gap: var(--dt-space-stack-sm); padding: var(--dt-space-stack-xl) var(--dt-space-inset-md) 0; }
+.sl-insight-icon {
+  display: grid; place-items: center; width: var(--dt-dim-12); height: var(--dt-dim-12);
+  border-radius: var(--dt-radius-pill); background: color-mix(in oklch, var(--dt-color-neutral-050) 10%, transparent);
+}
+.sl-eyebrow {
+  font-size: var(--dt-text-label-md-size); font-weight: var(--dt-font-weight-semibold);
+  letter-spacing: var(--dt-text-eyebrow-tracking); text-transform: uppercase;
+}
+.sl-headline {
+  margin: 0; text-wrap: balance;
+  font-family: var(--dt-font-family-display); font-weight: var(--dt-font-weight-regular);
+  font-size: clamp(2.25rem, 10vw, 2.75rem); line-height: 1.08; letter-spacing: -0.01em;
+}
+.sl-question { margin: 0; font-size: var(--dt-text-body-lg-size); }
+
+/* ------------------------------------------------------------------ timeline
+   Past is a solid track, the stressed hour sits on it as a lit pill, "now" is a tick,
+   and the rest of the day is hatched: there is nothing to measure there yet. */
+.sl-timeline { width: 100%; display: grid; gap: var(--dt-space-stack-sm); padding-top: var(--dt-space-stack-md); }
+.sl-window { font-size: var(--dt-text-body-lg-size); font-variant-numeric: tabular-nums; }
+.sl-track { position: relative; height: var(--dt-dim-4); }
+.sl-past, .sl-future { position: absolute; top: 50%; height: 4px; transform: translateY(-50%); border-radius: var(--dt-radius-pill); }
+.sl-past { left: 0; background: color-mix(in oklch, var(--dt-color-neutral-050) 38%, transparent); }
+.sl-future {
+  right: 0;
+  background: repeating-linear-gradient(90deg,
+    color-mix(in oklch, var(--dt-color-neutral-050) 30%, transparent) 0 2px,
+    transparent 2px 4px);
+}
+.sl-block {
+  position: absolute; top: 50%; height: var(--dt-dim-3); transform: translateY(-50%);
+  border: 0; padding: 0; cursor: pointer; border-radius: var(--dt-radius-pill);
+  background: var(--dt-color-neutral-050);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--dt-color-neutral-050) 0%, transparent);
+  transition: box-shadow var(--dt-motion-enter);
+}
+.sl-block:hover, .sl-block[aria-pressed="true"] { box-shadow: 0 0 0 4px color-mix(in oklch, var(--dt-color-neutral-050) 22%, transparent); }
+.sl-now { position: absolute; top: 50%; width: 2px; height: var(--dt-dim-5); transform: translate(-50%, -50%); background: var(--dt-color-neutral-050); border-radius: var(--dt-radius-pill); }
+.sl-ticks { position: relative; height: var(--dt-dim-5); font-size: var(--dt-text-body-md-size); color: var(--dt-text-secondary); }
+.sl-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.sl-ticks span:first-child { transform: none; }
+.sl-ticks span:last-child { transform: translateX(-100%); }
+.sl-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--dt-space-inline-xs); }
+
+/* ------------------------------------------------------------------ tab bar */
+
+.sl-tabbar {
+  /* --dt-z-raised, not --dt-z-sticky: Dovetail's Drawer hardcodes z-index 60, below
+     the sticky layer (bug 1 in system/assets/notes/EXAMPLES-FINDINGS.md), so a sticky
+     tab bar would sit on top of every bottom sheet this screen opens. It only needs to
+     clear the page content, which raised does. */
+  position: sticky; bottom: 0; z-index: var(--dt-z-raised);
+  display: flex; align-items: center; gap: var(--dt-space-inline-md);
+  padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-lg);
+  background: linear-gradient(to top, var(--dt-color-neutral-950) 45%, transparent);
+}
+.sl-tabs {
+  flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+  padding: var(--dt-space-inset-xs); border-radius: var(--dt-radius-pill);
+  background: color-mix(in oklch, var(--dt-color-neutral-800) 80%, transparent);
+  backdrop-filter: blur(16px);
+  border: var(--dt-border-width-default) solid color-mix(in oklch, var(--dt-color-neutral-050) 8%, transparent);
+}
+.sl-tab {
+  display: grid; justify-items: center; gap: var(--dt-space-stack-2xs);
+  padding: var(--dt-space-inset-xs) 0; border: 0; background: none; cursor: pointer;
+  color: var(--dt-text-secondary); font: inherit; font-size: var(--dt-text-label-md-size);
+  border-radius: var(--dt-radius-pill);
+  transition: color var(--dt-motion-enter);
+}
+.sl-tab[aria-current="page"] { color: var(--dt-text-primary); }
+.sl-fab {
+  flex: none; display: grid; place-items: center;
+  width: 64px; height: 64px; border-radius: var(--dt-radius-pill); cursor: pointer;
+  border: var(--dt-border-width-default) solid color-mix(in oklch, var(--dt-color-neutral-050) 8%, transparent);
+  background: color-mix(in oklch, var(--dt-color-neutral-800) 80%, transparent);
+  backdrop-filter: blur(16px); color: var(--dt-text-primary);
+  transition: transform var(--dt-motion-enter);
+}
+.sl-fab:active { transform: scale(0.94); }
+
+/* ------------------------------------------------------------------ detail sheet */
+
+.sl-sheet-score { display: flex; align-items: baseline; gap: var(--dt-space-inline-xs); }
+.sl-sheet-score strong { font-family: var(--dt-font-family-display); font-weight: var(--dt-font-weight-regular); font-size: var(--dt-text-display-md-size); line-height: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-glass, .sl-ring, .sl-fab, .sl-block { transition: none; }
+  .sl-sea animate { display: none; }
+}

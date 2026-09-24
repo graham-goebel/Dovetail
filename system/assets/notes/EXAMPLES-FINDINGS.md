@@ -1,9 +1,10 @@
-# What two examples found
+# What the examples found
 
 Two full sites were built on Dovetail to see what a real brand hits: **Low Meadow**
 (`examples/dispensary/`), a four-page dispensary, and **Meridian**
-(`examples/travel/`), one immersive vacation-rental homepage. Neither project touched
-`system/`. This file is what came back — every bug confirmed against the current
+(`examples/travel/`), one immersive vacation-rental homepage. A third, smaller test,
+**Solace** (`examples/wellness/`), recreates a single dark mobile-app screen. None of
+them touched `system/`. This file is what came back — every bug confirmed against the current
 source, every gap felt twice, and the patterns that showed up independently in both
 builds and are worth folding into the system itself. Each item cites the file and line
 so a fix can start without re-deriving it.
@@ -16,7 +17,7 @@ what the next brand will hit the same way these two did.
 
 ## Bugs
 
-Ranked by how badly they surprise you. All five reproduce in the unmodified system —
+Ranked by how badly they surprise you. All six reproduce in the unmodified system —
 neither example's own code is the cause.
 
 ### 1. Drawer's z-index is a literal 60, and it sits under sticky page chrome
@@ -35,6 +36,12 @@ broken. And `60` sits below `--dt-z-sticky` (`100`, `tokens/semantic/elevation.c
 so a Drawer opens *underneath* any `position: sticky` or `position: fixed` header, nav,
 or filter bar already on the page. Meridian hit this directly: the booking Drawer sits
 below the page's fixed header, so the header floats over the Drawer's own scrim.
+
+A third example (`examples/wellness/`) hit it again the same day: its sticky tab bar
+sat above every bottom-sheet Drawer and blocked the sheet's own Save button, found by an
+automated click test rather than by eye. That page works around it by keeping the tab
+bar at `--dt-z-raised`, which is enough to clear page content but not what "sticky"
+should need.
 
 Fix: `zIndex: "var(--dt-z-overlay)"` (`300`), which is where Drawer already sits
 conceptually next to Popover and Tooltip in the z-scale, and above every sticky
@@ -131,6 +138,17 @@ that keeps the underline, and nothing else in the system renders `as="a"` today.
 **Worked around in both examples**: `a.lm-btn, a.lm-btn:hover { text-decoration: none; }`
 / `a.mv-btn, a.mv-btn:hover { text-decoration: none; }` — the identical two-line rule,
 under the identical name pattern, written independently in both brands' `theme.css`.
+
+### 6. `base-dark.css` sets the selected surface as a literal
+
+`system/tokens/themes/base-dark.css:61-62` declares `--dt-surface-selected` and
+`--dt-surface-selected-hover` as literal `oklch(...)` values with a fixed blue hue (259),
+rather than as steps of the accent ramp the light theme reads. So a brand that retunes
+its accent ramp still gets a blue selected chip in dark mode (a selected `Tag`, a
+selected `Card`). Found by the wellness example, whose accent is deliberately
+colourless; it overrides both roles in its own theme. Fix: point both at accent steps
+(for example `--dt-color-accent-900` / `-800`), the way every other dark-mode action
+role in the same file already does.
 
 ---
 
