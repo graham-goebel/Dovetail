@@ -14,7 +14,7 @@
   #root { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--dt-space-stack-lg); }
   .controls { display: flex; flex-wrap: wrap; gap: var(--dt-space-inline-lg); align-items: flex-end; padding: var(--dt-space-inset-md); background: var(--dt-surface-base); border: var(--dt-border-width-default) solid var(--dt-border-subtle); border-radius: var(--dt-radius-container); }
   .ctl { display: flex; flex-direction: column; gap: var(--dt-space-stack-2xs); font-size: var(--dt-font-size-xs); color: var(--dt-text-secondary); }
-  .seg { display: inline-flex; padding: 2px; background: var(--dt-surface-sunken); border-radius: var(--dt-radius-control); }
+  .seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; padding: 2px; background: var(--dt-surface-sunken); border-radius: var(--dt-radius-control); }
   .seg button { font: inherit; font-size: var(--dt-font-size-xs); padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs); border: 0; background: transparent; color: var(--dt-text-secondary); border-radius: calc(var(--dt-radius-control) - 1px); cursor: pointer; }
   .seg button[aria-pressed="true"] { background: var(--dt-surface-raised); color: var(--dt-text-primary); box-shadow: var(--dt-elevation-1); }
   .ctl input[type=range] { width: 120px; accent-color: var(--dt-surface-action); }

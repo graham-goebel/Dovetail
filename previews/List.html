@@ -1269,7 +1269,7 @@ function PropTable({ rows = [] }) {
         color: "var(--dt-text-secondary)", verticalAlign: "top" };
     const mono = { fontFamily: "var(--dt-font-family-mono)", fontSize: "12px", color: "var(--dt-text-primary)" };
     return (React.createElement("div", { style: { overflowX: "auto" } },
-        React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", minWidth: 520 } },
+        React.createElement("table", { className: "prop-table", style: { width: "100%", borderCollapse: "collapse", minWidth: 520 } },
             React.createElement("thead", null,
                 React.createElement("tr", null,
                     React.createElement("th", { style: th }, "Prop"),
@@ -1388,6 +1388,21 @@ Object.assign(window, { Shelf, PropTable, Guidance, Specimen, PageHead, dsReady 
 </script>
 
 <link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<style data-prop-table>
+  /* On a phone the four-column props table hides its notes off to the right.
+     Below 560px each prop becomes a block: name, then type and default, then
+     the note. The table's own styles are inline, hence the !important. */
+  @media (max-width: 560px) {
+    table.prop-table { min-width: 0 !important; }
+    table.prop-table thead { display: none; }
+    table.prop-table, table.prop-table tbody, table.prop-table tr, table.prop-table td { display: block; }
+    table.prop-table tr { padding: var(--dt-space-inset-xs) 0; border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle); }
+    table.prop-table td { border: 0 !important; padding: 0 !important; }
+    table.prop-table td:nth-child(2), table.prop-table td:nth-child(3) { display: inline; }
+    table.prop-table td:nth-child(3)::before { content: "  \00B7  default "; white-space: pre; font-family: var(--dt-font-family-sans); color: var(--dt-text-tertiary); }
+    table.prop-table td:nth-child(4) { margin-top: var(--dt-space-stack-2xs); }
+  }
+</style>
 </head><body><div id="root"></div>
 
 <script>/* Show only this component's shelf from the display-detail.card.html reference card. */

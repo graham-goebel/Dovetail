@@ -14,6 +14,8 @@
   .spec > h3 { margin: 0 0 var(--dt-space-stack-xs); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
   #root { display: flex; flex-direction: column; gap: var(--dt-space-stack-lg); max-width: 960px; margin: 0 auto; }
   .row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--dt-space-inline-md); align-items: baseline; }
+  .row > * { min-width: 0; overflow-wrap: anywhere; }
+  @media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr); gap: var(--dt-space-stack-2xs); } }
   .row code { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-xs); color: var(--dt-text-tertiary); }
 </style>
 <script>

@@ -141,6 +141,84 @@
      clipboard helper. */
   window.DovetailCopy = { attach: attachCopy, write: copy };
 
+  /* Live cards are drawn at a fixed height for a desktop column. On a phone
+     their grids stack and the content runs taller than the frame, which left
+     a scrolling card inside a scrolling page. So each frame follows its
+     card's content height instead, never shorter than the height it was
+     drawn at. Cards are same-origin, so the frame can read its document.
+     Content sized from the frame itself (100vh and the like) grows by the
+     same step every time it is measured; after a few such steps the frame
+     stops following it. */
+  function fitFrame(iframe) {
+    var box = iframe.parentNode;
+    var base = parseFloat(box.style.height) || iframe.clientHeight;
+    var cap = Math.max(base * 8, 2400);
+    var observer = null;
+    var lastStep = 0;
+    var streak = 0;
+
+    function measure() {
+      var doc;
+      try {
+        doc = iframe.contentDocument;
+      } catch (e) {
+        return;
+      }
+      if (!doc || !doc.body) return;
+      var body = doc.body;
+      var root = doc.documentElement;
+      var cs = doc.defaultView.getComputedStyle(body);
+      var h = Math.ceil(Math.max(body.getBoundingClientRect().height, body.scrollHeight) + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0));
+      /* Anything the body measure missed still shows as the document
+         overflowing the frame. */
+      if (root.scrollHeight > root.clientHeight) h = Math.max(h, root.scrollHeight);
+      /* Worked in the card's own pixels; the box adds its border back. */
+      var chrome = box.offsetHeight - iframe.offsetHeight;
+      var want = Math.round(Math.max(base - chrome, Math.min(h, cap)));
+      var current = iframe.offsetHeight;
+      var step = want - current;
+      if (Math.abs(step) < 2) return;
+      if (step > 0 && Math.abs(step - lastStep) < 2) {
+        streak += 1;
+        if (streak >= 3) {
+          if (observer) observer.disconnect();
+          return;
+        }
+      } else {
+        streak = 0;
+      }
+      lastStep = step;
+      box.style.height = want + chrome + "px";
+    }
+
+    function attach() {
+      var doc;
+      try {
+        doc = iframe.contentDocument;
+      } catch (e) {
+        return;
+      }
+      if (!doc || !doc.body || !doc.defaultView || !doc.defaultView.ResizeObserver) return;
+      if (observer) observer.disconnect();
+      streak = 0;
+      lastStep = 0;
+      observer = new doc.defaultView.ResizeObserver(measure);
+      observer.observe(doc.body);
+      observer.observe(doc.documentElement);
+      measure();
+    }
+
+    iframe.addEventListener("load", attach);
+    try {
+      var doc = iframe.contentDocument;
+      if (doc && doc.readyState === "complete" && doc.location.href !== "about:blank") attach();
+    } catch (e) {
+      /* Not readable: the frame keeps the height it was drawn at. */
+    }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".frame > iframe"), fitFrame);
+
   /* Filtering hides links, not sections: an empty section says the filter
      matched nothing there, which is information. */
   var filter = document.getElementById("nav-search");

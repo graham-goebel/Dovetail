@@ -64,7 +64,7 @@ function PropTable({ rows = [] }) {
   const mono = { fontFamily: "var(--dt-font-family-mono)", fontSize: "12px", color: "var(--dt-text-primary)" };
   return (
     <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
+      <table className="prop-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
         <thead><tr><th style={th}>Prop</th><th style={th}>Type</th><th style={th}>Default</th><th style={{ ...th, width: "45%" }}>Notes</th></tr></thead>
         <tbody>
           {rows.map(r => (
