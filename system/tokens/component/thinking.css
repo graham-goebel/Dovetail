@@ -1,0 +1,45 @@
+/* TIER 3 — THINKING
+   The assistant's loading and thinking states. Colours are two gradient stops
+   per tone, so a theme can retune the fluid without touching the component;
+   speed is one duration, so the whole animation slows or quickens with the
+   motion scale. Colour aliases are repeated under .dark, like every component
+   tier, so the fluid stays visible inside a dark band or the voice overlay. */
+
+:root {
+  --dt-thinking-primary-start: var(--dt-color-primary-400);
+  --dt-thinking-primary-end: var(--dt-color-primary-700);
+  --dt-thinking-secondary-start: var(--dt-color-secondary-400);
+  --dt-thinking-secondary-end: var(--dt-color-secondary-700);
+  --dt-thinking-neutral-start: var(--dt-color-neutral-400);
+  --dt-thinking-neutral-end: var(--dt-color-neutral-800);
+
+  /* The brand tone: what the component uses unless told otherwise. */
+  --dt-thinking-color-start: var(--dt-thinking-primary-start);
+  --dt-thinking-color-end: var(--dt-thinking-primary-end);
+
+  /* The well behind the fluid in the orb and tile shapes. */
+  --dt-thinking-surface: var(--dt-surface-brand-muted);
+  --dt-thinking-label-color: var(--dt-text-secondary);
+  --dt-thinking-scrim: var(--dt-surface-scrim);
+
+  /* One beat of the animation. Every state's motion is paced from it. */
+  --dt-thinking-duration: var(--dt-duration-600);
+  --dt-thinking-size-inline: var(--dt-size-icon-md);
+  --dt-thinking-size-overlay: var(--dt-dim-40);
+}
+
+/* Colour aliases again, under .dark. On a dark surface the fluid sweeps from
+   the light end of each ramp, so it keeps its contrast against the page. */
+.dark {
+  --dt-thinking-primary-start: var(--dt-color-primary-300);
+  --dt-thinking-primary-end: var(--dt-color-primary-500);
+  --dt-thinking-secondary-start: var(--dt-color-secondary-300);
+  --dt-thinking-secondary-end: var(--dt-color-secondary-500);
+  --dt-thinking-neutral-start: var(--dt-color-neutral-200);
+  --dt-thinking-neutral-end: var(--dt-color-neutral-500);
+  --dt-thinking-color-start: var(--dt-thinking-primary-start);
+  --dt-thinking-color-end: var(--dt-thinking-primary-end);
+  --dt-thinking-surface: var(--dt-surface-brand-muted);
+  --dt-thinking-label-color: var(--dt-text-secondary);
+  --dt-thinking-scrim: var(--dt-surface-scrim);
+}

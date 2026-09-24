@@ -14,7 +14,7 @@
   var STEPS = ["050","100","200","300","400","500","600","700","800","900","950"];
 
   var RAMPS = {
-    accent: null,
+    primary: null,
     terracotta: ["oklch(0.971 0.016 45)","oklch(0.939 0.038 45)","oklch(0.892 0.070 45)","oklch(0.820 0.112 45)","oklch(0.735 0.148 45)","oklch(0.660 0.166 45)","oklch(0.585 0.162 45)","oklch(0.505 0.140 45)","oklch(0.430 0.117 45)","oklch(0.372 0.097 45)","oklch(0.262 0.070 45)"],
     blue: ["oklch(0.970 0.014 259)","oklch(0.936 0.032 259)","oklch(0.885 0.059 259)","oklch(0.809 0.096 259)","oklch(0.714 0.143 259)","oklch(0.623 0.188 259)","oklch(0.546 0.215 259)","oklch(0.476 0.196 259)","oklch(0.404 0.162 259)","oklch(0.344 0.128 259)","oklch(0.256 0.093 259)"],
     neutral: ["oklch(0.985 0.001 264)","oklch(0.967 0.002 264)","oklch(0.925 0.003 264)","oklch(0.869 0.005 264)","oklch(0.708 0.007 264)","oklch(0.556 0.008 264)","oklch(0.440 0.008 264)","oklch(0.360 0.008 264)","oklch(0.273 0.007 264)","oklch(0.205 0.006 264)","oklch(0.145 0.005 264)"]
@@ -53,7 +53,7 @@
     var root = document.documentElement;
     var ramp = RAMPS[t.ramp];
 
-    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-accent-" + STEPS[i], ramp[i]);
+    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-primary-" + STEPS[i], ramp[i]);
 
     var r = RADIUS[t.radius];
     for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) root.style.setProperty("--dt-radius-" + k, r[k]);

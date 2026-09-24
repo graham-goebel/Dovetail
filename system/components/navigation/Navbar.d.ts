@@ -21,6 +21,12 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   label?: string;
   /** @default false */
   sticky?: boolean;
+  /**
+   * Below this width in pixels the link row becomes a menu button that opens
+   * the links in a Drawer, with `actions` in the drawer's footer. Pass 0 to keep
+   * the row at every width. @default 640
+   */
+  collapseBelow?: number;
 }
 
 export declare function Navbar(props: NavbarProps): JSX.Element;

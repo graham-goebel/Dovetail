@@ -13,7 +13,7 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
   if (!open) return null;
   const horizontal = side === "left" || side === "right";
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", justifyContent: side === "right" ? "flex-end" : "flex-start", alignItems: side === "bottom" ? "flex-end" : "stretch" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: "var(--dt-z-overlay)", display: "flex", justifyContent: side === "right" ? "flex-end" : "flex-start", alignItems: side === "bottom" ? "flex-end" : "stretch" }}>
       <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "var(--dt-surface-scrim, rgba(0,0,0,0.4))" }} />
       <div
         ref={panel}

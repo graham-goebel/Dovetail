@@ -55,18 +55,18 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-color-neutral-900: oklch(0.205 0.006 264);
   --dt-color-neutral-950: oklch(0.145 0.005 264);
 
-  /* Accent — the default brand hue. A theme replaces this ramp wholesale. */
-  --dt-color-accent-050: oklch(0.970 0.014 259);
-  --dt-color-accent-100: oklch(0.936 0.032 259);
-  --dt-color-accent-200: oklch(0.885 0.059 259);
-  --dt-color-accent-300: oklch(0.809 0.096 259);
-  --dt-color-accent-400: oklch(0.714 0.143 259);
-  --dt-color-accent-500: oklch(0.623 0.188 259);
-  --dt-color-accent-600: oklch(0.546 0.215 259);
-  --dt-color-accent-700: oklch(0.476 0.196 259);
-  --dt-color-accent-800: oklch(0.404 0.162 259);
-  --dt-color-accent-900: oklch(0.344 0.128 259);
-  --dt-color-accent-950: oklch(0.256 0.093 259);
+  /* Primary — the default brand hue. A theme replaces this ramp wholesale. */
+  --dt-color-primary-050: oklch(0.970 0.014 259);
+  --dt-color-primary-100: oklch(0.936 0.032 259);
+  --dt-color-primary-200: oklch(0.885 0.059 259);
+  --dt-color-primary-300: oklch(0.809 0.096 259);
+  --dt-color-primary-400: oklch(0.714 0.143 259);
+  --dt-color-primary-500: oklch(0.623 0.188 259);
+  --dt-color-primary-600: oklch(0.546 0.215 259);
+  --dt-color-primary-700: oklch(0.476 0.196 259);
+  --dt-color-primary-800: oklch(0.404 0.162 259);
+  --dt-color-primary-900: oklch(0.344 0.128 259);
+  --dt-color-primary-950: oklch(0.256 0.093 259);
 
   /* Green */
   --dt-color-green-050: oklch(0.972 0.021 150);
@@ -330,8 +330,8 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-400);
   --dt-text-inverse: var(--dt-color-neutral-050);
-  --dt-text-link: var(--dt-color-accent-700);
-  --dt-text-link-hover: var(--dt-color-accent-800);
+  --dt-text-link: var(--dt-color-primary-700);
+  --dt-text-link-hover: var(--dt-color-primary-800);
   --dt-text-link-visited: var(--dt-color-violet-700);
 
   /* ---- Borders --------------------------------------------------- */
@@ -342,9 +342,9 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-border-disabled: var(--dt-color-neutral-200);
 
   /* ---- Actions --------------------------------------------------- */
-  --dt-surface-action: var(--dt-color-accent-600);
-  --dt-surface-action-hover: var(--dt-color-accent-700);
-  --dt-surface-action-active: var(--dt-color-accent-800);
+  --dt-surface-action: var(--dt-color-primary-600);
+  --dt-surface-action-hover: var(--dt-color-primary-700);
+  --dt-surface-action-active: var(--dt-color-primary-800);
   --dt-text-on-action: var(--dt-color-white);
 
   --dt-surface-action-secondary: var(--dt-color-white);
@@ -367,10 +367,10 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-text-on-action-disabled: var(--dt-color-neutral-400);
 
   /* ---- Selection ------------------------------------------------- */
-  --dt-surface-selected: var(--dt-color-accent-050);
-  --dt-surface-selected-hover: var(--dt-color-accent-100);
-  --dt-text-on-selected: var(--dt-color-accent-900);
-  --dt-border-selected: var(--dt-color-accent-600);
+  --dt-surface-selected: var(--dt-color-primary-050);
+  --dt-surface-selected-hover: var(--dt-color-primary-100);
+  --dt-text-on-selected: var(--dt-color-primary-900);
+  --dt-border-selected: var(--dt-color-primary-600);
 
   /* ---- Feedback -------------------------------------------------- */
   --dt-surface-success: var(--dt-color-green-600);
@@ -398,13 +398,13 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-text-on-info: var(--dt-color-white);
 
   /* ---- Focus ----------------------------------------------------- */
-  --dt-focus-ring-color: var(--dt-color-accent-600);
+  --dt-focus-ring-color: var(--dt-color-primary-600);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
   /* ---- Data visualisation ---------------------------------------
      The documented exception to the no-primitives rule. Chart series need a
      palette with no semantic meaning, ordered for categorical distinctness. */
-  --dt-viz-1: var(--dt-color-accent-600);
+  --dt-viz-1: var(--dt-color-primary-600);
   --dt-viz-2: var(--dt-color-violet-500);
   --dt-viz-3: var(--dt-color-cyan-600);
   --dt-viz-4: var(--dt-color-amber-500);
@@ -700,7 +700,7 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
    Two rules that make dark mode work:
    1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
       invisible on a dark ground, so raised surfaces get lighter instead.
-   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+   2. Saturated fills step down one level. A 600-step primary that reads correctly on
       white is too hot on near-black; 500 carries the same weight.
 
    Applies on .dark, and automatically when the OS asks for it. */
@@ -720,8 +720,8 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-text-tertiary: var(--dt-color-neutral-500);
   --dt-text-disabled: var(--dt-color-neutral-600);
   --dt-text-inverse: var(--dt-color-neutral-900);
-  --dt-text-link: var(--dt-color-accent-400);
-  --dt-text-link-hover: var(--dt-color-accent-300);
+  --dt-text-link: var(--dt-color-primary-400);
+  --dt-text-link-hover: var(--dt-color-primary-300);
   --dt-text-link-visited: var(--dt-color-violet-400);
 
   --dt-border-subtle: var(--dt-color-neutral-800);
@@ -730,9 +730,9 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-border-inverse: var(--dt-color-neutral-300);
   --dt-border-disabled: var(--dt-color-neutral-800);
 
-  --dt-surface-action: var(--dt-color-accent-500);
-  --dt-surface-action-hover: var(--dt-color-accent-400);
-  --dt-surface-action-active: var(--dt-color-accent-300);
+  --dt-surface-action: var(--dt-color-primary-500);
+  --dt-surface-action-hover: var(--dt-color-primary-400);
+  --dt-surface-action-active: var(--dt-color-primary-300);
   --dt-text-on-action: var(--dt-color-neutral-950);
 
   --dt-surface-action-secondary: var(--dt-color-neutral-900);
@@ -755,8 +755,8 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
 
   --dt-surface-selected: oklch(0.256 0.093 259);
   --dt-surface-selected-hover: oklch(0.344 0.128 259);
-  --dt-text-on-selected: var(--dt-color-accent-100);
-  --dt-border-selected: var(--dt-color-accent-500);
+  --dt-text-on-selected: var(--dt-color-primary-100);
+  --dt-border-selected: var(--dt-color-primary-500);
 
   --dt-surface-success: var(--dt-color-green-500);
   --dt-surface-success-subtle: var(--dt-color-green-950);
@@ -782,10 +782,10 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
   --dt-text-info: var(--dt-color-cyan-300);
   --dt-text-on-info: var(--dt-color-neutral-950);
 
-  --dt-focus-ring-color: var(--dt-color-accent-400);
+  --dt-focus-ring-color: var(--dt-color-primary-400);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
-  --dt-viz-1: var(--dt-color-accent-400);
+  --dt-viz-1: var(--dt-color-primary-400);
   --dt-viz-2: var(--dt-color-violet-400);
   --dt-viz-3: var(--dt-color-cyan-400);
   --dt-viz-4: var(--dt-color-amber-400);
@@ -1283,7 +1283,7 @@ img, svg, video, canvas { display: block; max-width: 100%; }
     var root = document.documentElement;
     var ramp = RAMPS[t.ramp];
 
-    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-accent-" + STEPS[i], ramp[i]);
+    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-primary-" + STEPS[i], ramp[i]);
 
     var r = RADIUS[t.radius];
     for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) root.style.setProperty("--dt-radius-" + k, r[k]);
@@ -1447,7 +1447,7 @@ function App() {
                 React.createElement("h2", { className: "sec-h" }, "Before you adopt it")),
             React.createElement("div", { style: { maxWidth: 760, margin: "0 auto", width: "100%" } },
                 React.createElement(Accordion, { label: "Adoption questions", defaultOpen: ["a"], items: [
-                        { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply an accent ramp and a type family; every component picks them up through the semantic tier." },
+                        { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply an primary ramp and a type family; every component picks them up through the semantic tier." },
                         { id: "b", title: "Does it work outside React?", content: "The tokens do. They are authored in DTCG format and build to CSS custom properties, so any framework can consume them. The component layer is React." },
                         { id: "c", title: "What about dark mode and density?", content: "Both are axes alongside brand theme and context. A component never knows which combination it is rendering under — it reads roles, and the roles are retuned." },
                     ] }))),

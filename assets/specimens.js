@@ -150,7 +150,7 @@
       return e(NS.Card, { eyebrow: "Plan", title: "Team", description: "Five editors, unlimited invoices." });
     },
     Badge: function () {
-      return e(NS.Inline, { gap: "xs" }, e(NS.Badge, { tone: "accent" }, "Accent"), e(NS.Badge, { tone: "success", dot: true }, "Live"));
+      return e(NS.Inline, { gap: "xs" }, e(NS.Badge, { tone: "primary" }, "Accent"), e(NS.Badge, { tone: "success", dot: true }, "Live"));
     },
     Tag: function () {
       return e(NS.Inline, { gap: "xs" }, e(NS.Tag, { selected: true }, "Design"), e(NS.Tag, null, "Code"));
@@ -275,6 +275,23 @@
     },
     Video: function () {
       return e(NS.Video, { label: "Ridge line above a cloud inversion", ratio: "16:9" });
+    },
+    Thinking: function () {
+      return e(NS.Thinking, { state: "thinking", size: "md" });
+    },
+    Heading: function () {
+      return e(NS.Heading, { level: 3, size: "heading-md" }, "Quiet mornings");
+    },
+    Text: function () {
+      return e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+        e(NS.Text, { variant: "eyebrow" }, "Ridge loop"),
+        e(NS.Text, { variant: "label", weight: "semibold", numeric: true }, "$1,480.00"),
+        e(NS.Text, { variant: "fine" }, "Per person, twin share."));
+    },
+    Section: function () {
+      return e(NS.Section, { tone: "brand-muted", spacing: "none", width: "full", style: { padding: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } },
+        e(NS.Text, { variant: "eyebrow" }, "Section tone"),
+        e(NS.Heading, { level: 3, size: "heading-xs" }, "Follows the band"));
     },
     Cover: function () {
       return e(NS.Cover, { alt: "Ridge line above a cloud inversion", ratio: "16:9", eyebrow: "New season", title: "Built for the trail" });

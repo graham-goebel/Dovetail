@@ -52,7 +52,7 @@ A component reads semantic tokens. A semantic token reads a primitive. Nothing r
 
 | Tier | Answers | Example | Who may read it |
 | --- | --- | --- | --- |
-| Primitive | What values exist? | `--dt-color-accent-600` | Semantic tokens only |
+| Primitive | What values exist? | `--dt-color-primary-600` | Semantic tokens only |
 | Semantic | What is this value for? | `--dt-surface-action` | Components, product code |
 | Component | How does *this* component use it? | `--dt-button-primary-bg` | That component only |
 
@@ -68,7 +68,7 @@ The documented exception: data visualisation reads primitives directly, because 
 
 ## Visual foundations
 
-**Colour.** OKLCH throughout. Lightness is perceptually uniform in OKLCH, so step 600 in the accent ramp carries the same visual weight as step 600 in the red ramp, and a swapped brand hue keeps its contrast behaviour. Seven ramps of eleven steps: neutral, accent, green, amber, red, cyan, violet. Violet is reserved for charts.
+**Colour.** OKLCH throughout. Lightness is perceptually uniform in OKLCH, so step 600 in the primary ramp carries the same visual weight as step 600 in the red ramp, and a swapped brand hue keeps its contrast behaviour. Eight ramps of eleven steps: neutral, primary, secondary, green, amber, red, cyan, violet. Primary drives actions and links; secondary is a second brand hue for fills and the second chart colour, and ships with the violet values. A brand can publish fewer steps per chromatic ramp, from 4 to 10, and the named steps snap onto the kept ones in the direction that keeps contrast.
 
 **Surfaces** are a hierarchy, not a pair. `base`, `subtle`, `raised`, `sunken`, `overlay`, `inverse`. Dense product UI needs more than a page colour and a card colour.
 
@@ -224,6 +224,15 @@ edge of it. It reads no new tokens: the scrim is `--dt-surface-scrim`, the same 
 modal already darkens the page with, over `--dt-text-inverse`. Like Image and Video, it
 takes an optional `onFile`, and its placeholder previews the caption's weight before a
 real photo exists, the same reason Image's own placeholder reserves the ratio.
+
+**Phase 7 complete**: what two example sites found (`assets/notes/EXAMPLES-FINDINGS.md`).
+Drawer sits at `--dt-z-overlay`; component colour aliases are repeated under `.dark`, so
+a dark band scoped inside a light page re-resolves its buttons and inputs; `Cover` reads
+the new `--dt-text-on-scrim`; `Grid` takes `track="fill"`; `Button` as a link drops the
+underline. New: `Heading` and `Text` in a Typography group, `Section` with tones, scoped
+dark and photo bands, container width tokens, `Navbar` `collapseBelow`, `Card` `href`.
+The accent is renamed primary, a secondary brand ramp and a secondary type family are
+added, and Configure can publish 4 to 10 steps per chromatic ramp.
 
 **Next**: generate the Sanity schemas from the `.d.ts` files rather than maintaining
 them by hand, and add the do/don't cards for the five most-violated rules.

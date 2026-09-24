@@ -1,6 +1,6 @@
 import React from "react";
 
-export function Link({ href, external = false, underline = "always", tone = "accent", children, style, ...rest }) {
+export function Link({ href, external = false, underline = "always", tone = "primary", children, style, ...rest }) {
   const [hover, setHover] = React.useState(false);
   const color = tone === "inherit" ? "inherit" : hover ? "var(--dt-text-link-hover)" : "var(--dt-text-link)";
   return (

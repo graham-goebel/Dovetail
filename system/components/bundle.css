@@ -356,7 +356,7 @@
    Two rules that make dark mode work:
    1. Elevation is expressed as surface LIGHTNESS, not shadow. Shadows are nearly
       invisible on a dark ground, so raised surfaces get lighter instead.
-   2. Saturated fills step down one level. A 600-step accent that reads correctly on
+   2. Saturated fills step down one level. A 600-step primary that reads correctly on
       white is too hot on near-black; 500 carries the same weight.
 
    Applies on .dark, and automatically when the OS asks for it. */

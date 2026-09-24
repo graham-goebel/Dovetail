@@ -1,0 +1,64 @@
+<!-- @dsCard group="Typography" height=720 name="Heading" subtitle="Heading — Level sets the tag, size sets the type role." -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+  body { margin: 0; padding: var(--dt-space-inset-lg); background: var(--dt-surface-subtle); }
+  .spec > h3 { margin: 0 0 var(--dt-space-stack-xs); font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); letter-spacing: var(--dt-tracking-wider); text-transform: uppercase; color: var(--dt-text-tertiary); }
+  #root { display: flex; flex-direction: column; gap: var(--dt-space-stack-lg); max-width: 960px; margin: 0 auto; }
+  .row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--dt-space-inline-md); align-items: baseline; }
+  .row code { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-xs); color: var(--dt-text-tertiary); }
+</style>
+<script>
+  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
+  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+<script>
+(function () {
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var e = React.createElement;
+  function Spec(props) {
+    return e("div", { className: "spec" + (props.className ? " " + props.className : "") }, e("h3", null, props.name), props.children);
+  }
+  var ROWS = [
+    [1, "display-md", "h1 at display-md"], [1, undefined, "h1 at its default, heading-xl"],
+    [2, undefined, "h2, heading-lg"], [3, undefined, "h3, heading-md"], [3, "heading-sm", "h3 set small, for a card title"],
+    [4, undefined, "h4, heading-sm"], [5, undefined, "h5, heading-xs"],
+  ];
+  function Page() {
+    return e(React.Fragment, null,
+      e(Spec, { name: "Level and size, set apart" },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-sm)" } },
+          ROWS.map(function (r, i) {
+            return e("div", { className: "row", key: i },
+              e("code", null, "level=" + r[0] + (r[1] ? " size=" + r[1] : "")),
+              e(NS.Heading, { level: r[0], size: r[1] }, "Quiet mornings, " + r[2]));
+          }))),
+      e(Spec, { name: "Tones" },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" } },
+          e("div", { className: "row" }, e("code", null, "headline"), e(NS.Heading, { level: 3 }, "Follows --dt-text-headline")),
+          e("div", { className: "row" }, e("code", null, "brand"), e(NS.Heading, { level: 3, tone: "brand" }, "Set in the primary text colour")),
+          e("div", { className: "row" }, e("code", null, "brand-secondary"), e(NS.Heading, { level: 3, tone: "brand-secondary" }, "Set in the secondary text colour")))),
+      e(Spec, { name: "headline, inside a brand Section" },
+        e(NS.Section, { tone: "brand", spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+          e(NS.Heading, { level: 2 }, "Inherits the band's own text colour")))
+    );
+  }
+  function start() {
+    if (!NS.Heading || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

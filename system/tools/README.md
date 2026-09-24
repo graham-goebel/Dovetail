@@ -39,7 +39,7 @@ generated output against the committed files is the next thing to add.
 ## Adding a token
 
 1. Add it to the JSON at the correct tier. A semantic token's `$value` must be a
-   reference (`{primitive.color.accent.600}`), never a literal.
+   reference (`{primitive.color.primary.600}`), never a literal.
 2. Give it a `$description` if the name does not fully explain when to use it.
 3. Rebuild, port to CSS, and add it to the relevant spec card in `guidelines/`.
 4. If it is a colour pair, verify contrast before committing.

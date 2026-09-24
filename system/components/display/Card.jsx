@@ -1,11 +1,13 @@
 import React from "react";
 
-export function Card({ eyebrow, title, description, media, footer, interactive = false, selected = false, as: Tag = "div", children, style, ...rest }) {
+export function Card({ eyebrow, title, description, media, footer, href, interactive = false, selected = false, as: Tag = "div", children, style, ...rest }) {
   const [hover, setHover] = React.useState(false);
+  const linked = !!href;
+  const lift = interactive || linked;
   return (
     <Tag
-      onMouseEnter={() => interactive && setHover(true)}
-      onMouseLeave={() => interactive && setHover(false)}
+      onMouseEnter={() => lift && setHover(true)}
+      onMouseLeave={() => lift && setHover(false)}
       style={{
         display: "flex", flexDirection: "column", gap: "var(--dt-card-gap)",
         background: selected ? "var(--dt-card-selected-bg)" : "var(--dt-card-bg)",
@@ -15,7 +17,8 @@ export function Card({ eyebrow, title, description, media, footer, interactive =
         padding: "var(--dt-card-padding)",
         boxShadow: hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
         transition: "box-shadow var(--dt-card-transition), border-color var(--dt-card-transition)",
-        cursor: interactive ? "pointer" : undefined,
+        cursor: lift ? "pointer" : undefined,
+        position: linked ? "relative" : undefined,
         ...style,
       }}
       {...rest}
@@ -34,7 +37,7 @@ export function Card({ eyebrow, title, description, media, footer, interactive =
           fontFamily: "var(--dt-text-heading-sm-family)", fontSize: "var(--dt-text-heading-sm-size)",
           lineHeight: "var(--dt-text-heading-sm-line)", fontWeight: "var(--dt-text-heading-sm-weight)",
           letterSpacing: "var(--dt-text-heading-sm-tracking)",
-        }}>{title}</span>
+        }}>{linked ? <a href={href} style={{ color: "inherit", textDecoration: hover ? "underline" : "none", textUnderlineOffset: 2 }}>{title}</a> : title}</span>
       )}
       {description && (
         <span style={{
@@ -43,7 +46,11 @@ export function Card({ eyebrow, title, description, media, footer, interactive =
         }}>{description}</span>
       )}
       {children}
-      {footer && <div style={{ marginTop: "var(--dt-space-stack-xs)" }}>{footer}</div>}
+      {/* The title is the one link a screen reader hears. This copy stretches
+          the same target over the whole card for a pointer, and sits under the
+          footer so a real button there still gets its own click. */}
+      {linked && <a href={href} aria-hidden="true" tabIndex={-1} style={{ position: "absolute", inset: 0, borderRadius: "inherit" }} />}
+      {footer && <div style={{ marginTop: "var(--dt-space-stack-xs)", position: linked ? "relative" : undefined, zIndex: linked ? 1 : undefined }}>{footer}</div>}
     </Tag>
   );
 }

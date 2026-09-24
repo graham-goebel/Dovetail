@@ -27,10 +27,10 @@ a token is a migration, so name it carefully the first time.
 
 Seven ramps of eleven steps (`050`–`950`), all OKLCH.
 
-`neutral` · `accent` · `green` · `amber` · `red` · `cyan` · `violet`
+`neutral` · `primary` · `secondary` · `green` · `amber` · `red` · `cyan` · `violet`
 
 OKLCH because lightness is perceptually uniform. Step 600 in any ramp carries the same
-visual weight, so a brand hue dropped into the accent ramp inherits the contrast behaviour
+visual weight, so a brand hue dropped into the primary ramp inherits the contrast behaviour
 the system was tested against. A hex ramp gives you no such guarantee.
 
 `violet` is the spare hue, reserved for data visualisation so charts never collide with
@@ -169,10 +169,10 @@ The cascade is the point:
 
 ```css
 /* Move every action surface in the system */
---dt-surface-action: var(--dt-color-accent-700);
+--dt-surface-action: var(--dt-color-primary-700);
 
 /* Move only Button */
---dt-button-primary-bg: var(--dt-color-accent-700);
+--dt-button-primary-bg: var(--dt-color-primary-700);
 ```
 
 `input.css` is shared by Input, Textarea, Select, and Combobox so every field in a form

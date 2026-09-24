@@ -6,7 +6,7 @@ and tokens. No build step: the page loads `system/styles.css`, the local React c
 
 ```
 index.html   The page shell
-theme.css    The brand: a pale-blue accent ramp, paper surfaces, Cormorant Garamond,
+theme.css    The brand: a pale-blue primary ramp, paper surfaces, Cormorant Garamond,
              and the immersive layer (parallax hero, photo bands, sticky story, tiles)
 data.js      Content: eight houses, five collections, twelve amenities, three steps
 app.js       Layout and behaviour, in React.createElement so nothing needs compiling
@@ -18,7 +18,7 @@ img/         photo/ (photography) · scene/ (illustrated houses) · texture/ (ae
 
 The palette is taken from the artwork rather than chosen next to it. The page ground is
 the paper the illustrations were painted on, so an illustration sits on the page with no
-edge; the accent is the dusty blue of the shutters, the sea and the signposts; the amber
+edge; the primary colour is the dusty blue of the shutters, the sea and the signposts; the amber
 ramp is re-tuned to the terracotta that appears in every scene. Only ramps, families and
 shape roles are set at `:root`. The paper surfaces are scoped to `:root:not(.dark)`,
 because they are a light-mode decision and a plain `:root` block would load after

@@ -37,11 +37,12 @@ so a Drawer opens *underneath* any `position: sticky` or `position: fixed` heade
 or filter bar already on the page. Meridian hit this directly: the booking Drawer sits
 below the page's fixed header, so the header floats over the Drawer's own scrim.
 
-A third example (`examples/wellness/`) hit it again the same day: its sticky tab bar
-sat above every bottom-sheet Drawer and blocked the sheet's own Save button, found by an
-automated click test rather than by eye. That page works around it by keeping the tab
-bar at `--dt-z-raised`, which is enough to clear page content but not what "sticky"
-should need.
+A third example (`examples/wellness/`), built against the system before the fix
+landed, hit it again: its sticky tab bar sat above every bottom-sheet Drawer and blocked
+the sheet's own Save button, found by an automated click test rather than by eye.
+
+**Status: fixed** in `3980b72` (Drawer now reads `--dt-z-overlay`); the wellness tab bar
+uses `--dt-z-sticky` again.
 
 Fix: `zIndex: "var(--dt-z-overlay)"` (`300`), which is where Drawer already sits
 conceptually next to Popover and Tooltip in the z-scale, and above every sticky

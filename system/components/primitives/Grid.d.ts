@@ -8,6 +8,10 @@ export interface GridProps extends React.HTMLAttributes<HTMLElement> {
   gap?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   /** CSS length, e.g. "240px". Columns fit as many as will hold this width. */
   minColumnWidth?: string;
+  /** With minColumnWidth: "fit" lets the columns that exist grow to fill the row;
+   *  "fill" keeps the empty tracks, so a filter that lands on one result leaves
+   *  one card at its intended width instead of stretching it. @default "fit" */
+  track?: "fit" | "fill";
   align?: React.CSSProperties["alignItems"];
   /** @default "div" */
   as?: keyof JSX.IntrinsicElements;

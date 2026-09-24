@@ -18,3 +18,17 @@
   --dt-card-selected-border: var(--dt-border-selected);
   --dt-card-selected-bg: var(--dt-surface-selected);
 }
+
+/* Colour aliases again, under .dark. A custom property resolves where it is
+   declared, so an alias set only on :root keeps its light value inside a
+   .dark scoped to a band or a hero. Repeating it here makes the alias
+   resolve against the band's own roles. Only colour is repeated: sizing,
+   shape and elevation aliases stay on :root so a context's retuning of
+   them still reaches inside the band. */
+.dark {
+  --dt-card-bg: var(--dt-surface-raised);
+  --dt-card-fg: var(--dt-text-primary);
+  --dt-card-border-color: var(--dt-border-default);
+  --dt-card-selected-border: var(--dt-border-selected);
+  --dt-card-selected-bg: var(--dt-surface-selected);
+}

@@ -22,11 +22,11 @@
   --dt-color-neutral-900: oklch(0.215 0.012 250);
   --dt-color-neutral-950: oklch(0.160 0.012 250);
 
-  /* The accent is almost not a colour: a pale, cool white. The product's voice is the
+  /* The primary ramp is almost not a colour: a pale, cool white. The product's voice is the
      photograph and the type, not a brand hue, so actions read as light on dark glass. */
-  --dt-color-accent-300: oklch(0.930 0.010 250);
-  --dt-color-accent-400: oklch(0.900 0.012 250);
-  --dt-color-accent-500: oklch(0.860 0.014 250);
+  --dt-color-primary-300: oklch(0.930 0.010 250);
+  --dt-color-primary-400: oklch(0.900 0.012 250);
+  --dt-color-primary-500: oklch(0.860 0.014 250);
 
   /* A narrow editorial serif for the one sentence the screen exists to say. */
   --dt-font-family-display: "Instrument Serif", ui-serif, Georgia, serif;
@@ -218,11 +218,7 @@ body { min-height: 100svh; }
 /* ------------------------------------------------------------------ tab bar */
 
 .sl-tabbar {
-  /* --dt-z-raised, not --dt-z-sticky: Dovetail's Drawer hardcodes z-index 60, below
-     the sticky layer (bug 1 in system/assets/notes/EXAMPLES-FINDINGS.md), so a sticky
-     tab bar would sit on top of every bottom sheet this screen opens. It only needs to
-     clear the page content, which raised does. */
-  position: sticky; bottom: 0; z-index: var(--dt-z-raised);
+  position: sticky; bottom: 0; z-index: var(--dt-z-sticky);
   display: flex; align-items: center; gap: var(--dt-space-inline-md);
   padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-lg);
   background: linear-gradient(to top, var(--dt-color-neutral-950) 45%, transparent);

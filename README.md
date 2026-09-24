@@ -12,7 +12,7 @@ broken token shows up as a broken page.
 index.html          Overview
 foundations/        Colour, type, space, shape, size, elevation, motion, themes
 components/         One page per component: live card, guidelines, props, source
-showcase/           Family reference cards, playgrounds, templates, tools
+showcase/           Family reference cards, templates, tools
 guide/              README, theming, accessibility, contributing, token pipeline
 tokens.html         Every token, with its value in each theme
 downloads.html      How to take the system into a project
@@ -126,7 +126,7 @@ Every card grid becomes one swipeable row per group, in the manner of a product 
 cards are equal height because the row is a flex line, the next card peeks past the edge
 so the swipe is discoverable, and the row bleeds to the page edges so nothing looks
 cropped by the gutter. Scroll snapping makes each swipe land on a card. It saves most of
-the vertical space a stacked grid costs: 60 components in seven rows rather than 60
+the vertical space a stacked grid costs: 63 components in eight rows rather than 63
 screens of scrolling.
 
 ## Chrome icons
@@ -159,9 +159,9 @@ where it is always in reach rather than buried at the bottom of one tab:
 
 | Tab | Sets |
 | --- | --- |
-| Brand | Name and mark, accent ramp, ramp hues, monochrome, fill, texture |
+| Brand | Name, mark and wordmark colour, primary and secondary colours, monochrome, fill, texture, ramp hues, steps per ramp |
 | Shape | Radius roles, media radius, focus ring width |
-| Type | Body family, display family, code family |
+| Type | Display family, body family, secondary family, code family |
 | Space | Whitespace, control density, base unit |
 | Media | Photo, illustration, icon library, icon stroke, icon size, media blocks |
 | View | Colour mode, context |
@@ -194,43 +194,95 @@ video and reserved box out of the page and the cards at once, which answers whet
 layout still works as words. There is no richer step because nothing in the repository
 would fill it. Bring your own imagery in the media lab.
 
+**Primary and secondary.** What the system used to call the accent is now the **primary**
+colour: `--dt-color-primary-*`, the ramp behind actions, links, selection and focus. The
+**secondary** colour is a second brand ramp, `--dt-color-secondary-*`, with its own fills
+(`--dt-surface-brand-secondary` and its muted tint), a text role, the **Duotone** fill that
+sweeps primary into secondary, and the second chart colour. It never drives an action, so
+adding it cannot change what a button looks like.
+
+**Your brand colour, exactly.** Both pickers take a tuned ramp or your own colour, typed as
+hex or picked. Your colour is used exactly as given, at the step nearest it in lightness,
+and the panel says which step that is. The other steps are spaced lighter and darker from
+it in its hue, on the system's lightness rhythm; where a screen cannot show your colour's
+saturation at a step's lightness, the chroma is lowered there and the panel lists those
+steps. Click any step to set it by hand. Nothing is then moved behind your back: every
+pair the ramp is used in (white text on a button, links on the page, dark-mode buttons and
+links, the selected tint, the focus ring) is measured on the colours that will ship, and a
+failing pair shows its ratio and a **Darken** or **Lighten** button that edits one step and
+says what it changed. **Undo edits** puts the ramp back. With fewer steps per ramp, the step
+your colour sits on is always one of the kept ones.
+
+**Steps per ramp** publishes 4 to 10 shades per chromatic ramp instead of eleven. The kept
+steps are spread evenly and always include the lightest and darkest. Every named step still
+exists and points at a kept one, and the direction is what protects contrast: a step at 500
+or lighter only ever snaps lighter, a step at 600 or darker only ever snaps darker, so every
+text and surface pair ends up at least as far apart as before. What a low count can cost
+is a state, since a button's hover may land on its resting colour, and the panel says so
+when it does. Neutral always keeps eleven: it carries every surface, border and line of
+text, and merging them would cost more than it saves.
+
+The ramp cards on the Color page follow both: a secondary ramp card sits beside the
+primary, and each chromatic card shows only the steps the theme publishes, with a line
+naming them. `system/templates/_support/ramp-steps.js` does the hiding, reading the
+saved configuration the same way the theme runtime does.
+
+**Wordmark colour** sets `--dt-text-wordmark`: **Ink** is the monochrome wordmark, and
+**Primary** or **Secondary** set the name in a brand hue through a text role, so it keeps
+text contrast in either mode. With a mark uploaded, **Mark colour** either keeps the file's
+own colours or uses its shape as a mask filled with the wordmark colour, so the mark goes
+monochrome with Ink and flips with dark mode.
+
+**Headline colour** sets `--dt-text-headline`, the role every display and heading reads:
+**Ink** is monochrome, and **Primary** or **Secondary** set every headline in a brand text
+colour at once while body copy stays ink. The brand text roles, `--dt-text-brand` and
+`--dt-text-brand-secondary`, are steps 700 in light mode and 400 in dark, so a brand
+headline keeps text contrast in both, and the ramp editor's checks cover them. For one
+heading or one line rather than all of them, `Heading` and `Text` take `tone="brand"` or
+`tone="brand-secondary"`. A brand, photo or dark `Section` re-points the headline role for
+its own surface, and the choice is declared under `.dark` too, so a heading in a dark band
+takes the dark-mode brand colour rather than the light one.
+
+**Secondary family** is the small UI voice. The label and eyebrow roles read
+`--dt-font-family-secondary`, so buttons, form labels, badges, tabs and eyebrows follow it
+while headings follow the display family and running text the body family.
+
 **Ramp hues** shift any of the seven named ramps, not only whichever one is chosen as the
-accent: dragging green's swatch also retunes success, amber retunes warning, red retunes
+primary: dragging green's swatch also retunes success, amber retunes warning, red retunes
 danger, cyan retunes info. Each shift keeps the ramp's own lightness and chroma per step,
-the same math the custom accent colour already uses, so contrast and the eleven steps hold
+the same math the custom primary colour already uses, so contrast holds
 while only the hue moves toward the brand.
 
 **Photo** and **illustration** are two separate uploads, held in this browser rather than
 sent anywhere, because a reader often wants one without the other: a photo for the
 marketing template's hero, an illustration for artwork that should read as drawn rather
 than shot. Both are wired into the marketing template live, the same way a mark or an
-accent already is: the template reads the same localStorage key across the same origin, so
+primary colour already is: the template reads the same localStorage key across the same origin, so
 a new upload reaches it through the browser's own `storage` event with no extra wiring in
 the page. **Icon library** now includes a **Custom** option: pick it and a text field
 appears for the script tag, package import, or CDN URL of your own icon set, carried into
 the exported theme's iconography note in place of Lucide or Heroicons.
 
 **Fill** sets `--dt-surface-brand`, a full-bleed role independent of the buttons: solid is
-one step of the accent ramp, gradient sweeps two. **Texture** sets `--dt-surface-texture`
+one step of the primary ramp, gradient sweeps two. **Texture** sets `--dt-surface-texture`
 to a dot or line pattern built from two CSS gradients, in the border-strength colour, so
 it never becomes a second colour decision. Both are read straight off the ramp, so
-changing the accent moves them with everything else; neither is a range, because a section
+changing the primary colour moves them with everything else; neither is a range, because a section
 either wants the brand's presence or it does not.
 
 It works by writing one localStorage key, `dovetail-theme-config`, the key the system's
 own `templates/_support/theme-runtime.js` already reads. Using that key rather than a
-site-only one is what makes a change reach the whole system, including the tearsheet, the
+site-only one is what makes a change reach the whole system, including the
 settings-page template, and the theme configurator card in the showcase, which writes the
-same payload when you press Save there. Set an accent in the configurator card and the
+same payload when you press Save there. Set a primary colour in the configurator card and the
 site follows; set it in the sheet and the configurator agrees.
 
 The sheet never dims or blocks the page, because watching the system change is the point
 of the control. On a wide screen it floats over the page as frosted glass, so what is
 behind it stays readable through the blur; where `backdrop-filter` is unsupported the
 surface goes solid, since unreadable chrome is worse than flat chrome. On a narrow screen
-it docks to the bottom at a little over half the height and the page gains matching
-padding, so anything on it can be scrolled into the space above and watched while the
-controls move.
+it takes the whole screen on a solid surface, and the page behind stops scrolling so a
+swipe moves the controls; closing it shows the result.
 
 The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
 file, not a token, and it has no business in a theme stylesheet. The photo and
@@ -253,6 +305,60 @@ The **Export** field at the bottom of the sheet is the theme as a file of token
 overrides. Paste it into `system/tokens/themes/theme-custom.css` and the theme ships with
 the repository, needing no JavaScript. Nothing in the panel edits a file; it is a preview
 held in one browser.
+
+## Thinking states
+
+`Thinking` is what an assistant shows while you wait, in five states: **connecting**
+(satellites gather and breathe), **listening** (swells and wobbles with the voice),
+**thinking** (bodies orbit, merge and split), **searching** (a comet orbits the centre) and
+**speaking** (pulses outward with the reply). It sits inline beside a chat message, or with
+`mode="overlay"` it fills the screen for a voice session, with a caption or live transcript
+under the label.
+
+The motion is fluid because it is metaballs: a handful of circles, blurred and
+alpha-thresholded in one SVG filter so they merge like liquid, moved every frame by a
+`requestAnimationFrame` loop that writes attributes directly rather than re-rendering. It
+stays on the system's tokens throughout. The colours are the `--dt-thinking-*` gradient
+stops, which point at the primary and secondary ramps and are repeated under `.dark`; the
+`tile` shape takes its corners from `--dt-radius-container`; the pace is
+`--dt-thinking-duration`, which points at `--dt-duration-600`; and the sizes are the icon
+and dimension tokens. On top of the tokens, props change the base animation: `shape` (blob,
+orb, tile, dots, bars), `tone` or two `colors` of your own, `speed`, `intensity` (how far the
+fluid travels and deforms) and `level`, a live 0 to 1 amplitude from a microphone or the
+reply that listening and speaking follow. Under reduced motion the fluid holds still but
+still follows `level`. The Thinking card on the Feedback page has controls for every input
+and opens the voice overlay.
+
+## What two example sites changed
+
+`examples/dispensary/` and `examples/travel/` were built on the system without touching
+it, and `system/assets/notes/EXAMPLES-FINDINGS.md` is what came back. The system now
+answers each item:
+
+- **Drawer** sits at `--dt-z-overlay`, above sticky headers, instead of a literal 60.
+- **Scoped dark mode works for components.** The colour aliases in
+  `tokens/component/*.css` are repeated under `.dark`, so a ghost button inside a dark band
+  on a light page reads correctly instead of measuring 1.1:1. `guidelines/theming.md`
+  now says where each tier may be declared, and why.
+- **Cover** sets its caption in `--dt-text-on-scrim`, a new role that stays light in dark
+  mode, instead of `--dt-text-inverse`, which turned dark-on-dark.
+- **Grid** takes `track="fill"`, so a filtered list that lands on one result keeps one
+  card at its width.
+- **Button** as a link no longer inherits the global link underline.
+- **Heading** and **Text** (a new Typography group) replace the private `.h2`, `.eyebrow`,
+  `.lead`, `.fine` and `.price` classes both sites wrote for themselves.
+- **Section** is the page band both sites invented: a container width, the section
+  rhythm, brand and muted tones that re-point the text roles on themselves, a scoped
+  `dark` band, and a full-bleed photo band with a scrim.
+- **Container widths** `--dt-size-container-narrow`, `-default` and `-wide` sit beside the
+  measure tokens.
+- **Navbar** collapses to a menu button and a Drawer below `collapseBelow` (640px).
+- **Card** takes `href`, stretching one link over the card while a footer button keeps
+  its own click.
+- `guidelines/accessibility.md` describes measuring contrast over a photograph from the
+  pixels rather than the scrim's alpha, and `theming.md` names the fixed-band pattern.
+
+The mobile carousel both sites built is still a decision rather than a component.
 
 ## Tokens on a component page
 

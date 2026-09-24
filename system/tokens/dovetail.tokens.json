@@ -136,7 +136,7 @@
           }
         }
       },
-      "accent": {
+      "primary": {
         "100": {
           "$value": {
             "colorSpace": "oklch",
@@ -247,6 +247,119 @@
             ]
           }
         }
+      },
+      "secondary": {
+        "100": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.946,
+              0.033,
+              305
+            ]
+          }
+        },
+        "200": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.902,
+              0.063,
+              305
+            ]
+          }
+        },
+        "300": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.827,
+              0.11,
+              305
+            ]
+          }
+        },
+        "400": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.74,
+              0.163,
+              305
+            ]
+          }
+        },
+        "500": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.667,
+              0.2,
+              305
+            ]
+          }
+        },
+        "600": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.594,
+              0.216,
+              305
+            ]
+          }
+        },
+        "700": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.518,
+              0.19,
+              305
+            ]
+          }
+        },
+        "800": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.444,
+              0.158,
+              305
+            ]
+          }
+        },
+        "900": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.381,
+              0.128,
+              305
+            ]
+          }
+        },
+        "950": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.279,
+              0.095,
+              305
+            ]
+          }
+        },
+        "050": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [
+              0.977,
+              0.014,
+              305
+            ]
+          }
+        },
+        "$description": "A second brand hue. Ships with the violet values; a theme replaces it wholesale."
       },
       "green": {
         "100": {
@@ -1136,6 +1249,10 @@
           "Menlo",
           "monospace"
         ]
+      },
+      "secondary": {
+        "$value": "{primitive.font-family.sans}",
+        "$description": "The small UI voice: labels, buttons, badges, tabs and eyebrows."
       }
     },
     "font-weight": {
@@ -1593,7 +1710,7 @@
     }
   },
   "semantic": {
-    "$description": "Tier 2. Purpose-driven. The themeable layer — a brand theme overrides these and nothing else. No value words permitted in names.",
+    "$description": "Tier 2. Purpose-driven. The themeable layer \u2014 a brand theme overrides these and nothing else. No value words permitted in names.",
     "surface": {
       "$type": "color",
       "base": {
@@ -1618,19 +1735,19 @@
         "$value": "{primitive.color.neutral.100}"
       },
       "action": {
-        "$value": "{primitive.color.accent.600}"
+        "$value": "{primitive.color.primary.600}"
       },
       "action-hover": {
-        "$value": "{primitive.color.accent.700}"
+        "$value": "{primitive.color.primary.700}"
       },
       "action-active": {
-        "$value": "{primitive.color.accent.800}"
+        "$value": "{primitive.color.primary.800}"
       },
       "action-danger": {
         "$value": "{primitive.color.red.600}"
       },
       "selected": {
-        "$value": "{primitive.color.accent.050}"
+        "$value": "{primitive.color.primary.050}"
       },
       "success": {
         "$value": "{primitive.color.green.600}"
@@ -1645,13 +1762,22 @@
         "$value": "{primitive.color.cyan.600}"
       },
       "brand": {
-        "$value": "{primitive.color.accent.600}"
+        "$value": "{primitive.color.primary.600}"
       },
       "brand-gradient": {
-        "$value": "linear-gradient(135deg, {primitive.color.accent.500}, {primitive.color.accent.800})"
+        "$value": "linear-gradient(135deg, {primitive.color.primary.500}, {primitive.color.primary.800})"
       },
       "brand-muted": {
-        "$value": "{primitive.color.accent.050}"
+        "$value": "{primitive.color.primary.050}"
+      },
+      "brand-secondary": {
+        "$value": "{primitive.color.secondary.600}"
+      },
+      "brand-secondary-muted": {
+        "$value": "{primitive.color.secondary.050}"
+      },
+      "brand-duotone": {
+        "$value": "linear-gradient(135deg, {primitive.color.primary.600}, {primitive.color.secondary.600})"
       }
     },
     "text": {
@@ -1672,7 +1798,7 @@
         "$value": "{primitive.color.neutral.050}"
       },
       "link": {
-        "$value": "{primitive.color.accent.700}"
+        "$value": "{primitive.color.primary.700}"
       },
       "on-action": {
         "$value": "{primitive.color.white}",
@@ -1682,13 +1808,40 @@
         "$value": "{primitive.color.white}"
       },
       "on-selected": {
-        "$value": "{primitive.color.accent.900}"
+        "$value": "{primitive.color.primary.900}"
       },
       "on-brand": {
         "$value": "{primitive.color.white}"
       },
       "on-brand-muted": {
-        "$value": "{primitive.color.accent.900}"
+        "$value": "{primitive.color.primary.900}"
+      },
+      "on-brand-secondary": {
+        "$value": "{primitive.color.white}"
+      },
+      "on-brand-secondary-muted": {
+        "$value": "{primitive.color.secondary.900}"
+      },
+      "brand-secondary": {
+        "$value": "{primitive.color.secondary.700}"
+      },
+      "on-scrim": {
+        "$value": "{primitive.color.neutral.050}",
+        "$description": "Text over a darkened photograph. Stays light in dark mode."
+      },
+      "on-scrim-secondary": {
+        "$value": "{primitive.color.neutral.200}"
+      },
+      "brand": {
+        "$value": "{primitive.color.primary.700}"
+      },
+      "wordmark": {
+        "$value": "{semantic.text.primary}",
+        "$description": "The wordmark. Ink by default; a theme points it at a brand text role."
+      },
+      "headline": {
+        "$value": "{semantic.text.primary}",
+        "$description": "Display and heading text. Ink by default; a theme points it at a brand text role."
       }
     },
     "border": {
@@ -1703,10 +1856,13 @@
         "$value": "{primitive.color.neutral.400}"
       },
       "selected": {
-        "$value": "{primitive.color.accent.600}"
+        "$value": "{primitive.color.primary.600}"
       },
       "brand": {
-        "$value": "{primitive.color.accent.200}"
+        "$value": "{primitive.color.primary.200}"
+      },
+      "brand-secondary": {
+        "$value": "{primitive.color.secondary.200}"
       }
     },
     "space": {
@@ -1828,6 +1984,24 @@
       "touch-target": {
         "$value": "{primitive.dimension.11}",
         "$description": "Minimum interactive hit area on touch surfaces."
+      },
+      "container-narrow": {
+        "$value": {
+          "value": 768,
+          "unit": "px"
+        }
+      },
+      "container-default": {
+        "$value": {
+          "value": 1280,
+          "unit": "px"
+        }
+      },
+      "container-wide": {
+        "$value": {
+          "value": 1536,
+          "unit": "px"
+        }
       }
     },
     "typography": {
@@ -1892,7 +2066,7 @@
           }
         }
       },
-      "$description": "Tier 2. Complete type roles — family, size, line height, weight and tracking travel together. letterSpacing is resolved to rem here because DTCG dimension has no em unit; the authored tracking scale lives in primitive.tracking."
+      "$description": "Tier 2. Complete type roles \u2014 family, size, line height, weight and tracking travel together. letterSpacing is resolved to rem here because DTCG dimension has no em unit; the authored tracking scale lives in primitive.tracking."
     },
     "motion": {
       "$type": "transition",
@@ -1959,7 +2133,7 @@
         "$description": "Toasts, anything above a dialog."
       },
       "$type": "shadow",
-      "$description": "Tier 2. Elevation is a z-order vocabulary, not a shadow menu: pick the level that matches what the element is. Level 0 is flush with the page and carries no shadow, so it has no token here — use no shadow at all.",
+      "$description": "Tier 2. Elevation is a z-order vocabulary, not a shadow menu: pick the level that matches what the element is. Level 0 is flush with the page and carries no shadow, so it has no token here \u2014 use no shadow at all.",
       "inset": {
         "$value": "{primitive.shadow.inset}"
       }

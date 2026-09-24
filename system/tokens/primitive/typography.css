@@ -12,6 +12,9 @@
   /* Families. A theme overrides these three lines and nothing else. */
   --dt-font-family-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --dt-font-family-serif: ui-serif, Georgia, "Times New Roman", serif;
+  /* The second brand face. It points at the sans family until a theme sets
+     it, and it carries labels, buttons and eyebrows: the small UI voice. */
+  --dt-font-family-secondary: var(--dt-font-family-sans);
   --dt-font-family-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* Size ramp */

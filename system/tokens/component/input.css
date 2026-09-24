@@ -33,3 +33,26 @@
   --dt-input-hint-color: var(--dt-text-secondary);
   --dt-input-error-color: var(--dt-text-danger);
 }
+
+/* Colour aliases again, under .dark. A custom property resolves where it is
+   declared, so an alias set only on :root keeps its light value inside a
+   .dark scoped to a band or a hero. Repeating it here makes the alias
+   resolve against the band's own roles. Only colour is repeated: sizing,
+   shape and elevation aliases stay on :root so a context's retuning of
+   them still reaches inside the band. */
+.dark {
+  --dt-input-font-family: var(--dt-text-body-md-family);
+  --dt-input-bg: var(--dt-surface-base);
+  --dt-input-bg-hover: var(--dt-surface-base);
+  --dt-input-bg-disabled: var(--dt-surface-disabled);
+  --dt-input-fg: var(--dt-text-primary);
+  --dt-input-fg-placeholder: var(--dt-text-tertiary);
+  --dt-input-fg-disabled: var(--dt-text-disabled);
+  --dt-input-border: var(--dt-border-default);
+  --dt-input-border-hover: var(--dt-border-strong);
+  --dt-input-border-focus: var(--dt-focus-ring-color);
+  --dt-input-border-error: var(--dt-surface-danger);
+  --dt-input-border-disabled: var(--dt-border-disabled);
+  --dt-input-hint-color: var(--dt-text-secondary);
+  --dt-input-error-color: var(--dt-text-danger);
+}

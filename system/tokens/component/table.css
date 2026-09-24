@@ -25,3 +25,20 @@
   --dt-table-row-bg-selected: var(--dt-surface-selected);
   --dt-table-row-bg-striped: var(--dt-surface-subtle);
 }
+
+/* Colour aliases again, under .dark. A custom property resolves where it is
+   declared, so an alias set only on :root keeps its light value inside a
+   .dark scoped to a band or a hero. Repeating it here makes the alias
+   resolve against the band's own roles. Only colour is repeated: sizing,
+   shape and elevation aliases stay on :root so a context's retuning of
+   them still reaches inside the band. */
+.dark {
+  --dt-table-bg: var(--dt-surface-base);
+  --dt-table-fg: var(--dt-text-primary);
+  --dt-table-border-color: var(--dt-border-subtle);
+  --dt-table-header-bg: var(--dt-surface-subtle);
+  --dt-table-header-fg: var(--dt-text-secondary);
+  --dt-table-row-bg-hover: var(--dt-surface-subtle);
+  --dt-table-row-bg-selected: var(--dt-surface-selected);
+  --dt-table-row-bg-striped: var(--dt-surface-subtle);
+}

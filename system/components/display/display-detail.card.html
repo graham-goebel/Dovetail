@@ -158,7 +158,7 @@ function Page() {
             label="Team members"
             interactive
             items={[
-              { id: 1, leading: <Avatar name="Ada Lovelace" size="sm" />, title: "Ada Lovelace", description: "ada@northwind.co", trailing: <Badge tone="accent">Owner</Badge>, onClick: () => {} },
+              { id: 1, leading: <Avatar name="Ada Lovelace" size="sm" />, title: "Ada Lovelace", description: "ada@northwind.co", trailing: <Badge tone="primary">Owner</Badge>, onClick: () => {} },
               { id: 2, leading: <Avatar name="Grace Hopper" size="sm" />, title: "Grace Hopper", description: "grace@northwind.co", trailing: <Badge>Admin</Badge>, onClick: () => {} },
               { id: 3, leading: <Avatar name="Alan Turing" size="sm" />, title: "Alan Turing", description: "alan@northwind.co", trailing: <Badge>Member</Badge>, onClick: () => {} },
             ]}
@@ -331,7 +331,7 @@ function Page() {
           </p>
         </Specimen>
         <Specimen label="Block with a filename" bg="var(--dt-surface-base)">
-          <Code block label="tokens/themes/brand.css">{":root {\n  --dt-color-accent-600: oklch(0.546 0.215 259);\n  --dt-radius-control: 6px;\n}"}</Code>
+          <Code block label="tokens/themes/brand.css">{":root {\n  --dt-color-primary-600: oklch(0.546 0.215 259);\n  --dt-radius-control: 6px;\n}"}</Code>
         </Specimen>
       </Shelf>
     </React.Fragment>

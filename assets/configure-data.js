@@ -107,7 +107,7 @@ window.DovetailConfigure = {
       "050": "oklch(0.971 0.016 45)"
     }
   },
-  "accents": [
+  "brandRamps": [
     {
       "id": "blue",
       "label": "Blue"
@@ -517,26 +517,33 @@ window.DovetailConfigure = {
     "--dt-text-on-brand": "var(--dt-color-white)",
     "--dt-surface-brand-muted": "var(--dt-color-neutral-100)",
     "--dt-text-on-brand-muted": "var(--dt-color-neutral-950)",
-    "--dt-border-brand": "var(--dt-color-neutral-300)"
+    "--dt-border-brand": "var(--dt-color-neutral-300)",
+    "--dt-surface-brand-secondary": "var(--dt-color-neutral-700)",
+    "--dt-text-on-brand-secondary": "var(--dt-color-white)",
+    "--dt-surface-brand-secondary-muted": "var(--dt-color-neutral-050)",
+    "--dt-text-on-brand-secondary-muted": "var(--dt-color-neutral-900)",
+    "--dt-border-brand-secondary": "var(--dt-color-neutral-200)",
+    "--dt-text-brand-secondary": "var(--dt-color-neutral-700)",
+    "--dt-surface-brand-duotone": "var(--dt-color-neutral-950)"
   },
   "presets": {
     "base": {
       "label": "Base",
-      "accent": "blue",
+      "primary": "blue",
       "radius": "standard",
       "font": "sans",
       "mono": false
     },
     "editorial": {
       "label": "Editorial",
-      "accent": "terracotta",
+      "primary": "terracotta",
       "radius": "soft",
       "font": "serif",
       "mono": false
     },
     "mono": {
       "label": "Mono",
-      "accent": "blue",
+      "primary": "blue",
       "radius": "sharp",
       "font": "sans",
       "mono": true

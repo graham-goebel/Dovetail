@@ -7,19 +7,19 @@
    Link after system/styles.css. */
 
 :root {
-  /* Brand hue: a field green. Replaces the accent ramp in place, so every semantic
-     role that read accent (actions, links, focus, selection) follows. */
-  --dt-color-accent-050: oklch(0.972 0.018 150);
-  --dt-color-accent-100: oklch(0.940 0.040 150);
-  --dt-color-accent-200: oklch(0.890 0.072 150);
-  --dt-color-accent-300: oklch(0.815 0.108 150);
-  --dt-color-accent-400: oklch(0.720 0.130 150);
-  --dt-color-accent-500: oklch(0.625 0.132 150);
-  --dt-color-accent-600: oklch(0.530 0.118 150);
-  --dt-color-accent-700: oklch(0.455 0.100 150);
-  --dt-color-accent-800: oklch(0.385 0.082 150);
-  --dt-color-accent-900: oklch(0.325 0.066 150);
-  --dt-color-accent-950: oklch(0.235 0.048 150);
+  /* Brand hue: a field green. Replaces the primary ramp in place, so every semantic
+     role that read primary (actions, links, focus, selection) follows. */
+  --dt-color-primary-050: oklch(0.972 0.018 150);
+  --dt-color-primary-100: oklch(0.940 0.040 150);
+  --dt-color-primary-200: oklch(0.890 0.072 150);
+  --dt-color-primary-300: oklch(0.815 0.108 150);
+  --dt-color-primary-400: oklch(0.720 0.130 150);
+  --dt-color-primary-500: oklch(0.625 0.132 150);
+  --dt-color-primary-600: oklch(0.530 0.118 150);
+  --dt-color-primary-700: oklch(0.455 0.100 150);
+  --dt-color-primary-800: oklch(0.385 0.082 150);
+  --dt-color-primary-900: oklch(0.325 0.066 150);
+  --dt-color-primary-950: oklch(0.235 0.048 150);
 
   /* Warm the neutrals toward the linen in the product photography. */
   --dt-color-neutral-050: oklch(0.985 0.006 85);

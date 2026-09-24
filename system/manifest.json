@@ -16,19 +16,15 @@
     "components/actions/Button.d.ts",
     "components/actions/Button.jsx",
     "components/actions/Button.md",
-    "components/actions/Button.play.html",
     "components/actions/ButtonGroup.d.ts",
     "components/actions/ButtonGroup.jsx",
     "components/actions/ButtonGroup.md",
-    "components/actions/ButtonGroup.play.html",
     "components/actions/IconButton.d.ts",
     "components/actions/IconButton.jsx",
     "components/actions/IconButton.md",
-    "components/actions/IconButton.play.html",
     "components/actions/Link.d.ts",
     "components/actions/Link.jsx",
     "components/actions/Link.md",
-    "components/actions/Link.play.html",
     "components/actions/actions-detail.card.html",
     "components/actions/actions.card.html",
     "components/bundle.css",
@@ -211,7 +207,7 @@
     "components/primitives/primitives.card.html",
     "docs/_ds_manifest.json",
     "guidelines/accessibility.md",
-    "guidelines/color-accent.html",
+    "guidelines/color-primary.html",
     "guidelines/color-actions.html",
     "guidelines/color-amber.html",
     "guidelines/color-borders.html",
@@ -262,10 +258,7 @@
     "kits/dashboard-kit.card.html",
     "kits/marketing-kit.card.html",
     "support.js",
-    "tearsheet.html",
     "templates/_support/card-kit.js",
-    "templates/_support/playground-specs.js",
-    "templates/_support/playground.js",
     "templates/_support/style-dictionary.config.cjs",
     "templates/_support/theme-runtime.js",
     "templates/_support/theme-switcher.js",
@@ -302,7 +295,20 @@
     "tokens/themes/theme-custom.css",
     "tokens/themes/theme-editorial.css",
     "tokens/themes/theme-mono.css",
-    "tools/README.md"
+    "tools/README.md",
+    "components/typography/Heading.d.ts",
+    "components/typography/Heading.jsx",
+    "components/typography/Heading.md",
+    "components/typography/Text.d.ts",
+    "components/typography/Text.jsx",
+    "components/typography/Text.md",
+    "components/primitives/Section.d.ts",
+    "components/primitives/Section.jsx",
+    "components/primitives/Section.md",
+    "components/feedback/Thinking.d.ts",
+    "components/feedback/Thinking.jsx",
+    "components/feedback/Thinking.md",
+    "tokens/component/thinking.css"
   ],
   "libraries": [
     {
@@ -498,6 +504,18 @@
     },
     {
       "name": "BlockRenderer"
+    },
+    {
+      "name": "Heading"
+    },
+    {
+      "name": "Text"
+    },
+    {
+      "name": "Section"
+    },
+    {
+      "name": "Thinking"
     }
   ],
   "lastChange": {

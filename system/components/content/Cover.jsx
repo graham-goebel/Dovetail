@@ -81,17 +81,17 @@ export function Cover({
           }}
         >
           {eyebrow && (
-            <span style={{ fontFamily: "var(--dt-text-eyebrow-family)", fontSize: "var(--dt-text-eyebrow-size)", letterSpacing: "var(--dt-text-eyebrow-tracking)", fontWeight: "var(--dt-text-eyebrow-weight)", textTransform: "uppercase", color: "var(--dt-text-inverse)" }}>
+            <span style={{ fontFamily: "var(--dt-text-eyebrow-family)", fontSize: "var(--dt-text-eyebrow-size)", letterSpacing: "var(--dt-text-eyebrow-tracking)", fontWeight: "var(--dt-text-eyebrow-weight)", textTransform: "uppercase", color: "var(--dt-text-on-scrim)" }}>
               {eyebrow}
             </span>
           )}
           {title && (
-            <h2 style={{ margin: 0, maxWidth: "40ch", fontFamily: "var(--dt-text-heading-lg-family)", fontSize: "var(--dt-text-heading-lg-size)", lineHeight: "var(--dt-text-heading-lg-line)", fontWeight: "var(--dt-text-heading-lg-weight)", letterSpacing: "var(--dt-text-heading-lg-tracking)", color: "var(--dt-text-inverse)", textWrap: "pretty" }}>
+            <h2 style={{ margin: 0, maxWidth: "40ch", fontFamily: "var(--dt-text-heading-lg-family)", fontSize: "var(--dt-text-heading-lg-size)", lineHeight: "var(--dt-text-heading-lg-line)", fontWeight: "var(--dt-text-heading-lg-weight)", letterSpacing: "var(--dt-text-heading-lg-tracking)", color: "var(--dt-text-on-scrim)", textWrap: "pretty" }}>
               {title}
             </h2>
           )}
           {body && (
-            <div style={{ maxWidth: "48ch", fontFamily: "var(--dt-text-body-md-family)", fontSize: "var(--dt-text-body-md-size)", lineHeight: "var(--dt-text-body-md-line)", color: "var(--dt-text-inverse)", opacity: 0.9, textWrap: "pretty" }}>
+            <div style={{ maxWidth: "48ch", fontFamily: "var(--dt-text-body-md-family)", fontSize: "var(--dt-text-body-md-size)", lineHeight: "var(--dt-text-body-md-line)", color: "var(--dt-text-on-scrim-secondary)", textWrap: "pretty" }}>
               {body}
             </div>
           )}

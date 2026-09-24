@@ -14,8 +14,15 @@ export interface CardProps extends React.HTMLAttributes<HTMLElement> {
   /** Action row at the bottom. */
   footer?: React.ReactNode;
   /** Raises elevation on hover and sets a pointer cursor. */
+  /**
+   * Makes the whole card a link. The title becomes the link a screen reader
+   * hears, and a copy of it stretches over the card for a pointer. Buttons in
+   * `footer` stay clickable above it; put interactive content there, not in
+   * children. Implies the interactive hover lift.
+   */
+  href?: string;
   interactive?: boolean;
-  /** Accent border and tinted background for a chosen option. */
+  /** Primary-colour border and tinted background for a chosen option. */
   selected?: boolean;
   /** @default "div" */
   as?: keyof JSX.IntrinsicElements;

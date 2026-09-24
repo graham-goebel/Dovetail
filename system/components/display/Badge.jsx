@@ -2,7 +2,7 @@ import React from "react";
 
 const TONES = {
   neutral: { bg: "var(--dt-surface-sunken)", fg: "var(--dt-text-secondary)", bd: "var(--dt-border-default)" },
-  accent: { bg: "var(--dt-surface-selected)", fg: "var(--dt-text-on-selected)", bd: "var(--dt-border-selected)" },
+  primary: { bg: "var(--dt-surface-selected)", fg: "var(--dt-text-on-selected)", bd: "var(--dt-border-selected)" },
   success: { bg: "var(--dt-surface-success-subtle)", fg: "var(--dt-text-success)", bd: "var(--dt-border-success)" },
   warning: { bg: "var(--dt-surface-warning-subtle)", fg: "var(--dt-text-warning)", bd: "var(--dt-border-warning)" },
   danger: { bg: "var(--dt-surface-danger-subtle)", fg: "var(--dt-text-danger)", bd: "var(--dt-border-danger)" },
@@ -12,8 +12,8 @@ const TONES = {
 export function Badge({ tone = "neutral", variant = "subtle", dot = false, children, style, ...rest }) {
   const t = TONES[tone] || TONES.neutral;
   const solid = variant === "solid";
-  const solidBg = { neutral: "var(--dt-surface-inverse)", accent: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)", info: "var(--dt-surface-info)" }[tone];
-  const solidFg = { neutral: "var(--dt-text-inverse)", accent: "var(--dt-text-on-action)", success: "var(--dt-text-on-success)", warning: "var(--dt-text-on-warning)", danger: "var(--dt-text-on-danger)", info: "var(--dt-text-on-info)" }[tone];
+  const solidBg = { neutral: "var(--dt-surface-inverse)", primary: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)", info: "var(--dt-surface-info)" }[tone];
+  const solidFg = { neutral: "var(--dt-text-inverse)", primary: "var(--dt-text-on-action)", success: "var(--dt-text-on-success)", warning: "var(--dt-text-on-warning)", danger: "var(--dt-text-on-danger)", info: "var(--dt-text-on-info)" }[tone];
   return (
     <span
       style={{

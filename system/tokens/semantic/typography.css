@@ -88,26 +88,26 @@
   --dt-text-body-xs-tracking: var(--dt-tracking-normal);
 
   /* ---- Label ------------------------------------------------------ */
-  --dt-text-label-lg-family: var(--dt-font-family-sans);
+  --dt-text-label-lg-family: var(--dt-font-family-secondary);
   --dt-text-label-lg-size: var(--dt-font-size-md);
   --dt-text-label-lg-line: var(--dt-line-height-md);
   --dt-text-label-lg-weight: var(--dt-font-weight-medium);
   --dt-text-label-lg-tracking: var(--dt-tracking-normal);
 
-  --dt-text-label-md-family: var(--dt-font-family-sans);
+  --dt-text-label-md-family: var(--dt-font-family-secondary);
   --dt-text-label-md-size: var(--dt-font-size-sm);
   --dt-text-label-md-line: var(--dt-line-height-sm);
   --dt-text-label-md-weight: var(--dt-font-weight-medium);
   --dt-text-label-md-tracking: var(--dt-tracking-normal);
 
-  --dt-text-label-sm-family: var(--dt-font-family-sans);
+  --dt-text-label-sm-family: var(--dt-font-family-secondary);
   --dt-text-label-sm-size: var(--dt-font-size-xs);
   --dt-text-label-sm-line: var(--dt-line-height-xs);
   --dt-text-label-sm-weight: var(--dt-font-weight-medium);
   --dt-text-label-sm-tracking: var(--dt-tracking-normal);
 
   /* Eyebrow — the only role that is ever uppercased. */
-  --dt-text-eyebrow-family: var(--dt-font-family-sans);
+  --dt-text-eyebrow-family: var(--dt-font-family-secondary);
   --dt-text-eyebrow-size: var(--dt-font-size-2xs);
   --dt-text-eyebrow-line: var(--dt-line-height-2xs);
   --dt-text-eyebrow-weight: var(--dt-font-weight-semibold);

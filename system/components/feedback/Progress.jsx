@@ -1,10 +1,10 @@
 import React from "react";
 
-export function Progress({ value, max = 100, label, showValue = false, tone = "accent", size = "md", style, ...rest }) {
+export function Progress({ value, max = 100, label, showValue = false, tone = "primary", size = "md", style, ...rest }) {
   const indeterminate = value == null;
   const pct = indeterminate ? 0 : Math.min(100, Math.max(0, (value / max) * 100));
   const h = size === "sm" ? 4 : size === "lg" ? 10 : 6;
-  const fill = { accent: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)" }[tone];
+  const fill = { primary: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)" }[tone];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", ...style }} {...rest}>
       {(label || showValue) && (
