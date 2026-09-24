@@ -14,6 +14,8 @@ const TONES = {
   secondary: "var(--dt-text-secondary)",
   tertiary: "var(--dt-text-tertiary)",
   link: "var(--dt-text-link)",
+  brand: "var(--dt-text-brand, var(--dt-text-link))",
+  "brand-secondary": "var(--dt-text-brand-secondary, var(--dt-color-secondary-700, var(--dt-text-link)))",
 };
 const MEASURES = { narrow: "var(--dt-measure-narrow)", default: "var(--dt-measure-default)", wide: "var(--dt-measure-wide)", none: "none" };
 const WEIGHTS = { regular: "var(--dt-font-weight-regular)", medium: "var(--dt-font-weight-medium)", semibold: "var(--dt-font-weight-semibold)" };

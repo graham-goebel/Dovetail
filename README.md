@@ -233,6 +233,16 @@ text contrast in either mode. With a mark uploaded, **Mark colour** either keeps
 own colours or uses its shape as a mask filled with the wordmark colour, so the mark goes
 monochrome with Ink and flips with dark mode.
 
+**Headline colour** sets `--dt-text-headline`, the role every display and heading reads:
+**Ink** is monochrome, and **Primary** or **Secondary** set every headline in a brand text
+colour at once while body copy stays ink. The brand text roles, `--dt-text-brand` and
+`--dt-text-brand-secondary`, are steps 700 in light mode and 400 in dark, so a brand
+headline keeps text contrast in both, and the ramp editor's checks cover them. For one
+heading or one line rather than all of them, `Heading` and `Text` take `tone="brand"` or
+`tone="brand-secondary"`. A brand, photo or dark `Section` re-points the headline role for
+its own surface, and the choice is declared under `.dark` too, so a heading in a dark band
+takes the dark-mode brand colour rather than the light one.
+
 **Secondary family** is the small UI voice. The label and eyebrow roles read
 `--dt-font-family-secondary`, so buttons, form labels, badges, tabs and eyebrows follow it
 while headings follow the display family and running text the body family.

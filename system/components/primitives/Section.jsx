@@ -17,6 +17,7 @@ const ALIGN = { top: "flex-start", center: "center", bottom: "flex-end" };
 function onFill(fg) {
   return {
     "--dt-text-primary": fg,
+    "--dt-text-headline": fg,
     "--dt-text-secondary": `color-mix(in oklab, ${fg} 88%, transparent)`,
     "--dt-text-tertiary": `color-mix(in oklab, ${fg} 76%, transparent)`,
     color: fg,

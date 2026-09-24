@@ -102,6 +102,7 @@
   --dt-border-brand: var(--dt-color-primary-800);
   --dt-text-brand: var(--dt-color-primary-400);
   --dt-text-wordmark: var(--dt-text-primary);
+  --dt-text-headline: var(--dt-text-primary);
   --dt-surface-brand-secondary: var(--dt-color-secondary-500);
   --dt-text-on-brand-secondary: var(--dt-color-neutral-950);
   --dt-surface-brand-secondary-muted: var(--dt-color-secondary-950);

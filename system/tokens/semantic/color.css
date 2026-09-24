@@ -128,6 +128,13 @@
   --dt-border-brand: var(--dt-color-primary-200);
   --dt-text-brand: var(--dt-color-primary-700);
 
+  /* Headlines: the display and heading roles. Ink by default, so the system
+     ships monochrome. A theme points it at --dt-text-brand or
+     --dt-text-brand-secondary to set every headline in a brand colour at
+     once; both are text roles, so contrast holds in either mode. Body copy
+     keeps --dt-text-primary. */
+  --dt-text-headline: var(--dt-text-primary);
+
   /* The wordmark's colour. Ink by default, which is the monochrome mark; a
      theme points it at --dt-text-brand or --dt-text-brand-secondary to set the
      name in a brand hue. Both of those are text roles, so the name keeps text

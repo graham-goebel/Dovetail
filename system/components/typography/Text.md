@@ -31,6 +31,12 @@ Running text in one of the system's type roles: an eyebrow, a lead paragraph, bo
 Paragraph variants are bounded at `--dt-measure-default` so a line never runs wider than it can be read; pass `measure="none"` inside a narrow column where the bound does nothing.
 
 ## Tone
+`brand` and `brand-secondary` read `--dt-text-brand` and `--dt-text-brand-secondary`: an eyebrow, a highlighted word or a price in the brand colour, at text contrast in either mode.
+
+```jsx
+<Text variant="eyebrow" tone="brand">New season</Text>
+```
+
 Every tone is a semantic role, so a `Text` inside a brand or photo `Section` follows the section: the section re-points `--dt-text-primary`, `-secondary` and `-tertiary` for its own surface.
 
 ## Tokens

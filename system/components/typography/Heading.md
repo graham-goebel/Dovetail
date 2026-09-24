@@ -22,7 +22,13 @@ A heading whose level and size are two props. `level` sets the tag, so the docum
 One `h1` per page. Do not skip levels to get a smaller size; pick the right level and pass `size`.
 
 ## Tone
-`tone` defaults to `inherit`, so a heading inside a brand, photo or dark `Section` takes that section's text colour without a prop. Pass `primary` or `secondary` only to override it.
+`tone` defaults to `headline`, which reads `--dt-text-headline`. That role is ink until a theme or Configure's Headline colour sets it to a brand colour, and then every heading follows at once. A brand, photo or dark `Section` re-points it for its own surface, so a heading in a band still reads correctly without a prop.
+
+`brand` and `brand-secondary` set a single heading in a brand colour, through `--dt-text-brand` and `--dt-text-brand-secondary`, while the rest stay as they are. Both are text roles, tuned for text contrast in light and dark mode. `inherit` takes the parent's colour, for a heading inside a coloured block you built by hand rather than with `Section`.
+
+```jsx
+<Heading level={1} size="display-md" tone="brand">Built for the trail</Heading>
+```
 
 ## Tokens
-`--dt-text-{size}-family`, `-size`, `-line`, `-weight`, `-tracking`, and `--dt-measure-*` when `measure` is set. A display face chosen in Configure reaches every heading through these roles.
+`--dt-text-{size}-family`, `-size`, `-line`, `-weight`, `-tracking`, `--dt-text-headline`, `--dt-text-brand`, `--dt-text-brand-secondary`, and `--dt-measure-*` when `measure` is set. A display face and a headline colour chosen in Configure reach every heading through these roles.

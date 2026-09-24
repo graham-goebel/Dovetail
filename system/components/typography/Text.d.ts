@@ -12,8 +12,8 @@ export interface TextProps extends React.HTMLAttributes<HTMLElement> {
    * @default "body"
    */
   variant?: "eyebrow" | "lead" | "body" | "small" | "fine" | "label";
-  /** Overrides the variant's default tone. inherit follows the surface it sits on. */
-  tone?: "inherit" | "primary" | "secondary" | "tertiary" | "link";
+  /** Overrides the variant's default tone. inherit follows the surface it sits on; brand and brand-secondary read the brand text roles, for an eyebrow, a highlighted word or a price in the brand colour. */
+  tone?: "inherit" | "primary" | "secondary" | "tertiary" | "link" | "brand" | "brand-secondary";
   /** Bounds the line length. Defaults to "default" for paragraph variants and "none" for eyebrow and label. */
   measure?: "narrow" | "default" | "wide" | "none";
   /** Overrides the role's weight, most often for a price. */

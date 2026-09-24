@@ -10,8 +10,14 @@ export interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   level?: 1 | 2 | 3 | 4 | 5 | 6;
   /** The type role it is set in. Defaults by level: 1 heading-xl, 2 heading-lg, 3 heading-md, 4 heading-sm, 5 and 6 heading-xs. */
   size?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md" | "heading-sm" | "heading-xs";
-  /** inherit takes the colour of whatever it sits on, which is what makes it work inside a brand or photo Section. @default "inherit" */
-  tone?: "inherit" | "primary" | "secondary";
+  /**
+   * headline reads --dt-text-headline: ink unless a theme sets headlines in a
+   * brand colour, and re-pointed by a brand, photo or dark Section so it
+   * follows the band. brand and brand-secondary set this one heading in a
+   * brand text colour. inherit takes the colour of its parent, for a heading
+   * inside a hand-built coloured block. @default "headline"
+   */
+  tone?: "headline" | "brand" | "brand-secondary" | "primary" | "secondary" | "inherit";
   align?: React.CSSProperties["textAlign"];
   /** Bounds the line length. @default "none" */
   measure?: "narrow" | "default" | "wide" | "none";

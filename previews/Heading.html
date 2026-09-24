@@ -1,4 +1,4 @@
-<!-- @dsCard group="Typography" height=560 name="Heading" subtitle="Heading — Level sets the tag, size sets the type role." -->
+<!-- @dsCard group="Typography" height=720 name="Heading" subtitle="Heading — Level sets the tag, size sets the type role." -->
 <!DOCTYPE html>
 <html><head>
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
@@ -44,7 +44,12 @@
               e("code", null, "level=" + r[0] + (r[1] ? " size=" + r[1] : "")),
               e(NS.Heading, { level: r[0], size: r[1] }, "Quiet mornings, " + r[2]));
           }))),
-      e(Spec, { name: "tone inherit, inside a brand Section" },
+      e(Spec, { name: "Tones" },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" } },
+          e("div", { className: "row" }, e("code", null, "headline"), e(NS.Heading, { level: 3 }, "Follows --dt-text-headline")),
+          e("div", { className: "row" }, e("code", null, "brand"), e(NS.Heading, { level: 3, tone: "brand" }, "Set in the primary text colour")),
+          e("div", { className: "row" }, e("code", null, "brand-secondary"), e(NS.Heading, { level: 3, tone: "brand-secondary" }, "Set in the secondary text colour")))),
+      e(Spec, { name: "headline, inside a brand Section" },
         e(NS.Section, { tone: "brand", spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
           e(NS.Heading, { level: 2 }, "Inherits the band's own text colour")))
     );

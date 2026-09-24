@@ -41,6 +41,7 @@
     secondaryFont: "",
     steps: 0,
     wordmarkColor: "ink",
+    headlineColor: "ink",
     markTint: false,
     radius: "standard",
     font: "sans",
@@ -79,7 +80,7 @@
   var WORDMARK = {
     ink: null,
     primary: "var(--dt-text-brand, var(--dt-text-link))",
-    secondary: "var(--dt-text-brand-secondary, var(--dt-text-link))",
+    secondary: "var(--dt-text-brand-secondary, var(--dt-color-secondary-700, var(--dt-text-link)))",
   };
 
   /* Every named ramp a hue shift can reach, independent of which one is
@@ -493,11 +494,11 @@
     primary: [
       { label: "Buttons: white text on 600", fg: WHITE, bg: "600", min: 4.5, step: "600", dir: -1 },
       { label: "Button hover: white text on 700", fg: WHITE, bg: "700", min: 4.5, step: "700", dir: -1 },
-      { label: "Links: 700 on the page", fg: "700", bg: WHITE, min: 4.5, step: "700", dir: -1 },
+      { label: "Links and brand text: 700 on the page", fg: "700", bg: WHITE, min: 4.5, step: "700", dir: -1 },
       { label: "Selected: 900 text on 050", fg: "900", bg: "050", min: 4.5, step: "900", dir: -1 },
       { label: "Focus ring: 600 against the page", fg: "600", bg: WHITE, min: 3, step: "600", dir: -1 },
       { label: "Dark mode buttons: ink text on 500", fg: INK, bg: "500", min: 4.5, step: "500", dir: 1 },
-      { label: "Dark mode links: 400 on ink", fg: "400", bg: INK, min: 4.5, step: "400", dir: 1 },
+      { label: "Dark mode links and brand text: 400 on ink", fg: "400", bg: INK, min: 4.5, step: "400", dir: 1 },
     ],
     secondary: [
       { label: "Secondary fill: white text on 600", fg: WHITE, bg: "600", min: 4.5, step: "600", dir: -1 },
@@ -675,6 +676,10 @@
        that froze a stylesheet from before the brand text roles existed. */
     if (WORDMARK[cfg.wordmarkColor]) vars["--dt-text-wordmark"] = WORDMARK[cfg.wordmarkColor];
 
+    /* Headlines take the same three choices. Ink writes nothing, which is the
+       stylesheet's own monochrome default. */
+    if (WORDMARK[cfg.headlineColor]) vars["--dt-text-headline"] = WORDMARK[cfg.headlineColor];
+
     /* Same shape: a texture is a second role, --dt-surface-texture, pointed at
        one of the two patterns the system ships. None writes nothing, which is
        the stylesheet's own default. */
@@ -738,6 +743,22 @@
         doc.head.appendChild(media);
       }
       media.textContent = MEDIA_PRESENCE[cfg.media];
+    }
+
+    /* A role written inline on the root resolves once, against the root. A
+       band scoped .dark inside the page needs the same choice declared on the
+       band, so its brand text role resolves as dark. */
+    var scoped = ["--dt-text-wordmark", "--dt-text-headline"].filter(function (name) { return vars[name]; });
+    var scope = doc.getElementById("dt-role-scope");
+    if (!scoped.length) {
+      if (scope) scope.remove();
+    } else {
+      if (!scope) {
+        scope = doc.createElement("style");
+        scope.id = "dt-role-scope";
+        doc.head.appendChild(scope);
+      }
+      scope.textContent = ".dark { " + scoped.map(function (name) { return name + ": " + vars[name] + ";"; }).join(" ") + " }";
     }
 
     var href = fontHrefFor(cfg);
@@ -1042,10 +1063,16 @@
       lines.push("  --dt-space-gutter: var(--dt-dim-" + space.gutter + ");");
     }
 
+    if (WORDMARK[config.headlineColor]) {
+      lines.push("");
+      lines.push("  /* Headlines: " + config.headlineColor + " */");
+      lines.push("  --dt-text-headline: " + WORDMARK[config.headlineColor].replace(/, var\(.*\)\)$/, ")") + ";");
+    }
+
     if (WORDMARK[config.wordmarkColor]) {
       lines.push("");
       lines.push("  /* Wordmark: " + config.wordmarkColor + " */");
-      lines.push("  --dt-text-wordmark: " + WORDMARK[config.wordmarkColor].replace(/, var\(--dt-text-link\)\)$/, ")") + ";");
+      lines.push("  --dt-text-wordmark: " + WORDMARK[config.wordmarkColor].replace(/, var\(.*\)\)$/, ")") + ";");
     }
 
     if (MEDIA_RADII[config.mediaRadius]) {
@@ -1055,6 +1082,18 @@
     }
 
     lines.push("}");
+
+    /* The same role choices again under .dark, so a band scoped dark inside a
+       light page resolves them against its own brand text roles. */
+    var darkRoles = [["--dt-text-headline", config.headlineColor], ["--dt-text-wordmark", config.wordmarkColor]].filter(function (r) { return WORDMARK[r[1]]; });
+    if (darkRoles.length) {
+      lines.push("");
+      lines.push(".dark {");
+      darkRoles.forEach(function (r) {
+        lines.push("  " + r[0] + ": " + WORDMARK[r[1]].replace(/, var\(.*\)\)$/, ")") + ";");
+      });
+      lines.push("}");
+    }
 
     var lib = iconLibInfo(config.iconLib);
     lines.push("");
@@ -1790,6 +1829,19 @@
           config.displayFont || "",
           function (value) {
             commit({ displayFont: value });
+          }
+        )
+      ),
+      field(
+        "Headline colour",
+        "Display and heading text, through --dt-text-headline. Ink is monochrome; primary and secondary set every headline in a brand text colour, tuned for contrast in either mode. Body copy stays ink.",
+        segmented(
+          "Headline colour",
+          "headline",
+          [{ value: "ink", label: "Ink" }, { value: "primary", label: "Primary" }, { value: "secondary", label: "Secondary" }],
+          config.headlineColor,
+          function (value) {
+            commit({ headlineColor: value });
           }
         )
       ),

@@ -1710,7 +1710,7 @@
     }
   },
   "semantic": {
-    "$description": "Tier 2. Purpose-driven. The themeable layer — a brand theme overrides these and nothing else. No value words permitted in names.",
+    "$description": "Tier 2. Purpose-driven. The themeable layer \u2014 a brand theme overrides these and nothing else. No value words permitted in names.",
     "surface": {
       "$type": "color",
       "base": {
@@ -1838,6 +1838,10 @@
       "wordmark": {
         "$value": "{semantic.text.primary}",
         "$description": "The wordmark. Ink by default; a theme points it at a brand text role."
+      },
+      "headline": {
+        "$value": "{semantic.text.primary}",
+        "$description": "Display and heading text. Ink by default; a theme points it at a brand text role."
       }
     },
     "border": {
@@ -2062,7 +2066,7 @@
           }
         }
       },
-      "$description": "Tier 2. Complete type roles — family, size, line height, weight and tracking travel together. letterSpacing is resolved to rem here because DTCG dimension has no em unit; the authored tracking scale lives in primitive.tracking."
+      "$description": "Tier 2. Complete type roles \u2014 family, size, line height, weight and tracking travel together. letterSpacing is resolved to rem here because DTCG dimension has no em unit; the authored tracking scale lives in primitive.tracking."
     },
     "motion": {
       "$type": "transition",
@@ -2129,7 +2133,7 @@
         "$description": "Toasts, anything above a dialog."
       },
       "$type": "shadow",
-      "$description": "Tier 2. Elevation is a z-order vocabulary, not a shadow menu: pick the level that matches what the element is. Level 0 is flush with the page and carries no shadow, so it has no token here — use no shadow at all.",
+      "$description": "Tier 2. Elevation is a z-order vocabulary, not a shadow menu: pick the level that matches what the element is. Level 0 is flush with the page and carries no shadow, so it has no token here \u2014 use no shadow at all.",
       "inset": {
         "$value": "{primitive.shadow.inset}"
       }
