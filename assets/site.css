@@ -1103,9 +1103,11 @@ body.configure-open .configure-bar {
 }
 
 .configure-body {
+  --configure-inset: var(--dt-space-inset-lg);
   flex: 1;
   overflow-y: auto;
-  padding: var(--dt-space-inset-lg);
+  overflow-x: hidden;
+  padding: var(--configure-inset);
   display: flex;
   flex-direction: column;
   gap: var(--dt-space-stack-lg);
@@ -1115,8 +1117,9 @@ body.configure-open .configure-bar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--dt-dim-1);
-  margin: 0 calc(-1 * var(--dt-space-inset-lg));
-  padding: 0 var(--dt-space-inset-lg) var(--dt-dim-2);
+  /* Full bleed inside the body, whatever its padding is at this width. */
+  margin: 0 calc(-1 * var(--configure-inset));
+  padding: 0 var(--configure-inset) var(--dt-dim-2);
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
 }
 
@@ -1618,7 +1621,7 @@ body.configure-open .configure-bar {
   }
 
   .configure-body {
-    padding: var(--dt-space-inset-md);
+    --configure-inset: var(--dt-space-inset-md);
     overscroll-behavior: contain;
   }
 
