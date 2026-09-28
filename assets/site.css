@@ -3208,8 +3208,7 @@ body.search-open {
    tools/build-site.mjs. */
 
 .app-head,
-.subnav,
-.tabbar {
+.fab {
   display: none;
 }
 
@@ -3261,68 +3260,6 @@ body.search-open {
     transform: scale(calc(1 - 0.38 * var(--hc)));
   }
 
-  .head-r {
-    display: flex;
-    flex: none;
-    gap: 2px;
-  }
-
-  .icon-btn,
-  .icon-btn.nav-toggle {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--dt-text-primary);
-    cursor: pointer;
-  }
-
-  .icon-btn .ic {
-    width: 20px;
-    height: 20px;
-  }
-
-  .icon-btn:hover,
-  .icon-btn.nav-toggle[aria-expanded="true"] {
-    background: var(--dt-surface-sunken);
-    color: var(--dt-text-primary);
-    border-color: transparent;
-  }
-
-  /* The section's pages, as chips that scroll sideways under the title. */
-  .subnav {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 6px 20px 10px;
-  }
-
-  .subnav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .chip-link {
-    flex: none;
-    padding: 7px 14px;
-    border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-    border-radius: var(--dt-radius-pill);
-    color: var(--dt-text-primary);
-    font-size: var(--dt-font-size-sm);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .chip-link[aria-current="page"] {
-    background: var(--dt-surface-action);
-    border-color: var(--dt-surface-action);
-    color: var(--dt-text-on-action);
-  }
-
   /* The header already says where you are, so the page's own h1 and the
      breadcrumb step back (the h1 stays for screen readers). */
   .main:not(.home) .doc > h1:first-of-type {
@@ -3338,96 +3275,6 @@ body.search-open {
     display: none;
   }
 
-  /* Floating tab bar: shrinks to the current section's icon while scrolling
-     down, and comes back scrolling up, at the top, or on a tap. */
-  .tabbar {
-    position: fixed;
-    left: 50%;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    z-index: var(--dt-z-toast);
-    display: flex;
-    width: min(500px, calc(100% - 20px));
-    padding: 5px;
-    border-radius: 28px;
-    transform: translateX(-50%);
-    background: color-mix(in oklab, var(--dt-surface-overlay) 82%, transparent);
-    -webkit-backdrop-filter: saturate(1.8) blur(18px);
-    backdrop-filter: saturate(1.8) blur(18px);
-    box-shadow: 0 10px 30px rgb(0 0 0 / 0.12), 0 0 0 1px rgb(0 0 0 / 0.06);
-    transition: width 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .tabbar a {
-    display: flex;
-    flex: 1 1 0px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-width: 0;
-    height: 46px;
-    border-radius: 21px;
-    color: var(--dt-text-tertiary);
-    font-size: 0.68rem;
-    text-decoration: none;
-    transition: flex 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s, background 0.2s, color 0.2s;
-  }
-
-  .tabbar a .ic {
-    width: 22px;
-    height: 22px;
-  }
-
-  .tabbar a[aria-current="page"] {
-    background: var(--dt-surface-sunken);
-    color: var(--dt-text-primary);
-  }
-
-  .tabbar.min {
-    width: 56px;
-  }
-
-  .tabbar.min a:not([aria-current="page"]) {
-    flex: 0 0 0px;
-    opacity: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .tabbar.min a[aria-current="page"] {
-    background: transparent;
-  }
-
-  .tabbar.min a span {
-    display: none;
-  }
-
-  body {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* Configure sits above the tab bar, at its right. */
-  .configure-bar {
-    right: 14px;
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .configure-open-btn {
-    width: 48px;
-    height: 48px;
-  }
-
-  /* The menu drawer opens under the header, which stays as the way out. */
-  .sidebar {
-    inset: 0;
-    padding-top: 92px;
-  }
-
-  body.nav-open .tabbar,
-  body.configure-open .tabbar {
-    display: none;
-  }
-
   .search-bg {
     padding-top: 8px;
   }
@@ -3437,12 +3284,7 @@ body.search-open {
   }
 }
 
-@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
-  .tabbar,
-  .tabbar a {
-    transition: none;
-  }
-}
+
 
 /* Chrome icons drawn with icon() take the site's stroke, like the tiles do. */
 .ic {
@@ -3453,57 +3295,499 @@ body.search-open {
   stroke-width: 3;
 }
 
-/* The menu drawer on a phone: sections as large headers, their pages as the
-   sub-list, like the portfolio's page titles. */
+/* ---------------------------------------------------- phone menu (menu.js) */
+
+/* After the progressive menu sheet on Graham's folio: a floating pill with
+   search, Configure and menu; the menu sheet grows out of the menu button. */
 @media (max-width: 900px) {
-  .sidebar .nav-top a {
-    font-size: 1.5rem;
-    font-weight: var(--dt-font-weight-medium);
-    letter-spacing: -0.03em;
-    padding-top: 6px;
-    padding-bottom: 6px;
+  .sidebar,
+  .sidebar.open,
+  .configure-bar {
+    display: none;
   }
 
-  .sidebar .nav-section > summary {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-family: var(--dt-font-family-sans);
-    font-size: 1.5rem;
-    font-weight: var(--dt-font-weight-medium);
-    letter-spacing: -0.03em;
-    text-transform: none;
-    color: var(--dt-text-primary);
+  body {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
-  .sidebar .nav-section li a {
-    font-size: var(--dt-font-size-md);
-  }
-}
-
-@media (max-width: 900px) {
-  .sidebar .nav-section > summary {
+  .fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--kb, 0px));
+    z-index: var(--dt-z-toast);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    list-style: none;
+    justify-content: flex-end;
+    gap: 2px;
+    height: 60px;
+    padding: 5px;
+    overflow: hidden;
+    border-radius: 30px;
+    background: color-mix(in oklab, var(--dt-surface-overlay) 86%, transparent);
+    -webkit-backdrop-filter: saturate(1.8) blur(18px);
+    backdrop-filter: saturate(1.8) blur(18px);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.14), 0 0 0 1px rgb(0 0 0 / 0.06);
+    transition: width 0.44s cubic-bezier(0.2, 0.85, 0.25, 1), opacity 0.2s;
   }
 
-  .sidebar .nav-section > summary::-webkit-details-marker {
+  .fab.gone {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .fab-btn,
+  .fab .configure-open-btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--dt-text-primary);
+    cursor: pointer;
+  }
+
+  .fab-btn .ic,
+  .fab .configure-open-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .fab-btn:hover,
+  .fab .configure-open-btn:hover {
+    background: var(--dt-surface-sunken);
+  }
+
+  .fab-q {
     display: none;
-  }
-
-  .sidebar .nav-section > summary::before {
-    content: none;
-    display: none;
-  }
-
-  .sidebar .nav-section > summary::after {
-    content: "+";
-    font-weight: var(--dt-font-weight-light, 300);
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    height: 50px;
+    padding: 0 0 0 14px;
     color: var(--dt-text-tertiary);
   }
 
-  .sidebar .nav-section[open] > summary::after {
-    content: "\2212";
+  .fab-q > .ic {
+    width: 19px;
+    height: 19px;
+    flex: none;
+  }
+
+  .fab-q input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--dt-text-primary);
+    font: inherit;
+    font-size: 16px;
+    outline: none;
+  }
+
+  .fab-q input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .fab-q-close {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--dt-surface-sunken);
+    color: var(--dt-text-primary);
+  }
+
+  .fab-q-close .ic {
+    width: 16px;
+    height: 16px;
+  }
+
+  .fab.searching {
+    width: calc(100vw - 32px);
+  }
+
+  .fab.searching > :not(.fab-q) {
+    display: none;
+  }
+
+  .fab.searching .fab-q {
+    display: flex;
+    animation: search-scrim 0.3s 0.12s both;
+  }
+
+  .q-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--dt-z-toast) - 2);
+    background: rgb(0 0 0 / 0.2);
+    animation: search-scrim 0.25s ease-out;
+  }
+
+  .q-res {
+    position: fixed;
+    right: 16px;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px) + var(--kb, 0px));
+    z-index: calc(var(--dt-z-toast) - 1);
+    width: calc(100vw - 32px);
+    max-height: min(60vh, 520px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px;
+    border-radius: 24px;
+    background: var(--dt-surface-overlay);
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.18), 0 0 0 1px rgb(0 0 0 / 0.06);
+    transform-origin: 100% 100%;
+    animation: q-res-in 0.34s cubic-bezier(0.2, 0.85, 0.25, 1);
+  }
+
+  .q-scrim[hidden],
+  .q-res[hidden] {
+    display: none;
+  }
+
+  @keyframes q-res-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  }
+
+  .q-h {
+    margin: 10px 10px 4px;
+    font-size: 0.8rem;
+    color: var(--dt-text-tertiary);
+  }
+
+  .q-none {
+    margin: 0;
+    padding: 14px 12px;
+    color: var(--dt-text-secondary);
+  }
+
+  .q-row,
+  .mrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    color: var(--dt-text-primary);
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .q-row {
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+
+  .q-row:hover {
+    background: var(--dt-surface-sunken);
+  }
+
+  .q-row .t,
+  .mrow .t {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .q-row b,
+  .mrow b {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 1.02rem;
+    font-weight: var(--dt-font-weight-medium);
+  }
+
+  .q-row small,
+  .mrow small {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.85rem;
+    color: var(--dt-text-tertiary);
+  }
+
+  .q-row > .ic,
+  .mrow > .ic {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--dt-text-tertiary);
+  }
+
+  /* The menu sheet: inset from the edges, nearly full height. */
+  .msheet-bg {
+    position: fixed;
+    inset: 0;
+    z-index: var(--dt-z-dialog);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.38);
+  }
+
+  .msheet-bg[hidden] {
+    display: none;
+  }
+
+  .msheet-bg.closing {
+    animation: msheet-scrim-out 0.26s ease-in forwards;
+  }
+
+  @keyframes msheet-scrim-out {
+    to { background: rgb(0 0 0 / 0); }
+  }
+
+  .msheet {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 16px);
+    height: calc(100% - 44px - env(safe-area-inset-top, 0px));
+    margin-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: 22px 24px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 24px;
+    background: var(--dt-surface-overlay);
+    color: var(--dt-text-primary);
+  }
+
+  .msheet-bg.morph .msheet > :not(.mfoot) {
+    animation: msheet-body-in 0.5s 0.16s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .msheet-bg.morph .mfoot [data-close] .ic {
+    animation: msheet-x-in 0.5s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  }
+
+  .msheet-bg.morphout .msheet > * {
+    opacity: 0;
+    transition: opacity 0.16s;
+  }
+
+  @keyframes msheet-body-in {
+    from { opacity: 0; transform: translateY(22px); }
+  }
+
+  @keyframes msheet-x-in {
+    from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  }
+
+  .msheet.snext > :not(.mfoot) {
+    animation: msheet-next 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .msheet.sprev > :not(.mfoot) {
+    animation: msheet-prev 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .msheet.snext > .mp-head,
+  .msheet.sprev > .mp-head {
+    animation: search-scrim 0.3s ease-out both;
+  }
+
+  .msheet.hdrag > :not(.mfoot) {
+    transform: translateX(var(--sx, 0px));
+  }
+
+  @keyframes msheet-next {
+    from { opacity: 0; transform: translateX(40px); }
+  }
+
+  @keyframes msheet-prev {
+    from { opacity: 0; transform: translateX(-40px); }
+  }
+
+  .mp-head {
+    padding: 2px 0 6px;
+  }
+
+  .crumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--dt-text-tertiary);
+  }
+
+  .crumb-up {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--dt-text-tertiary);
+    font: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--dt-border-subtle);
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .crumb .sep {
+    opacity: 0.5;
+  }
+
+  .crumb-cur {
+    color: var(--dt-text-primary);
+  }
+
+  .mp-body {
+    flex: 1 0 auto;
+  }
+
+  .big-links {
+    display: flex;
+    flex-direction: column;
+    margin-top: 4px;
+  }
+
+  .big-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 10px 0;
+    border: 0;
+    border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+    background: none;
+    color: var(--dt-text-primary);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .big-link .lbl {
+    display: block;
+    font-size: clamp(1.85rem, 7.8vw, 2.35rem);
+    font-weight: var(--dt-font-weight-regular);
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .big-link small {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.92rem;
+    color: var(--dt-text-tertiary);
+  }
+
+  .big-link > .ic {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    color: var(--dt-text-tertiary);
+  }
+
+  .big-link[aria-current="page"] .lbl {
+    color: var(--dt-text-tertiary);
+  }
+
+  .big-link[aria-current="page"] small::before,
+  .mrow[aria-current="page"] small::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 7px;
+    border-radius: 50%;
+    background: var(--dt-text-primary);
+    vertical-align: 2px;
+  }
+
+  .sub-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .sub-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: var(--dt-surface-sunken);
+    color: var(--dt-text-primary);
+    font-size: 1rem;
+    text-decoration: none;
+  }
+
+  .mlist {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mrow {
+    padding: 12px 0;
+    border: 0;
+    border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+    background: none;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  /* Back and close in a footer; close sits where the menu button was. */
+  .mfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: auto -24px 0;
+    padding: 16px 13px calc(13px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top, var(--dt-surface-overlay) 68%, transparent);
+  }
+
+  .msh-x {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--dt-text-primary);
+    cursor: pointer;
+  }
+
+  .msh-x .ic {
+    width: 22px;
+    height: 22px;
+  }
+
+  .msh-x:hover {
+    background: var(--dt-surface-sunken);
+  }
+
+  body.msheet-open {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .fab,
+  .q-res,
+  .q-scrim,
+  .msheet-bg,
+  .msheet > *,
+  .fab.searching .fab-q {
+    animation: none !important;
+    transition: none !important;
   }
 }

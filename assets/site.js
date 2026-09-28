@@ -390,23 +390,13 @@
     });
   }
 
-  /* Phone chrome, after the portfolio: the header title shrinks over the first
-     48px of scroll (--hc), and the tab bar shrinks to the current section's
-     icon while scrolling down, coming back scrolling up or at the top. A tap
-     on the shrunk bar opens it again instead of navigating. */
+  /* Phone header, after the folio: the title shrinks over the first 48px of
+     scroll (--hc). */
   var appHead = document.getElementById("app-head");
-  var tabs = document.getElementById("tabbar");
-  if (appHead || tabs) {
-    var lastY = window.scrollY;
+  if (appHead) {
     var ticking = false;
     var onScroll = function () {
-      var y = window.scrollY;
-      if (appHead) appHead.style.setProperty("--hc", Math.min(1, Math.max(0, y / 48)).toFixed(3));
-      if (tabs) {
-        if (y < 40 || y < lastY - 4) tabs.classList.remove("min");
-        else if (y > lastY + 4) tabs.classList.add("min");
-      }
-      lastY = y;
+      appHead.style.setProperty("--hc", Math.min(1, Math.max(0, window.scrollY / 48)).toFixed(3));
       ticking = false;
     };
     window.addEventListener("scroll", function () {
@@ -416,19 +406,6 @@
       }
     }, { passive: true });
     onScroll();
-    if (tabs) {
-      tabs.addEventListener("click", function (event) {
-        if (!tabs.classList.contains("min")) return;
-        event.preventDefault();
-        tabs.classList.remove("min");
-      });
-    }
-  }
-
-  /* The chip for the page you are on starts in view. */
-  var chipOn = document.querySelector('.subnav [aria-current="page"]');
-  if (chipOn && chipOn.parentNode.scrollWidth > chipOn.parentNode.clientWidth) {
-    chipOn.parentNode.scrollLeft = chipOn.offsetLeft - 20;
   }
 
   /* Home page template thumbnails: each frame renders its card at 1280px and
