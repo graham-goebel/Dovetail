@@ -15,7 +15,7 @@ How to get set up, make a change, and get it merged when several people (and the
 | `changes/` | Pending changelog entries, one per change | hand |
 | `examples/` | Sites built with Dovetail, as stretch tests | hand |
 | `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html` | The documentation site | **generated** |
-| `system/components/bundle.js`, `system/_ds_bundle.js`, `system/templates/_support/card-kit.js`, `assets/configure-data.js`, `assets/graph-data.js` | Build output | **generated** |
+| `system/components/bundle.js`, `system/_ds_bundle.js`, `system/templates/_support/card-kit.js`, `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js` | Build output | **generated** |
 | The `<style>` block and app script of `previews/MarketingKit.html` and `previews/DashboardKit.html` | Compiled from the templates in `system/kits/` | **generated** |
 
 **Never edit a generated file by hand.** Change its source and run `npm run build`.

@@ -1253,29 +1253,19 @@
   }
 
   function buildPanel() {
+    /* One round button. Dark mode and the brand colour live in the sheet. */
     el.toolbar = h("div", { class: "configure-bar", role: "group", "aria-label": "Configure the system" }, [
-      (el.mode = h("button", {
-        type: "button",
-        class: "configure-icon-btn",
-        title: "Toggle dark mode",
-        "aria-pressed": "false",
-        onclick: function () {
-          commit({ dark: !config.dark });
-        },
-      })),
       (el.open = h("button", {
         type: "button",
         class: "configure-open-btn",
+        title: "Configure",
+        "aria-label": "Configure",
         "aria-expanded": "false",
         "aria-controls": "configure-sheet",
         onclick: toggle,
+        html: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21v-6"/><path d="M5 11V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M19 21v-4"/><path d="M19 13V3"/><path d="M2.5 15h5"/><path d="M9.5 8h5"/><path d="M16.5 17h5"/></svg>',
       })),
     ]);
-
-    el.swatch = h("span", { class: "configure-swatch", "aria-hidden": "true" });
-    el.openLabel = h("span", { text: "Configure" });
-    el.open.appendChild(el.swatch);
-    el.open.appendChild(el.openLabel);
 
     el.sheet = h("aside", {
       id: "configure-sheet",
@@ -2525,11 +2515,7 @@
   }
 
   function render(options) {
-    if (!el.mode) return;
-    el.mode.setAttribute("aria-pressed", String(!!config.dark));
-    el.mode.title = config.dark ? "Switch to light mode" : "Switch to dark mode";
-    el.mode.textContent = config.dark ? "☀" : "☾";
-    el.swatch.style.background = rampFor(config)["600"];
+    if (!el.open) return;
     if (el.sheet.hidden) return;
     if (options && options.rebuild === false) {
       if (el.export && el.export.isConnected) el.export.value = exportCss();

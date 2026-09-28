@@ -250,6 +250,10 @@ const ICONS = {
   sparkle: ['<path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/>', '<path d="M19 17.5v3"/>', '<path d="M17.5 19h3"/>'],
   more: ['<path d="M5 12h.01"/>', '<path d="M12 12h.01"/>', '<path d="M19 12h.01"/>'],
   check: ['<path d="m5 12.5 4.5 4.5L19 7.5"/>'],
+  menu: ['<path d="M4 8.5h16"/>', '<path d="M4 15.5h16"/>'],
+  x: ['<path d="M6 6l12 12"/>', '<path d="M18 6 6 18"/>'],
+  home: ['<path d="M3.5 10.5 12 3.5l8.5 7"/>', '<path d="M5.5 9v11.5h13V9"/>', '<path d="M10 20.5v-6h4v6"/>'],
+  search: ['<path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/>', '<path d="m20.5 20.5-5-5"/>'],
   arrowRight: ['<path d="M4.5 12h15"/>', '<path d="m13.5 6 6 6-6 6"/>'],
   shield: ['<path d="M12 21s7.5-3.5 7.5-9.5V5.5L12 3 4.5 5.5v6C4.5 17.5 12 21 12 21Z"/>', '<path d="m9 12 2 2 4-4"/>'],
   wrench: ['<path d="M20.5 4.5 17 8l-1-1 3.5-3.5a5.5 5.5 0 0 0-7 7l-8 8a2 2 0 0 0 2.8 2.8l8-8a5.5 5.5 0 0 0 7-7l-1.8 1.8"/>'],
@@ -699,6 +703,49 @@ function pageActions({ title, root, md, mdName, pageUrl }) {
 </div>`;
 }
 
+/* ------------------------------------------------------------ phone chrome */
+
+/* On a phone the site takes the portfolio's app layout: a large page title
+   under a small section eyebrow that shrinks into a compact bar on scroll,
+   round search and menu buttons, a row of chips for the section's pages, and
+   a floating tab bar for the sections themselves. None of it shows on a wide
+   screen, where the header and sidebar already do these jobs. */
+const TABS = [
+  ["home", "Home", "index.html", "home"],
+  ["foundations", "Foundations", "foundations/index.html", "layers"],
+  ["components", "Components", "components/index.html", "blocks"],
+  ["showcase", "Showcase", "showcase/index.html", "monitor"],
+  ["guide", "Guide", "guide/index.html", "book"],
+];
+
+function sectionOf(active) {
+  const a = String(active || "home");
+  if (a.startsWith("component")) return "components";
+  return a.split(":")[0];
+}
+
+function phoneChrome(root, active, title) {
+  const sec = sectionOf(active);
+  const tab = TABS.find(([id]) => id === sec);
+  const eyebrow = sec === "home" ? "White-label design system" : tab ? tab[1] : sec === "tokens" ? "Reference" : "Dovetail";
+  const pageTitle = sec === "home" ? "Dovetail" : title;
+  return `<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-eyebrow">${esc(eyebrow)}</p><p class="h-title" aria-hidden="true">${esc(pageTitle)}</p></div>
+</header>`;
+}
+
+/* The folio's floating pill: search, then the menu button the menu sheet
+   grows out of. assets/menu.js drives both and moves the Configure button in
+   between on a phone. */
+function fab() {
+  const g = (name) => icon(name).replace('class="tile-icon"', 'class="ic"');
+  return `<div class="fab" id="fab">
+  <label class="fab-q" for="fab-q">${g("search")}<input id="fab-q" type="search" placeholder="Search components and pages" aria-label="Search components and pages" autocomplete="off" enterkeyhint="search"><button type="button" class="fab-q-close" aria-label="Close search">${g("x")}</button></label>
+  <button type="button" class="fab-btn" data-fab-search aria-label="Search">${g("search")}</button>
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu">${g("menu")}</button>
+</div>`;
+}
+
 function page({ title, lede, body, active, root, wide = false, home = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "" }) {
   const heading = title === "Dovetail" ? "Dovetail" : `${title} · Dovetail`;
   const toc = tocFrom(body);
@@ -737,9 +784,10 @@ function page({ title, lede, body, active, root, wide = false, home = false, scr
   </a>
   <span class="wordmark-note">White-label design system</span>
   <div class="header-controls">
-    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages">${icon("search").replace('class="tile-icon"', 'class="ic"')}<span>Search</span><kbd>/</kbd></button>
   </div>
 </header>
+${phoneChrome(root, active, title)}
 <div class="layout">
 ${nav(root, active)}
 <main id="main" class="${["main", wide ? "wide" : "", home ? "home" : "", hasToc ? "has-toc" : ""].filter(Boolean).join(" ")}">
@@ -754,7 +802,11 @@ ${graph ? GRAPH_SPRITE : ""}
 <footer class="site-footer">
   <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
+${fab()}
 ${scripts}<script src="${root}assets/configure-data.js" defer></script>
+<script src="${root}assets/search-data.js" defer></script>
+<script src="${root}assets/search.js" defer></script>
+<script src="${root}assets/menu.js" defer></script>
 <script src="${root}assets/theme.js" defer></script>
 <script src="${root}assets/site.js" defer></script>
 ${graph ? `<script src="${root}assets/graph.js" defer></script>` : ""}
@@ -982,6 +1034,32 @@ function breadcrumb(root, trail) {
 }
 
 /* --------------------------------------------------------------- home page */
+
+/* The search index: every component, foundation, showcase and guide page,
+   as root-relative links. Written before any page, so pages stamp its hash. */
+function buildSearchData() {
+  const items = [
+    ...components.map((c) => ({ t: c.name, s: `Component · ${GROUP_LABEL[c.group] || c.group}`, d: String(c.summary || "").replace(/[`*_]/g, ""), u: `components/${c.name}.html`, k: "component" })),
+    ...FOUNDATIONS.map(([g, sl, text]) => ({ t: g, s: "Foundation", d: text, u: `foundations/${sl}.html`, k: "page" })),
+    ...SHOWCASE.map(([g, sl, text]) => ({ t: g, s: "Showcase", d: text, u: `showcase/${sl}.html`, k: "page" })),
+    ...GUIDE_PAGES.map(([sl, label, , text]) => ({ t: label, s: "Guide", d: text, u: `guide/${sl}.html`, k: "page" })),
+    { t: "Tokens", s: "Reference", d: "Every token in the system, with its value in each theme.", u: "tokens.html", k: "page" },
+    { t: "Download", s: "Reference", d: "Take the stylesheets, tokens and components into your project.", u: "downloads.html", k: "page" },
+  ];
+  /* The phone menu's tree: sections as big links, their pages (and, for
+     components, their families) as the layers under them. */
+  const row = (t, d, u) => ({ t, d: String(d || "").replace(/[`*_]/g, ""), u });
+  const navTree = [
+    { id: "home", t: "Home", d: "Overview, templates and theming", u: "index.html" },
+    { id: "foundations", t: "Foundations", d: "Colour, type, space, shape and motion", items: FOUNDATIONS.map(([g, sl, text]) => row(g, text, `foundations/${sl}.html`)) },
+    { id: "components", t: "Components", d: `${components.length} components in ${GROUP_ORDER.length} families`, groups: GROUP_ORDER.map((g) => ({ id: g, t: GROUP_LABEL[g], d: `${byGroup(g).length} components`, items: byGroup(g).map((c) => row(c.name, c.summary, `components/${c.name}.html`)) })) },
+    { id: "showcase", t: "Showcase", d: "Templates, detail cards and tools", items: SHOWCASE.map(([g, sl, text]) => row(g, text, `showcase/${sl}.html`)) },
+    { id: "guide", t: "Guide", d: "Theming, accessibility and contributing", items: GUIDE_PAGES.map(([sl, label, , text]) => row(label, text, `guide/${sl}.html`)) },
+    { id: "tokens", t: "Tokens", d: "Every token, with its value in each theme", u: "tokens.html" },
+  ];
+  const extras = [row("Download", "", "downloads.html"), row("Changelog", "", "guide/changelog.html")];
+  write("assets/search-data.js", `/* GENERATED by tools/build-site.mjs: the site search index and the phone menu. Do not edit. */\nwindow.DovetailSearch = ${JSON.stringify(items)};\nwindow.DovetailNav = ${JSON.stringify({ tree: navTree, extras })};\n`);
+}
 
 /* The home page is laid out the way the marketing template is: alternating
    base and subtle sections, a two-column hero, centred section heads with a
@@ -1697,6 +1775,7 @@ ${groups
 syncLegacyBundle();
 buildConfigureData();
 buildGraphData();
+buildSearchData();
 buildHome();
 buildFoundations();
 buildComponents();

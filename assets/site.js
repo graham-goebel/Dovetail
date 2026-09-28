@@ -390,6 +390,24 @@
     });
   }
 
+  /* Phone header, after the folio: the title shrinks over the first 48px of
+     scroll (--hc). */
+  var appHead = document.getElementById("app-head");
+  if (appHead) {
+    var ticking = false;
+    var onScroll = function () {
+      appHead.style.setProperty("--hc", Math.min(1, Math.max(0, window.scrollY / 48)).toFixed(3));
+      ticking = false;
+    };
+    window.addEventListener("scroll", function () {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(onScroll);
+      }
+    }, { passive: true });
+    onScroll();
+  }
+
   /* Home page template thumbnails: each frame renders its card at 1280px and
      is scaled to fit, so the thumbnail is the live page. */
   var thumbs = document.querySelectorAll(".home-thumb-frame");

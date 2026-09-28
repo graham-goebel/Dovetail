@@ -6,6 +6,7 @@ system/_ds_bundle.js                        linguist-generated=true
 system/templates/_support/card-kit.js       linguist-generated=true
 assets/configure-data.js                    linguist-generated=true
 assets/graph-data.js                        linguist-generated=true
+assets/search-data.js                       linguist-generated=true
 index.html                                  linguist-generated=true
 tokens.html                                 linguist-generated=true
 downloads.html                              linguist-generated=true
