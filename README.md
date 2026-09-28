@@ -502,8 +502,9 @@ state along with the drawer.
 
 Every page with three or more sections gets an "On this page" list in a right-hand column,
 built at generation time from the page's own `h2` and `h3` headings (and its live card
-blocks). It marks the section being read as you scroll, and from 1200px down it gives
-its space back to the content. A component's guide headings are demoted a level on the
+blocks). It marks the section being read as you scroll. It shows from 1200px up, or from
+1600px on the wide pages (tokens, showcase), whose tables and full-width cards need the
+room more; below that it gives its space back to the content. A component's guide headings are demoted a level on the
 page, so they nest under Guidelines in the list and in the document outline.
 
 The ellipsis in the top corner of the content column opens the page menu:
