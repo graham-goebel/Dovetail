@@ -29,7 +29,6 @@
   var KEY = "dovetail-theme-config";
   var CONTEXT_KEY = "dovetail-docs-context";
   var BRAND_KEY = "dovetail-docs-brand";
-  var TAB_KEY = "dovetail-docs-tab";
   var CONTEXTS = ["dt-context-product", "dt-context-marketing", "dt-context-social"];
   var MARK_LIMIT = 512 * 1024;
 
@@ -822,13 +821,9 @@
   var context = loadContext();
   var brand = loadBrand();
   var media = loadMedia();
-  var activeTab = (function () {
-    try {
-      return localStorage.getItem(TAB_KEY) || "brand";
-    } catch (e) {
-      return "brand";
-    }
-  })();
+  /* The sheet opens on its menu of groups; a group is a layer pushed over it.
+     "" is the menu. */
+  var activeTab = "";
 
   function applyEverywhere(options) {
     var vars = computeVars(config);
@@ -1277,28 +1272,10 @@
     });
 
     el.body = h("div", { class: "configure-body" });
+    el.body.addEventListener("scroll", function () {
+      el.body.style.setProperty("--p", String(Math.min(1, el.body.scrollTop / 72)));
+    }, { passive: true });
 
-    el.sheet.appendChild(
-      h("header", { class: "configure-head" }, [
-        h("div", {}, [
-          h("h2", { id: "configure-title", text: "Configure" }),
-          h("p", {
-            class: "configure-sub",
-            text: "The tokens a brand is allowed to touch. Every change applies to this page, every other page, and every live card on them.",
-          }),
-        ]),
-        h("div", { class: "configure-head-actions" }, [
-          h("button", {
-            type: "button",
-            class: "configure-reset-btn",
-            "data-bid": "reset",
-            text: "Reset",
-            onclick: reset,
-          }),
-          h("button", { type: "button", class: "configure-close", "aria-label": "Close", text: "×", onclick: close }),
-        ]),
-      ])
-    );
     el.sheet.appendChild(el.body);
 
     document.body.appendChild(el.toolbar);
@@ -1340,17 +1317,40 @@
 
   /* ------------------------------------------------------------- the tabs */
 
-  /* Seven groups is more than one column should carry at once, so each is a
-     tab. The theme preset stays above them because it sets several at a time. */
+  /* Seven groups is more than one column should carry at once, so the sheet
+     opens on a menu of them, the way Gainer's sheets do, and each group is a
+     layer with a back arrow to the menu. */
   var TABS = [
-    { id: "brand", label: "Brand", fields: brandFields },
-    { id: "shape", label: "Shape", fields: shapeFields },
-    { id: "type", label: "Type", fields: typeFields },
-    { id: "space", label: "Space", fields: spaceFields },
-    { id: "media", label: "Media", fields: mediaFields },
-    { id: "view", label: "View", fields: viewFields },
-    { id: "export", label: "Export", fields: exportFields },
+    { id: "brand", label: "Brand", summary: "Name, mark, colours and fill", icon: "droplet", fields: brandFields },
+    { id: "shape", label: "Shape", summary: "Radius and focus ring", icon: "square", fields: shapeFields },
+    { id: "type", label: "Type", summary: "Display, body, secondary and code", icon: "type", fields: typeFields },
+    { id: "space", label: "Space", summary: "Whitespace, density and base unit", icon: "ruler", fields: spaceFields },
+    { id: "media", label: "Media", summary: "Photo, illustration and icons", icon: "image", fields: mediaFields },
+    { id: "view", label: "View", summary: "Colour mode and context", icon: "monitor", fields: viewFields },
+    { id: "export", label: "Export", summary: "Theme file and download", icon: "download", fields: exportFields },
   ];
+
+  /* The sheet's own chrome, drawn to the site's icon convention. */
+  var SHEET_ICONS = {
+    droplet: '<path d="M12 21.5a6.5 6.5 0 0 0 6.5-6.5c0-2-1.2-3.8-3-5.4C13.6 8 12.5 5.6 12 3c-.5 2.6-1.6 5-3.5 6.6-1.8 1.6-3 3.4-3 5.4a6.5 6.5 0 0 0 6.5 6.5Z"/>',
+    square: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/>',
+    type: '<path d="M4.5 7V4.5h15V7"/><path d="M9.5 19.5h5"/><path d="M12 4.5v15"/>',
+    ruler: '<path d="m17.5 8 4 4-4 4"/><path d="M2.5 12h19"/><path d="m6.5 8-4 4 4 4"/>',
+    image: '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m20.5 15-5-5-11 10.5"/>',
+    monitor: '<rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7"/><path d="M12 16.5v4"/>',
+    download: '<path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/>',
+    close: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+    back: '<path d="M19.5 12h-15"/><path d="m10.5 6-6 6 6 6"/>',
+    chevron: '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
+  };
+
+  function sheetIcon(name, cls) {
+    return h("span", {
+      class: cls || null,
+      "aria-hidden": "true",
+      html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" style="display:block;width:16px;height:16px">' + SHEET_ICONS[name] + "</svg>",
+    });
+  }
 
   function brandFields() {
     var out = [];
@@ -2230,57 +2230,74 @@
   function paintBody() {
     var body = el.body;
     body.textContent = "";
+    var tab = TABS.filter(function (t) { return t.id === activeTab; })[0] || null;
 
-    var strip = h("div", { class: "configure-tabs", role: "tablist", "aria-label": "Configure groups" });
-    TABS.forEach(function (tab) {
-      var selected = tab.id === activeTab;
-      strip.appendChild(
-        h("button", {
-          type: "button",
-          class: "configure-tab",
-          role: "tab",
-          id: "configure-tab-" + tab.id,
-          "data-bid": "tab:" + tab.id,
-          "aria-selected": String(selected),
-          "aria-controls": "configure-panel",
-          tabindex: selected ? "0" : "-1",
-          text: tab.label,
-          onclick: function () {
-            setTab(tab.id);
-          },
-          onkeydown: function (event) {
-            var i = TABS.map(function (t) { return t.id; }).indexOf(activeTab);
-            var next = null;
-            if (event.key === "ArrowRight") next = TABS[(i + 1) % TABS.length];
-            else if (event.key === "ArrowLeft") next = TABS[(i - 1 + TABS.length) % TABS.length];
-            else if (event.key === "Home") next = TABS[0];
-            else if (event.key === "End") next = TABS[TABS.length - 1];
-            if (!next) return;
-            event.preventDefault();
-            setTab(next.id);
-            var button = el.body.querySelector('[data-bid="tab:' + next.id + '"]');
-            if (button) button.focus();
-          },
-        })
+    /* The sticky bar: close (or back, in a layer), the small title that fades
+       in as the big one scrolls away, and Reset. */
+    var lead = tab
+      ? h("button", { type: "button", class: "configure-round", "data-bid": "back", "aria-label": "Back to all groups", onclick: function () { setTab("", "back"); } }, [sheetIcon("back")])
+      : h("button", { type: "button", class: "configure-round", "data-bid": "close", "aria-label": "Close", onclick: close }, [sheetIcon("close")]);
+    body.appendChild(
+      h("div", { class: "configure-bar-top" }, [
+        lead,
+        h("p", { class: "configure-mini", "aria-hidden": "true", text: tab ? tab.label : "Configure" }),
+        h("button", { type: "button", class: "configure-reset-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
+      ])
+    );
+
+    body.appendChild(
+      h("div", { class: "configure-big" }, [
+        h("p", { class: "configure-eyebrow", text: tab ? "Configure" : "Dovetail" }),
+        h("h2", { id: "configure-title", text: tab ? tab.label : "Configure" }),
+        h("p", {
+          class: "configure-sub",
+          text: tab ? tab.summary + "." : "The tokens a brand is allowed to touch. Every change applies to this page, every other page, and every live card on them.",
+        }),
+      ])
+    );
+
+    if (!tab) {
+      body.appendChild(
+        h("nav", { class: "configure-menu", "aria-label": "Configure groups" }, TABS.map(function (t) {
+          return h("button", {
+            type: "button",
+            class: "configure-row",
+            "data-bid": "tab:" + t.id,
+            onclick: function () { setTab(t.id, "forward"); },
+          }, [
+            sheetIcon(t.icon, "configure-row-icon"),
+            h("span", {}, [
+              h("span", { class: "configure-row-label", text: t.label }),
+              h("span", { class: "configure-row-summary", text: t.summary }),
+            ]),
+            sheetIcon("chevron", "configure-row-chev"),
+          ]);
+        }))
       );
-    });
-    body.appendChild(strip);
+      return;
+    }
 
-    var tab = TABS.filter(function (t) { return t.id === activeTab; })[0] || TABS[0];
-    var panel = h("div", {
-      class: "configure-panel",
-      id: "configure-panel",
-      role: "tabpanel",
-      "aria-labelledby": "configure-tab-" + tab.id,
-      tabindex: "0",
-    }, tab.fields());
-    body.appendChild(panel);
+    body.appendChild(h("div", { class: "configure-panel", id: "configure-panel", role: "group", "aria-labelledby": "configure-title" }, tab.fields()));
   }
 
-  function setTab(id) {
+  /* Pushing a layer or going back swaps the body's content with a short slide,
+     starts the new layer at its top, and puts focus where a keyboard expects
+     it: the first control going in, the row you came from coming back. */
+  function setTab(id, direction) {
+    var from = activeTab;
     activeTab = id;
-    store(TAB_KEY, id);
-    renderBody();
+    paintBody();
+    el.body.scrollTop = 0;
+    el.body.style.setProperty("--p", "0");
+    if (direction) {
+      el.body.classList.remove("is-forward", "is-back");
+      void el.body.offsetWidth;
+      el.body.classList.add(direction === "back" ? "is-back" : "is-forward");
+    }
+    var target = id
+      ? el.body.querySelector(".configure-panel select, .configure-panel input, .configure-panel button") || el.body.querySelector('[data-bid="back"]')
+      : el.body.querySelector('[data-bid="tab:' + from + '"]');
+    if (target) target.focus({ preventScroll: true });
   }
 
   /* Where the site root is, read from a link the generator already writes. */
@@ -2348,10 +2365,14 @@
 
   function open() {
     lastFocus = document.activeElement;
+    if (activeTab) {
+      activeTab = "";
+      paintBody();
+    }
     el.sheet.hidden = false;
     document.body.classList.add("configure-open");
     el.open.setAttribute("aria-expanded", "true");
-    var first = el.sheet.querySelector("select, button, input");
+    var first = el.sheet.querySelector(".configure-row, select, button, input");
     if (first) first.focus();
   }
 
@@ -2413,7 +2434,17 @@
   });
 
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && !el.sheet.hidden) close();
+    if (event.key !== "Escape" || el.sheet.hidden) return;
+    if (activeTab) setTab("", "back");
+    else close();
+  });
+
+  /* Any button on a page can open the sheet: the home page has two. */
+  document.addEventListener("click", function (event) {
+    var trigger = event.target.closest && event.target.closest("[data-open-configure]");
+    if (!trigger) return;
+    event.preventDefault();
+    open();
   });
 
   window.DovetailConfigurePanel = { open: open, close: close, reset: reset, config: function () { return assign({}, config); } };

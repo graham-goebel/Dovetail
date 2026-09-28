@@ -389,4 +389,17 @@
       }
     });
   }
+
+  /* Home page template thumbnails: each frame renders its card at 1280px and
+     is scaled to fit, so the thumbnail is the live page. */
+  var thumbs = document.querySelectorAll(".home-thumb-frame");
+  if (thumbs.length) {
+    var fit = function () {
+      Array.prototype.forEach.call(thumbs, function (frame) {
+        frame.style.setProperty("--thumb-scale", String(frame.clientWidth / 1280));
+      });
+    };
+    fit();
+    window.addEventListener("resize", fit);
+  }
 })();

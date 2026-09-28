@@ -1010,20 +1010,28 @@ body.configure-open .configure-bar {
 
 .configure-sheet {
   position: fixed;
-  top: calc(var(--site-header) + var(--dt-dim-2));
-  right: var(--dt-dim-2);
-  bottom: var(--dt-dim-2);
+  top: calc(var(--site-header) + var(--dt-dim-3));
+  right: var(--dt-dim-3);
+  bottom: var(--dt-dim-3);
   z-index: var(--dt-z-dialog);
   display: flex;
   flex-direction: column;
-  width: var(--configure-width, 360px);
-  max-width: calc(100vw - var(--dt-dim-4));
-  background: var(--configure-glass);
-  -webkit-backdrop-filter: var(--configure-blur);
-  backdrop-filter: var(--configure-blur);
-  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  width: var(--configure-width, 400px);
+  max-width: calc(100vw - var(--dt-dim-6));
+  overflow: hidden;
+  background: var(--dt-surface-overlay);
   border-radius: var(--dt-radius-overlay);
-  box-shadow: var(--dt-elevation-5);
+  /* Gainer's menu and sheet shadow: a soft drop plus a hairline ring, so the
+     edge reads without a border on any page behind it. */
+  box-shadow: var(--configure-shadow);
+}
+
+:root {
+  --configure-shadow: 0 12px 32px rgb(0 0 0 / 0.16), 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+.dark {
+  --configure-shadow: 0 12px 32px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.08);
 }
 
 /* A class selector outranks the user agent's [hidden] rule, so display: none
@@ -1032,121 +1040,189 @@ body.configure-open .configure-bar {
   display: none;
 }
 
-.configure-head {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--dt-space-inline-sm);
-  padding: var(--dt-space-inset-lg);
-  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+.configure-sheet:not([hidden]) {
+  animation: configure-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.configure-head h2 {
+@keyframes configure-in {
+  from { transform: translateY(20px) scale(0.98); opacity: 0; }
+}
+
+/* The body scrolls; the bar sticks to its top. As the body scrolls, --p goes
+   from 0 to 1 and the big title shrinks away while its small copy fades into
+   the bar, the way Gainer's sheets do. */
+.configure-body {
+  --configure-inset: var(--dt-space-inset-xl);
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 0 var(--configure-inset) var(--configure-inset);
+}
+
+.configure-bar-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: var(--dt-dim-2);
+  margin: 0 calc(-1 * var(--configure-inset) + var(--dt-dim-3));
+  padding: var(--dt-dim-3) var(--dt-dim-3) var(--dt-dim-2);
+  background: var(--dt-surface-overlay);
+  box-shadow: 0 1px 0 rgb(0 0 0 / calc(var(--p, 0) * 0.08));
+}
+
+.configure-round {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--dt-surface-sunken);
+  color: var(--dt-text-primary);
+  cursor: pointer;
+  transition: background var(--dt-motion-micro);
+}
+
+.configure-round:hover {
+  background: var(--dt-border-subtle);
+}
+
+.configure-round svg {
+  width: 16px;
+  height: 16px;
+}
+
+.configure-mini {
   margin: 0;
-  font-size: var(--dt-font-size-lg);
-  line-height: var(--dt-line-height-lg);
-  font-weight: var(--dt-font-weight-semibold);
+  text-align: center;
+  font-size: var(--dt-font-size-md);
+  font-weight: var(--dt-font-weight-medium);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: clamp(0, calc((var(--p, 0) - 0.6) * 2.5), 1);
+}
+
+.configure-reset-btn {
+  justify-self: end;
+  height: 34px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--dt-surface-sunken);
+  color: var(--dt-text-primary);
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+  cursor: pointer;
+}
+
+.configure-reset-btn:hover {
+  background: var(--dt-border-subtle);
+}
+
+.configure-big {
+  padding: var(--dt-dim-1) 0 var(--dt-dim-5);
+  transform: scale(calc(1 - 0.08 * var(--p, 0)));
+  transform-origin: 0 0;
+  opacity: calc(1 - 0.8 * var(--p, 0));
+}
+
+.configure-eyebrow {
+  margin: 0 0 2px;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-tertiary);
+}
+
+.configure-big h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  font-weight: var(--dt-font-weight-regular);
+  letter-spacing: -0.02em;
 }
 
 .configure-sub {
   margin: var(--dt-dim-1) 0 0;
   max-width: none;
-  font-size: var(--dt-font-size-xs);
+  font-size: var(--dt-font-size-sm);
   line-height: var(--dt-line-height-sm);
   color: var(--dt-text-secondary);
   text-wrap: pretty;
 }
 
-.configure-head-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--dt-space-inline-2xs);
-  flex: none;
-  margin-left: auto;
-}
-
-.configure-reset-btn {
-  flex: none;
-  height: var(--dt-size-control-sm);
-  padding: 0 var(--dt-space-inset-sm);
-  border: 0;
-  border-radius: var(--dt-radius-control);
-  background: transparent;
-  color: var(--dt-text-secondary);
-  font-family: var(--dt-font-family-sans);
-  font-size: var(--dt-font-size-xs);
-  font-weight: var(--dt-font-weight-medium);
-  cursor: pointer;
-  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
-}
-
-.configure-reset-btn:hover {
-  background: var(--dt-surface-action-ghost-hover);
-  color: var(--dt-text-primary);
-}
-
-.configure-close {
-  flex: none;
-  width: var(--dt-size-control-sm);
-  height: var(--dt-size-control-sm);
-  border: 0;
-  border-radius: var(--dt-radius-control);
-  background: transparent;
-  color: var(--dt-text-secondary);
-  font-size: var(--dt-font-size-xl);
-  line-height: 1;
-  cursor: pointer;
-}
-
-.configure-close:hover {
-  background: var(--dt-surface-action-ghost-hover);
-  color: var(--dt-text-primary);
-}
-
-.configure-body {
-  --configure-inset: var(--dt-space-inset-lg);
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: var(--configure-inset);
+/* The top layer: one row per group, like Gainer's menus. Each opens a layer. */
+.configure-menu {
   display: flex;
   flex-direction: column;
-  gap: var(--dt-space-stack-lg);
+  margin: 0 calc(-1 * var(--dt-dim-3));
 }
 
-.configure-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--dt-dim-1);
-  /* Full bleed inside the body, whatever its padding is at this width. */
-  margin: 0 calc(-1 * var(--configure-inset));
-  padding: 0 var(--configure-inset) var(--dt-dim-2);
-  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
-}
-
-.configure-tab {
-  flex: none;
-  height: var(--dt-dim-8);
-  padding: 0 var(--dt-space-inset-sm);
+.configure-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: var(--dt-dim-3);
+  width: 100%;
+  padding: var(--dt-dim-3);
   border: 0;
-  border-radius: var(--dt-radius-pill);
+  border-radius: 12px;
   background: transparent;
-  color: var(--dt-text-secondary);
+  color: var(--dt-text-primary);
   font-family: var(--dt-font-family-sans);
-  font-size: var(--dt-font-size-xs);
-  font-weight: var(--dt-font-weight-medium);
-  white-space: nowrap;
+  text-align: left;
   cursor: pointer;
-  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
 }
 
-.configure-tab:hover {
-  background: var(--dt-surface-action-ghost-hover);
+.configure-row:hover,
+.configure-row:focus-visible {
+  background: var(--dt-surface-sunken);
+  outline: none;
+}
+
+.configure-row-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--dt-surface-sunken);
   color: var(--dt-text-primary);
 }
 
-.configure-tab[aria-selected="true"] {
-  background: var(--dt-surface-action);
-  color: var(--dt-text-on-action);
+.configure-row:hover .configure-row-icon {
+  background: var(--dt-surface-overlay);
+}
+
+.configure-row-icon svg,
+.configure-row-chev {
+  width: 16px;
+  height: 16px;
+}
+
+.configure-row-chev {
+  color: var(--dt-text-tertiary);
+}
+
+.configure-row-label {
+  display: block;
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.configure-row-summary {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .configure-panel {
@@ -1157,6 +1233,36 @@ body.configure-open .configure-bar {
 
 .configure-panel:focus {
   outline: none;
+}
+
+/* Moving between layers: forward slides in from the right, back from the left. */
+.configure-body.is-forward > * {
+  animation: configure-fwd 0.24s ease-out both;
+}
+
+.configure-body.is-back > * {
+  animation: configure-back 0.24s ease-out both;
+}
+
+.configure-body.is-forward > .configure-bar-top,
+.configure-body.is-back > .configure-bar-top {
+  animation: none;
+}
+
+@keyframes configure-fwd {
+  from { opacity: 0; transform: translateX(28px); }
+}
+
+@keyframes configure-back {
+  from { opacity: 0; transform: translateX(-28px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .configure-sheet:not([hidden]),
+  .configure-body.is-forward > *,
+  .configure-body.is-back > * {
+    animation: none;
+  }
 }
 
 .configure-field {
@@ -1600,29 +1706,22 @@ body.configure-open .configure-bar {
    the page behind stops scrolling so a swipe moves the controls, not the page. */
 @media (max-width: 720px) {
   .configure-sheet {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    top: auto;
+    right: var(--dt-dim-2);
+    bottom: calc(var(--dt-dim-2) + env(safe-area-inset-bottom, 0px));
+    left: var(--dt-dim-2);
     width: auto;
     max-width: none;
-    height: 100vh;
-    height: 100dvh;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    background: var(--dt-surface-overlay);
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    max-height: calc(100dvh - 64px);
+    border-radius: 24px;
   }
 
-  .configure-head {
-    padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-sm);
+  .configure-sheet:not([hidden]) {
+    animation: configure-up 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .configure-body {
-    --configure-inset: var(--dt-space-inset-md);
-    overscroll-behavior: contain;
+    --configure-inset: var(--dt-space-inset-lg);
   }
 
   body.configure-open {
@@ -1635,6 +1734,10 @@ body.configure-open .configure-bar {
   }
 }
 
+@keyframes configure-up {
+  from { transform: translateY(100%); }
+}
+
 /* ------------------------------------------------------- the files menu */
 
 /* Drawn on <body>, positioned against the button: on a narrow screen the card
@@ -1644,14 +1747,12 @@ body.configure-open .configure-bar {
 .file-menu {
   position: fixed;
   z-index: var(--dt-z-dropdown);
-  min-width: var(--dt-dim-56);
-  padding: var(--dt-space-inset-2xs);
-  background: var(--configure-glass);
-  -webkit-backdrop-filter: var(--configure-blur);
-  backdrop-filter: var(--configure-blur);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-container);
-  box-shadow: var(--dt-elevation-3);
+  min-width: 210px;
+  padding: 6px;
+  background: var(--dt-surface-overlay);
+  border-radius: 14px;
+  box-shadow: var(--configure-shadow);
+  transform-origin: top right;
 }
 
 .file-menu-item {
@@ -1660,9 +1761,9 @@ body.configure-open .configure-bar {
   justify-content: space-between;
   gap: var(--dt-space-inline-md);
   width: 100%;
-  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  padding: 11px 12px;
   border: 0;
-  border-radius: var(--dt-radius-control);
+  border-radius: 9px;
   background: transparent;
   font-family: var(--dt-font-family-sans);
   font-size: var(--dt-font-size-sm);
@@ -2410,16 +2511,30 @@ body.graph-open .configure-sheet {
   top: calc(100% + var(--dt-dim-1));
   right: 0;
   z-index: var(--dt-z-dropdown);
-  min-width: var(--dt-dim-56);
+  min-width: 210px;
   margin: 0;
-  padding: var(--dt-space-inset-2xs);
+  padding: 6px;
   list-style: none;
-  background: var(--configure-glass, var(--dt-surface-overlay));
-  -webkit-backdrop-filter: var(--configure-blur);
-  backdrop-filter: var(--configure-blur);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-container);
-  box-shadow: var(--dt-elevation-3);
+  background: var(--dt-surface-overlay);
+  border-radius: 14px;
+  box-shadow: var(--configure-shadow);
+  transform-origin: top right;
+}
+
+.page-menu:not([hidden]),
+.file-menu {
+  animation: menu-in 0.22s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: scale(0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-menu:not([hidden]),
+  .file-menu {
+    animation: none;
+  }
 }
 
 .page-menu[hidden] {
@@ -2429,11 +2544,11 @@ body.graph-open .configure-sheet {
 .page-menu-item {
   display: flex;
   align-items: center;
-  gap: var(--dt-space-inline-sm);
+  gap: 12px;
   width: 100%;
-  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  padding: 11px 12px;
   border: 0;
-  border-radius: var(--dt-radius-control);
+  border-radius: 9px;
   background: transparent;
   font-family: var(--dt-font-family-sans);
   font-size: var(--dt-font-size-sm);
@@ -2455,7 +2570,7 @@ body.graph-open .configure-sheet {
 
 .page-menu-item:hover,
 .page-menu-item:focus-visible {
-  background: var(--dt-surface-action-ghost-hover);
+  background: var(--dt-surface-sunken);
   outline: none;
 }
 
@@ -2474,4 +2589,315 @@ body.graph-open .configure-sheet {
 
 .page-actions-status:empty {
   display: none;
+}
+
+/* -------------------------------------------------------------- home page */
+
+/* The home page is a run of full-width bands, each on its own background, so
+   it reads as a product page rather than one long white column. A band cancels
+   the main column's padding and puts it back inside, so its colour runs edge to
+   edge of the content area at every width. */
+
+.main.home {
+  --home-pad: var(--dt-space-inset-xl);
+  max-width: none;
+  padding: 0 0 var(--dt-dim-16);
+}
+
+.band {
+  padding: var(--dt-dim-20) var(--home-pad);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+}
+
+.band-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.band-subtle {
+  background: var(--dt-surface-subtle);
+}
+
+.band-brand {
+  background: var(--dt-surface-brand-muted);
+}
+
+.band-brand .tile {
+  background: var(--dt-surface-raised);
+}
+
+/* Scoped dark: the band carries .dark, so every role inside it resolves as
+   dark whatever the page is doing. */
+.band-dark {
+  background: var(--dt-surface-base);
+}
+
+.band-hero {
+  padding-top: var(--dt-dim-16);
+  background:
+    radial-gradient(60% 80% at 100% 0%, var(--dt-surface-brand-muted), transparent 70%),
+    var(--dt-surface-base);
+}
+
+.band-head {
+  max-width: 640px;
+  margin-bottom: var(--dt-dim-10);
+}
+
+.band-head h2 {
+  margin: 0 0 var(--dt-dim-3);
+  font-size: var(--dt-text-heading-lg-size, var(--dt-font-size-3xl));
+  line-height: 1.15;
+  font-weight: var(--dt-text-heading-lg-weight, var(--dt-font-weight-medium));
+  letter-spacing: var(--dt-tracking-tightest, -0.02em);
+  text-wrap: balance;
+}
+
+.band-head p:not(.eyebrow) {
+  margin: 0;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-lg);
+  line-height: var(--dt-line-height-lg);
+  text-wrap: pretty;
+}
+
+.band-more {
+  margin: var(--dt-dim-8) 0 0;
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--dt-dim-12);
+  align-items: center;
+}
+
+.home-hero h1 {
+  margin: 0 0 var(--dt-dim-4);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1.02;
+  font-weight: var(--dt-text-display-sm-weight, var(--dt-font-weight-medium));
+  letter-spacing: var(--dt-tracking-tightest, -0.03em);
+  text-wrap: balance;
+}
+
+.home-hero .hero-lede {
+  max-width: 34em;
+  color: var(--dt-text-secondary);
+}
+
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-dim-2) var(--dt-dim-6);
+  margin: var(--dt-dim-8) 0 0;
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-tertiary);
+}
+
+.home-stats strong {
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.home-hero-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--dt-dim-3);
+}
+
+.home-hero-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  padding: var(--dt-dim-5);
+  background: var(--dt-surface-raised);
+  border-radius: var(--dt-radius-container);
+  box-shadow: var(--configure-shadow);
+  overflow: hidden;
+}
+
+.home-hero-tile:nth-child(2) {
+  transform: translateY(var(--dt-dim-6));
+}
+
+.home-hero-tile:nth-child(3) {
+  transform: translateY(calc(-1 * var(--dt-dim-2)));
+}
+
+.home-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--dt-dim-4);
+}
+
+.home-spec {
+  display: flex;
+  flex-direction: column;
+  background: var(--dt-surface-raised);
+  border-radius: var(--dt-radius-container);
+  color: var(--dt-text-primary);
+  text-decoration: none;
+  overflow: hidden;
+  transition: box-shadow var(--dt-motion-micro);
+}
+
+.home-spec:hover {
+  box-shadow: var(--configure-shadow);
+}
+
+.home-spec-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  padding: var(--dt-dim-5);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.home-spec-name {
+  padding: var(--dt-dim-3) var(--dt-dim-4);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.home-thumbs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--dt-dim-6);
+}
+
+.home-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-dim-1);
+  color: var(--dt-text-primary);
+  text-decoration: none;
+}
+
+/* The frame renders the card at desktop width and scales it down, so the
+   thumbnail is the real page, themed live, not a screenshot. */
+.home-thumb-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--dt-dim-3);
+  overflow: hidden;
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-subtle);
+  box-shadow: var(--configure-shadow);
+}
+
+.home-thumb-frame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 960px;
+  border: 0;
+  transform: scale(var(--thumb-scale, 0.4));
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.home-thumb-label {
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.home-thumb-text {
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-secondary);
+}
+
+.home-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--dt-dim-4);
+  margin: 0 0 var(--dt-dim-10);
+  padding: 0;
+  list-style: none;
+}
+
+.home-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-dim-1);
+  padding: var(--dt-dim-6);
+  background: var(--dt-surface-raised);
+  border-radius: var(--dt-radius-container);
+}
+
+.home-steps li span:last-child {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+}
+
+.home-step-n {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: var(--dt-dim-3);
+  border-radius: 50%;
+  background: var(--dt-surface-brand-muted);
+  color: var(--dt-text-on-brand-muted);
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.band .prose + .card-block,
+.band .card-block + .prose,
+.band .prose + .prose {
+  margin-top: var(--dt-dim-12);
+}
+
+button.btn {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .main.home {
+    --home-pad: var(--dt-space-inset-md);
+  }
+
+  .band {
+    padding-top: var(--dt-dim-12);
+    padding-bottom: var(--dt-dim-12);
+  }
+
+  .home-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--dt-dim-8);
+  }
+
+  .home-hero-tile:nth-child(n) {
+    transform: none;
+    min-height: 110px;
+  }
+
+  .home-thumbs,
+  .home-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hero-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The page menu floats over the hero band instead of against the column edge. */
+.main.home .page-actions {
+  position: absolute;
+  right: var(--home-pad);
+  margin: var(--dt-dim-4) 0 0;
+}
+
+.main.home {
+  position: relative;
 }
