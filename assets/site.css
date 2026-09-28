@@ -2280,28 +2280,43 @@ body.graph-open .configure-sheet {
   display: none;
 }
 
+/* The column starts level with the breadcrumb, the first line of the page,
+   and sticks just under the header as the page scrolls. */
 @media (min-width: 1200px) {
-  .main.has-toc {
+  .main.has-toc:not(.wide) {
     grid-template-columns: minmax(0, 1fr) var(--dt-dim-56);
     max-width: calc(1040px + var(--dt-dim-56) + var(--dt-space-inline-xl));
   }
 
+  .main.has-toc:not(.wide) .page-toc {
+    display: block;
+  }
+}
+
+/* Wide pages (tokens, showcase) hold tables and full-width cards that need
+   the width more than a list of sections does, and the tokens page has its
+   own section links; they get the column only on a genuinely wide screen. */
+@media (min-width: 1600px) {
   .main.wide.has-toc {
+    grid-template-columns: minmax(0, 1fr) var(--dt-dim-56);
     max-width: calc(1360px + var(--dt-dim-56) + var(--dt-space-inline-xl));
   }
 
-  .page-toc {
+  .main.wide.has-toc .page-toc {
     display: block;
-    position: sticky;
-    top: calc(var(--site-header) + var(--dt-space-inset-lg));
-    max-height: calc(100vh - var(--site-header) - var(--dt-space-inset-lg) * 2);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding-top: var(--dt-dim-12);
-    /* Room to scroll the last entries clear of the Configure pill, which
-       sits fixed in the same corner. */
-    padding-bottom: var(--dt-dim-20);
   }
+}
+
+.page-toc {
+  position: sticky;
+  top: calc(var(--site-header) + var(--dt-space-inset-lg));
+  max-height: calc(100vh - var(--site-header) - var(--dt-space-inset-lg) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: var(--dt-dim-1);
+  /* Room to scroll the last entries clear of the Configure pill, which sits
+     fixed in the same corner. */
+  padding-bottom: var(--dt-dim-20);
 }
 
 .page-toc-title {
@@ -2350,11 +2365,13 @@ body.graph-open .configure-sheet {
 }
 
 /* The page menu: an ellipsis in the top corner of the content column. */
+/* Centred on the breadcrumb line: the button is taller than the crumbs'
+   text, so it overhangs them equally above and below. */
 .page-actions {
   position: relative;
   float: right;
   z-index: 2;
-  margin: calc(-1 * var(--dt-dim-1)) 0 0 var(--dt-space-inline-sm);
+  margin: calc((var(--dt-font-size-xs) * 2 - var(--dt-size-control-sm)) / 2) calc(-1 * var(--dt-dim-2)) 0 var(--dt-space-inline-sm);
 }
 
 .page-actions-btn {
@@ -2364,9 +2381,9 @@ body.graph-open .configure-sheet {
   width: var(--dt-size-control-sm);
   height: var(--dt-size-control-sm);
   padding: 0;
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border: 0;
   border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-base);
+  background: transparent;
   color: var(--dt-text-secondary);
   cursor: pointer;
   transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
