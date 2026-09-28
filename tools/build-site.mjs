@@ -681,10 +681,10 @@ function pageActions({ title, root, md, mdName, pageUrl }) {
 </div>`;
 }
 
-function page({ title, lede, body, active, root, wide = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "" }) {
+function page({ title, lede, body, active, root, wide = false, home = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "" }) {
   const heading = title === "Dovetail" ? "Dovetail" : `${title} · Dovetail`;
   const toc = tocFrom(body);
-  const hasToc = toc.length >= 3;
+  const hasToc = !home && toc.length >= 3;
   const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl });
   return `<!doctype html>
 <html lang="en">
@@ -724,7 +724,7 @@ function page({ title, lede, body, active, root, wide = false, scripts = "", gra
 </header>
 <div class="layout">
 ${nav(root, active)}
-<main id="main" class="${["main", wide ? "wide" : "", hasToc ? "has-toc" : ""].filter(Boolean).join(" ")}">
+<main id="main" class="${["main", wide ? "wide" : "", home ? "home" : "", hasToc ? "has-toc" : ""].filter(Boolean).join(" ")}">
 <div class="doc">
 ${actions}
 ${body}
@@ -975,47 +975,120 @@ function buildHome() {
     ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
     ["downloads.html", "Download", "Take the stylesheets, tokens and components into your project.", "download"],
   ];
+  /* Live specimens, rendered by assets/specimens.js from the same bundle as
+     the cards: the home page shows the components, not pictures of them. */
+  const gallery = ["Button", "Tabs", "Switch", "Badge", "Progress", "Input", "AvatarGroup", "Alert"].filter((n) => components.some((c) => c.name === n));
+  const specimen = (name) =>
+    `<a class="home-spec" href="components/${name}.html"><div class="home-spec-stage" data-specimen="${attr(name)}" aria-hidden="true"></div><span class="home-spec-name">${esc(name)}</span></a>`;
+  const hero = ["Button", "Tabs", "Switch", "Progress"].filter((n) => gallery.includes(n));
+  /* Templates are shown as scaled-down live frames of their own cards. */
+  const thumb = (id, label, text) =>
+    `<a class="home-thumb" href="showcase/templates.html"><div class="home-thumb-frame"><iframe src="previews/${id}.html" title="${attr(label)} preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><span class="home-thumb-label">${esc(label)}</span><span class="home-thumb-text">${esc(text)}</span></a>`;
   const body = `
-<section class="hero">
-  <p class="eyebrow">Design system</p>
-  <h1>Dovetail</h1>
-  <p class="hero-lede">A white-label design system. It ships unbranded on purpose: adopt the foundation, apply a theme, and the entire system becomes yours without a fork.</p>
-  <p class="hero-sub">Most design systems encode one company's taste. Dovetail encodes the structure that taste needs: a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.</p>
-  <div class="hero-actions">
-    <a class="btn btn-primary" href="foundations/index.html">Read the foundations</a>
-    <a class="btn" href="components/index.html">Browse components</a>
+<section class="band band-hero">
+  <div class="band-inner home-hero">
+    <div class="home-hero-copy">
+      <p class="eyebrow">White-label design system</p>
+      <h1>One component set. Every brand you ship.</h1>
+      <p class="hero-lede">Dovetail ships unbranded on purpose. Adopt the foundation, apply a theme, and the entire system becomes yours without a fork.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="components/index.html">Browse components</a>
+        <button type="button" class="btn" data-open-configure>Open Configure</button>
+      </div>
+      <p class="home-stats"><span><strong>${components.length}</strong> components</span><span><strong>3</strong> token tiers</span><span><strong>4px</strong> grid</span></p>
+    </div>
+    <div class="home-hero-stage" aria-hidden="true">
+      ${hero.map((n) => `<div class="home-hero-tile" data-specimen="${attr(n)}"></div>`).join("\n      ")}
+    </div>
   </div>
-  <p class="hero-note">Open <strong>Configure</strong> in the corner to set the brand colours, radius, type, density and mode. Every page and every live card on this site follows, and the panel hands you the theme file at the end.</p>
 </section>
 
-<section class="tiles">
-  ${tiles
-    .map(
-      ([href, title, text, glyph]) =>
-        `<a class="tile" href="${href}">${icon(glyph)}<h2>${esc(title)}</h2><p>${esc(text)}</p></a>`
-    )
-    .join("\n  ")}
+<section class="band band-subtle">
+  <div class="band-inner">
+    <div class="band-head">
+      <p class="eyebrow">Components</p>
+      <h2>Real components, not pictures of them</h2>
+      <p>Every tile is the live component, drawn from the same bundle you install. Change the theme in Configure and they all follow.</p>
+    </div>
+    <div class="home-gallery">
+      ${gallery.map(specimen).join("\n      ")}
+    </div>
+    <p class="band-more"><a href="components/index.html">See all ${components.length} components</a></p>
+  </div>
 </section>
 
-<section class="prose">
-  <h2 id="start-here">Start here</h2>
-  ${markdown(s.get("Start here") || "")}
+<section class="band">
+  <div class="band-inner">
+    <div class="band-head">
+      <p class="eyebrow">Templates</p>
+      <h2>Whole screens from the same parts</h2>
+      <p>A landing page and a product dashboard, composed only from Dovetail components. Nothing in them names a colour.</p>
+    </div>
+    <div class="home-thumbs">
+      ${thumb("MarketingKit", "Marketing page", "Hero, features, video, proof and a closing call to action.")}
+      ${thumb("DashboardKit", "Dashboard screen", "Navigation, stats, a data table, usage and activity.")}
+    </div>
+  </div>
 </section>
 
-${cardBlock(cards.get("TierContract"), "")}
-
-<section class="prose">
-  <h2 id="how-the-system-is-put-together">How the system is put together</h2>
-  ${markdown(s.get("How the system is put together") || "")}
+<section class="band band-dark dark">
+  <div class="band-inner home-steps-wrap">
+    <div class="band-head">
+      <p class="eyebrow">Theming</p>
+      <h2>Your brand arrives last, as one file</h2>
+      <p>Components read semantic roles. Roles read your theme. Swap the theme and every surface changes at once, light and dark.</p>
+    </div>
+    <ol class="home-steps">
+      <li><span class="home-step-n">1</span><strong>Pick a brand colour</strong><span>An exact hex becomes a full ramp with checked contrast.</span></li>
+      <li><span class="home-step-n">2</span><strong>Set shape and type</strong><span>Radius, families, density and icons, all as tokens.</span></li>
+      <li><span class="home-step-n">3</span><strong>Export the theme</strong><span>A CSS file of overrides. No fork, no build step.</span></li>
+    </ol>
+    <div class="hero-actions"><button type="button" class="btn btn-primary" data-open-configure>Open Configure</button><a class="btn" href="guide/index.html">Read the theming guide</a></div>
+  </div>
 </section>
 
-<section class="prose">
-  <h2 id="rules-checklist">Rules checklist</h2>
-  ${markdown(s.get("Rules checklist") || "")}
-  <p><a href="guide/readme.html">Read the full README</a> · <a href="guide/authoring-rules.html">Authoring rules</a></p>
+<section class="band band-brand">
+  <div class="band-inner">
+    <div class="band-head">
+      <p class="eyebrow">Documentation</p>
+      <h2>Everything in the docs</h2>
+    </div>
+    <div class="tiles">
+      ${tiles
+        .map(([href, title, text, glyph]) => `<a class="tile" href="${href}">${icon(glyph)}<h3>${esc(title)}</h3><p>${esc(text)}</p></a>`)
+        .join("\n      ")}
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-inner">
+    <section class="prose">
+      <h2 id="start-here">Start here</h2>
+      ${markdown(s.get("Start here") || "")}
+    </section>
+
+    ${cardBlock(cards.get("TierContract"), "")}
+
+    <section class="prose">
+      <h2 id="how-the-system-is-put-together">How the system is put together</h2>
+      ${markdown(s.get("How the system is put together") || "")}
+    </section>
+
+    <section class="prose">
+      <h2 id="rules-checklist">Rules checklist</h2>
+      ${markdown(s.get("Rules checklist") || "")}
+      <p><a href="guide/readme.html">Read the full README</a> · <a href="guide/authoring-rules.html">Authoring rules</a></p>
+    </section>
+  </div>
 </section>
 `;
-  writePage("index.html", { title: "Dovetail", lede: "A white-label design system: a strict token contract, a 4px grid, and components that never name a colour.", body, active: "home", root: "" });
+  const scripts =
+    `<script src="system/components/lib/react.production.min.js" defer></script>\n` +
+    `<script src="system/components/lib/react-dom.production.min.js" defer></script>\n` +
+    `<script src="system/components/bundle.js" defer></script>\n` +
+    `<script src="assets/specimens.js" defer></script>\n`;
+  writePage("index.html", { title: "Dovetail", lede: "A white-label design system: a strict token contract, a 4px grid, and components that never name a colour.", body, active: "home", root: "", wide: true, home: true, scripts });
 }
 
 /* -------------------------------------------------------- foundation pages */
