@@ -61,97 +61,90 @@
   <span class="page-actions-status" role="status" aria-live="polite"></span>
 </div>
 
-<section class="band band-hero">
-  <div class="band-inner home-hero">
-    <div class="home-hero-copy">
-      <p class="eyebrow">White-label design system</p>
-      <h1>One component set. Every brand you ship.</h1>
-      <p class="hero-lede">Dovetail ships unbranded on purpose. Adopt the foundation, apply a theme, and the entire system becomes yours without a fork.</p>
+<section class="sec home-hero-sec">
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">White-label design system</span>
+      <h1 class="hero-h">One component set. Every brand you ship.</h1>
+      <p class="lead">Dovetail ships unbranded on purpose. Components read semantic tokens, tokens read a brand theme, and swapping the theme changes every surface at once, without a fork.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="components/index.html">Browse components</a>
-        <button type="button" class="btn" data-open-configure>Open Configure</button>
+        <a class="btn btn-primary" href="components/index.html">Browse components <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 12h15"/><path d="m13.5 6 6 6-6 6"/></svg></a>
+        <a class="btn" href="guide/index.html"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/><path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/></svg> Read the guide</a>
       </div>
-      <p class="home-stats"><span><strong>66</strong> components</span><span><strong>3</strong> token tiers</span><span><strong>4px</strong> grid</span></p>
+      <p class="pills"><span>No lock-in</span><span>DTCG tokens</span><span>Light and dark</span></p>
     </div>
-    <div class="home-hero-stage" aria-hidden="true">
-      <div class="home-hero-tile" data-specimen="Button"></div>
-      <div class="home-hero-tile" data-specimen="Tabs"></div>
-      <div class="home-hero-tile" data-specimen="Switch"></div>
-      <div class="home-hero-tile" data-specimen="Progress"></div>
+    <div class="hero-stage" aria-hidden="true">
+      <div class="hero-tile" data-specimen="Button"></div>
+      <div class="hero-tile" data-specimen="Tabs"></div>
+      <div class="hero-tile" data-specimen="Switch"></div>
+      <div class="hero-tile" data-specimen="Progress"></div>
     </div>
   </div>
 </section>
 
-<section class="band band-subtle">
-  <div class="band-inner">
-    <div class="band-head">
-      <p class="eyebrow">Components</p>
-      <h2>Real components, not pictures of them</h2>
-      <p>Every tile is the live component, drawn from the same bundle you install. Change the theme in Configure and they all follow.</p>
+<section class="sec alt">
+  <div class="sec-head centred"><span class="eyebrow">Why it holds</span><h2 class="sec-h">Three tiers, referenced one way</h2></div>
+  <div class="three">
+    <div class="feature"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21.5a6.5 6.5 0 0 0 6.5-6.5c0-2-1.2-3.8-3-5.4C13.6 8 12.5 5.6 12 3c-.5 2.6-1.6 5-3.5 6.6-1.8 1.6-3 3.4-3 5.4a6.5 6.5 0 0 0 6.5 6.5Z"/></svg></span><h3>Primitives name values</h3><p>A ramp of OKLCH colours, a dimension scale, a type scale. Nothing here knows what it is for.</p></div>
+    <div class="feature"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 16.5 9 4.5 9-4.5"/><path d="m3 12 9 4.5L21 12"/></svg></span><h3>Semantics name jobs</h3><p>Surface, text, border, and their paired roles. This is the only tier a component is allowed to read.</p></div>
+    <div class="feature"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg></span><h3>Components name parts</h3><p>Button background, input border. Retuned per context without touching the component.</p></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="two">
+    <a class="home-thumb" href="showcase/templates.html" aria-label="Marketing page template"><div class="home-thumb-frame"><iframe src="previews/MarketingKit.html" title="Marketing page preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></a>
+    <div class="stack">
+      <div class="sec-head"><span class="eyebrow">See it run</span><h2 class="sec-h">Whole screens from the same parts</h2><p class="lead">A landing page and a product dashboard, composed only from Dovetail components. Nothing in them names a colour.</p></div>
+      <ul class="checks"><li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Light and dark from the same roles</li><li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Icons, photos, video and illustration slots</li><li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Retheme both at once in Configure</li></ul>
+      <div class="hero-actions"><a class="btn" href="showcase/templates.html"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7"/><path d="M12 16.5v4"/></svg> See the templates</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="two">
+    <div class="stack">
+      <div class="sec-head"><span class="eyebrow">Proof</span><h2 class="sec-h">Real components, not pictures of them</h2><p class="lead">Every tile here is the live component, drawn from the same bundle you install. Change the theme and they all follow.</p></div>
+      <div class="stats">
+        <div class="stat"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m20.5 7.5-8.5-4.5-8.5 4.5v9l8.5 4.5 8.5-4.5v-9Z"/><path d="m3.5 7.5 8.5 4.5 8.5-4.5"/><path d="M12 12v9"/></svg></span><span class="stat-label">Components</span><span class="stat-value">66</span><span class="stat-cap">across eight families</span></div>
+        <div class="stat"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 16.5 9 4.5 9-4.5"/><path d="m3 12 9 4.5L21 12"/></svg></span><span class="stat-label">Token tiers</span><span class="stat-value">3</span><span class="stat-cap">referenced one way</span></div>
+        <div class="stat"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s7.5-3.5 7.5-9.5V5.5L12 3 4.5 5.5v6C4.5 17.5 12 21 12 21Z"/><path d="m9 12 2 2 4-4"/></svg></span><span class="stat-label">Contrast</span><span class="stat-value">AA</span><span class="stat-cap">checked on every pairing</span></div>
+      </div>
     </div>
     <div class="home-gallery">
-      <a class="home-spec" href="components/Button.html"><div class="home-spec-stage" data-specimen="Button" aria-hidden="true"></div><span class="home-spec-name">Button</span></a>
-      <a class="home-spec" href="components/Tabs.html"><div class="home-spec-stage" data-specimen="Tabs" aria-hidden="true"></div><span class="home-spec-name">Tabs</span></a>
-      <a class="home-spec" href="components/Switch.html"><div class="home-spec-stage" data-specimen="Switch" aria-hidden="true"></div><span class="home-spec-name">Switch</span></a>
       <a class="home-spec" href="components/Badge.html"><div class="home-spec-stage" data-specimen="Badge" aria-hidden="true"></div><span class="home-spec-name">Badge</span></a>
-      <a class="home-spec" href="components/Progress.html"><div class="home-spec-stage" data-specimen="Progress" aria-hidden="true"></div><span class="home-spec-name">Progress</span></a>
       <a class="home-spec" href="components/Input.html"><div class="home-spec-stage" data-specimen="Input" aria-hidden="true"></div><span class="home-spec-name">Input</span></a>
       <a class="home-spec" href="components/AvatarGroup.html"><div class="home-spec-stage" data-specimen="AvatarGroup" aria-hidden="true"></div><span class="home-spec-name">AvatarGroup</span></a>
       <a class="home-spec" href="components/Alert.html"><div class="home-spec-stage" data-specimen="Alert" aria-hidden="true"></div><span class="home-spec-name">Alert</span></a>
     </div>
-    <p class="band-more"><a href="components/index.html">See all 66 components</a></p>
   </div>
 </section>
 
-<section class="band">
-  <div class="band-inner">
-    <div class="band-head">
-      <p class="eyebrow">Templates</p>
-      <h2>Whole screens from the same parts</h2>
-      <p>A landing page and a product dashboard, composed only from Dovetail components. Nothing in them names a colour.</p>
-    </div>
-    <div class="home-thumbs">
-      <a class="home-thumb" href="showcase/templates.html"><div class="home-thumb-frame"><iframe src="previews/MarketingKit.html" title="Marketing page preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><span class="home-thumb-label">Marketing page</span><span class="home-thumb-text">Hero, features, video, proof and a closing call to action.</span></a>
-      <a class="home-thumb" href="showcase/templates.html"><div class="home-thumb-frame"><iframe src="previews/DashboardKit.html" title="Dashboard screen preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><span class="home-thumb-label">Dashboard screen</span><span class="home-thumb-text">Navigation, stats, a data table, usage and activity.</span></a>
-    </div>
+<section class="sec">
+  <div class="sec-head centred"><span class="eyebrow">Theming</span><h2 class="sec-h">Your brand arrives last, as one file</h2><p class="lead">Components read semantic roles. Roles read your theme. Swap the theme and every surface changes at once, light and dark.</p></div>
+  <div class="three">
+    <div class="feature"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21.5a6.5 6.5 0 0 0 6.5-6.5c0-2-1.2-3.8-3-5.4C13.6 8 12.5 5.6 12 3c-.5 2.6-1.6 5-3.5 6.6-1.8 1.6-3 3.4-3 5.4a6.5 6.5 0 0 0 6.5 6.5Z"/></svg></span><h3>Pick a brand colour</h3><p>An exact hex becomes a full ramp, with its contrast checked.</p></div>
+    <div class="feature"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21v-6"/><path d="M5 11V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M19 21v-4"/><path d="M19 13V3"/><path d="M2.5 15h5"/><path d="M9.5 8h5"/><path d="M16.5 17h5"/></svg></span><h3>Set shape and type</h3><p>Radius, families, density and icons, all as tokens.</p></div>
+    <div class="feature"><span class="icon-tile"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg></span><h3>Export the theme</h3><p>A CSS file of overrides. No fork, no build step.</p></div>
+  </div>
+  <div class="hero-actions centred"><button type="button" class="btn btn-primary" data-open-configure><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21v-6"/><path d="M5 11V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M19 21v-4"/><path d="M19 13V3"/><path d="M2.5 15h5"/><path d="M9.5 8h5"/><path d="M16.5 17h5"/></svg> Open Configure</button></div>
+</section>
+
+<section class="sec alt">
+  <div class="sec-head centred"><span class="eyebrow">Documentation</span><h2 class="sec-h">Everything in the docs</h2></div>
+  <div class="tiles">
+    <a class="tile" href="foundations/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 16.5 9 4.5 9-4.5"/><path d="m3 12 9 4.5L21 12"/></svg><h3>Foundations</h3><p>Colour, type, space, shape, elevation and motion, each with live spec cards.</p></a>
+    <a class="tile" href="components/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><h3>Components</h3><p>66 components across eight families, with props, source and usage rules.</p></a>
+    <a class="tile" href="tokens.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><h3>Tokens</h3><p>Every token in the system, with its value in each theme.</p></a>
+    <a class="tile" href="showcase/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7"/><path d="M12 16.5v4"/></svg><h3>Showcase</h3><p>Detail cards, templates and tools.</p></a>
+    <a class="tile" href="guide/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/><path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/></svg><h3>Guide</h3><p>Theming, accessibility, contribution and the token pipeline.</p></a>
+    <a class="tile" href="downloads.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><h3>Download</h3><p>Take the stylesheets, tokens and components into your project.</p></a>
   </div>
 </section>
 
-<section class="band band-dark dark">
-  <div class="band-inner home-steps-wrap">
-    <div class="band-head">
-      <p class="eyebrow">Theming</p>
-      <h2>Your brand arrives last, as one file</h2>
-      <p>Components read semantic roles. Roles read your theme. Swap the theme and every surface changes at once, light and dark.</p>
-    </div>
-    <ol class="home-steps">
-      <li><span class="home-step-n">1</span><strong>Pick a brand colour</strong><span>An exact hex becomes a full ramp with checked contrast.</span></li>
-      <li><span class="home-step-n">2</span><strong>Set shape and type</strong><span>Radius, families, density and icons, all as tokens.</span></li>
-      <li><span class="home-step-n">3</span><strong>Export the theme</strong><span>A CSS file of overrides. No fork, no build step.</span></li>
-    </ol>
-    <div class="hero-actions"><button type="button" class="btn btn-primary" data-open-configure>Open Configure</button><a class="btn" href="guide/index.html">Read the theming guide</a></div>
-  </div>
-</section>
-
-<section class="band band-brand">
-  <div class="band-inner">
-    <div class="band-head">
-      <p class="eyebrow">Documentation</p>
-      <h2>Everything in the docs</h2>
-    </div>
-    <div class="tiles">
-      <a class="tile" href="foundations/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 16.5 9 4.5 9-4.5"/><path d="m3 12 9 4.5L21 12"/></svg><h3>Foundations</h3><p>Colour, type, space, shape, elevation and motion, each with live spec cards.</p></a>
-      <a class="tile" href="components/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><h3>Components</h3><p>66 components across eight families, with props, source and usage rules.</p></a>
-      <a class="tile" href="tokens.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><h3>Tokens</h3><p>Every token in the system, with its value in each theme.</p></a>
-      <a class="tile" href="showcase/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7"/><path d="M12 16.5v4"/></svg><h3>Showcase</h3><p>Detail cards, templates and tools.</p></a>
-      <a class="tile" href="guide/index.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/><path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/></svg><h3>Guide</h3><p>Theming, accessibility, contribution and the token pipeline.</p></a>
-      <a class="tile" href="downloads.html"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><h3>Download</h3><p>Take the stylesheets, tokens and components into your project.</p></a>
-    </div>
-  </div>
-</section>
-
-<section class="band">
-  <div class="band-inner">
+<section class="sec">
+  <div class="narrow">
     <section class="prose">
       <h2 id="start-here">Start here</h2>
       <p><strong>Consuming Dovetail.</strong> Link one stylesheet, then optionally a theme.</p>
@@ -162,7 +155,6 @@
 <p><strong>Theming it.</strong> <code>guidelines/theming.md</code> walks from a brand palette to a working theme.</p>
 <hr>
     </section>
-
     <section class="card-block" id="the-three-tiers">
   <div class="card-head">
     <h2>The three tiers</h2>
@@ -173,7 +165,6 @@
     <iframe src="previews/TierContract.html" title="The three tiers preview" loading="lazy"></iframe>
   </div>
 </section>
-
     <section class="prose">
       <h2 id="how-the-system-is-put-together">How the system is put together</h2>
       <pre class="code"><code>styles.css              Global entry. Import lines only.
@@ -199,7 +190,6 @@ tools/                  Style Dictionary config and the token pipeline</code></p
 <p>The documented exception: data visualisation reads primitives directly, because chart series need categorical distinctness rather than semantic meaning.</p>
 <hr>
     </section>
-
     <section class="prose">
       <h2 id="rules-checklist">Rules checklist</h2>
       <p>Self-audit against this before shipping anything built on Dovetail.</p>
@@ -208,6 +198,20 @@ tools/                  Style Dictionary config and the token pipeline</code></p
 <hr>
       <p><a href="guide/readme.html">Read the full README</a> · <a href="guide/authoring-rules.html">Authoring rules</a></p>
     </section>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="cta">
+    <div class="stack">
+      <h2 class="sec-h">Ship your brand, not ours</h2>
+      <p class="lead">Free and open. Take the stylesheets and tokens, or theme it here first.</p>
+      <div class="hero-actions"><button type="button" class="btn btn-primary" data-open-configure>Open Configure <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 12h15"/><path d="m13.5 6 6 6-6 6"/></svg></button><a class="btn" href="downloads.html"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg> Download</a></div>
+    </div>
+    <div class="cta-art" data-home-illustration><svg class="home-sketch" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+<path d="M12.3 3.2c.4 3.1 1.1 5.3 2.4 6.9 1.4 1.7 3.5 2.6 6.4 3.1-3 .7-5 1.7-6.3 3.3-1.3 1.6-2 3.8-2.2 6.7-.5-3-1.3-5.1-2.6-6.6-1.4-1.6-3.4-2.5-6.1-3 2.9-.7 4.9-1.7 6.2-3.2 1.3-1.6 2-3.8 2.2-7.2Z"/>
+</svg>
+</div>
   </div>
 </section>
 

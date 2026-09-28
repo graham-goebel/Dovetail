@@ -402,4 +402,22 @@
     fit();
     window.addEventListener("resize", fit);
   }
+
+  /* The closing section shows the illustration uploaded in Configure's Media
+     tab, if there is one, in place of the sketch. */
+  var art = document.querySelector("[data-home-illustration]");
+  if (art) {
+    var sketch = art.innerHTML;
+    var showArt = function () {
+      var src = "";
+      try {
+        src = (JSON.parse(localStorage.getItem("dovetail-docs-media")) || {}).illustration || "";
+      } catch (e) {}
+      art.innerHTML = src ? '<img alt="" src="' + src.replace(/"/g, "&quot;") + '">' : sketch;
+    };
+    showArt();
+    window.addEventListener("storage", function (event) {
+      if (event.key === "dovetail-docs-media") showArt();
+    });
+  }
 })();

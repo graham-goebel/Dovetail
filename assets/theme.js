@@ -170,7 +170,21 @@
 
   /* ------------------------------------------------------------- the model */
 
+  /* On a phone the sheet covers the page, so edits are a draft: they apply live
+     but are held here, not written to storage, until Save. Closing without
+     saving puts back what was there when the sheet opened. */
+  var draft = null;
+
+  function isPhone() {
+    return !!(window.matchMedia && window.matchMedia("(max-width: 720px)").matches);
+  }
+
   function store(key, value) {
+    if (draft && (key === KEY || key === BRAND_KEY || key === MEDIA_KEY || key === CONTEXT_KEY)) {
+      draft.pending[key] = value;
+      draft.dirty = true;
+      return;
+    }
     try {
       if (value === null) localStorage.removeItem(key);
       else localStorage.setItem(key, value);
@@ -1342,6 +1356,8 @@
     close: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
     back: '<path d="M19.5 12h-15"/><path d="m10.5 6-6 6 6 6"/>',
     chevron: '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
+    reset: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>',
+    check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   };
 
   function sheetIcon(name, cls) {
@@ -2241,7 +2257,12 @@
       h("div", { class: "configure-bar-top" }, [
         lead,
         h("p", { class: "configure-mini", "aria-hidden": "true", text: tab ? tab.label : "Configure" }),
-        h("button", { type: "button", class: "configure-reset-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
+        isPhone()
+          ? h("div", { class: "configure-bar-acts" }, [
+              h("button", { type: "button", class: "configure-round", "data-bid": "reset", "aria-label": "Reset to defaults", title: "Reset", onclick: reset }, [sheetIcon("reset")]),
+              h("button", { type: "button", class: "configure-round configure-save", "data-bid": "save", "aria-label": "Save changes", title: "Save", onclick: save }, [sheetIcon("check")]),
+            ])
+          : h("button", { type: "button", class: "configure-reset-btn", "data-bid": "reset", text: "Reset", onclick: reset }),
       ])
     );
 
@@ -2363,12 +2384,39 @@
 
   var lastFocus = null;
 
+  function snapshot() {
+    return { config: assign({}, config), brand: assign({}, brand), media: assign({}, media), context: context };
+  }
+
+  function save() {
+    if (draft) {
+      var pending = draft.pending;
+      draft = null;
+      Object.keys(pending).forEach(function (key) { store(key, pending[key]); });
+    }
+    close();
+  }
+
+  /* Put the page back the way it was when the sheet opened. */
+  function discard() {
+    var was = draft.before;
+    draft = null;
+    config = was.config;
+    brand = was.brand;
+    media = was.media;
+    context = was.context;
+    applyBrand();
+    applyEverywhere();
+    window.dispatchEvent(new Event("dovetail:theme-change"));
+  }
+
   function open() {
     lastFocus = document.activeElement;
-    if (activeTab) {
-      activeTab = "";
-      paintBody();
-    }
+    draft = isPhone() ? { before: snapshot(), pending: {}, dirty: false } : null;
+    activeTab = "";
+    paintBody();
+    el.body.scrollTop = 0;
+    el.body.style.setProperty("--p", "0");
     el.sheet.hidden = false;
     document.body.classList.add("configure-open");
     el.open.setAttribute("aria-expanded", "true");
@@ -2376,11 +2424,99 @@
     if (first) first.focus();
   }
 
+  /* Returns false when the reader chose to keep editing. */
   function close() {
+    if (draft) {
+      if (draft.dirty && !window.confirm("Discard your changes?")) return false;
+      discard();
+    }
     el.sheet.hidden = true;
     document.body.classList.remove("configure-open");
     el.open.setAttribute("aria-expanded", "false");
     if (lastFocus && lastFocus.focus) lastFocus.focus();
+    render();
+    return true;
+  }
+
+  /* Touch gestures, after Gainer's sheets: drag down from the top of the sheet
+     to close it, drag right inside a group to go back to the menu. A drag that
+     starts on a slider, a text field or a sideways scroller is left alone. */
+  function swipeGestures() {
+    var sheet = el.sheet;
+    var start = null;
+    var axis = null;
+    var dx = 0;
+    var dy = 0;
+
+    function settle(ms) {
+      sheet.style.transition = ms ? "transform " + ms + "ms ease" : "";
+      sheet.style.transform = "";
+      el.body.style.transition = ms ? "transform " + ms + "ms ease, opacity " + ms + "ms ease" : "";
+      el.body.style.transform = "";
+      el.body.style.opacity = "";
+      setTimeout(function () {
+        sheet.style.transition = "";
+        el.body.style.transition = "";
+      }, ms + 20);
+    }
+
+    sheet.addEventListener("touchstart", function (event) {
+      if (event.touches.length !== 1) return;
+      var target = event.target;
+      if (target.closest && target.closest('input, textarea, select, .configure-ramp, .configure-seg, .configure-swatches')) {
+        start = null;
+        return;
+      }
+      var t = event.touches[0];
+      start = { x: t.clientX, y: t.clientY, at: Date.now(), top: el.body.scrollTop <= 0 };
+      axis = null;
+      dx = dy = 0;
+    }, { passive: true });
+
+    sheet.addEventListener("touchmove", function (event) {
+      if (!start) return;
+      var t = event.touches[0];
+      dx = t.clientX - start.x;
+      dy = t.clientY - start.y;
+      if (!axis) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx) && dy > 0 && start.top && el.body.scrollTop <= 0) axis = "y";
+        else if (Math.abs(dx) > Math.abs(dy) && dx > 0 && activeTab) axis = "x";
+        else {
+          start = null;
+          return;
+        }
+      }
+      event.preventDefault();
+      if (axis === "y") sheet.style.transform = "translateY(" + Math.max(0, dy) + "px)";
+      else {
+        el.body.style.transform = "translateX(" + Math.max(0, dx) + "px)";
+        el.body.style.opacity = String(1 - Math.min(0.6, Math.max(0, dx) / 400));
+      }
+    }, { passive: false });
+
+    sheet.addEventListener("touchend", function () {
+      if (!start || !axis) {
+        start = null;
+        return;
+      }
+      var fast = (axis === "y" ? dy : dx) / Math.max(1, Date.now() - start.at) > 0.5;
+      if (axis === "y") {
+        if (dy > sheet.offsetHeight / 3 || (fast && dy > 40)) {
+          sheet.style.transition = "transform 200ms ease-in";
+          sheet.style.transform = "translateY(100%)";
+          setTimeout(function () {
+            if (close()) settle(0);
+            else settle(240);
+          }, 200);
+        } else settle(240);
+      } else if (dx > 90 || (fast && dx > 40)) {
+        settle(0);
+        setTab("", "back");
+      } else settle(200);
+      start = null;
+      axis = null;
+    });
   }
 
   function toggle() {
@@ -2417,6 +2553,7 @@
   }
 
   buildPanel();
+  swipeGestures();
   applyEverywhere();
   watchFrames();
 
