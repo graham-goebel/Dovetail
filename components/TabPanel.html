@@ -6,8 +6,8 @@
 <title>TabPanel · Dovetail</title>
 <meta name="description" content="Switches between sibling views that share a purpose. Use tabs when the user compares or">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="../system/styles.css">
-<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
+<link rel="stylesheet" href="../assets/site.css?v=6363124379">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -53,13 +53,13 @@
 <main id="main" class="main has-toc">
 <div class="doc">
 <div class="page-actions">
-  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
   <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
-    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="TabPanel.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
-    <li role="none"><a role="menuitem" class="page-menu-item" href="TabPanel.md" download="TabPanel.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
-    <li role="none"><a role="menuitem" class="page-menu-item" href="TabPanel.md" target="_blank" rel="noopener"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
-    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FTabPanel.md%20(the%20%22TabPanel%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="TabPanel" data-md="TabPanel.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
-    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="TabPanel.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="TabPanel.md" download="TabPanel.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="TabPanel.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FTabPanel.md%20(the%20%22TabPanel%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="TabPanel" data-md="TabPanel.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
   </ul>
   <span class="page-actions-status" role="status" aria-live="polite"></span>
 </div>
@@ -249,9 +249,9 @@ export function TabPanel({ id, value, children, style, ...rest }) {
 <footer class="site-footer">
   <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
-<script src="../assets/configure-data.js" defer></script>
-<script src="../assets/theme.js" defer></script>
-<script src="../assets/site.js" defer></script>
-<script src="../assets/graph.js" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/theme.js?v=03f3984932" defer></script>
+<script src="../assets/site.js?v=0806a11dc8" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
 </body>
 </html>
