@@ -159,6 +159,18 @@ They exist for the moments a page is allowed to feel like a person drew it: an e
 state, a callout, a marketing accent. The `Sketch marks` foundation card compares one
 against a library icon at every step of the scale.
 
+## The default look
+
+Out of the box Dovetail is monochrome and round, the look of a calm product UI: ink on
+white, pure greys, pill buttons (ink for the primary action, a soft grey fill for the
+rest), 8px fields, 16px cards and menus, 24px dialogs and sheets, bordered flat cards,
+soft wide shadows on what floats, 500-weight headings with tight tracking, and tabular
+figures. The one colour is the primary, a warm orange (`#eb6834` at 500), used for accents:
+brand fills, charts, progress, badges and the thinking animation. Secondary text keeps
+AA-safe greys (7:1 and 4.7:1 on white) rather than the lighter greys such UIs often use.
+A theme changes any of it through the usual roles, and migration notes for this
+change are in `changes/monochrome-defaults.md` until it is released.
+
 ## The Configure panel
 
 Every page carries a floating toolbar in the corner. It flips the colour mode, and it
@@ -169,7 +181,7 @@ where it is always in reach rather than buried at the bottom of one tab:
 
 | Tab | Sets |
 | --- | --- |
-| Brand | Name, mark and wordmark colour, primary and secondary colours, monochrome, fill, texture, ramp hues, steps per ramp |
+| Brand | Name, mark and wordmark colour, primary and secondary colours, buttons and links (ink or brand), monochrome, fill, texture, ramp hues, steps per ramp |
 | Shape | Radius roles, media radius, focus ring width |
 | Type | Display family, body family, secondary family, code family |
 | Space | Whitespace, control density, base unit |
@@ -236,6 +248,12 @@ The ramp cards on the Color page follow both: a secondary ramp card sits beside 
 primary, and each chromatic card shows only the steps the theme publishes, with a line
 naming them. `system/templates/_support/ramp-steps.js` does the hiding, reading the
 saved configuration the same way the theme runtime does.
+
+**Buttons and links** decides what colour the controls are. **Ink**, the default, keeps
+buttons, links, selection and focus monochrome and saves the brand colour for accents;
+**Brand** points those roles at their `-brand` twins, which exist for light and dark, so
+the choice holds in a dark band too. The export carries the same lines under `:root` and
+`.dark`.
 
 **Wordmark colour** sets `--dt-text-wordmark`: **Ink** is the monochrome wordmark, and
 **Primary** or **Secondary** set the name in a brand hue through a text role, so it keeps

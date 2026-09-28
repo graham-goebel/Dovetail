@@ -7,7 +7,10 @@
    action surface move together. Override --dt-button-primary-bg and only Button moves. */
 
 :root {
-  --dt-button-radius: var(--dt-radius-control);
+  /* Buttons are pills: an action reads as a thing to press, set apart from
+     the 8px fields around it. The pill role follows the Shape setting, so a
+     sharp theme squares them too. */
+  --dt-button-radius: var(--dt-radius-pill);
   --dt-button-font-family: var(--dt-text-label-md-family);
   --dt-button-font-weight: var(--dt-font-weight-medium);
   --dt-button-gap: var(--dt-space-inline-xs);

@@ -59,7 +59,7 @@ export declare function Banner(props: BannerProps): JSX.Element;
 | `--dt-border-success` | semantic | `var(--dt-color-green-200)` |
 | `--dt-border-warning` | semantic | `var(--dt-color-amber-200)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |

@@ -58,7 +58,7 @@ export declare function Switch(props: SwitchProps): JSX.Element;
 | `--dt-motion-micro` | semantic | `var(--dt-duration-100) var(--dt-easing-standard)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
-| `--dt-surface-action` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |

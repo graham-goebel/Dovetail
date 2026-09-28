@@ -11,31 +11,37 @@
   --dt-color-black: oklch(0 0 0);
   --dt-color-transparent: oklch(0 0 0 / 0);
 
-  /* Neutral — very slightly cool. The white-label default. */
-  --dt-color-neutral-050: oklch(0.985 0.001 264);
-  --dt-color-neutral-100: oklch(0.967 0.002 264);
-  --dt-color-neutral-200: oklch(0.925 0.003 264);
-  --dt-color-neutral-300: oklch(0.869 0.005 264);
-  --dt-color-neutral-400: oklch(0.708 0.007 264);
-  --dt-color-neutral-500: oklch(0.556 0.008 264);
-  --dt-color-neutral-600: oklch(0.440 0.008 264);
-  --dt-color-neutral-700: oklch(0.360 0.008 264);
-  --dt-color-neutral-800: oklch(0.273 0.007 264);
-  --dt-color-neutral-900: oklch(0.205 0.006 264);
-  --dt-color-neutral-950: oklch(0.145 0.005 264);
+  /* Neutral — pure grey, no hue. The white-label default: ink on white, with
+     hairlines and soft fills between. 050, 100, 200, 800, 900 and 950 are the
+     card, soft fill, hairline, dark hairline, ink and dark page of a
+     monochrome app; 500 and 600 stay dark enough to pass AA as text. */
+  --dt-color-neutral-050: oklch(0.979 0 0);
+  --dt-color-neutral-100: oklch(0.958 0 0);
+  --dt-color-neutral-200: oklch(0.928 0 0);
+  --dt-color-neutral-300: oklch(0.870 0 0);
+  --dt-color-neutral-400: oklch(0.715 0 0);
+  --dt-color-neutral-500: oklch(0.556 0 0);
+  --dt-color-neutral-600: oklch(0.464 0 0);
+  --dt-color-neutral-700: oklch(0.371 0 0);
+  --dt-color-neutral-800: oklch(0.285 0 0);
+  --dt-color-neutral-900: oklch(0.191 0 0);
+  --dt-color-neutral-950: oklch(0.168 0 0);
 
-  /* Primary — the default brand hue. A theme replaces this ramp wholesale. */
-  --dt-color-primary-050: oklch(0.970 0.014 259);
-  --dt-color-primary-100: oklch(0.936 0.032 259);
-  --dt-color-primary-200: oklch(0.885 0.059 259);
-  --dt-color-primary-300: oklch(0.809 0.096 259);
-  --dt-color-primary-400: oklch(0.714 0.143 259);
-  --dt-color-primary-500: oklch(0.623 0.188 259);
-  --dt-color-primary-600: oklch(0.546 0.215 259);
-  --dt-color-primary-700: oklch(0.476 0.196 259);
-  --dt-color-primary-800: oklch(0.404 0.162 259);
-  --dt-color-primary-900: oklch(0.344 0.128 259);
-  --dt-color-primary-950: oklch(0.256 0.093 259);
+  /* Primary — the default brand hue, a warm orange (500 is #eb6834). The
+     interface itself is ink; this ramp carries the accents: brand fills,
+     charts, progress, badges, the thinking animation. A theme replaces it
+     wholesale. */
+  --dt-color-primary-050: oklch(0.971 0.016 45);
+  --dt-color-primary-100: oklch(0.939 0.038 45);
+  --dt-color-primary-200: oklch(0.892 0.070 45);
+  --dt-color-primary-300: oklch(0.820 0.112 45);
+  --dt-color-primary-400: oklch(0.735 0.148 45);
+  --dt-color-primary-500: oklch(0.660 0.166 45);
+  --dt-color-primary-600: oklch(0.585 0.162 45);
+  --dt-color-primary-700: oklch(0.505 0.140 45);
+  --dt-color-primary-800: oklch(0.430 0.117 45);
+  --dt-color-primary-900: oklch(0.372 0.097 45);
+  --dt-color-primary-950: oklch(0.262 0.070 45);
 
   /* Secondary — a second brand hue, for fills and accents that sit beside the
      primary rather than compete with it. Ships with the violet ramp's values;

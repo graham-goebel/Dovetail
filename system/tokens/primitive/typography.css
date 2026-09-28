@@ -54,6 +54,7 @@
   --dt-font-weight-extrabold: 800;
 
   /* Tracking. Large type needs negative tracking; small type needs positive. */
+  --dt-tracking-tightest: -0.04em;
   --dt-tracking-tighter: -0.03em;
   --dt-tracking-tight: -0.02em;
   --dt-tracking-snug: -0.01em;

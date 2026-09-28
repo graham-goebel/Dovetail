@@ -66,7 +66,7 @@ export declare function Stat(props: StatProps): JSX.Element;
 | `--dt-text-heading-lg-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-heading-lg-line` | semantic | `var(--dt-line-height-3xl)` |
 | `--dt-text-heading-lg-size` | semantic | `var(--dt-font-size-3xl)` |
-| `--dt-text-heading-lg-tracking` | semantic | `var(--dt-tracking-snug)` |
+| `--dt-text-heading-lg-tracking` | semantic | `var(--dt-tracking-tight)` |
 | `--dt-text-label-sm-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-sm-line` | semantic | `var(--dt-line-height-xs)` |
 | `--dt-text-label-sm-size` | semantic | `var(--dt-font-size-xs)` |

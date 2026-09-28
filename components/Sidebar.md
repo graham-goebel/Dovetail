@@ -70,20 +70,20 @@ export declare function Sidebar(props: SidebarProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-inset-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-stack-md` | semantic | `var(--dt-dim-4)` |
-| `--dt-surface-selected` | semantic | `var(--dt-color-primary-050)` |
+| `--dt-surface-selected` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-surface-subtle` | semantic | `var(--dt-color-neutral-050)` |
 | `--dt-text-eyebrow-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-md-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-md-size` | semantic | `var(--dt-font-size-sm)` |
 | `--dt-text-label-sm-size` | semantic | `var(--dt-font-size-xs)` |
-| `--dt-text-on-selected` | semantic | `var(--dt-color-primary-900)` |
+| `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
 | `--dt-font-family-mono` | primitive | `"Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace` |

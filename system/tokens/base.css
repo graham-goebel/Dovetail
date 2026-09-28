@@ -20,6 +20,9 @@ body {
   background-color: var(--dt-surface-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Figures line up in columns: totals, tables, counters and timers do not
+     shimmy as their digits change. */
+  font-variant-numeric: tabular-nums;
 }
 
 /* One focus treatment, applied everywhere, visible on every surface.

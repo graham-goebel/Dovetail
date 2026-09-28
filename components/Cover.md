@@ -124,8 +124,8 @@ export declare function Cover(props: CoverProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
-| `--dt-radius-media` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
+| `--dt-radius-media` | semantic | `var(--dt-radius-raw-12)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-scrim-bottom` | semantic | `linear-gradient(to top, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent)` |
 | `--dt-scrim-full` | semantic | `color-mix(in oklab, var(--dt-color-neutral-950) 55%, transparent)` |
@@ -146,8 +146,8 @@ export declare function Cover(props: CoverProps): JSX.Element;
 | `--dt-text-heading-lg-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-heading-lg-line` | semantic | `var(--dt-line-height-3xl)` |
 | `--dt-text-heading-lg-size` | semantic | `var(--dt-font-size-3xl)` |
-| `--dt-text-heading-lg-tracking` | semantic | `var(--dt-tracking-snug)` |
-| `--dt-text-heading-lg-weight` | semantic | `var(--dt-font-weight-semibold)` |
+| `--dt-text-heading-lg-tracking` | semantic | `var(--dt-tracking-tight)` |
+| `--dt-text-heading-lg-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-on-scrim` | semantic | `var(--dt-color-neutral-050)` |
 | `--dt-text-on-scrim-secondary` | semantic | `var(--dt-color-neutral-200)` |
 

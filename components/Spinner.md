@@ -48,7 +48,7 @@ export declare function Spinner(props: SpinnerProps): JSX.Element;
 | `--dt-border-default` | semantic | `var(--dt-color-neutral-200)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |
-| `--dt-surface-action` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-motion-duration-slow` | none | not declared |
 
 ## Source

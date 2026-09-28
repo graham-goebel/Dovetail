@@ -34,8 +34,9 @@
   var MARK_LIMIT = 512 * 1024;
 
   var DEFAULTS = {
-    primary: "blue",
-    primaryHex: "#3366cc",
+    primary: "terracotta",
+    primaryHex: "#eb6834",
+    actions: "ink",
     secondary: "violet",
     secondaryHex: "#8a4fd6",
     secondaryFont: "",
@@ -61,6 +62,24 @@
     whitespace: "balanced",
     media: "shown",
     customIconInclude: "",
+  };
+
+  /* Buttons, links, selection and focus are ink by default and the brand
+     colour is kept for accents. "Brand" points those roles at their -brand
+     twins, which the stylesheet declares for light and dark alike, so the
+     choice is a re-pointing and never a colour written by hand. */
+  var BRAND_CONTROLS = {
+    "--dt-surface-action": "var(--dt-surface-action-brand)",
+    "--dt-surface-action-hover": "var(--dt-surface-action-brand-hover)",
+    "--dt-surface-action-active": "var(--dt-surface-action-brand-active)",
+    "--dt-text-on-action": "var(--dt-text-on-action-brand)",
+    "--dt-text-link": "var(--dt-text-link-brand)",
+    "--dt-text-link-hover": "var(--dt-text-link-brand-hover)",
+    "--dt-surface-selected": "var(--dt-surface-selected-brand)",
+    "--dt-surface-selected-hover": "var(--dt-surface-selected-brand-hover)",
+    "--dt-text-on-selected": "var(--dt-text-on-selected-brand)",
+    "--dt-border-selected": "var(--dt-border-selected-brand)",
+    "--dt-focus-ring-color": "var(--dt-focus-ring-color-brand)",
   };
 
   /* The type roles a display face takes over: the ones that carry a page's
@@ -690,6 +709,8 @@
        here, and in the export, for the same reason every other choice is. Last,
        so a mono brand always reads as ink even with a gradient or a texture
        chosen. */
+    if (cfg.actions === "brand") assign(vars, BRAND_CONTROLS);
+
     if (cfg.mono) assign(vars, DATA.monochrome);
 
     return vars;
@@ -748,7 +769,7 @@
     /* A role written inline on the root resolves once, against the root. A
        band scoped .dark inside the page needs the same choice declared on the
        band, so its brand text role resolves as dark. */
-    var scoped = ["--dt-text-wordmark", "--dt-text-headline"].filter(function (name) { return vars[name]; });
+    var scoped = ["--dt-text-wordmark", "--dt-text-headline"].concat(Object.keys(BRAND_CONTROLS)).filter(function (name) { return vars[name]; });
     var scope = doc.getElementById("dt-role-scope");
     if (!scoped.length) {
       if (scope) scope.remove();
@@ -1075,6 +1096,14 @@
       lines.push("  --dt-text-wordmark: " + WORDMARK[config.wordmarkColor].replace(/, var\(.*\)\)$/, ")") + ";");
     }
 
+    if (config.actions === "brand" && !config.mono) {
+      lines.push("");
+      lines.push("  /* Buttons, links, selection and focus in the brand colour */");
+      Object.keys(BRAND_CONTROLS).forEach(function (name) {
+        lines.push("  " + name + ": " + BRAND_CONTROLS[name] + ";");
+      });
+    }
+
     if (MEDIA_RADII[config.mediaRadius]) {
       lines.push("");
       lines.push("  /* Imagery */");
@@ -1086,12 +1115,18 @@
     /* The same role choices again under .dark, so a band scoped dark inside a
        light page resolves them against its own brand text roles. */
     var darkRoles = [["--dt-text-headline", config.headlineColor], ["--dt-text-wordmark", config.wordmarkColor]].filter(function (r) { return WORDMARK[r[1]]; });
-    if (darkRoles.length) {
+    var brandControls = config.actions === "brand" && !config.mono;
+    if (darkRoles.length || brandControls) {
       lines.push("");
       lines.push(".dark {");
       darkRoles.forEach(function (r) {
         lines.push("  " + r[0] + ": " + WORDMARK[r[1]].replace(/, var\(.*\)\)$/, ")") + ";");
       });
+      if (brandControls) {
+        Object.keys(BRAND_CONTROLS).forEach(function (name) {
+          lines.push("  " + name + ": " + BRAND_CONTROLS[name] + ";");
+        });
+      }
       lines.push("}");
     }
 
@@ -1411,7 +1446,16 @@
       );
     }
 
-    out.push(field("Primary", "Actions, links, selection and focus. Start from a tuned ramp, or give your exact brand colour and the ramp is built around it.", brandField("primary")));
+    out.push(field("Primary", "The brand hue: brand fills, charts, progress, badges and the thinking animation. Start from a tuned ramp, or give your exact brand colour and the ramp is built around it.", brandField("primary")));
+    out.push(
+      field(
+        "Buttons and links",
+        "Ink keeps the controls monochrome, the system default, and saves the brand colour for accents. Brand paints buttons, links, selection and focus in the primary, through their -brand roles, in light and dark.",
+        segmented("Buttons and links", "actions", [{ value: "ink", label: "Ink" }, { value: "brand", label: "Brand" }], config.actions === "brand" ? "brand" : "ink", function (value) {
+          commit({ actions: value });
+        })
+      )
+    );
     out.push(field("Secondary", "A second brand hue for fills and highlights beside the primary: --dt-surface-brand-secondary, the duotone fill, and the second chart colour. It never drives an action.", brandField("secondary")));
 
     out.push(

@@ -79,7 +79,7 @@
 <pre class="code" data-lang="html"><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;styles.css&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;tokens/themes/theme-acme.css&quot;&gt;</code></pre>
 <h3 id="2-replace-the-brand-ramps-not-the-semantic-roles">2. Replace the brand ramps, not the semantic roles</h3>
-<p>The cheapest correct theme changes eleven lines. Override the primitive primary ramp in place, and every semantic role that referenced it (actions, links, selection, focus) follows automatically. A second brand hue is the same move on the secondary ramp, <code>--dt-color-secondary-*</code>, which the secondary brand fills, the duotone sweep and the second data-visualisation colour read.</p>
+<p>The cheapest correct theme changes eleven lines. Override the primitive primary ramp in place, and every semantic role that referenced it follows automatically: the brand fills, brand text, charts, progress, badges and the thinking animation. A second brand hue is the same move on the secondary ramp, <code>--dt-color-secondary-*</code>, which the secondary brand fills, the duotone sweep and the second data-visualisation colour read.</p>
 <pre class="code" data-lang="css"><code>:root {
   --dt-color-primary-050: oklch(0.970 0.015 340);
   --dt-color-primary-100: oklch(0.936 0.035 340);
@@ -87,14 +87,30 @@
 }</code></pre>
 <p>This is the one case where a theme legitimately writes at Tier 1. You are replacing the raw material, not bypassing the contract.</p>
 <p><strong>Generating the ramp.</strong> Keep the lightness values from the default ramp and change only chroma and hue. OKLCH lightness is perceptually uniform, so a primary ramp built on the existing lightness steps inherits the contrast behaviour the system was tested against.</p>
-<h3 id="3-override-semantic-roles-only-where-the-brand-disagrees">3. Override semantic roles only where the brand disagrees</h3>
-<p>If your brand's action colour is not simply &quot;primary 600&quot;, say it needs to be darker for contrast, or a different hue from your links, override the semantic role directly.</p>
+<h3 id="3-decide-what-colour-the-controls-are">3. Decide what colour the controls are</h3>
+<p>By default the interface is monochrome: buttons, links, selection and focus are ink (<code>--dt-color-neutral-900</code>, inverting to near-white in dark mode), secondary buttons are a soft grey fill, and the brand colour is kept for accents. That is deliberate: a brand hue on every control competes with the content, and ink passes contrast on any brand.</p>
+<p>To paint the controls in the brand instead, point each role at its <code>-brand</code> twin. The twins are declared for light and dark, so the choice survives a dark band too. It is what Configure's <strong>Buttons and links: Brand</strong> writes.</p>
+<pre class="code" data-lang="css"><code>:root, .dark {
+  --dt-surface-action: var(--dt-surface-action-brand);
+  --dt-surface-action-hover: var(--dt-surface-action-brand-hover);
+  --dt-surface-action-active: var(--dt-surface-action-brand-active);
+  --dt-text-on-action: var(--dt-text-on-action-brand);
+  --dt-text-link: var(--dt-text-link-brand);
+  --dt-text-link-hover: var(--dt-text-link-brand-hover);
+  --dt-surface-selected: var(--dt-surface-selected-brand);
+  --dt-surface-selected-hover: var(--dt-surface-selected-brand-hover);
+  --dt-text-on-selected: var(--dt-text-on-selected-brand);
+  --dt-border-selected: var(--dt-border-selected-brand);
+  --dt-focus-ring-color: var(--dt-focus-ring-color-brand);
+}</code></pre>
+<h3 id="4-override-semantic-roles-only-where-the-brand-disagrees">4. Override semantic roles only where the brand disagrees</h3>
+<p>If your brand's action colour needs to be something else again, say darker for contrast, or a different hue from your links, override the semantic role directly.</p>
 <pre class="code" data-lang="css"><code>:root {
   --dt-surface-action: var(--dt-color-primary-700);
   --dt-text-on-action: var(--dt-color-white);
 }</code></pre>
 <p>Always move the pair together. Changing a surface without checking its foreground is how a theme ships a 2.8:1 button.</p>
-<h3 id="4-set-the-typeface">4. Set the typeface</h3>
+<h3 id="5-set-the-typeface">5. Set the typeface</h3>
 <p>Three lines, plus the roles you want to diverge.</p>
 <pre class="code" data-lang="css"><code>:root {
   --dt-font-family-sans: &quot;Acme Grotesk&quot;, ui-sans-serif, system-ui, sans-serif;
@@ -110,7 +126,7 @@
   --dt-text-heading-xl-family: var(--dt-font-family-serif);
   --dt-text-heading-lg-family: var(--dt-font-family-serif);
 }</code></pre>
-<h3 id="5-set-the-shape-language">5. Set the shape language</h3>
+<h3 id="6-set-the-shape-language">6. Set the shape language</h3>
 <p>Five lines control the system's entire corner treatment.</p>
 <pre class="code" data-lang="css"><code>:root {
   --dt-radius-control: var(--dt-radius-raw-full);  /* pill buttons */
@@ -119,7 +135,7 @@
   --dt-radius-media: var(--dt-radius-raw-12);
   --dt-radius-pill: var(--dt-radius-raw-full);
 }</code></pre>
-<h3 id="6-verify">6. Verify</h3>
+<h3 id="7-verify">7. Verify</h3>
 <ul><li>Light and dark, side by side.</li><li>Every semantic pair at AA. <code>guidelines/accessibility.md</code> lists the pairs to check.</li><li>The focus ring, against your darkest and lightest surfaces.</li><li>A disabled control, since disabled states are where themes most often lose contrast.</li></ul>
 <h2 id="where-a-token-may-be-declared">Where a token may be declared</h2>
 <p>A custom property resolves where it is declared, not where it is read. That rule decides where each tier may live:</p>
@@ -160,10 +176,11 @@
     <li><a href="#the-20-minute-version">The 20-minute version</a></li>
     <li class="nested"><a href="#1-start-from-the-template">1. Start from the template</a></li>
     <li class="nested"><a href="#2-replace-the-brand-ramps-not-the-semantic-roles">2. Replace the brand ramps, not the semantic roles</a></li>
-    <li class="nested"><a href="#3-override-semantic-roles-only-where-the-brand-disagrees">3. Override semantic roles only where the brand disagrees</a></li>
-    <li class="nested"><a href="#4-set-the-typeface">4. Set the typeface</a></li>
-    <li class="nested"><a href="#5-set-the-shape-language">5. Set the shape language</a></li>
-    <li class="nested"><a href="#6-verify">6. Verify</a></li>
+    <li class="nested"><a href="#3-decide-what-colour-the-controls-are">3. Decide what colour the controls are</a></li>
+    <li class="nested"><a href="#4-override-semantic-roles-only-where-the-brand-disagrees">4. Override semantic roles only where the brand disagrees</a></li>
+    <li class="nested"><a href="#5-set-the-typeface">5. Set the typeface</a></li>
+    <li class="nested"><a href="#6-set-the-shape-language">6. Set the shape language</a></li>
+    <li class="nested"><a href="#7-verify">7. Verify</a></li>
     <li><a href="#where-a-token-may-be-declared">Where a token may be declared</a></li>
     <li class="nested"><a href="#a-band-that-should-not-follow-the-page">A band that should not follow the page</a></li>
     <li><a href="#what-a-theme-must-not-do">What a theme must not do</a></li>

@@ -111,8 +111,8 @@ export declare function Combobox(props: ComboboxProps): JSX.Element;
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-elevation-3` | semantic | `var(--dt-shadow-raw-3)` |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-size-icon-sm` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-2xs` | semantic | `var(--dt-dim-1)` |
@@ -121,11 +121,11 @@ export declare function Combobox(props: ComboboxProps): JSX.Element;
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-surface-action-ghost-hover` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-surface-overlay` | semantic | `var(--dt-color-white)` |
-| `--dt-surface-selected` | semantic | `var(--dt-color-primary-050)` |
+| `--dt-surface-selected` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |
-| `--dt-text-on-selected` | semantic | `var(--dt-color-primary-900)` |
+| `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |

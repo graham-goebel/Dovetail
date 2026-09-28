@@ -32,5 +32,5 @@
      lighter one for small chips, and the full filter as one value. */
   --dt-blur-glass: var(--dt-blur-raw-16);
   --dt-blur-chip: var(--dt-blur-raw-8);
-  --dt-backdrop-glass: saturate(1.4) blur(var(--dt-blur-glass));
+  --dt-backdrop-glass: saturate(1.6) blur(var(--dt-blur-glass));
 }

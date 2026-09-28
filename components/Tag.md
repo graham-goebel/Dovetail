@@ -54,7 +54,7 @@ export declare function Tag(props: TagProps): JSX.Element;
 | Token | Tier | Declared as |
 | --- | --- | --- |
 | `--dt-border-default` | semantic | `var(--dt-color-neutral-200)` |
-| `--dt-border-selected` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-border-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-motion-micro` | semantic | `var(--dt-duration-100) var(--dt-easing-standard)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
@@ -62,11 +62,11 @@ export declare function Tag(props: TagProps): JSX.Element;
 | `--dt-space-inline-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-surface-base` | semantic | `var(--dt-color-white)` |
-| `--dt-surface-selected` | semantic | `var(--dt-color-primary-050)` |
+| `--dt-surface-selected` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-surface-subtle` | semantic | `var(--dt-color-neutral-050)` |
 | `--dt-text-label-md-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-md-size` | semantic | `var(--dt-font-size-sm)` |
-| `--dt-text-on-selected` | semantic | `var(--dt-color-primary-900)` |
+| `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-font-weight-medium` | primitive | `500` |
 

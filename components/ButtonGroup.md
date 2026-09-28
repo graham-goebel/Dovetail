@@ -49,7 +49,7 @@ export declare function ButtonGroup(props: ButtonGroupProps): JSX.Element;
 | Token | Tier | Declared as |
 | --- | --- | --- |
 | `--dt-button-border-width` | component | `var(--dt-border-width-default)` |
-| `--dt-button-radius` | component | `var(--dt-radius-control)` |
+| `--dt-button-radius` | component | `var(--dt-radius-pill)` |
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |
 
 ## Source

@@ -80,7 +80,7 @@ export declare function Dialog(props: DialogProps): JSX.Element | null;
 | `--dt-dialog-width-lg` | component | `720px` |
 | `--dt-dialog-width-md` | component | `520px` |
 | `--dt-dialog-width-sm` | component | `400px` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-size-control-sm` | semantic | `var(--dt-dim-8)` |
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-space-inset-lg` | semantic | `var(--dt-dim-6)` |
@@ -93,8 +93,8 @@ export declare function Dialog(props: DialogProps): JSX.Element | null;
 | `--dt-text-heading-md-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-heading-md-line` | semantic | `var(--dt-line-height-2xl)` |
 | `--dt-text-heading-md-size` | semantic | `var(--dt-font-size-2xl)` |
-| `--dt-text-heading-md-tracking` | semantic | `var(--dt-tracking-snug)` |
-| `--dt-text-heading-md-weight` | semantic | `var(--dt-font-weight-semibold)` |
+| `--dt-text-heading-md-tracking` | semantic | `var(--dt-tracking-tight)` |
+| `--dt-text-heading-md-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 | `--dt-z-dialog` | semantic | `400` |
 

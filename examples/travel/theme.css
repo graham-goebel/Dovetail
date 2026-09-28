@@ -701,3 +701,21 @@ html[data-overlay="true"] .mv-header { z-index: var(--dt-z-base); }
 @media (max-width: 560px) {
   .mv-icons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Brand-coloured controls. Dovetail's default interface is ink; this site was
+   designed with its buttons, links and selection in the brand colour, so it
+   opts back in by pointing each role at its -brand twin. */
+:root,
+.dark {
+  --dt-surface-action: var(--dt-surface-action-brand);
+  --dt-surface-action-hover: var(--dt-surface-action-brand-hover);
+  --dt-surface-action-active: var(--dt-surface-action-brand-active);
+  --dt-text-on-action: var(--dt-text-on-action-brand);
+  --dt-text-link: var(--dt-text-link-brand);
+  --dt-text-link-hover: var(--dt-text-link-brand-hover);
+  --dt-surface-selected: var(--dt-surface-selected-brand);
+  --dt-surface-selected-hover: var(--dt-surface-selected-brand-hover);
+  --dt-text-on-selected: var(--dt-text-on-selected-brand);
+  --dt-border-selected: var(--dt-border-selected-brand);
+  --dt-focus-ring-color: var(--dt-focus-ring-color-brand);
+}

@@ -61,7 +61,7 @@ export declare function Stepper(props: StepperProps): JSX.Element;
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-stack-sm` | semantic | `var(--dt-dim-3)` |
-| `--dt-surface-action` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-text-body-xs-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-xs-size` | semantic | `var(--dt-font-size-xs)` |

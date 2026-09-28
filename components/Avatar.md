@@ -53,7 +53,7 @@ export declare function Avatar(props: AvatarProps): JSX.Element;
 | `--dt-border-strong` | semantic | `var(--dt-color-neutral-400)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-surface-base` | semantic | `var(--dt-color-white)` |
 | `--dt-surface-danger` | semantic | `var(--dt-color-red-600)` |

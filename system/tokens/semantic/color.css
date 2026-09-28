@@ -56,9 +56,11 @@
   --dt-scrim-top: linear-gradient(to bottom, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent);
   --dt-scrim-full: color-mix(in oklab, var(--dt-color-neutral-950) 55%, transparent);
   --dt-scrim-fade-bottom: linear-gradient(to top, var(--dt-surface-base) 40%, transparent);
-  --dt-text-link: var(--dt-color-primary-700);
-  --dt-text-link-hover: var(--dt-color-primary-800);
-  --dt-text-link-visited: var(--dt-color-violet-700);
+  /* Links are ink, like the rest of the interface; the underline carries
+     them. --dt-text-link-brand is the brand-coloured alternative. */
+  --dt-text-link: var(--dt-color-neutral-900);
+  --dt-text-link-hover: var(--dt-color-neutral-700);
+  --dt-text-link-visited: var(--dt-color-neutral-700);
 
   /* ---- Borders --------------------------------------------------- */
   --dt-border-subtle: var(--dt-color-neutral-100);
@@ -67,17 +69,22 @@
   --dt-border-inverse: var(--dt-color-neutral-700);
   --dt-border-disabled: var(--dt-color-neutral-200);
 
-  /* ---- Actions --------------------------------------------------- */
-  --dt-surface-action: var(--dt-color-primary-600);
-  --dt-surface-action-hover: var(--dt-color-primary-700);
-  --dt-surface-action-active: var(--dt-color-primary-800);
+  /* ---- Actions ---------------------------------------------------
+     The interface is monochrome by default: the primary action is ink, and
+     secondary actions are soft grey fills with no border. The brand colour is
+     for accents (brand fills, charts, progress), not for the controls. A theme
+     that wants brand-coloured controls points these roles at the -brand set
+     below, which is what Configure's "Buttons and links: Brand" writes. */
+  --dt-surface-action: var(--dt-color-neutral-900);
+  --dt-surface-action-hover: var(--dt-color-neutral-800);
+  --dt-surface-action-active: var(--dt-color-neutral-700);
   --dt-text-on-action: var(--dt-color-white);
 
-  --dt-surface-action-secondary: var(--dt-color-white);
-  --dt-surface-action-secondary-hover: var(--dt-color-neutral-050);
-  --dt-surface-action-secondary-active: var(--dt-color-neutral-100);
+  --dt-surface-action-secondary: var(--dt-color-neutral-100);
+  --dt-surface-action-secondary-hover: var(--dt-color-neutral-200);
+  --dt-surface-action-secondary-active: var(--dt-color-neutral-300);
   --dt-text-on-action-secondary: var(--dt-color-neutral-900);
-  --dt-border-action-secondary: var(--dt-color-neutral-200);
+  --dt-border-action-secondary: var(--dt-color-transparent);
 
   --dt-surface-action-ghost: var(--dt-color-transparent);
   --dt-surface-action-ghost-hover: var(--dt-color-neutral-100);
@@ -93,10 +100,26 @@
   --dt-text-on-action-disabled: var(--dt-color-neutral-400);
 
   /* ---- Selection ------------------------------------------------- */
-  --dt-surface-selected: var(--dt-color-primary-050);
-  --dt-surface-selected-hover: var(--dt-color-primary-100);
-  --dt-text-on-selected: var(--dt-color-primary-900);
-  --dt-border-selected: var(--dt-color-primary-600);
+  --dt-surface-selected: var(--dt-color-neutral-100);
+  --dt-surface-selected-hover: var(--dt-color-neutral-200);
+  --dt-text-on-selected: var(--dt-color-neutral-900);
+  --dt-border-selected: var(--dt-color-neutral-900);
+
+  /* ---- Brand-coloured controls -------------------------------------
+     The same action, link, selection and focus roles in the brand colour.
+     Nothing reads these by default; a theme opts in by pointing the roles
+     above at them, one for one. Repeated under .dark with dark values. */
+  --dt-surface-action-brand: var(--dt-color-primary-600);
+  --dt-surface-action-brand-hover: var(--dt-color-primary-700);
+  --dt-surface-action-brand-active: var(--dt-color-primary-800);
+  --dt-text-on-action-brand: var(--dt-color-white);
+  --dt-text-link-brand: var(--dt-color-primary-700);
+  --dt-text-link-brand-hover: var(--dt-color-primary-800);
+  --dt-surface-selected-brand: var(--dt-color-primary-050);
+  --dt-surface-selected-brand-hover: var(--dt-color-primary-100);
+  --dt-text-on-selected-brand: var(--dt-color-primary-900);
+  --dt-border-selected-brand: var(--dt-color-primary-600);
+  --dt-focus-ring-color-brand: var(--dt-color-primary-600);
 
   /* ---- Feedback -------------------------------------------------- */
   --dt-surface-success: var(--dt-color-green-600);
@@ -124,7 +147,7 @@
   --dt-text-on-info: var(--dt-color-white);
 
   /* ---- Focus ----------------------------------------------------- */
-  --dt-focus-ring-color: var(--dt-color-primary-600);
+  --dt-focus-ring-color: var(--dt-color-neutral-900);
   --dt-focus-ring-offset-color: var(--dt-surface-base);
 
   /* ---- Brand fills ------------------------------------------------

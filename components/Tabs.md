@@ -68,11 +68,11 @@ export declare function TabPanel(props: TabPanelProps): JSX.Element | null;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
-| `--dt-border-selected` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-border-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-elevation-1` | semantic | `var(--dt-shadow-raw-1)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-space-inline-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inline-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |

@@ -59,8 +59,8 @@ export declare function Drawer(props: DrawerProps): JSX.Element | null;
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-elevation-4` | semantic | `var(--dt-shadow-raw-4)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
-| `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-12)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-24)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |

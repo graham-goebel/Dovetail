@@ -54,7 +54,7 @@ export declare function Popover(props: PopoverProps): JSX.Element;
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-elevation-3` | semantic | `var(--dt-shadow-raw-3)` |
-| `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-12)` |
+| `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-24)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-surface-raised` | semantic | `var(--dt-color-white)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
