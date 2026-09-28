@@ -15,6 +15,10 @@
      node tools/changelog.mjs --release    compile entries into CHANGELOG.md,
                                            bump package.json, delete the entries
        [--version 1.4.0] [--date 2026-10-01] [--dry-run]
+     node tools/changelog.mjs --notes 0.1.0
+                                           print that version's section of
+                                           CHANGELOG.md (the release workflow
+                                           publishes it as the GitHub release)
 
    An entry is Markdown with a small front matter block:
 
@@ -148,7 +152,26 @@ function changedSince(base) {
 const pkg = JSON.parse(fs.readFileSync(PKG, "utf8"));
 const list = entries();
 
-if (flag("--new")) {
+/* One version's section of CHANGELOG.md, without its heading: from
+   "## <version>" up to the next "## ". Null when the version has none. */
+function section(version) {
+  const lines = fs.readFileSync(LOG, "utf8").replace(/\r\n/g, "\n").split("\n");
+  const start = lines.findIndex((l) => l === `## ${version}` || l.startsWith(`## ${version} `));
+  if (start === -1) return null;
+  let end = lines.findIndex((l, i) => i > start && /^## /.test(l));
+  if (end === -1) end = lines.length;
+  return lines.slice(start + 1, end).join("\n").trim() + "\n";
+}
+
+if (flag("--notes")) {
+  const version = option("--notes") || pkg.version;
+  const body = section(version);
+  if (!body) {
+    console.error(`CHANGELOG.md has no "## ${version}" section.`);
+    process.exit(1);
+  }
+  process.stdout.write(body);
+} else if (flag("--new")) {
   const slug = (option("--new") || "").replace(/[^a-z0-9-]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
   if (!slug) {
     console.error("Give the entry a short slug: npm run change -- thinking-light-screen");

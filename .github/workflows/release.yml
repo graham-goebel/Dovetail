@@ -1,0 +1,72 @@
+name: Release
+
+# Publishes a release whenever main carries a version that has no tag yet.
+#
+# The release itself happens in a pull request: `node tools/changelog.mjs
+# --release` compiles changes/ into a new CHANGELOG.md section and bumps
+# package.json, and a "Release x.y.z" pull request carries that into main.
+# When it merges, this workflow reads the version from package.json, tags the
+# merge commit vX.Y.Z, and creates the GitHub release with that version's
+# CHANGELOG.md section as its notes. Nobody pushes tags by hand.
+#
+# It does nothing on a push that leaves the version alone, or when the tag
+# already exists, so re-running it is always safe.
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - CHANGELOG.md
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Read the version
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "v$version is already tagged; nothing to release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Releasing v$version."
+          fi
+
+      # A version without its changelog section is a release made by hand
+      # without the tool, so it stops here rather than publishing empty notes.
+      - name: Take the notes from CHANGELOG.md
+        if: steps.version.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: node tools/changelog.mjs --notes "$VERSION" > "$RUNNER_TEMP/notes.md"
+
+      - name: Tag and publish the release
+        if: steps.version.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "Dovetail $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md"
