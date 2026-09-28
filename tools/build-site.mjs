@@ -14,6 +14,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -31,7 +32,21 @@ const write = (rel, html) => {
 const written = [];
 /* A documentation page: page() needs its own path for the links that leave
    the site. */
-const writePage = (rel, opts) => write(rel, page({ ...opts, pageUrl: rel }));
+/* Every local stylesheet and script a page loads carries a hash of its
+   contents (?v=…), so a deploy can't pair new HTML with a browser's cached
+   copy of old CSS or JS. The data files are written before any page, so the
+   hash is of what ships. */
+const stamps = new Map();
+function stampAssets(rel, html) {
+  const dir = path.dirname(path.join(ROOT, rel));
+  return html.replace(/(<(?:link[^>]*?href|script[^>]*?src)=")([^"?#:]+\.(?:css|js))"/g, (m, lead, url) => {
+    const file = path.resolve(dir, url);
+    if (!stamps.has(file)) stamps.set(file, fs.existsSync(file) ? crypto.createHash("sha1").update(fs.readFileSync(file)).digest("hex").slice(0, 10) : null);
+    const v = stamps.get(file);
+    return v ? `${lead}${url}?v=${v}"` : m;
+  });
+}
+const writePage = (rel, opts) => write(rel, stampAssets(rel, page({ ...opts, pageUrl: rel })));
 
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -243,7 +258,7 @@ const ICONS = {
 function icon(name) {
   const paths = ICONS[name];
   if (!paths) return "";
-  return `<svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths.join("")}</svg>`;
+  return `<svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths.join("")}</svg>`;
 }
 
 /* ------------------------------------------------------------ preview cards */
@@ -996,7 +1011,7 @@ function buildHome() {
     `<a class="home-spec" href="components/${name}.html"><div class="home-spec-stage" data-specimen="${attr(name)}" aria-hidden="true"></div><span class="home-spec-name">${esc(name)}</span></a>`;
   const frame = (id, label) =>
     `<a class="home-thumb" href="showcase/templates.html" aria-label="${attr(label)} template"><div class="home-thumb-frame"><iframe src="previews/${id}.html" title="${attr(label)} preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></a>`;
-  const sketch = read(path.join(SYS, "assets", "icons", "sketch", "spark.svg")).replace("<svg ", '<svg class="home-sketch" aria-hidden="true" focusable="false" ');
+  const sketch = read(path.join(SYS, "assets", "icons", "sketch", "spark.svg")).replace("<svg ", '<svg class="home-sketch" width="96" height="96" aria-hidden="true" focusable="false" ');
   const body = `
 <section class="sec home-hero-sec">
   <div class="hero">
