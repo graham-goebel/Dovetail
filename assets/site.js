@@ -408,6 +408,28 @@
     onScroll();
   }
 
+  /* Components index: chips filter the families. All shows every section;
+     a family shows only its own. The choice rides in the hash (#forms), so a
+     link to a family lands filtered. */
+  var chipBar = document.querySelector(".filter-chips");
+  if (chipBar) {
+    var chips = Array.prototype.slice.call(chipBar.querySelectorAll("[data-filter]"));
+    var groups = Array.prototype.slice.call(document.querySelectorAll("section.group[data-group]"));
+    var applyFilter = function (id) {
+      if (!chips.some(function (c) { return c.getAttribute("data-filter") === id; })) id = "all";
+      chips.forEach(function (c) { c.setAttribute("aria-pressed", String(c.getAttribute("data-filter") === id)); });
+      groups.forEach(function (g) { g.hidden = id !== "all" && g.getAttribute("data-group") !== id; });
+    };
+    chips.forEach(function (c) {
+      c.addEventListener("click", function () {
+        var id = c.getAttribute("data-filter");
+        applyFilter(id);
+        history.replaceState(null, "", id === "all" ? location.pathname + location.search : "#" + id);
+      });
+    });
+    applyFilter(location.hash.slice(1) || "all");
+  }
+
   /* Home page template thumbnails: each frame renders its card at 1280px and
      is scaled to fit, so the thumbnail is the live page. */
   var thumbs = document.querySelectorAll(".home-thumb-frame");

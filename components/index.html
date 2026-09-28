@@ -7,7 +7,7 @@
 <meta name="description" content="Every Dovetail component, with guides, props and live cards.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
-<link rel="stylesheet" href="../assets/site.css?v=1b787ec276">
+<link rel="stylesheet" href="../assets/site.css?v=ebecf6f7cd">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -67,7 +67,18 @@
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li aria-current="page">Components</li></ol></nav>
 <h1>Components</h1>
 <p class="lede">66 components in eight families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
-<section class="group">
+<div class="filter-chips" role="toolbar" aria-label="Filter by family">
+  <button type="button" class="pan-opt" data-filter="all" aria-pressed="true">All<span class="n">66</span></button>
+  <button type="button" class="pan-opt" data-filter="primitives" aria-pressed="false">Primitives<span class="n">7</span></button>
+  <button type="button" class="pan-opt" data-filter="typography" aria-pressed="false">Typography<span class="n">2</span></button>
+  <button type="button" class="pan-opt" data-filter="actions" aria-pressed="false">Actions<span class="n">4</span></button>
+  <button type="button" class="pan-opt" data-filter="forms" aria-pressed="false">Forms<span class="n">11</span></button>
+  <button type="button" class="pan-opt" data-filter="display" aria-pressed="false">Display<span class="n">11</span></button>
+  <button type="button" class="pan-opt" data-filter="navigation" aria-pressed="false">Navigation<span class="n">9</span></button>
+  <button type="button" class="pan-opt" data-filter="feedback" aria-pressed="false">Feedback<span class="n">11</span></button>
+  <button type="button" class="pan-opt" data-filter="content" aria-pressed="false">Content<span class="n">11</span></button>
+</div>
+<section class="group" data-group="primitives">
   <h2 id="primitives">Primitives</h2>
   <p class="group-note">Layout with no opinion about content. These own spacing, stacking and rhythm, and they draw almost nothing themselves.</p>
   <div class="tiles compact">
@@ -80,7 +91,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="Section" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="Section.html">Section</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for Section" data-component="Section" data-md="../system/components/primitives/Section.md" data-types="../system/components/primitives/Section.d.ts" data-source="../system/components/primitives/Section.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">A page section: a column bounded by a container width, the section rhythm above and below, and an optional surface. With <code>media</code> it becomes a full-bleed photo band. It is the scaffold both example sites built for themselves before it existed.</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="typography">
   <h2 id="typography">Typography</h2>
   <p class="group-note">Headings and running text, set from the type roles. Level and size are separate props, so a page's outline and its visual scale can each be right.</p>
   <div class="tiles compact">
@@ -88,7 +99,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="Text" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="Text.html">Text</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for Text" data-component="Text" data-md="../system/components/typography/Text.md" data-types="../system/components/typography/Text.d.ts" data-source="../system/components/typography/Text.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">Running text in one of the system's type roles: an eyebrow, a lead paragraph, body copy, small print, fine print, a label. It replaces the hand-written <code>.eyebrow</code>, <code>.lead</code> and <code>.fine</code> classes every brand otherwise writes for itself.</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="actions">
   <h2 id="actions">Actions</h2>
   <p class="group-note">Everything a person can press. One visual hierarchy across all of them, so importance reads the same whether the target is a button or a link.</p>
   <div class="tiles compact">
@@ -98,7 +109,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="Link" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="Link.html">Link</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for Link" data-component="Link" data-md="../system/components/actions/Link.md" data-types="../system/components/actions/Link.d.ts" data-source="../system/components/actions/Link.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">Navigation. The rule: if it changes the page, it is a Link; if it changes data, it is a Button.</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="forms">
   <h2 id="forms">Forms</h2>
   <p class="group-note">Inputs and the structure around them. Field owns the label, hint and error for every control, so validation looks and announces the same everywhere.</p>
   <div class="tiles compact">
@@ -115,7 +126,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="Combobox" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="Combobox.html">Combobox</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for Combobox" data-component="Combobox" data-md="../system/components/forms/Combobox.md" data-types="../system/components/forms/Combobox.d.ts" data-source="../system/components/forms/Combobox.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">A text input that filters a known list. Reach for it when a <code>Select</code> has grown past</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="display">
   <h2 id="display">Display</h2>
   <p class="group-note">Read-only presentation of data that already exists. They render what they are given and never fetch, sort or filter it.</p>
   <div class="tiles compact">
@@ -132,7 +143,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="Tag" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="Tag.html">Tag</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for Tag" data-component="Tag" data-md="../system/components/display/Tag.md" data-types="../system/components/display/Tag.d.ts" data-source="../system/components/display/Tag.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">An interactive chip. If it cannot be clicked or removed, it is a <code>Badge</code>.</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="navigation">
   <h2 id="navigation">Navigation</h2>
   <p class="group-note">Moving between places, and showing where you are. Each one takes the current location as a prop rather than reading the URL, so they suit any router.</p>
   <div class="tiles compact">
@@ -147,7 +158,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="BottomNav" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="BottomNav.html">BottomNav</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for BottomNav" data-component="BottomNav" data-md="../system/components/navigation/BottomNav.md" data-types="../system/components/navigation/BottomNav.d.ts" data-source="../system/components/navigation/BottomNav.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">A phone app's primary navigation: three to five destinations docked to the bottom of the screen, where a thumb can reach them, with the home indicator's safe area kept clear.</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="feedback">
   <h2 id="feedback">Feedback</h2>
   <p class="group-note">Telling someone what happened, or asking before it does. Severity is a prop, and the overlays share one layer, focus trap and dismissal behaviour.</p>
   <div class="tiles compact">
@@ -164,7 +175,7 @@
   <article class="tile tile-component"><div class="tile-specimen" data-specimen="Thinking" aria-hidden="true"></div><div class="tile-head"><h3><a class="tile-link" href="Thinking.html">Thinking</a></h3><button type="button" class="tile-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Files for Thinking" data-component="Thinking" data-md="../system/components/feedback/Thinking.md" data-types="../system/components/feedback/Thinking.d.ts" data-source="../system/components/feedback/Thinking.jsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div><p class="tile-desc">What an assistant is doing while you wait: connecting, listening, thinking, searching or speaking. Five states, drawn as a fluid or as a texture of small marks, all read from the system's tokens, that sit inline in a chat or fill the screen for a voice session.</p></article>
   </div>
 </section>
-<section class="group">
+<section class="group" data-group="content">
   <h2 id="content">Content</h2>
   <p class="group-note">Long-form and editorial shapes, including the pieces a CMS drives. Media reserves its space before it loads, so a page never jumps.</p>
   <div class="tiles compact">
@@ -203,8 +214,6 @@
   <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 <div class="fab" id="fab">
-  <label class="fab-q" for="fab-q"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><input id="fab-q" type="search" placeholder="Search components and pages" aria-label="Search components and pages" autocomplete="off" enterkeyhint="search"><button type="button" class="fab-q-close" aria-label="Close search"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button></label>
-  <button type="button" class="fab-btn" data-fab-search aria-label="Search"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg></button>
   <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
@@ -215,9 +224,9 @@
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
 <script src="../assets/search-data.js?v=b3264ab4c4" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
-<script src="../assets/menu.js?v=7e1726b86a" defer></script>
+<script src="../assets/menu.js?v=46eabc728b" defer></script>
 <script src="../assets/theme.js?v=539f11225c" defer></script>
-<script src="../assets/site.js?v=baf050ca17" defer></script>
+<script src="../assets/site.js?v=d794158e2e" defer></script>
 
 </body>
 </html>

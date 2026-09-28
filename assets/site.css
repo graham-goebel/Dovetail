@@ -3791,3 +3791,178 @@ body.search-open {
     transition: none !important;
   }
 }
+
+/* ------------------------------------------------------ filter chips */
+
+/* Gainer's filter chips: a hairline pill with a count; the chosen one fills
+   with ink. Used on the components index and in the phone menu. */
+.pan-opt {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dt-text-primary);
+  font-family: var(--dt-font-family-sans);
+  font-size: 0.87rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dt-motion-micro), border-color var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+
+.pan-opt .n {
+  padding-left: 1px;
+  color: var(--dt-text-tertiary);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pan-opt:hover {
+  border-color: var(--dt-border-default);
+}
+
+.pan-opt[aria-pressed="true"] {
+  background: var(--dt-surface-action);
+  border-color: var(--dt-surface-action);
+  color: var(--dt-text-on-action);
+}
+
+.pan-opt[aria-pressed="true"] .n {
+  color: var(--dt-text-on-action);
+  opacity: 0.7;
+}
+
+/* On the components index the chips stay in reach as the families scroll
+   past, just under the header. */
+.filter-chips {
+  position: sticky;
+  top: var(--site-header);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: var(--dt-space-stack-md) 0 0;
+  padding: var(--dt-dim-2) 0;
+  background: var(--dt-surface-base);
+}
+
+@media (max-width: 900px) {
+  .filter-chips {
+    position: static;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-right: calc(-1 * var(--dt-space-inset-md));
+    margin-left: calc(-1 * var(--dt-space-inset-md));
+    padding: 6px var(--dt-space-inset-md);
+  }
+
+  .filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The menu's chips scroll sideways under the breadcrumb. */
+  .mchips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 4px -24px 4px;
+    padding: 6px 24px 8px;
+  }
+
+  .mchips::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Footer: three slots, so search can sit left or in the middle. */
+  .mfoot {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+  }
+
+  .mf-l {
+    justify-self: start;
+  }
+
+  .mf-c {
+    justify-self: center;
+  }
+
+  .mf-r {
+    justify-self: end;
+  }
+
+  .mf-l:empty,
+  .mf-c:empty {
+    display: block;
+    width: 50px;
+  }
+
+  /* Search: the footer becomes a field fixed to the bottom of the sheet. */
+  .mfoot.msearch {
+    display: block;
+    padding: 12px 13px calc(13px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ms-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 50px;
+    padding: 0 5px 0 16px;
+    border-radius: 25px;
+    background: var(--dt-surface-sunken);
+    color: var(--dt-text-tertiary);
+  }
+
+  .ms-field > .ic {
+    width: 19px;
+    height: 19px;
+    flex: none;
+  }
+
+  .ms-field input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--dt-text-primary);
+    font: inherit;
+    font-size: 16px;
+    outline: none;
+  }
+
+  .ms-field input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+
+  .ms-close {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--dt-surface-overlay);
+    color: var(--dt-text-primary);
+    cursor: pointer;
+  }
+
+  .ms-close .ic {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Keep the sheet, and the field at its foot, above the keyboard. */
+  .msheet.is-searching {
+    height: calc(100% - 44px - env(safe-area-inset-top, 0px) - var(--kb, 0px));
+    margin-bottom: calc(8px + env(safe-area-inset-bottom, 0px) + var(--kb, 0px));
+  }
+}
