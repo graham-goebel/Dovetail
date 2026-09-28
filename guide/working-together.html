@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Working together · Dovetail</title>
+<meta name="description" content="Branches, pull requests, builds and checks for everyone working on Dovetail.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html" aria-current="page">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Working together</li></ol></nav>
+<article class="prose doc">
+<h1 id="working-together-on-dovetail">Working together on Dovetail</h1>
+<p>How to get set up, make a change, and get it merged when several people (and their Claude sessions) work on this repository at once. For <em>what</em> makes a good component or token, read <a href="contributing.html">the system's contributing guide</a>. This file covers <em>how</em> work moves through the repo.</p>
+<h2 id="what-s-where">What's where</h2>
+<div class="table-wrap"><table><thead><tr><th>Path</th><th>What it is</th><th>Edited by</th></tr></thead><tbody><tr><td><code>system/</code></td><td>The design system itself: tokens, components, styles, templates. <strong>This is what gets versioned.</strong></td><td>hand</td></tr><tr><td><code>system/components/**/*.jsx</code></td><td>Component sources, one folder per group, each with <code>.d.ts</code> and <code>.md</code> beside it</td><td>hand</td></tr><tr><td><code>system/tokens/</code></td><td>CSS custom properties in three tiers, plus <code>tokens.json</code> / <code>dovetail.tokens.json</code></td><td>hand</td></tr><tr><td><code>previews/</code></td><td>One live card per component or foundation, embedded on the site</td><td>hand (the build patches a few lines)</td></tr><tr><td><code>assets/</code></td><td>The site's own CSS and JS, including the Configure panel (<code>theme.js</code>)</td><td>hand</td></tr><tr><td><code>tools/</code></td><td>Build scripts and checks</td><td>hand</td></tr><tr><td><code>changes/</code></td><td>Pending changelog entries, one per change</td><td>hand</td></tr><tr><td><code>examples/</code></td><td>Sites built with Dovetail, as stretch tests</td><td>hand</td></tr><tr><td><code>index.html</code>, <code>components/</code>, <code>foundations/</code>, <code>showcase/</code>, <code>guide/</code>, <code>tokens.html</code>, <code>downloads.html</code></td><td>The documentation site</td><td><strong>generated</strong></td></tr><tr><td><code>system/components/bundle.js</code>, <code>system/_ds_bundle.js</code>, <code>system/templates/_support/card-kit.js</code>, <code>assets/configure-data.js</code>, <code>assets/graph-data.js</code></td><td>Build output</td><td><strong>generated</strong></td></tr></tbody></table></div>
+<p><strong>Never edit a generated file by hand.</strong> Change its source and run <code>npm run build</code>.</p>
+<h2 id="setup">Setup</h2>
+<p>You need Node 22 or newer.</p>
+<pre class="code" data-lang="sh"><code>npm ci                               # build tools (Babel) and the browser checks (Playwright)
+npx playwright install chromium      # once, for npm run check:browser
+npm run serve                        # the site at http://localhost:8099</code></pre>
+<h2 id="the-flow">The flow</h2>
+<ol><li><strong>Start from an up-to-date <code>main</code></strong> and create a branch: <code>git switch -c &lt;your-name&gt;/&lt;topic&gt;</code>, e.g. <code>sam/card-media-slot</code>. Claude sessions use <code>claude/&lt;topic&gt;</code>. <strong>One person or one session per branch.</strong></li><li><strong>Keep it small.</strong> One component, one token change, or one fix per pull request. A reviewer should be able to read it in one sitting.</li><li><strong>Make the change</strong>, then rebuild and check:</li></ol>
+<p>   ``<code>sh    npm run build     # bundle, card kit and site    npm run check     # generated files current, changelog entries valid, every card and page loads cleanly    </code>``</p>
+<ol><li><strong>Add a changelog entry</strong> if anything a consumer sees changed: <code>npm run change -- &lt;slug&gt;</code>, then fill it in. See <a href="../changes/README.md">changes/README.md</a>. Tooling-only changes still get an entry, with <code>bump: none</code>.</li><li><strong>Commit the source and the rebuilt output together</strong>, then push and open a pull request. The template asks for what changed, the bump, and how you checked it.</li><li><strong>CI runs the same checks.</strong> A reviewer from <a href="https://github.com/graham-goebel/Dovetail/blob/HEAD/.github/CODEOWNERS">CODEOWNERS</a> approves. Squash-merge into <code>main</code>, and <code>main</code> deploys to GitHub Pages.</li></ol>
+<h3 id="staying-current-and-resolving-conflicts">Staying current and resolving conflicts</h3>
+<ul><li><strong>Merge <code>main</code> into your branch</strong> (<code>git merge origin/main</code>) rather than rebasing a branch someone else may have checked out.</li><li><strong>Conflicts in generated files are never resolved by hand.</strong> Take either side (<code>git checkout --theirs &lt;file&gt;</code>), run <code>npm run build</code>, and commit the result. <code>.gitattributes</code> marks these files so GitHub collapses them in diffs.</li><li><strong>Conflicts in <code>changes/</code> can't happen,</strong> because every entry is its own file. That's the point.</li></ul>
+<h2 id="making-common-changes">Making common changes</h2>
+<h3 id="a-token">A token</h3>
+<ul><li>Tokens live in three tiers:<ul><li><code>tokens/primitive/</code> holds raw values;</li><li><code>tokens/semantic/</code> holds roles, and only these may point at primitives;</li><li><code>tokens/component/</code> holds component-scoped aliases of semantic tokens.</li></ul></li><li>Components read semantic or component tokens, never primitives.</li><li><strong>The scoped-dark rule.</strong> Custom properties resolve where they're declared, so any colour alias that must follow a <code>.dark</code> band is repeated under <code>.dark</code> in its own file. Check a new colour token inside a dark <code>Section</code>, not just with the whole page dark.</li><li>Update <code>system/tokens.json</code> and <code>system/tokens/dovetail.tokens.json</code> to match.</li><li>Renaming or removing a token, or changing what it means, is a <strong>breaking change</strong>. Deprecate first (<a href="changelog-strategy.html">docs/changelog.md §6</a>).</li></ul>
+<h3 id="a-component">A component</h3>
+<ol><li>Add the four files: <code>Name.jsx</code>, <code>Name.d.ts</code>, <code>Name.md</code> in <code>system/components/&lt;group&gt;/</code>, plus a card at <code>previews/Name.html</code> with an <code>@dsCard</code> header comment. Copy a recent card such as <code>previews/Thinking.html</code> as a start.</li><li>Register the name in <code>system/manifest.json</code> (<code>components</code>) and give it a specimen in <code>assets/specimens.js</code>.</li><li><code>npm run build</code>. The bundle build finds the new <code>.jsx</code> by itself, and the site build gives it a page.</li><li>Cards load shared code by reference; don't paste it in:<ul><li><code>../system/styles.css</code></li><li><code>../system/templates/_support/card-theme-sync.js</code></li><li><code>card-kit.js</code> / <code>card-kit.css</code>, if the card uses <code>Shelf</code>, <code>PropTable</code> and friends</li></ul></li></ol>
+<p>   The browser check fails a card that inlines them again.</p>
+<h3 id="the-site-or-configure">The site or Configure</h3>
+<p>Edit <code>assets/</code> or <code>tools/build-site.mjs</code>, run <code>npm run build</code>, and look at the result with <code>npm run serve</code>. Check both a phone width (390px) and desktop, in light and dark.</p>
+<h2 id="checks">Checks</h2>
+<div class="table-wrap"><table><thead><tr><th>Command</th><th>What it checks</th></tr></thead><tbody><tr><td><code>npm run check:build</code></td><td>The bundle, card kit and site are current with their sources</td></tr><tr><td><code>npm run check:changes</code></td><td>Every entry in <code>changes/</code> is valid (fields, migration notes for majors)</td></tr><tr><td><code>npm run check:browser</code></td><td>Every card and every site page loads with no script error, no missing local file and no bundle error; every local link resolves</td></tr><tr><td><code>npm run check</code></td><td>All three</td></tr></tbody></table></div>
+<p>In CI, pull requests also have to add a changelog entry when they touch shipped sources. Add <code>bump: none</code> or the <code>skip-changelog</code> label if there's truly nothing to say.</p>
+<h2 id="working-with-claude-code">Working with Claude Code</h2>
+<ul><li>Each person's session works on its own branch and opens its own pull request. Don't point two sessions at one branch.</li><li>Sessions read <a href="../CLAUDE.md">CLAUDE.md</a> first. It holds the rules above in the form an agent needs. Keep it current when a convention changes.</li><li>Ask the session to run <code>npm run check</code> before it pushes, and to add the changelog entry.</li></ul>
+<h2 id="without-git">Without git</h2>
+<p>Designers can still propose changes. Make them in the site's <strong>Configure</strong> panel, use <strong>Export</strong>, and attach the result to a GitHub issue describing the intent. An owner of the area turns it into a pull request.</p>
+<h2 id="releases">Releases</h2>
+<p>Scheduled every two weeks when anything is pending, with patches on demand. The release owner compiles <code>changes/</code> into <code>CHANGELOG.md</code> with <code>node tools/changelog.mjs --release</code>, then tags and publishes. The full process and the versioning rules are in <a href="changelog-strategy.html">docs/changelog.md</a>.</p>
+</article>
+<p class="muted">Source: <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a></p>
+
+</main>
+</div>
+
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+
+</body>
+</html>

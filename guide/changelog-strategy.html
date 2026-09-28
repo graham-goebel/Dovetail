@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog strategy · Dovetail</title>
+<meta name="description" content="How changes are recorded, versioned and announced.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../assets/site.css">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html" aria-current="page">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Changelog strategy</li></ol></nav>
+<article class="prose doc">
+<h1 id="changelog-strategy">Changelog strategy</h1>
+<p>How Dovetail records what changed, decides version numbers, and tells the people who build with it. The short version:</p>
+<ol><li>Every pull request that changes what the system ships adds one entry file to <code>changes/</code>.</li><li>Entries say what changed <strong>for the consumer</strong>, with a bump level and tags.</li><li>A release compiles the entries into <code>CHANGELOG.md</code>, bumps the version, tags it and publishes notes.</li><li>Breaking changes are rare, announced early through deprecations, and always come with migration steps.</li></ol>
+<p>The tooling is <code>tools/changelog.mjs</code> (<code>npm run change</code>, <code>npm run changelog</code>, <code>npm run check:changes</code>). This document is the why and the rules behind it.</p>
+<hr>
+<h2 id="1-who-reads-the-changelog">1. Who reads the changelog</h2>
+<p>A design-system changelog has three readers, and each entry should work for all three.</p>
+<div class="table-wrap"><table><thead><tr><th>Reader</th><th>What they need</th><th>So an entry must</th></tr></thead><tbody><tr><td><strong>Product engineers</strong> consuming the bundle, tokens or CSS</td><td>&quot;Will upgrading break me, and what do I change?&quot;</td><td>name the exact API (component, prop, token) and give migration steps for anything breaking</td></tr><tr><td><strong>Product designers</strong> working from the site and Configure</td><td>&quot;What looks different, and what new options do I have?&quot;</td><td>flag visual changes and describe them in visual terms</td></tr><tr><td><strong>Contributors</strong></td><td>&quot;What happened since I last looked?&quot;</td><td>link to the pull request for detail</td></tr></tbody></table></div>
+<p>The changelog is <strong>not</strong> a commit log. &quot;Refactor Shelf&quot;, &quot;fix lint&quot; and &quot;rebuild bundle&quot; don't belong in it. The test for every line: would someone using Dovetail notice, act on it or benefit from knowing?</p>
+<h2 id="2-what-is-versioned">2. What is versioned</h2>
+<p><strong>The system is versioned; the documentation site is not.</strong> Version numbers describe <code>system/</code>: the package teams copy or link. That covers:</p>
+<ul><li><strong>Tokens</strong>: every <code>--dt-*</code> custom property, its name, tier and meaning, and <code>tokens.json</code>.</li><li><strong>Components</strong>: every export of <code>bundle.js</code>, each prop, each prop value and default, and the namespace name.</li><li><strong>Styles and themes</strong>: <code>styles.css</code>, the theme and context files, and the class hooks (<code>.dark</code>, <code>.dt-context-*</code>).</li><li><strong>Templates and kits</strong> under <code>system/templates</code> and <code>system/kits</code>.</li></ul>
+<p>The site (<code>assets/</code>, generated pages, Configure) changes continuously and ships from <code>main</code>. A site change gets an entry only when it changes something a consumer takes away from it. Examples: what Configure exports, or a new download. Those use <code>area: site</code>, and a bump reflecting the effect on the exported output.</p>
+<p>The single version number lives in <code>package.json</code> (<code>version</code>). A release updates it; nothing else does.</p>
+<h2 id="3-version-numbers-semver-applied-to-a-design-system">3. Version numbers: SemVer, applied to a design system</h2>
+<p>Dovetail follows <a href="https://semver.org">Semantic Versioning</a>. For a design system, &quot;the public API&quot; includes things a code library doesn't have: token names, token meanings, and how things look by default. These rules decide the bump.</p>
+<h3 id="major-someone-s-code-or-design-breaks-without-them-changing-anything">Major: someone's code or design breaks without them changing anything</h3>
+<ul><li>Removing or renaming a <strong>token</strong>, <strong>component</strong>, <strong>prop</strong>, <strong>prop value</strong>, CSS class hook, theme or context file.</li><li>Changing a token's <strong>meaning</strong>. For example, <code>--dt-surface-selected</code> moving from a neutral to a brand colour is a different decision, even though the name stayed. So is a semantic token re-pointed at a role with a different intent.</li><li>Changing a <strong>default</strong> that changes layout or behaviour: a prop default, a component's default size, a component that starts rendering a different element.</li><li>Changing the <strong>bundle namespace</strong>, the React version requirement, or how the bundle must be loaded.</li><li>Tightening accessibility behaviour in a way that requires consumer changes, such as a newly required <code>label</code> prop.</li></ul>
+<p><em>Example from this repo's history:</em> renaming the <code>accent</code> ramp to <code>primary</code> (<code>--dt-color-accent-*</code> became <code>--dt-color-primary-*</code>) was a major change.</p>
+<h3 id="minor-something-new-and-nothing-existing-breaks">Minor: something new, and nothing existing breaks</h3>
+<ul><li>A new component, prop, prop value, token, ramp, theme or context.</li><li>A new optional capability, e.g. <code>Thinking</code>'s <code>screen=&quot;light&quot;</code>, or the textural shapes.</li><li>A <strong>deliberate visual refresh</strong> of an existing default that stays within the token's meaning, e.g. rebalancing the Thinking fluid. Flag it <code>visual: true</code>.</li><li><strong>Deprecating</strong> anything (see §6).</li></ul>
+<h3 id="patch-fixes">Patch: fixes</h3>
+<ul><li>Bug fixes that restore intended behaviour.</li><li>Accessibility fixes that need nothing from the consumer: contrast, focus visibility, announcements.</li><li>Token <strong>value</strong> corrections that keep the meaning, e.g. nudging a step so white text passes 4.5:1. Flag it <code>visual: true</code> and give the old and new values.</li><li>Performance, and documentation that ships inside <code>system/</code> (<code>.md</code>, <code>.d.ts</code> comments).</li></ul>
+<h3 id="none-nothing-a-consumer-sees">None: nothing a consumer sees</h3>
+<p>Tooling, CI, refactors with identical output, and site-only changes that don't affect exports. These still need an entry file with <code>bump: none</code>, so that &quot;no entry&quot; always means &quot;someone forgot&quot;. They don't appear in the published notes.</p>
+<h3 id="before-1-0">Before 1.0</h3>
+<p>Dovetail starts at <strong>0.1.0</strong>. While the major number is 0, the API is not yet promised stable. Breaking changes and features both bump the <strong>minor</strong> number (0.1 → 0.2); fixes bump the patch (0.2.0 → 0.2.1). Everything else in this document applies unchanged. Breaking changes are still marked, still need migration steps, and still go through deprecation where practical.</p>
+<p><strong>Go to 1.0.0</strong> once <code>main</code> has been the shared branch for a few releases, at least one product consumes a tagged version, and the token names have survived a real project without renames.</p>
+<h2 id="4-change-entries">4. Change entries</h2>
+<h3 id="why-entry-files-not-editing-changelog-md">Why entry files, not editing CHANGELOG.md</h3>
+<p>With several people working in parallel, everyone editing the top of one file guarantees merge conflicts, and changelog text written at release time is written from memory. Instead, each pull request adds a new file under <code>changes/</code>. Files never collide, each entry is reviewed alongside the code it describes, and the release step assembles them. (This is the &quot;changesets&quot; pattern, without the monorepo tooling.)</p>
+<h3 id="format">Format</h3>
+<pre class="code" data-lang="markdown"><code>---
+type: added          # added | changed | deprecated | removed | fixed | security
+bump: minor          # major | minor | patch | none
+area: components     # tokens | components | styles | themes | templates | site | tooling
+components: [Thinking]
+tokens: [--dt-thinking-screen-light, --dt-thinking-light-color-start]
+visual: false        # true when it looks different with no code change
+---
+Thinking's voice overlay has a light screen: `screen=&quot;light&quot;` gives a bright frosted overlay with dark text that stays light on a dark page.
+
+Optional detail: before/after, rationale, links. A major entry must have:
+
+## Migration
+
+Replace `tone=&quot;accent&quot;` with `tone=&quot;primary&quot;`. …</code></pre>
+<ul><li><strong>type</strong> follows <a href="https://keepachangelog.com">Keep a Changelog</a> categories. It sorts the entry into a section.</li><li><strong>bump</strong> decides the version (§3). The highest bump among the pending entries wins.</li><li><strong>components / tokens</strong> are tags. They render as code next to the entry and let a reader search for &quot;everything that touched <code>Card</code>&quot;. List the exact names.</li><li><strong>visual</strong> marks changes teams should look at, e.g. by re-running visual regression tests.</li><li>One entry per change a consumer would describe separately. A pull request that adds a component and fixes an unrelated token gets two entries.</li><li>Name the file after the change: <code>changes/thinking-light-screen.md</code>.</li></ul>
+<h3 id="writing-the-summary">Writing the summary</h3>
+<p>The first paragraph is the line that ships in the notes, so write it for the reader in §1:</p>
+<div class="table-wrap"><table><thead><tr><th>Instead of</th><th>Write</th></tr></thead><tbody><tr><td>&quot;Refactored Thinking overlay styles&quot;</td><td>&quot;Thinking's voice overlay has a light screen: <code>screen=\&quot;light\&quot;</code>.&quot;</td></tr><tr><td>&quot;Fix contrast&quot;</td><td>&quot;Secondary 600 is one step darker, so white text on it passes 4.5:1 (was 4.49:1).&quot;</td></tr><tr><td>&quot;Update tokens&quot;</td><td>&quot;New <code>--dt-blur-glass</code> and <code>--dt-backdrop-glass</code> tokens for frosted surfaces.&quot;</td></tr><tr><td>&quot;Breaking: rename&quot;</td><td>&quot;<code>--dt-color-accent-*</code> is now <code>--dt-color-primary-*</code>.&quot; (with a Migration section)</td></tr></tbody></table></div>
+<ul><li>Lead with the thing, in present tense: &quot;Card accepts <code>href</code>…&quot;, not &quot;Added href to Card&quot;.</li><li>Name APIs in code format.</li><li>Say what the reader can now do, or must now do.</li><li>Keep it to a sentence or two; detail goes below.</li><li>For visual changes, describe what looks different, not how it was implemented.</li></ul>
+<h3 id="migration-sections">Migration sections</h3>
+<p>Required for <code>bump: major</code>, and encouraged for deprecations. Include:</p>
+<ul><li>the before and after code, or the before and after token names;</li><li>a find-and-replace pattern when the change is mechanical;</li><li>what to check visually afterwards.</li></ul>
+<h2 id="5-releasing">5. Releasing</h2>
+<h3 id="cadence">Cadence</h3>
+<ul><li><strong>Scheduled:</strong> every two weeks, if anything is pending. A predictable rhythm lets product teams plan upgrades.</li><li><strong>Patch on demand:</strong> a fix for something broken can ship the same day.</li><li><strong>Majors are planned:</strong> announced at least one release ahead, via the deprecations they complete.</li></ul>
+<h3 id="steps-release-owner">Steps (release owner)</h3>
+<ol><li>Make sure <code>main</code> is green and up to date locally.</li><li><code>npm run changelog</code> previews the notes and the computed version. Read them as a consumer: fix unclear entries in their files first.</li><li><code>node tools/changelog.mjs --release</code> writes the new section at the top of <code>CHANGELOG.md</code>, bumps <code>package.json</code> and deletes the compiled entries. Override with <code>--version</code> only for a deliberate jump, like 1.0.0.</li><li><code>npm run build</code>, so the site's changelog page picks up the new section.</li><li>Open a pull request titled <code>Release x.y.z</code> containing only those changes; merge after review.</li><li>Tag the merge commit <code>vX.Y.Z</code> and create a GitHub Release whose body is the new section.</li><li>Post the summary where consumers will see it (§8).</li></ol>
+<h3 id="roles">Roles</h3>
+<ul><li><strong>Author:</strong> writes the entry with the change.</li><li><strong>Reviewer:</strong> checks the entry is accurate, correctly bumped, and understandable without the diff. A missing or wrong entry is a blocking review comment, like a missing test.</li><li><strong>Release owner:</strong> rotates each release. Runs §5 and chases unclear entries.</li><li><strong>System owner</strong> (see <code>CODEOWNERS</code>): signs off every <code>bump: major</code> entry before its pull request merges.</li></ul>
+<h2 id="6-deprecation-policy">6. Deprecation policy</h2>
+<p>Nothing is removed without warning.</p>
+<ol><li><strong>Deprecate</strong> in a minor release. The entry uses <code>type: deprecated</code>, names the replacement and states the version it will be removed in. The check fails a deprecation that doesn't say when it will be removed.</li><li><strong>Keep it working</strong> in the meantime:<ul><li><strong>Tokens:</strong> the old name stays as an alias for the new one, with a comment: <code>--dt-color-accent-600: var(--dt-color-primary-600); /* deprecated 0.3.0, removed in 1.0.0 */</code>.</li><li><strong>Components and props:</strong> they keep working and log a single <code>console.warn</code> in development naming the replacement.</li><li><strong>Docs:</strong> the site marks the item Deprecated on its page.</li></ul></li><li><strong>Remove</strong> it in the next major (or, below 1.0, no sooner than two minor releases later). The removal entry is <code>type: removed</code>, <code>bump: major</code> and links back to the deprecation.</li></ol>
+<h2 id="7-enforcement">7. Enforcement</h2>
+<p><strong>Automated.</strong> In CI, on every pull request:</p>
+<ul><li><code>node tools/changelog.mjs --check --base origin/main</code> validates every entry:<ul><li>required fields present and valid;</li><li>majors have a Migration section;</li><li>deprecations name the removal version;</li><li>removals are major.</li></ul></li><li>It fails if the branch changes shipped sources but adds no entry. &quot;Shipped sources&quot; means <code>system/</code> components, tokens, styles, templates and kits, plus Configure's export logic. Generated files are ignored.</li><li>The escape hatch is an entry with <code>bump: none</code>, which leaves a record, or the <code>skip-changelog</code> label for pull requests that truly have nothing to say (a typo in a comment).</li></ul>
+<p><strong>In review.</strong> The pull request template asks for the entry and the bump. Reviewers check the bump against §3. When unsure between two levels, choose the higher one.</p>
+<h2 id="8-where-changes-are-published">8. Where changes are published</h2>
+<div class="table-wrap"><table><thead><tr><th>Channel</th><th>What</th><th>When</th></tr></thead><tbody><tr><td><code>CHANGELOG.md</code></td><td>the full history, newest first</td><td>every release</td></tr><tr><td>Site <strong>Changelog</strong> page (<code>guide/changelog.html</code>)</td><td>the same file, rendered on the site under Guide</td><td>on deploy after a release</td></tr><tr><td>GitHub Releases</td><td>one release per tag, body = that version's section</td><td>every release</td></tr><tr><td>Team channel (Slack or similar)</td><td>a short post: version, the one or two headline items, breaking changes and a link</td><td>every release; majors also get a heads-up one release ahead</td></tr></tbody></table></div>
+<p>Post template:</p>
+<blockquote><p><strong>Dovetail 0.3.0</strong> is out. ✨ <em>Thinking</em> gets a light voice screen and four textural shapes. ⚠️ Visual: Secondary 600 is one step darker. Full notes: https://graham-goebel.github.io/Dovetail/guide/changelog.html</p></blockquote>
+<h2 id="9-later-improvements">9. Later improvements</h2>
+<p>These build on the entry files once the basics are habit:</p>
+<ol><li><strong>Token diff in release notes.</strong> Compare <code>system/tokens.json</code> between the last tag and <code>HEAD</code>. List added, removed and changed tokens (old value → new value) automatically under each release. Fail the release if a token disappeared with no major entry.</li><li><strong>Component API diff.</strong> Do the same for the props in each <code>*.d.ts</code>: a prop removed or narrowed without a major entry fails the release.</li><li><strong>Per-component history.</strong> Each component page gets a History section listing the entries tagged with that component.</li><li><strong>Version in exports.</strong> Configure's CSS export and the downloads carry the version they were generated from, so a team knows what they're on.</li><li><strong>Visual regression.</strong> Screenshot every preview card on each pull request (the repo has the tooling) and require <code>visual: true</code> on any entry whose cards changed.</li></ol>
+<h2 id="10-rollout">10. Rollout</h2>
+<div class="table-wrap"><table><thead><tr><th>Step</th><th>What</th><th>Status</th></tr></thead><tbody><tr><td>1</td><td><code>changes/</code>, <code>tools/changelog.mjs</code>, <code>CHANGELOG.md</code> with the 0.1.0 baseline, this document</td><td>done</td></tr><tr><td>2</td><td>CI check on pull requests; changelog section in the PR template</td><td>done</td></tr><tr><td>3</td><td>Site Changelog page generated from <code>CHANGELOG.md</code></td><td>done</td></tr><tr><td>4</td><td>Make <code>main</code> the default branch, protect it, tag <code>v0.1.0</code> on it</td><td>needs a repo admin</td></tr><tr><td>5</td><td>First scheduled release two weeks after step 4</td><td>pending</td></tr><tr><td>6</td><td>Token diff, then component API diff (§9)</td><td>later</td></tr></tbody></table></div>
+</article>
+<p class="muted">Source: <a href="../docs/changelog.md">docs/changelog.md</a></p>
+
+</main>
+</div>
+
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<script src="../assets/configure-data.js" defer></script>
+<script src="../assets/theme.js" defer></script>
+<script src="../assets/site.js" defer></script>
+
+</body>
+</html>

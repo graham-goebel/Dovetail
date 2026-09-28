@@ -1,7 +1,12 @@
 # Dovetail documentation site
 
-A standalone static site for **Dovetail**, a white-label design system. No build tooling,
-no framework, no dependencies: HTML, CSS, and one Node script that regenerates the pages.
+A standalone static site for **Dovetail**, a white-label design system. No framework and
+no runtime dependencies: HTML, CSS, and two Node scripts, one that compiles the component
+bundle and one that regenerates the pages.
+
+Working on it with other people? Start with [CONTRIBUTING.md](CONTRIBUTING.md). What
+changed in each release is in [CHANGELOG.md](CHANGELOG.md), and the rules for recording
+changes are in [docs/changelog.md](docs/changelog.md).
 
 The site is the design system. Every page is styled with Dovetail's own tokens, so a
 broken token shows up as a broken page.
@@ -21,7 +26,12 @@ system/             The design system itself, at the paths it was authored with
 previews/           The @dsCard preview documents, one per card
 assets/             Site chrome: site.css, site.js, theme.js (Configure), specimens.js,
                     file-menu.js, graph.js (the node visualiser)
-tools/build-site.mjs   The generator
+tools/build-bundle.mjs The component bundle and card kit compiler
+tools/build-site.mjs   The page generator
+tools/check/        Browser checks, the static server, the "is the build current" check
+tools/changelog.mjs Changelog entries: create, validate, compile a release
+changes/            Pending changelog entries, one file per change
+docs/changelog.md   How changes are recorded, versioned and announced
 ```
 
 `system/` is served as part of the site, so the stylesheets, tokens, component sources
@@ -37,19 +47,19 @@ Dark mode needs no second stylesheet. Put `class="dark"` on `<html>`.
 ## Building
 
 ```bash
-node tools/build-site.mjs
+npm ci           # once: Babel for the bundle, Playwright for the checks
+npm run build    # the component bundle and card kit, then the pages
+npm run check    # generated files current, changelog valid, every card and page loads
+npm run serve    # the site at http://localhost:8099
 ```
 
-Node 18 or newer, nothing to install. The script reads `system/` and `previews/` and
-writes the pages listed above. Everything it writes is derived: edit the system, not
-the output, then rebuild.
-
-To read the site locally, serve the directory rather than opening the files directly, so
-the previews can load the component bundle:
-
-```bash
-python3 -m http.server 8000
-```
+Node 22 or newer. `tools/build-bundle.mjs` compiles every `.jsx` under
+`system/components/` into `system/components/bundle.js` (new files are picked up by
+themselves) and the card kit into `system/templates/_support/card-kit.js`.
+`tools/build-site.mjs` reads `system/` and `previews/` and writes the pages listed above.
+Everything either writes is derived: edit the system, not the output, then rebuild.
+Serve the directory rather than opening the files directly, so the previews can load the
+component bundle.
 
 ## Publishing
 
@@ -490,8 +500,12 @@ state along with the drawer.
 
 ## How the previews work
 
-Each card in `previews/` is a complete HTML document with the system's CSS inlined. Three
-script tags were added to every one of them so it runs on its own:
+Each card in `previews/` is a complete HTML document. It links the system's CSS
+(`../system/styles.css`) and the shared card code in `system/templates/_support/`:
+`card-theme-sync.js`, `theme-runtime.js`, and `card-kit.js` / `card-kit.css` for the
+component shelves. It links rather than pastes, so a token or kit change reaches every card
+at once; the browser check fails a card that inlines a copy again. Three script tags were
+added to every card so it runs on its own:
 
 ```html
 <script src="../system/components/lib/react.production.min.js"></script>

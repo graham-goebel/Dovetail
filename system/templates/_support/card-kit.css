@@ -1,0 +1,16 @@
+/* Card kit styles: what the kit's inline styles cannot express. Loaded by
+   every card that uses the kit, next to card-kit.js. */
+
+/* On a phone the four-column props table hides its notes off to the right.
+   Below 560px each prop becomes a block: name, then type and default, then
+   the note. The table's own styles are inline, hence the !important. */
+@media (max-width: 560px) {
+  table.prop-table { min-width: 0 !important; }
+  table.prop-table thead { display: none; }
+  table.prop-table, table.prop-table tbody, table.prop-table tr, table.prop-table td { display: block; }
+  table.prop-table tr { padding: var(--dt-space-inset-xs) 0; border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle); }
+  table.prop-table td { border: 0 !important; padding: 0 !important; }
+  table.prop-table td:nth-child(2), table.prop-table td:nth-child(3) { display: inline; }
+  table.prop-table td:nth-child(3)::before { content: "  \00B7  default "; white-space: pre; font-family: var(--dt-font-family-sans); color: var(--dt-text-tertiary); }
+  table.prop-table td:nth-child(4) { margin-top: var(--dt-space-stack-2xs); }
+}

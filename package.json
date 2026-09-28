@@ -1,0 +1,27 @@
+{
+  "name": "dovetail",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Dovetail design system and its documentation site.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node tools/build-bundle.mjs && node tools/build-site.mjs",
+    "build:bundle": "node tools/build-bundle.mjs",
+    "build:site": "node tools/build-site.mjs",
+    "check": "npm run check:build && npm run check:changes && npm run check:browser",
+    "check:build": "node tools/build-bundle.mjs --check && node tools/check/site-current.mjs",
+    "check:changes": "node tools/changelog.mjs --check",
+    "check:browser": "node tools/check/browser.mjs",
+    "serve": "node tools/check/serve.mjs",
+    "changelog": "node tools/changelog.mjs",
+    "change": "node tools/changelog.mjs --new"
+  },
+  "devDependencies": {
+    "@babel/core": "8.0.6",
+    "@babel/preset-react": "8.0.1",
+    "playwright": "1.63.0"
+  }
+}

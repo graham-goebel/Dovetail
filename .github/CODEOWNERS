@@ -1,0 +1,32 @@
+# Who reviews what. GitHub requests a review from the owners of every path a
+# pull request touches; with branch protection's "Require review from Code
+# Owners" on, their approval is needed to merge.
+#
+# Everything is owned by the repository owner to start. As people join, give
+# each area its own owner (a person or a team, e.g. @org/design-system) by
+# replacing the handle on that line. Later lines win over earlier ones.
+
+*                           @graham-goebel
+
+# The system: what consumers depend on and what gets versioned.
+/system/tokens/             @graham-goebel
+/system/tokens.json         @graham-goebel
+/system/components/         @graham-goebel
+/system/styles.css          @graham-goebel
+/system/templates/          @graham-goebel
+/system/kits/               @graham-goebel
+
+# The documentation site and Configure.
+/assets/                    @graham-goebel
+/tools/build-site.mjs       @graham-goebel
+/previews/                  @graham-goebel
+
+# Build, checks, CI and release process.
+/tools/                     @graham-goebel
+/.github/                   @graham-goebel
+/package.json               @graham-goebel
+/CHANGELOG.md               @graham-goebel
+/docs/changelog.md          @graham-goebel
+
+# Example sites built with Dovetail.
+/examples/                  @graham-goebel

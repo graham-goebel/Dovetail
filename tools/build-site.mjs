@@ -120,15 +120,33 @@ function markdown(src) {
 
     const bullet = /^\s*([-*+]|\d+[.)])\s+/;
     if (bullet.test(line)) {
-      const ordered = /^\s*\d+[.)]\s/.test(line);
-      const items = [];
-      while (i < lines.length && (bullet.test(lines[i]) || (/^\s+\S/.test(lines[i]) && items.length))) {
-        if (bullet.test(lines[i])) items.push(lines[i].replace(bullet, ""));
-        else items[items.length - 1] += " " + lines[i].trim();
-        i++;
-      }
-      const tag = ordered ? "ol" : "ul";
-      out.push(`<${tag}>${items.map((t) => `<li>${inline(t)}</li>`).join("")}</${tag}>`);
+      /* Nested by indentation: a bullet indented past its parent opens a list
+         inside that item, and an indented plain line continues the item. */
+      const depth = (l) => l.match(/^\s*/)[0].length;
+      const list = (at) => {
+        const indent = depth(lines[at]);
+        const tag = /^\s*\d+[.)]\s/.test(lines[at]) ? "ol" : "ul";
+        const items = [];
+        while (at < lines.length) {
+          const l = lines[at];
+          const d = depth(l);
+          if (bullet.test(l) && d === indent) {
+            items.push({ text: l.replace(bullet, ""), kids: "" });
+            at++;
+          } else if (bullet.test(l) && d > indent && items.length) {
+            const [html, next] = list(at);
+            items[items.length - 1].kids += html;
+            at = next;
+          } else if (!bullet.test(l) && /^\s+\S/.test(l) && d > indent && items.length) {
+            items[items.length - 1].text += " " + l.trim();
+            at++;
+          } else break;
+        }
+        return [`<${tag}>${items.map((t) => `<li>${inline(t.text)}${t.kids}</li>`).join("")}</${tag}>`, at];
+      };
+      const [html, next] = list(i);
+      out.push(html);
+      i = next;
       continue;
     }
 
@@ -249,13 +267,11 @@ function patchPreview(file) {
   out = out.replace(/src="templates\/_support\//g, 'src="../system/templates/_support/');
   out = out.replace(/"\.\/templates\/settings-page\//g, '"../system/templates/settings-page/');
 
-  /* Each card carries its own copy of the system's CSS, inlined when it was
-     authored. A context added to the system afterwards has no rules in there at
-     all, and the contexts that were inlined lose anyway: they sit before the
-     :root they are meant to override, and a class beats :root only on source
-     order. So all three are linked in after that block, last in the head. The
-     stylesheets stay in step with what the system ships, and switching context
-     now reaches inside a card rather than only around it. */
+  /* Cards link ../system/styles.css near the top of the head. The contexts
+     override :root with a class, which wins only on source order, so all three
+     context files are linked last in the head, after everything else a card
+     loads. Switching context then reaches inside a card rather than only
+     around it. */
   if (!out.includes(CONTEXT_LINKS)) {
     out = out.replace(/<link rel="stylesheet" href="\.\.\/system\/tokens\/contexts\/[^"]+">/g, "");
     out = out.replace(/<\/head>/i, `${CONTEXT_LINKS}\n</head>`);
@@ -513,6 +529,9 @@ const GUIDE_PAGES = [
   ["accessibility", "Accessibility", "system/guidelines/accessibility.md", "What the system guarantees, and what you owe."],
   ["headless-integration", "Headless integration", "system/guidelines/headless-integration.md", "React, Sanity, and other content sources."],
   ["contributing", "Contributing", "system/guidelines/contributing.md", "How to add a component or a token."],
+  ["working-together", "Working together", "CONTRIBUTING.md", "Branches, pull requests, builds and checks for everyone working on Dovetail."],
+  ["changelog", "Changelog", "CHANGELOG.md", "What changed in each release, newest first."],
+  ["changelog-strategy", "Changelog strategy", "docs/changelog.md", "How changes are recorded, versioned and announced."],
   ["token-pipeline", "Token pipeline", "system/tools/README.md", "DTCG source of truth and the Style Dictionary build."],
   ["authoring-rules", "Authoring rules", "system/assets/notes/CLAUDE.from-standalone.md", "The always-on rules for building with Dovetail."],
   ["plan", "Build plan", "system/PLAN.md", "The four-phase plan, benchmarks and inventory."],
@@ -1125,10 +1144,22 @@ ${GUIDE_PAGES.map(([s, label, , text]) => `<a class="tile" href="${s}.html">${ic
 
   for (const [s, label, file, text] of GUIDE_PAGES) {
     const src = read(path.join(ROOT, file));
+    /* Links in these files are relative to where the file lives. On the site
+       a link to another guide source becomes that guide page, and anything
+       else is re-pointed from guide/ back to the file itself. */
+    const pages = new Map(GUIDE_PAGES.map(([slugName, , f]) => [f, `${slugName}.html`]));
+    const html = markdown(src).replace(/href="([^"]+)"/g, (m, href) => {
+      if (/^([a-z]+:|#|\/)/i.test(href)) return m;
+      const [target, hash] = href.split("#");
+      const resolved = path.posix.normalize(path.posix.join(path.posix.dirname(file), target));
+      /* The Pages upload leaves out .github/, so those files are linked on GitHub. */
+      const to = pages.get(resolved) || (resolved.startsWith(".github/") ? `https://github.com/graham-goebel/Dovetail/blob/HEAD/${resolved}` : `../${resolved}`);
+      return `href="${attr(to + (hash ? "#" + hash : ""))}"`;
+    });
     const body = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Guide", href: "guide/index.html" }, { label }])}
 <article class="prose doc">
-${markdown(src)}
+${html}
 </article>
 <p class="muted">Source: <a href="../${file}">${esc(file)}</a></p>
 `;

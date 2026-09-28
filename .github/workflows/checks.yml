@@ -1,0 +1,66 @@
+name: Checks
+
+# Runs on every pull request, and on main after a merge. Branch protection
+# should require both jobs before a pull request can merge.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build is current, changelog is recorded
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The changelog check diffs against the base branch.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generated files are current
+        run: npm run check:build
+
+      - name: Changelog entries are valid
+        run: node tools/changelog.mjs --check
+
+      # A pull request that changes what the system ships must add an entry to
+      # changes/. The skip-changelog label turns this off for the rare pull
+      # request with nothing to say; prefer an entry with `bump: none`.
+      - name: This pull request records its change
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+        env:
+          BASE: ${{ github.base_ref }}
+        run: node tools/changelog.mjs --check --base "origin/$BASE"
+
+  browser:
+    name: Every card and page loads cleanly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run check:browser

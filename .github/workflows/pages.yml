@@ -28,15 +28,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
-      - name: Build the site
-        run: node tools/build-site.mjs
+      - run: npm ci
+
+      # Same build as `npm run build`: the component bundle and card kit, then
+      # the site. The deploy refuses output that is behind its sources.
+      - name: Build the bundle and the site
+        run: npm run build
 
       - name: Check the committed output is current
         run: |
           if ! git diff --quiet; then
-            echo "The generated pages differ from what is committed."
-            echo "Run 'node tools/build-site.mjs' and commit the result."
+            echo "The generated files differ from what is committed."
+            echo "Run 'npm run build' and commit the result."
             git diff --stat
             exit 1
           fi

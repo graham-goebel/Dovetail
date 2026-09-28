@@ -31,10 +31,7 @@
   .kind { font-family: var(--dt-font-family-mono); font-size: var(--dt-font-size-2xs); color: var(--dt-text-tertiary); }
   @media (max-width: 720px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
-<script>
-  /* The card's theme picker sets data-theme; Dovetail keys dark mode on a class. */
-  (function(){var h=document.documentElement;function s(){var t=h.getAttribute('data-theme')||'';h.classList.toggle('dark',t==='dark');['dt-context-product','dt-context-marketing','dt-context-social'].forEach(function(c){h.classList.toggle(c,t===c)});}s();new MutationObserver(s).observe(h,{attributes:true,attributeFilter:['data-theme']});})();
-</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script>
 
 <link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
 </head><body><div id="root"></div>
