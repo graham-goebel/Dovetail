@@ -1,10 +1,11 @@
 name: Deploy site to GitHub Pages
 
+# main is the only branch that publishes. Work reaches it through pull
+# requests, which the Checks workflow tests first.
 on:
   push:
     branches:
       - main
-      - claude/html-github-pages-site-ubrllr
   workflow_dispatch:
 
 # Pages needs to read the checkout, write the deployment, and mint an OIDC
