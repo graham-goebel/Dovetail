@@ -1,12 +1,13 @@
 /* The phone menu, after the progressive menu sheet on Graham's folio.
 
-   A floating pill holds search, Configure and the menu button. The menu sheet
-   grows out of the menu button: sections as big links, and a section with
-   pages under it pushes a layer ("Menu / Components / Actions") that slides
-   in from the right. Back and close sit in a footer, close exactly where the
-   menu button was, so the button that opened the menu also shuts it. A swipe
-   down closes, a swipe right goes back. Search stretches the pill into a
-   field along the bottom with results above it.
+   A floating pill holds Configure and the menu button. The menu sheet grows
+   out of the menu button: sections as big links, and a section with pages
+   under it pushes a layer ("Menu / Components") that slides in from the
+   right; Components filters its list with Gainer-style chips. Back, search
+   and close sit in a footer, close exactly where the menu button was, so the
+   button that opened the menu also shuts it. Search turns the footer into a
+   field fixed to the sheet, with results in the sheet above it. A swipe down
+   closes, a swipe right goes back.
 
    The tree is window.DovetailNav, generated with the search index by
    tools/build-site.mjs. On a wide screen none of this shows: the header and
@@ -26,13 +27,14 @@
   var home = document.querySelector(".wordmark");
   var ROOT = home ? home.getAttribute("href").replace(/index\.html$/, "") : "";
   var menuBtn = fab.querySelector("[data-fab-menu]");
-  var searchBtn = fab.querySelector("[data-fab-search]");
-  var input = document.getElementById("fab-q");
+  var menuFilter = "all";
+  var searching = false;
 
   var ICONS = {
     next: '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
     back: '<path d="M19.5 12h-15"/><path d="m10.5 6-6 6 6 6"/>',
     x: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+    search: '<path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/>',
   };
   function ic(name) {
     return '<svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + ICONS[name] + "</svg>";
@@ -122,17 +124,42 @@
       var s = section(p.id);
       body = s.items
         ? '<div class="mlist">' + s.items.map(mrow).join("") + "</div>"
-        : '<div class="mlist">' + s.groups.map(function (g) {
-            return '<button type="button" class="mrow" data-group="' + g.id + '"><span class="t"><b>' + esc(g.t) + "</b><small>" + esc(g.d) + "</small></span>" + ic("next") + "</button>";
-          }).join("") + "</div>";
+        : chipsHtml(s) + '<div class="mlist" id="mlist">' + filtered(s).map(mrow).join("") + "</div>";
     } else {
       var grp = section(p.sec).groups.filter(function (g) { return g.id === p.id; })[0];
       body = '<div class="mlist">' + grp.items.map(mrow).join("") + "</div>";
     }
     return '<div class="mp-head"><p class="crumb">' + crumbs() + "</p></div>" +
       '<div class="mp-body">' + body + "</div>" +
-      '<div class="mfoot">' + (stack.length > 1 ? '<button type="button" class="msh-x" data-back aria-label="Back">' + ic("back") + "</button>" : "<span></span>") +
-      '<button type="button" class="msh-x" data-close aria-label="Close menu">' + ic("x") + "</button></div>";
+      footHtml();
+  }
+
+  /* Back on the left when there is somewhere to go back to, and search in
+     the middle; without a back arrow, search takes the left. Close is always
+     on the right, where the menu button was. */
+  function footHtml() {
+    var back = stack.length > 1 ? '<button type="button" class="msh-x" data-back aria-label="Back">' + ic("back") + "</button>" : "";
+    var find = '<button type="button" class="msh-x" data-find aria-label="Search components and pages">' + ic("search") + "</button>";
+    return '<div class="mfoot">' +
+      '<span class="mf-l">' + (back || find) + "</span>" +
+      '<span class="mf-c">' + (back ? find : "") + "</span>" +
+      '<span class="mf-r"><button type="button" class="msh-x" data-close aria-label="Close menu">' + ic("x") + "</button></span></div>";
+  }
+
+  /* Components: a chip per family above one list, like Gainer's filters. */
+  function chipsHtml(s) {
+    var all = s.groups.reduce(function (n, g) { return n + g.items.length; }, 0);
+    var chip = function (id, label, n) {
+      return '<button type="button" class="pan-opt" data-chip="' + id + '" aria-pressed="' + (menuFilter === id) + '">' + esc(label) + '<span class="n">' + n + "</span></button>";
+    };
+    return '<div class="mchips" role="toolbar" aria-label="Filter by family">' + chip("all", "All", all) +
+      s.groups.map(function (g) { return chip(g.id, g.t, g.items.length); }).join("") + "</div>";
+  }
+
+  function filtered(s) {
+    return s.groups.reduce(function (out, g) {
+      return menuFilter === "all" || menuFilter === g.id ? out.concat(g.items) : out;
+    }, []);
   }
 
   function render(dir) {
@@ -150,6 +177,18 @@
         render(-1);
       };
     });
+    box.querySelectorAll("[data-chip]").forEach(function (b) {
+      b.onclick = function () {
+        menuFilter = b.getAttribute("data-chip");
+        var s = section("components");
+        box.querySelectorAll("[data-chip]").forEach(function (c) { c.setAttribute("aria-pressed", String(c === b)); });
+        var list = box.querySelector("#mlist");
+        list.innerHTML = filtered(s).map(mrow).join("");
+        if (!reduce) list.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: "ease-out" });
+      };
+    });
+    var find = box.querySelector("[data-find]");
+    if (find) find.onclick = enterSearch;
     var back = box.querySelector("[data-back]");
     if (back) back.onclick = pop;
     box.querySelector("[data-close]").onclick = function () { close(); };
@@ -170,6 +209,7 @@
   }
 
   function pop() {
+    if (searching) return exitSearch();
     if (stack.length < 2) return close();
     stack.pop();
     render(-1);
@@ -181,7 +221,8 @@
 
   function open() {
     if (!bg.hidden) return;
-    closeSearch();
+    searching = false;
+    box.classList.remove("is-searching");
     stack = [{ kind: "menu" }];
     render(0);
     bg.hidden = false;
@@ -232,10 +273,12 @@
   bg.addEventListener("click", function (e) { if (e.target === bg) close(); });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
-    if (!bg.hidden) { e.preventDefault(); close(); }
-    else if (fab.classList.contains("searching")) closeSearch();
+    if (bg.hidden) return;
+    e.preventDefault();
+    if (searching) exitSearch();
+    else close();
   });
-  phone.addEventListener && phone.addEventListener("change", function () { if (!phone.matches) { finish(); closeSearch(); } });
+  phone.addEventListener && phone.addEventListener("change", function () { if (!phone.matches) finish(); });
 
   /* Touch: drag down from the top to close, drag right in a layer to go back. */
   (function swipe() {
@@ -297,74 +340,67 @@
 
   /* ------------------------------------------------------------- search */
 
-  var qScrim = document.createElement("div");
-  qScrim.className = "q-scrim";
-  qScrim.hidden = true;
-  var qRes = document.createElement("div");
-  qRes.className = "q-res";
-  qRes.hidden = true;
-  qRes.setAttribute("role", "listbox");
-  qRes.setAttribute("aria-label", "Search results");
-  document.body.appendChild(qScrim);
-  document.body.appendChild(qRes);
-
-  function results() {
-    var words = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  /* The footer becomes a search field fixed to the bottom of the sheet, and
+     the sheet's body shows the results. Closing the field puts the page
+     that was showing back. */
+  function resultsHtml(q) {
+    var words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
     var hits = INDEX.filter(function (it) {
       var text = (it.t + " " + it.s + " " + it.d).toLowerCase();
       return words.every(function (w) { return text.indexOf(w) >= 0; });
     });
     if (words.length) {
-      var q = words.join(" ");
+      var whole = words.join(" ");
       hits.sort(function (a, b) {
-        var ai = a.t.toLowerCase().indexOf(q), bi = b.t.toLowerCase().indexOf(q);
+        var ai = a.t.toLowerCase().indexOf(whole), bi = b.t.toLowerCase().indexOf(whole);
         return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
       });
     }
     var block = function (kind, label, limit) {
       var rows = hits.filter(function (h) { return h.k === kind; }).slice(0, limit);
-      return rows.length
-        ? '<p class="q-h">' + label + "</p>" + rows.map(function (h) {
-            return '<a class="q-row" role="option" href="' + esc(ROOT + h.u) + '"><span class="t"><b>' + esc(h.t) + "</b><small>" + esc(h.s) + "</small></span>" + ic("next") + "</a>";
-          }).join("")
-        : "";
+      return rows.length ? '<p class="q-h">' + label + "</p>" + rows.map(function (h) {
+        return '<a class="mrow" href="' + esc(ROOT + h.u) + '"' + (here(h.u) ? ' aria-current="page"' : "") + '><span class="t"><b>' + esc(h.t) + "</b><small>" + esc(h.s) + "</small></span>" + ic("next") + "</a>";
+      }).join("") : "";
     };
-    qRes.innerHTML = hits.length
-      ? block("component", "Components", words.length ? 40 : 12) + block("page", "Pages", words.length ? 20 : 0)
-      : '<p class="q-none">Nothing matches “' + esc(input.value.trim()) + "”.</p>";
+    return hits.length
+      ? block("component", "Components", words.length ? 40 : 66) + block("page", "Pages", words.length ? 20 : 0)
+      : '<p class="q-none">Nothing matches “' + esc(q.trim()) + "”.</p>";
   }
 
-  function openSearch() {
-    if (fab.classList.contains("searching")) return;
-    fab.classList.add("searching");
-    qScrim.hidden = false;
-    qRes.hidden = false;
-    results();
+  function enterSearch() {
+    searching = true;
+    box.classList.add("is-searching");
+    box.querySelector(".mp-head").innerHTML = '<p class="crumb"><span class="crumb-cur">Search</span></p>';
+    var body = box.querySelector(".mp-body");
+    body.innerHTML = resultsHtml("");
+    box.querySelector(".mfoot").outerHTML =
+      '<div class="mfoot msearch"><label class="ms-field">' + ic("search") +
+      '<input type="search" placeholder="Search components and pages" aria-label="Search components and pages" autocomplete="off" enterkeyhint="search">' +
+      '<button type="button" class="ms-close" aria-label="Close search">' + ic("x") + "</button></label></div>";
+    var input = box.querySelector(".msearch input");
+    input.addEventListener("input", function () {
+      body.innerHTML = resultsHtml(input.value);
+      box.scrollTop = 0;
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      var first = body.querySelector(".mrow");
+      if (first) location.href = first.href;
+    });
+    box.querySelector(".ms-close").onclick = function (e) {
+      e.preventDefault();
+      exitSearch();
+    };
+    box.scrollTop = 0;
+    if (!reduce) box.querySelector(".msearch").animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 260, easing: EASE });
     input.focus({ preventScroll: true });
   }
 
-  function closeSearch() {
-    if (!fab.classList.contains("searching")) return;
-    fab.classList.remove("searching");
-    qScrim.hidden = true;
-    qRes.hidden = true;
-    input.value = "";
-    input.blur();
+  function exitSearch() {
+    searching = false;
+    box.classList.remove("is-searching");
+    render(0);
   }
-
-  searchBtn.addEventListener("click", openSearch);
-  fab.querySelector(".fab-q-close").addEventListener("click", function (e) {
-    e.preventDefault();
-    closeSearch();
-  });
-  qScrim.addEventListener("click", closeSearch);
-  input.addEventListener("input", results);
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      var first = qRes.querySelector(".q-row");
-      if (first) location.href = first.href;
-    }
-  });
 
   /* Keep the pill above the on-screen keyboard. */
   if (window.visualViewport) {
@@ -375,5 +411,5 @@
     visualViewport.addEventListener("scroll", kb);
   }
 
-  window.DovetailMenu = { open: open, close: close, search: openSearch };
+  window.DovetailMenu = { open: open, close: close, search: function () { open(); enterSearch(); } };
 })();

@@ -734,14 +734,12 @@ function phoneChrome(root, active, title) {
 </header>`;
 }
 
-/* The folio's floating pill: search, then the menu button the menu sheet
-   grows out of. assets/menu.js drives both and moves the Configure button in
-   between on a phone. */
+/* The folio's floating pill: the menu button the menu sheet grows out of.
+   assets/menu.js drives it and moves the Configure button in beside it on a
+   phone. Search lives in the menu sheet's footer. */
 function fab() {
   const g = (name) => icon(name).replace('class="tile-icon"', 'class="ic"');
   return `<div class="fab" id="fab">
-  <label class="fab-q" for="fab-q">${g("search")}<input id="fab-q" type="search" placeholder="Search components and pages" aria-label="Search components and pages" autocomplete="off" enterkeyhint="search"><button type="button" class="fab-q-close" aria-label="Close search">${g("x")}</button></label>
-  <button type="button" class="fab-btn" data-fab-search aria-label="Search">${g("search")}</button>
   <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu">${g("menu")}</button>
 </div>`;
 }
@@ -1282,9 +1280,13 @@ function buildComponents() {
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Components" }])}
 <h1>Components</h1>
 <p class="lede">${components.length} components in eight families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
+<div class="filter-chips" role="toolbar" aria-label="Filter by family">
+  <button type="button" class="pan-opt" data-filter="all" aria-pressed="true">All<span class="n">${components.length}</span></button>
+  ${GROUP_ORDER.map((g) => `<button type="button" class="pan-opt" data-filter="${attr(g)}" aria-pressed="false">${esc(GROUP_LABEL[g])}<span class="n">${byGroup(g).length}</span></button>`).join("\n  ")}
+</div>
 ${GROUP_ORDER.map((g) => {
   const list = byGroup(g);
-  return `<section class="group">
+  return `<section class="group" data-group="${attr(g)}">
   <h2 id="${attr(g)}">${esc(GROUP_LABEL[g])}</h2>
   <p class="group-note">${esc(GROUP_BLURB[g])}</p>
   <div class="tiles compact">
