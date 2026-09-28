@@ -234,6 +234,9 @@ const ICONS = {
   external: ['<path d="M13.5 3.5h7v7"/>', '<path d="M20.5 3.5 11 13"/>', '<path d="M18.5 14v4.5a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2H10"/>'],
   sparkle: ['<path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/>', '<path d="M19 17.5v3"/>', '<path d="M17.5 19h3"/>'],
   more: ['<path d="M5 12h.01"/>', '<path d="M12 12h.01"/>', '<path d="M19 12h.01"/>'],
+  check: ['<path d="m5 12.5 4.5 4.5L19 7.5"/>'],
+  arrowRight: ['<path d="M4.5 12h15"/>', '<path d="m13.5 6 6 6-6 6"/>'],
+  shield: ['<path d="M12 21s7.5-3.5 7.5-9.5V5.5L12 3 4.5 5.5v6C4.5 17.5 12 21 12 21Z"/>', '<path d="m9 12 2 2 4-4"/>'],
   wrench: ['<path d="M20.5 4.5 17 8l-1-1 3.5-3.5a5.5 5.5 0 0 0-7 7l-8 8a2 2 0 0 0 2.8 2.8l8-8a5.5 5.5 0 0 0 7-7l-1.8 1.8"/>'],
 };
 
@@ -965,8 +968,17 @@ function breadcrumb(root, trail) {
 
 /* --------------------------------------------------------------- home page */
 
+/* The home page is laid out the way the marketing template is: alternating
+   base and subtle sections, a two-column hero, centred section heads with a
+   mono eyebrow, icon tiles, check lists and stats, and a closing call to
+   action. It is the template's own pattern, applied to the system itself. */
 function buildHome() {
   const s = sections(readme);
+  const glyph = (name) => icon(name).replace('class="tile-icon"', 'class="ic"');
+  const iconTile = (name) => `<span class="icon-tile">${glyph(name)}</span>`;
+  const head = (eyebrow, title, lead = "", centred = true) =>
+    `<div class="sec-head${centred ? " centred" : ""}"><span class="eyebrow">${esc(eyebrow)}</span><h2 class="sec-h">${esc(title)}</h2>${lead ? `<p class="lead">${esc(lead)}</p>` : ""}</div>`;
+  const checks = (items) => `<ul class="checks">${items.map((t) => `<li>${glyph("check")}${esc(t)}</li>`).join("")}</ul>`;
   const tiles = [
     ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
     ["components/index.html", "Components", `${components.length} components across eight families, with props, source and usage rules.`, "blocks"],
@@ -977,109 +989,113 @@ function buildHome() {
   ];
   /* Live specimens, rendered by assets/specimens.js from the same bundle as
      the cards: the home page shows the components, not pictures of them. */
-  const gallery = ["Button", "Tabs", "Switch", "Badge", "Progress", "Input", "AvatarGroup", "Alert"].filter((n) => components.some((c) => c.name === n));
+  const has = (n) => components.some((c) => c.name === n);
+  const stage = ["Button", "Tabs", "Switch", "Progress"].filter(has);
+  const gallery = ["Badge", "Input", "AvatarGroup", "Alert"].filter(has);
   const specimen = (name) =>
     `<a class="home-spec" href="components/${name}.html"><div class="home-spec-stage" data-specimen="${attr(name)}" aria-hidden="true"></div><span class="home-spec-name">${esc(name)}</span></a>`;
-  const hero = ["Button", "Tabs", "Switch", "Progress"].filter((n) => gallery.includes(n));
-  /* Templates are shown as scaled-down live frames of their own cards. */
-  const thumb = (id, label, text) =>
-    `<a class="home-thumb" href="showcase/templates.html"><div class="home-thumb-frame"><iframe src="previews/${id}.html" title="${attr(label)} preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div><span class="home-thumb-label">${esc(label)}</span><span class="home-thumb-text">${esc(text)}</span></a>`;
+  const frame = (id, label) =>
+    `<a class="home-thumb" href="showcase/templates.html" aria-label="${attr(label)} template"><div class="home-thumb-frame"><iframe src="previews/${id}.html" title="${attr(label)} preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div></a>`;
+  const sketch = read(path.join(SYS, "assets", "icons", "sketch", "spark.svg")).replace("<svg ", '<svg class="home-sketch" aria-hidden="true" focusable="false" ');
   const body = `
-<section class="band band-hero">
-  <div class="band-inner home-hero">
-    <div class="home-hero-copy">
-      <p class="eyebrow">White-label design system</p>
-      <h1>One component set. Every brand you ship.</h1>
-      <p class="hero-lede">Dovetail ships unbranded on purpose. Adopt the foundation, apply a theme, and the entire system becomes yours without a fork.</p>
+<section class="sec home-hero-sec">
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">White-label design system</span>
+      <h1 class="hero-h">One component set. Every brand you ship.</h1>
+      <p class="lead">Dovetail ships unbranded on purpose. Components read semantic tokens, tokens read a brand theme, and swapping the theme changes every surface at once, without a fork.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="components/index.html">Browse components</a>
-        <button type="button" class="btn" data-open-configure>Open Configure</button>
+        <a class="btn btn-primary" href="components/index.html">Browse components ${glyph("arrowRight")}</a>
+        <a class="btn" href="guide/index.html">${glyph("book")} Read the guide</a>
       </div>
-      <p class="home-stats"><span><strong>${components.length}</strong> components</span><span><strong>3</strong> token tiers</span><span><strong>4px</strong> grid</span></p>
+      <p class="pills"><span>No lock-in</span><span>DTCG tokens</span><span>Light and dark</span></p>
     </div>
-    <div class="home-hero-stage" aria-hidden="true">
-      ${hero.map((n) => `<div class="home-hero-tile" data-specimen="${attr(n)}"></div>`).join("\n      ")}
+    <div class="hero-stage" aria-hidden="true">
+      ${stage.map((n) => `<div class="hero-tile" data-specimen="${attr(n)}"></div>`).join("\n      ")}
     </div>
   </div>
 </section>
 
-<section class="band band-subtle">
-  <div class="band-inner">
-    <div class="band-head">
-      <p class="eyebrow">Components</p>
-      <h2>Real components, not pictures of them</h2>
-      <p>Every tile is the live component, drawn from the same bundle you install. Change the theme in Configure and they all follow.</p>
+<section class="sec alt">
+  ${head("Why it holds", "Three tiers, referenced one way")}
+  <div class="three">
+    <div class="feature">${iconTile("droplet")}<h3>Primitives name values</h3><p>A ramp of OKLCH colours, a dimension scale, a type scale. Nothing here knows what it is for.</p></div>
+    <div class="feature">${iconTile("layers")}<h3>Semantics name jobs</h3><p>Surface, text, border, and their paired roles. This is the only tier a component is allowed to read.</p></div>
+    <div class="feature">${iconTile("blocks")}<h3>Components name parts</h3><p>Button background, input border. Retuned per context without touching the component.</p></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="two">
+    ${frame("MarketingKit", "Marketing page")}
+    <div class="stack">
+      ${head("See it run", "Whole screens from the same parts", "A landing page and a product dashboard, composed only from Dovetail components. Nothing in them names a colour.", false)}
+      ${checks(["Light and dark from the same roles", "Icons, photos, video and illustration slots", "Retheme both at once in Configure"])}
+      <div class="hero-actions"><a class="btn" href="showcase/templates.html">${glyph("monitor")} See the templates</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="two">
+    <div class="stack">
+      ${head("Proof", "Real components, not pictures of them", "Every tile here is the live component, drawn from the same bundle you install. Change the theme and they all follow.", false)}
+      <div class="stats">
+        <div class="stat">${iconTile("box")}<span class="stat-label">Components</span><span class="stat-value">${components.length}</span><span class="stat-cap">across eight families</span></div>
+        <div class="stat">${iconTile("layers")}<span class="stat-label">Token tiers</span><span class="stat-value">3</span><span class="stat-cap">referenced one way</span></div>
+        <div class="stat">${iconTile("shield")}<span class="stat-label">Contrast</span><span class="stat-value">AA</span><span class="stat-cap">checked on every pairing</span></div>
+      </div>
     </div>
     <div class="home-gallery">
       ${gallery.map(specimen).join("\n      ")}
     </div>
-    <p class="band-more"><a href="components/index.html">See all ${components.length} components</a></p>
   </div>
 </section>
 
-<section class="band">
-  <div class="band-inner">
-    <div class="band-head">
-      <p class="eyebrow">Templates</p>
-      <h2>Whole screens from the same parts</h2>
-      <p>A landing page and a product dashboard, composed only from Dovetail components. Nothing in them names a colour.</p>
-    </div>
-    <div class="home-thumbs">
-      ${thumb("MarketingKit", "Marketing page", "Hero, features, video, proof and a closing call to action.")}
-      ${thumb("DashboardKit", "Dashboard screen", "Navigation, stats, a data table, usage and activity.")}
-    </div>
+<section class="sec">
+  ${head("Theming", "Your brand arrives last, as one file", "Components read semantic roles. Roles read your theme. Swap the theme and every surface changes at once, light and dark.")}
+  <div class="three">
+    <div class="feature">${iconTile("droplet")}<h3>Pick a brand colour</h3><p>An exact hex becomes a full ramp, with its contrast checked.</p></div>
+    <div class="feature">${iconTile("sliders")}<h3>Set shape and type</h3><p>Radius, families, density and icons, all as tokens.</p></div>
+    <div class="feature">${iconTile("download")}<h3>Export the theme</h3><p>A CSS file of overrides. No fork, no build step.</p></div>
+  </div>
+  <div class="hero-actions centred"><button type="button" class="btn btn-primary" data-open-configure>${glyph("sliders")} Open Configure</button></div>
+</section>
+
+<section class="sec alt">
+  ${head("Documentation", "Everything in the docs")}
+  <div class="tiles">
+    ${tiles.map(([href, title, text, g]) => `<a class="tile" href="${href}">${icon(g)}<h3>${esc(title)}</h3><p>${esc(text)}</p></a>`).join("\n    ")}
   </div>
 </section>
 
-<section class="band band-dark dark">
-  <div class="band-inner home-steps-wrap">
-    <div class="band-head">
-      <p class="eyebrow">Theming</p>
-      <h2>Your brand arrives last, as one file</h2>
-      <p>Components read semantic roles. Roles read your theme. Swap the theme and every surface changes at once, light and dark.</p>
-    </div>
-    <ol class="home-steps">
-      <li><span class="home-step-n">1</span><strong>Pick a brand colour</strong><span>An exact hex becomes a full ramp with checked contrast.</span></li>
-      <li><span class="home-step-n">2</span><strong>Set shape and type</strong><span>Radius, families, density and icons, all as tokens.</span></li>
-      <li><span class="home-step-n">3</span><strong>Export the theme</strong><span>A CSS file of overrides. No fork, no build step.</span></li>
-    </ol>
-    <div class="hero-actions"><button type="button" class="btn btn-primary" data-open-configure>Open Configure</button><a class="btn" href="guide/index.html">Read the theming guide</a></div>
-  </div>
-</section>
-
-<section class="band band-brand">
-  <div class="band-inner">
-    <div class="band-head">
-      <p class="eyebrow">Documentation</p>
-      <h2>Everything in the docs</h2>
-    </div>
-    <div class="tiles">
-      ${tiles
-        .map(([href, title, text, glyph]) => `<a class="tile" href="${href}">${icon(glyph)}<h3>${esc(title)}</h3><p>${esc(text)}</p></a>`)
-        .join("\n      ")}
-    </div>
-  </div>
-</section>
-
-<section class="band">
-  <div class="band-inner">
+<section class="sec">
+  <div class="narrow">
     <section class="prose">
       <h2 id="start-here">Start here</h2>
       ${markdown(s.get("Start here") || "")}
     </section>
-
     ${cardBlock(cards.get("TierContract"), "")}
-
     <section class="prose">
       <h2 id="how-the-system-is-put-together">How the system is put together</h2>
       ${markdown(s.get("How the system is put together") || "")}
     </section>
-
     <section class="prose">
       <h2 id="rules-checklist">Rules checklist</h2>
       ${markdown(s.get("Rules checklist") || "")}
       <p><a href="guide/readme.html">Read the full README</a> · <a href="guide/authoring-rules.html">Authoring rules</a></p>
     </section>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="cta">
+    <div class="stack">
+      <h2 class="sec-h">Ship your brand, not ours</h2>
+      <p class="lead">Free and open. Take the stylesheets and tokens, or theme it here first.</p>
+      <div class="hero-actions"><button type="button" class="btn btn-primary" data-open-configure>Open Configure ${glyph("arrowRight")}</button><a class="btn" href="downloads.html">${glyph("download")} Download</a></div>
+    </div>
+    <div class="cta-art" data-home-illustration>${sketch}</div>
   </div>
 </section>
 `;
