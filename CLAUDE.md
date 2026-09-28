@@ -36,6 +36,8 @@ Any change a consumer of `system/` would notice needs an entry in `changes/` (`n
 
 Mark `visual: true` when something looks different without code changes. Write the summary for the people using the system, in present tense, naming the exact API.
 
+A release is a pull request titled `Release x.y.z` carrying only the output of `node tools/changelog.mjs --release`. Never push tags. The Release workflow tags and publishes once that pull request merges into `main`.
+
 ## System rules
 
 - **Three token tiers.** Primitive holds raw values. Semantic roles are the only thing that may reference primitives. Component tokens alias semantic roles. Components never read primitives.

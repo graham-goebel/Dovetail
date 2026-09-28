@@ -102,4 +102,10 @@ Designers can still propose changes. Make them in the site's **Configure** panel
 
 ## Releases
 
-Scheduled every two weeks when anything is pending, with patches on demand. The release owner compiles `changes/` into `CHANGELOG.md` with `node tools/changelog.mjs --release`, then tags and publishes. The full process and the versioning rules are in [docs/changelog.md](docs/changelog.md).
+Releases are scheduled every two weeks when anything is pending, with patches on demand.
+
+1. The release owner compiles `changes/` into `CHANGELOG.md` with `node tools/changelog.mjs --release`. This also bumps `package.json`.
+2. They open a `Release x.y.z` pull request.
+3. When it merges, the Release workflow tags the merge commit and publishes the GitHub release from the changelog section.
+
+Nobody tags by hand. The full process and the versioning rules are in [docs/changelog.md](docs/changelog.md).

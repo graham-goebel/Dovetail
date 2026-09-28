@@ -86,7 +86,9 @@ npm run serve                        # the site at http://localhost:8099</code><
 <h2 id="without-git">Without git</h2>
 <p>Designers can still propose changes. Make them in the site's <strong>Configure</strong> panel, use <strong>Export</strong>, and attach the result to a GitHub issue describing the intent. An owner of the area turns it into a pull request.</p>
 <h2 id="releases">Releases</h2>
-<p>Scheduled every two weeks when anything is pending, with patches on demand. The release owner compiles <code>changes/</code> into <code>CHANGELOG.md</code> with <code>node tools/changelog.mjs --release</code>, then tags and publishes. The full process and the versioning rules are in <a href="changelog-strategy.html">docs/changelog.md</a>.</p>
+<p>Releases are scheduled every two weeks when anything is pending, with patches on demand.</p>
+<ol><li>The release owner compiles <code>changes/</code> into <code>CHANGELOG.md</code> with <code>node tools/changelog.mjs --release</code>. This also bumps <code>package.json</code>.</li><li>They open a <code>Release x.y.z</code> pull request.</li><li>When it merges, the Release workflow tags the merge commit and publishes the GitHub release from the changelog section.</li></ol>
+<p>Nobody tags by hand. The full process and the versioning rules are in <a href="changelog-strategy.html">docs/changelog.md</a>.</p>
 </article>
 <p class="muted">Source: <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a></p>
 

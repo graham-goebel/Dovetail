@@ -147,7 +147,7 @@ Required for `bump: major`, and encouraged for deprecations. Include:
 3. `node tools/changelog.mjs --release` writes the new section at the top of `CHANGELOG.md`, bumps `package.json` and deletes the compiled entries. Override with `--version` only for a deliberate jump, like 1.0.0.
 4. `npm run build`, so the site's changelog page picks up the new section.
 5. Open a pull request titled `Release x.y.z` containing only those changes; merge after review.
-6. Tag the merge commit `vX.Y.Z` and create a GitHub Release whose body is the new section.
+6. The **Release** workflow (`.github/workflows/release.yml`) does the rest when it merges. It sees a version in `package.json` with no tag, tags the merge commit `vX.Y.Z`, and publishes a GitHub Release whose body is that version's `CHANGELOG.md` section (`node tools/changelog.mjs --notes x.y.z`). Nobody pushes tags by hand, so a Claude session can run a whole release through a pull request. Re-running the workflow is safe: it skips a version that is already tagged.
 7. Post the summary where consumers will see it (§8).
 
 ### Roles
@@ -212,6 +212,7 @@ These build on the entry files once the basics are habit:
 | 1 | `changes/`, `tools/changelog.mjs`, `CHANGELOG.md` with the 0.1.0 baseline, this document | done |
 | 2 | CI check on pull requests; changelog section in the PR template | done |
 | 3 | Site Changelog page generated from `CHANGELOG.md` | done |
-| 4 | Make `main` the default branch, protect it, tag `v0.1.0` on it | needs a repo admin |
+| 4 | Make `main` the default branch, protect it | done |
+| 4a | Release workflow: tags and publishes each new version from `main`, starting with `v0.1.0` | done |
 | 5 | First scheduled release two weeks after step 4 | pending |
 | 6 | Token diff, then component API diff (§9) | later |
