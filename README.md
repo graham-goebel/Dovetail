@@ -498,6 +498,27 @@ run underneath. The header stays visible and on top, which keeps the way out in 
 place as the way in. Escape closes it, and widening the window past 900px drops the open
 state along with the drawer.
 
+## On this page, and the page menu
+
+Every page with three or more sections gets an "On this page" list in a right-hand column,
+built at generation time from the page's own `h2` and `h3` headings (and its live card
+blocks). It marks the section being read as you scroll, and from 1200px down it gives
+its space back to the content. A component's guide headings are demoted a level on the
+page, so they nest under Guidelines in the list and in the document outline.
+
+The ellipsis in the top corner of the content column opens the page menu:
+
+- **Copy page as Markdown**, **Download Markdown** and **View as Markdown**, where the page
+  has a Markdown version. Component pages get one generated beside them
+  (`components/Button.md`), carrying the guide, the props contract, the tokens the component
+  reads and its source. Guide pages use the Markdown file they are rendered from.
+- **Open in Claude** starts a Claude conversation that points at that Markdown (or the page
+  itself) and asks for help using it.
+- **Copy link**.
+
+The items are ordinary links and buttons, so Download and View work without script;
+`assets/site.js` adds copying, arrow-key navigation and Escape.
+
 ## How the previews work
 
 Each card in `previews/` is a complete HTML document. It links the system's CSS

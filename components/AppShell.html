@@ -50,7 +50,19 @@
   <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
   <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
 </nav>
-<main id="main" class="main">
+<main id="main" class="main has-toc">
+<div class="doc">
+<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="AppShell.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="AppShell.md" download="AppShell.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="AppShell.md" target="_blank" rel="noopener"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FAppShell.md%20(the%20%22AppShell%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="AppShell" data-md="AppShell.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">AppShell</li></ol></nav>
 <h1>AppShell</h1>
@@ -77,11 +89,11 @@
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
   <p>The frame of a phone app: a top bar, a body that scrolls, and a bottom navigation. It honours the device's safe areas on every side, so nothing sits under the notch, the home indicator or a rounded corner in landscape.</p>
-<h2 id="use-it-when">Use it when</h2>
+<h3 id="use-it-when">Use it when</h3>
 <ul><li>Building a phone app screen, or a mobile web app meant to feel like one.</li><li>Showing an app screen inside a device frame, a dialog or a docs card: <code>scroll=&quot;contained&quot;</code>.</li></ul>
-<h2 id="don-t-use-it-when">Don't use it when</h2>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
 <ul><li>It is a website. Use <code>Navbar</code> and <code>Section</code>.</li><li>It is a desktop product. Use <code>Sidebar</code> and a page layout.</li></ul>
-<h2 id="example">Example</h2>
+<h3 id="example">Example</h3>
 <pre class="code" data-lang="jsx"><code>&lt;AppShell
   title=&quot;Today&quot;
   leading={&lt;Avatar name=&quot;Ada Lovelace&quot; size=&quot;sm&quot; /&gt;}
@@ -90,11 +102,11 @@
 &gt;
   &lt;Stack gap=&quot;md&quot; style={{ padding: &quot;var(--dt-space-inset-md)&quot; }}&gt;…&lt;/Stack&gt;
 &lt;/AppShell&gt;</code></pre>
-<h2 id="how-it-scrolls">How it scrolls</h2>
+<h3 id="how-it-scrolls">How it scrolls</h3>
 <p>The bars are sticky inside whatever scrolls. With <code>scroll=&quot;page&quot;</code>, the default, the document scrolls, which lets a phone browser collapse its own bars; the shell is at least the screen's height. With <code>scroll=&quot;contained&quot;</code> the shell fills its parent and scrolls itself. Either way content scrolls beneath glass bars, which is why they are translucent by default. Pass <code>translucent={false}</code> for solid bars.</p>
-<h2 id="immersive-screens">Immersive screens</h2>
+<h3 id="immersive-screens">Immersive screens</h3>
 <p><code>backdrop</code> takes a layer that stays put behind everything: a photograph, a gradient, an illustration. Pair it with <code>dark</code> to scope dark mode to the app, <code>BottomNav variant=&quot;floating&quot;</code>, and <code>Card surface=&quot;glass-inverse&quot;</code> for cards that stay readable over the picture. Measure text against the real image, as <code>guidelines/accessibility.md</code> describes.</p>
-<h2 id="tokens">Tokens</h2>
+<h3 id="tokens">Tokens</h3>
 <p><code>--dt-appshell-*</code> (Tier 3): the bar height, surface and border, the shell background, and the phone width. The bars read <code>--dt-surface-glass</code> and <code>--dt-backdrop-glass</code>.</p>
 </section>
 
@@ -264,6 +276,24 @@ export function AppShell({
   <ul><li><a href="../showcase/detail.html#navigationdetail">NavigationDetail</a></li></ul>
 </section>
 
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#how-it-scrolls">How it scrolls</a></li>
+    <li class="nested"><a href="#immersive-screens">Immersive screens</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
 </main>
 </div>
 <svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>

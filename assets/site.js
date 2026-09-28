@@ -219,6 +219,157 @@
 
   Array.prototype.forEach.call(document.querySelectorAll(".frame > iframe"), fitFrame);
 
+  /* The page menu: an ellipsis in the content column's top corner. The items
+     are plain links and buttons, so Download and View work without script;
+     this adds opening and closing, arrow keys, and the two copy actions. */
+  var actions = document.querySelector(".page-actions");
+  if (actions) {
+    var menuBtn = actions.querySelector(".page-actions-btn");
+    var menu = actions.querySelector(".page-menu");
+    var status = actions.querySelector(".page-actions-status");
+    var items = Array.prototype.slice.call(menu.querySelectorAll(".page-menu-item"));
+    var statusTimer = 0;
+
+    function say(text) {
+      clearTimeout(statusTimer);
+      status.textContent = text;
+      statusTimer = setTimeout(function () {
+        status.textContent = "";
+      }, 1800);
+    }
+
+    function setMenu(open, focusFirst) {
+      menu.hidden = !open;
+      menuBtn.setAttribute("aria-expanded", String(open));
+      if (open) {
+        status.textContent = "";
+        if (focusFirst) items[0].focus();
+      }
+    }
+
+    /* The Claude link is written for the published site. Served from anywhere
+       else (a fork, a local server) it is rebuilt from the page's own address,
+       so Claude reads the page you are actually looking at. */
+    function claudeHref(link) {
+      var md = link.getAttribute("data-md");
+      var subject = md ? new URL(md, location.href).href : location.href.split("#")[0];
+      var prompt = "I'm working with the Dovetail design system. Read " + subject + ' (the "' + link.getAttribute("data-title") + '" docs) and help me use it.';
+      return "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+    }
+
+    menuBtn.addEventListener("click", function () {
+      setMenu(menu.hidden, false);
+    });
+
+    menuBtn.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setMenu(true, true);
+      }
+    });
+
+    menu.addEventListener("keydown", function (e) {
+      var i = items.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        var next = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+        items[next].focus();
+      } else if (e.key === "Home" || e.key === "End") {
+        e.preventDefault();
+        items[e.key === "Home" ? 0 : items.length - 1].focus();
+      } else if (e.key === "Escape") {
+        setMenu(false);
+        menuBtn.focus();
+      } else if (e.key === "Tab") {
+        setMenu(false);
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!menu.hidden && !actions.contains(e.target)) setMenu(false);
+    });
+
+    items.forEach(function (item) {
+      if (item.getAttribute("data-page-action") === "claude" && location.origin.indexOf("graham-goebel.github.io") === -1) {
+        item.setAttribute("href", claudeHref(item));
+      }
+      item.addEventListener("click", function (e) {
+        var action = item.getAttribute("data-page-action");
+        if (action === "copy-link") {
+          e.preventDefault();
+          copy(location.href.split("#")[0], function (ok) {
+            say(ok ? "Link copied" : "Couldn't copy");
+          });
+        } else if (action === "copy-md") {
+          e.preventDefault();
+          say("Copying…");
+          fetch(item.getAttribute("data-md"))
+            .then(function (r) {
+              if (!r.ok) throw new Error(r.status);
+              return r.text();
+            })
+            .then(function (text) {
+              copy(text, function (ok) {
+                say(ok ? "Markdown copied" : "Couldn't copy");
+              });
+            })
+            .catch(function () {
+              say("Couldn't load the Markdown");
+            });
+        }
+        setMenu(false);
+        if (action === "copy-md" || action === "copy-link") menuBtn.focus();
+      });
+    });
+  }
+
+  /* On this page: marks the section being read. A heading counts as current
+     once it has scrolled into the top third of the viewport, and stays
+     current until the next one does. */
+  var toc = document.querySelector(".page-toc");
+  if (toc) {
+    var links = Array.prototype.slice.call(toc.querySelectorAll("a"));
+    var targets = links
+      .map(function (a) {
+        return document.getElementById(decodeURIComponent(a.getAttribute("href").slice(1)));
+      })
+      .filter(Boolean);
+    var queued = false;
+
+    function mark() {
+      queued = false;
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top <= window.innerHeight * 0.33) current = targets[i];
+        else break;
+      }
+      /* At the very bottom the last sections can never reach the top third. */
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = targets[targets.length - 1];
+      links.forEach(function (a) {
+        if (current && a.getAttribute("href") === "#" + current.id) a.setAttribute("aria-current", "true");
+        else a.removeAttribute("aria-current");
+      });
+      /* Keep the marked link in view when the list itself scrolls. */
+      var active = toc.querySelector('a[aria-current="true"]');
+      if (active && (active.offsetTop < toc.scrollTop || active.offsetTop > toc.scrollTop + toc.clientHeight - active.offsetHeight)) {
+        toc.scrollTop = active.offsetTop - toc.clientHeight / 2;
+      }
+    }
+
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (!queued) {
+          queued = true;
+          requestAnimationFrame(mark);
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", mark);
+    mark();
+  }
+
   /* Filtering hides links, not sections: an empty section says the filter
      matched nothing there, which is information. */
   var filter = document.getElementById("nav-search");
