@@ -17,14 +17,19 @@ main{display:flex;flex-direction:column}
 .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;align-items:center}
 .panel{background:var(--dt-surface-raised);border:var(--dt-border-width-default) solid var(--dt-border-subtle);border-radius:var(--dt-radius-container);padding:24px}
 .eyebrow{font-family:var(--dt-font-family-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dt-text-tertiary)}
-h1.hero-h{margin:0;color:var(--dt-text-headline, var(--dt-text-primary));font-size:var(--dt-text-display-sm-size);line-height:var(--dt-text-display-sm-line);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-text-display-sm-tracking);text-wrap:balance}
-h2.sec-h{margin:0;color:var(--dt-text-headline, var(--dt-text-primary));font-size:var(--dt-text-heading-lg-size);line-height:var(--dt-text-heading-lg-line);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-text-heading-lg-tracking);text-wrap:balance}
+h1.hero-h{margin:0;color:var(--dt-text-headline, var(--dt-text-primary));font-size:var(--dt-text-display-sm-size);line-height:var(--dt-text-display-sm-line);font-weight:var(--dt-text-display-sm-weight);letter-spacing:var(--dt-text-display-sm-tracking);text-wrap:balance}
+h2.sec-h{margin:0;color:var(--dt-text-headline, var(--dt-text-primary));font-size:var(--dt-text-heading-lg-size);line-height:var(--dt-text-heading-lg-line);font-weight:var(--dt-text-heading-lg-weight);letter-spacing:var(--dt-text-heading-lg-tracking);text-wrap:balance}
 p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-body-lg-line);color:var(--dt-text-secondary);max-width:56ch;text-wrap:pretty}
-@media (max-width:900px){.sec{padding:48px 20px;gap:24px}.hero{grid-template-columns:1fr;gap:28px}.three{grid-template-columns:1fr}.two{grid-template-columns:1fr;gap:24px}}
-.cta-with-illustration{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:center;text-align:left}
-.cta-with-illustration .lead{text-align:left}
-.cta-illustration{width:auto;max-width:220px;justify-self:end}
-@media (max-width:900px){.cta-with-illustration{grid-template-columns:1fr;text-align:center}.cta-with-illustration .lead{text-align:center}.cta-illustration{justify-self:center}}
+.mark{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--dt-radius-control);background:var(--dt-surface-action);color:var(--dt-text-on-action)}
+.icon-tile{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--dt-radius-control);background:var(--dt-surface-brand-muted);color:var(--dt-text-on-brand-muted);align-self:flex-start}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;color:var(--dt-text-primary);font-size:var(--dt-text-body-md-size)}
+.checks li{display:flex;align-items:center;gap:10px}
+.checks svg{color:var(--dt-text-brand)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.cta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:48px;align-items:center}
+.cta-illustration{display:block;width:100%;height:auto;max-height:320px;object-fit:contain}
+@media (max-width:900px){.sec{padding:48px 20px;gap:24px}.hero{grid-template-columns:1fr;gap:28px}.three{grid-template-columns:1fr}.two{grid-template-columns:1fr;gap:24px}.cta{grid-template-columns:1fr;gap:28px}.cta-art{max-width:280px}}
+@media (max-width:560px){.stats{grid-template-columns:1fr;gap:20px}}
 </style>
 <script>
 /* Token-propagating asset loader. The page URL carries an auth token; project-relative
@@ -86,12 +91,14 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
     .then(function () { return js("_ds_bundle.js"); })
     .then(function () { return js("templates/_support/theme-runtime.js"); })
     .then(function () { return js("templates/_support/theme-switcher.js"); })
+    .then(function () { return js("templates/_support/template-icons.js"); })
     .then(function () { return failures; });
 })();
 </script>
 </head><body class="dt-context-marketing"><div id="root"></div>
 <script type="text/babel">
-let Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Avatar, Stat, Inline, Stack, Divider;
+let Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Image, Video, Avatar, Stat, Inline, Stack, Divider;
+const Icon = (props) => window.DovetailTemplateIcons.Icon(props);
 
 /* Reads the photo and illustration a reader dropped in the Configure panel's
    Media tab. Both live under one localStorage key, same-origin with this
@@ -119,14 +126,36 @@ function useDovetailMedia() {
   return media;
 }
 
+/* A file dropped straight onto a placeholder. It stays in this page as an
+   object URL: nothing is uploaded or saved, and a reload empties the slot. */
+function useDroppedFile() {
+  const [url, setUrl] = React.useState("");
+  React.useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+  return [url, (file) => setUrl(URL.createObjectURL(file))];
+}
+
+function IconTile({ name }) {
+  return <span className="icon-tile"><Icon name={name} /></span>;
+}
+
+const FEATURES = [
+  { icon: "palette", title: "Primitives name values", description: "A ramp of OKLCH colours, a dimension scale, a type scale. Nothing here knows what it is for." },
+  { icon: "layers", title: "Semantics name jobs", description: "Surface, text, border, and their paired roles. This is the only tier a component is allowed to read." },
+  { icon: "blocks", title: "Components name parts", description: "Button background, input border. Retuned per context without touching the component." },
+];
+
 function App() {
   const [nav, setNav] = React.useState("product");
   const media = useDovetailMedia();
+  const [photo, dropPhoto] = useDroppedFile();
+  const [video, dropVideo] = useDroppedFile();
+  const [illustration, dropIllustration] = useDroppedFile();
+  const art = illustration || media.illustration;
   return (
     <main>
       <Navbar
         sticky
-        brand={<span style={{ fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-body-lg-size)", letterSpacing: "var(--dt-tracking-tight)" }}>Dovetail</span>}
+        brand={<Inline gap="xs" align="center"><span className="mark"><Icon name="sparkle" size="sm" /></span><span style={{ fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-body-lg-size)", letterSpacing: "var(--dt-tracking-tight)" }}>Dovetail</span></Inline>}
         current={nav}
         onNavigate={setNav}
         links={[{ id: "product", label: "Product" }, { id: "pricing", label: "Pricing" }, { id: "docs", label: "Docs" }, { id: "company", label: "Company" }]}
@@ -138,14 +167,14 @@ function App() {
           <Stack gap="md">
             <span className="eyebrow">Design system infrastructure</span>
             <h1 className="hero-h">One component set. Every brand you ship.</h1>
-            <p className="lead">Dovetail is white-label by construction. Components read semantic tokens, tokens read a brand theme, and swapping the theme changes every surface at once — without touching a component.</p>
+            <p className="lead">Dovetail is white-label by construction. Components read semantic tokens, tokens read a brand theme, and swapping the theme changes every surface at once, without touching a component.</p>
             <Inline gap="sm" wrap>
-              <Button>Start free</Button>
-              <Button variant="secondary">Read the docs</Button>
+              <Button iconEnd={<Icon name="arrowRight" size="sm" />}>Start free</Button>
+              <Button variant="secondary" iconStart={<Icon name="book" size="sm" />}>Read the docs</Button>
             </Inline>
             <Inline gap="xs" wrap><Tag>No lock-in</Tag><Tag>DTCG tokens</Tag><Tag>Light and dark</Tag></Inline>
           </Stack>
-          <Cover src={media.photo} alt="" ratio="4:3" placeholder="Product photo" scrim="none" style={{ border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" }} />
+          <Cover src={photo || media.photo} alt="" ratio="4:3" placeholder="Product photo" onFile={dropPhoto} scrim="none" style={{ border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" }} />
         </div>
       </section>
 
@@ -155,23 +184,38 @@ function App() {
           <h2 className="sec-h">Three tiers, referenced one way</h2>
         </Stack>
         <div className="three">
-          <Card title="Primitives name values" description="A ramp of OKLCH colours, a dimension scale, a type scale. Nothing here knows what it is for." />
-          <Card title="Semantics name jobs" description="Surface, text, border, and their paired roles. This is the only tier a component is allowed to read." />
-          <Card title="Components name parts" description="Button background, input border. Retuned per context without touching the component." />
+          {FEATURES.map((f) => <Card key={f.icon} media={<IconTile name={f.icon} />} title={f.title} description={f.description} />)}
         </div>
       </section>
 
       <section className="sec">
         <div className="two">
+          <Video src={video} label="Product walkthrough" placeholder="Product walkthrough video" onFile={dropVideo} ratio="16:9" style={{ border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" }} />
+          <Stack gap="md">
+            <span className="eyebrow">See it run</span>
+            <h2 className="sec-h">Retheme a whole product in one pass</h2>
+            <p className="lead">Pick a brand colour, a type family and a corner radius. Every screen follows, because no component holds a value of its own.</p>
+            <ul className="checks">
+              <li><Icon name="check" size="sm" />Light and dark from the same roles</li>
+              <li><Icon name="check" size="sm" />Contrast checked on every pairing</li>
+              <li><Icon name="check" size="sm" />Exports CSS and DTCG tokens</li>
+            </ul>
+            <Inline gap="sm" wrap><Button variant="secondary" iconStart={<Icon name="play" size="sm" />}>Watch the tour</Button></Inline>
+          </Stack>
+        </div>
+      </section>
+
+      <section className="sec alt">
+        <div className="two">
           <Stack gap="md">
             <span className="eyebrow">Proof</span>
             <h2 className="sec-h">The audit that took a week now runs in CI</h2>
             <p className="lead">The adherence lint rejects literal values before review. If a colour is not a token, the build says so.</p>
-            <Inline gap="xl" wrap>
-              <Stat label="Components" value="63" caption="across eight groups" />
-              <Stat label="Tokens" value="658" caption="three tiers, DTCG authored" />
-              <Stat label="Themes" value="4" caption="base, dark, editorial, mono" />
-            </Inline>
+            <div className="stats">
+              <Stack gap="sm"><IconTile name="box" /><Stat label="Components" value="63" caption="across eight groups" /></Stack>
+              <Stack gap="sm"><IconTile name="zap" /><Stat label="Tokens" value="658" caption="three tiers, DTCG authored" /></Stack>
+              <Stack gap="sm"><IconTile name="shield" /><Stat label="Themes" value="4" caption="base, dark, editorial, mono" /></Stack>
+            </div>
           </Stack>
           <Stack gap="lg">
             <Quote attribution="Grace Hopper" role="Head of Platform, Halcyon Labs" avatar={<Avatar name="Grace Hopper" />}>
@@ -185,37 +229,43 @@ function App() {
         </div>
       </section>
 
-      <section className="sec alt">
+      <section className="sec">
         <Stack gap="xs" style={{ alignItems: "center", textAlign: "center" }}>
           <span className="eyebrow">Questions</span>
           <h2 className="sec-h">Before you adopt it</h2>
         </Stack>
         <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
           <Accordion label="Adoption questions" defaultOpen={["a"]} items={[
-            { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply an primary ramp and a type family; every component picks them up through the semantic tier." },
+            { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply a primary ramp and a type family; every component picks them up through the semantic tier." },
             { id: "b", title: "Does it work outside React?", content: "The tokens do. They are authored in DTCG format and build to CSS custom properties, so any framework can consume them. The component layer is React." },
-            { id: "c", title: "What about dark mode and density?", content: "Both are axes alongside brand theme and context. A component never knows which combination it is rendering under — it reads roles, and the roles are retuned." },
+            { id: "c", title: "What about dark mode and density?", content: "Both are axes alongside brand theme and context. A component never knows which combination it is rendering under: it reads roles, and the roles are retuned." },
           ]} />
         </div>
       </section>
 
-      <section className="sec">
+      <section className="sec alt">
         <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
           <Prose>
             <h2 className="sec-h">Start with the tokens, not the components</h2>
             <p style={{ margin: 0 }}>Teams that adopt the component library first end up with a second system underneath it: the values their product already uses, now hidden behind imports. Adopting the token layer first surfaces those values as a diff you can argue about.</p>
-            <Callout tone="tip" title="A useful first week">Replace literal colours in one screen with semantic tokens and run the lint. The list of failures is your real migration scope.</Callout>
+            <Callout tone="tip" title="A useful first week" icon={<Icon name="sparkle" size="sm" />}>Replace literal colours in one screen with semantic tokens and run the lint. The list of failures is your real migration scope.</Callout>
           </Prose>
         </div>
       </section>
 
-      <section className={"sec alt" + (media.illustration ? " cta-with-illustration" : "")}>
-        <Stack gap="md" style={media.illustration ? undefined : { alignItems: "center", textAlign: "center" }}>
-          <h2 className="sec-h">Ship your brand, not ours</h2>
-          <p className="lead" style={media.illustration ? undefined : { textAlign: "center" }}>Free while you evaluate. No card, no call.</p>
-          <Inline gap="sm"><Button>Start free</Button><Button variant="secondary">Talk to us</Button></Inline>
-        </Stack>
-        {media.illustration && <img className="cta-illustration" src={media.illustration} alt="" />}
+      <section className="sec">
+        <div className="cta">
+          <Stack gap="md">
+            <h2 className="sec-h">Ship your brand, not ours</h2>
+            <p className="lead">Free while you evaluate. No card, no call.</p>
+            <Inline gap="sm" wrap><Button iconEnd={<Icon name="arrowRight" size="sm" />}>Start free</Button><Button variant="secondary" iconStart={<Icon name="send" size="sm" />}>Talk to us</Button></Inline>
+          </Stack>
+          <div className="cta-art">
+            {art
+              ? <img className="cta-illustration" src={art} alt="" />
+              : <Image alt="" ratio="1:1" placeholder="Illustration" onFile={dropIllustration} radius="container" />}
+          </div>
+        </div>
       </section>
     </main>
   );
@@ -254,9 +304,11 @@ function dsReady(required, done) {
   })();
 }
 
-dsReady(["Navbar","Button","Card","Badge","Tag","Quote","Accordion","Prose","Callout","Cover","Avatar","Stat","Inline","Stack","Divider"], function (NS) {
-  ({ Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Avatar, Stat, Inline, Stack, Divider } = NS);
-  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+dsReady(["Navbar","Button","Card","Badge","Tag","Quote","Accordion","Prose","Callout","Cover","Image","Video","Avatar","Stat","Inline","Stack","Divider"], function (NS) {
+  ({ Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Image, Video, Avatar, Stat, Inline, Stack, Divider } = NS);
+  window.DT_ASSETS.then(function () {
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  });
 });
 </script>
 </body></html>

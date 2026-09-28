@@ -14,7 +14,15 @@ body{margin:0;background:var(--dt-surface-subtle);padding-bottom:88px}
 .panel{background:var(--dt-surface-raised);border:var(--dt-border-width-default) solid var(--dt-border-subtle);border-radius:var(--dt-radius-container);padding:20px}
 .statrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .two{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start}
-@media (max-width:960px){.shell{flex-direction:column}.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.body{padding:18px 16px}}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.stat{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.stat-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--dt-radius-control);background:var(--dt-surface-brand-muted);color:var(--dt-text-on-brand-muted)}
+.panel-h{display:inline-flex;align-items:center;gap:8px;font-weight:var(--dt-font-weight-semibold)}
+.panel-h svg{color:var(--dt-text-tertiary)}
+.table-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.art{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;border-radius:var(--dt-radius-media);background:var(--dt-surface-sunken);overflow:hidden}
+.art img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+@media (max-width:960px){.shell{flex-direction:column}.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}.two,.three{grid-template-columns:minmax(0,1fr)}.body{padding:18px 16px}}
 @media (max-width:560px){.statrow{grid-template-columns:1fr}}
 </style>
 <script>
@@ -77,12 +85,14 @@ body{margin:0;background:var(--dt-surface-subtle);padding-bottom:88px}
     .then(function () { return js("_ds_bundle.js"); })
     .then(function () { return js("templates/_support/theme-runtime.js"); })
     .then(function () { return js("templates/_support/theme-switcher.js"); })
+    .then(function () { return js("templates/_support/template-icons.js"); })
     .then(function () { return failures; });
 })();
 </script>
 </head><body class="dt-context-product"><div id="root"></div>
 <script type="text/babel">
-let Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag;
+let Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag, Image, Video;
+const Icon = (props) => window.DovetailTemplateIcons.Icon(props);
 
 const INVOICES = [
   { id: "INV-2041", client: "Northwind Trading", status: "Paid", tone: "success", due: "12 Sep", amount: "$4,200.00" },
@@ -94,10 +104,60 @@ const INVOICES = [
 
 const PEOPLE = [{ name: "Ada Lovelace" }, { name: "Grace Hopper" }, { name: "Alan Turing" }, { name: "Jean Bartik" }, { name: "Margaret Hamilton" }];
 
+/* Reads the photo and illustration a reader dropped in the Configure panel's
+   Media tab, the same way the marketing template does. */
+function useDovetailMedia() {
+  var KEY = "dovetail-docs-media";
+  function load() {
+    try {
+      return Object.assign({ photo: "", illustration: "" }, JSON.parse(localStorage.getItem(KEY)) || {});
+    } catch (e) {
+      return { photo: "", illustration: "" };
+    }
+  }
+  const [media, setMedia] = React.useState(load);
+  React.useEffect(function () {
+    function sync(e) {
+      if (!e || !e.key || e.key === KEY) setMedia(load());
+    }
+    window.addEventListener("storage", sync);
+    return function () {
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return media;
+}
+
+/* A file dropped straight onto a placeholder. It stays in this page as an
+   object URL: nothing is uploaded or saved, and a reload empties the slot. */
+function useDroppedFile() {
+  const [url, setUrl] = React.useState("");
+  React.useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+  return [url, (file) => setUrl(URL.createObjectURL(file))];
+}
+
+function PanelTitle({ icon, children }) {
+  return <span className="panel-h"><Icon name={icon} size="sm" />{children}</span>;
+}
+
+function StatTile({ icon, ...stat }) {
+  return (
+    <div className="panel stat">
+      <Stat {...stat} style={{ minWidth: 0 }} />
+      <span className="stat-icon"><Icon name={icon} size="sm" /></span>
+    </div>
+  );
+}
+
 function App() {
   const [nav, setNav] = React.useState("invoices");
   const [tab, setTab] = React.useState("all");
   const [page, setPage] = React.useState(1);
+  const media = useDovetailMedia();
+  const [photo, dropPhoto] = useDroppedFile();
+  const [video, dropVideo] = useDroppedFile();
+  const [illustration, dropIllustration] = useDroppedFile();
+  const art = illustration || media.illustration;
   const rows = tab === "all" ? INVOICES : INVOICES.filter(r => (tab === "open" ? r.status !== "Paid" : r.status === "Paid"));
   return (
     <div className="shell">
@@ -107,31 +167,41 @@ function App() {
         header={<Inline gap="sm" align="center"><Avatar name="Northwind Trading" shape="square" size="sm" /><span style={{ fontWeight: "var(--dt-font-weight-semibold)" }}>Northwind</span></Inline>}
         footer={<Inline gap="sm" align="center"><Avatar name="Ada Lovelace" size="sm" status="online" /><span style={{ fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)" }}>Ada Lovelace</span></Inline>}
         sections={[
-          { items: [{ id: "overview", label: "Overview" }, { id: "invoices", label: "Invoices", trailing: <Badge>5</Badge> }, { id: "clients", label: "Clients" }] },
-          { title: "Workspace", items: [{ id: "members", label: "Members" }, { id: "integrations", label: "Integrations" }] },
-          { title: "Settings", items: [{ id: "billing", label: "Billing" }, { id: "security", label: "Security" }] },
+          { items: [
+            { id: "overview", label: "Overview", icon: <Icon name="grid" size="sm" /> },
+            { id: "invoices", label: "Invoices", icon: <Icon name="file" size="sm" />, trailing: <Badge>5</Badge> },
+            { id: "clients", label: "Clients", icon: <Icon name="users" size="sm" /> },
+          ] },
+          { title: "Workspace", items: [
+            { id: "members", label: "Members", icon: <Icon name="userPlus" size="sm" /> },
+            { id: "integrations", label: "Integrations", icon: <Icon name="plug" size="sm" /> },
+          ] },
+          { title: "Settings", items: [
+            { id: "billing", label: "Billing", icon: <Icon name="card" size="sm" /> },
+            { id: "security", label: "Security", icon: <Icon name="lock" size="sm" /> },
+          ] },
         ]}
       />
       <div className="main">
-        <Banner tone="warning" title="Trial ends in 3 days" action={<Button size="sm">Add payment</Button>}>Your workspace switches to read-only when the trial ends.</Banner>
+        <Banner tone="warning" icon={<Icon name="clock" size="sm" />} title="Trial ends in 3 days" action={<Button size="sm">Add payment</Button>}>Your workspace switches to read-only when the trial ends.</Banner>
         <div className="body">
           <Stack gap="sm">
             <Breadcrumbs items={[{ label: "Workspace", href: "#" }, { label: "Billing", href: "#" }, { label: "Invoices" }]} />
             <Inline gap="md" align="center" justify="space-between" wrap>
-              <h1 style={{ margin: 0, color: "var(--dt-text-headline, var(--dt-text-primary))", fontSize: "var(--dt-text-heading-lg-size)", fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-text-heading-lg-tracking)" }}>Invoices</h1>
-              <Inline gap="sm" align="center">
+              <h1 style={{ margin: 0, color: "var(--dt-text-headline, var(--dt-text-primary))", fontSize: "var(--dt-text-heading-lg-size)", fontWeight: "var(--dt-text-heading-lg-weight)", letterSpacing: "var(--dt-text-heading-lg-tracking)" }}>Invoices</h1>
+              <Inline gap="sm" align="center" wrap>
                 <AvatarGroup people={PEOPLE} max={4} size="sm" label="People with access" />
-                <Button size="sm" variant="secondary">Export</Button>
-                <Button size="sm">New invoice</Button>
+                <Button size="sm" variant="secondary" iconStart={<Icon name="download" size="sm" />}>Export</Button>
+                <Button size="sm" iconStart={<Icon name="plus" size="sm" />}>New invoice</Button>
               </Inline>
             </Inline>
           </Stack>
 
           <div className="statrow">
-            <div className="panel"><Stat label="Outstanding" value="$18,115" delta="+8.2%" deltaDirection="down" caption="vs. previous 30 days" /></div>
-            <div className="panel"><Stat label="Collected" value="$41,290" delta="+12.4%" deltaDirection="up" caption="vs. previous 30 days" /></div>
-            <div className="panel"><Stat label="Median days to pay" value="11" unit="days" delta="−2" deltaDirection="up" caption="vs. previous 30 days" /></div>
-            <div className="panel"><Stat label="Past due" value="1" delta="0" deltaDirection="flat" caption="unchanged this week" /></div>
+            <StatTile icon="wallet" label="Outstanding" value="$18,115" delta="+8.2%" deltaDirection="down" caption="vs. previous 30 days" />
+            <StatTile icon="trendUp" label="Collected" value="$41,290" delta="+12.4%" deltaDirection="up" caption="vs. previous 30 days" />
+            <StatTile icon="calendar" label="Median days to pay" value="11" unit="days" delta="−2" deltaDirection="up" caption="vs. previous 30 days" />
+            <StatTile icon="alert" label="Past due" value="1" delta="0" deltaDirection="flat" caption="unchanged this week" />
           </div>
 
           <div className="two">
@@ -141,9 +211,9 @@ function App() {
                   tabs={[{ id: "all", label: "All", count: INVOICES.length }, { id: "open", label: "Open" }, { id: "paid", label: "Paid" }]} />
                 <TabPanel id={tab} value={tab}>
                   {rows.length === 0 ? (
-                    <EmptyState size="sm" title="No invoices in this view" description="Try another filter or create an invoice." action={<Button size="sm">New invoice</Button>} />
+                    <EmptyState size="sm" icon={<Icon name="file" size="lg" />} title="No invoices in this view" description="Try another filter or create an invoice." action={<Button size="sm" iconStart={<Icon name="plus" size="sm" />}>New invoice</Button>} />
                   ) : (
-                    <Table
+                    <div className="table-scroll"><Table
                       caption={rows.length + " invoices, last 30 days"}
                       columns={[
                         { key: "id", header: "Invoice", width: "108px" },
@@ -153,7 +223,7 @@ function App() {
                         { key: "amount", header: "Amount", align: "right" },
                       ]}
                       rows={rows}
-                    />
+                    /></div>
                   )}
                 </TabPanel>
                 <Pagination page={page} totalPages={6} onChange={setPage} />
@@ -163,7 +233,7 @@ function App() {
             <Stack gap="lg">
               <div className="panel">
                 <Stack gap="md">
-                  <span style={{ fontWeight: "var(--dt-font-weight-semibold)" }}>Plan usage</span>
+                  <PanelTitle icon="zap">Plan usage</PanelTitle>
                   <Progress label="Seats" value={17} max={20} showValue size="sm" tone="warning" />
                   <Progress label="Storage" value={42} max={100} showValue size="sm" />
                   <Progress label="API calls" value={68} max={100} showValue size="sm" />
@@ -171,7 +241,7 @@ function App() {
               </div>
               <div className="panel">
                 <Stack gap="sm">
-                  <span style={{ fontWeight: "var(--dt-font-weight-semibold)" }}>Recent activity</span>
+                  <PanelTitle icon="bell">Recent activity</PanelTitle>
                   <List label="Recent activity" items={[
                     { id: 1, leading: <Avatar name="Grace Hopper" size="sm" />, title: "Grace sent INV-2043", description: "2 hours ago" },
                     { id: 2, leading: <Avatar name="Alan Turing" size="sm" />, title: "Alan marked INV-2041 paid", description: "Yesterday" },
@@ -180,6 +250,32 @@ function App() {
                 </Stack>
               </div>
             </Stack>
+          </div>
+
+          <div className="three">
+            <Card
+              media={<Image src={photo || media.photo} alt="" ratio="16:9" placeholder="Client photo" onFile={dropPhoto} />}
+              eyebrow="Client spotlight"
+              title="Pallas Freight"
+              description="Largest open balance: $12,040, six days past due."
+              footer={<Button size="sm" variant="secondary" iconStart={<Icon name="send" size="sm" />}>Send reminder</Button>}
+            />
+            <Card
+              media={<Video src={video} label="Product tour" placeholder="Product tour video" onFile={dropVideo} ratio="16:9" />}
+              eyebrow="Getting started"
+              title="Take the tour"
+              description="Two minutes on how invoices, reminders and payouts fit together."
+              footer={<Button size="sm" variant="secondary" iconStart={<Icon name="play" size="sm" />}>Watch</Button>}
+            />
+            <Card
+              media={art
+                ? <div className="art"><img src={art} alt="" /></div>
+                : <Image alt="" ratio="16:9" placeholder="Illustration" onFile={dropIllustration} />}
+              eyebrow="Workspace"
+              title="Invite your team"
+              description="Three seats left on your plan. Teammates see every client and invoice."
+              footer={<Button size="sm" iconStart={<Icon name="userPlus" size="sm" />}>Invite people</Button>}
+            />
           </div>
         </div>
       </div>
@@ -220,9 +316,11 @@ function dsReady(required, done) {
   })();
 }
 
-dsReady(["Sidebar","Tabs","TabPanel","Breadcrumbs","Table","Stat","Badge","Button","Avatar","AvatarGroup","List","Progress","Banner","EmptyState","Pagination","Inline","Stack","Card","Tag"], function (NS) {
-  ({ Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag } = NS);
-  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+dsReady(["Sidebar","Tabs","TabPanel","Breadcrumbs","Table","Stat","Badge","Button","Avatar","AvatarGroup","List","Progress","Banner","EmptyState","Pagination","Inline","Stack","Card","Tag","Image","Video"], function (NS) {
+  ({ Sidebar, Tabs, TabPanel, Breadcrumbs, Table, Stat, Badge, Button, Avatar, AvatarGroup, List, Progress, Banner, EmptyState, Pagination, Inline, Stack, Card, Tag, Image, Video } = NS);
+  window.DT_ASSETS.then(function () {
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  });
 });
 </script>
 </body></html>
