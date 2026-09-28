@@ -66,10 +66,10 @@ export declare function Navbar(props: NavbarProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
-| `--dt-border-selected` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-border-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-size-control-md` | semantic | `var(--dt-dim-10)` |
 | `--dt-size-icon-md` | semantic | `var(--dt-dim-5)` |
 | `--dt-space-inline-lg` | semantic | `var(--dt-dim-6)` |

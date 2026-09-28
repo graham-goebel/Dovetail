@@ -61,7 +61,7 @@ export declare function Slider(props: SliderProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-space-inline-md` | semantic | `var(--dt-dim-4)` |
-| `--dt-surface-action` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |

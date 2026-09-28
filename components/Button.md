@@ -112,7 +112,7 @@ export declare function Button(props: ButtonProps): JSX.Element;
 | `--dt-button-primary-bg-hover` | component | `var(--dt-surface-action-hover)` |
 | `--dt-button-primary-border` | component | `var(--dt-color-transparent)` |
 | `--dt-button-primary-fg` | component | `var(--dt-text-on-action)` |
-| `--dt-button-radius` | component | `var(--dt-radius-control)` |
+| `--dt-button-radius` | component | `var(--dt-radius-pill)` |
 | `--dt-button-secondary-bg` | component | `var(--dt-surface-action-secondary)` |
 | `--dt-button-secondary-bg-active` | component | `var(--dt-surface-action-secondary-active)` |
 | `--dt-button-secondary-bg-hover` | component | `var(--dt-surface-action-secondary-hover)` |

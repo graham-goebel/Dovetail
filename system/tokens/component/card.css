@@ -11,8 +11,10 @@
   --dt-card-radius: var(--dt-radius-container);
   --dt-card-padding: var(--dt-space-inset-lg);
   --dt-card-gap: var(--dt-space-stack-sm);
-  --dt-card-elevation: var(--dt-elevation-1); /* @kind other */
-  --dt-card-elevation-hover: var(--dt-elevation-2); /* @kind other */
+  /* Bordered and flat by default: a hairline does the work a shadow would,
+     and elevation is kept for things that float (menus, sheets, toasts). */
+  --dt-card-elevation: var(--dt-elevation-0); /* @kind other */
+  --dt-card-elevation-hover: var(--dt-elevation-1); /* @kind other */
   --dt-card-transition: var(--dt-motion-micro);
 
   --dt-card-selected-border: var(--dt-border-selected);

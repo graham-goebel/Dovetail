@@ -94,11 +94,11 @@ export declare function BottomNav(props: BottomNavProps): JSX.Element;
 | `--dt-bottomnav-fg-active` | component | `var(--dt-text-primary)` |
 | `--dt-bottomnav-indicator` | component | `var(--dt-surface-selected)` |
 | `--dt-bottomnav-indicator-floating` | component | `var(--dt-surface-glass-tint)` |
-| `--dt-backdrop-glass` | semantic | `saturate(1.4) blur(var(--dt-blur-glass))` |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
 | `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-motion-micro` | semantic | `var(--dt-duration-100) var(--dt-easing-standard)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-scrim-fade-bottom` | semantic | `linear-gradient(to top, var(--dt-surface-base) 40%, transparent)` |
 | `--dt-size-icon-lg` | semantic | `var(--dt-dim-6)` |
@@ -113,7 +113,7 @@ export declare function BottomNav(props: BottomNavProps): JSX.Element;
 | `--dt-surface-glass` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)` |
 | `--dt-surface-glass-tint` | semantic | `color-mix(in oklab, var(--dt-text-primary) 8%, transparent)` |
 | `--dt-surface-overlay` | semantic | `var(--dt-color-white)` |
-| `--dt-surface-selected` | semantic | `var(--dt-color-primary-050)` |
+| `--dt-surface-selected` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-text-label-sm-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-sm-line` | semantic | `var(--dt-line-height-xs)` |
 | `--dt-text-label-sm-size` | semantic | `var(--dt-font-size-xs)` |

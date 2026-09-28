@@ -49,8 +49,8 @@ export declare function Skeleton(props: SkeletonProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |

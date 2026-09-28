@@ -207,3 +207,21 @@ a.lm-card-link > * { flex: 1; }
   .lm-hero-bleed .lm-h1 { font-size: var(--dt-text-display-sm-size); line-height: var(--dt-text-display-sm-line); }
   .lm-bleed.scrim-left::before { background: linear-gradient(to top, var(--dt-surface-scrim) 35%, transparent 95%); }
 }
+
+/* Brand-coloured controls. Dovetail's default interface is ink; this site was
+   designed with its buttons, links and selection in the brand colour, so it
+   opts back in by pointing each role at its -brand twin. */
+:root,
+.dark {
+  --dt-surface-action: var(--dt-surface-action-brand);
+  --dt-surface-action-hover: var(--dt-surface-action-brand-hover);
+  --dt-surface-action-active: var(--dt-surface-action-brand-active);
+  --dt-text-on-action: var(--dt-text-on-action-brand);
+  --dt-text-link: var(--dt-text-link-brand);
+  --dt-text-link-hover: var(--dt-text-link-brand-hover);
+  --dt-surface-selected: var(--dt-surface-selected-brand);
+  --dt-surface-selected-hover: var(--dt-surface-selected-brand-hover);
+  --dt-text-on-selected: var(--dt-text-on-selected-brand);
+  --dt-border-selected: var(--dt-border-selected-brand);
+  --dt-focus-ring-color: var(--dt-focus-ring-color-brand);
+}

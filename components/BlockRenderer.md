@@ -81,7 +81,7 @@ export declare function BlockRenderer(props: BlockRendererProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-border-danger` | semantic | `var(--dt-color-red-200)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-surface-danger-subtle` | semantic | `var(--dt-color-red-050)` |

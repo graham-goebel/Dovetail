@@ -157,11 +157,11 @@ export declare function Thinking(props: ThinkingProps): JSX.Element;
 | `--dt-thinking-size-inline` | component | `var(--dt-size-icon-md)` |
 | `--dt-thinking-size-overlay` | component | `var(--dt-dim-40)` |
 | `--dt-thinking-surface` | component | `var(--dt-surface-brand-muted)` |
-| `--dt-backdrop-glass` | semantic | `saturate(1.4) blur(var(--dt-blur-glass))` |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
 | `--dt-border-default` | semantic | `var(--dt-color-neutral-200)` |
 | `--dt-border-strong` | semantic | `var(--dt-color-neutral-400)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-size-control-md` | semantic | `var(--dt-dim-10)` |
 | `--dt-size-icon-md` | semantic | `var(--dt-dim-5)` |
@@ -186,20 +186,20 @@ export declare function Thinking(props: ThinkingProps): JSX.Element;
 | `--dt-text-heading-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-heading-sm-line` | semantic | `var(--dt-line-height-xl)` |
 | `--dt-text-heading-sm-size` | semantic | `var(--dt-font-size-xl)` |
-| `--dt-text-heading-sm-weight` | semantic | `var(--dt-font-weight-semibold)` |
+| `--dt-text-heading-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-on-scrim` | semantic | `var(--dt-color-neutral-050)` |
 | `--dt-text-on-scrim-secondary` | semantic | `var(--dt-color-neutral-200)` |
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
 | `--dt-z-overlay` | semantic | `300` |
-| `--dt-color-neutral-050` | primitive | `oklch(0.985 0.001 264)` |
-| `--dt-color-neutral-100` | primitive | `oklch(0.967 0.002 264)` |
-| `--dt-color-neutral-200` | primitive | `oklch(0.925 0.003 264)` |
-| `--dt-color-neutral-400` | primitive | `oklch(0.708 0.007 264)` |
-| `--dt-color-neutral-800` | primitive | `oklch(0.273 0.007 264)` |
-| `--dt-color-primary-400` | primitive | `oklch(0.714 0.143 259)` |
-| `--dt-color-primary-700` | primitive | `oklch(0.476 0.196 259)` |
+| `--dt-color-neutral-050` | primitive | `oklch(0.979 0 0)` |
+| `--dt-color-neutral-100` | primitive | `oklch(0.958 0 0)` |
+| `--dt-color-neutral-200` | primitive | `oklch(0.928 0 0)` |
+| `--dt-color-neutral-400` | primitive | `oklch(0.715 0 0)` |
+| `--dt-color-neutral-800` | primitive | `oklch(0.285 0 0)` |
+| `--dt-color-primary-400` | primitive | `oklch(0.735 0.148 45)` |
+| `--dt-color-primary-700` | primitive | `oklch(0.505 0.140 45)` |
 | `--dt-color-secondary-400` | primitive | `oklch(0.740 0.163 305)` |
 | `--dt-color-secondary-700` | primitive | `oklch(0.518 0.190 305)` |
 | `--dt-color-white` | primitive | `oklch(1 0 0)` |

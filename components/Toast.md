@@ -67,8 +67,8 @@ export declare function ToastRegion(props: ToastRegionProps): JSX.Element;
 | `--dt-border-warning` | semantic | `var(--dt-color-amber-200)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-elevation-3` | semantic | `var(--dt-shadow-raw-3)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
-| `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-12)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-24)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-lg` | semantic | `var(--dt-dim-6)` |

@@ -55,8 +55,8 @@ export declare function Link(props: LinkProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-motion-micro` | semantic | `var(--dt-duration-100) var(--dt-easing-standard)` |
 | `--dt-space-inline-2xs` | semantic | `var(--dt-dim-1)` |
-| `--dt-text-link` | semantic | `var(--dt-color-primary-700)` |
-| `--dt-text-link-hover` | semantic | `var(--dt-color-primary-800)` |
+| `--dt-text-link` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-link-hover` | semantic | `var(--dt-color-neutral-700)` |
 
 ## Source
 

@@ -16,50 +16,50 @@
   --dt-text-display-lg-family: var(--dt-font-family-sans);
   --dt-text-display-lg-size: var(--dt-font-size-7xl);
   --dt-text-display-lg-line: var(--dt-line-height-7xl);
-  --dt-text-display-lg-weight: var(--dt-font-weight-semibold);
-  --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
+  --dt-text-display-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-display-lg-tracking: var(--dt-tracking-tightest);
 
   --dt-text-display-md-family: var(--dt-font-family-sans);
   --dt-text-display-md-size: var(--dt-font-size-6xl);
   --dt-text-display-md-line: var(--dt-line-height-6xl);
-  --dt-text-display-md-weight: var(--dt-font-weight-semibold);
-  --dt-text-display-md-tracking: var(--dt-tracking-tighter);
+  --dt-text-display-md-weight: var(--dt-font-weight-medium);
+  --dt-text-display-md-tracking: var(--dt-tracking-tightest);
 
   --dt-text-display-sm-family: var(--dt-font-family-sans);
   --dt-text-display-sm-size: var(--dt-font-size-5xl);
   --dt-text-display-sm-line: var(--dt-line-height-5xl);
-  --dt-text-display-sm-weight: var(--dt-font-weight-semibold);
-  --dt-text-display-sm-tracking: var(--dt-tracking-tight);
+  --dt-text-display-sm-weight: var(--dt-font-weight-medium);
+  --dt-text-display-sm-tracking: var(--dt-tracking-tighter);
 
   /* ---- Heading ---------------------------------------------------- */
   --dt-text-heading-xl-family: var(--dt-font-family-sans);
   --dt-text-heading-xl-size: var(--dt-font-size-4xl);
   --dt-text-heading-xl-line: var(--dt-line-height-4xl);
-  --dt-text-heading-xl-weight: var(--dt-font-weight-semibold);
-  --dt-text-heading-xl-tracking: var(--dt-tracking-tight);
+  --dt-text-heading-xl-weight: var(--dt-font-weight-medium);
+  --dt-text-heading-xl-tracking: var(--dt-tracking-tighter);
 
   --dt-text-heading-lg-family: var(--dt-font-family-sans);
   --dt-text-heading-lg-size: var(--dt-font-size-3xl);
   --dt-text-heading-lg-line: var(--dt-line-height-3xl);
-  --dt-text-heading-lg-weight: var(--dt-font-weight-semibold);
-  --dt-text-heading-lg-tracking: var(--dt-tracking-snug);
+  --dt-text-heading-lg-weight: var(--dt-font-weight-medium);
+  --dt-text-heading-lg-tracking: var(--dt-tracking-tight);
 
   --dt-text-heading-md-family: var(--dt-font-family-sans);
   --dt-text-heading-md-size: var(--dt-font-size-2xl);
   --dt-text-heading-md-line: var(--dt-line-height-2xl);
-  --dt-text-heading-md-weight: var(--dt-font-weight-semibold);
-  --dt-text-heading-md-tracking: var(--dt-tracking-snug);
+  --dt-text-heading-md-weight: var(--dt-font-weight-medium);
+  --dt-text-heading-md-tracking: var(--dt-tracking-tight);
 
   --dt-text-heading-sm-family: var(--dt-font-family-sans);
   --dt-text-heading-sm-size: var(--dt-font-size-xl);
   --dt-text-heading-sm-line: var(--dt-line-height-xl);
-  --dt-text-heading-sm-weight: var(--dt-font-weight-semibold);
-  --dt-text-heading-sm-tracking: var(--dt-tracking-normal);
+  --dt-text-heading-sm-weight: var(--dt-font-weight-medium);
+  --dt-text-heading-sm-tracking: var(--dt-tracking-snug);
 
   --dt-text-heading-xs-family: var(--dt-font-family-sans);
   --dt-text-heading-xs-size: var(--dt-font-size-lg);
   --dt-text-heading-xs-line: var(--dt-line-height-lg);
-  --dt-text-heading-xs-weight: var(--dt-font-weight-semibold);
+  --dt-text-heading-xs-weight: var(--dt-font-weight-medium);
   --dt-text-heading-xs-tracking: var(--dt-tracking-normal);
 
   /* ---- Body ------------------------------------------------------- */

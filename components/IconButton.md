@@ -66,7 +66,7 @@ export declare function IconButton(props: IconButtonProps): JSX.Element;
 | `--dt-button-primary-bg-active` | component | `var(--dt-surface-action-active)` |
 | `--dt-button-primary-bg-hover` | component | `var(--dt-surface-action-hover)` |
 | `--dt-button-primary-fg` | component | `var(--dt-text-on-action)` |
-| `--dt-button-radius` | component | `var(--dt-radius-control)` |
+| `--dt-button-radius` | component | `var(--dt-radius-pill)` |
 | `--dt-button-transition` | component | `var(--dt-motion-micro)` |
 | `--dt-size-control-lg` | semantic | `var(--dt-dim-12)` |
 | `--dt-size-control-md` | semantic | `var(--dt-dim-10)` |

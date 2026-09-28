@@ -26,8 +26,8 @@ Link it after `styles.css`:
 ### 2. Replace the brand ramps, not the semantic roles
 
 The cheapest correct theme changes eleven lines. Override the primitive primary ramp in
-place, and every semantic role that referenced it (actions, links, selection, focus)
-follows automatically. A second brand hue is the same move on the secondary ramp,
+place, and every semantic role that referenced it follows automatically: the brand fills,
+brand text, charts, progress, badges and the thinking animation. A second brand hue is the same move on the secondary ramp,
 `--dt-color-secondary-*`, which the secondary brand fills, the duotone sweep and the
 second data-visualisation colour read.
 
@@ -46,10 +46,37 @@ raw material, not bypassing the contract.
 chroma and hue. OKLCH lightness is perceptually uniform, so a primary ramp built on the
 existing lightness steps inherits the contrast behaviour the system was tested against.
 
-### 3. Override semantic roles only where the brand disagrees
+### 3. Decide what colour the controls are
 
-If your brand's action colour is not simply "primary 600", say it needs to be darker for
-contrast, or a different hue from your links, override the semantic role directly.
+By default the interface is monochrome: buttons, links, selection and focus are ink
+(`--dt-color-neutral-900`, inverting to near-white in dark mode), secondary buttons are a
+soft grey fill, and the brand colour is kept for accents. That is deliberate: a brand hue
+on every control competes with the content, and ink passes contrast on any brand.
+
+To paint the controls in the brand instead, point each role at its `-brand` twin. The
+twins are declared for light and dark, so the choice survives a dark band too. It is what
+Configure's **Buttons and links: Brand** writes.
+
+```css
+:root, .dark {
+  --dt-surface-action: var(--dt-surface-action-brand);
+  --dt-surface-action-hover: var(--dt-surface-action-brand-hover);
+  --dt-surface-action-active: var(--dt-surface-action-brand-active);
+  --dt-text-on-action: var(--dt-text-on-action-brand);
+  --dt-text-link: var(--dt-text-link-brand);
+  --dt-text-link-hover: var(--dt-text-link-brand-hover);
+  --dt-surface-selected: var(--dt-surface-selected-brand);
+  --dt-surface-selected-hover: var(--dt-surface-selected-brand-hover);
+  --dt-text-on-selected: var(--dt-text-on-selected-brand);
+  --dt-border-selected: var(--dt-border-selected-brand);
+  --dt-focus-ring-color: var(--dt-focus-ring-color-brand);
+}
+```
+
+### 4. Override semantic roles only where the brand disagrees
+
+If your brand's action colour needs to be something else again, say darker for contrast,
+or a different hue from your links, override the semantic role directly.
 
 ```css
 :root {
@@ -61,7 +88,7 @@ contrast, or a different hue from your links, override the semantic role directl
 Always move the pair together. Changing a surface without checking its foreground is how
 a theme ships a 2.8:1 button.
 
-### 4. Set the typeface
+### 5. Set the typeface
 
 Three lines, plus the roles you want to diverge.
 
@@ -92,7 +119,7 @@ To give headings a different family from body copy, override the role families:
 }
 ```
 
-### 5. Set the shape language
+### 6. Set the shape language
 
 Five lines control the system's entire corner treatment.
 
@@ -106,7 +133,7 @@ Five lines control the system's entire corner treatment.
 }
 ```
 
-### 6. Verify
+### 7. Verify
 
 - Light and dark, side by side.
 - Every semantic pair at AA. `guidelines/accessibility.md` lists the pairs to check.

@@ -60,7 +60,7 @@ const BRAND_RAMPS = [
 ];
 const RADIUS_PRESETS = {
     sharp: { label: "Sharp", control: "var(--dt-radius-raw-0)", container: "var(--dt-radius-raw-0)", overlay: "var(--dt-radius-raw-0)", media: "var(--dt-radius-raw-0)", pill: "var(--dt-radius-raw-0)" },
-    standard: { label: "Standard", control: "var(--dt-radius-raw-6)", container: "var(--dt-radius-raw-8)", overlay: "var(--dt-radius-raw-12)", media: "var(--dt-radius-raw-8)", pill: "var(--dt-radius-raw-full)" },
+    standard: { label: "Standard", control: "var(--dt-radius-raw-8)", container: "var(--dt-radius-raw-16)", overlay: "var(--dt-radius-raw-24)", media: "var(--dt-radius-raw-12)", pill: "var(--dt-radius-raw-full)" },
     soft: { label: "Soft", control: "var(--dt-radius-raw-full)", container: "var(--dt-radius-raw-16)", overlay: "var(--dt-radius-raw-24)", media: "var(--dt-radius-raw-12)", pill: "var(--dt-radius-raw-full)" },
 };
 const FONT_PRESETS = {
@@ -120,9 +120,9 @@ function buildCustomRamp(hex) {
     return ramp;
 }
 const THEME_PRESETS = {
-    base: { label: "Base", primary: "blue", radius: "standard", font: "sans", mono: false },
+    base: { label: "Base", primary: "terracotta", radius: "standard", font: "sans", mono: false },
     editorial: { label: "Editorial", primary: "terracotta", radius: "soft", font: "serif", mono: false },
-    mono: { label: "Mono", primary: "blue", radius: "sharp", font: "sans", mono: true },
+    mono: { label: "Mono", primary: "terracotta", radius: "sharp", font: "sans", mono: true },
 };
 const MONO_OVERRIDES = {
     "--dt-surface-action": "var(--dt-color-neutral-950)",
@@ -135,7 +135,7 @@ const MONO_OVERRIDES = {
     "--dt-border-selected": "var(--dt-color-neutral-950)",
     "--dt-focus-ring-color": "var(--dt-color-neutral-950)",
 };
-const DEFAULT_CONFIG = { primary: "blue", primaryHex: "#3366cc", radius: "standard", font: "sans", density: false, dark: false, mono: false };
+const DEFAULT_CONFIG = { primary: "terracotta", primaryHex: "#eb6834", radius: "standard", font: "sans", density: false, dark: false, mono: false };
 const STORE_KEY = "dovetail-theme-config";
 function loadSaved() {
     try {

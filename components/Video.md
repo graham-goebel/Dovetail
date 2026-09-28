@@ -92,8 +92,8 @@ export declare function Video(props: VideoProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
-| `--dt-radius-media` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
+| `--dt-radius-media` | semantic | `var(--dt-radius-raw-12)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-size-icon-lg` | semantic | `var(--dt-dim-6)` |
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |

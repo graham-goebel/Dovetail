@@ -59,7 +59,7 @@ export declare function Alert(props: AlertProps): JSX.Element;
 | `--dt-border-success` | semantic | `var(--dt-color-green-200)` |
 | `--dt-border-warning` | semantic | `var(--dt-color-amber-200)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
 | `--dt-size-icon-md` | semantic | `var(--dt-dim-5)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |

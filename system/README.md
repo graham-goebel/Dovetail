@@ -68,7 +68,7 @@ The documented exception: data visualisation reads primitives directly, because 
 
 ## Visual foundations
 
-**Colour.** OKLCH throughout. Lightness is perceptually uniform in OKLCH, so step 600 in the primary ramp carries the same visual weight as step 600 in the red ramp, and a swapped brand hue keeps its contrast behaviour. Eight ramps of eleven steps: neutral, primary, secondary, green, amber, red, cyan, violet. Primary drives actions and links; secondary is a second brand hue for fills and the second chart colour, and ships with the violet values. A brand can publish fewer steps per chromatic ramp, from 4 to 10, and the named steps snap onto the kept ones in the direction that keeps contrast.
+**Colour.** OKLCH throughout. Lightness is perceptually uniform in OKLCH, so step 600 in the primary ramp carries the same visual weight as step 600 in the red ramp, and a swapped brand hue keeps its contrast behaviour. Eight ramps of eleven steps: neutral, primary, secondary, green, amber, red, cyan, violet. The interface is monochrome by default: actions, links, selection and focus are ink, and secondary actions are a soft grey fill. Primary is the brand accent (brand fills, charts, progress, badges) and ships as a warm orange; a theme can also point the controls at it through the `-brand` roles. Secondary is a second brand hue for fills and the second chart colour, and ships with the violet values. A brand can publish fewer steps per chromatic ramp, from 4 to 10, and the named steps snap onto the kept ones in the direction that keeps contrast.
 
 **Surfaces** are a hierarchy, not a pair. `base`, `subtle`, `raised`, `sunken`, `overlay`, `inverse`. Dense product UI needs more than a page colour and a card colour.
 
@@ -76,7 +76,9 @@ The documented exception: data visualisation reads primitives directly, because 
 
 **Space.** One base unit of 4px. Three semantic axes so intent is legible in markup: `inset` for padding, `stack` for vertical gaps, `inline` for horizontal gaps.
 
-**Shape.** Radius is named by what it wraps: `control`, `container`, `overlay`, `media`, `pill`. A square-cornered theme flattens the system in five lines.
+**Shape.** Radius is named by what it wraps: `control`, `container`, `overlay`, `media`, `pill`. The defaults are round: 8px fields, 16px cards and menus, 24px dialogs and sheets, and pill-shaped buttons (`--dt-button-radius` reads `pill`). A square-cornered theme flattens the system in five lines.
+
+**Depth.** Cards are bordered and flat; shadows are soft and wide, with a hairline ring, and kept for what floats: menus, sheets, dialogs, toasts.
 
 **Elevation** is a six-level z-order vocabulary, not a shadow menu. Shadows are two-layer: a tight contact shadow and a soft ambient one. In dark mode, elevation is carried by surface lightness instead, because shadows barely register on near-black.
 

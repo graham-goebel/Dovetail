@@ -59,7 +59,7 @@ export declare function Checkbox(props: CheckboxProps): JSX.Element;
 | `--dt-border-width-strong` | semantic | `var(--dt-dim-hair-2)` |
 | `--dt-motion-micro` | semantic | `var(--dt-duration-100) var(--dt-easing-standard)` |
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |
-| `--dt-surface-action` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |

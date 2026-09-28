@@ -83,15 +83,15 @@ export declare function Image(props: ImageProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-border-brand` | semantic | `var(--dt-color-primary-200)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
-| `--dt-radius-container` | semantic | `var(--dt-radius-raw-8)` |
-| `--dt-radius-media` | semantic | `var(--dt-radius-raw-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
+| `--dt-radius-media` | semantic | `var(--dt-radius-raw-12)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-size-icon-lg` | semantic | `var(--dt-dim-6)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-surface-brand-muted` | semantic | `var(--dt-color-primary-050)` |
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |
-| `--dt-text-link` | semantic | `var(--dt-color-primary-700)` |
+| `--dt-text-link` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
 | `--dt-font-family-mono` | primitive | `"Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace` |
 | `--dt-font-size-xs` | primitive | `12px` |

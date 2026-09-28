@@ -112,8 +112,8 @@ export declare function Card(props: CardProps): JSX.Element;
 | `--dt-card-bg` | component | `var(--dt-surface-raised)` |
 | `--dt-card-border-color` | component | `var(--dt-border-default)` |
 | `--dt-card-border-width` | component | `var(--dt-border-width-default)` |
-| `--dt-card-elevation` | component | `var(--dt-elevation-1)` |
-| `--dt-card-elevation-hover` | component | `var(--dt-elevation-2)` |
+| `--dt-card-elevation` | component | `var(--dt-elevation-0)` |
+| `--dt-card-elevation-hover` | component | `var(--dt-elevation-1)` |
 | `--dt-card-fg` | component | `var(--dt-text-primary)` |
 | `--dt-card-gap` | component | `var(--dt-space-stack-sm)` |
 | `--dt-card-padding` | component | `var(--dt-space-inset-lg)` |
@@ -121,7 +121,7 @@ export declare function Card(props: CardProps): JSX.Element;
 | `--dt-card-selected-bg` | component | `var(--dt-surface-selected)` |
 | `--dt-card-selected-border` | component | `var(--dt-border-selected)` |
 | `--dt-card-transition` | component | `var(--dt-motion-micro)` |
-| `--dt-backdrop-glass` | semantic | `saturate(1.4) blur(var(--dt-blur-glass))` |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
 | `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-border-glass-inverse` | semantic | `color-mix(in oklab, var(--dt-color-neutral-050) 14%, transparent)` |
 | `--dt-space-stack-xs` | semantic | `var(--dt-dim-2)` |
@@ -139,8 +139,8 @@ export declare function Card(props: CardProps): JSX.Element;
 | `--dt-text-heading-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-heading-sm-line` | semantic | `var(--dt-line-height-xl)` |
 | `--dt-text-heading-sm-size` | semantic | `var(--dt-font-size-xl)` |
-| `--dt-text-heading-sm-tracking` | semantic | `var(--dt-tracking-normal)` |
-| `--dt-text-heading-sm-weight` | semantic | `var(--dt-font-weight-semibold)` |
+| `--dt-text-heading-sm-tracking` | semantic | `var(--dt-tracking-snug)` |
+| `--dt-text-heading-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 
 ## Source

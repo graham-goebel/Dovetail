@@ -395,7 +395,7 @@ hr {
   height: var(--dt-size-control-md);
   padding: 0 var(--dt-space-inset-md);
   border: var(--dt-border-width-default) solid var(--dt-border-action-secondary);
-  border-radius: var(--dt-radius-control);
+  border-radius: var(--dt-button-radius, var(--dt-radius-control));
   background: var(--dt-surface-action-secondary);
   color: var(--dt-text-on-action-secondary);
   font-size: var(--dt-font-size-sm);
@@ -1951,7 +1951,7 @@ body.file-viewer-open {
   color: var(--dt-text-on-action);
   background: var(--dt-surface-action);
   border: var(--dt-border-width-default) solid var(--dt-surface-action);
-  border-radius: var(--dt-radius-control);
+  border-radius: var(--dt-button-radius, var(--dt-radius-control));
   cursor: pointer;
   transition: background var(--dt-motion-micro);
 }

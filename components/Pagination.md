@@ -47,17 +47,17 @@ export declare function Pagination(props: PaginationProps): JSX.Element;
 | Token | Tier | Declared as |
 | --- | --- | --- |
 | `--dt-border-default` | semantic | `var(--dt-color-neutral-200)` |
-| `--dt-border-selected` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-border-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-space-inline-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-surface-base` | semantic | `var(--dt-color-white)` |
-| `--dt-surface-selected` | semantic | `var(--dt-color-primary-050)` |
+| `--dt-surface-selected` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-text-disabled` | semantic | `var(--dt-color-neutral-400)` |
 | `--dt-text-label-sm-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-sm-size` | semantic | `var(--dt-font-size-xs)` |
-| `--dt-text-on-selected` | semantic | `var(--dt-color-primary-900)` |
+| `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
 | `--dt-font-weight-medium` | primitive | `500` |

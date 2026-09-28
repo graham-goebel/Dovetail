@@ -148,10 +148,10 @@ window.DovetailConfigure = {
     },
     "standard": {
       "label": "Standard",
-      "control": "var(--dt-radius-raw-6)",
-      "container": "var(--dt-radius-raw-8)",
-      "overlay": "var(--dt-radius-raw-12)",
-      "media": "var(--dt-radius-raw-8)",
+      "control": "var(--dt-radius-raw-8)",
+      "container": "var(--dt-radius-raw-16)",
+      "overlay": "var(--dt-radius-raw-24)",
+      "media": "var(--dt-radius-raw-12)",
       "pill": "var(--dt-radius-raw-full)"
     },
     "soft": {
@@ -529,7 +529,7 @@ window.DovetailConfigure = {
   "presets": {
     "base": {
       "label": "Base",
-      "primary": "blue",
+      "primary": "terracotta",
       "radius": "standard",
       "font": "sans",
       "mono": false
@@ -543,7 +543,7 @@ window.DovetailConfigure = {
     },
     "mono": {
       "label": "Mono",
-      "primary": "blue",
+      "primary": "terracotta",
       "radius": "sharp",
       "font": "sans",
       "mono": true

@@ -48,7 +48,7 @@ export declare function Tooltip(props: TooltipProps): JSX.Element;
 | Token | Tier | Declared as |
 | --- | --- | --- |
 | `--dt-elevation-2` | semantic | `var(--dt-shadow-raw-2)` |
-| `--dt-radius-control` | semantic | `var(--dt-radius-raw-6)` |
+| `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-space-inset-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-surface-inverse` | semantic | `var(--dt-color-neutral-900)` |

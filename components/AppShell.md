@@ -87,7 +87,7 @@ export declare function AppShell(props: AppShellProps): JSX.Element;
 | `--dt-appshell-bar-height` | component | `var(--dt-dim-14)` |
 | `--dt-appshell-bg` | component | `var(--dt-surface-base)` |
 | `--dt-appshell-max-width` | component | `var(--dt-dim-container-sm)` |
-| `--dt-backdrop-glass` | semantic | `saturate(1.4) blur(var(--dt-blur-glass))` |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
 | `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
@@ -98,7 +98,7 @@ export declare function AppShell(props: AppShellProps): JSX.Element;
 | `--dt-text-heading-xs-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-heading-xs-line` | semantic | `var(--dt-line-height-lg)` |
 | `--dt-text-heading-xs-size` | semantic | `var(--dt-font-size-lg)` |
-| `--dt-text-heading-xs-weight` | semantic | `var(--dt-font-weight-semibold)` |
+| `--dt-text-heading-xs-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-headline` | semantic | `var(--dt-text-primary)` |
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-z-sticky` | semantic | `100` |

@@ -7,10 +7,10 @@
 
 :root {
   --dt-radius-none: var(--dt-radius-raw-0);
-  --dt-radius-control: var(--dt-radius-raw-6);   /* buttons, inputs, selects */
-  --dt-radius-container: var(--dt-radius-raw-8); /* cards, panels, alerts */
-  --dt-radius-overlay: var(--dt-radius-raw-12);  /* dialogs, popovers, drawers */
-  --dt-radius-media: var(--dt-radius-raw-8);     /* images, video, avatars-as-squares */
+  --dt-radius-control: var(--dt-radius-raw-8);    /* inputs, selects; buttons use the pill */
+  --dt-radius-container: var(--dt-radius-raw-16); /* cards, panels, alerts, menus */
+  --dt-radius-overlay: var(--dt-radius-raw-24);   /* dialogs, sheets, drawers */
+  --dt-radius-media: var(--dt-radius-raw-12);     /* images, video, avatars-as-squares */
   --dt-radius-pill: var(--dt-radius-raw-full);   /* badges, tags, avatars */
 
   --dt-border-width-none: 0px;

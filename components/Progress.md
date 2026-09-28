@@ -55,7 +55,7 @@ export declare function Progress(props: ProgressProps): JSX.Element;
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
-| `--dt-surface-action` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-surface-danger` | semantic | `var(--dt-color-red-600)` |
 | `--dt-surface-success` | semantic | `var(--dt-color-green-600)` |
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |
