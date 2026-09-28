@@ -7,7 +7,7 @@
 <meta name="description" content="What the system guarantees, and what you owe.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
-<link rel="stylesheet" href="../assets/site.css?v=6363124379">
+<link rel="stylesheet" href="../assets/site.css?v=f2b2784d44">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -31,9 +31,17 @@
   </a>
   <span class="wordmark-note">White-label design system</span>
   <div class="header-controls">
-    <button id="nav-toggle" type="button" class="nav-toggle" aria-expanded="false" aria-controls="sidebar">Menu</button>
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
   </div>
 </header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-eyebrow">Guide</p><p class="h-title" aria-hidden="true">Accessibility</p></div>
+  <div class="head-r">
+    <button type="button" class="icon-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg></button>
+    <button id="nav-toggle" type="button" class="icon-btn nav-toggle" aria-expanded="false" aria-controls="sidebar" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<nav class="subnav" aria-label="In this section"><a class="chip-link" href="../guide/readme.html">README</a><a class="chip-link" href="../guide/tokens.html">Token reference</a><a class="chip-link" href="../guide/theming.html">Theming</a><a class="chip-link" href="../guide/accessibility.html" aria-current="page">Accessibility</a><a class="chip-link" href="../guide/headless-integration.html">Headless integration</a><a class="chip-link" href="../guide/contributing.html">Contributing</a><a class="chip-link" href="../guide/working-together.html">Working together</a><a class="chip-link" href="../guide/changelog.html">Changelog</a><a class="chip-link" href="../guide/changelog-strategy.html">Changelog strategy</a><a class="chip-link" href="../guide/token-pipeline.html">Token pipeline</a><a class="chip-link" href="../guide/authoring-rules.html">Authoring rules</a><a class="chip-link" href="../guide/plan.html">Build plan</a><a class="chip-link" href="../guide/provenance.html">Provenance</a></nav>
 <div class="layout">
 <nav class="sidebar" id="sidebar" aria-label="Documentation">
   <div class="nav-filter">
@@ -111,9 +119,12 @@
 <footer class="site-footer">
   <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
+<nav class="tabbar" id="tabbar" aria-label="Sections"><a href="../index.html"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11.5h13V9"/><path d="M10 20.5v-6h4v6"/></svg><span>Home</span></a><a href="../foundations/index.html"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="m3 16.5 9 4.5 9-4.5"/><path d="m3 12 9 4.5L21 12"/></svg><span>Foundations</span></a><a href="../components/index.html"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>Components</span></a><a href="../showcase/index.html"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7"/><path d="M12 16.5v4"/></svg><span>Showcase</span></a><a href="../guide/index.html" aria-current="page"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/><path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/></svg><span>Guide</span></a></nav>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
-<script src="../assets/theme.js?v=03f3984932" defer></script>
-<script src="../assets/site.js?v=0806a11dc8" defer></script>
+<script src="../assets/search-data.js?v=7356ce33f8" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/theme.js?v=539f11225c" defer></script>
+<script src="../assets/site.js?v=050cb6f43d" defer></script>
 
 </body>
 </html>
