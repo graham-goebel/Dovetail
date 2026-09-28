@@ -50,7 +50,19 @@
   <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
   <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
 </nav>
-<main id="main" class="main">
+<main id="main" class="main has-toc">
+<div class="doc">
+<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="Thinking.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Thinking.md" download="Thinking.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Thinking.md" target="_blank" rel="noopener"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FThinking.md%20(the%20%22Thinking%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="Thinking" data-md="Thinking.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Thinking</li></ol></nav>
 <h1>Thinking</h1>
@@ -77,13 +89,13 @@
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
   <p>What an assistant is doing while you wait: connecting, listening, thinking, searching or speaking. Five states, drawn as a fluid or as a texture of small marks, all read from the system's tokens, that sit inline in a chat or fill the screen for a voice session.</p>
-<h2 id="use-it-when">Use it when</h2>
+<h3 id="use-it-when">Use it when</h3>
 <ul><li>A chat is waiting on a reply. Put it inline where the reply will appear.</li><li>A voice session is live. Use <code>mode=&quot;overlay&quot;</code> and pass the microphone or reply amplitude as <code>level</code>.</li></ul>
-<h2 id="don-t-use-it-when">Don't use it when</h2>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
 <ul><li>The wait has a known length or a known amount of work. Use <code>Progress</code>.</li><li>It is a page or a button loading. Use <code>Spinner</code> or the button's own <code>loading</code>. This component speaks for an assistant, not for the interface.</li></ul>
-<h2 id="states">States</h2>
+<h3 id="states">States</h3>
 <div class="table-wrap"><table><thead><tr><th>state</th><th>motion</th><th>when</th></tr></thead><tbody><tr><td><code>connecting</code></td><td>satellites gather and breathe</td><td>before the session is live</td></tr><tr><td><code>listening</code></td><td>swells and wobbles with <code>level</code></td><td>the person is speaking</td></tr><tr><td><code>thinking</code></td><td>bodies orbit and merge</td><td>the reply is being prepared</td></tr><tr><td><code>searching</code></td><td>a comet orbits the centre</td><td>tools or sources are being consulted</td></tr><tr><td><code>speaking</code></td><td>pulses outward with <code>level</code></td><td>the reply is being spoken or streamed</td></tr></tbody></table></div>
-<h2 id="example">Example</h2>
+<h3 id="example">Example</h3>
 <pre class="code" data-lang="jsx"><code>{/* Chat */}
 &lt;Thinking state=&quot;thinking&quot; /&gt;
 &lt;Thinking state=&quot;thinking&quot; shape=&quot;ascii&quot; label=&quot;Drafting&quot; /&gt;
@@ -94,13 +106,13 @@
   {transcript}
 &lt;/Thinking&gt;
 &lt;Thinking mode=&quot;overlay&quot; screen=&quot;light&quot; state=&quot;speaking&quot; shape=&quot;particles&quot; onDismiss={end} /&gt;</code></pre>
-<h2 id="inputs">Inputs</h2>
+<h3 id="inputs">Inputs</h3>
 <ul><li><strong>shape</strong>: <code>blob</code> is free fluid. <code>orb</code> and <code>tile</code> hold the fluid in a well tinted with <code>--dt-thinking-surface</code>; the tile follows <code>--dt-radius-container</code>, so it changes with the Shape setting. <code>dots</code> and <code>bars</code> are the chat and voice conventions, animated the same five ways.</li><li><strong>Textural shapes</strong> build the figure from many small marks instead of a liquid, and animate the same five states:<ul><li><code>matrix</code>: a dot display. Every cell keeps a faint dot so the grid shows, and the figure swells the dots.</li><li><code>ascii</code>: the same figure as glyphs of rising density, <code> .·:-=+*#%@</code>, set in <code>--dt-font-family-mono</code>, so it changes with the Code font.</li><li><code>particles</code>: a point cloud on a sphere, turning in perspective. Nearer points are larger and take the end colour; searching flattens it into a disc with a bright arc sweeping round.</li><li><code>sequence</code>: a ring of dots lit in order, like a loader on a device panel.</li></ul></li></ul>
 <p>  matrix and ascii share one field per state: a shrinking ring for connecting, a lit sphere that swells with <code>level</code> for listening, a spiral for thinking, a radar sweep for searching and ripples for speaking. The sphere is shaded as if lit from above left, which is what gives the flat marks their depth. These shapes draw on a canvas and read the tone colours back from the page about twice a second, so Configure and dark mode reach them without a re-render.</p>
 <ul><li><strong>tone</strong> or <strong>colors</strong>: the gradient the fluid sweeps. <code>brand</code> reads <code>--dt-thinking-color-start</code> and <code>-end</code>, which point at the primary ramp; <code>duotone</code> sweeps primary into secondary. <code>colors</code> takes any two CSS colours, token references included.</li><li><strong>speed</strong> multiplies the pace set by <code>--dt-thinking-duration</code>; <strong>intensity</strong> sets how far the fluid travels and deforms.</li><li><strong>screen</strong> (overlay only): <code>dark</code> dims the page behind the scrim and sets the label in white. <code>light</code> is a bright frosted screen with dark text, for light products and daytime voice UIs. It stays light on a dark page, because it points the figure's gradient stops and the text roles at light values inside the overlay.</li><li><strong>level</strong> drives listening and speaking from a real signal. Without it they follow a built-in rhythm.</li></ul>
-<h2 id="accessibility">Accessibility</h2>
+<h3 id="accessibility">Accessibility</h3>
 <p>The container is a polite live region, and the label is announced when the state changes, whether or not it is shown. The animation itself is hidden from assistive technology. Under <code>prefers-reduced-motion</code> the figure holds still; it still follows <code>level</code>, because that is information rather than decoration. The overlay closes on Escape when <code>onDismiss</code> is set.</p>
-<h2 id="tokens">Tokens</h2>
+<h3 id="tokens">Tokens</h3>
 <p><code>--dt-thinking-*</code> (Tier 3): the start and end colour of each tone, the brand pair, the well surface, the label colour, the overlay scrim, the light screen and its text and gradient stops (<code>--dt-thinking-screen-light*</code>, <code>--dt-thinking-light-*</code>), the duration, and the inline and overlay sizes. Colour aliases are repeated under <code>.dark</code>, so the fluid keeps its contrast in a dark band and in the overlay.</p>
 </section>
 
@@ -902,6 +914,25 @@ export function Thinking({
   <ul><li><a href="../showcase/detail.html#feedbackdetail">FeedbackDetail</a></li><li><a href="../showcase/detail.html#surfacesdetail">SurfacesDetail</a></li></ul>
 </section>
 
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#states">States</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#inputs">Inputs</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
 </main>
 </div>
 <svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>

@@ -50,7 +50,19 @@
   <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
   <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
 </nav>
-<main id="main" class="main">
+<main id="main" class="main has-toc">
+<div class="doc">
+<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="Section.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Section.md" download="Section.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Section.md" target="_blank" rel="noopener"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FSection.md%20(the%20%22Section%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="Section" data-md="Section.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Section</li></ol></nav>
 <h1>Section</h1>
@@ -77,11 +89,11 @@
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
   <p>A page section: a column bounded by a container width, the section rhythm above and below, and an optional surface. With <code>media</code> it becomes a full-bleed photo band. It is the scaffold both example sites built for themselves before it existed.</p>
-<h2 id="use-it-when">Use it when</h2>
+<h3 id="use-it-when">Use it when</h3>
 <ul><li>Every top-level band of a marketing or editorial page.</li><li>A band should be a fixed brand colour, or a photograph with text over it.</li></ul>
-<h2 id="don-t-use-it-when">Don't use it when</h2>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
 <ul><li>Inside an app shell. Product screens are panels and grids, not stacked bands; use <code>Stack</code> and <code>Grid</code>.</li><li>The image is the content. A photo someone should look at is an <code>Image</code> or a <code>Cover</code>, with alt text.</li></ul>
-<h2 id="example">Example</h2>
+<h3 id="example">Example</h3>
 <pre class="code" data-lang="jsx"><code>&lt;Section tone=&quot;brand-muted&quot; texture&gt;
   &lt;Stack gap=&quot;md&quot;&gt;
     &lt;Text variant=&quot;eyebrow&quot;&gt;Why it holds&lt;/Text&gt;
@@ -93,13 +105,13 @@
   &lt;Heading level={2} size=&quot;display-sm&quot;&gt;Quiet mornings&lt;/Heading&gt;
   &lt;Text variant=&quot;lead&quot;&gt;Somewhere without a signal.&lt;/Text&gt;
 &lt;/Section&gt;</code></pre>
-<h2 id="tones">Tones</h2>
+<h3 id="tones">Tones</h3>
 <p>A tone is a surface and the text roles that go on it. <code>brand</code> and <code>secondary</code> are full fills; the <code>-muted</code> tones are the pale tint of the same hue. The section re-points <code>--dt-text-primary</code>, <code>-secondary</code> and <code>-tertiary</code> on itself, so everything inside that reads the semantic text roles, <code>Stat</code> and <code>Card</code> descriptions included, follows the band. That is also how to build a band that should not follow the page's light or dark mode: its colours come from the brand roles, not the page surface.</p>
 <p>On a <code>brand</code> fill the primary button and the fill are the same colour. Use a secondary or ghost button there, or a <code>-muted</code> tone.</p>
-<h2 id="dark-and-photo-bands">Dark and photo bands</h2>
+<h3 id="dark-and-photo-bands">Dark and photo bands</h3>
 <p><code>dark</code> puts the <code>dark</code> class on the section, so the semantic tier and the component tier both re-resolve as dark inside it while the rest of the page stays light. A <code>media</code> band is scoped dark by default. Its text reads <code>--dt-text-on-scrim</code>, which stays light in both modes, because a scrim over a photograph is dark whatever the page is doing.</p>
 <p>A scrim's alpha does not tell you the contrast over a specific photograph. Check it the way <code>guidelines/accessibility.md</code> describes: hide the text, sample the pixels behind where it sat, and take the worst case.</p>
-<h2 id="tokens">Tokens</h2>
+<h3 id="tokens">Tokens</h3>
 <p><code>--dt-size-container-*</code>, <code>--dt-space-section</code>, <code>--dt-space-section-compact</code>, <code>--dt-space-gutter</code>, <code>--dt-surface-brand*</code>, <code>--dt-text-on-brand*</code>, <code>--dt-surface-scrim</code>, <code>--dt-text-on-scrim*</code>, <code>--dt-surface-texture</code>.</p>
 </section>
 
@@ -264,6 +276,24 @@ export function Section({
   <ul><li><a href="../showcase/detail.html#primitivesdetail">PrimitivesDetail</a></li></ul>
 </section>
 
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#tones">Tones</a></li>
+    <li class="nested"><a href="#dark-and-photo-bands">Dark and photo bands</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
 </main>
 </div>
 <svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>

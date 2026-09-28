@@ -2260,3 +2260,201 @@ body.graph-open .configure-sheet {
     position: static;
   }
 }
+
+/* ------------------------------------------------- on this page, page menu */
+
+/* Pages with three or more sections get a right-hand column listing them. The
+   main column keeps its reading width and the list takes the space beside it,
+   so it only appears where the viewport has that space to give. */
+.main.has-toc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--dt-space-inline-xl);
+}
+
+.doc {
+  min-width: 0;
+}
+
+.page-toc {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .main.has-toc {
+    grid-template-columns: minmax(0, 1fr) var(--dt-dim-56);
+    max-width: calc(1040px + var(--dt-dim-56) + var(--dt-space-inline-xl));
+  }
+
+  .main.wide.has-toc {
+    max-width: calc(1360px + var(--dt-dim-56) + var(--dt-space-inline-xl));
+  }
+
+  .page-toc {
+    display: block;
+    position: sticky;
+    top: calc(var(--site-header) + var(--dt-space-inset-lg));
+    max-height: calc(100vh - var(--site-header) - var(--dt-space-inset-lg) * 2);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: var(--dt-dim-12);
+    /* Room to scroll the last entries clear of the Configure pill, which
+       sits fixed in the same corner. */
+    padding-bottom: var(--dt-dim-20);
+  }
+}
+
+.page-toc-title {
+  margin: 0 0 var(--dt-space-stack-xs);
+  font-family: var(--dt-text-label-sm-family);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-semibold);
+  color: var(--dt-text-primary);
+}
+
+.page-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+.page-toc a {
+  display: block;
+  margin-left: calc(-1 * var(--dt-border-width-default));
+  padding: var(--dt-dim-1) 0 var(--dt-dim-1) var(--dt-space-inset-sm);
+  border-left: var(--dt-border-width-strong) solid transparent;
+  font-size: var(--dt-font-size-xs);
+  line-height: var(--dt-line-height-sm);
+  color: var(--dt-text-tertiary);
+  text-decoration: none;
+  transition: color var(--dt-motion-micro), border-color var(--dt-motion-micro);
+}
+
+.page-toc li.nested a {
+  padding-left: calc(var(--dt-space-inset-sm) + var(--dt-space-inset-sm));
+}
+
+.page-toc a:hover {
+  color: var(--dt-text-primary);
+}
+
+.page-toc a[aria-current="true"] {
+  color: var(--dt-text-primary);
+  border-left-color: var(--dt-border-selected);
+}
+
+/* Anchored headings clear the sticky header when a link jumps to them. */
+.main [id] {
+  scroll-margin-top: calc(var(--site-header) + var(--dt-space-inset-md));
+}
+
+/* The page menu: an ellipsis in the top corner of the content column. */
+.page-actions {
+  position: relative;
+  float: right;
+  z-index: 2;
+  margin: calc(-1 * var(--dt-dim-1)) 0 0 var(--dt-space-inline-sm);
+}
+
+.page-actions-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-sm);
+  height: var(--dt-size-control-sm);
+  padding: 0;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-secondary);
+  cursor: pointer;
+  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
+}
+
+/* The glyphs share the chrome's icon class; here they sit inline and take
+   the button's colour rather than the tile's link colour and spacing. */
+.page-actions-btn svg {
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+  margin: 0;
+  color: inherit;
+  stroke-width: 3;
+}
+
+.page-actions-btn:hover,
+.page-actions-btn[aria-expanded="true"] {
+  background: var(--dt-surface-action-ghost-hover);
+  color: var(--dt-text-primary);
+}
+
+.page-menu {
+  position: absolute;
+  top: calc(100% + var(--dt-dim-1));
+  right: 0;
+  z-index: var(--dt-z-dropdown);
+  min-width: var(--dt-dim-56);
+  margin: 0;
+  padding: var(--dt-space-inset-2xs);
+  list-style: none;
+  background: var(--configure-glass, var(--dt-surface-overlay));
+  -webkit-backdrop-filter: var(--configure-blur);
+  backdrop-filter: var(--configure-blur);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container);
+  box-shadow: var(--dt-elevation-3);
+}
+
+.page-menu[hidden] {
+  display: none;
+}
+
+.page-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+  width: 100%;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-sm);
+  line-height: var(--dt-line-height-sm);
+  color: var(--dt-text-primary);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.page-menu-item svg {
+  flex: none;
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+  margin: 0;
+  color: var(--dt-text-tertiary);
+}
+
+.page-menu-item:hover,
+.page-menu-item:focus-visible {
+  background: var(--dt-surface-action-ghost-hover);
+  outline: none;
+}
+
+.page-actions-status {
+  position: absolute;
+  top: calc(100% + var(--dt-dim-1));
+  right: 0;
+  padding: var(--dt-dim-1) var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-inverse, var(--dt-color-neutral-900));
+  color: var(--dt-text-inverse, var(--dt-color-neutral-050));
+  font-size: var(--dt-font-size-xs);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.page-actions-status:empty {
+  display: none;
+}

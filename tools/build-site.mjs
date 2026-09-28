@@ -29,6 +29,9 @@ const write = (rel, html) => {
   written.push(rel);
 };
 const written = [];
+/* A documentation page: page() needs its own path for the links that leave
+   the site. */
+const writePage = (rel, opts) => write(rel, page({ ...opts, pageUrl: rel }));
 
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -159,6 +162,21 @@ function markdown(src) {
   return out.join("\n");
 }
 
+/* Moves every heading down a level, outside code fences. A component guide's
+   own sections sit under the page's "Guidelines" heading, so its ## becomes
+   an h3 and the outline (and "On this page") nests the way it reads. */
+function shiftHeadings(src, by = 1) {
+  let fenced = false;
+  return src
+    .split("\n")
+    .map((line) => {
+      if (/^```/.test(line)) fenced = !fenced;
+      if (fenced || !/^#{1,5}\s/.test(line)) return line;
+      return "#".repeat(by) + line;
+    })
+    .join("\n");
+}
+
 /* Splits a markdown document into its `## ` sections, so pages can reuse a
    section verbatim instead of paraphrasing it. */
 function sections(src) {
@@ -211,6 +229,11 @@ const ICONS = {
   ],
   layout: ['<rect x="3.5" y="3.5" width="17" height="17" rx="2"/>', '<path d="M3.5 9.5h17"/>', '<path d="M9.5 20.5v-11"/>'],
   file: ['<path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/>', '<path d="M13.5 2.5v6h6"/>'],
+  copy: ['<rect x="8.5" y="8.5" width="12" height="12" rx="2"/>', '<path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/>'],
+  link: ['<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/>', '<path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>'],
+  external: ['<path d="M13.5 3.5h7v7"/>', '<path d="M20.5 3.5 11 13"/>', '<path d="M18.5 14v4.5a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2H10"/>'],
+  sparkle: ['<path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/>', '<path d="M19 17.5v3"/>', '<path d="M17.5 19h3"/>'],
+  more: ['<path d="M5 12h.01"/>', '<path d="M12 12h.01"/>', '<path d="M19 12h.01"/>'],
   wrench: ['<path d="M20.5 4.5 17 8l-1-1 3.5-3.5a5.5 5.5 0 0 0-7 7l-8 8a2 2 0 0 0 2.8 2.8l8-8a5.5 5.5 0 0 0 7-7l-1.8 1.8"/>'],
 };
 
@@ -589,8 +612,80 @@ const ICON = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1d4ed8"/><path d="M9 22 16 9l7 13z" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>`
 )}`;
 
-function page({ title, lede, body, active, root, wide = false, scripts = "", graph = false }) {
+/* The published site, for links that leave it: "Open in Claude" hands Claude
+   an absolute URL to read. The page script swaps in the address the page was
+   actually served from, so a fork or a local server points at itself. */
+const SITE_URL = "https://graham-goebel.github.io/Dovetail/";
+
+/* "On this page": the page's own section headings, in document order. A card
+   block carries its id on the section and a bare heading inside, so it is
+   matched as a unit; every other entry is an h2 or h3 with an id. Headings
+   inside a card's iframe never reach here, because they are not in the page. */
+function tocFrom(body) {
+  const entries = [];
+  const re = /<section class="card-block" id="([^"]+)">\s*<div class="card-head">\s*<h([23])>([\s\S]*?)<\/h\2>|<h([23]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\4>/g;
+  for (const m of body.matchAll(re)) {
+    const [id, level, html] = m[1] ? [m[1], m[2], m[3]] : [m[5], m[4], m[6]];
+    const text = html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    if (id && text) entries.push({ id, level: Number(level), text });
+  }
+  /* An h3 is shown nested under the h2 before it; one with no h2 before it is
+     shown at the top level rather than lost. */
+  let seenH2 = false;
+  return entries.map((e) => {
+    if (e.level === 2) seenH2 = true;
+    return { ...e, nested: e.level === 3 && seenH2 };
+  });
+}
+
+function tocAside(entries) {
+  return `<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    ${entries
+      .map((e) => `<li${e.nested ? ' class="nested"' : ""}><a href="#${attr(e.id)}">${inlineTocText(e.text)}</a></li>`)
+      .join("\n    ")}
+  </ol>
+</aside>`;
+}
+
+/* Heading text arrives escaped already; this only keeps it that way. */
+function inlineTocText(text) {
+  return text.replace(/&(?!(?:amp|lt|gt|quot|#39);)/g, "&amp;");
+}
+
+/* The page menu: copy or take the page as Markdown, where the page has a
+   Markdown version, and hand it to Claude. The menu is plain markup that works
+   as links without script; assets/site.js adds copying and keyboard handling. */
+function pageActions({ title, root, md, mdName, pageUrl }) {
+  const mdUrl = md ? new URL(md, SITE_URL + pageUrl).href : null;
+  const subject = mdUrl || SITE_URL + pageUrl;
+  const prompt = `I'm working with the Dovetail design system. Read ${subject} (the "${title}" docs) and help me use it.`;
+  const claude = `https://claude.ai/new?q=${encodeURIComponent(prompt)}`;
+  const item = (glyph, label, attrs) => `<li role="none"><${attrs.href ? "a" : "button type=\"button\""} role="menuitem" class="page-menu-item" ${Object.entries(attrs)
+    .map(([k, v]) => `${k}="${attr(v)}"`)
+    .join(" ")}>${icon(glyph)}<span>${esc(label)}</span></${attrs.href ? "a" : "button"}></li>`;
+  const items = [
+    md && item("copy", "Copy page as Markdown", { "data-page-action": "copy-md", "data-md": md }),
+    md && item("download", "Download Markdown", { href: md, download: mdName }),
+    md && item("file", "View as Markdown", { href: md, target: "_blank", rel: "noopener" }),
+    item("sparkle", "Open in Claude", { href: claude, target: "_blank", rel: "noopener", "data-page-action": "claude", "data-title": title, ...(md ? { "data-md": md } : {}) }),
+    item("link", "Copy link", { "data-page-action": "copy-link" }),
+  ].filter(Boolean);
+  return `<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions">${icon("more")}</button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    ${items.join("\n    ")}
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>`;
+}
+
+function page({ title, lede, body, active, root, wide = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "" }) {
   const heading = title === "Dovetail" ? "Dovetail" : `${title} · Dovetail`;
+  const toc = tocFrom(body);
+  const hasToc = toc.length >= 3;
+  const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl });
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -629,8 +724,12 @@ function page({ title, lede, body, active, root, wide = false, scripts = "", gra
 </header>
 <div class="layout">
 ${nav(root, active)}
-<main id="main" class="${wide ? "main wide" : "main"}">
+<main id="main" class="${["main", wide ? "wide" : "", hasToc ? "has-toc" : ""].filter(Boolean).join(" ")}">
+<div class="doc">
+${actions}
 ${body}
+</div>
+${hasToc ? tocAside(toc) : ""}
 </main>
 </div>
 ${graph ? GRAPH_SPRITE : ""}
@@ -916,7 +1015,7 @@ ${cardBlock(cards.get("TierContract"), "")}
   <p><a href="guide/readme.html">Read the full README</a> · <a href="guide/authoring-rules.html">Authoring rules</a></p>
 </section>
 `;
-  write("index.html", page({ title: "Dovetail", lede: "A white-label design system: a strict token contract, a 4px grid, and components that never name a colour.", body, active: "home", root: "" }));
+  writePage("index.html", { title: "Dovetail", lede: "A white-label design system: a strict token contract, a 4px grid, and components that never name a colour.", body, active: "home", root: "" });
 }
 
 /* -------------------------------------------------------- foundation pages */
@@ -932,7 +1031,7 @@ ${FOUNDATIONS.map(([group, s, text, glyph]) => {
   return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
 </div>`;
-  write("foundations/index.html", page({ title: "Foundations", lede: "The visual and structural decisions every component inherits.", body: index, active: "foundations", root: "../" }));
+  writePage("foundations/index.html", { title: "Foundations", lede: "The visual and structural decisions every component inherits.", body: index, active: "foundations", root: "../" });
 
   for (const [group, s, text] of FOUNDATIONS) {
     const list = cardsInGroup(group);
@@ -966,11 +1065,35 @@ ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Founda
 <p class="lede">${esc(text)}</p>
 ${cardsHtml}
 `;
-    write(`foundations/${s}.html`, page({ title: group, lede: text, body, active: `foundations:${s}`, root: "../" }));
+    writePage(`foundations/${s}.html`, { title: group, lede: text, body, active: `foundations:${s}`, root: "../" });
   }
 }
 
 /* --------------------------------------------------------- component pages */
+
+/* The component page as one Markdown file, for "Copy page as Markdown",
+   "Download Markdown" and "Open in Claude": the guide, the typed contract,
+   the tokens it reads and the source, in the order the page shows them. It
+   is written from the same sources as the page, so the two cannot drift. */
+function componentMarkdown(c) {
+  /* The guide opens with the summary sentence; print it only when there is no guide. */
+  const out = [`# ${c.name}`, "", ...(c.guide ? [] : [String(c.summary).trim(), ""])];
+  const files = [c.source, c.types, c.guideFile].filter(Boolean).map((f) => `[${path.basename(f)}](${SITE_URL}${f})`);
+  out.push(`Part of the Dovetail design system (${SITE_URL}), in the ${GROUP_LABEL[c.group]} family.${files.length ? " Files: " + files.join(", ") + "." : ""}`, "");
+  out.push(`Live page: ${SITE_URL}components/${c.name}.html`, "");
+  if (c.guide) out.push("## Guidelines", "", shiftHeadings(c.guide.replace(/^#\s+.*\n/, "")).trim(), "");
+  if (c.types) out.push("## Props", "", "```ts", read(path.join(ROOT, c.types)).trimEnd(), "```", "");
+  if (c.source) {
+    const used = tokensUsedBy(c.source);
+    if (used.length) {
+      out.push("## Tokens it reads", "", "| Token | Tier | Declared as |", "| --- | --- | --- |");
+      for (const u of used) out.push(`| \`${u.name}\` | ${u.tier === "undefined" ? "none" : u.tier} | ${u.value ? "`" + u.value.replace(/\|/g, "\\|") + "`" : "not declared"} |`);
+      out.push("");
+    }
+    out.push("## Source", "", "```jsx", read(path.join(ROOT, c.source)).trimEnd(), "```", "");
+  }
+  return out.join("\n");
+}
 
 function buildComponents() {
   const index = `
@@ -1022,21 +1145,18 @@ ${GROUP_ORDER.map((g) => {
     `<script src="../assets/specimens.js" defer></script>\n` +
     `<script src="../assets/file-menu.js" defer></script>\n`;
 
-  write(
-    "components/index.html",
-    page({
-      title: "Components",
-      lede: "Every Dovetail component, with guides, props and live cards.",
-      body: index,
-      active: "components",
-      root: "../",
-      scripts: specimenScripts,
-    })
-  );
+  writePage("components/index.html", {
+    title: "Components",
+    lede: "Every Dovetail component, with guides, props and live cards.",
+    body: index,
+    active: "components",
+    root: "../",
+    scripts: specimenScripts,
+  });
 
   for (const c of components) {
     const detail = (GROUP_DETAIL[c.group] || []).map((id) => cards.get(id)).filter(Boolean);
-    const guideHtml = c.guide ? markdown(c.guide.replace(/^#\s+.*\n/, "")) : "<p class='muted'>No guide file ships for this component.</p>";
+    const guideHtml = c.guide ? markdown(shiftHeadings(c.guide.replace(/^#\s+.*\n/, ""))) : "<p class='muted'>No guide file ships for this component.</p>";
     const body = `
 ${breadcrumb("../", [
   { label: "Dovetail", href: "index.html" },
@@ -1092,7 +1212,8 @@ ${
     : ""
 }
 `;
-    write(`components/${c.name}.html`, page({ title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true }));
+    fs.writeFileSync(path.join(ROOT, "components", `${c.name}.md`), componentMarkdown(c));
+    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md` });
   }
 }
 
@@ -1115,7 +1236,7 @@ ${SHOWCASE.map(([group, s, text, glyph]) => {
   return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
 </div>`;
-  write("showcase/index.html", page({ title: "Showcase", lede: "Reference cards, templates and tools.", body: index, active: "showcase", root: "../" }));
+  writePage("showcase/index.html", { title: "Showcase", lede: "Reference cards, templates and tools.", body: index, active: "showcase", root: "../" });
 
   for (const [group, s, text] of SHOWCASE) {
     const list = cardsInGroup(group);
@@ -1126,7 +1247,7 @@ ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showca
 ${SHOWCASE_NOTE[group] ? `<p class="group-note">${esc(SHOWCASE_NOTE[group])}</p>` : ""}
 ${list.map((c) => cardBlock(c, "../")).join("\n")}
 `;
-    write(`showcase/${s}.html`, page({ title: group, lede: text, body, active: `showcase:${s}`, root: "../", wide: true }));
+    writePage(`showcase/${s}.html`, { title: group, lede: text, body, active: `showcase:${s}`, root: "../", wide: true });
   }
 }
 
@@ -1140,7 +1261,7 @@ ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Guide"
 <div class="tiles">
 ${GUIDE_PAGES.map(([s, label, , text]) => `<a class="tile" href="${s}.html">${icon("book")}<h2>${esc(label)}</h2><p>${esc(text)}</p></a>`).join("\n")}
 </div>`;
-  write("guide/index.html", page({ title: "Guide", lede: "Theming, accessibility, contribution and the token pipeline.", body: index, active: "guide", root: "../" }));
+  writePage("guide/index.html", { title: "Guide", lede: "Theming, accessibility, contribution and the token pipeline.", body: index, active: "guide", root: "../" });
 
   for (const [s, label, file, text] of GUIDE_PAGES) {
     const src = read(path.join(ROOT, file));
@@ -1163,7 +1284,7 @@ ${html}
 </article>
 <p class="muted">Source: <a href="../${file}">${esc(file)}</a></p>
 `;
-    write(`guide/${s}.html`, page({ title: label, lede: text, body, active: `guide:${s}`, root: "../" }));
+    writePage(`guide/${s}.html`, { title: label, lede: text, body, active: `guide:${s}`, root: "../", md: `../${file}`, mdName: `${s}.md` });
   }
 }
 
@@ -1383,7 +1504,7 @@ ${families
     .join("\n")}
 </section>
 `;
-  write("tokens.html", page({ title: "Tokens", lede: "Every token in the system, with its value in each theme.", body, active: "tokens", root: "", wide: true, graph: true }));
+  writePage("tokens.html", { title: "Tokens", lede: "Every token in the system, with its value in each theme.", body, active: "tokens", root: "", wide: true, graph: true });
 }
 
 /* ----------------------------------------------------------- download page */
@@ -1464,7 +1585,7 @@ ${groups
   <p>Component sources, typed contracts, per-component guides, the foundation spec cards and the templates all sit under <code>system/</code> in the repository, unchanged from how they were authored. The preview documents in <code>previews/</code> are the same cards with three script tags added so each one runs on its own.</p>
 </section>
 `;
-  write("downloads.html", page({ title: "Download", lede: "Take the stylesheets, tokens and components into your project.", body, active: "downloads", root: "" }));
+  writePage("downloads.html", { title: "Download", lede: "Take the stylesheets, tokens and components into your project.", body, active: "downloads", root: "" });
 }
 
 /* -------------------------------------------------------------------- run */

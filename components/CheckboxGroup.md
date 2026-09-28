@@ -1,0 +1,107 @@
+# CheckboxGroup
+
+Part of the Dovetail design system (https://graham-goebel.github.io/Dovetail/), in the Forms family. Files: [CheckboxGroup.jsx](https://graham-goebel.github.io/Dovetail/system/components/forms/CheckboxGroup.jsx), [CheckboxGroup.d.ts](https://graham-goebel.github.io/Dovetail/system/components/forms/CheckboxGroup.d.ts), [CheckboxGroup.md](https://graham-goebel.github.io/Dovetail/system/components/forms/CheckboxGroup.md).
+
+Live page: https://graham-goebel.github.io/Dovetail/components/CheckboxGroup.html
+
+## Guidelines
+
+A labelled set of checkboxes answering one question. Use it whenever two or more checkboxes belong together, because a loose column of \`Checkbox\` has no accessible name, so a screen reader reads the options without ever saying what they are for.
+
+### Checkbox or radio
+
+Checkboxes mean any number, including none. Radios mean exactly one. If the answer is genuinely binary and independent, use a single \`Switch\` instead; it commits immediately, which is the right feel for a setting.
+
+### Orientation
+
+Vertical by default, because a column is faster to scan and leaves room for hints. Use \`orientation="horizontal"\` only for three or fewer short options with no hint text.
+
+\`\`\`jsx
+<CheckboxGroup
+  label="Notify me about"
+  hint="You can change this at any time."
+  options={[
+    { value: "deploys", label: "Deploys" },
+    { value: "incidents", label: "Incidents", hint: "Paged immediately" },
+    { value: "digest", label: "Weekly digest" },
+  ]}
+  defaultValue={["incidents"]}
+/>
+\`\`\`
+
+## Props
+
+```ts
+import * as React from "react";
+
+export interface CheckboxOption {
+  value: string;
+  label: React.ReactNode;
+  hint?: React.ReactNode;
+  disabled?: boolean;
+}
+
+/** A labelled set of checkboxes sharing one question. Returns an array of selected values. */
+export interface CheckboxGroupProps extends Omit<React.HTMLAttributes<HTMLElement>, "onChange" | "defaultValue"> {
+  /** The question the set answers. Required — a bare column of checkboxes has no accessible name. */
+  label: React.ReactNode;
+  hint?: React.ReactNode;
+  error?: React.ReactNode;
+  required?: boolean;
+  options: CheckboxOption[];
+  /** Controlled selection. */
+  value?: string[];
+  defaultValue?: string[];
+  onChange?: (value: string[]) => void;
+  disabled?: boolean;
+  /** @default "vertical" */
+  orientation?: "vertical" | "horizontal";
+  name?: string;
+}
+
+export declare function CheckboxGroup(props: CheckboxGroupProps): JSX.Element;
+```
+
+## Tokens it reads
+
+| Token | Tier | Declared as |
+| --- | --- | --- |
+| `--dt-space-inline-lg` | semantic | `var(--dt-dim-6)` |
+| `--dt-space-stack-sm` | semantic | `var(--dt-dim-3)` |
+
+## Source
+
+```jsx
+import React from "react";
+import { Field } from "./Field.jsx";
+import { Checkbox } from "./Checkbox.jsx";
+
+export function CheckboxGroup({ label, hint, error, required = false, options = [], value, defaultValue = [], onChange, disabled = false, orientation = "vertical", name, style, ...rest }) {
+  const [internal, setInternal] = React.useState(defaultValue);
+  const selected = value !== undefined ? value : internal;
+
+  const toggle = (optValue) => {
+    const next = selected.includes(optValue) ? selected.filter(v => v !== optValue) : [...selected, optValue];
+    if (value === undefined) setInternal(next);
+    onChange && onChange(next);
+  };
+
+  return (
+    <Field label={label} hint={hint} error={error} required={required} style={style} {...rest}>
+      <div role="group" style={{ display: "flex", flexDirection: orientation === "horizontal" ? "row" : "column", flexWrap: "wrap", gap: orientation === "horizontal" ? "var(--dt-space-inline-lg)" : "var(--dt-space-stack-sm)" }}>
+        {options.map(opt => (
+          <Checkbox
+            key={opt.value}
+            name={name}
+            label={opt.label}
+            hint={opt.hint}
+            checked={selected.includes(opt.value)}
+            disabled={disabled || opt.disabled}
+            onChange={() => toggle(opt.value)}
+          />
+        ))}
+      </div>
+    </Field>
+  );
+}
+```

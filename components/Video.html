@@ -50,7 +50,19 @@
   <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
   <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
 </nav>
-<main id="main" class="main">
+<main id="main" class="main has-toc">
+<div class="doc">
+<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="Video.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Video.md" download="Video.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Video.md" target="_blank" rel="noopener"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FVideo.md%20(the%20%22Video%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="Video" data-md="Video.md"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Video</li></ol></nav>
 <h1>Video</h1>
@@ -77,9 +89,9 @@
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
   <p>A ratio-locked video, built the same way as Image and sharing its placeholder: reserve the space, degrade to a labelled drop target when there is nothing to show yet, upgrade to the real thing the moment there is.</p>
-<h2 id="rules">Rules</h2>
+<h3 id="rules">Rules</h3>
 <ul><li>Give it a <code>label</code>. It becomes <code>aria-label</code> on the video and the placeholder's text, the same job <code>alt</code> does on Image, and there is no other way to name a video for someone who cannot see it.</li><li><code>controls</code> defaults to true. Turn it off only for a background loop the page is driving on its own, and pair that with <code>autoPlay</code> and <code>loop</code>.</li><li><code>autoPlay</code> mutes itself unless you set <code>muted</code> explicitly. No browser plays audible video without a person starting it, so an autoplay prop with sound is not a stricter choice, it is a broken one.</li></ul>
-<h2 id="letting-someone-upload-one">Letting someone upload one</h2>
+<h3 id="letting-someone-upload-one">Letting someone upload one</h3>
 <p>Pass <code>onFile</code> and the placeholder becomes a drop target, identical to Image's: a drag or a picker hands you the browser's own <code>File</code>, and Video does nothing else with it.</p>
 <pre class="code" data-lang="jsx"><code>function Clip() {
   const [file, setFile] = React.useState(null);
@@ -87,7 +99,7 @@
   return &lt;Video src={src} label=&quot;Product walkthrough&quot; placeholder=&quot;Walkthrough clip&quot; onFile={setFile} /&gt;;
 }</code></pre>
 <p>Revoke the object URL when it is no longer needed. Storing, transcoding or streaming the file is a template's own concern; Video only gets you to a File.</p>
-<h2 id="tradeoffs">Tradeoffs</h2>
+<h3 id="tradeoffs">Tradeoffs</h3>
 <p>A poster image is worth setting whenever the video is not autoplaying: without one, the frame is the flat placeholder colour until playback starts, which reads as broken sooner than it reads as loading.</p>
 </section>
 
@@ -198,6 +210,21 @@ export function Video({ src, poster, label, ratio = &quot;16:9&quot;, fit = &quo
   <ul><li><a href="../showcase/detail.html#contentdetail">ContentDetail</a></li></ul>
 </section>
 
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#rules">Rules</a></li>
+    <li class="nested"><a href="#letting-someone-upload-one">Letting someone upload one</a></li>
+    <li class="nested"><a href="#tradeoffs">Tradeoffs</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
 </main>
 </div>
 <svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
