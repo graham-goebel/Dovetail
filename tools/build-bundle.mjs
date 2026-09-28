@@ -11,6 +11,9 @@
      system/components/bundle.js   every component, as one classic script
      system/_ds_bundle.js          the same file, for cards that load it by that name
      system/templates/_support/card-kit.js   compiled from card-kit.jsx
+     previews/MarketingKit.html, previews/DashboardKit.html
+                                   the page styles and app script only, compiled
+                                   from the templates in system/kits/
 
    The bundle keeps the shape the site and the cards already rely on: a header
    comment carrying a JSON manifest, a preamble that sets up the namespace, one
@@ -35,6 +38,16 @@ const LEGACY = path.join(SYS, "_ds_bundle.js");
 const KIT_SRC = path.join(SYS, "templates", "_support", "card-kit.jsx");
 const KIT_OUT = path.join(SYS, "templates", "_support", "card-kit.js");
 const CHECK = process.argv.includes("--check");
+
+/* The templates are authored as JSX in system/kits/ (Babel in the browser, for
+   hacking on one page) and shown on the site by a compiled preview card. The
+   build carries the source's <style> block and its app script into the card,
+   so the two can't drift. The rest of the card (its head, which the site build
+   patches) stays as it is. */
+const KITS = [
+  ["system/kits/marketing-kit.card.html", "previews/MarketingKit.html"],
+  ["system/kits/dashboard-kit.card.html", "previews/DashboardKit.html"],
+];
 
 const REACT = [["@babel/preset-react", { runtime: "classic" }]];
 
@@ -137,11 +150,36 @@ function buildKit() {
   return header + compile(fs.readFileSync(KIT_SRC, "utf8")) + "\n";
 }
 
+function between(text, open, close, from = 0) {
+  const a = text.indexOf(open, from);
+  const b = a < 0 ? -1 : text.indexOf(close, a + open.length);
+  if (a < 0 || b < 0) return null;
+  return { start: a + open.length, end: b };
+}
+
+function buildTemplate(srcRel, outRel) {
+  const src = fs.readFileSync(path.join(ROOT, srcRel), "utf8");
+  const out = fs.readFileSync(path.join(ROOT, outRel), "utf8");
+  const style = between(src, "<style>", "</style>");
+  const app = between(src, '<script type="text/babel">', "</script>");
+  const cardStyle = between(out, "<style>", "</style>");
+  const root = out.indexOf('<div id="root"></div>');
+  const cardApp = root < 0 ? null : between(out, "<script>", "</script>", root);
+  if (!style || !app || !cardStyle || !cardApp) throw new Error(`${srcRel} or ${outRel} is missing its <style> block or app script`);
+  const note = `/* GENERATED from ${srcRel} by tools/build-bundle.mjs. Edit that file and rebuild. */\n`;
+  const script = note + compile(src.slice(app.start, app.end).trim()) + "\n";
+  return (
+    out.slice(0, cardStyle.start) + src.slice(style.start, style.end) +
+    out.slice(cardStyle.end, cardApp.start) + script + out.slice(cardApp.end)
+  );
+}
+
 const bundle = buildBundle();
 const outputs = [
   [BUNDLE, bundle.text],
   [LEGACY, bundle.text],
   [KIT_OUT, buildKit()],
+  ...KITS.map(([src, out]) => [path.join(ROOT, out), buildTemplate(src, out)]),
 ];
 
 const stale = outputs.filter(([file, text]) => !fs.existsSync(file) || fs.readFileSync(file, "utf8") !== text);
@@ -151,7 +189,7 @@ if (CHECK) {
     console.error("Run `npm run build` and commit the result.");
     process.exit(1);
   }
-  console.log("bundle and card kit are current");
+  console.log("bundle, card kit and template previews are current");
 } else {
   for (const [file, text] of stale) fs.writeFileSync(file, text);
   console.log(

@@ -123,6 +123,7 @@ const INLINED = [
   [/<style[^>]*>\/\* TIER 1 — PRIMITIVE COLOR/, "an inlined copy of the tokens; link ../system/styles.css"],
   [/<script>\s*\/\* Card kit — shared chrome/, "an inlined card kit; load ../system/templates/_support/card-kit.js"],
   [/<script>\s*\/\* Theme runtime — applies a saved configurator theme/, "an inlined theme runtime; load ../system/templates/_support/theme-runtime.js"],
+  [/<script>\s*\/\* Theme switcher — floating toolbar/, "an inlined theme switcher; load ../system/templates/_support/theme-switcher.js"],
   [/<script>\s*\/\* (The Design System page|The card)'s theme picker sets data-theme/, "an inlined theme sync; load ../system/templates/_support/card-theme-sync.js"],
 ];
 

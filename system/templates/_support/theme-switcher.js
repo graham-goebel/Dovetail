@@ -13,23 +13,24 @@
   var KEY = "dovetail-demo-theme";
   var STEPS = ["050","100","200","300","400","500","600","700","800","900","950"];
 
+  /* Base is the system as shipped: it sets nothing, so the page shows the
+     defaults in styles.css plus whatever Configure or theme-runtime.js applied.
+     The other themes override the primary ramp, radii and type on top. */
   var RAMPS = {
-    primary: null,
     terracotta: ["oklch(0.971 0.016 45)","oklch(0.939 0.038 45)","oklch(0.892 0.070 45)","oklch(0.820 0.112 45)","oklch(0.735 0.148 45)","oklch(0.660 0.166 45)","oklch(0.585 0.162 45)","oklch(0.505 0.140 45)","oklch(0.430 0.117 45)","oklch(0.372 0.097 45)","oklch(0.262 0.070 45)"],
-    blue: ["oklch(0.970 0.014 259)","oklch(0.936 0.032 259)","oklch(0.885 0.059 259)","oklch(0.809 0.096 259)","oklch(0.714 0.143 259)","oklch(0.623 0.188 259)","oklch(0.546 0.215 259)","oklch(0.476 0.196 259)","oklch(0.404 0.162 259)","oklch(0.344 0.128 259)","oklch(0.256 0.093 259)"],
-    neutral: ["oklch(0.985 0.001 264)","oklch(0.967 0.002 264)","oklch(0.925 0.003 264)","oklch(0.869 0.005 264)","oklch(0.708 0.007 264)","oklch(0.556 0.008 264)","oklch(0.440 0.008 264)","oklch(0.360 0.008 264)","oklch(0.273 0.007 264)","oklch(0.205 0.006 264)","oklch(0.145 0.005 264)"]
+    neutral: ["oklch(0.985 0 0)","oklch(0.967 0 0)","oklch(0.922 0 0)","oklch(0.870 0 0)","oklch(0.708 0 0)","oklch(0.556 0 0)","oklch(0.439 0 0)","oklch(0.371 0 0)","oklch(0.269 0 0)","oklch(0.205 0 0)","oklch(0.145 0 0)"]
   };
 
+  var RADIUS_KEYS = ["control", "container", "overlay", "media", "pill"];
   var RADIUS = {
-    sharp:    { control: "0", container: "0", overlay: "0", media: "0", pill: "0" },
-    standard: { control: "6px", container: "8px", overlay: "12px", media: "8px", pill: "9999px" },
-    soft:     { control: "9999px", container: "16px", overlay: "24px", media: "12px", pill: "9999px" }
+    sharp: { control: "0", container: "0", overlay: "0", media: "0", pill: "0" },
+    soft:  { control: "9999px", container: "24px", overlay: "32px", media: "16px", pill: "9999px" }
   };
 
   var THEMES = {
-    base:      { label: "Base",      ramp: "blue",       radius: "standard", font: null },
-    editorial: { label: "Editorial", ramp: "terracotta", radius: "soft",     font: '"Newsreader", Georgia, serif', google: "Newsreader:opsz,wght@6..72,400..700" },
-    mono:      { label: "Mono",      ramp: "neutral",    radius: "sharp",    font: '"Geist Mono", ui-monospace, monospace' }
+    base:      { label: "Base",      ramp: null,         radius: null,    font: null },
+    editorial: { label: "Editorial", ramp: "terracotta", radius: "soft",  font: '"Newsreader", Georgia, serif', google: "Newsreader:opsz,wght@6..72,400..700" },
+    mono:      { label: "Mono",      ramp: "neutral",    radius: "sharp", font: '"Geist Mono", ui-monospace, monospace' }
   };
 
   var state = load();
@@ -48,18 +49,44 @@
 
   var fontLink = null;
 
+  /* Every property the switcher writes remembers the inline value it replaced,
+     so choosing Base puts back exactly what was there: a Configure theme on the
+     site, or nothing at all. */
+  var replaced = {};
+
+  function set(name, value) {
+    var root = document.documentElement;
+    if (!Object.prototype.hasOwnProperty.call(replaced, name)) replaced[name] = root.style.getPropertyValue(name);
+    root.style.setProperty(name, value);
+  }
+
+  function restore(name) {
+    if (!Object.prototype.hasOwnProperty.call(replaced, name)) return;
+    var root = document.documentElement;
+    if (replaced[name]) root.style.setProperty(name, replaced[name]);
+    else root.style.removeProperty(name);
+    delete replaced[name];
+  }
+
   function apply() {
     var t = THEMES[state.theme];
     var root = document.documentElement;
-    var ramp = RAMPS[t.ramp];
+    var ramp = t.ramp ? RAMPS[t.ramp] : null;
+    var radius = t.radius ? RADIUS[t.radius] : null;
+    var i;
 
-    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-primary-" + STEPS[i], ramp[i]);
+    for (i = 0; i < STEPS.length; i++) {
+      if (ramp) set("--dt-color-primary-" + STEPS[i], ramp[i]);
+      else restore("--dt-color-primary-" + STEPS[i]);
+    }
 
-    var r = RADIUS[t.radius];
-    for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) root.style.setProperty("--dt-radius-" + k, r[k]);
+    for (i = 0; i < RADIUS_KEYS.length; i++) {
+      if (radius) set("--dt-radius-" + RADIUS_KEYS[i], radius[RADIUS_KEYS[i]]);
+      else restore("--dt-radius-" + RADIUS_KEYS[i]);
+    }
 
-    if (t.font) root.style.setProperty("--dt-font-family-sans", t.font);
-    else root.style.removeProperty("--dt-font-family-sans");
+    if (t.font) set("--dt-font-family-sans", t.font);
+    else restore("--dt-font-family-sans");
 
     if (t.google) {
       if (!fontLink) {

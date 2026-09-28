@@ -20,7 +20,8 @@ npm run check          # must pass before you push
   - the site pages: `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html`;
   - `system/components/bundle.js` and `system/_ds_bundle.js`;
   - `system/templates/_support/card-kit.js`;
-  - `assets/configure-data.js` and `assets/graph-data.js`.
+  - `assets/configure-data.js` and `assets/graph-data.js`;
+  - the style block and app script of `previews/MarketingKit.html` and `previews/DashboardKit.html`. Edit `system/kits/` instead.
 - For a merge conflict in a generated file, take either side, run `npm run build` and commit.
 - Commit sources and rebuilt output together.
 - Browser checks need Chromium. If Playwright's download isn't available, set `CHROMIUM_PATH` to an installed binary.

@@ -1,4 +1,4 @@
-<!-- @dsCard group="UI kits" height=2957 width=1280 subtitle="Marketing kit — A landing page from the same components — the marketing context retunes scale, not identity" page -->
+<!-- @dsCard group="UI kits" height=3577 width=1280 subtitle="Marketing kit — A landing page from the same components — the marketing context retunes scale, not identity" page -->
 <!DOCTYPE html>
 <html><head>
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
@@ -19,172 +19,24 @@ main{display:flex;flex-direction:column}
 .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;align-items:center}
 .panel{background:var(--dt-surface-raised);border:var(--dt-border-width-default) solid var(--dt-border-subtle);border-radius:var(--dt-radius-container);padding:24px}
 .eyebrow{font-family:var(--dt-font-family-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dt-text-tertiary)}
-h1.hero-h{margin:0;font-size:var(--dt-text-display-sm-size);line-height:var(--dt-text-display-sm-line);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-text-display-sm-tracking);text-wrap:balance}
-h2.sec-h{margin:0;font-size:var(--dt-text-heading-lg-size);line-height:var(--dt-text-heading-lg-line);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-text-heading-lg-tracking);text-wrap:balance}
+h1.hero-h{margin:0;color:var(--dt-text-headline, var(--dt-text-primary));font-size:var(--dt-text-display-sm-size);line-height:var(--dt-text-display-sm-line);font-weight:var(--dt-text-display-sm-weight);letter-spacing:var(--dt-text-display-sm-tracking);text-wrap:balance}
+h2.sec-h{margin:0;color:var(--dt-text-headline, var(--dt-text-primary));font-size:var(--dt-text-heading-lg-size);line-height:var(--dt-text-heading-lg-line);font-weight:var(--dt-text-heading-lg-weight);letter-spacing:var(--dt-text-heading-lg-tracking);text-wrap:balance}
 p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-body-lg-line);color:var(--dt-text-secondary);max-width:56ch;text-wrap:pretty}
-@media (max-width:900px){.sec{padding:48px 20px;gap:24px}.hero{grid-template-columns:1fr;gap:28px}.three{grid-template-columns:1fr}.two{grid-template-columns:1fr;gap:24px}}
+.mark{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--dt-radius-control);background:var(--dt-surface-action);color:var(--dt-text-on-action)}
+.icon-tile{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--dt-radius-control);background:var(--dt-surface-brand-muted);color:var(--dt-text-on-brand-muted);align-self:flex-start}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;color:var(--dt-text-primary);font-size:var(--dt-text-body-md-size)}
+.checks li{display:flex;align-items:center;gap:10px}
+.checks svg{color:var(--dt-text-brand)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.cta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:48px;align-items:center}
+.cta-illustration{display:block;width:100%;height:auto;max-height:320px;object-fit:contain}
+@media (max-width:900px){.sec{padding:48px 20px;gap:24px}.hero{grid-template-columns:1fr;gap:28px}.three{grid-template-columns:1fr}.two{grid-template-columns:1fr;gap:24px}.cta{grid-template-columns:1fr;gap:28px}.cta-art{max-width:280px}}
+@media (max-width:560px){.stats{grid-template-columns:1fr;gap:20px}}
 </style>
 <link rel="stylesheet" href="../system/styles.css">
 <script src="../system/templates/_support/theme-runtime.js"></script>
-<script>/* Theme switcher — floating toolbar for demo and kit pages.
-
-   Lets a viewer render the page under any shipped theme without leaving it. It writes the
-   same token overrides the configurator writes, and fires the same "dovetail:theme-change"
-   event, so a page that also loads theme-runtime.js stays in sync.
-
-   Demo chrome, not a component. Load it after styles.css:
-     <script src="../templates/_support/theme-switcher.js"><\/script>
-
-   It lives under templates/ because the design-system compiler sweeps every .js in the
-   project into _ds_bundle.js, and templates/ is the one tree it skips. */
-(function () {
-  var KEY = "dovetail-demo-theme";
-  var STEPS = ["050","100","200","300","400","500","600","700","800","900","950"];
-
-  var RAMPS = {
-    accent: null,
-    terracotta: ["oklch(0.971 0.016 45)","oklch(0.939 0.038 45)","oklch(0.892 0.070 45)","oklch(0.820 0.112 45)","oklch(0.735 0.148 45)","oklch(0.660 0.166 45)","oklch(0.585 0.162 45)","oklch(0.505 0.140 45)","oklch(0.430 0.117 45)","oklch(0.372 0.097 45)","oklch(0.262 0.070 45)"],
-    blue: ["oklch(0.970 0.014 259)","oklch(0.936 0.032 259)","oklch(0.885 0.059 259)","oklch(0.809 0.096 259)","oklch(0.714 0.143 259)","oklch(0.623 0.188 259)","oklch(0.546 0.215 259)","oklch(0.476 0.196 259)","oklch(0.404 0.162 259)","oklch(0.344 0.128 259)","oklch(0.256 0.093 259)"],
-    neutral: ["oklch(0.985 0.001 264)","oklch(0.967 0.002 264)","oklch(0.925 0.003 264)","oklch(0.869 0.005 264)","oklch(0.708 0.007 264)","oklch(0.556 0.008 264)","oklch(0.440 0.008 264)","oklch(0.360 0.008 264)","oklch(0.273 0.007 264)","oklch(0.205 0.006 264)","oklch(0.145 0.005 264)"]
-  };
-
-  var RADIUS = {
-    sharp:    { control: "0", container: "0", overlay: "0", media: "0", pill: "0" },
-    standard: { control: "6px", container: "8px", overlay: "12px", media: "8px", pill: "9999px" },
-    soft:     { control: "9999px", container: "16px", overlay: "24px", media: "12px", pill: "9999px" }
-  };
-
-  var THEMES = {
-    base:      { label: "Base",      ramp: "blue",       radius: "standard", font: null },
-    editorial: { label: "Editorial", ramp: "terracotta", radius: "soft",     font: '"Newsreader", Georgia, serif', google: "Newsreader:opsz,wght@6..72,400..700" },
-    mono:      { label: "Mono",      ramp: "neutral",    radius: "sharp",    font: '"Geist Mono", ui-monospace, monospace' }
-  };
-
-  var state = load();
-
-  function load() {
-    try {
-      var raw = JSON.parse(localStorage.getItem(KEY) || "null");
-      if (raw && THEMES[raw.theme]) return { theme: raw.theme, dark: !!raw.dark };
-    } catch (e) {}
-    return { theme: "base", dark: false };
-  }
-
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-  }
-
-  var fontLink = null;
-
-  function apply() {
-    var t = THEMES[state.theme];
-    var root = document.documentElement;
-    var ramp = RAMPS[t.ramp];
-
-    for (var i = 0; i < STEPS.length; i++) root.style.setProperty("--dt-color-primary-" + STEPS[i], ramp[i]);
-
-    var r = RADIUS[t.radius];
-    for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) root.style.setProperty("--dt-radius-" + k, r[k]);
-
-    if (t.font) root.style.setProperty("--dt-font-family-sans", t.font);
-    else root.style.removeProperty("--dt-font-family-sans");
-
-    if (t.google) {
-      if (!fontLink) {
-        fontLink = document.createElement("link");
-        fontLink.rel = "stylesheet";
-        document.head.appendChild(fontLink);
-      }
-      var href = "https://fonts.googleapis.com/css2?family=" + t.google + "&display=swap";
-      if (fontLink.href !== href) fontLink.href = href;
-    }
-
-    root.classList.toggle("dark", state.dark);
-    save();
-    window.dispatchEvent(new Event("dovetail:theme-change"));
-    paint();
-  }
-
-  var bar, themeBtns = {}, modeBtn;
-
-  function paint() {
-    for (var id in themeBtns) {
-      if (Object.prototype.hasOwnProperty.call(themeBtns, id)) {
-        themeBtns[id].setAttribute("aria-pressed", String(id === state.theme));
-        style(themeBtns[id], id === state.theme);
-      }
-    }
-    if (modeBtn) {
-      modeBtn.textContent = state.dark ? "Dark" : "Light";
-      modeBtn.setAttribute("aria-pressed", String(state.dark));
-      style(modeBtn, state.dark);
-    }
-  }
-
-  function style(el, on) {
-    el.style.background = on ? "var(--dt-surface-action)" : "transparent";
-    el.style.color = on ? "var(--dt-text-on-action)" : "var(--dt-text-secondary)";
-  }
-
-  function build() {
-    bar = document.createElement("div");
-    bar.setAttribute("role", "group");
-    bar.setAttribute("aria-label", "Preview theme");
-    bar.style.cssText = [
-      "position:fixed", "bottom:20px", "left:50%", "transform:translateX(-50%)",
-      "z-index:200", "display:flex", "align-items:center", "gap:4px",
-      "padding:5px", "border-radius:var(--dt-radius-pill)",
-      "background:var(--dt-surface-raised)",
-      "border:var(--dt-border-width-default) solid var(--dt-border-subtle)",
-      "box-shadow:var(--dt-elevation-3)",
-      "font-family:var(--dt-text-label-sm-family)",
-      "max-width:calc(100vw - 32px)", "overflow-x:auto"
-    ].join(";");
-
-    var lbl = document.createElement("span");
-    lbl.textContent = "Theme";
-    lbl.style.cssText = "padding:0 8px 0 10px;font-family:var(--dt-font-family-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--dt-text-tertiary);white-space:nowrap";
-    bar.appendChild(lbl);
-
-    Object.keys(THEMES).forEach(function (id) {
-      var b = chip(THEMES[id].label);
-      b.onclick = function () { state.theme = id; apply(); };
-      themeBtns[id] = b;
-      bar.appendChild(b);
-    });
-
-    var sep = document.createElement("span");
-    sep.style.cssText = "width:var(--dt-border-width-default);align-self:stretch;margin:2px 4px;background:var(--dt-border-subtle)";
-    bar.appendChild(sep);
-
-    modeBtn = chip("Light");
-    modeBtn.onclick = function () { state.dark = !state.dark; apply(); };
-    bar.appendChild(modeBtn);
-
-    document.body.appendChild(bar);
-  }
-
-  function chip(text) {
-    var b = document.createElement("button");
-    b.type = "button";
-    b.textContent = text;
-    b.setAttribute("aria-pressed", "false");
-    b.style.cssText = [
-      "appearance:none", "border:none", "cursor:pointer", "white-space:nowrap",
-      "padding:6px 13px", "border-radius:var(--dt-radius-pill)",
-      "font-family:inherit", "font-size:var(--dt-text-label-sm-size)",
-      "font-weight:var(--dt-font-weight-medium)",
-      "transition:background var(--dt-motion-duration-fast) var(--dt-motion-easing-standard)"
-    ].join(";");
-    return b;
-  }
-
-  function init() { build(); apply(); }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
-})();
-</script>
+<script src="../system/templates/_support/theme-switcher.js"></script>
+<script src="../system/templates/_support/template-icons.js"></script>
 <script>(function () {
   var failures = [];
   window.DT_ASSET_FAILURES = failures;
@@ -196,113 +48,427 @@ p.lead{margin:0;font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-
 <link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
 </head><body class="dt-context-marketing"><div id="root"></div>
 
-<script>let Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, AspectRatio, Avatar, Stat, Inline, Stack, Divider;
+<script>/* GENERATED from system/kits/marketing-kit.card.html by tools/build-bundle.mjs. Edit that file and rebuild. */
+let Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, Cover, Image, Video, Avatar, Stat, Inline, Stack, Divider;
+const Icon = props => window.DovetailTemplateIcons.Icon(props);
+
+/* Reads the photo and illustration a reader dropped in the Configure panel's
+   Media tab. Both live under one localStorage key, same-origin with this
+   card's own page, so a native "storage" event is all it takes to pick up a
+   new upload without any message-passing between the two. */
+function useDovetailMedia() {
+  var KEY = "dovetail-docs-media";
+  function load() {
+    try {
+      return Object.assign({
+        photo: "",
+        illustration: ""
+      }, JSON.parse(localStorage.getItem(KEY)) || {});
+    } catch (e) {
+      return {
+        photo: "",
+        illustration: ""
+      };
+    }
+  }
+  const [media, setMedia] = React.useState(load);
+  React.useEffect(function () {
+    function sync(e) {
+      if (!e || !e.key || e.key === KEY) setMedia(load());
+    }
+    window.addEventListener("storage", sync);
+    return function () {
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return media;
+}
+
+/* A file dropped straight onto a placeholder. It stays in this page as an
+   object URL: nothing is uploaded or saved, and a reload empties the slot. */
+function useDroppedFile() {
+  const [url, setUrl] = React.useState("");
+  React.useEffect(() => () => {
+    if (url) URL.revokeObjectURL(url);
+  }, [url]);
+  return [url, file => setUrl(URL.createObjectURL(file))];
+}
+function IconTile({
+  name
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    className: "icon-tile"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: name
+  }));
+}
+const FEATURES = [{
+  icon: "palette",
+  title: "Primitives name values",
+  description: "A ramp of OKLCH colours, a dimension scale, a type scale. Nothing here knows what it is for."
+}, {
+  icon: "layers",
+  title: "Semantics name jobs",
+  description: "Surface, text, border, and their paired roles. This is the only tier a component is allowed to read."
+}, {
+  icon: "blocks",
+  title: "Components name parts",
+  description: "Button background, input border. Retuned per context without touching the component."
+}];
 function App() {
-    const [nav, setNav] = React.useState("product");
-    return (React.createElement("main", null,
-        React.createElement(Navbar, { sticky: true, brand: React.createElement("span", { style: { fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-body-lg-size)", letterSpacing: "var(--dt-tracking-tight)" } }, "Dovetail"), current: nav, onNavigate: setNav, links: [{ id: "product", label: "Product" }, { id: "pricing", label: "Pricing" }, { id: "docs", label: "Docs" }, { id: "company", label: "Company" }], actions: React.createElement(Inline, { gap: "xs", align: "center" },
-                React.createElement(Button, { size: "sm", variant: "ghost" }, "Sign in"),
-                React.createElement(Button, { size: "sm" }, "Start free")) }),
-        React.createElement("section", { className: "sec" },
-            React.createElement("div", { className: "hero" },
-                React.createElement(Stack, { gap: "md" },
-                    React.createElement("span", { className: "eyebrow" }, "Design system infrastructure"),
-                    React.createElement("h1", { className: "hero-h" }, "One component set. Every brand you ship."),
-                    React.createElement("p", { className: "lead" }, "Dovetail is white-label by construction. Components read semantic tokens, tokens read a brand theme, and swapping the theme changes every surface at once \u2014 without touching a component."),
-                    React.createElement(Inline, { gap: "sm", wrap: true },
-                        React.createElement(Button, null, "Start free"),
-                        React.createElement(Button, { variant: "secondary" }, "Read the docs")),
-                    React.createElement(Inline, { gap: "xs", wrap: true },
-                        React.createElement(Tag, null, "No lock-in"),
-                        React.createElement(Tag, null, "DTCG tokens"),
-                        React.createElement(Tag, null, "Light and dark"))),
-                React.createElement(AspectRatio, { ratio: "4/3", style: { background: "var(--dt-surface-sunken)", borderRadius: "var(--dt-radius-media)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } }))),
-        React.createElement("section", { className: "sec alt" },
-            React.createElement(Stack, { gap: "xs", style: { textAlign: "center", alignItems: "center" } },
-                React.createElement("span", { className: "eyebrow" }, "Why it holds"),
-                React.createElement("h2", { className: "sec-h" }, "Three tiers, referenced one way")),
-            React.createElement("div", { className: "three" },
-                React.createElement(Card, { title: "Primitives name values", description: "A ramp of OKLCH colours, a dimension scale, a type scale. Nothing here knows what it is for." }),
-                React.createElement(Card, { title: "Semantics name jobs", description: "Surface, text, border, and their paired roles. This is the only tier a component is allowed to read." }),
-                React.createElement(Card, { title: "Components name parts", description: "Button background, input border. Retuned per context without touching the component." }))),
-        React.createElement("section", { className: "sec" },
-            React.createElement("div", { className: "two" },
-                React.createElement(Stack, { gap: "md" },
-                    React.createElement("span", { className: "eyebrow" }, "Proof"),
-                    React.createElement("h2", { className: "sec-h" }, "The audit that took a week now runs in CI"),
-                    React.createElement("p", { className: "lead" }, "The adherence lint rejects literal values before review. If a colour is not a token, the build says so."),
-                    React.createElement(Inline, { gap: "xl", wrap: true },
-                        React.createElement(Stat, { label: "Components", value: "56", caption: "across seven groups" }),
-                        React.createElement(Stat, { label: "Tokens", value: "658", caption: "three tiers, DTCG authored" }),
-                        React.createElement(Stat, { label: "Themes", value: "4", caption: "base, dark, editorial, mono" }))),
-                React.createElement(Stack, { gap: "lg" },
-                    React.createElement(Quote, { attribution: "Grace Hopper", role: "Head of Platform, Halcyon Labs", avatar: React.createElement(Avatar, { name: "Grace Hopper" }) }, "We replaced four separate button implementations with one."),
-                    React.createElement(Divider, null),
-                    React.createElement(Quote, { attribution: "Ada Lovelace", role: "Design Systems Lead, Northwind", avatar: React.createElement(Avatar, { name: "Ada Lovelace" }) }, "Tokens made the redesign a config change instead of a rewrite.")))),
-        React.createElement("section", { className: "sec alt" },
-            React.createElement(Stack, { gap: "xs", style: { alignItems: "center", textAlign: "center" } },
-                React.createElement("span", { className: "eyebrow" }, "Questions"),
-                React.createElement("h2", { className: "sec-h" }, "Before you adopt it")),
-            React.createElement("div", { style: { maxWidth: 760, margin: "0 auto", width: "100%" } },
-                React.createElement(Accordion, { label: "Adoption questions", defaultOpen: ["a"], items: [
-                        { id: "a", title: "Can we keep our own brand?", content: "That is the point. Dovetail ships no logo and no brand colour. You supply an primary ramp and a type family; every component picks them up through the semantic tier." },
-                        { id: "b", title: "Does it work outside React?", content: "The tokens do. They are authored in DTCG format and build to CSS custom properties, so any framework can consume them. The component layer is React." },
-                        { id: "c", title: "What about dark mode and density?", content: "Both are axes alongside brand theme and context. A component never knows which combination it is rendering under — it reads roles, and the roles are retuned." },
-                    ] }))),
-        React.createElement("section", { className: "sec" },
-            React.createElement("div", { style: { maxWidth: 760, margin: "0 auto", width: "100%" } },
-                React.createElement(Prose, null,
-                    React.createElement("h2", { className: "sec-h" }, "Start with the tokens, not the components"),
-                    React.createElement("p", { style: { margin: 0 } }, "Teams that adopt the component library first end up with a second system underneath it: the values their product already uses, now hidden behind imports. Adopting the token layer first surfaces those values as a diff you can argue about."),
-                    React.createElement(Callout, { tone: "tip", title: "A useful first week" }, "Replace literal colours in one screen with semantic tokens and run the lint. The list of failures is your real migration scope.")))),
-        React.createElement("section", { className: "sec alt" },
-            React.createElement(Stack, { gap: "md", style: { alignItems: "center", textAlign: "center" } },
-                React.createElement("h2", { className: "sec-h" }, "Ship your brand, not ours"),
-                React.createElement("p", { className: "lead", style: { textAlign: "center" } }, "Free while you evaluate. No card, no call."),
-                React.createElement(Inline, { gap: "sm" },
-                    React.createElement(Button, null, "Start free"),
-                    React.createElement(Button, { variant: "secondary" }, "Talk to us"))))));
+  const [nav, setNav] = React.useState("product");
+  const media = useDovetailMedia();
+  const [photo, dropPhoto] = useDroppedFile();
+  const [video, dropVideo] = useDroppedFile();
+  const [illustration, dropIllustration] = useDroppedFile();
+  const art = illustration || media.illustration;
+  return /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement(Navbar, {
+    sticky: true,
+    brand: /*#__PURE__*/React.createElement(Inline, {
+      gap: "xs",
+      align: "center"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "mark"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "sparkle",
+      size: "sm"
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: "var(--dt-font-weight-semibold)",
+        fontSize: "var(--dt-text-body-lg-size)",
+        letterSpacing: "var(--dt-tracking-tight)"
+      }
+    }, "Dovetail")),
+    current: nav,
+    onNavigate: setNav,
+    links: [{
+      id: "product",
+      label: "Product"
+    }, {
+      id: "pricing",
+      label: "Pricing"
+    }, {
+      id: "docs",
+      label: "Docs"
+    }, {
+      id: "company",
+      label: "Company"
+    }],
+    actions: /*#__PURE__*/React.createElement(Inline, {
+      gap: "xs",
+      align: "center"
+    }, /*#__PURE__*/React.createElement(Button, {
+      size: "sm",
+      variant: "ghost"
+    }, "Sign in"), /*#__PURE__*/React.createElement(Button, {
+      size: "sm"
+    }, "Start free"))
+  }), /*#__PURE__*/React.createElement("section", {
+    className: "sec"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "hero"
+  }, /*#__PURE__*/React.createElement(Stack, {
+    gap: "md"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Design system infrastructure"), /*#__PURE__*/React.createElement("h1", {
+    className: "hero-h"
+  }, "One component set. Every brand you ship."), /*#__PURE__*/React.createElement("p", {
+    className: "lead"
+  }, "Dovetail is white-label by construction. Components read semantic tokens, tokens read a brand theme, and swapping the theme changes every surface at once, without touching a component."), /*#__PURE__*/React.createElement(Inline, {
+    gap: "sm",
+    wrap: true
+  }, /*#__PURE__*/React.createElement(Button, {
+    iconEnd: /*#__PURE__*/React.createElement(Icon, {
+      name: "arrowRight",
+      size: "sm"
+    })
+  }, "Start free"), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    iconStart: /*#__PURE__*/React.createElement(Icon, {
+      name: "book",
+      size: "sm"
+    })
+  }, "Read the docs")), /*#__PURE__*/React.createElement(Inline, {
+    gap: "xs",
+    wrap: true
+  }, /*#__PURE__*/React.createElement(Tag, null, "No lock-in"), /*#__PURE__*/React.createElement(Tag, null, "DTCG tokens"), /*#__PURE__*/React.createElement(Tag, null, "Light and dark"))), /*#__PURE__*/React.createElement(Cover, {
+    src: photo || media.photo,
+    alt: "",
+    ratio: "4:3",
+    placeholder: "Product photo",
+    onFile: dropPhoto,
+    scrim: "none",
+    style: {
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)"
+    }
+  }))), /*#__PURE__*/React.createElement("section", {
+    className: "sec alt"
+  }, /*#__PURE__*/React.createElement(Stack, {
+    gap: "xs",
+    style: {
+      textAlign: "center",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Why it holds"), /*#__PURE__*/React.createElement("h2", {
+    className: "sec-h"
+  }, "Three tiers, referenced one way")), /*#__PURE__*/React.createElement("div", {
+    className: "three"
+  }, FEATURES.map(f => /*#__PURE__*/React.createElement(Card, {
+    key: f.icon,
+    media: /*#__PURE__*/React.createElement(IconTile, {
+      name: f.icon
+    }),
+    title: f.title,
+    description: f.description
+  })))), /*#__PURE__*/React.createElement("section", {
+    className: "sec"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "two"
+  }, /*#__PURE__*/React.createElement(Video, {
+    src: video,
+    label: "Product walkthrough",
+    placeholder: "Product walkthrough video",
+    onFile: dropVideo,
+    ratio: "16:9",
+    style: {
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)"
+    }
+  }), /*#__PURE__*/React.createElement(Stack, {
+    gap: "md"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "See it run"), /*#__PURE__*/React.createElement("h2", {
+    className: "sec-h"
+  }, "Retheme a whole product in one pass"), /*#__PURE__*/React.createElement("p", {
+    className: "lead"
+  }, "Pick a brand colour, a type family and a corner radius. Every screen follows, because no component holds a value of its own."), /*#__PURE__*/React.createElement("ul", {
+    className: "checks"
+  }, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement(Icon, {
+    name: "check",
+    size: "sm"
+  }), "Light and dark from the same roles"), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement(Icon, {
+    name: "check",
+    size: "sm"
+  }), "Contrast checked on every pairing"), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement(Icon, {
+    name: "check",
+    size: "sm"
+  }), "Exports CSS and DTCG tokens")), /*#__PURE__*/React.createElement(Inline, {
+    gap: "sm",
+    wrap: true
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    iconStart: /*#__PURE__*/React.createElement(Icon, {
+      name: "play",
+      size: "sm"
+    })
+  }, "Watch the tour"))))), /*#__PURE__*/React.createElement("section", {
+    className: "sec alt"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "two"
+  }, /*#__PURE__*/React.createElement(Stack, {
+    gap: "md"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Proof"), /*#__PURE__*/React.createElement("h2", {
+    className: "sec-h"
+  }, "The audit that took a week now runs in CI"), /*#__PURE__*/React.createElement("p", {
+    className: "lead"
+  }, "The adherence lint rejects literal values before review. If a colour is not a token, the build says so."), /*#__PURE__*/React.createElement("div", {
+    className: "stats"
+  }, /*#__PURE__*/React.createElement(Stack, {
+    gap: "sm"
+  }, /*#__PURE__*/React.createElement(IconTile, {
+    name: "box"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Components",
+    value: "63",
+    caption: "across eight groups"
+  })), /*#__PURE__*/React.createElement(Stack, {
+    gap: "sm"
+  }, /*#__PURE__*/React.createElement(IconTile, {
+    name: "zap"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Tokens",
+    value: "658",
+    caption: "three tiers, DTCG authored"
+  })), /*#__PURE__*/React.createElement(Stack, {
+    gap: "sm"
+  }, /*#__PURE__*/React.createElement(IconTile, {
+    name: "shield"
+  }), /*#__PURE__*/React.createElement(Stat, {
+    label: "Themes",
+    value: "4",
+    caption: "base, dark, editorial, mono"
+  })))), /*#__PURE__*/React.createElement(Stack, {
+    gap: "lg"
+  }, /*#__PURE__*/React.createElement(Quote, {
+    attribution: "Grace Hopper",
+    role: "Head of Platform, Halcyon Labs",
+    avatar: /*#__PURE__*/React.createElement(Avatar, {
+      name: "Grace Hopper"
+    })
+  }, "We replaced four separate button implementations with one."), /*#__PURE__*/React.createElement(Divider, null), /*#__PURE__*/React.createElement(Quote, {
+    attribution: "Ada Lovelace",
+    role: "Design Systems Lead, Northwind",
+    avatar: /*#__PURE__*/React.createElement(Avatar, {
+      name: "Ada Lovelace"
+    })
+  }, "Tokens made the redesign a config change instead of a rewrite.")))), /*#__PURE__*/React.createElement("section", {
+    className: "sec"
+  }, /*#__PURE__*/React.createElement(Stack, {
+    gap: "xs",
+    style: {
+      alignItems: "center",
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "eyebrow"
+  }, "Questions"), /*#__PURE__*/React.createElement("h2", {
+    className: "sec-h"
+  }, "Before you adopt it")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 760,
+      margin: "0 auto",
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement(Accordion, {
+    label: "Adoption questions",
+    defaultOpen: ["a"],
+    items: [{
+      id: "a",
+      title: "Can we keep our own brand?",
+      content: "That is the point. Dovetail ships no logo and no brand colour. You supply a primary ramp and a type family; every component picks them up through the semantic tier."
+    }, {
+      id: "b",
+      title: "Does it work outside React?",
+      content: "The tokens do. They are authored in DTCG format and build to CSS custom properties, so any framework can consume them. The component layer is React."
+    }, {
+      id: "c",
+      title: "What about dark mode and density?",
+      content: "Both are axes alongside brand theme and context. A component never knows which combination it is rendering under: it reads roles, and the roles are retuned."
+    }]
+  }))), /*#__PURE__*/React.createElement("section", {
+    className: "sec alt"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 760,
+      margin: "0 auto",
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement(Prose, null, /*#__PURE__*/React.createElement("h2", {
+    className: "sec-h"
+  }, "Start with the tokens, not the components"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0
+    }
+  }, "Teams that adopt the component library first end up with a second system underneath it: the values their product already uses, now hidden behind imports. Adopting the token layer first surfaces those values as a diff you can argue about."), /*#__PURE__*/React.createElement(Callout, {
+    tone: "tip",
+    title: "A useful first week",
+    icon: /*#__PURE__*/React.createElement(Icon, {
+      name: "sparkle",
+      size: "sm"
+    })
+  }, "Replace literal colours in one screen with semantic tokens and run the lint. The list of failures is your real migration scope.")))), /*#__PURE__*/React.createElement("section", {
+    className: "sec"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cta"
+  }, /*#__PURE__*/React.createElement(Stack, {
+    gap: "md"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "sec-h"
+  }, "Ship your brand, not ours"), /*#__PURE__*/React.createElement("p", {
+    className: "lead"
+  }, "Free while you evaluate. No card, no call."), /*#__PURE__*/React.createElement(Inline, {
+    gap: "sm",
+    wrap: true
+  }, /*#__PURE__*/React.createElement(Button, {
+    iconEnd: /*#__PURE__*/React.createElement(Icon, {
+      name: "arrowRight",
+      size: "sm"
+    })
+  }, "Start free"), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    iconStart: /*#__PURE__*/React.createElement(Icon, {
+      name: "send",
+      size: "sm"
+    })
+  }, "Talk to us"))), /*#__PURE__*/React.createElement("div", {
+    className: "cta-art"
+  }, art ? /*#__PURE__*/React.createElement("img", {
+    className: "cta-illustration",
+    src: art,
+    alt: ""
+  }) : /*#__PURE__*/React.createElement(Image, {
+    alt: "",
+    ratio: "1:1",
+    placeholder: "Illustration",
+    onFile: dropIllustration,
+    radius: "container"
+  })))));
 }
 function dsReady(required, done) {
-    var NS_KEY = "BeamMobileDesignSystem_e33121";
-    var REFETCH_AT = 1200, DEADLINE = 8000, TICK = 40;
-    var startedAt = Date.now(), refetched = false;
-    /* Wall clock, not tick count: a throttled frame stretches a 40ms timeout well past
-       40ms, which would push the deadline minutes out. */
-    function elapsed() { return Date.now() - startedAt; }
-    function missing() {
-        var ns = window[NS_KEY];
-        if (!ns)
-            return required.slice();
-        var out = [];
-        for (var i = 0; i < required.length; i++)
-            if (!ns[required[i]])
-                out.push(required[i]);
-        return out;
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var REFETCH_AT = 1200,
+    DEADLINE = 8000,
+    TICK = 40;
+  var startedAt = Date.now(),
+    refetched = false;
+  /* Wall clock, not tick count: a throttled frame stretches a 40ms timeout well past
+     40ms, which would push the deadline minutes out. */
+  function elapsed() {
+    return Date.now() - startedAt;
+  }
+  function missing() {
+    var ns = window[NS_KEY];
+    if (!ns) return required.slice();
+    var out = [];
+    for (var i = 0; i < required.length; i++) if (!ns[required[i]]) out.push(required[i]);
+    return out;
+  }
+  (function poll() {
+    var gaps = missing();
+    if (gaps.length === 0) return done(window[NS_KEY]);
+    if (elapsed() > REFETCH_AT && !refetched) {
+      refetched = true;
+      var base = document.querySelector('script[src$="_ds_bundle.js"]');
+      var s = document.createElement("script");
+      s.src = (base ? base.getAttribute("src") : "_ds_bundle.js") + "?cb=" + Date.now();
+      document.head.appendChild(s);
     }
-    (function poll() {
-        var gaps = missing();
-        if (gaps.length === 0)
-            return done(window[NS_KEY]);
-        if (elapsed() > REFETCH_AT && !refetched) {
-            refetched = true;
-            var base = document.querySelector('script[src$="_ds_bundle.js"]');
-            var s = document.createElement("script");
-            s.src = (base ? base.getAttribute("src") : "_ds_bundle.js") + "?cb=" + Date.now();
-            document.head.appendChild(s);
-        }
-        if (elapsed() > DEADLINE) {
-            var root = document.getElementById("root");
-            if (root)
-                root.innerHTML = '<div role="alert" style="max-width:62ch;margin:48px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This kit could not load the design system</strong>' + (!window[NS_KEY] ? '<code>_ds_bundle.js</code> did not load. It is regenerated whenever components change \u2014 reload in a moment.' : 'The loaded bundle is missing: <code>' + gaps.join(", ") + '</code>. Hard reload to clear the cached copy.') + '</div>';
-            return;
-        }
-        setTimeout(poll, TICK);
-    })();
+    if (elapsed() > DEADLINE) {
+      var root = document.getElementById("root");
+      if (root) root.innerHTML = '<div role="alert" style="max-width:62ch;margin:48px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This kit could not load the design system</strong>' + (!window[NS_KEY] ? '<code>_ds_bundle.js</code> did not load. It is regenerated whenever components change \u2014 reload in a moment.' : 'The loaded bundle is missing: <code>' + gaps.join(", ") + '</code>. Hard reload to clear the cached copy.') + '</div>';
+      return;
+    }
+    setTimeout(poll, TICK);
+  })();
 }
-dsReady(["Navbar", "Button", "Card", "Badge", "Tag", "Quote", "Accordion", "Prose", "Callout", "AspectRatio", "Avatar", "Stat", "Inline", "Stack", "Divider"], function (NS) {
-    ({ Navbar, Button, Card, Badge, Tag, Quote, Accordion, Prose, Callout, AspectRatio, Avatar, Stat, Inline, Stack, Divider } = NS);
-    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App, null));
+dsReady(["Navbar", "Button", "Card", "Badge", "Tag", "Quote", "Accordion", "Prose", "Callout", "Cover", "Image", "Video", "Avatar", "Stat", "Inline", "Stack", "Divider"], function (NS) {
+  ({
+    Navbar,
+    Button,
+    Card,
+    Badge,
+    Tag,
+    Quote,
+    Accordion,
+    Prose,
+    Callout,
+    Cover,
+    Image,
+    Video,
+    Avatar,
+    Stat,
+    Inline,
+    Stack,
+    Divider
+  } = NS);
+  window.DT_ASSETS.then(function () {
+    ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
+  });
 });
 </script>
 </body></html>
