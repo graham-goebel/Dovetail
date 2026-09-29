@@ -4,7 +4,7 @@
    out of the menu button: sections as big links, and a section with pages
    under it pushes a layer ("Menu / Components") that slides in from the
    right; Components filters its list with Gainer-style chips, and Templates
-   opens on its three kinds, each a layer of its own. Home is a round button
+   opens on its three kinds, each a layer of its own. Guide is cards. Home is a round button
    at the top right of every layer. Back, search
    and close sit in a footer, close exactly where the menu button was, so the
    button that opened the menu also shuts it. Search turns the footer into a
@@ -127,6 +127,14 @@
     return '<a class="mrow' + (item.i ? " has-ic" : "") + '" href="' + esc(ROOT + item.u) + '"' + (on ? ' aria-current="page"' : "") + ">" + rowInner(item) + "</a>";
   }
 
+  /* Guide: a card per page, the first (the README) across the full width and
+     the rest two up under it. */
+  function mcard(item) {
+    return '<a class="mcard" href="' + esc(ROOT + item.u) + '"' + (here(item.u) ? ' aria-current="page"' : "") + ">" +
+      (item.i ? '<span class="row-ic">' + item.i + "</span>" : "") +
+      '<span class="t"><b>' + esc(item.t) + "</b>" + (item.d ? "<small>" + esc(item.d) + "</small>" : "") + "</span></a>";
+  }
+
   /* An interstitial row (Templates: Product, Marketing, Social) opens the
      layer of everything in that kind. */
   function drillRow(g) {
@@ -147,7 +155,9 @@
         }).join("") + claudeChip() + "</nav>";
     } else if (p.kind === "section") {
       var s = section(p.id);
-      body = s.items
+      body = s.cards
+        ? '<div class="mcards">' + s.items.map(mcard).join("") + "</div>"
+        : s.items
         ? '<div class="mlist">' + s.items.map(mrow).join("") + "</div>"
         : s.drill
           ? '<div class="mlist">' + s.groups.map(drillRow).join("") + "</div>"
@@ -232,7 +242,7 @@
       clearTimeout(box._nv);
       box._nv = setTimeout(function () { box.classList.remove("snext", "sprev"); }, 420);
     }
-    var focus = box.querySelector("[data-back]") || box.querySelector(".big-link, .mrow");
+    var focus = box.querySelector("[data-back]") || box.querySelector(".big-link, .mrow, .mcard");
     if (focus && !window.matchMedia("(pointer: coarse)").matches) focus.focus({ preventScroll: true });
   }
 
