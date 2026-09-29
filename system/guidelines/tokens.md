@@ -98,6 +98,13 @@ The themeable layer. This is where a consumer spends their time.
 | `--dt-surface-inverse` | a dark band on a light page |
 | `--dt-surface-scrim` | behind a modal |
 
+The page is white and the quiet band grey, which is right for a product and flat for a brand. Set
+`data-surface="brand-muted"` on `html` or `body` for a whole page, or on a section, and
+`--dt-surface-base` becomes `--dt-surface-brand-muted` (the primary's 050 step, 950 in dark) while
+`--dt-surface-subtle` steps a little toward ink so bands inside still read. Text keeps its ordinary
+roles. For a band that also re-colours its text from the brand, use `Section tone="brand-muted"`. Configure's
+Page and Sections controls do the same for the whole site.
+
 Six surfaces rather than two, because dense product UI needs more than a page colour and
 a card colour. A settings panel inside a card inside a dialog has three surfaces to
 distinguish, and guessing at opacity values is how that goes wrong.

@@ -51,6 +51,8 @@
     dark: false,
     mono: false,
     brandFill: "solid",
+    pageTint: "neutral",
+    sectionTint: "neutral",
     texture: "none",
     baseUnit: 4,
     focusRing: 2,
@@ -756,6 +758,18 @@
       vars["--dt-text-on-brand"] = "var(--dt-text-on-brand-muted)";
     }
 
+    /* Surfaces are white and grey until told otherwise. The page and the quiet
+       band behind it can each be set to the brand's own tint instead. Both are
+       roles that resolve against the root, so a dark band re-declares them
+       (below) and takes the dark tint. The page's band steps toward ink so it
+       still reads against the page it sits on. */
+    if (cfg.sectionTint === "muted") vars["--dt-surface-subtle"] = "var(--dt-surface-brand-muted)";
+    if (cfg.pageTint === "muted") {
+      vars["--dt-surface-base"] = "var(--dt-surface-brand-muted)";
+      vars["--dt-surface-subtle"] = "color-mix(in oklab, var(--dt-surface-brand-muted) 94%, var(--dt-text-primary))";
+      vars["--dt-focus-ring-offset-color"] = "var(--dt-surface-base)";
+    }
+
     /* Ink writes nothing: the wordmark role already points at the primary
        text colour, which is the monochrome mark. The fallbacks cover a card
        that froze a stylesheet from before the brand text roles existed. */
@@ -835,7 +849,7 @@
     /* A role written inline on the root resolves once, against the root. A
        band scoped .dark inside the page needs the same choice declared on the
        band, so its brand text role resolves as dark. */
-    var scoped = ["--dt-text-wordmark", "--dt-text-headline", "--dt-surface-brand", "--dt-text-on-brand"].concat(Object.keys(BRAND_CONTROLS)).filter(function (name) { return vars[name]; });
+    var scoped = ["--dt-text-wordmark", "--dt-text-headline", "--dt-surface-brand", "--dt-text-on-brand", "--dt-surface-base", "--dt-surface-subtle", "--dt-focus-ring-offset-color"].concat(Object.keys(BRAND_CONTROLS)).filter(function (name) { return vars[name]; });
     var scope = doc.getElementById("dt-role-scope");
     if (!scoped.length) {
       if (scope) scope.remove();
@@ -1109,6 +1123,18 @@
       lines.push("  --dt-text-on-brand: var(--dt-text-on-brand-muted);");
     }
 
+    if (config.pageTint === "muted" || config.sectionTint === "muted") {
+      lines.push("");
+      lines.push("  /* Surfaces: " + (config.pageTint === "muted" ? "page and quiet band" : "quiet band") + " in the brand's own tint */");
+      if (config.pageTint === "muted") {
+        lines.push("  --dt-surface-base: var(--dt-surface-brand-muted);");
+        lines.push("  --dt-surface-subtle: color-mix(in oklab, var(--dt-surface-brand-muted) 94%, var(--dt-text-primary));");
+        lines.push("  --dt-focus-ring-offset-color: var(--dt-surface-base);");
+      } else {
+        lines.push("  --dt-surface-subtle: var(--dt-surface-brand-muted);");
+      }
+    }
+
     if (config.texture && config.texture !== "none") {
       lines.push("");
       lines.push("  /* Texture: " + config.texture + " */");
@@ -1212,9 +1238,17 @@
     var darkRoles = [["--dt-text-headline", config.headlineColor], ["--dt-text-wordmark", config.wordmarkColor]].filter(function (r) { return WORDMARK[r[1]]; });
     var brandControls = config.actions === "brand" && !config.mono;
     var fillDark = config.brandFill === "quiet" || config.brandFill === "gradient" || config.brandFill === "duotone";
-    if (darkRoles.length || brandControls || fillDark) {
+    var tintDark = config.pageTint === "muted" || config.sectionTint === "muted";
+    if (darkRoles.length || brandControls || fillDark || tintDark) {
       lines.push("");
       lines.push(".dark {");
+      if (config.pageTint === "muted") {
+        lines.push("  --dt-surface-base: var(--dt-surface-brand-muted);");
+        lines.push("  --dt-surface-subtle: color-mix(in oklab, var(--dt-surface-brand-muted) 94%, var(--dt-text-primary));");
+        lines.push("  --dt-focus-ring-offset-color: var(--dt-surface-base);");
+      } else if (config.sectionTint === "muted") {
+        lines.push("  --dt-surface-subtle: var(--dt-surface-brand-muted);");
+      }
       if (config.brandFill === "quiet") {
         lines.push("  --dt-surface-brand: var(--dt-surface-brand-muted);");
         lines.push("  --dt-text-on-brand: var(--dt-text-on-brand-muted);");
@@ -1622,6 +1656,26 @@
             commit({ texture: value });
           }
         )
+      )
+    );
+
+    out.push(
+      field(
+        "Page",
+        "White is the system default. Brand muted sets the whole page to the palest tint of your primary (050, 950 in dark) so it is not always white or grey: --dt-surface-base. Text keeps its ordinary colours, and bands inside step a little toward ink so they still read.",
+        segmented("Page", "pageTint", [{ value: "neutral", label: "White" }, { value: "muted", label: "Brand muted" }], config.pageTint || "neutral", function (value) {
+          commit({ pageTint: value });
+        })
+      )
+    );
+
+    out.push(
+      field(
+        "Sections",
+        "The quiet band behind the page is a neutral grey by default. Brand muted makes it the tint of your primary instead: --dt-surface-subtle. A single section can do the same with Section tone=\"brand-muted\", or data-surface=\"brand-muted\" on any region.",
+        segmented("Sections", "sectionTint", [{ value: "neutral", label: "Grey" }, { value: "muted", label: "Brand muted" }], config.sectionTint || "neutral", function (value) {
+          commit({ sectionTint: value });
+        })
       )
     );
 

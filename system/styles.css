@@ -19,6 +19,7 @@
 @import "tokens/semantic/motion.css";
 
 @import "tokens/themes/base-dark.css";
+@import "tokens/semantic/surface.css";
 @import "tokens/themes/theme-custom.css";
 
 @import "tokens/component/button.css";
