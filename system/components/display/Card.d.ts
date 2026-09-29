@@ -28,6 +28,38 @@ export interface CardProps extends React.HTMLAttributes<HTMLElement> {
    * @default "raised"
    */
   surface?: "raised" | "glass" | "glass-strong" | "glass-inverse";
+  /**
+   * An image URL to fill the card behind its content. The card becomes dark
+   * in both colour modes (it scopes `.dark`, like `glass-inverse`), holds at
+   * least `--dt-card-media-min-height`, and sets its content at the bottom
+   * over a scrim. The picture is decorative; put what it shows in the title
+   * or description. Also the poster for `backgroundVideo`.
+   */
+  background?: string;
+  /**
+   * A video URL to fill the card instead: muted, looping and inline. It does
+   * not autoplay for someone who prefers reduced motion; they see
+   * `background` as a still.
+   */
+  backgroundVideo?: string;
+  /** Which part of the picture stays in frame, as CSS `object-position`. @default "center" */
+  backgroundPosition?: string;
+  /**
+   * The wash between the picture and the text. gradient darkens from the
+   * bottom, where the text sits; solid darkens the whole card; none is for a
+   * picture that is already dark where the text lands. Check the contrast
+   * against the real picture either way.
+   * @default "gradient"
+   */
+  scrim?: "gradient" | "solid" | "none";
+  /**
+   * The text colour over a picture. light is the scrim's near-white; white is
+   * pure white, for large type that would otherwise read as grey; primary
+   * sets the title in a light brand step. Secondary text stays a quieter
+   * light in every case.
+   * @default "light"
+   */
+  onMedia?: "light" | "white" | "primary";
   href?: string;
   interactive?: boolean;
   /** Primary-colour border and tinted background for a chosen option. */

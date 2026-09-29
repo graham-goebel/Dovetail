@@ -48,6 +48,21 @@ Pass `href` and the whole card goes there. The title becomes the one link a scre
 <Card surface="glass-inverse" title="Recovery" description="Your body is ready for a harder session." />
 ```
 
+## With a picture behind it
+`background` fills the card with an image and `backgroundVideo` with a muted, looping video, which doesn't autoplay for someone who prefers reduced motion (they see `background` as its still). The card is then dark in both colour modes: it scopes `.dark`, holds at least `--dt-card-media-min-height`, and sets its content at the bottom over `scrim`.
+
+- `scrim="gradient"` (the default) darkens from the bottom, where the text sits. `solid` darkens the whole card. `none` is only for a picture already dark where the text lands.
+- `onMedia` sets the text: `light` is the scrim's near-white, `white` is pure white for large type that would read as grey, and `primary` sets the title in a light brand step. Secondary text stays a quieter light either way.
+
+```jsx
+<Card background="/img/ridge.jpg" eyebrow="Guide" title="Ridge loop" description="Four days, three huts." onMedia="white" />
+<Card backgroundVideo="/video/surf.mp4" background="/img/surf.jpg" scrim="solid" title="Morning session" onMedia="primary" />
+```
+
+The picture is decorative: say what matters about it in the title or description. Measure the text against the real picture, as `guidelines/accessibility.md` describes; a scrim is a floor, not a guarantee.
+
+Tokens: `--dt-card-media-fg`, `--dt-card-media-fg-secondary`, `--dt-card-media-fg-strong`, `--dt-card-media-fg-brand`, `--dt-card-media-border` and `--dt-card-media-min-height`, aliasing `--dt-text-on-scrim*` and `--dt-size-media-min`.
+
 ## Accessibility
 `interactive` is visual only. A clickable card needs a real control inside it, `href`, or `as="button"` with an accessible name. A div with onClick is not keyboard operable.
 

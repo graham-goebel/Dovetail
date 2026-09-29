@@ -1,4 +1,4 @@
-<!-- @dsCard group="Display" height=928 -->
+<!-- @dsCard group="Display" height=1210 -->
 <!DOCTYPE html>
 <html><head>
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
@@ -42,6 +42,10 @@ function Page() {
                 { name: "footer", type: "ReactNode", notes: "Action row at the bottom." },
                 { name: "interactive", type: "boolean", notes: "Raises elevation on hover and sets a pointer cursor." },
                 { name: "selected", type: "boolean", notes: "Primary-colour border and tinted background for a chosen option." },
+                { name: "background", type: "string", notes: "Image behind the content. The card turns dark in both modes and sets its text over a scrim." },
+                { name: "backgroundVideo", type: "string", notes: "Muted looping video instead; background is its poster and the still for reduced motion." },
+                { name: "scrim", type: '"gradient" | "solid" | "none"', default: '"gradient"', notes: "Wash between picture and text." },
+                { name: "onMedia", type: '"light" | "white" | "primary"', default: '"light"', notes: "Text over the picture: near-white, pure white, or a brand title." },
             ], guidance: [
                 "Cards inherit padding and radius from the context. The same Card is compact under dt-context-product and generous under dt-context-marketing — do not override either.",
                 "interactive means the whole card is one target. If the card contains two links, it is not interactive — it is a container with links in it.",
@@ -55,7 +59,12 @@ function Page() {
                     React.createElement(Card, { selected: true, eyebrow: "Plan", title: "Business", description: "Unlimited editors, SSO, audit log.", footer: React.createElement(Button, { size: "sm" }, "Current plan") }))),
             React.createElement(Specimen, { label: "With media", bg: "var(--dt-surface-subtle)" },
                 React.createElement("div", { style: { maxWidth: 300 } },
-                    React.createElement(Card, { media: React.createElement(AspectRatio, { ratio: "16/9", style: { background: "var(--dt-surface-sunken)" } }), eyebrow: "Guide", title: "Migrating to tokens", description: "Replace literal values one screen at a time and let the lint tell you the scope." })))),
+                    React.createElement(Card, { media: React.createElement(AspectRatio, { ratio: "16/9", style: { background: "var(--dt-surface-sunken)" } }), eyebrow: "Guide", title: "Migrating to tokens", description: "Replace literal values one screen at a time and let the lint tell you the scope." }))),
+            React.createElement(Specimen, { label: "Picture behind it: light, white, primary", bg: "var(--dt-surface-subtle)" },
+                React.createElement(Grid, { minColumnWidth: "240px", gap: "md" },
+                    React.createElement(Card, { background: "../examples/travel/img/photo/tuscany.webp", eyebrow: "Guide", title: "Tuscany by rail", description: "Five towns, one pass, no car.", footer: React.createElement(Button, { size: "sm", variant: "secondary" }, "Read") }),
+                    React.createElement(Card, { background: "../examples/travel/img/scene/alpine.webp", onMedia: "white", scrim: "solid", eyebrow: "Trip", title: "Alpine huts", description: "Four days above the tree line." }),
+                    React.createElement(Card, { background: "../examples/travel/img/scene/lakehouse.webp", onMedia: "primary", eyebrow: "Stay", title: "The lakehouse", description: "Sleeps six, dock included.", href: "#card" })))),
         React.createElement(Shelf, { name: "Badge", summary: "Small non-interactive label for status or metadata.", props: [
                 { name: "tone", type: '"neutral" | "primary" | "success" | "warning" | "danger" | "info"', default: '"neutral"' },
                 { name: "variant", type: '"subtle" | "solid"', default: '"subtle"', notes: "solid is a filled chip for high emphasis." },

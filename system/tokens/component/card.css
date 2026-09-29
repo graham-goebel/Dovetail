@@ -19,6 +19,16 @@
 
   --dt-card-selected-border: var(--dt-border-selected);
   --dt-card-selected-bg: var(--dt-surface-selected);
+
+  /* A card with a photograph or video behind it: text reads on the scrim in
+     either colour mode, and the card holds a minimum height so the picture
+     has room. */
+  --dt-card-media-fg: var(--dt-text-on-scrim);
+  --dt-card-media-fg-secondary: var(--dt-text-on-scrim-secondary);
+  --dt-card-media-fg-strong: var(--dt-text-on-scrim-strong);
+  --dt-card-media-fg-brand: var(--dt-text-on-scrim-brand);
+  --dt-card-media-border: var(--dt-border-glass-inverse);
+  --dt-card-media-min-height: var(--dt-size-media-min);
 }
 
 /* Colour aliases again, under .dark. A custom property resolves where it is
@@ -33,4 +43,9 @@
   --dt-card-border-color: var(--dt-border-default);
   --dt-card-selected-border: var(--dt-border-selected);
   --dt-card-selected-bg: var(--dt-surface-selected);
+  --dt-card-media-fg: var(--dt-text-on-scrim);
+  --dt-card-media-fg-secondary: var(--dt-text-on-scrim-secondary);
+  --dt-card-media-fg-strong: var(--dt-text-on-scrim-strong);
+  --dt-card-media-fg-brand: var(--dt-text-on-scrim-brand);
+  --dt-card-media-border: var(--dt-border-glass-inverse);
 }

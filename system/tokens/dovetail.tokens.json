@@ -1851,6 +1851,14 @@
       "on-scrim-secondary": {
         "$value": "{primitive.color.neutral.200}"
       },
+      "on-scrim-strong": {
+        "$value": "{primitive.color.white}",
+        "$description": "Pure white over a photograph or video, for large type."
+      },
+      "on-scrim-brand": {
+        "$value": "{primitive.color.primary.200}",
+        "$description": "A light brand step for a title over a darkened photograph or video."
+      },
       "brand": {
         "$value": "{primitive.color.primary.700}"
       },
@@ -2016,6 +2024,10 @@
       "touch-target": {
         "$value": "{primitive.dimension.11}",
         "$description": "Minimum interactive hit area on touch surfaces."
+      },
+      "media-min": {
+        "$value": "{primitive.dimension.64}",
+        "$description": "The least height for a card with a picture behind it."
       },
       "container-narrow": {
         "$value": {
@@ -2228,6 +2240,22 @@
       },
       "border-color": {
         "$value": "{semantic.border.default}"
+      },
+      "media-fg": {
+        "$value": "{semantic.text.on-scrim}"
+      },
+      "media-fg-secondary": {
+        "$value": "{semantic.text.on-scrim-secondary}"
+      },
+      "media-fg-strong": {
+        "$value": "{semantic.text.on-scrim-strong}"
+      },
+      "media-fg-brand": {
+        "$value": "{semantic.text.on-scrim-brand}"
+      },
+      "media-min-height": {
+        "$type": "dimension",
+        "$value": "{semantic.size.media-min}"
       }
     },
     "input": {

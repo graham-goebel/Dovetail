@@ -192,7 +192,9 @@ export declare function Heading(props: HeadingProps): JSX.Element;
 | `--dt-text-on-danger` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-info` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-scrim` | semantic | `var(--dt-color-neutral-050)` |
+| `--dt-text-on-scrim-brand` | semantic | `var(--dt-color-primary-200)` |
 | `--dt-text-on-scrim-secondary` | semantic | `var(--dt-color-neutral-200)` |
+| `--dt-text-on-scrim-strong` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-on-selected-brand` | semantic | `var(--dt-color-primary-900)` |
 | `--dt-text-on-success` | semantic | `var(--dt-color-white)` |
