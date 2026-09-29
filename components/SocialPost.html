@@ -83,11 +83,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/SocialPost.html" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/SocialPost.html?v=ee95165f0d&amp;b=483864345d" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:1100px">
-    <iframe src="../previews/SocialPost.html" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/SocialPost.html?v=ee95165f0d&amp;b=483864345d" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -192,10 +192,14 @@ export declare function SocialPost(props: SocialPostProps): JSX.Element;</code><
    a plain tone and half on a photograph. */
 
 const RATIO = { story: &quot;9 / 16&quot;, portrait: &quot;4 / 5&quot;, square: &quot;1 / 1&quot; };
+/* The fallbacks are the artboard sizes themselves, so a page whose copy of the
+   tokens predates this component still draws a post rather than a blank. */
+const NATIVE_WIDTH = 1080;
+const WIDTH = `var(--dt-social-width, ${NATIVE_WIDTH}px)`;
 const HEIGHT = {
-  story: &quot;var(--dt-social-height-story)&quot;,
-  portrait: &quot;var(--dt-social-height-portrait)&quot;,
-  square: &quot;var(--dt-social-height-square)&quot;,
+  story: &quot;var(--dt-social-height-story, 1920px)&quot;,
+  portrait: &quot;var(--dt-social-height-portrait, 1350px)&quot;,
+  square: &quot;var(--dt-social-height-square, 1080px)&quot;,
 };
 /* The display size steps down as the format gets shorter. */
 const SCALE = { story: 1, portrait: 0.86, square: 0.74 };
@@ -218,7 +222,7 @@ function useScale(ref) {
     const el = ref.current;
     if (!el) return undefined;
     const measure = () =&gt; {
-      const native = parseFloat(getComputedStyle(el).getPropertyValue(&quot;--dt-social-width&quot;)) || 1;
+      const native = parseFloat(getComputedStyle(el).getPropertyValue(&quot;--dt-social-width&quot;)) || NATIVE_WIDTH;
       setScale(el.clientWidth / native);
     };
     measure();
@@ -234,12 +238,13 @@ const meta = {
   fontFamily: &quot;var(--dt-font-family-mono)&quot;, fontSize: &quot;var(--dt-social-meta-size)&quot;,
   letterSpacing: &quot;var(--dt-social-meta-tracking)&quot;, textTransform: &quot;uppercase&quot;, lineHeight: 1.2,
 };
-const body = { margin: 0, fontSize: &quot;var(--dt-social-body-size)&quot;, lineHeight: &quot;var(--dt-social-body-line)&quot;, color: &quot;var(--dt-social-muted)&quot;, textWrap: &quot;pretty&quot; };
+const body = { margin: 0, maxWidth: &quot;none&quot;, fontSize: &quot;var(--dt-social-body-size)&quot;, lineHeight: &quot;var(--dt-social-body-line)&quot;, color: &quot;var(--dt-social-muted)&quot;, textWrap: &quot;pretty&quot; };
 
 function display(format, factor = 1) {
   const k = SCALE[format] * factor;
   return {
     margin: 0,
+    color: &quot;inherit&quot;,
     fontFamily: &quot;var(--dt-social-display-family)&quot;,
     fontSize: `calc(var(--dt-social-display-size) * ${k})`,
     lineHeight: `calc(var(--dt-social-display-line) * ${k})`,
@@ -252,6 +257,7 @@ function title(format, factor = 1) {
   const k = SCALE[format] * factor;
   return {
     margin: 0,
+    color: &quot;inherit&quot;,
     fontFamily: &quot;var(--dt-social-display-family)&quot;,
     fontSize: `calc(var(--dt-social-title-size) * ${k})`,
     lineHeight: `calc(var(--dt-social-title-line) * ${k})`,
@@ -353,7 +359,7 @@ export function SocialPost({
       &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
         {eyebrowEl}
         &lt;h2 style={title(format)}&gt;{heading}&lt;/h2&gt;
-        &lt;ol style={{ listStyle: &quot;none&quot;, margin: 0, padding: 0 }}&gt;
+        &lt;ol style={{ listStyle: &quot;none&quot;, margin: 0, padding: 0, maxWidth: &quot;none&quot; }}&gt;
           {items.map((it, i) =&gt; (
             &lt;li key={i} style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-social-gap)&quot;, alignItems: &quot;baseline&quot;, padding: &quot;calc(var(--dt-social-gap) * 0.6) 0&quot;, borderTop: &quot;var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)&quot;, fontSize: &quot;calc(var(--dt-social-body-size) * 1.1)&quot;, lineHeight: &quot;var(--dt-social-body-line)&quot; }}&gt;
               &lt;span style={{ ...meta, color: &quot;var(--dt-social-muted)&quot;, minWidth: &quot;2.4em&quot; }}&gt;{String(i + 1).padStart(2, &quot;0&quot;)}&lt;/span&gt;
@@ -488,7 +494,7 @@ export function SocialPost({
         className={t.dark ? &quot;dark&quot; : undefined}
         style={{
           position: &quot;absolute&quot;, top: 0, left: 0,
-          width: &quot;var(--dt-social-width)&quot;, height: HEIGHT[format] || HEIGHT.story,
+          width: WIDTH, height: HEIGHT[format] || HEIGHT.story,
           transform: `scale(${scale})`, transformOrigin: &quot;0 0&quot;, visibility: scale ? &quot;visible&quot; : &quot;hidden&quot;,
           overflow: &quot;hidden&quot;, fontFamily: &quot;var(--dt-font-family-sans)&quot;,
           ...(pictured &amp;&amp; layout !== &quot;framed&quot; &amp;&amp; layout !== &quot;split&quot; ? { background: &quot;var(--dt-surface-sunken)&quot;, color: &quot;var(--dt-social-on-image)&quot; } : t.style),
@@ -555,7 +561,7 @@ export function SocialPost({
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=bde39d18a4" defer></script>
+<script src="../system/components/bundle.js?v=483864345d" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

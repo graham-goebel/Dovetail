@@ -46,7 +46,29 @@ function stampAssets(rel, html) {
     return v ? `${lead}${url}?v=${v}"` : m;
   });
 }
-const writePage = (rel, opts) => write(rel, stampAssets(rel, page({ ...opts, pageUrl: rel })));
+/* A preview card is its own document with its own script tags, so the stamps
+   above never reach inside it. A link to one carries a stamp of the card, v,
+   and one of the component bundle, b, which the card hands on to the bundle
+   (RUNTIME_BUNDLE), so every card on a page shares one download of it. A new
+   component then can't meet a cached bundle from before it existed, which
+   leaves its card waiting on a component that never comes. */
+const hashOf = (...files) => {
+  const h = crypto.createHash("sha1");
+  for (const f of files) if (fs.existsSync(f)) h.update(fs.readFileSync(f));
+  return h.digest("hex").slice(0, 10);
+};
+function stampPreviews(rel, html) {
+  const dir = path.dirname(path.join(ROOT, rel));
+  const bundle = path.join(ROOT, "system/components/bundle.js");
+  return html.replace(/((?:src|href)=")((?:\.\.\/)*previews\/[^"?#:]+\.html)(?=[#"])/g, (m, lead, url) => {
+    const file = path.resolve(dir, url);
+    if (!fs.existsSync(file)) return m;
+    if (!stamps.has(file)) stamps.set(file, hashOf(file));
+    if (!stamps.has(bundle)) stamps.set(bundle, hashOf(bundle));
+    return `${lead}${url}?v=${stamps.get(file)}&amp;b=${stamps.get(bundle)}`;
+  });
+}
+const writePage = (rel, opts) => write(rel, stampPreviews(rel, stampAssets(rel, page({ ...opts, pageUrl: rel }))));
 
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -289,6 +311,14 @@ const CONTEXT_LINKS =
   '<link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">' +
   '<link rel="stylesheet" href="../system/tokens/contexts/context-social.css">';
 
+/* The bundle is loaded with the stamp the site's link to this card carries
+   (stampPreviews), written in as a parser-blocking script so it still runs
+   before the card's own. Opened bare, the card loads it unstamped. */
+const PLAIN_BUNDLE = '<script src="../system/components/bundle.js"></script>';
+const RUNTIME_BUNDLE =
+  "<script>(function(){var b=/[?&]b=(\\w+)/.exec(location.search);" +
+  "document.write('<script src=\"../system/components/bundle.js'+(b?'?v='+b[1]:'')+'\"><\\/script>')})()</script>";
+
 /* The previews were authored against a host that pre-loaded React and the
    component bundle. Standalone they have to load both themselves. */
 function patchPreview(file) {
@@ -299,10 +329,11 @@ function patchPreview(file) {
     const inject = `<!-- ${RUNTIME_MARKER}: added by tools/build-site.mjs so this card runs on its own -->
 <script src="../system/components/lib/react.production.min.js"></script>
 <script src="../system/components/lib/react-dom.production.min.js"></script>
-<script src="../system/components/bundle.js"></script>
+${RUNTIME_BUNDLE}
 `;
     out = out.replace(/<head>/i, `<head>\n${inject}`);
   }
+  out = out.replace(PLAIN_BUNDLE, RUNTIME_BUNDLE).replace(/<script>\(function\(\)\{[^\n]*?components\/bundle\.js[^\n]*?<\/script>/g, RUNTIME_BUNDLE);
 
   /* A card was written from its place in the project, so the few resources it
      loads by path need re-pointing at system/. Each rewrite stops matching once
