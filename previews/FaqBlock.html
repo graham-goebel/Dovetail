@@ -1,0 +1,47 @@
+<!-- @dsCard group="Blocks" height=520 -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var Icon = function (p) { return window.DovetailTemplateIcons.Icon(p); };
+  function Page() {
+    return e(Shelf, { name: "FaqBlock", summary: "Questions and answers in an Accordion, beside or under a header.", props: [
+        { name: "items", type: "FaqItem[]", notes: "question, answer." },
+        { name: "layout", type: '"split" | "stacked"', default: '"split"' },
+        { name: "defaultOpen", type: "string[]" },
+        { name: "tone", type: '"base" | "subtle" | "brand" | "brand-muted" | "secondary" | "secondary-muted"', notes: "The band surface, passed to Section." },
+        { name: "dark", type: "boolean", notes: "Scopes dark mode to this block." },
+        { name: "spacing", type: '"default" | "compact" | "none"', default: '"default"' },
+      ], guidance: [
+        "The questions sales and support hear most.",
+        "Link to documentation from an answer rather than pasting it in.",
+      ] },
+      e(Specimen, { label: "Example", bg: "var(--dt-surface-base)" },
+        e(NS.FaqBlock, { spacing: "compact", eyebrow: "Questions", title: "Before you adopt it", lead: "Anything else, ask us.", defaultOpen: ["0"], items: [{ question: "Can we keep our own brand?", answer: "That is the point. Dovetail ships no logo and no brand colour." }, { question: "Does it work outside React?", answer: "The tokens do: DTCG source, CSS custom properties out." }, { question: "What about dark mode?", answer: "Every role has a dark value, and dark can be scoped to one section." }] })));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.FaqBlock || !window.Shelf || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

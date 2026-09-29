@@ -448,7 +448,8 @@ const manifest = JSON.parse(read(path.join(SYS, "manifest.json")));
 const tokens = JSON.parse(read(path.join(SYS, "tokens.json")));
 const readme = read(path.join(SYS, "README.md"));
 
-const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content"];
+const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content", "blocks"];
+const FAMILIES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"][GROUP_ORDER.length] || String(GROUP_ORDER.length);
 const GROUP_LABEL = {
   primitives: "Primitives",
   typography: "Typography",
@@ -458,6 +459,7 @@ const GROUP_LABEL = {
   navigation: "Navigation",
   feedback: "Feedback",
   content: "Content",
+  blocks: "Blocks",
 };
 /* One sentence per family, so the heading says what the group is for rather
    than only naming it. What each family owns, and what it deliberately leaves
@@ -471,6 +473,7 @@ const GROUP_BLURB = {
   navigation: "Moving between places, and showing where you are. Each one takes the current location as a prop rather than reading the URL, so they suit any router.",
   feedback: "Telling someone what happened, or asking before it does. Severity is a prop, and the overlays share one layer, focus trap and dismissal behaviour.",
   content: "Long-form and editorial shapes, including the pieces a CMS drives. Media reserves its space before it loads, so a page never jumps.",
+  blocks: "Page sections that stack into a landing page. Each is a Section with its layout decided and its content as props, so a page is a list of blocks.",
 };
 
 const GROUP_DETAIL = {
@@ -978,6 +981,7 @@ const CARD_TITLE = {
   TierContract: "The three tiers",
   DashboardKit: "Dashboard screen",
   MarketingKit: "Marketing page",
+  BlocksKit: "Landing page from blocks",
 };
 
 /* Most cards open their subtitle with the name a reader wants: ColorCyan is
@@ -1072,7 +1076,7 @@ function buildHome() {
   const checks = (items) => `<ul class="checks">${items.map((t) => `<li>${glyph("check")}${esc(t)}</li>`).join("")}</ul>`;
   const tiles = [
     ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
-    ["components/index.html", "Components", `${components.length} components across eight families, with props, source and usage rules.`, "blocks"],
+    ["components/index.html", "Components", `${components.length} components across ${FAMILIES} families, with props, source and usage rules.`, "blocks"],
     ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
     ["showcase/index.html", "Showcase", "Detail cards, templates and tools.", "monitor"],
     ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
@@ -1132,7 +1136,7 @@ function buildHome() {
     <div class="stack">
       ${head("Proof", "Real components, not pictures of them", "Every tile here is the live component, drawn from the same bundle you install. Change the theme and they all follow.", false)}
       <div class="stats">
-        <div class="stat">${iconTile("box")}<span class="stat-label">Components</span><span class="stat-value">${components.length}</span><span class="stat-cap">across eight families</span></div>
+        <div class="stat">${iconTile("box")}<span class="stat-label">Components</span><span class="stat-value">${components.length}</span><span class="stat-cap">across ${FAMILIES} families</span></div>
         <div class="stat">${iconTile("layers")}<span class="stat-label">Token tiers</span><span class="stat-value">3</span><span class="stat-cap">referenced one way</span></div>
         <div class="stat">${iconTile("shield")}<span class="stat-label">Contrast</span><span class="stat-value">AA</span><span class="stat-cap">checked on every pairing</span></div>
       </div>
@@ -1279,7 +1283,7 @@ function buildComponents() {
   const index = `
 ${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Components" }])}
 <h1>Components</h1>
-<p class="lede">${components.length} components in eight families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
+<p class="lede">${components.length} components in ${FAMILIES} families. Each ships a guide, a typed props contract, source, and a live card. Read the guide before you use one: it carries the rules the types cannot.</p>
 <div class="filter-chips" role="toolbar" aria-label="Filter by family">
   <button type="button" class="pan-opt" data-filter="all" aria-pressed="true">All<span class="n">${components.length}</span></button>
   ${GROUP_ORDER.map((g) => `<button type="button" class="pan-opt" data-filter="${attr(g)}" aria-pressed="false">${esc(GROUP_LABEL[g])}<span class="n">${byGroup(g).length}</span></button>`).join("\n  ")}

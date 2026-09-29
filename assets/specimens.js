@@ -335,6 +335,13 @@
     Dialog: "Opens over the page, so it is shown on its own card.",
     Drawer: "Slides in over the page, so it is shown on its own card.",
     Sheet: "Rises over the page, so it is shown on its own card.",
+    HeroBlock: "A full-width page section, so it is shown on its own card.",
+    FeatureGridBlock: "A full-width page section, so it is shown on its own card.",
+    SplitBlock: "A full-width page section, so it is shown on its own card.",
+    StatsBlock: "A full-width page section, so it is shown on its own card.",
+    TestimonialBlock: "A full-width page section, so it is shown on its own card.",
+    FaqBlock: "A full-width page section, so it is shown on its own card.",
+    CtaBlock: "A full-width page section, so it is shown on its own card.",
     ToastRegion: "Fixed to a corner of the viewport, so it is shown on its own card.",
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };
