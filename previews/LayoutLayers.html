@@ -1,0 +1,30 @@
+<!-- @dsCard group="Layout" height=560 width=700 subtitle="Layers — How closely two things belong together, and how the layout's character moves the gap." page -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8"><link rel="stylesheet" href="../system/styles.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:16px 20px;font-family:var(--dt-font-family-sans);color:var(--dt-text-primary);background:var(--dt-surface-base)}
+.grid{display:grid;grid-template-columns:132px repeat(3,1fr);column-gap:16px;row-gap:14px;align-items:start}
+.h{font-family:var(--dt-font-family-mono);font-size:11px;color:var(--dt-text-tertiary)}
+.h b{display:block;font-weight:600;color:var(--dt-text-primary);font-size:12px}
+.name{font-size:12px;font-weight:600}.name small{display:block;font-weight:400;color:var(--dt-text-tertiary);font-size:11px;line-height:1.35;margin-top:2px}
+.cell{display:flex;flex-direction:column}.cell i{display:block;height:10px;border-radius:5px;background:var(--dt-text-tertiary);opacity:.55}
+.cell i:first-child{opacity:1;background:var(--dt-text-primary)}
+.related{gap:var(--dt-layout-stack-related)}.group{gap:var(--dt-layout-stack-group)}.block{gap:var(--dt-layout-stack-block)}.section{gap:var(--dt-layout-stack-section)}
+.px{font-family:var(--dt-font-family-mono);font-size:10px;color:var(--dt-text-tertiary);margin-top:6px}
+.note{margin:14px 0 0;font-size:12px;line-height:1.5;color:var(--dt-text-secondary);max-width:62ch}
+.note code{font-family:var(--dt-font-family-mono);font-size:11px}</style>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body>
+<div class="grid">
+<span></span><div class="h"><b>Tight</b>data-layout="tight"</div><div class="h"><b>Balanced</b>data-layout="balanced"</div><div class="h"><b>Open</b>data-layout="open"</div>
+<div class="name">related<small>parts of one thing</small></div><div data-layout="tight"><div class="cell related"><i></i><i></i></div><div class="px">4px</div></div><div data-layout="balanced"><div class="cell related"><i></i><i></i></div><div class="px">8px</div></div><div data-layout="open"><div class="cell related"><i></i><i></i></div><div class="px">8px</div></div>
+<div class="name">group<small>members of a set</small></div><div data-layout="tight"><div class="cell group"><i></i><i></i></div><div class="px">8px</div></div><div data-layout="balanced"><div class="cell group"><i></i><i></i></div><div class="px">16px</div></div><div data-layout="open"><div class="cell group"><i></i><i></i></div><div class="px">24px</div></div>
+<div class="name">block<small>one unit from the next</small></div><div data-layout="tight"><div class="cell block"><i></i><i></i></div><div class="px">16px</div></div><div data-layout="balanced"><div class="cell block"><i></i><i></i></div><div class="px">32px</div></div><div data-layout="open"><div class="cell block"><i></i><i></i></div><div class="px">56px</div></div>
+<div class="name">section<small>a theme from the next</small></div><div data-layout="tight"><div class="cell section"><i></i><i></i></div><div class="px">24px</div></div><div data-layout="balanced"><div class="cell section"><i></i><i></i></div><div class="px">64px</div></div><div data-layout="open"><div class="cell section"><i></i><i></i></div><div class="px">112px</div></div>
+</div>
+<p class="note">Each row is one layer of <code>--dt-layout-stack-*</code>, drawn at its real distance. Tight pulls the layers toward each other for a technical screen. Open keeps what is related close and moves the rest apart, so the room reads as deliberate. <code>--dt-layout-inline-*</code> does the same across a row.</p>
+</body></html>

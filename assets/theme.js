@@ -132,6 +132,7 @@
       inset: [1, 1, 2, 3, 4, 6, 8],
       stack: [1, 1, 2, 3, 4, 8, 12],
       inline: [1, 1, 2, 3, 4, 6, 8],
+      layers: { stack: [1, 2, 4, 6], inline: [1, 2, 3, 6] },
       section: 16,
       gutter: 4,
     },
@@ -140,11 +141,18 @@
       inset: [2, 3, 4, 6, 8, 12, 16],
       stack: [2, 3, 4, 6, 8, 12, 20],
       inline: [2, 3, 4, 6, 8, 12, 16],
+      layers: { stack: [2, 6, 14, 28], inline: [2, 4, 8, 16] },
       section: 32,
       gutter: 10,
     },
   };
   var SPACE_STEPS = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+
+  /* The layout layers (tokens/semantic/layout.css), from the closest to the
+     furthest apart. The character moves them together: tight pulls the layers
+     toward each other, open leaves what is related close and moves the rest
+     apart. Same shape as the axes above, in multiples of the base unit. */
+  var LAYERS = ["related", "group", "block", "section"];
 
   /* How much of a layout imagery carries. Dovetail ships no photography, so its
      cards reserve a box rather than draw a picture, which is why this hides the
@@ -210,7 +218,7 @@
     } catch (e) {
       brand = null;
     }
-    return assign({ name: "", mark: "" }, brand || {});
+    return assign({ name: "", mark: "", wordmark: "" }, brand || {});
   }
 
   var MEDIA_KEY = "dovetail-docs-media";
@@ -693,6 +701,11 @@
           vars["--dt-space-" + axis + "-" + step] = "var(--dt-dim-" + space[axis][i] + ")";
         });
       });
+      ["stack", "inline"].forEach(function (axis) {
+        LAYERS.forEach(function (layer, i) {
+          vars["--dt-layout-" + axis + "-" + layer] = "var(--dt-dim-" + space.layers[axis][i] + ")";
+        });
+      });
       vars["--dt-space-section"] = "var(--dt-dim-" + space.section + ")";
       vars["--dt-space-gutter"] = "var(--dt-dim-" + space.gutter + ")";
     }
@@ -853,48 +866,62 @@
      in type rather than drawn. A name and an optional mark are all it takes. */
   var AUTHORED_TITLE = document.title;
 
+  /* An uploaded file, drawn as itself or, tinted, as a mask over the
+     wordmark's own colour, so it follows ink, primary or secondary with the
+     name and flips with dark mode. The shape is the brand's; the colour is the
+     system's. */
+  function paintAsset(img, tintClass, src, tinted) {
+    if (!img) return;
+    var tint = img.parentNode.querySelector("." + tintClass);
+    if (!src) {
+      img.removeAttribute("src");
+      img.hidden = true;
+      if (tint) tint.remove();
+      return;
+    }
+    img.src = src;
+    if (!tinted) {
+      img.hidden = false;
+      if (tint) tint.remove();
+      return;
+    }
+    if (!tint) {
+      tint = document.createElement("span");
+      tint.className = tintClass;
+      tint.setAttribute("aria-hidden", "true");
+      img.parentNode.insertBefore(tint, img);
+    }
+    var url = 'url("' + src.replace(/"/g, "%22") + '")';
+    tint.style.webkitMaskImage = url;
+    tint.style.maskImage = url;
+    /* The box takes the file's own proportions once it has loaded, so a wide
+       logotype stays wide. */
+    var ratio = function () {
+      if (img.naturalWidth && img.naturalHeight) tint.style.aspectRatio = img.naturalWidth + " / " + img.naturalHeight;
+    };
+    ratio();
+    img.onload = ratio;
+    img.hidden = true;
+  }
+
   function applyBrand() {
     var name = brand.name || "Dovetail";
 
+    /* A wordmark file stands in for the name; the brand mark sits beside
+       whichever of the two is showing. */
     var text = document.querySelector(".wordmark-text");
-    if (text) text.textContent = name;
-
-    var mark = document.querySelector(".wordmark-mark");
-    if (mark) {
-      if (brand.mark) {
-        mark.src = brand.mark;
-        mark.hidden = false;
-      } else {
-        mark.removeAttribute("src");
-        mark.hidden = true;
-      }
-
-      /* A tinted mark is the uploaded file used as a mask over the wordmark's
-         own colour, so it follows ink, primary or secondary with the name and
-         flips with dark mode. The shape is the brand's; the colour is the
-         system's. */
-      var tint = mark.parentNode.querySelector(".wordmark-mark-tint");
-      if (brand.mark && config.markTint) {
-        if (!tint) {
-          tint = document.createElement("span");
-          tint.className = "wordmark-mark-tint";
-          tint.setAttribute("aria-hidden", "true");
-          mark.parentNode.insertBefore(tint, mark);
-        }
-        var url = 'url("' + brand.mark.replace(/"/g, "%22") + '")';
-        tint.style.webkitMaskImage = url;
-        tint.style.maskImage = url;
-        /* The box takes the file's own proportions once it has loaded, so a
-           wide logotype stays wide. */
-        var ratio = function () {
-          if (mark.naturalWidth && mark.naturalHeight) tint.style.aspectRatio = mark.naturalWidth + " / " + mark.naturalHeight;
-        };
-        ratio();
-        mark.onload = ratio;
-        mark.hidden = true;
-      } else if (tint) {
-        tint.remove();
-      }
+    if (text) {
+      text.textContent = name;
+      text.hidden = !!brand.wordmark;
+    }
+    paintAsset(document.querySelector(".wordmark-mark"), "wordmark-mark-tint", brand.mark, config.markTint);
+    var logo = document.querySelector(".wordmark-logo");
+    paintAsset(logo, "wordmark-logo-tint", brand.wordmark, config.markTint);
+    var home = document.querySelector(".wordmark");
+    if (home) {
+      /* A file has no text, so the link keeps the name for a screen reader. */
+      if (brand.wordmark || brand.mark) home.setAttribute("aria-label", name);
+      else home.removeAttribute("aria-label");
     }
 
     /* The first crumb is the wordmark as a link, so it carries the name too.
@@ -909,7 +936,7 @@
 
   function setBrand(patch) {
     assign(brand, patch);
-    if (!brand.name && !brand.mark) store(BRAND_KEY, null);
+    if (!brand.name && !brand.mark && !brand.wordmark) store(BRAND_KEY, null);
     else store(BRAND_KEY, JSON.stringify(brand));
     applyBrand();
     render();
@@ -948,7 +975,7 @@
 
   function reset() {
     config = assign({}, DEFAULTS);
-    brand = { name: "", mark: "" };
+    brand = { name: "", mark: "", wordmark: "" };
     media = { photo: "", illustration: "" };
     store(KEY, null);
     store(BRAND_KEY, null);
@@ -1083,10 +1110,15 @@
     var space = WHITESPACE[config.whitespace];
     if (space) {
       lines.push("");
-      lines.push("  /* Whitespace: " + config.whitespace + " */");
+      lines.push("  /* Spacing: " + config.whitespace + " */");
       ["inset", "stack", "inline"].forEach(function (axis) {
         SPACE_STEPS.forEach(function (step, i) {
           lines.push("  --dt-space-" + axis + "-" + step + ": var(--dt-dim-" + space[axis][i] + ");");
+        });
+      });
+      ["stack", "inline"].forEach(function (axis) {
+        LAYERS.forEach(function (layer, i) {
+          lines.push("  --dt-layout-" + axis + "-" + layer + ": var(--dt-dim-" + space.layers[axis][i] + ");");
         });
       });
       lines.push("  --dt-space-section: var(--dt-dim-" + space.section + ");");
@@ -1158,13 +1190,14 @@
       lines.push("   content as props. */");
     }
 
-    if (brand.name || brand.mark) {
+    if (brand.name || brand.mark || brand.wordmark) {
       lines.push("");
       lines.push("/* Brand: the wordmark is the name set in the sans family at");
       lines.push("   --dt-font-weight-semibold with --dt-tracking-tight.");
       lines.push("     Name: " + (brand.name || "Dovetail"));
       lines.push("     Colour: " + (config.wordmarkColor === "ink" ? "ink (--dt-text-primary)" : config.wordmarkColor + ", set in the :root block above"));
-      if (brand.mark) lines.push("     Mark: supplied as a file; it is not a token and does not belong in this sheet.");
+      if (brand.wordmark) lines.push("     Wordmark: supplied as a file, shown in place of the name; it is not a token and does not belong in this sheet.");
+      if (brand.mark) lines.push("     Brand mark: supplied as a file; it is not a token and does not belong in this sheet.");
       lines.push(" */");
     }
 
@@ -1321,14 +1354,15 @@
 
   /* ------------------------------------------------------------- the tabs */
 
-  /* Seven groups is more than one column should carry at once, so the sheet
+  /* Eight groups is more than one column should carry at once, so the sheet
      opens on a menu of them, the way Gainer's sheets do, and each group is a
      layer with a back arrow to the menu. */
   var TABS = [
-    { id: "brand", label: "Brand", summary: "Name, mark, colours and fill", icon: "droplet", fields: brandFields },
+    { id: "brand", label: "Brand", summary: "Name, wordmark and brand mark", icon: "badge", fields: brandFields },
+    { id: "color", label: "Color", summary: "Primary, secondary, fill and steps", icon: "droplet", fields: colorFields },
     { id: "shape", label: "Shape", summary: "Radius and focus ring", icon: "square", fields: shapeFields },
     { id: "type", label: "Type", summary: "Display, body, secondary and code", icon: "type", fields: typeFields },
-    { id: "space", label: "Space", summary: "Whitespace, density and base unit", icon: "ruler", fields: spaceFields },
+    { id: "layout", label: "Layout", summary: "Spacing, density and base unit", icon: "ruler", fields: layoutFields },
     { id: "media", label: "Media", summary: "Photo, illustration and icons", icon: "image", fields: mediaFields },
     { id: "view", label: "View", summary: "Colour mode and context", icon: "monitor", fields: viewFields },
     { id: "export", label: "Export", summary: "Theme file and download", icon: "download", fields: exportFields },
@@ -1336,6 +1370,7 @@
 
   /* The sheet's own chrome, drawn to the site's icon convention. */
   var SHEET_ICONS = {
+    badge: '<path d="M12 3.5 20.5 12 12 20.5 3.5 12 12 3.5Z"/><path d="M12 8.5v7"/><path d="M8.5 12h7"/>',
     droplet: '<path d="M12 21.5a6.5 6.5 0 0 0 6.5-6.5c0-2-1.2-3.8-3-5.4C13.6 8 12.5 5.6 12 3c-.5 2.6-1.6 5-3.5 6.6-1.8 1.6-3 3.4-3 5.4a6.5 6.5 0 0 0 6.5 6.5Z"/>',
     square: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/>',
     type: '<path d="M4.5 7V4.5h15V7"/><path d="M9.5 19.5h5"/><path d="M12 4.5v15"/>',
@@ -1358,27 +1393,20 @@
     });
   }
 
-  function brandFields() {
-    var out = [];
+  /* One upload, for the wordmark file or the brand mark: a drop zone, a
+     preview with a remove button, and its own error line. */
+  function assetField(kind, label, hint, bid) {
+    var current = brand[kind];
+    var lower = label.toLowerCase();
 
-    out.push(
-      field(
-        "Name",
-        "Dovetail ships no logo. The wordmark is the name, set in the sans family.",
-        textInput("Name", "brand-name", brand.name, function (value) {
-          setBrand({ name: value });
-        })
-      )
-    );
-
-    var markFile = h("input", {
+    var file = h("input", {
       type: "file",
       accept: "image/*",
       class: "configure-file",
-      "data-bid": "brand-mark",
-      "aria-label": "Brand mark image",
+      "data-bid": bid,
+      "aria-label": label + " image",
       onchange: function (event) {
-        readMark(event.target.files[0]);
+        readBrandAsset(kind, event.target.files[0]);
         event.target.value = "";
       },
     });
@@ -1397,32 +1425,54 @@
         ondrop: function (event) {
           event.preventDefault();
           drop.removeAttribute("data-over");
-          readMark(event.dataTransfer.files[0]);
+          readBrandAsset(kind, event.dataTransfer.files[0]);
         },
       },
-      [h("span", { text: brand.mark ? "Replace the mark" : "Drop a mark, or choose a file" }), markFile]
+      [h("span", { text: current ? "Replace the " + lower : "Drop a " + lower + ", or choose a file" }), file]
     );
 
-    var markRow = [drop];
-    if (brand.mark) {
-      markRow.push(
+    var row = [drop];
+    if (current) {
+      var patch = {};
+      patch[kind] = "";
+      row.push(
         h("div", { class: "configure-mark-row" }, [
-          h("img", { class: "configure-mark", src: brand.mark, alt: "" }),
+          h("img", { class: "configure-mark" + (kind === "wordmark" ? " is-wordmark" : ""), src: current, alt: "" }),
           h("button", {
             type: "button",
             class: "configure-btn",
-            "data-bid": "brand-mark-remove",
-            text: "Remove mark",
+            "data-bid": bid + "-remove",
+            text: "Remove " + lower,
             onclick: function () {
-              setBrand({ mark: "" });
+              setBrand(patch);
             },
           }),
         ])
       );
     }
-    if (el.markError) markRow.push(h("p", { class: "configure-bad", role: "alert", text: el.markError }));
+    var err = el.brandError && el.brandError[kind];
+    if (err) row.push(h("p", { class: "configure-bad", role: "alert", text: err }));
 
-    out.push(field("Mark", "Shown beside the name in the header of every page. SVG or PNG, up to 512KB.", h("div", { class: "configure-stack" }, markRow)));
+    return field(label, hint, h("div", { class: "configure-stack" }, row));
+  }
+
+  /* Who you are: a name, and the wordmark and mark that carry it. Colour is
+     its own group, so nothing here needs a palette. */
+  function brandFields() {
+    var out = [];
+
+    out.push(
+      field(
+        "Name",
+        "Dovetail ships no logo. Without a wordmark file, the wordmark is the name, set in the sans family.",
+        textInput("Name", "brand-name", brand.name, function (value) {
+          setBrand({ name: value });
+        })
+      )
+    );
+
+    out.push(assetField("wordmark", "Wordmark", "Your logotype, shown in the header in place of the name. SVG or PNG, up to 512KB.", "brand-wordmark"));
+    out.push(assetField("mark", "Brand mark", "A small symbol shown beside the wordmark or the name in the header of every page. SVG or PNG, up to 512KB.", "brand-mark"));
 
     out.push(
       field(
@@ -1440,17 +1490,25 @@
       )
     );
 
-    if (brand.mark) {
+    if (brand.mark || brand.wordmark) {
       out.push(
         field(
-          "Mark colour",
-          "Original keeps the file's own colours. Match wordmark uses its shape only, filled with the wordmark colour, so it goes monochrome with Ink and flips with dark mode.",
-          segmented("Mark colour", "marktint", [{ value: "original", label: "Original" }, { value: "match", label: "Match wordmark" }], config.markTint ? "match" : "original", function (value) {
+          "File colour",
+          "Original keeps your files' own colours. Match wordmark uses their shape only, filled with the wordmark colour, so they go monochrome with Ink and flip with dark mode.",
+          segmented("File colour", "marktint", [{ value: "original", label: "Original" }, { value: "match", label: "Match wordmark" }], config.markTint ? "match" : "original", function (value) {
             commit({ markTint: value === "match" });
           })
         )
       );
     }
+
+    return out;
+  }
+
+  /* What the brand looks like: the two hues, how far they reach into the
+     controls, the fills and textures built from them, and the ramps. */
+  function colorFields() {
+    var out = [];
 
     out.push(field("Primary", "The brand hue: brand fills, charts, progress, badges and the thinking animation. Start from a tuned ramp, or give your exact brand colour and the ramp is built around it.", brandField("primary")));
     out.push(
@@ -1732,7 +1790,8 @@
       })
     );
     parts.push(
-      h("details", { class: "configure-checks-wrap", open: failing.length ? true : null }, [
+      /* Closed either way: the summary already says whether any pair fails. */
+      h("details", { class: "configure-checks-wrap" + (failing.length ? " has-fail" : "") }, [
         h("summary", { text: failing.length ? failing.length + " of " + results.length + " pairs below WCAG AA" : "All " + results.length + " pairs pass WCAG AA" }),
         list,
       ])
@@ -1925,15 +1984,15 @@
     ];
   }
 
-  function spaceFields() {
+  function layoutFields() {
     return [
       field(
-        "Whitespace",
-        "Moves all three space axes and the page rhythm together, staying on the grid. Tight fits more on a screen; airy gives each block room to be read on its own.",
+        "Spacing",
+        "The character of the layout. Tight is technical: the layers of a screen sit close and nothing is wasted. Open is breathing room: what is related stays close and the layers move apart. It moves the layout layers, the three space axes and the page rhythm together, on the grid.",
         segmented(
-          "Whitespace",
+          "Spacing",
           "whitespace",
-          [{ value: "tight", label: "Tight" }, { value: "balanced", label: "Balanced" }, { value: "airy", label: "Airy" }],
+          [{ value: "tight", label: "Tight" }, { value: "balanced", label: "Balanced" }, { value: "airy", label: "Open" }],
           config.whitespace,
           function (value) {
             commit({ whitespace: value });
@@ -2318,25 +2377,29 @@
     return href.replace(/index\.html$/, "");
   }
 
-  function readMark(file) {
-    el.markError = null;
+  function readBrandAsset(kind, file) {
+    el.brandError = el.brandError || {};
+    el.brandError[kind] = null;
     if (!file) return;
+    var what = kind === "wordmark" ? "wordmark" : "mark";
     if (!/^image\//.test(file.type)) {
-      el.markError = "That is not an image file.";
+      el.brandError[kind] = "That is not an image file.";
       renderBody();
       return;
     }
     if (file.size > MARK_LIMIT) {
-      el.markError = "That mark is " + Math.round(file.size / 1024) + "KB. The limit is 512KB, because it is held in this browser.";
+      el.brandError[kind] = "That " + what + " is " + Math.round(file.size / 1024) + "KB. The limit is 512KB, because it is held in this browser.";
       renderBody();
       return;
     }
     var reader = new FileReader();
     reader.onload = function () {
-      setBrand({ mark: String(reader.result) });
+      var patch = {};
+      patch[kind] = String(reader.result);
+      setBrand(patch);
     };
     reader.onerror = function () {
-      el.markError = "That file could not be read.";
+      el.brandError[kind] = "That file could not be read.";
       renderBody();
     };
     reader.readAsDataURL(file);

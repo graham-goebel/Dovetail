@@ -573,7 +573,7 @@ const FOUNDATIONS = [
   ["Foundations", "foundations", "The contract the rest of the system rests on.", "compass"],
   ["Color", "color", "Seven OKLCH ramps, six surface levels, and the pairing rule.", "droplet"],
   ["Type", "type", "A 1.200 scale from 16px, with line heights on the 4px grid.", "type"],
-  ["Space", "space", "One 4px base unit, read through three semantic axes.", "ruler"],
+  ["Layout", "layout", "One 4px unit, read as three axes and four layers, tight to open.", "ruler"],
   ["Shape", "shape", "Radius named by what it wraps, and one focus ring.", "square"],
   ["Size", "size", "Control heights and icon sizes, all on the grid.", "scale"],
   ["Elevation", "elevation", "Six levels of z-order, not a menu of shadows.", "layers"],
@@ -592,6 +592,12 @@ const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === gr
    seven raw ramps and seven semantic roles, interleaved by whatever order the
    cards happened to sort in. Named here, the page reads as the tiers do. */
 const CARD_SECTIONS = {
+  Layout: [
+    ["Scale and axes", "One base unit, and three axes that say which way a gap runs: inset, stack and inline.",
+      ["SpaceScale", "SpaceAxes"]],
+    ["Layers", "Four layers say how closely two things belong together, and the layout's character moves them as one: tight and technical, balanced, or open with room to breathe. Stack and Inline take a layer and a spacing prop.",
+      ["LayoutLayers", "SpaceInUse"]],
+  ],
   Color: [
     ["Ramps", "The raw hues, eleven steps each. Nothing in a component names one.",
       ["ColorNeutral", "ColorPrimary", "ColorSecondary", "ColorRed", "ColorAmber", "ColorGreen", "ColorCyan", "ColorViolet"]],
@@ -640,10 +646,6 @@ function nav(root, active) {
   });
 
   return `<nav class="sidebar" id="sidebar" aria-label="Documentation">
-  <div class="nav-filter">
-    <label class="visually-hidden" for="nav-search">Filter navigation</label>
-    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
-  </div>
   <ul class="nav-top">
     ${item("index.html", "Overview", "home")}
     ${item("downloads.html", "Download", "downloads")}
@@ -831,7 +833,7 @@ function pageActions({ title, root, md, mdName, pageUrl, sources = [] }) {
   const sheet = `<div class="asheet-bg" id="page-sheet" hidden>
   <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
     <div class="asheet-head">
-      <div class="asheet-titles"><p class="asheet-eyebrow">This page</p><h2 class="asheet-title" id="page-sheet-title">${esc(title)}</h2></div>
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">${esc(title)}</h2></div>
       <button type="button" class="asheet-x" data-sheet-close aria-label="Close">${icon("x").replace('class="tile-icon"', 'class="ic"')}</button>
     </div>
     <ul class="page-menu" id="page-menu">
@@ -925,6 +927,7 @@ function page({ title, lede, body, active, root, wide = false, home = false, scr
 <header class="site-header">
   <a class="wordmark" href="${root}index.html">
     <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
     <span class="wordmark-text">Dovetail</span>
   </a>
   <span class="wordmark-note">White-label design system</span>
@@ -1186,7 +1189,7 @@ function breadcrumb(root, trail) {
    neighbours apart. The pages keep their full sentences. Anything missing here
    falls back to the first clause of its own summary. */
 const NAV_BLURB = {
-  Foundations: "The token contract", Color: "Ramps and roles", Type: "Scale and roles", Space: "The 4px grid",
+  Foundations: "The token contract", Color: "Ramps and roles", Type: "Scale and roles", Layout: "Axes, layers, density",
   Shape: "Radius and focus", Size: "Controls and icons", Elevation: "Layers and shadow", Motion: "Duration and easing",
   Themes: "Brand and density", Tokens: "Every value, every theme",
   Divider: "A rule between groups", Grid: "Equal columns", Inline: "A row that wraps", Spacer: "Push siblings apart",
@@ -1275,7 +1278,7 @@ function buildHome() {
     `<div class="sec-head${centred ? " centred" : ""}"><span class="eyebrow">${esc(eyebrow)}</span><h2 class="sec-h">${esc(title)}</h2>${lead ? `<p class="lead">${esc(lead)}</p>` : ""}</div>`;
   const checks = (items) => `<ul class="checks">${items.map((t) => `<li>${glyph("check")}${esc(t)}</li>`).join("")}</ul>`;
   const tiles = [
-    ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
+    ["foundations/index.html", "Foundations", "Colour, type, layout, shape, elevation and motion, each with live spec cards.", "layers"],
     ["components/index.html", "Components", `${components.length} components across ${FAMILIES} families, with props, source and usage rules.`, "blocks"],
     ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
     ["showcase/templates.html", "Templates", "Product screens, marketing pages and social posts.", "monitor"],
@@ -1452,6 +1455,25 @@ ${cardsHtml}
 `;
     writePage(`foundations/${s}.html`, { title: group, lede: text, body, active: `foundations:${s}`, root: "../" });
   }
+
+  /* Space became Layout, and the old address forwards to the new one. */
+  write(
+    "foundations/space.html",
+    `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout · Dovetail</title>
+<meta http-equiv="refresh" content="0; url=layout.html">
+<link rel="canonical" href="${SITE_URL}foundations/layout.html">
+</head>
+<body>
+<p>Space is now <a href="layout.html">Layout</a>.</p>
+</body>
+</html>
+`
+  );
 }
 
 /* --------------------------------------------------------- component pages */

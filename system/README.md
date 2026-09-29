@@ -74,7 +74,7 @@ The documented exception: data visualisation reads primitives directly, because 
 
 **Type.** Geist for UI and Geist Mono for code, both overridable in one line. Sizes follow a 1.200 modular scale from 16px; line heights snap to the 4px grid so text aligns with everything around it. Five role families (display, heading, body, label, code), each shipping family, size, line-height, weight, and tracking together.
 
-**Space.** One base unit of 4px. Three semantic axes so intent is legible in markup: `inset` for padding, `stack` for vertical gaps, `inline` for horizontal gaps.
+**Layout.** One base unit of 4px. Three semantic axes so intent is legible in markup: `inset` for padding, `stack` for vertical gaps, `inline` for horizontal gaps. Four layers on top (`related`, `group`, `block`, `section`) say how closely two things belong together, and a layout character (`tight`, `balanced`, `open`) moves them as one, from technical to room to breathe.
 
 **Shape.** Radius is named by what it wraps: `control`, `container`, `overlay`, `media`, `pill`. The defaults are round: 8px fields, 16px cards and menus, 24px dialogs and sheets, and pill-shaped buttons (`--dt-button-radius` reads `pill`). A square-cornered theme flattens the system in five lines.
 

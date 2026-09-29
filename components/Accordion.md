@@ -55,10 +55,10 @@ export declare function Accordion(props: AccordionProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
+| `--dt-motion-emphasis` | semantic | `var(--dt-duration-300) var(--dt-easing-emphasis)` |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-inset-sm` | semantic | `var(--dt-dim-3)` |
-| `--dt-text-body-md-size` | semantic | `var(--dt-font-size-md)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |
@@ -67,9 +67,8 @@ export declare function Accordion(props: AccordionProps): JSX.Element;
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
+| `--dt-duration-300` | primitive | `300ms` |
 | `--dt-font-weight-medium` | primitive | `500` |
-| `--dt-motion-duration-fast` | none | not declared |
-| `--dt-motion-easing-standard` | none | not declared |
 
 ## Source
 
@@ -108,21 +107,36 @@ export function Accordion({ items = [], allowMultiple = false, defaultOpen = [],
                 }}
               >
                 <span style={{ minWidth: 0 }}>{it.title}</span>
-                <span aria-hidden="true" style={{
-                  flex: "none", color: "var(--dt-text-tertiary)", fontSize: "var(--dt-text-body-md-size)",
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" style={{
+                  flex: "none", color: "var(--dt-text-tertiary)",
                   transform: on ? "rotate(180deg)" : "none",
-                  transition: "transform var(--dt-motion-duration-fast) var(--dt-motion-easing-standard)",
-                }}>⌄</span>
+                  transition: "transform var(--dt-motion-emphasis)",
+                }}>
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" style={{
+                    transformOrigin: "12px 12px", transform: on ? "scaleY(0)" : "none",
+                    transition: "transform var(--dt-motion-emphasis)",
+                  }} />
+                </svg>
               </button>
             </h3>
-            {on && (
-              <div id={"acc-panel-" + id} role="region" aria-labelledby={"acc-btn-" + id} style={{
-                padding: "0 0 var(--dt-space-inset-md)",
-                fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)",
-                lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)",
-                maxWidth: "62ch", textWrap: "pretty",
-              }}>{it.content}</div>
-            )}
+            {/* The panel stays mounted so its height can ease open and shut;
+                closed, it is hidden from the tab order and the accessibility tree. */}
+            <div style={{
+              display: "grid", gridTemplateRows: on ? "1fr" : "0fr",
+              visibility: on ? "visible" : "hidden",
+              transition: "grid-template-rows var(--dt-motion-emphasis), visibility 0s linear " + (on ? "0s" : "var(--dt-duration-300)"),
+            }}>
+              <div style={{ overflow: "hidden", minHeight: 0 }}>
+                <div id={"acc-panel-" + id} role="region" aria-labelledby={"acc-btn-" + id} style={{
+                  padding: "0 0 var(--dt-space-inset-md)",
+                  fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)",
+                  lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)",
+                  maxWidth: "62ch", textWrap: "pretty",
+                  opacity: on ? 1 : 0, transition: "opacity var(--dt-motion-emphasis)",
+                }}>{it.content}</div>
+              </div>
+            </div>
           </div>
         );
       })}

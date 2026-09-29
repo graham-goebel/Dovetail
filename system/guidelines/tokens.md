@@ -118,7 +118,7 @@ Four variants, each with resting, hover, active, and foreground roles:
 Plus `action-disabled`, which is shared, because a disabled button looks the same regardless of
 what variant it would otherwise be.
 
-### Space
+### Layout
 
 Three axes. `16px` does not say what the gap is for; `--dt-space-stack-md` does.
 
@@ -127,6 +127,13 @@ Three axes. `16px` does not say what the gap is for; `--dt-space-stack-md` does.
 - `inline-*`: horizontal gap between siblings
 
 Naming the axis also lets a density theme retune one axis without touching the others.
+
+Four layers say how closely the two things either side of a gap belong together:
+`--dt-layout-stack-*` and `--dt-layout-inline-*` for `related` (parts of one thing), `group` (members
+of a set), `block` (one unit from the next) and `section` (a theme from the next). The layout's
+character moves them as one: `tight` for a technical screen, `balanced`, or `open` for breathing room,
+where what is related stays close and the layers move apart. Set it on the page in Configure, or on
+any region with `data-layout`; `Stack` and `Inline` take `layer` and `spacing` props for it.
 
 ### Size
 

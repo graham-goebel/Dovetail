@@ -15,7 +15,7 @@ broken token shows up as a broken page.
 
 ```
 index.html          Overview
-foundations/        Colour, type, space, shape, size, elevation, motion, themes
+foundations/        Colour, type, layout, shape, size, elevation, motion, themes
 components/         One page per component: live card, guidelines, props, source
 showcase/           Family reference cards, templates, tools
 guide/              README, theming, accessibility, contributing, token pipeline

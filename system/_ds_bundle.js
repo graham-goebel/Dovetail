@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"3ca15973e719","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"0908278f6d67","components/blocks/FeatureGridBlock.jsx":"8a2bed476461","components/blocks/HeroBlock.jsx":"5d708ac74dc8","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"6b92ba6e4df6","components/blocks/TestimonialBlock.jsx":"dc19cc075267","components/content/SocialPost.jsx":"a2a789317818"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"b3a66bda5e2c","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"6bb078c4ca36","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"3ca15973e719","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"0908278f6d67","components/blocks/FeatureGridBlock.jsx":"8a2bed476461","components/blocks/HeroBlock.jsx":"5d708ac74dc8","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"6b92ba6e4df6","components/blocks/TestimonialBlock.jsx":"dc19cc075267","components/content/SocialPost.jsx":"a2a789317818"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -304,16 +304,44 @@ function Accordion({
       style: {
         minWidth: 0
       }
-    }, it.title), /*#__PURE__*/React.createElement("span", {
+    }, it.title), /*#__PURE__*/React.createElement("svg", {
       "aria-hidden": "true",
+      focusable: "false",
+      viewBox: "0 0 24 24",
+      width: "20",
+      height: "20",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: "1.75",
+      strokeLinecap: "round",
       style: {
         flex: "none",
         color: "var(--dt-text-tertiary)",
-        fontSize: "var(--dt-text-body-md-size)",
         transform: on ? "rotate(180deg)" : "none",
-        transition: "transform var(--dt-motion-duration-fast) var(--dt-motion-easing-standard)"
+        transition: "transform var(--dt-motion-emphasis)"
       }
-    }, "⌄"))), on && /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("path", {
+      d: "M5 12h14"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M12 5v14",
+      style: {
+        transformOrigin: "12px 12px",
+        transform: on ? "scaleY(0)" : "none",
+        transition: "transform var(--dt-motion-emphasis)"
+      }
+    })))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateRows: on ? "1fr" : "0fr",
+        visibility: on ? "visible" : "hidden",
+        transition: "grid-template-rows var(--dt-motion-emphasis), visibility 0s linear " + (on ? "0s" : "var(--dt-duration-300)")
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        overflow: "hidden",
+        minHeight: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
       id: "acc-panel-" + id,
       role: "region",
       "aria-labelledby": "acc-btn-" + id,
@@ -324,9 +352,11 @@ function Accordion({
         lineHeight: "var(--dt-text-body-sm-line)",
         color: "var(--dt-text-secondary)",
         maxWidth: "62ch",
-        textWrap: "pretty"
+        textWrap: "pretty",
+        opacity: on ? 1 : 0,
+        transition: "opacity var(--dt-motion-emphasis)"
       }
-    }, it.content));
+    }, it.content))));
   }));
 }
 Object.assign(__ds_scope, { Accordion });
@@ -4231,8 +4261,16 @@ const GAPS = {
   xl: "var(--dt-space-inline-xl)",
   "2xl": "var(--dt-space-inline-2xl)"
 };
+const LAYERS = {
+  related: "var(--dt-layout-inline-related)",
+  group: "var(--dt-layout-inline-group)",
+  block: "var(--dt-layout-inline-block)",
+  section: "var(--dt-layout-inline-section)"
+};
 function Inline({
   gap = "sm",
+  layer,
+  spacing,
   align = "center",
   justify,
   wrap = true,
@@ -4242,10 +4280,11 @@ function Inline({
   ...rest
 }) {
   return /*#__PURE__*/React.createElement(Tag, {
+    "data-layout": spacing,
     style: {
       display: "flex",
       flexDirection: "row",
-      gap: GAPS[gap] || GAPS.sm,
+      gap: LAYERS[layer] || GAPS[gap] || GAPS.sm,
       alignItems: align,
       justifyContent: justify,
       flexWrap: wrap ? "wrap" : "nowrap",
@@ -4308,8 +4347,16 @@ const GAPS = {
   xl: "var(--dt-space-stack-xl)",
   "2xl": "var(--dt-space-stack-2xl)"
 };
+const LAYERS = {
+  related: "var(--dt-layout-stack-related)",
+  group: "var(--dt-layout-stack-group)",
+  block: "var(--dt-layout-stack-block)",
+  section: "var(--dt-layout-stack-section)"
+};
 function Stack({
   gap = "md",
+  layer,
+  spacing,
   align,
   justify,
   as: Tag = "div",
@@ -4318,10 +4365,11 @@ function Stack({
   ...rest
 }) {
   return /*#__PURE__*/React.createElement(Tag, {
+    "data-layout": spacing,
     style: {
       display: "flex",
       flexDirection: "column",
-      gap: GAPS[gap] || GAPS.md,
+      gap: LAYERS[layer] || GAPS[gap] || GAPS.md,
       alignItems: align,
       justifyContent: justify,
       ...style

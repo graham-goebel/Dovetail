@@ -1,0 +1,61 @@
+/* TIER 2 — SEMANTIC LAYOUT
+   The space axes say which way a gap runs. Layers say how closely the two
+   things either side of it belong together, and that is what a layout is
+   really made of.
+
+   related  — parts of one thing: a label and its value, an icon and its text
+   group    — members of a set: the fields in a form, the buttons in a row
+   block    — one unit from the next: a card from a card, a group from a group
+   section  — a theme from the next within a region of the page
+
+   Each layer has a stack (vertical) and an inline (horizontal) gap. The
+   character of the layout moves them together:
+
+   tight     Technical. The layers sit close, so a dense screen still reads in
+             levels, and nothing is wasted.
+   balanced  The default.
+   open      Breathing room. Related things stay close and the layers move
+             apart, which is what makes the room read as deliberate.
+
+   The character is set on the page by the Configure sheet, or on any region
+   with data-layout="tight | balanced | open" (Stack and Inline take it as
+   their spacing prop). Custom properties resolve where they are declared, so
+   every character is declared under its own selector here, and a region set
+   inside a page of another character returns to its own. */
+
+:root,
+[data-layout="balanced"] {
+  --dt-layout-stack-related: var(--dt-dim-2);   /* 8  */
+  --dt-layout-stack-group: var(--dt-dim-4);     /* 16 */
+  --dt-layout-stack-block: var(--dt-dim-8);     /* 32 */
+  --dt-layout-stack-section: var(--dt-dim-16);  /* 64 */
+
+  --dt-layout-inline-related: var(--dt-dim-2);  /* 8  */
+  --dt-layout-inline-group: var(--dt-dim-3);    /* 12 */
+  --dt-layout-inline-block: var(--dt-dim-6);    /* 24 */
+  --dt-layout-inline-section: var(--dt-dim-12); /* 48 */
+}
+
+[data-layout="tight"] {
+  --dt-layout-stack-related: var(--dt-dim-1);   /* 4  */
+  --dt-layout-stack-group: var(--dt-dim-2);     /* 8  */
+  --dt-layout-stack-block: var(--dt-dim-4);     /* 16 */
+  --dt-layout-stack-section: var(--dt-dim-6);   /* 24 */
+
+  --dt-layout-inline-related: var(--dt-dim-1);  /* 4  */
+  --dt-layout-inline-group: var(--dt-dim-2);    /* 8  */
+  --dt-layout-inline-block: var(--dt-dim-3);    /* 12 */
+  --dt-layout-inline-section: var(--dt-dim-6);  /* 24 */
+}
+
+[data-layout="open"] {
+  --dt-layout-stack-related: var(--dt-dim-2);   /* 8  */
+  --dt-layout-stack-group: var(--dt-dim-6);     /* 24 */
+  --dt-layout-stack-block: var(--dt-dim-14);    /* 56 */
+  --dt-layout-stack-section: var(--dt-dim-28);  /* 112 */
+
+  --dt-layout-inline-related: var(--dt-dim-2);  /* 8  */
+  --dt-layout-inline-group: var(--dt-dim-4);    /* 16 */
+  --dt-layout-inline-block: var(--dt-dim-8);    /* 32 */
+  --dt-layout-inline-section: var(--dt-dim-16); /* 64 */
+}

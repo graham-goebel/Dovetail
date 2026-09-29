@@ -26,8 +26,18 @@ Horizontal layout primitive. Wraps by default, because a row of buttons that ove
 ### Variants
 Set `wrap={false}` only when overflow is handled another way, such as a scrolling toolbar.
 
+### Layers and spacing
+`layer` sets the gap by how closely the neighbours belong together (`related`, `group`, `block` or `section`) instead of by step, and the layout's character moves it: `spacing="tight"` for a technical toolbar, `open` for room to breathe. It wins over `gap`. Where each layer sits in both directions is on Foundations, Layout.
+
+```jsx
+<Inline layer="related">
+  <Icon name="clock" />
+  <Text>4 days</Text>
+</Inline>
+```
+
 ### Tokens
-`--dt-space-inline-*`.
+`--dt-space-inline-*` for `gap`, and `--dt-layout-inline-*` for `layer`.
 
 ## Props
 
@@ -38,6 +48,10 @@ import * as React from "react";
 export interface InlineProps extends React.HTMLAttributes<HTMLElement> {
   /** Gap from the inline axis of the space scale. @default "sm" */
   gap?: "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  /** How closely the things either side of this gap belong together, from the layout layers: `related` (parts of one thing), `group` (members of a set), `block` (one unit from the next), `section` (a theme from the next). Sets the gap from `--dt-layout-inline-*`, which the layout's character moves as one, and wins over `gap`. */
+  layer?: "related" | "group" | "block" | "section";
+  /** The layout's character for this element and everything inside it: `tight` (technical), `balanced` or `open` (breathing room). Sets `data-layout`, which re-declares the layer tokens here. Inherited from the page when not set. */
+  spacing?: "tight" | "balanced" | "open";
   /** @default "center" */
   align?: React.CSSProperties["alignItems"];
   justify?: React.CSSProperties["justifyContent"];
@@ -55,6 +69,10 @@ export declare function Inline(props: InlineProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-layout-inline-block` | semantic | `var(--dt-dim-6)` |
+| `--dt-layout-inline-group` | semantic | `var(--dt-dim-3)` |
+| `--dt-layout-inline-related` | semantic | `var(--dt-dim-2)` |
+| `--dt-layout-inline-section` | semantic | `var(--dt-dim-12)` |
 | `--dt-space-inline-2xl` | semantic | `var(--dt-dim-12)` |
 | `--dt-space-inline-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inline-lg` | semantic | `var(--dt-dim-6)` |
@@ -70,9 +88,11 @@ import React from "react";
 
 const GAPS = { "2xs": "var(--dt-space-inline-2xs)", xs: "var(--dt-space-inline-xs)", sm: "var(--dt-space-inline-sm)", md: "var(--dt-space-inline-md)", lg: "var(--dt-space-inline-lg)", xl: "var(--dt-space-inline-xl)", "2xl": "var(--dt-space-inline-2xl)" };
 
-export function Inline({ gap = "sm", align = "center", justify, wrap = true, as: Tag = "div", children, style, ...rest }) {
+const LAYERS = { related: "var(--dt-layout-inline-related)", group: "var(--dt-layout-inline-group)", block: "var(--dt-layout-inline-block)", section: "var(--dt-layout-inline-section)" };
+
+export function Inline({ gap = "sm", layer, spacing, align = "center", justify, wrap = true, as: Tag = "div", children, style, ...rest }) {
   return (
-    <Tag style={{ display: "flex", flexDirection: "row", gap: GAPS[gap] || GAPS.sm, alignItems: align, justifyContent: justify, flexWrap: wrap ? "wrap" : "nowrap", ...style }} {...rest}>
+    <Tag data-layout={spacing} style={{ display: "flex", flexDirection: "row", gap: LAYERS[layer] || GAPS[gap] || GAPS.sm, alignItems: align, justifyContent: justify, flexWrap: wrap ? "wrap" : "nowrap", ...style }} {...rest}>
       {children}
     </Tag>
   );
