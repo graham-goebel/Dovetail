@@ -1,7 +1,7 @@
 import * as React from "react";
 
 /** Short label revealed on hover or focus. */
-export interface TooltipProps extends React.HTMLAttributes<HTMLSpanElement> {
+export interface TooltipProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, "content"> {
   /** Tooltip text. Keep it to a few words. */
   content: React.ReactNode;
   /** The trigger. Must be focusable. */

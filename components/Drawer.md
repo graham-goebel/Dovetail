@@ -33,7 +33,7 @@ longer than a couple of fields, a dedicated page respects the browser's back but
 import * as React from "react";
 
 /** Modal panel that slides in from an edge. */
-export interface DrawerProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface DrawerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   open: boolean;
   onClose?: () => void;
   /** Header text. Also the accessible name when it is a string. */

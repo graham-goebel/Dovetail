@@ -1,7 +1,7 @@
 import * as React from "react";
 
 /** Aside inside editorial content. */
-export interface CalloutProps extends React.HTMLAttributes<HTMLElement> {
+export interface CalloutProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   /**
    * note, tip, important and caution are feedback tones: pale, and matched to
    * a semantic role a reader already knows from Alert and Banner. brand is

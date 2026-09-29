@@ -30,7 +30,7 @@ casual browsing. Use it for tables and search results, not for feeds.
 import * as React from "react";
 
 /** Page-by-page navigation for a known result count. */
-export interface PaginationProps extends React.HTMLAttributes<HTMLElement> {
+export interface PaginationProps extends Omit<React.HTMLAttributes<HTMLElement>, "onChange"> {
   /** Current page, 1-indexed. */
   page: number;
   totalPages: number;

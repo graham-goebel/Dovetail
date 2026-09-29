@@ -1,6 +1,7 @@
 <!-- @dsCard group="Color" height=184 width=700 subtitle="Green ramp — Success." page -->
 <!DOCTYPE html>
 <html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
 <script src="../system/components/lib/react.production.min.js"></script>
 <script src="../system/components/lib/react-dom.production.min.js"></script>
@@ -9,7 +10,7 @@
 <style>body{margin:0;padding:16px 20px;font-family:var(--dt-font-family-sans);color:var(--dt-text-primary);background:var(--dt-surface-base)}
 .row{display:flex;gap:8px}.col{display:flex;flex-direction:column;gap:8px}
 .sw{flex:1;height:96px;border-radius:var(--dt-radius-container);display:flex;flex-direction:column;justify-content:flex-end;padding:8px;box-sizing:border-box;font-size:11px;font-weight:500;line-height:1.3}
-.sw b{font-weight:600}.sw i{font-style:normal;opacity:.72;font-size:10px}
+.sw b{font-weight:600}@media(max-width:560px){.row{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}}.sw i{font-style:normal;opacity:.72;font-size:10px}
 .lbl{font-size:11px;color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono)}
 table{border-collapse:collapse;width:100%;font-size:12px}td{padding:4px 10px 4px 0;vertical-align:middle}
 td.k{font-family:var(--dt-font-family-mono);color:var(--dt-text-secondary);white-space:nowrap}

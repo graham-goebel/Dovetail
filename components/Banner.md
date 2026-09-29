@@ -31,7 +31,7 @@ not for. Target it to the accounts that can act on it.
 import * as React from "react";
 
 /** Full-width message pinned to the top of a page or region. */
-export interface BannerProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface BannerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** @default "info" */
   tone?: "info" | "success" | "warning" | "danger";
   title?: React.ReactNode;

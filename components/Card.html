@@ -7,7 +7,7 @@
 <meta name="description" content="A content container. Card is the clearest demonstration of the context system: the same component is a bordered, flat panel in product and a borderless, softly raised content block in marketing.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=5fade5e9d1">
-<link rel="stylesheet" href="../assets/site.css?v=a69c534096">
+<link rel="stylesheet" href="../assets/site.css?v=24057f06b3">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Card.html?v=cf3c567c43&amp;b=360f8cf046" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Card.html?v=7b4b906b1f&amp;b=e65605a26b" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:1100px">
-    <iframe src="../previews/Card.html?v=cf3c567c43&amp;b=360f8cf046" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Card.html?v=7b4b906b1f&amp;b=e65605a26b" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -134,7 +134,7 @@
 /**
  * Content container. The most context-sensitive component in the system.
  */
-export interface CardProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
+export interface CardProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;title&quot;&gt; {
   /** Uppercase label above the title. */
   eyebrow?: string;
   title?: React.ReactNode;
@@ -251,6 +251,16 @@ function prefersReducedMotion() {
 
 export function Card({ eyebrow, title, description, media, footer, href, interactive = false, selected = false, surface = &quot;raised&quot;, background, backgroundVideo, backgroundPosition = &quot;center&quot;, scrim = &quot;gradient&quot;, onMedia = &quot;light&quot;, as: Tag = &quot;div&quot;, className, children, style, ...rest }) {
   const [hover, setHover] = React.useState(false);
+  /* The video starts from an effect rather than an autoPlay attribute, so the
+     server and the browser render the same markup; reduced motion leaves it on
+     its poster. It is muted and inline, which browsers let play unprompted. */
+  const video = React.useRef(null);
+  React.useEffect(() =&gt; {
+    const v = video.current;
+    if (!v || prefersReducedMotion()) return;
+    const playing = v.play();
+    if (playing &amp;&amp; playing.catch) playing.catch(() =&gt; {});
+  }, [backgroundVideo]);
   const linked = !!href;
   const lift = interactive || linked;
   const glass = SURFACES[surface];
@@ -284,7 +294,7 @@ export function Card({ eyebrow, title, description, media, footer, href, interac
       &gt;
         &lt;div aria-hidden=&quot;true&quot; style={{ position: &quot;absolute&quot;, inset: 0, zIndex: 0 }}&gt;
           {backgroundVideo ? (
-            &lt;video src={backgroundVideo} poster={background} muted loop playsInline autoPlay={!prefersReducedMotion()} preload=&quot;metadata&quot; tabIndex={-1}
+            &lt;video ref={video} src={backgroundVideo} poster={background} muted loop playsInline preload=&quot;metadata&quot; tabIndex={-1}
               style={{ width: &quot;100%&quot;, height: &quot;100%&quot;, objectFit: &quot;cover&quot;, objectPosition: backgroundPosition, display: &quot;block&quot; }} /&gt;
           ) : (
             &lt;img src={background} alt=&quot;&quot; loading=&quot;lazy&quot; style={{ width: &quot;100%&quot;, height: &quot;100%&quot;, objectFit: &quot;cover&quot;, objectPosition: backgroundPosition, display: &quot;block&quot; }} /&gt;
@@ -437,7 +447,7 @@ export function Card({ eyebrow, title, description, media, footer, href, interac
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=360f8cf046" defer></script>
+<script src="../system/components/bundle.js?v=e65605a26b" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

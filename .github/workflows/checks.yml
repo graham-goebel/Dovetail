@@ -39,6 +39,15 @@ jobs:
       - name: Changelog entries are valid
         run: node tools/changelog.mjs --check
 
+      - name: Every component renders on the server
+        run: npm run check:ssr
+
+      - name: The package builds, imports, renders and type-checks
+        run: npm run check:package
+
+      - name: The packed package installs and works in a clean project
+        run: npm run check:consumer
+
       # A pull request that changes what the system ships must add an entry to
       # changes/. The skip-changelog label turns this off for the rare pull
       # request with nothing to say; prefer an entry with `bump: none`.

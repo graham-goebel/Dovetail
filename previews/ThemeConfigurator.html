@@ -1,6 +1,7 @@
 <!-- @dsCard group="Tools" height=1325 width=1280 subtitle="Theme configurator — Tune primary colour, radius, type and density live; export a theme file" page -->
 <!DOCTYPE html>
 <html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
 <script src="../system/components/lib/react.production.min.js"></script>
 <script src="../system/components/lib/react-dom.production.min.js"></script>
@@ -39,6 +40,8 @@ h1{margin:0;font-size:28px;font-weight:600}
 .dirtynote{font-size:12px;color:var(--dt-text-tertiary);margin:0 0 8px}
 .presetselect{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:var(--dt-radius-control);border:var(--dt-border-width-hair) solid var(--dt-border-default);background:var(--dt-surface-raised);color:var(--dt-text-primary);font-size:13px}
 @keyframes dt-spin{to{transform:rotate(360deg)}}
+/* On a phone the panel sits above the preview and both give their padding back. */
+@media(max-width:720px){.layout{grid-template-columns:minmax(0,1fr)}.panel-col{border-right:0;border-bottom:var(--dt-border-width-hair) solid var(--dt-border-default);padding:20px 16px}.preview{padding:20px 16px}.grid3{grid-template-columns:minmax(0,1fr)}.savebar{left:12px;right:12px;bottom:12px}}
 </style>
 
 

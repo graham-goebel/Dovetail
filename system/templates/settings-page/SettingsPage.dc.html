@@ -11,10 +11,12 @@
 <helmet><script src="./ds-base.js"></script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
-<style>body{margin:0}@keyframes dt-spin{to{transform:rotate(360deg)}}</style>
+<style>body{margin:0}@keyframes dt-spin{to{transform:rotate(360deg)}}
+/* On a phone the sidebar becomes a strip above the page and the page gives its padding back. */
+@media(max-width:720px){.sp-shell{grid-template-columns:minmax(0,1fr)!important}.sp-side{border-right:0!important;border-bottom:var(--dt-border-width-hair) solid var(--dt-border-subtle)}.sp-side nav{flex-direction:row!important;flex-wrap:wrap}.sp-main{padding:var(--dt-space-inset-md)!important}}</style>
 </helmet>
-<div style="display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);min-height:100vh;background:var(--dt-surface-subtle);font-family:var(--dt-font-family-sans);color:var(--dt-text-primary)">
-<aside style="display:flex;flex-direction:column;gap:var(--dt-space-stack-lg);padding:var(--dt-space-inset-lg);background:var(--dt-surface-base);border-right:var(--dt-border-width-hair) solid var(--dt-border-subtle)">
+<div class="sp-shell" style="display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);min-height:100vh;background:var(--dt-surface-subtle);font-family:var(--dt-font-family-sans);color:var(--dt-text-primary)">
+<aside class="sp-side" style="display:flex;flex-direction:column;gap:var(--dt-space-stack-lg);padding:var(--dt-space-inset-lg);background:var(--dt-surface-base);border-right:var(--dt-border-width-hair) solid var(--dt-border-subtle)">
 <div style="display:flex;align-items:center;gap:var(--dt-space-inline-sm);font-size:var(--dt-font-size-md);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-tracking-snug)"><span style="display:inline-block;width:var(--dt-size-icon-md);height:var(--dt-size-icon-md);border-radius:var(--dt-radius-control);background:var(--dt-surface-action)"></span>Acme</div>
 <nav style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xs)">
 <a href="#" style="padding:var(--dt-space-inset-xs) var(--dt-space-inset-sm);border-radius:var(--dt-radius-control);font-size:var(--dt-font-size-sm);font-weight:var(--dt-font-weight-medium);text-decoration:none;color:var(--dt-text-secondary)">Overview</a>
@@ -23,7 +25,7 @@
 <a href="#" style="padding:var(--dt-space-inset-xs) var(--dt-space-inset-sm);border-radius:var(--dt-radius-control);font-size:var(--dt-font-size-sm);font-weight:var(--dt-font-weight-medium);text-decoration:none;color:var(--dt-text-on-selected);background:var(--dt-surface-selected)">Settings</a>
 </nav>
 </aside>
-<main style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xl);padding:var(--dt-space-inset-2xl);max-width:880px">
+<main class="sp-main" style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xl);padding:var(--dt-space-inset-2xl);max-width:880px">
 <header style="display:flex;flex-direction:column;gap:var(--dt-space-stack-xs)">
 <p style="margin:0;font-family:var(--dt-font-family-mono);font-size:var(--dt-font-size-2xs);letter-spacing:var(--dt-tracking-wider);text-transform:uppercase;color:var(--dt-text-tertiary)">Workspace</p>
 <h1 style="margin:0;font-size:var(--dt-font-size-3xl);line-height:var(--dt-line-height-3xl);font-weight:var(--dt-font-weight-semibold);letter-spacing:var(--dt-tracking-snug)">Settings</h1>

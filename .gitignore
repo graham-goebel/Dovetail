@@ -1,2 +1,4 @@
 node_modules/
 .DS_Store
+# The package build (tools/build-package.mjs). Built in CI, never committed.
+dist/

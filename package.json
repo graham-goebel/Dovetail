@@ -1,19 +1,73 @@
 {
-  "name": "dovetail",
+  "name": "@dovetail-ds/react",
   "version": "0.1.0",
-  "private": true,
   "description": "The Dovetail design system and its documentation site.",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "react",
+    "components",
+    "css-variables",
+    "theming",
+    "dark-mode",
+    "white-label",
+    "oklch"
+  ],
+  "homepage": "https://graham-goebel.github.io/Dovetail/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graham-goebel/Dovetail.git"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
   "type": "module",
+  "main": "./dist/react/index.js",
+  "module": "./dist/react/index.js",
+  "types": "./dist/react/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "browserslist": [
+    "safari >= 16.4",
+    "chrome >= 111",
+    "firefox >= 113"
+  ],
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "node tools/build-bundle.mjs && node tools/build-site.mjs",
     "build:bundle": "node tools/build-bundle.mjs",
     "build:site": "node tools/build-site.mjs",
-    "check": "npm run check:build && npm run check:changes && npm run check:browser",
+    "build:package": "node tools/build-package.mjs",
+    "check": "npm run check:build && npm run check:changes && npm run check:ssr && npm run check:package && npm run check:consumer && npm run check:browser",
     "check:build": "node tools/build-bundle.mjs --check && node tools/check/site-current.mjs",
     "check:changes": "node tools/changelog.mjs --check",
+    "check:ssr": "node tools/check/ssr.mjs",
+    "check:package": "node tools/check/package.mjs",
+    "check:consumer": "node tools/check/consumer.mjs",
+    "check:tokens": "node tools/check/tokens-parity.mjs",
     "check:browser": "node tools/check/browser.mjs",
     "serve": "node tools/check/serve.mjs",
     "changelog": "node tools/changelog.mjs",
@@ -22,6 +76,11 @@
   "devDependencies": {
     "@babel/core": "8.0.6",
     "@babel/preset-react": "8.0.1",
-    "playwright": "1.63.0"
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "playwright": "1.63.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "7.0.2"
   }
 }

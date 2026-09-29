@@ -1,7 +1,7 @@
 import * as React from "react";
 
 /** Pull quote or testimonial with attribution. */
-export interface QuoteProps extends React.HTMLAttributes<HTMLElement> {
+export interface QuoteProps extends Omit<React.HTMLAttributes<HTMLElement>, "role"> {
   /** The quoted text, without quotation marks. */
   children?: React.ReactNode;
   /** Who said it. */

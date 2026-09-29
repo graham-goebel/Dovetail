@@ -1,7 +1,7 @@
 import * as React from "react";
 
 /** Placeholder for a view with no content yet, no results, or no access. */
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** What is empty, in sentence case. */
   title: React.ReactNode;
   /** Why it is empty and what to do next. */

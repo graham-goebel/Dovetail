@@ -326,6 +326,13 @@ function patchPreview(file) {
   const src = read(file);
   let out = src;
 
+  /* Without this a phone lays a card out at 980px and shrinks it to fit, so
+     none of its media queries ever run and it only looks responsive when a
+     desktop window is dragged narrow. */
+  if (!/<meta[^>]+name=["']viewport["']/i.test(out)) {
+    out = out.replace(/<head>/i, '<head>\n<meta name="viewport" content="width=device-width, initial-scale=1">');
+  }
+
   if (!out.includes(RUNTIME_MARKER)) {
     const inject = `<!-- ${RUNTIME_MARKER}: added by tools/build-site.mjs so this card runs on its own -->
 <script src="../system/components/lib/react.production.min.js"></script>

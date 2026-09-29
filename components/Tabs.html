@@ -7,7 +7,7 @@
 <meta name="description" content="Switches between sibling views that share a purpose. Use tabs when the user compares or">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=5fade5e9d1">
-<link rel="stylesheet" href="../assets/site.css?v=a69c534096">
+<link rel="stylesheet" href="../assets/site.css?v=24057f06b3">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Tabs.html?v=c21f34189c&amp;b=360f8cf046" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Tabs.html?v=25b36e43d8&amp;b=e65605a26b" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Tabs.html?v=c21f34189c&amp;b=360f8cf046" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Tabs.html?v=25b36e43d8&amp;b=e65605a26b" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -112,7 +112,7 @@ export interface TabItem {
 }
 
 /** Switches between sibling views without leaving the page. */
-export interface TabsProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; {
+export interface TabsProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElement&gt;, &quot;onChange&quot;&gt; {
   tabs: TabItem[];
   /** Id of the selected tab. Controlled. */
   value: string;
@@ -276,7 +276,7 @@ export function TabPanel({ id, value, children, style, ...rest }) {
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=360f8cf046" defer></script>
+<script src="../system/components/bundle.js?v=e65605a26b" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

@@ -1,7 +1,7 @@
 import * as React from "react";
 
 /** Transient confirmation or failure notice. */
-export interface ToastProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ToastProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** @default "neutral" */
   tone?: "neutral" | "success" | "warning" | "danger";
   title?: React.ReactNode;

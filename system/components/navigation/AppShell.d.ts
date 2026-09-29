@@ -4,7 +4,7 @@ import * as React from "react";
  * The frame of a phone app: a top bar, a body that scrolls, and a bottom
  * navigation, with the device's safe areas honoured on every side.
  */
-export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface AppShellProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** Title in the default top bar, set in the heading-xs role and the headline colour. */
   title?: React.ReactNode;
   /** Left slot of the default top bar: a back button, an avatar. */
