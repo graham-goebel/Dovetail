@@ -1061,6 +1061,30 @@
           "unit": "px"
         }
       },
+      "artboard-width": {
+        "$value": {
+          "value": 1080,
+          "unit": "px"
+        }
+      },
+      "artboard-square": {
+        "$value": {
+          "value": 1080,
+          "unit": "px"
+        }
+      },
+      "artboard-portrait": {
+        "$value": {
+          "value": 1350,
+          "unit": "px"
+        }
+      },
+      "artboard-story": {
+        "$value": {
+          "value": 1920,
+          "unit": "px"
+        }
+      },
       "$type": "dimension",
       "hair": {
         "$value": {
@@ -2028,6 +2052,18 @@
       "media-min": {
         "$value": "{primitive.dimension.64}",
         "$description": "The least height for a card with a picture behind it."
+      },
+      "artboard-width": {
+        "$value": "{primitive.dimension.artboard-width}"
+      },
+      "artboard-square": {
+        "$value": "{primitive.dimension.artboard-square}"
+      },
+      "artboard-portrait": {
+        "$value": "{primitive.dimension.artboard-portrait}"
+      },
+      "artboard-story": {
+        "$value": "{primitive.dimension.artboard-story}"
       },
       "container-narrow": {
         "$value": {

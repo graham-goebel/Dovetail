@@ -1,6 +1,6 @@
 # Dovetail
 
-> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and 75 React components that never name a colour. Brand arrives last, as a theme file of token overrides.
+> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and 76 React components that never name a colour. Brand arrives last, as a theme file of token overrides.
 
 Link `system/styles.css` for every token and base style; put `class="dark"` on an element to scope dark mode to it. Components are React (inline styles read from tokens) in `system/components/<family>/`, each with a `.md` guide, a `.d.ts` props contract and the `.jsx` source. Read a component's guide before using it: it holds the rules the types cannot.
 
@@ -125,6 +125,7 @@ Long-form and editorial shapes, including the pieces a CMS drives. Media reserve
 - [Prose](https://graham-goebel.github.io/Dovetail/system/components/content/Prose.md): Wraps long-form editorial text (articles, documentation, changelogs) in a readable ([props](https://graham-goebel.github.io/Dovetail/system/components/content/Prose.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/content/Prose.jsx))
 - [Quote](https://graham-goebel.github.io/Dovetail/system/components/content/Quote.md): Testimonial or pull quote. Uses `figure` and `blockquote` so the attribution is ([props](https://graham-goebel.github.io/Dovetail/system/components/content/Quote.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/content/Quote.jsx))
 - [BlockRenderer](https://graham-goebel.github.io/Dovetail/system/components/content/BlockRenderer.md): Renders an array of content blocks through a registry of components. This is the whole ([props](https://graham-goebel.github.io/Dovetail/system/components/content/BlockRenderer.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/content/BlockRenderer.jsx))
+- [SocialPost](https://graham-goebel.github.io/Dovetail/system/components/content/SocialPost.md): A social post drawn on an artboard at the format's native pixel size and scaled to fit wherever it is shown: an Instagram story (9:16, 1080 × 1920) or a grid post (4:5, 1080 × 1350, or 1:1, 1080 × 1080). A screenshot of the artboard at full size is ready to publish. ([props](https://graham-goebel.github.io/Dovetail/system/components/content/SocialPost.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/content/SocialPost.jsx))
 
 ## Components: Blocks
 

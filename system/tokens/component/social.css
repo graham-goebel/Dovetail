@@ -1,0 +1,46 @@
+/* TIER 3 — SOCIAL
+   SocialPost draws on a fixed artboard at a social format's native pixel
+   size and scales to fit wherever it is shown. Its sizes alias the artboard
+   roles, which no context retunes, so a post is the same post in a feed
+   preview, a docs page or an export. Its colours alias the ordinary roles, so
+   a theme rebrands every post at once. */
+
+:root {
+  --dt-social-width: var(--dt-size-artboard-width);
+  --dt-social-height-square: var(--dt-size-artboard-square);
+  --dt-social-height-portrait: var(--dt-size-artboard-portrait);
+  --dt-social-height-story: var(--dt-size-artboard-story);
+  --dt-social-padding: var(--dt-space-artboard);
+  --dt-social-gap: var(--dt-space-artboard-gap);
+  --dt-social-radius: calc(var(--dt-radius-overlay) * 2);
+
+  --dt-social-display-family: var(--dt-text-artboard-display-family);
+  --dt-social-display-size: var(--dt-text-artboard-display-size);
+  --dt-social-display-line: var(--dt-text-artboard-display-line);
+  --dt-social-display-weight: var(--dt-text-artboard-display-weight);
+  --dt-social-display-tracking: var(--dt-text-artboard-display-tracking);
+  --dt-social-title-size: var(--dt-text-artboard-title-size);
+  --dt-social-title-line: var(--dt-text-artboard-title-line);
+  --dt-social-body-size: var(--dt-text-artboard-body-size);
+  --dt-social-body-line: var(--dt-text-artboard-body-line);
+  --dt-social-meta-size: var(--dt-text-artboard-meta-size);
+  --dt-social-meta-tracking: var(--dt-text-artboard-meta-tracking);
+
+  --dt-social-bg: var(--dt-surface-base);
+  --dt-social-fg: var(--dt-text-primary);
+  --dt-social-muted: var(--dt-text-secondary);
+  --dt-social-rule: var(--dt-border-default);
+  --dt-social-on-image: var(--dt-text-on-scrim-strong);
+  --dt-social-on-image-muted: var(--dt-text-on-scrim);
+}
+
+/* Colour aliases again, under .dark, so a post in a dark band or on a dark
+   page resolves against the dark roles. */
+.dark {
+  --dt-social-bg: var(--dt-surface-base);
+  --dt-social-fg: var(--dt-text-primary);
+  --dt-social-muted: var(--dt-text-secondary);
+  --dt-social-rule: var(--dt-border-default);
+  --dt-social-on-image: var(--dt-text-on-scrim-strong);
+  --dt-social-on-image-muted: var(--dt-text-on-scrim);
+}

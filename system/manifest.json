@@ -83,6 +83,9 @@
     "components/content/Quote.d.ts",
     "components/content/Quote.jsx",
     "components/content/Quote.md",
+    "components/content/SocialPost.d.ts",
+    "components/content/SocialPost.jsx",
+    "components/content/SocialPost.md",
     "components/content/Video.d.ts",
     "components/content/Video.jsx",
     "components/content/Video.md",
@@ -586,6 +589,9 @@
     },
     {
       "name": "BlockHeader"
+    },
+    {
+      "name": "SocialPost"
     }
   ],
   "lastChange": {

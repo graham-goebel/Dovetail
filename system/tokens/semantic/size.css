@@ -28,6 +28,12 @@
   --dt-size-touch-target: var(--dt-dim-11); /* 44 */
   --dt-size-media-min: var(--dt-dim-64);   /* 256 — the least height for a card with a picture behind it */
 
+  /* Social artboards: width, and the height of each format. */
+  --dt-size-artboard-width: var(--dt-dim-artboard-width);
+  --dt-size-artboard-square: var(--dt-dim-artboard-square);
+  --dt-size-artboard-portrait: var(--dt-dim-artboard-portrait);
+  --dt-size-artboard-story: var(--dt-dim-artboard-story);
+
   /* Layout widths. The measure tokens bound a line of text; these bound a
      page. Narrow is a reading column with room for media, default is the
      page shell, wide is a hero or a gallery that still wants a margin. */

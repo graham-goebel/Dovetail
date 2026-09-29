@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"3ca15973e719","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"0908278f6d67","components/blocks/FeatureGridBlock.jsx":"8a2bed476461","components/blocks/HeroBlock.jsx":"5d708ac74dc8","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"6b92ba6e4df6","components/blocks/TestimonialBlock.jsx":"dc19cc075267"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"3ca15973e719","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"0908278f6d67","components/blocks/FeatureGridBlock.jsx":"8a2bed476461","components/blocks/HeroBlock.jsx":"5d708ac74dc8","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"6b92ba6e4df6","components/blocks/TestimonialBlock.jsx":"dc19cc075267","components/content/SocialPost.jsx":"6e340e085c87"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -7522,6 +7522,609 @@ function TestimonialBlock({
 }
 Object.assign(__ds_scope, { TestimonialBlock });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/TestimonialBlock.jsx", error: String((e && e.message) || e) }); }
+// components/content/SocialPost.jsx
+try { (() => {
+/* A social post: an Instagram story (9:16) or grid post (4:5 or 1:1), drawn on
+   an artboard at the format's native pixel size and scaled to fit its
+   container. A screenshot of it at full size is ready to publish.
+
+   Ten layouts share one frame so a set of posts reads as one voice: a mark and
+   an optional counter along the top, a handle and a call to action along the
+   bottom, and one type scale for everything between. Half the layouts sit on
+   a plain tone and half on a photograph. */
+
+const RATIO = {
+  story: "9 / 16",
+  portrait: "4 / 5",
+  square: "1 / 1"
+};
+const HEIGHT = {
+  story: "var(--dt-social-height-story)",
+  portrait: "var(--dt-social-height-portrait)",
+  square: "var(--dt-social-height-square)"
+};
+/* The display size steps down as the format gets shorter. */
+const SCALE = {
+  story: 1,
+  portrait: 0.86,
+  square: 0.74
+};
+function fill(bg, fg) {
+  return {
+    background: bg,
+    color: fg,
+    "--dt-social-fg": fg,
+    "--dt-social-muted": `color-mix(in oklab, ${fg} 76%, transparent)`,
+    "--dt-social-rule": `color-mix(in oklab, ${fg} 24%, transparent)`
+  };
+}
+const TONES = {
+  paper: {
+    style: {
+      background: "var(--dt-social-bg)",
+      color: "var(--dt-social-fg)"
+    }
+  },
+  ink: {
+    dark: true,
+    style: {
+      background: "var(--dt-social-bg)",
+      color: "var(--dt-social-fg)"
+    }
+  },
+  brand: {
+    style: fill("var(--dt-surface-brand)", "var(--dt-text-on-brand)")
+  },
+  "brand-muted": {
+    style: fill("var(--dt-surface-brand-muted)", "var(--dt-text-on-brand-muted)")
+  },
+  secondary: {
+    style: fill("var(--dt-surface-brand-secondary)", "var(--dt-text-on-brand-secondary)")
+  }
+};
+const PICTURED = {
+  cover: true,
+  split: true,
+  framed: true,
+  card: true,
+  poster: true
+};
+function useScale(ref) {
+  const [scale, setScale] = React.useState(0);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => {
+      const native = parseFloat(getComputedStyle(el).getPropertyValue("--dt-social-width")) || 1;
+      setScale(el.clientWidth / native);
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return scale;
+}
+const meta = {
+  fontFamily: "var(--dt-font-family-mono)",
+  fontSize: "var(--dt-social-meta-size)",
+  letterSpacing: "var(--dt-social-meta-tracking)",
+  textTransform: "uppercase",
+  lineHeight: 1.2
+};
+const body = {
+  margin: 0,
+  fontSize: "var(--dt-social-body-size)",
+  lineHeight: "var(--dt-social-body-line)",
+  color: "var(--dt-social-muted)",
+  textWrap: "pretty"
+};
+function display(format, factor = 1) {
+  const k = SCALE[format] * factor;
+  return {
+    margin: 0,
+    fontFamily: "var(--dt-social-display-family)",
+    fontSize: `calc(var(--dt-social-display-size) * ${k})`,
+    lineHeight: `calc(var(--dt-social-display-line) * ${k})`,
+    fontWeight: "var(--dt-social-display-weight)",
+    letterSpacing: "var(--dt-social-display-tracking)",
+    textWrap: "balance"
+  };
+}
+function title(format, factor = 1) {
+  const k = SCALE[format] * factor;
+  return {
+    margin: 0,
+    fontFamily: "var(--dt-social-display-family)",
+    fontSize: `calc(var(--dt-social-title-size) * ${k})`,
+    lineHeight: `calc(var(--dt-social-title-line) * ${k})`,
+    fontWeight: "var(--dt-social-display-weight)",
+    letterSpacing: "var(--dt-social-display-tracking)",
+    textWrap: "balance"
+  };
+}
+function Picture({
+  image,
+  position,
+  label,
+  style
+}) {
+  return image ? /*#__PURE__*/React.createElement("img", {
+    src: image,
+    alt: "",
+    style: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      objectPosition: position,
+      display: "block",
+      ...style
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      display: "grid",
+      placeItems: "center",
+      background: "var(--dt-surface-sunken)",
+      color: "var(--dt-text-tertiary)",
+      ...meta,
+      ...style
+    }
+  }, label || "Image");
+}
+function SocialPost({
+  layout = "headline",
+  format = "story",
+  tone = "brand",
+  image,
+  imagePosition = "center",
+  eyebrow,
+  title: heading,
+  body: text,
+  meta: byline,
+  items = [],
+  badge,
+  brand = "Dovetail",
+  mark,
+  handle,
+  cta,
+  counter,
+  label,
+  style,
+  ...rest
+}) {
+  const box = React.useRef(null);
+  const scale = useScale(box);
+  const t = TONES[tone] || TONES.brand;
+  const pictured = !!PICTURED[layout];
+  const onImage = layout === "cover" || layout === "poster" || layout === "card";
+  const frame = {
+    position: "absolute",
+    inset: 0,
+    zIndex: 2,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    padding: "var(--dt-social-padding)",
+    gap: "var(--dt-social-gap)",
+    color: onImage ? "var(--dt-social-on-image)" : undefined,
+    "--dt-social-muted": onImage ? "var(--dt-social-on-image-muted)" : undefined
+  };
+  const top = /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "var(--dt-social-gap)"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "calc(var(--dt-social-gap) / 2)",
+      fontSize: "var(--dt-social-body-size)",
+      fontWeight: "var(--dt-font-weight-semibold)",
+      letterSpacing: "var(--dt-tracking-tight)"
+    }
+  }, mark || /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      width: "calc(var(--dt-social-meta-size) * 1.1)",
+      height: "calc(var(--dt-social-meta-size) * 1.1)",
+      borderRadius: "var(--dt-radius-pill)",
+      background: "currentColor"
+    }
+  }), brand), counter && /*#__PURE__*/React.createElement("span", {
+    style: meta
+  }, counter));
+  const bottom = (handle || cta) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "var(--dt-social-gap)",
+      ...meta
+    }
+  }, /*#__PURE__*/React.createElement("span", null, handle), cta && /*#__PURE__*/React.createElement("span", {
+    style: {
+      padding: "calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.4)",
+      border: "var(--dt-border-width-strong, 2px) solid currentColor",
+      borderRadius: "var(--dt-radius-pill)"
+    }
+  }, cta));
+  const eyebrowEl = eyebrow && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      ...meta,
+      color: "var(--dt-social-muted)"
+    }
+  }, eyebrow);
+  let content = null;
+  let background = null;
+  if (layout === "headline") {
+    content = /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-social-gap)"
+      }
+    }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+      style: display(format)
+    }, heading), text && /*#__PURE__*/React.createElement("p", {
+      style: body
+    }, text));
+  } else if (layout === "quote") {
+    content = /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-social-gap)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      "aria-hidden": "true",
+      style: {
+        ...display(format, 1.6),
+        lineHeight: 0.6,
+        height: "calc(var(--dt-social-display-size) * 0.5)"
+      }
+    }, "“"), /*#__PURE__*/React.createElement("blockquote", {
+      style: {
+        margin: 0,
+        ...title(format)
+      }
+    }, heading), byline && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        ...meta
+      }
+    }, byline));
+  } else if (layout === "stat") {
+    content = /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-social-gap)"
+      }
+    }, eyebrowEl, /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...display(format, 1.9),
+        fontVariantNumeric: "tabular-nums",
+        whiteSpace: "nowrap"
+      }
+    }, heading), text && /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...body,
+        fontSize: "calc(var(--dt-social-body-size) * 1.2)",
+        color: "inherit"
+      }
+    }, text), byline && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        ...meta,
+        color: "var(--dt-social-muted)"
+      }
+    }, byline));
+  } else if (layout === "list") {
+    content = /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-social-gap)"
+      }
+    }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+      style: title(format)
+    }, heading), /*#__PURE__*/React.createElement("ol", {
+      style: {
+        listStyle: "none",
+        margin: 0,
+        padding: 0
+      }
+    }, items.map((it, i) => /*#__PURE__*/React.createElement("li", {
+      key: i,
+      style: {
+        display: "flex",
+        gap: "var(--dt-social-gap)",
+        alignItems: "baseline",
+        padding: "calc(var(--dt-social-gap) * 0.6) 0",
+        borderTop: "var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)",
+        fontSize: "calc(var(--dt-social-body-size) * 1.1)",
+        lineHeight: "var(--dt-social-body-line)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...meta,
+        color: "var(--dt-social-muted)",
+        minWidth: "2.4em"
+      }
+    }, String(i + 1).padStart(2, "0")), /*#__PURE__*/React.createElement("span", null, it)))));
+  } else if (layout === "announcement") {
+    content = /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        gap: "var(--dt-social-gap)"
+      }
+    }, badge && /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...meta,
+        padding: "calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.2)",
+        borderRadius: "var(--dt-radius-pill)",
+        border: "var(--dt-border-width-strong, 2px) solid currentColor"
+      }
+    }, badge), /*#__PURE__*/React.createElement("h2", {
+      style: display(format)
+    }, heading), text && /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...body,
+        maxWidth: "80%"
+      }
+    }, text), byline && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        ...meta
+      }
+    }, byline));
+  } else if (layout === "cover") {
+    background = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Picture, {
+      image: image,
+      position: imagePosition,
+      label: label
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        background: "var(--dt-scrim-bottom)"
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: "0 0 auto",
+        height: "30%",
+        background: "var(--dt-scrim-top)",
+        opacity: 0.6
+      }
+    }));
+    content = /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-social-gap)"
+      }
+    }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+      style: display(format, 0.9)
+    }, heading), text && /*#__PURE__*/React.createElement("p", {
+      style: body
+    }, text));
+  } else if (layout === "poster") {
+    background = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Picture, {
+      image: image,
+      position: imagePosition,
+      label: label
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        background: "var(--dt-scrim-top)"
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: "auto 0 0",
+        height: "40%",
+        background: "var(--dt-scrim-bottom)"
+      }
+    }));
+    content = null;
+  } else if (layout === "card") {
+    background = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Picture, {
+      image: image,
+      position: imagePosition,
+      label: label
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        inset: "0 0 auto",
+        height: "30%",
+        background: "var(--dt-scrim-top)",
+        opacity: 0.6
+      }
+    }));
+    content = /*#__PURE__*/React.createElement("div", {
+      className: "dark",
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "calc(var(--dt-social-gap) * 0.6)",
+        padding: "var(--dt-social-gap)",
+        borderRadius: "var(--dt-social-radius)",
+        background: "var(--dt-surface-glass-inverse)",
+        color: "var(--dt-social-on-image)",
+        backdropFilter: "var(--dt-backdrop-glass, blur(24px))",
+        WebkitBackdropFilter: "var(--dt-backdrop-glass, blur(24px))"
+      }
+    }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+      style: title(format, 0.9)
+    }, heading), text && /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...body,
+        color: "var(--dt-social-on-image-muted)"
+      }
+    }, text));
+  }
+  const inner = (() => {
+    if (layout === "split") {
+      return /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: "relative",
+          flex: format === "square" ? "0 0 48%" : "0 0 56%"
+        }
+      }, /*#__PURE__*/React.createElement(Picture, {
+        image: image,
+        position: imagePosition,
+        label: label
+      }), /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: "absolute",
+          inset: "0 0 auto",
+          height: "40%",
+          background: "var(--dt-scrim-top)",
+          opacity: 0.6
+        }
+      })), /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "var(--dt-social-padding)",
+          gap: "var(--dt-social-gap)"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: "calc(var(--dt-social-gap) * 0.6)"
+        }
+      }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+        style: title(format)
+      }, heading), text && format !== "square" && /*#__PURE__*/React.createElement("p", {
+        style: body
+      }, text)), bottom), /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          padding: "var(--dt-social-padding)",
+          color: "var(--dt-social-on-image)"
+        }
+      }, top));
+    }
+    if (layout === "framed") {
+      return /*#__PURE__*/React.createElement("div", {
+        style: frame
+      }, top, /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: "relative",
+          flex: 1,
+          minHeight: 0,
+          borderRadius: "var(--dt-social-radius)",
+          overflow: "hidden"
+        }
+      }, /*#__PURE__*/React.createElement(Picture, {
+        image: image,
+        position: imagePosition,
+        label: label
+      })), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: "calc(var(--dt-social-gap) * 0.5)"
+        }
+      }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+        style: title(format, 0.85)
+      }, heading)), bottom);
+    }
+    if (layout === "poster") {
+      return /*#__PURE__*/React.createElement("div", {
+        style: frame
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--dt-social-gap)"
+        }
+      }, top, /*#__PURE__*/React.createElement("h2", {
+        style: {
+          ...display(format, Math.min(1.9, 9 / Math.max(4, String(heading || "").length))),
+          lineHeight: 0.86,
+          whiteSpace: "nowrap"
+        }
+      }, heading)), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--dt-social-gap)"
+        }
+      }, text && /*#__PURE__*/React.createElement("p", {
+        style: body
+      }, text), bottom));
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...frame,
+        justifyContent: "space-between"
+      }
+    }, top, content, bottom || /*#__PURE__*/React.createElement("span", null));
+  })();
+  return /*#__PURE__*/React.createElement("div", {
+    ref: box,
+    role: "img",
+    "aria-label": label || [eyebrow, typeof heading === "string" ? heading : null, typeof text === "string" ? text : null].filter(Boolean).join(". "),
+    style: {
+      position: "relative",
+      width: "100%",
+      aspectRatio: RATIO[format] || RATIO.story,
+      overflow: "hidden",
+      borderRadius: "var(--dt-radius-media)",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    className: t.dark ? "dark" : undefined,
+    style: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "var(--dt-social-width)",
+      height: HEIGHT[format] || HEIGHT.story,
+      transform: `scale(${scale})`,
+      transformOrigin: "0 0",
+      visibility: scale ? "visible" : "hidden",
+      overflow: "hidden",
+      fontFamily: "var(--dt-font-family-sans)",
+      ...(pictured && layout !== "framed" && layout !== "split" ? {
+        background: "var(--dt-surface-sunken)",
+        color: "var(--dt-social-on-image)"
+      } : t.style)
+    }
+  }, background, inner));
+}
+Object.assign(__ds_scope, { SocialPost });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/SocialPost.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -7671,5 +8274,7 @@ __ds_ns.SplitBlock = __ds_scope.SplitBlock;
 __ds_ns.StatsBlock = __ds_scope.StatsBlock;
 
 __ds_ns.TestimonialBlock = __ds_scope.TestimonialBlock;
+
+__ds_ns.SocialPost = __ds_scope.SocialPost;
 
 })();

@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SocialPost · Dovetail</title>
+<meta name="description" content="A social post drawn on an artboard at the format&#39;s native pixel size and scaled to fit wherever it is shown: an Instagram story (9:16, 1080 × 1920) or a grid post (4:5, 1080 × 1350, or 1:1, 1080 × 1080). A screenshot of the artboard at full size is ready to publish.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=74895a471c">
+<link rel="stylesheet" href="../assets/site.css?v=db505c698b">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-eyebrow">Components</p><p class="h-title" aria-hidden="true">SocialPost</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html" aria-current="page">SocialPost</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">SocialPost</li></ol></nav>
+<h1>SocialPost</h1>
+<p class="lede">A social post drawn on an artboard at the format's native pixel size and scaled to fit wherever it is shown: an Instagram story (9:16, 1080 × 1920) or a grid post (4:5, 1080 × 1350, or 1:1, 1080 × 1080). A screenshot of the artboard at full size is ready to publish.</p>
+<p class="meta">
+  <span class="pill">Content</span>
+  
+  <a href="../system/components/content/SocialPost.jsx">SocialPost.jsx</a>
+  <a href="../system/components/content/SocialPost.d.ts">SocialPost.d.ts</a>
+  <a href="../system/components/content/SocialPost.md">SocialPost.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="SocialPost" data-props="[{&quot;name&quot;:&quot;layout&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;headline&quot;,&quot;quote&quot;,&quot;stat&quot;,&quot;list&quot;,&quot;announcement&quot;,&quot;cover&quot;,&quot;split&quot;,&quot;framed&quot;,&quot;card&quot;,&quot;poster&quot;],&quot;default&quot;:&quot;headline&quot;,&quot;note&quot;:&quot;headline, quote, stat, list and announcement sit on a tone; cover, split, framed, card and poster are built around `imag&quot;},{&quot;name&quot;:&quot;format&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;story&quot;,&quot;portrait&quot;,&quot;square&quot;],&quot;default&quot;:&quot;story&quot;,&quot;note&quot;:&quot;story is 1080 × 1920; portrait 1080 × 1350; square 1080 × 1080.&quot;},{&quot;name&quot;:&quot;tone&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;brand&quot;,&quot;brand-muted&quot;,&quot;secondary&quot;,&quot;paper&quot;,&quot;ink&quot;],&quot;default&quot;:&quot;brand&quot;,&quot;note&quot;:&quot;The plain background, for layouts that have one&quot;},{&quot;name&quot;:&quot;image&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Image URL for the pictured layouts&quot;},{&quot;name&quot;:&quot;imagePosition&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;center&quot;,&quot;note&quot;:&quot;CSS object-position for the image.&quot;},{&quot;name&quot;:&quot;eyebrow&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A few words above the title, set in mono capitals.&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The big editorial line: a headline, the quote, the number, or the poster&#39;s one word.&quot;},{&quot;name&quot;:&quot;body&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;One or two sentences under the title.&quot;},{&quot;name&quot;:&quot;meta&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A byline, attribution or date.&quot;},{&quot;name&quot;:&quot;badge&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A pill above the announcement&#39;s title, such as \&quot;New\&quot;.&quot;},{&quot;name&quot;:&quot;brand&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Dovetail&quot;,&quot;note&quot;:&quot;The brand name in the top corner.&quot;},{&quot;name&quot;:&quot;mark&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A mark before the brand name; defaults to a dot in the text colour.&quot;},{&quot;name&quot;:&quot;handle&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The account handle along the bottom.&quot;},{&quot;name&quot;:&quot;cta&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A short call to action in a pill at the bottom right: \&quot;Swipe\&quot;, \&quot;Link in bio\&quot;.&quot;},{&quot;name&quot;:&quot;counter&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A carousel counter in the top corner: \&quot;03/10\&quot;.&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The accessible name of the post as an image&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="SocialPost props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/SocialPost.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/SocialPost.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A social post drawn on an artboard at the format's native pixel size and scaled to fit wherever it is shown: an Instagram story (9:16, 1080 × 1920) or a grid post (4:5, 1080 × 1350, or 1:1, 1080 × 1080). A screenshot of the artboard at full size is ready to publish.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>Making a set of stories or grid posts that should read as one brand.</li><li>Previewing social assets beside the product they announce, themed by the same tokens.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>Showing someone else's post in a feed. That is a <code>Card</code> in the social context.</li></ul>
+<h3 id="layouts">Layouts</h3>
+<p>Ten layouts share one frame: the brand and an optional <code>counter</code> along the top, the <code>handle</code> and a <code>cta</code> pill along the bottom, and one editorial type scale between.</p>
+<div class="table-wrap"><table><thead><tr><th>On a tone</th><th>Around a photograph</th></tr></thead><tbody><tr><td><code>headline</code>: a big line with eyebrow and body</td><td><code>cover</code>: full-bleed photo, headline on a scrim</td></tr><tr><td><code>quote</code>: an oversized quote mark, the quote and <code>meta</code></td><td><code>split</code>: photo above, copy below</td></tr><tr><td><code>stat</code>: one huge number, what it counts, a qualifier</td><td><code>framed</code>: the photo as a card inside the tone, caption under</td></tr><tr><td><code>list</code>: a title over up to five numbered <code>items</code></td><td><code>card</code>: full-bleed photo with a frosted card of copy</td></tr><tr><td><code>announcement</code>: centred, with a <code>badge</code> and a date</td><td><code>poster</code>: one word, as large as its length allows</td></tr></tbody></table></div>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;SocialPost layout=&quot;headline&quot; tone=&quot;brand&quot; format=&quot;story&quot; brand=&quot;High Route&quot; handle=&quot;@highroute&quot;
+  eyebrow=&quot;Summer 2026&quot; title=&quot;Walk the high route.&quot; body=&quot;Four to nine days between huts.&quot; cta=&quot;Link in bio&quot; /&gt;
+
+&lt;SocialPost layout=&quot;cover&quot; format=&quot;portrait&quot; image=&quot;/img/alpine.jpg&quot; eyebrow=&quot;Route 04&quot; title=&quot;Above the tree line&quot; /&gt;</code></pre>
+<h3 id="keeping-a-set-cohesive">Keeping a set cohesive</h3>
+<p>Keep one <code>brand</code> and <code>handle</code>, alternate tone and pictured layouts down a carousel, and number it with <code>counter</code>. Every size and colour comes from tokens, so changing the theme rebrands the whole set.</p>
+<h3 id="tokens">Tokens</h3>
+<p><code>--dt-social-*</code> in <code>tokens/component/social.css</code>: the artboard width and heights, padding, gap and radius, alias <code>--dt-size-artboard-*</code> and <code>--dt-space-artboard*</code>; the type sizes alias the <code>--dt-text-artboard-*</code> roles, drawn for a 1080px canvas and never retuned by a context; the colours alias the ordinary surface and text roles, and <code>--dt-text-on-scrim-strong</code> on photographs.</p>
+<h3 id="accessibility">Accessibility</h3>
+<p>The post is exposed as one image (<code>role=&quot;img&quot;</code>) named by <code>label</code>, or by its eyebrow, title and body. When you publish it, write the same text into the platform's alt text.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>SocialPost.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/**
+ * A social post drawn on an artboard at the format's native pixel size
+ * (1080 wide) and scaled to fit its container: an Instagram story (9:16) or a
+ * grid post (4:5 or 1:1). Ten layouts share one frame and type scale, half on
+ * a plain tone and half on a photograph.
+ */
+export interface SocialPostProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElement&gt;, &quot;title&quot;&gt; {
+  /**
+   * headline, quote, stat, list and announcement sit on a tone; cover, split,
+   * framed, card and poster are built around `image`.
+   * @default &quot;headline&quot;
+   */
+  layout?: &quot;headline&quot; | &quot;quote&quot; | &quot;stat&quot; | &quot;list&quot; | &quot;announcement&quot; | &quot;cover&quot; | &quot;split&quot; | &quot;framed&quot; | &quot;card&quot; | &quot;poster&quot;;
+  /** story is 1080 × 1920; portrait 1080 × 1350; square 1080 × 1080. @default &quot;story&quot; */
+  format?: &quot;story&quot; | &quot;portrait&quot; | &quot;square&quot;;
+  /** The plain background, for layouts that have one. ink is dark in both colour modes. @default &quot;brand&quot; */
+  tone?: &quot;brand&quot; | &quot;brand-muted&quot; | &quot;secondary&quot; | &quot;paper&quot; | &quot;ink&quot;;
+  /** Image URL for the pictured layouts. Decorative: say what matters in the text. */
+  image?: string;
+  /** CSS object-position for the image. @default &quot;center&quot; */
+  imagePosition?: string;
+  /** A few words above the title, set in mono capitals. */
+  eyebrow?: React.ReactNode;
+  /** The big editorial line: a headline, the quote, the number, or the poster's one word. */
+  title?: React.ReactNode;
+  /** One or two sentences under the title. */
+  body?: React.ReactNode;
+  /** A byline, attribution or date. */
+  meta?: React.ReactNode;
+  /** The numbered lines of the list layout. Five at most reads best. */
+  items?: React.ReactNode[];
+  /** A pill above the announcement's title, such as &quot;New&quot;. */
+  badge?: React.ReactNode;
+  /** The brand name in the top corner. @default &quot;Dovetail&quot; */
+  brand?: React.ReactNode;
+  /** A mark before the brand name; defaults to a dot in the text colour. */
+  mark?: React.ReactNode;
+  /** The account handle along the bottom. */
+  handle?: React.ReactNode;
+  /** A short call to action in a pill at the bottom right: &quot;Swipe&quot;, &quot;Link in bio&quot;. */
+  cta?: React.ReactNode;
+  /** A carousel counter in the top corner: &quot;03/10&quot;. */
+  counter?: React.ReactNode;
+  /** The accessible name of the post as an image. Defaults to its eyebrow, title and body. */
+  label?: string;
+}
+
+export declare function SocialPost(props: SocialPostProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>SocialPost.jsx</code> resolves, read from the source: 24 component, 15 semantic, 4 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:SocialPost">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-social-bg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-social-bg"><code>--dt-social-bg</code></a><button type="button" class="graph-btn" data-graph="--dt-social-bg" title="Show what --dt-social-bg connects to" aria-label="Graph for --dt-social-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-base)</code></td></tr><tr id="uses-dt-social-body-line"><th scope="row"><span class="token-cell"><code>--dt-social-body-line</code><button type="button" class="graph-btn" data-graph="--dt-social-body-line" title="Show what --dt-social-body-line connects to" aria-label="Graph for --dt-social-body-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-body-line)</code></td></tr><tr id="uses-dt-social-body-size"><th scope="row"><span class="token-cell"><code>--dt-social-body-size</code><button type="button" class="graph-btn" data-graph="--dt-social-body-size" title="Show what --dt-social-body-size connects to" aria-label="Graph for --dt-social-body-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-body-size)</code></td></tr><tr id="uses-dt-social-display-family"><th scope="row"><span class="token-cell"><code>--dt-social-display-family</code><button type="button" class="graph-btn" data-graph="--dt-social-display-family" title="Show what --dt-social-display-family connects to" aria-label="Graph for --dt-social-display-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-display-family)</code></td></tr><tr id="uses-dt-social-display-line"><th scope="row"><span class="token-cell"><code>--dt-social-display-line</code><button type="button" class="graph-btn" data-graph="--dt-social-display-line" title="Show what --dt-social-display-line connects to" aria-label="Graph for --dt-social-display-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-display-line)</code></td></tr><tr id="uses-dt-social-display-size"><th scope="row"><span class="token-cell"><code>--dt-social-display-size</code><button type="button" class="graph-btn" data-graph="--dt-social-display-size" title="Show what --dt-social-display-size connects to" aria-label="Graph for --dt-social-display-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-display-size)</code></td></tr><tr id="uses-dt-social-display-tracking"><th scope="row"><span class="token-cell"><code>--dt-social-display-tracking</code><button type="button" class="graph-btn" data-graph="--dt-social-display-tracking" title="Show what --dt-social-display-tracking connects to" aria-label="Graph for --dt-social-display-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-display-tracking)</code></td></tr><tr id="uses-dt-social-display-weight"><th scope="row"><span class="token-cell"><code>--dt-social-display-weight</code><button type="button" class="graph-btn" data-graph="--dt-social-display-weight" title="Show what --dt-social-display-weight connects to" aria-label="Graph for --dt-social-display-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-display-weight)</code></td></tr><tr id="uses-dt-social-fg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-social-fg"><code>--dt-social-fg</code></a><button type="button" class="graph-btn" data-graph="--dt-social-fg" title="Show what --dt-social-fg connects to" aria-label="Graph for --dt-social-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-social-gap"><th scope="row"><span class="token-cell"><code>--dt-social-gap</code><button type="button" class="graph-btn" data-graph="--dt-social-gap" title="Show what --dt-social-gap connects to" aria-label="Graph for --dt-social-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-artboard-gap)</code></td></tr><tr id="uses-dt-social-height-portrait"><th scope="row"><span class="token-cell"><code>--dt-social-height-portrait</code><button type="button" class="graph-btn" data-graph="--dt-social-height-portrait" title="Show what --dt-social-height-portrait connects to" aria-label="Graph for --dt-social-height-portrait"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-artboard-portrait)</code></td></tr><tr id="uses-dt-social-height-square"><th scope="row"><span class="token-cell"><code>--dt-social-height-square</code><button type="button" class="graph-btn" data-graph="--dt-social-height-square" title="Show what --dt-social-height-square connects to" aria-label="Graph for --dt-social-height-square"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-artboard-square)</code></td></tr><tr id="uses-dt-social-height-story"><th scope="row"><span class="token-cell"><code>--dt-social-height-story</code><button type="button" class="graph-btn" data-graph="--dt-social-height-story" title="Show what --dt-social-height-story connects to" aria-label="Graph for --dt-social-height-story"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-artboard-story)</code></td></tr><tr id="uses-dt-social-meta-size"><th scope="row"><span class="token-cell"><code>--dt-social-meta-size</code><button type="button" class="graph-btn" data-graph="--dt-social-meta-size" title="Show what --dt-social-meta-size connects to" aria-label="Graph for --dt-social-meta-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-meta-size)</code></td></tr><tr id="uses-dt-social-meta-tracking"><th scope="row"><span class="token-cell"><code>--dt-social-meta-tracking</code><button type="button" class="graph-btn" data-graph="--dt-social-meta-tracking" title="Show what --dt-social-meta-tracking connects to" aria-label="Graph for --dt-social-meta-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-meta-tracking)</code></td></tr><tr id="uses-dt-social-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-social-muted"><code>--dt-social-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-social-muted" title="Show what --dt-social-muted connects to" aria-label="Graph for --dt-social-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-secondary)</code></td></tr><tr id="uses-dt-social-on-image"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-social-on-image"><code>--dt-social-on-image</code></a><button type="button" class="graph-btn" data-graph="--dt-social-on-image" title="Show what --dt-social-on-image connects to" aria-label="Graph for --dt-social-on-image"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-on-scrim-strong)</code></td></tr><tr id="uses-dt-social-on-image-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-social-on-image-muted"><code>--dt-social-on-image-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-social-on-image-muted" title="Show what --dt-social-on-image-muted connects to" aria-label="Graph for --dt-social-on-image-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-on-scrim)</code></td></tr><tr id="uses-dt-social-padding"><th scope="row"><span class="token-cell"><code>--dt-social-padding</code><button type="button" class="graph-btn" data-graph="--dt-social-padding" title="Show what --dt-social-padding connects to" aria-label="Graph for --dt-social-padding"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-artboard)</code></td></tr><tr id="uses-dt-social-radius"><th scope="row"><span class="token-cell"><code>--dt-social-radius</code><button type="button" class="graph-btn" data-graph="--dt-social-radius" title="Show what --dt-social-radius connects to" aria-label="Graph for --dt-social-radius"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>calc(var(--dt-radius-overlay) * 2)</code></td></tr><tr id="uses-dt-social-rule"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-social-rule"><code>--dt-social-rule</code></a><button type="button" class="graph-btn" data-graph="--dt-social-rule" title="Show what --dt-social-rule connects to" aria-label="Graph for --dt-social-rule"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-default)</code></td></tr><tr id="uses-dt-social-title-line"><th scope="row"><span class="token-cell"><code>--dt-social-title-line</code><button type="button" class="graph-btn" data-graph="--dt-social-title-line" title="Show what --dt-social-title-line connects to" aria-label="Graph for --dt-social-title-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-title-line)</code></td></tr><tr id="uses-dt-social-title-size"><th scope="row"><span class="token-cell"><code>--dt-social-title-size</code><button type="button" class="graph-btn" data-graph="--dt-social-title-size" title="Show what --dt-social-title-size connects to" aria-label="Graph for --dt-social-title-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-artboard-title-size)</code></td></tr><tr id="uses-dt-social-width"><th scope="row"><span class="token-cell"><code>--dt-social-width</code><button type="button" class="graph-btn" data-graph="--dt-social-width" title="Show what --dt-social-width connects to" aria-label="Graph for --dt-social-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-artboard-width)</code></td></tr><tr id="uses-dt-backdrop-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-backdrop-glass"><code>--dt-backdrop-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-backdrop-glass" title="Show what --dt-backdrop-glass connects to" aria-label="Graph for --dt-backdrop-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>saturate(1.6) blur(var(--dt-blur-glass))</code></td></tr><tr id="uses-dt-border-width-strong"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-strong"><code>--dt-border-width-strong</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-strong" title="Show what --dt-border-width-strong connects to" aria-label="Graph for --dt-border-width-strong"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair-2)</code></td></tr><tr id="uses-dt-radius-media"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-media"><code>--dt-radius-media</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-media" title="Show what --dt-radius-media connects to" aria-label="Graph for --dt-radius-media"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-12)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-scrim-bottom"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-scrim-bottom"><code>--dt-scrim-bottom</code></a><button type="button" class="graph-btn" data-graph="--dt-scrim-bottom" title="Show what --dt-scrim-bottom connects to" aria-label="Graph for --dt-scrim-bottom"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><span class="swatch" style="background:linear-gradient(to top, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent)"></span><code>linear-gradient(to top, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent)</code></td></tr><tr id="uses-dt-scrim-top"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-scrim-top"><code>--dt-scrim-top</code></a><button type="button" class="graph-btn" data-graph="--dt-scrim-top" title="Show what --dt-scrim-top connects to" aria-label="Graph for --dt-scrim-top"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><span class="swatch" style="background:linear-gradient(to bottom, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent)"></span><code>linear-gradient(to bottom, color-mix(in oklab, var(--dt-color-neutral-950) 80%, transparent), color-mix(in oklab, var(--dt-color-neutral-950) 40%, transparent) 45%, transparent)</code></td></tr><tr id="uses-dt-surface-brand"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand"><code>--dt-surface-brand</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand" title="Show what --dt-surface-brand connects to" aria-label="Graph for --dt-surface-brand"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-600)</code></td></tr><tr id="uses-dt-surface-brand-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand-muted"><code>--dt-surface-brand-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand-muted" title="Show what --dt-surface-brand-muted connects to" aria-label="Graph for --dt-surface-brand-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-050)</code></td></tr><tr id="uses-dt-surface-brand-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-brand-secondary"><code>--dt-surface-brand-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-brand-secondary" title="Show what --dt-surface-brand-secondary connects to" aria-label="Graph for --dt-surface-brand-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-secondary-600)</code></td></tr><tr id="uses-dt-surface-glass-inverse"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-glass-inverse"><code>--dt-surface-glass-inverse</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-glass-inverse" title="Show what --dt-surface-glass-inverse connects to" aria-label="Graph for --dt-surface-glass-inverse"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-color-neutral-950) 58%, transparent)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-sunken" title="Show what --dt-surface-sunken connects to" aria-label="Graph for --dt-surface-sunken"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-text-on-brand"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand"><code>--dt-text-on-brand</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand" title="Show what --dt-text-on-brand connects to" aria-label="Graph for --dt-text-on-brand"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-on-brand-muted"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand-muted"><code>--dt-text-on-brand-muted</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand-muted" title="Show what --dt-text-on-brand-muted connects to" aria-label="Graph for --dt-text-on-brand-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-900)</code></td></tr><tr id="uses-dt-text-on-brand-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-brand-secondary"><code>--dt-text-on-brand-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-brand-secondary" title="Show what --dt-text-on-brand-secondary connects to" aria-label="Graph for --dt-text-on-brand-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-tertiary" title="Show what --dt-text-tertiary connects to" aria-label="Graph for --dt-text-tertiary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-font-family-mono"><th scope="row"><span class="token-cell"><code>--dt-font-family-mono</code><button type="button" class="graph-btn" data-graph="--dt-font-family-mono" title="Show what --dt-font-family-mono connects to" aria-label="Graph for --dt-font-family-mono"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>&quot;Geist Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace</code></td></tr><tr id="uses-dt-font-family-sans"><th scope="row"><span class="token-cell"><code>--dt-font-family-sans</code><button type="button" class="graph-btn" data-graph="--dt-font-family-sans" title="Show what --dt-font-family-sans connects to" aria-label="Graph for --dt-font-family-sans"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>&quot;Geist&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-semibold" title="Show what --dt-font-weight-semibold connects to" aria-label="Graph for --dt-font-weight-semibold"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>600</code></td></tr><tr id="uses-dt-tracking-tight"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-tracking-tight"><code>--dt-tracking-tight</code></a><button type="button" class="graph-btn" data-graph="--dt-tracking-tight" title="Show what --dt-tracking-tight connects to" aria-label="Graph for --dt-tracking-tight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>-0.02em</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+/* A social post: an Instagram story (9:16) or grid post (4:5 or 1:1), drawn on
+   an artboard at the format's native pixel size and scaled to fit its
+   container. A screenshot of it at full size is ready to publish.
+
+   Ten layouts share one frame so a set of posts reads as one voice: a mark and
+   an optional counter along the top, a handle and a call to action along the
+   bottom, and one type scale for everything between. Half the layouts sit on
+   a plain tone and half on a photograph. */
+
+const RATIO = { story: &quot;9 / 16&quot;, portrait: &quot;4 / 5&quot;, square: &quot;1 / 1&quot; };
+const HEIGHT = {
+  story: &quot;var(--dt-social-height-story)&quot;,
+  portrait: &quot;var(--dt-social-height-portrait)&quot;,
+  square: &quot;var(--dt-social-height-square)&quot;,
+};
+/* The display size steps down as the format gets shorter. */
+const SCALE = { story: 1, portrait: 0.86, square: 0.74 };
+
+function fill(bg, fg) {
+  return { background: bg, color: fg, &quot;--dt-social-fg&quot;: fg, &quot;--dt-social-muted&quot;: `color-mix(in oklab, ${fg} 76%, transparent)`, &quot;--dt-social-rule&quot;: `color-mix(in oklab, ${fg} 24%, transparent)` };
+}
+const TONES = {
+  paper: { style: { background: &quot;var(--dt-social-bg)&quot;, color: &quot;var(--dt-social-fg)&quot; } },
+  ink: { dark: true, style: { background: &quot;var(--dt-social-bg)&quot;, color: &quot;var(--dt-social-fg)&quot; } },
+  brand: { style: fill(&quot;var(--dt-surface-brand)&quot;, &quot;var(--dt-text-on-brand)&quot;) },
+  &quot;brand-muted&quot;: { style: fill(&quot;var(--dt-surface-brand-muted)&quot;, &quot;var(--dt-text-on-brand-muted)&quot;) },
+  secondary: { style: fill(&quot;var(--dt-surface-brand-secondary)&quot;, &quot;var(--dt-text-on-brand-secondary)&quot;) },
+};
+const PICTURED = { cover: true, split: true, framed: true, card: true, poster: true };
+
+function useScale(ref) {
+  const [scale, setScale] = React.useState(0);
+  React.useLayoutEffect(() =&gt; {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () =&gt; {
+      const native = parseFloat(getComputedStyle(el).getPropertyValue(&quot;--dt-social-width&quot;)) || 1;
+      setScale(el.clientWidth / native);
+    };
+    measure();
+    if (typeof ResizeObserver === &quot;undefined&quot;) return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () =&gt; ro.disconnect();
+  }, [ref]);
+  return scale;
+}
+
+const meta = {
+  fontFamily: &quot;var(--dt-font-family-mono)&quot;, fontSize: &quot;var(--dt-social-meta-size)&quot;,
+  letterSpacing: &quot;var(--dt-social-meta-tracking)&quot;, textTransform: &quot;uppercase&quot;, lineHeight: 1.2,
+};
+const body = { margin: 0, fontSize: &quot;var(--dt-social-body-size)&quot;, lineHeight: &quot;var(--dt-social-body-line)&quot;, color: &quot;var(--dt-social-muted)&quot;, textWrap: &quot;pretty&quot; };
+
+function display(format, factor = 1) {
+  const k = SCALE[format] * factor;
+  return {
+    margin: 0,
+    fontFamily: &quot;var(--dt-social-display-family)&quot;,
+    fontSize: `calc(var(--dt-social-display-size) * ${k})`,
+    lineHeight: `calc(var(--dt-social-display-line) * ${k})`,
+    fontWeight: &quot;var(--dt-social-display-weight)&quot;,
+    letterSpacing: &quot;var(--dt-social-display-tracking)&quot;,
+    textWrap: &quot;balance&quot;,
+  };
+}
+function title(format, factor = 1) {
+  const k = SCALE[format] * factor;
+  return {
+    margin: 0,
+    fontFamily: &quot;var(--dt-social-display-family)&quot;,
+    fontSize: `calc(var(--dt-social-title-size) * ${k})`,
+    lineHeight: `calc(var(--dt-social-title-line) * ${k})`,
+    fontWeight: &quot;var(--dt-social-display-weight)&quot;,
+    letterSpacing: &quot;var(--dt-social-display-tracking)&quot;,
+    textWrap: &quot;balance&quot;,
+  };
+}
+
+function Picture({ image, position, label, style }) {
+  return image ? (
+    &lt;img src={image} alt=&quot;&quot; style={{ position: &quot;absolute&quot;, inset: 0, width: &quot;100%&quot;, height: &quot;100%&quot;, objectFit: &quot;cover&quot;, objectPosition: position, display: &quot;block&quot;, ...style }} /&gt;
+  ) : (
+    &lt;div style={{ position: &quot;absolute&quot;, inset: 0, display: &quot;grid&quot;, placeItems: &quot;center&quot;, background: &quot;var(--dt-surface-sunken)&quot;, color: &quot;var(--dt-text-tertiary)&quot;, ...meta, ...style }}&gt;{label || &quot;Image&quot;}&lt;/div&gt;
+  );
+}
+
+export function SocialPost({
+  layout = &quot;headline&quot;,
+  format = &quot;story&quot;,
+  tone = &quot;brand&quot;,
+  image,
+  imagePosition = &quot;center&quot;,
+  eyebrow,
+  title: heading,
+  body: text,
+  meta: byline,
+  items = [],
+  badge,
+  brand = &quot;Dovetail&quot;,
+  mark,
+  handle,
+  cta,
+  counter,
+  label,
+  style,
+  ...rest
+}) {
+  const box = React.useRef(null);
+  const scale = useScale(box);
+  const t = TONES[tone] || TONES.brand;
+  const pictured = !!PICTURED[layout];
+  const onImage = layout === &quot;cover&quot; || layout === &quot;poster&quot; || layout === &quot;card&quot;;
+
+  const frame = {
+    position: &quot;absolute&quot;, inset: 0, zIndex: 2,
+    display: &quot;flex&quot;, flexDirection: &quot;column&quot;, justifyContent: &quot;space-between&quot;,
+    padding: &quot;var(--dt-social-padding)&quot;, gap: &quot;var(--dt-social-gap)&quot;,
+    color: onImage ? &quot;var(--dt-social-on-image)&quot; : undefined,
+    &quot;--dt-social-muted&quot;: onImage ? &quot;var(--dt-social-on-image-muted)&quot; : undefined,
+  };
+  const top = (
+    &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;space-between&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+      &lt;span style={{ display: &quot;inline-flex&quot;, alignItems: &quot;center&quot;, gap: &quot;calc(var(--dt-social-gap) / 2)&quot;, fontSize: &quot;var(--dt-social-body-size)&quot;, fontWeight: &quot;var(--dt-font-weight-semibold)&quot;, letterSpacing: &quot;var(--dt-tracking-tight)&quot; }}&gt;
+        {mark || &lt;span aria-hidden=&quot;true&quot; style={{ width: &quot;calc(var(--dt-social-meta-size) * 1.1)&quot;, height: &quot;calc(var(--dt-social-meta-size) * 1.1)&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot;, background: &quot;currentColor&quot; }} /&gt;}
+        {brand}
+      &lt;/span&gt;
+      {counter &amp;&amp; &lt;span style={meta}&gt;{counter}&lt;/span&gt;}
+    &lt;/div&gt;
+  );
+  const bottom = (handle || cta) &amp;&amp; (
+    &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;space-between&quot;, gap: &quot;var(--dt-social-gap)&quot;, ...meta }}&gt;
+      &lt;span&gt;{handle}&lt;/span&gt;
+      {cta &amp;&amp; &lt;span style={{ padding: &quot;calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.4)&quot;, border: &quot;var(--dt-border-width-strong, 2px) solid currentColor&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot; }}&gt;{cta}&lt;/span&gt;}
+    &lt;/div&gt;
+  );
+  const eyebrowEl = eyebrow &amp;&amp; &lt;p style={{ margin: 0, ...meta, color: &quot;var(--dt-social-muted)&quot; }}&gt;{eyebrow}&lt;/p&gt;;
+
+  let content = null;
+  let background = null;
+
+  if (layout === &quot;headline&quot;) {
+    content = (
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+        {eyebrowEl}
+        &lt;h2 style={display(format)}&gt;{heading}&lt;/h2&gt;
+        {text &amp;&amp; &lt;p style={body}&gt;{text}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  } else if (layout === &quot;quote&quot;) {
+    content = (
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+        &lt;span aria-hidden=&quot;true&quot; style={{ ...display(format, 1.6), lineHeight: 0.6, height: &quot;calc(var(--dt-social-display-size) * 0.5)&quot; }}&gt;“&lt;/span&gt;
+        &lt;blockquote style={{ margin: 0, ...title(format) }}&gt;{heading}&lt;/blockquote&gt;
+        {byline &amp;&amp; &lt;p style={{ margin: 0, ...meta }}&gt;{byline}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  } else if (layout === &quot;stat&quot;) {
+    content = (
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+        {eyebrowEl}
+        &lt;p style={{ ...display(format, 1.9), fontVariantNumeric: &quot;tabular-nums&quot;, whiteSpace: &quot;nowrap&quot; }}&gt;{heading}&lt;/p&gt;
+        {text &amp;&amp; &lt;p style={{ ...body, fontSize: &quot;calc(var(--dt-social-body-size) * 1.2)&quot;, color: &quot;inherit&quot; }}&gt;{text}&lt;/p&gt;}
+        {byline &amp;&amp; &lt;p style={{ margin: 0, ...meta, color: &quot;var(--dt-social-muted)&quot; }}&gt;{byline}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  } else if (layout === &quot;list&quot;) {
+    content = (
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+        {eyebrowEl}
+        &lt;h2 style={title(format)}&gt;{heading}&lt;/h2&gt;
+        &lt;ol style={{ listStyle: &quot;none&quot;, margin: 0, padding: 0 }}&gt;
+          {items.map((it, i) =&gt; (
+            &lt;li key={i} style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-social-gap)&quot;, alignItems: &quot;baseline&quot;, padding: &quot;calc(var(--dt-social-gap) * 0.6) 0&quot;, borderTop: &quot;var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)&quot;, fontSize: &quot;calc(var(--dt-social-body-size) * 1.1)&quot;, lineHeight: &quot;var(--dt-social-body-line)&quot; }}&gt;
+              &lt;span style={{ ...meta, color: &quot;var(--dt-social-muted)&quot;, minWidth: &quot;2.4em&quot; }}&gt;{String(i + 1).padStart(2, &quot;0&quot;)}&lt;/span&gt;
+              &lt;span&gt;{it}&lt;/span&gt;
+            &lt;/li&gt;
+          ))}
+        &lt;/ol&gt;
+      &lt;/div&gt;
+    );
+  } else if (layout === &quot;announcement&quot;) {
+    content = (
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, alignItems: &quot;center&quot;, textAlign: &quot;center&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+        {badge &amp;&amp; &lt;span style={{ ...meta, padding: &quot;calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.2)&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot;, border: &quot;var(--dt-border-width-strong, 2px) solid currentColor&quot; }}&gt;{badge}&lt;/span&gt;}
+        &lt;h2 style={display(format)}&gt;{heading}&lt;/h2&gt;
+        {text &amp;&amp; &lt;p style={{ ...body, maxWidth: &quot;80%&quot; }}&gt;{text}&lt;/p&gt;}
+        {byline &amp;&amp; &lt;p style={{ margin: 0, ...meta }}&gt;{byline}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  } else if (layout === &quot;cover&quot;) {
+    background = (
+      &lt;&gt;
+        &lt;Picture image={image} position={imagePosition} label={label} /&gt;
+        &lt;div style={{ position: &quot;absolute&quot;, inset: 0, background: &quot;var(--dt-scrim-bottom)&quot; }} /&gt;
+        &lt;div style={{ position: &quot;absolute&quot;, inset: &quot;0 0 auto&quot;, height: &quot;30%&quot;, background: &quot;var(--dt-scrim-top)&quot;, opacity: 0.6 }} /&gt;
+      &lt;/&gt;
+    );
+    content = (
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+        {eyebrowEl}
+        &lt;h2 style={display(format, 0.9)}&gt;{heading}&lt;/h2&gt;
+        {text &amp;&amp; &lt;p style={body}&gt;{text}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  } else if (layout === &quot;poster&quot;) {
+    background = (
+      &lt;&gt;
+        &lt;Picture image={image} position={imagePosition} label={label} /&gt;
+        &lt;div style={{ position: &quot;absolute&quot;, inset: 0, background: &quot;var(--dt-scrim-top)&quot; }} /&gt;
+        &lt;div style={{ position: &quot;absolute&quot;, inset: &quot;auto 0 0&quot;, height: &quot;40%&quot;, background: &quot;var(--dt-scrim-bottom)&quot; }} /&gt;
+      &lt;/&gt;
+    );
+    content = null;
+  } else if (layout === &quot;card&quot;) {
+    background = (
+      &lt;&gt;
+        &lt;Picture image={image} position={imagePosition} label={label} /&gt;
+        &lt;div style={{ position: &quot;absolute&quot;, inset: &quot;0 0 auto&quot;, height: &quot;30%&quot;, background: &quot;var(--dt-scrim-top)&quot;, opacity: 0.6 }} /&gt;
+      &lt;/&gt;
+    );
+    content = (
+      &lt;div className=&quot;dark&quot; style={{
+        display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;calc(var(--dt-social-gap) * 0.6)&quot;,
+        padding: &quot;var(--dt-social-gap)&quot;, borderRadius: &quot;var(--dt-social-radius)&quot;,
+        background: &quot;var(--dt-surface-glass-inverse)&quot;, color: &quot;var(--dt-social-on-image)&quot;,
+        backdropFilter: &quot;var(--dt-backdrop-glass, blur(24px))&quot;, WebkitBackdropFilter: &quot;var(--dt-backdrop-glass, blur(24px))&quot;,
+      }}&gt;
+        {eyebrowEl}
+        &lt;h2 style={title(format, 0.9)}&gt;{heading}&lt;/h2&gt;
+        {text &amp;&amp; &lt;p style={{ ...body, color: &quot;var(--dt-social-on-image-muted)&quot; }}&gt;{text}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  }
+
+  const inner = (() =&gt; {
+    if (layout === &quot;split&quot;) {
+      return (
+        &lt;div style={{ position: &quot;absolute&quot;, inset: 0, display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;
+          &lt;div style={{ position: &quot;relative&quot;, flex: format === &quot;square&quot; ? &quot;0 0 48%&quot; : &quot;0 0 56%&quot; }}&gt;
+            &lt;Picture image={image} position={imagePosition} label={label} /&gt;
+            &lt;div style={{ position: &quot;absolute&quot;, inset: &quot;0 0 auto&quot;, height: &quot;40%&quot;, background: &quot;var(--dt-scrim-top)&quot;, opacity: 0.6 }} /&gt;
+          &lt;/div&gt;
+          &lt;div style={{ flex: 1, display: &quot;flex&quot;, flexDirection: &quot;column&quot;, justifyContent: &quot;space-between&quot;, padding: &quot;var(--dt-social-padding)&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+            &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;calc(var(--dt-social-gap) * 0.6)&quot; }}&gt;
+              {eyebrowEl}
+              &lt;h2 style={title(format)}&gt;{heading}&lt;/h2&gt;
+              {text &amp;&amp; format !== &quot;square&quot; &amp;&amp; &lt;p style={body}&gt;{text}&lt;/p&gt;}
+            &lt;/div&gt;
+            {bottom}
+          &lt;/div&gt;
+          &lt;div style={{ position: &quot;absolute&quot;, top: 0, left: 0, right: 0, padding: &quot;var(--dt-social-padding)&quot;, color: &quot;var(--dt-social-on-image)&quot; }}&gt;{top}&lt;/div&gt;
+        &lt;/div&gt;
+      );
+    }
+    if (layout === &quot;framed&quot;) {
+      return (
+        &lt;div style={frame}&gt;
+          {top}
+          &lt;div style={{ position: &quot;relative&quot;, flex: 1, minHeight: 0, borderRadius: &quot;var(--dt-social-radius)&quot;, overflow: &quot;hidden&quot; }}&gt;
+            &lt;Picture image={image} position={imagePosition} label={label} /&gt;
+          &lt;/div&gt;
+          &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;calc(var(--dt-social-gap) * 0.5)&quot; }}&gt;
+            {eyebrowEl}
+            &lt;h2 style={title(format, 0.85)}&gt;{heading}&lt;/h2&gt;
+          &lt;/div&gt;
+          {bottom}
+        &lt;/div&gt;
+      );
+    }
+    if (layout === &quot;poster&quot;) {
+      return (
+        &lt;div style={frame}&gt;
+          &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+            {top}
+            {/* One word, set as large as its length allows without breaking it. */}
+            &lt;h2 style={{ ...display(format, Math.min(1.9, 9 / Math.max(4, String(heading || &quot;&quot;).length))), lineHeight: 0.86, whiteSpace: &quot;nowrap&quot; }}&gt;{heading}&lt;/h2&gt;
+          &lt;/div&gt;
+          &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-social-gap)&quot; }}&gt;
+            {text &amp;&amp; &lt;p style={body}&gt;{text}&lt;/p&gt;}
+            {bottom}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      );
+    }
+    return (
+      &lt;div style={{ ...frame, justifyContent: &quot;space-between&quot; }}&gt;
+        {top}
+        {content}
+        {bottom || &lt;span /&gt;}
+      &lt;/div&gt;
+    );
+  })();
+
+  return (
+    &lt;div
+      ref={box}
+      role=&quot;img&quot;
+      aria-label={label || [eyebrow, typeof heading === &quot;string&quot; ? heading : null, typeof text === &quot;string&quot; ? text : null].filter(Boolean).join(&quot;. &quot;)}
+      style={{ position: &quot;relative&quot;, width: &quot;100%&quot;, aspectRatio: RATIO[format] || RATIO.story, overflow: &quot;hidden&quot;, borderRadius: &quot;var(--dt-radius-media)&quot;, ...style }}
+      {...rest}
+    &gt;
+      &lt;div
+        className={t.dark ? &quot;dark&quot; : undefined}
+        style={{
+          position: &quot;absolute&quot;, top: 0, left: 0,
+          width: &quot;var(--dt-social-width)&quot;, height: HEIGHT[format] || HEIGHT.story,
+          transform: `scale(${scale})`, transformOrigin: &quot;0 0&quot;, visibility: scale ? &quot;visible&quot; : &quot;hidden&quot;,
+          overflow: &quot;hidden&quot;, fontFamily: &quot;var(--dt-font-family-sans)&quot;,
+          ...(pictured &amp;&amp; layout !== &quot;framed&quot; &amp;&amp; layout !== &quot;split&quot; ? { background: &quot;var(--dt-surface-sunken)&quot;, color: &quot;var(--dt-social-on-image)&quot; } : t.style),
+        }}
+      &gt;
+        {background}
+        {inner}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>SocialPost also appears on the content reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#contentdetail">ContentDetail</a></li></ul>
+</section>
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#layouts">Layouts</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#keeping-a-set-cohesive">Keeping a set cohesive</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><p class="asheet-eyebrow">This page</p><h2 class="asheet-title" id="page-sheet-title">SocialPost</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="SocialPost.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="SocialPost.md" download="SocialPost.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="SocialPost.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FSocialPost.md%3A%20the%20%22SocialPost%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="SocialPost" data-md="SocialPost.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=bde39d18a4" defer></script>
+<script src="../assets/specimens.js?v=b7427c19de" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=f8d8e12328" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=d383743fcf" defer></script>
+<script src="../assets/theme.js?v=539f11225c" defer></script>
+<script src="../assets/site.js?v=343fbd6940" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>
