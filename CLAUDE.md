@@ -20,7 +20,7 @@ npm run check          # must pass before you push
   - the site pages: `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html`;
   - `system/components/bundle.js` and `system/_ds_bundle.js`;
   - `system/templates/_support/card-kit.js`;
-  - `assets/configure-data.js`, `assets/graph-data.js` and `assets/search-data.js`;
+  - `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js` and `llms.txt`;
   - the style block and app script of `previews/MarketingKit.html` and `previews/DashboardKit.html`. Edit `system/kits/` instead.
 - For a merge conflict in a generated file, take either side, run `npm run build` and commit.
 - Commit sources and rebuilt output together.

@@ -15,7 +15,7 @@
 
   var NS = window.BeamMobileDesignSystem_e33121;
   var slots = document.querySelectorAll("[data-specimen]");
-  if (!NS || !window.React || !window.ReactDOM || !slots.length) return;
+  if (!NS || !window.React || !window.ReactDOM) return;
 
   var e = React.createElement;
 
@@ -345,6 +345,10 @@
     ToastRegion: "Fixed to a corner of the viewport, so it is shown on its own card.",
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };
+
+  /* The component pages' playground starts from these same specimens. */
+  window.DovetailSpecimens = { build: SPECIMENS, notes: NOTES };
+  if (!slots.length) return;
 
   Array.prototype.forEach.call(slots, function (slot) {
     var name = slot.getAttribute("data-specimen");

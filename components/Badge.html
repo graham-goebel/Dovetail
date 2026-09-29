@@ -7,7 +7,7 @@
 <meta name="description" content="A small, non-interactive label. Badges report state; they never do anything.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
-<link rel="stylesheet" href="../assets/site.css?v=b8d8fa0aea">
+<link rel="stylesheet" href="../assets/site.css?v=27dd3d80a6">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -61,7 +61,7 @@
     <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="Badge.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
     <li role="none"><a role="menuitem" class="page-menu-item" href="Badge.md" download="Badge.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
     <li role="none"><a role="menuitem" class="page-menu-item" href="Badge.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
-    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FBadge.md%20(the%20%22Badge%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="Badge" data-md="Badge.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FBadge.md%3A%20the%20%22Badge%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="Badge" data-md="Badge.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
     <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
   </ul>
   <span class="page-actions-status" role="status" aria-live="polite"></span>
@@ -77,6 +77,16 @@
   <a href="../system/components/display/Badge.d.ts">Badge.d.ts</a>
   <a href="../system/components/display/Badge.md">Badge.md</a>
 </p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="Badge" data-props="[{&quot;name&quot;:&quot;tone&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;neutral&quot;,&quot;primary&quot;,&quot;success&quot;,&quot;warning&quot;,&quot;danger&quot;,&quot;info&quot;],&quot;default&quot;:&quot;neutral&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;variant&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;subtle&quot;,&quot;solid&quot;],&quot;default&quot;:&quot;subtle&quot;,&quot;note&quot;:&quot;subtle is tinted with a border; solid is a filled chip for high emphasis.&quot;},{&quot;name&quot;:&quot;dot&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Leading status dot.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="Badge props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
 
 <section class="card-block" id="live">
   <div class="card-head">
@@ -187,6 +197,7 @@ export function Badge({ tone = &quot;neutral&quot;, variant = &quot;subtle&quot;
 <aside class="page-toc" aria-labelledby="page-toc-title">
   <p class="page-toc-title" id="page-toc-title">On this page</p>
   <ol>
+    <li><a href="#playground">Playground</a></li>
     <li><a href="#live">Live</a></li>
     <li><a href="#guidelines">Guidelines</a></li>
     <li class="nested"><a href="#use-it-when">Use it when</a></li>
@@ -210,12 +221,17 @@ export function Badge({ tone = &quot;neutral&quot;, variant = &quot;subtle&quot;
 <div class="fab" id="fab">
   <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
 </div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=6a237835af" defer></script>
+<script src="../assets/specimens.js?v=2b7d7057cd" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
 <script src="../assets/search-data.js?v=d34cb94e1f" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
-<script src="../assets/menu.js?v=a6abe8525e" defer></script>
+<script src="../assets/menu.js?v=d383743fcf" defer></script>
 <script src="../assets/theme.js?v=539f11225c" defer></script>
-<script src="../assets/site.js?v=d794158e2e" defer></script>
+<script src="../assets/site.js?v=43dbc5cde1" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>
 </body>
 </html>

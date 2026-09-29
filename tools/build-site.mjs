@@ -679,14 +679,89 @@ function inlineTocText(text) {
   return text.replace(/&(?!(?:amp|lt|gt|quot|#39);)/g, "&amp;");
 }
 
+/* The prompt behind every "Open in Claude" link. It sends Claude to the
+   docs map first (llms.txt, raw Markdown links for everything), then the page
+   the reader was on, then the authoring rules, and gives it the rules that
+   most often go wrong in generated code. It ends on "My task:" so the reader
+   only has to type what they want. assets/site.js builds the same prompt for
+   a copy of the site served from anywhere else; keep the two in step. */
+function claudePrompt(site, subject, title) {
+  return [
+    `I'm building with Dovetail, a white-label React design system: primitive tokens, semantic roles and components, rebranded by a theme file of token overrides.`,
+    ``,
+    `Read these first, in order:`,
+    `1. ${site}llms.txt: the map of the docs, with raw Markdown links to every guide, token file and component (its .md guide, .d.ts props and .jsx source).`,
+    `2. ${subject}: the "${title}" page I'm looking at.`,
+    `3. ${site}system/assets/notes/CLAUDE.from-standalone.md: the authoring rules. Follow them.`,
+    ``,
+    `When you write code:`,
+    `- Use Dovetail's components and --dt-* tokens. No literal colours, sizes, radii, shadows or durations.`,
+    `- Product code reads semantic (--dt-surface-*, --dt-text-*) or component tokens, never primitives (--dt-color-*).`,
+    `- Check every prop against the component's .d.ts, and follow the rules in its .md.`,
+    `- Rebrand by overriding tokens in a theme file, not by editing components.`,
+    `- Make it work at 390px, in dark mode (.dark) and with reduced motion.`,
+    `- If the docs don't cover something, say so rather than inventing an API or a token.`,
+    ``,
+    `My task: `,
+  ].join("\n");
+}
+
+/* llms.txt: the docs map an agent reads first (https://llmstxt.org). Every
+   link is raw Markdown or JSON, so an agent reads the source, not a page. */
+function buildLlmsTxt() {
+  const link = (label, rel, note) => `- [${label}](${SITE_URL}${rel})${note ? `: ${note}` : ""}`;
+  const lines = [
+    `# Dovetail`,
+    ``,
+    `> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and ${components.length} React components that never name a colour. Brand arrives last, as a theme file of token overrides.`,
+    ``,
+    `Link \`system/styles.css\` for every token and base style; put \`class="dark"\` on an element to scope dark mode to it. Components are React (inline styles read from tokens) in \`system/components/<family>/\`, each with a \`.md\` guide, a \`.d.ts\` props contract and the \`.jsx\` source. Read a component's guide before using it: it holds the rules the types cannot.`,
+    ``,
+    `## Start here`,
+    ``,
+    link("Authoring rules", "system/assets/notes/CLAUDE.from-standalone.md", "the always-on rules for building with Dovetail"),
+    link("README", "system/README.md", "the system's manifest and design guide"),
+    link("Token reference", "system/guidelines/tokens.md", "every token, tier by tier"),
+    link("Theming", "system/guidelines/theming.md", "from a brand palette to a working theme file"),
+    link("Accessibility", "system/guidelines/accessibility.md", "what the system guarantees and what you owe"),
+    link("Headless integration", "system/guidelines/headless-integration.md", "React, Sanity and other content sources"),
+    ``,
+    `## Tokens`,
+    ``,
+    link("tokens.json", "system/tokens.json", "every token with its light and dark value"),
+    link("dovetail.tokens.json", "system/tokens/dovetail.tokens.json", "the DTCG source of truth"),
+    link("styles.css", "system/styles.css", "the one stylesheet to link"),
+    ``,
+  ];
+  for (const g of GROUP_ORDER) {
+    const list = byGroup(g);
+    if (!list.length) continue;
+    lines.push(`## Components: ${GROUP_LABEL[g]}`, ``, GROUP_BLURB[g] || "", ``);
+    for (const c of list) {
+      const summary = String(c.summary || "").replace(/\s+/g, " ").trim();
+      const files = [c.types && `[props](${SITE_URL}${c.types})`, c.source && `[source](${SITE_URL}${c.source})`].filter(Boolean).join(", ");
+      lines.push(`- [${c.name}](${SITE_URL}${c.guideFile || `components/${c.name}.md`})${summary ? `: ${summary}` : ""}${files ? ` (${files})` : ""}`);
+    }
+    lines.push(``);
+  }
+  lines.push(
+    `## Optional`,
+    ``,
+    link("Contributing a component", "system/guidelines/contributing.md"),
+    link("Changelog", "CHANGELOG.md", "what changed in each release"),
+    link("Token pipeline", "system/tools/README.md", "DTCG source and the Style Dictionary build"),
+    ``
+  );
+  write("llms.txt", lines.join("\n"));
+}
+
 /* The page menu: copy or take the page as Markdown, where the page has a
    Markdown version, and hand it to Claude. The menu is plain markup that works
    as links without script; assets/site.js adds copying and keyboard handling. */
 function pageActions({ title, root, md, mdName, pageUrl }) {
   const mdUrl = md ? new URL(md, SITE_URL + pageUrl).href : null;
   const subject = mdUrl || SITE_URL + pageUrl;
-  const prompt = `I'm working with the Dovetail design system. Read ${subject} (the "${title}" docs) and help me use it.`;
-  const claude = `https://claude.ai/new?q=${encodeURIComponent(prompt)}`;
+  const claude = `https://claude.ai/new?q=${encodeURIComponent(claudePrompt(SITE_URL, subject, title))}`;
   const item = (glyph, label, attrs) => `<li role="none"><${attrs.href ? "a" : "button type=\"button\""} role="menuitem" class="page-menu-item" ${Object.entries(attrs)
     .map(([k, v]) => `${k}="${attr(v)}"`)
     .join(" ")}>${icon(glyph)}<span>${esc(label)}</span></${attrs.href ? "a" : "button"}></li>`;
@@ -1361,6 +1436,8 @@ ${breadcrumb("../", [
   ${c.guideFile ? `<a href="../${c.guideFile}">${esc(c.sourceName)}.md</a>` : ""}
 </p>
 
+${playgroundSection(c)}
+
 ${cardBlock(c.card, "../", { heading: "Live" })}
 
 <section class="prose">
@@ -1401,8 +1478,69 @@ ${
 }
 `;
     fs.writeFileSync(path.join(ROOT, "components", `${c.name}.md`), componentMarkdown(c));
-    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md` });
+    const playScripts = playgroundProps(c).length
+      ? `<script src="../system/components/lib/react.production.min.js" defer></script>\n` +
+        `<script src="../system/components/lib/react-dom.production.min.js" defer></script>\n` +
+        `<script src="../system/components/bundle.js" defer></script>\n` +
+        `<script src="../assets/specimens.js" defer></script>\n` +
+        `<script src="../assets/playground.js" defer></script>\n`
+      : "";
+    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md`, scripts: playScripts });
   }
+}
+
+/* ------------------------------------------------------------- playground */
+
+/* The props a reader can turn in the playground, read from the component's
+   .d.ts: string unions become chips, booleans a switch, numbers a number
+   field, and strings or ReactNode a text field. Functions, arrays, objects,
+   style and as are left to the code, since there is no honest control for
+   them. */
+function playgroundProps(c) {
+  if (!c.types) return [];
+  const src = read(path.join(ROOT, c.types));
+  const start = src.search(new RegExp(`export interface ${c.sourceName === c.name ? c.name : c.name}Props\\b`));
+  if (start < 0) return [];
+  const open = src.indexOf("{", start);
+  let depth = 0, end = open;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}" && --depth === 0) { end = i; break; }
+  }
+  const body = src.slice(open + 1, end);
+  const out = [];
+  const re = /(?:\/\*\*([\s\S]*?)\*\/\s*)?\n\s*([a-zA-Z]\w*)(\?)?:\s*([^;]+);/g;
+  let m;
+  while ((m = re.exec(body))) {
+    const [, doc = "", name, , rawType] = m;
+    const type = rawType.replace(/\s+/g, " ").trim();
+    if (/^(style|as|className|id)$/.test(name) || /^on[A-Z]/.test(name)) continue;
+    const def = (doc.match(/@default\s+([^\n*]+)/) || [])[1];
+    const note = doc.replace(/^\s*\*\s?/gm, "").replace(/@default[^\n]*/g, "").replace(/\s+/g, " ").trim();
+    let kind = null, options = null;
+    if (/^("[^"]*"\s*\|\s*)+"[^"]*"$/.test(type)) { kind = "enum"; options = type.split("|").map((x) => x.trim().replace(/"/g, "")); }
+    else if (type === "boolean") kind = "boolean";
+    else if (type === "number" || type === "number | string" || type === "string | number") kind = "number";
+    else if (type === "string") kind = "text";
+    else if (type === "React.ReactNode") kind = "node";
+    if (!kind) continue;
+    out.push({ name, kind, options, default: def ? def.trim().replace(/^"|"$/g, "") : null, note: note.split(". ")[0].slice(0, 120) });
+  }
+  return out;
+}
+
+function playgroundSection(c) {
+  const props = playgroundProps(c);
+  if (!props.length) return "";
+  return `<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="${attr(c.name)}" data-props="${attr(JSON.stringify(props))}">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="${attr(c.name)} props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>`;
 }
 
 /* ----------------------------------------------------------- showcase pages */
@@ -1789,5 +1927,6 @@ buildShowcase();
 buildGuide();
 buildTokens();
 buildDownloads();
+buildLlmsTxt();
 
 console.log(`Built ${written.length} pages from ${components.length} components and ${cards.size} cards.`);
