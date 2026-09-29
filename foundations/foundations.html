@@ -6,8 +6,8 @@
 <title>Foundations · Dovetail</title>
 <meta name="description" content="The contract the rest of the system rests on.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="../system/styles.css?v=74895a471c">
-<link rel="stylesheet" href="../assets/site.css?v=8e329e47eb">
+<link rel="stylesheet" href="../system/styles.css?v=cbe439c4db">
+<link rel="stylesheet" href="../assets/site.css?v=a69c534096">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -27,6 +27,7 @@
 <header class="site-header">
   <a class="wordmark" href="../index.html">
     <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
     <span class="wordmark-text">Dovetail</span>
   </a>
   <span class="wordmark-note">White-label design system</span>
@@ -41,15 +42,11 @@
 </header>
 <div class="layout">
 <nav class="sidebar" id="sidebar" aria-label="Documentation">
-  <div class="nav-filter">
-    <label class="visually-hidden" for="nav-search">Filter navigation</label>
-    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
-  </div>
   <ul class="nav-top">
     <li><a href="../index.html">Overview</a></li>
     <li><a href="../downloads.html">Download</a></li>
   </ul>
-  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html" aria-current="page">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html" aria-current="page">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
   <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li></ul></details>
   <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li></ul></details>
   <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
@@ -64,51 +61,51 @@
 <section class="card-block" id="iconography">
   <div class="card-head">
     <h2>Iconography</h2>
-    <a class="card-open" href="../previews/Iconography.html?v=da0c46db96&amp;b=483864345d" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Iconography.html?v=da0c46db96&amp;b=080c954b5b" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Lucide. 2px stroke, round caps, currentColor.</p>
   <div class="frame" style="height:158px">
-    <iframe src="../previews/Iconography.html?v=da0c46db96&amp;b=483864345d" title="Iconography preview" loading="lazy"></iframe>
+    <iframe src="../previews/Iconography.html?v=da0c46db96&amp;b=080c954b5b" title="Iconography preview" loading="lazy"></iframe>
   </div>
 </section>
 <section class="card-block" id="sketch-marks">
   <div class="card-head">
     <h2>Sketch marks</h2>
-    <a class="card-open" href="../previews/SketchMarks.html?v=3d1edcf211&amp;b=483864345d" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/SketchMarks.html?v=3d1edcf211&amp;b=080c954b5b" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Hand-drawn accents for expressive moments, on the same 24px grid and size tokens as the icon set.</p>
   <div class="frame" style="height:280px">
-    <iframe src="../previews/SketchMarks.html?v=3d1edcf211&amp;b=483864345d" title="Sketch marks preview" loading="lazy"></iframe>
+    <iframe src="../previews/SketchMarks.html?v=3d1edcf211&amp;b=080c954b5b" title="Sketch marks preview" loading="lazy"></iframe>
   </div>
 </section>
 <section class="card-block" id="the-three-tiers">
   <div class="card-head">
     <h2>The three tiers</h2>
-    <a class="card-open" href="../previews/TierContract.html?v=0640eb038c&amp;b=483864345d" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/TierContract.html?v=0640eb038c&amp;b=080c954b5b" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Component reads semantic, semantic reads primitive. Nothing skips or reverses.</p>
   <div class="frame" style="height:198px">
-    <iframe src="../previews/TierContract.html?v=0640eb038c&amp;b=483864345d" title="The three tiers preview" loading="lazy"></iframe>
+    <iframe src="../previews/TierContract.html?v=0640eb038c&amp;b=080c954b5b" title="The three tiers preview" loading="lazy"></iframe>
   </div>
 </section>
 <section class="card-block" id="voice">
   <div class="card-head">
     <h2>Voice</h2>
-    <a class="card-open" href="../previews/Voice.html?v=3bf987d42d&amp;b=483864345d" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Voice.html?v=3bf987d42d&amp;b=080c954b5b" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">State the rule, then the reason. Second person, active, present tense.</p>
   <div class="frame" style="height:272px">
-    <iframe src="../previews/Voice.html?v=3bf987d42d&amp;b=483864345d" title="Voice preview" loading="lazy"></iframe>
+    <iframe src="../previews/Voice.html?v=3bf987d42d&amp;b=080c954b5b" title="Voice preview" loading="lazy"></iframe>
   </div>
 </section>
 <section class="card-block" id="wordmark">
   <div class="card-head">
     <h2>Wordmark</h2>
-    <a class="card-open" href="../previews/Wordmark.html?v=657432bc92&amp;b=483864345d" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Wordmark.html?v=657432bc92&amp;b=080c954b5b" target="_blank" rel="noopener">Open full card</a>
   </div>
   <p class="card-sub">Dovetail ships no logo. The name, set in the sans family.</p>
   <div class="frame" style="height:158px">
-    <iframe src="../previews/Wordmark.html?v=657432bc92&amp;b=483864345d" title="Wordmark preview" loading="lazy"></iframe>
+    <iframe src="../previews/Wordmark.html?v=657432bc92&amp;b=080c954b5b" title="Wordmark preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -135,7 +132,7 @@
 <div class="asheet-bg" id="page-sheet" hidden>
   <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
     <div class="asheet-head">
-      <div class="asheet-titles"><p class="asheet-eyebrow">This page</p><h2 class="asheet-title" id="page-sheet-title">Foundations</h2></div>
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">Foundations</h2></div>
       <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
     </div>
     <ul class="page-menu" id="page-menu">
@@ -146,11 +143,11 @@
   </div>
 </div>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
-<script src="../assets/search-data.js?v=ec969eaadb" defer></script>
+<script src="../assets/search-data.js?v=01f596ed7a" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=e86531a11f" defer></script>
-<script src="../assets/theme.js?v=539f11225c" defer></script>
-<script src="../assets/site.js?v=46d6521a85" defer></script>
+<script src="../assets/theme.js?v=9949a846ba" defer></script>
+<script src="../assets/site.js?v=f25b56a9e9" defer></script>
 
 </body>
 </html>

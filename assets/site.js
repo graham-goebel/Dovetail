@@ -425,26 +425,6 @@
     mark();
   }
 
-  /* Filtering hides links, not sections: an empty section says the filter
-     matched nothing there, which is information. */
-  var filter = document.getElementById("nav-search");
-  if (filter && sidebar) {
-    filter.addEventListener("input", function () {
-      var q = filter.value.trim().toLowerCase();
-      Array.prototype.forEach.call(sidebar.querySelectorAll("li"), function (li) {
-        if (li.classList.contains("nav-group")) return;
-        var link = li.querySelector("a");
-        if (!link) return;
-        li.hidden = q ? link.textContent.toLowerCase().indexOf(q) === -1 : false;
-      });
-      if (q) {
-        Array.prototype.forEach.call(sidebar.querySelectorAll(".nav-section"), function (section) {
-          section.open = true;
-        });
-      }
-    });
-  }
-
   /* Phone header, after the folio: the title shrinks over the first 48px of
      scroll (--hc). */
   var appHead = document.getElementById("app-head");

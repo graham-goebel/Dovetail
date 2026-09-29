@@ -18,11 +18,28 @@ Vertical layout primitive. It owns the space between its children, so nothing in
 </Stack>
 ```
 
+## Layers and spacing
+`gap` picks a step of the stack scale. `layer` says instead how closely the things either side of the gap belong together, and lets the layout's character decide the distance:
+
+```jsx
+<Stack layer="section" spacing="open">
+  <Stack layer="group">…</Stack>
+  <Stack layer="group">…</Stack>
+</Stack>
+```
+
+- `related`: parts of one thing, such as a label and its value.
+- `group`: members of a set, such as the fields in a form.
+- `block`: one unit from the next, such as a card from a card.
+- `section`: a theme from the next within a region.
+
+`spacing="tight"` pulls the layers together for a technical screen; `open` leaves related things close and moves the layers apart. It sets `data-layout` on the stack, so everything inside follows. See Foundations, Layout.
+
 ## Composition
 Nests freely inside `Inline`, `Grid`, and itself. `as` lets it render as `section`, `ul`, or `form` without a wrapper.
 
 ## Tokens
-`--dt-space-stack-*`. The context layer retunes `xl` and `2xl`, so a marketing page gets more air than a dashboard from the same prop.
+`--dt-space-stack-*` for `gap`, and `--dt-layout-stack-*` for `layer`. The context layer retunes `xl` and `2xl`, so a marketing page gets more air than a dashboard from the same prop.
 
 ## Content
 None. Stack renders no text of its own.

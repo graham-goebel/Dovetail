@@ -98,8 +98,28 @@ body {
 
 /* The system's base sheet gives img display: block, which outranks the
    browser's own [hidden] rule, so hidden has to be said here. */
-.wordmark-mark[hidden] {
+.wordmark-mark[hidden],
+.wordmark-logo[hidden],
+.wordmark-text[hidden] {
   display: none;
+}
+
+/* An uploaded wordmark file stands in for the name. */
+.wordmark-logo {
+  height: var(--dt-dim-6);
+  width: auto;
+  max-width: 12rem;
+  object-fit: contain;
+}
+
+.wordmark-logo-tint {
+  display: inline-block;
+  height: var(--dt-dim-6);
+  aspect-ratio: 4 / 1;
+  max-width: 12rem;
+  background: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
 }
 
 /* The uploaded mark as a mask over the wordmark's colour. */
@@ -125,8 +145,7 @@ body {
   margin-left: auto;
 }
 
-.nav-toggle,
-.nav-filter input {
+.nav-toggle {
   height: var(--dt-size-control-sm);
   padding: 0 var(--dt-space-inset-sm);
   font-family: var(--dt-font-family-sans);
@@ -158,14 +177,6 @@ body {
   border-right: var(--dt-border-width-default) solid var(--dt-border-default);
   background: var(--dt-surface-subtle);
   font-size: var(--dt-font-size-sm);
-}
-
-.nav-filter {
-  padding: 0 var(--dt-space-inset-xs) var(--dt-space-inset-sm);
-}
-
-.nav-filter input {
-  width: 100%;
 }
 
 .sidebar ul {
@@ -1485,6 +1496,10 @@ body.configure-open .configure-bar {
   object-fit: contain;
 }
 
+.configure-mark.is-wordmark {
+  max-width: var(--dt-dim-48, 12rem);
+}
+
 .configure-bad {
   margin: 0;
   max-width: none;
@@ -1634,6 +1649,11 @@ body.configure-open .configure-bar {
   cursor: pointer;
   font-size: var(--dt-font-size-xs);
   color: var(--dt-text-secondary);
+}
+
+/* Collapsed by default, so a failing pair says so where it can be seen. */
+.configure-checks-wrap.has-fail summary {
+  color: var(--dt-text-danger);
 }
 
 .configure-checks {
@@ -2569,12 +2589,6 @@ body.graph-open .configure-sheet {
 
 .asheet-titles {
   min-width: 0;
-}
-
-.asheet-eyebrow {
-  margin: 0 0 2px;
-  font-size: var(--dt-font-size-xs);
-  color: var(--dt-text-tertiary);
 }
 
 .asheet-title {
