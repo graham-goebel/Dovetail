@@ -190,9 +190,14 @@ const TONES = {
 };
 const PICTURED = { cover: true, split: true, framed: true, card: true, poster: true };
 
+/* useLayoutEffect warns when a page renders on the server, where it can't run.
+   Tested on document, not window: the bundle sets its namespace on window, so
+   a server that shims window to load it still has no document. */
+const useIsoLayoutEffect = typeof document !== "undefined" ? React.useLayoutEffect : React.useEffect;
+
 function useScale(ref) {
   const [scale, setScale] = React.useState(0);
-  React.useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
     const measure = () => {
