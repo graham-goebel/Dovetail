@@ -365,11 +365,11 @@
             })
             .then(function (text) {
               copy(text, function (ok) {
-                done(ok ? "Markdown copied" : "Couldn't copy");
+                done(ok ? item.getAttribute("data-done") || "Markdown copied" : "Couldn't copy");
               });
             })
             .catch(function () {
-              done("Couldn't load the Markdown");
+              done("Couldn't load the file");
             });
         } else {
           setSheet(false);

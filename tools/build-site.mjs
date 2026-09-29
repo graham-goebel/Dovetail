@@ -621,7 +621,7 @@ const GUIDE_PAGES = [
 /* Guide pages that are built and linkable but kept out of the menu, the
    sidebar, the guide index and search for now: notes for the people working
    on Dovetail rather than for the people using it. */
-const GUIDE_HIDDEN = new Set(["working-together", "changelog-strategy", "authoring-rules", "plan", "provenance"]);
+const GUIDE_HIDDEN = new Set(["working-together", "changelog-strategy", "authoring-rules", "plan", "provenance", "token-pipeline"]);
 const GUIDE_SHOWN = GUIDE_PAGES.filter(([sl]) => !GUIDE_HIDDEN.has(sl));
 const GUIDE_ICON = { readme: "book", tokens: "braces", theming: "blend", accessibility: "shield", "headless-integration": "link", contributing: "blocks", changelog: "list", "token-pipeline": "sliders" };
 
@@ -806,7 +806,7 @@ function buildLlmsTxt() {
 /* The page menu: copy or take the page as Markdown, where the page has a
    Markdown version, and hand it to Claude. The menu is plain markup that works
    as links without script; assets/site.js adds copying and keyboard handling. */
-function pageActions({ title, root, md, mdName, pageUrl }) {
+function pageActions({ title, root, md, mdName, pageUrl, sources = [] }) {
   const mdUrl = md ? new URL(md, SITE_URL + pageUrl).href : null;
   const subject = mdUrl || SITE_URL + pageUrl;
   const claude = `https://claude.ai/new?q=${encodeURIComponent(claudePrompt(SITE_URL, subject, title))}`;
@@ -817,6 +817,11 @@ function pageActions({ title, root, md, mdName, pageUrl }) {
     md && item("copy", "Copy page as Markdown", { "data-page-action": "copy-md", "data-md": md }),
     md && item("download", "Download Markdown", { href: md, download: mdName }),
     md && item("file", "View as Markdown", { href: md, target: "_blank", rel: "noopener" }),
+    /* A component's source and its typed props, to copy or to read. */
+    ...sources.flatMap(({ href, name, kind }) => [
+      item("copy", `Copy ${name}`, { "data-page-action": "copy-md", "data-md": href, "data-done": `${kind} copied` }),
+      item("braces", `View ${name}`, { href, target: "_blank", rel: "noopener" }),
+    ]),
     item("sparkle", "Open in Claude", { href: claude, target: "_blank", rel: "noopener", "data-page-action": "claude", "data-title": title, ...(md ? { "data-md": md } : {}) }),
     item("link", "Copy link", { "data-page-action": "copy-link" }),
   ].filter(Boolean);
@@ -840,20 +845,10 @@ function pageActions({ title, root, md, mdName, pageUrl }) {
 
 /* ------------------------------------------------------------ phone chrome */
 
-/* On a phone the site takes the portfolio's app layout: a large page title
-   under a small section eyebrow that shrinks into a compact bar on scroll,
-   round search and menu buttons, a row of chips for the section's pages, and
-   a floating tab bar for the sections themselves. None of it shows on a wide
-   screen, where the header and sidebar already do these jobs. */
-const TABS = [
-  ["home", "Home", "index.html", "home"],
-  ["foundations", "Foundations", "foundations/index.html", "layers"],
-  ["components", "Components", "components/index.html", "blocks"],
-  ["blocks", "Blocks", "components/index.html#blocks", "layout"],
-  ["templates", "Templates", "showcase/templates.html", "monitor"],
-  ["showcase", "Showcase", "showcase/index.html", "monitor"],
-  ["guide", "Guide", "guide/index.html", "book"],
-];
+/* On a phone the site takes the portfolio's app layout: a large page title,
+   with no eyebrow over it, that shrinks into a compact bar on scroll, and the
+   page actions beside it. None of it shows on a wide screen, where the header
+   and sidebar already do these jobs. */
 
 /* The top-level section a page belongs to. Blocks and templates are their
    own sections even though their pages live under components/ and
@@ -879,11 +874,9 @@ function templateCards() {
 
 function phoneChrome(root, active, title, actionsButton = "") {
   const sec = sectionOf(active);
-  const tab = TABS.find(([id]) => id === sec);
-  const eyebrow = sec === "home" ? "White-label design system" : tab ? tab[1] : "Dovetail";
   const pageTitle = sec === "home" ? "Dovetail" : title;
   return `<header class="app-head" id="app-head">
-  <div class="h-txt"><p class="h-eyebrow">${esc(eyebrow)}</p><p class="h-title" aria-hidden="true">${esc(pageTitle)}</p></div>
+  <div class="h-txt"><p class="h-title" aria-hidden="true">${esc(pageTitle)}</p></div>
   ${actionsButton ? `<div class="head-r">${actionsButton}</div>` : ""}
 </header>`;
 }
@@ -898,11 +891,11 @@ function fab() {
 </div>`;
 }
 
-function page({ title, lede, body, active, root, wide = false, home = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "" }) {
+function page({ title, lede, body, active, root, wide = false, home = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "", sources = [] }) {
   const heading = title === "Dovetail" ? "Dovetail" : `${title} · Dovetail`;
   const toc = tocFrom(body);
   const hasToc = !home && toc.length >= 3;
-  const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl });
+  const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl, sources });
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -1266,7 +1259,7 @@ function buildSearchData() {
     /* Guide is laid out as cards: the README across the top, the rest two up. */
     { id: "guide", t: "Guide", cards: true, items: GUIDE_SHOWN.map(([sl, label, , text]) => row(label, text, `guide/${sl}.html`, GUIDE_ICON[sl] || "book")) },
   ];
-  const extras = [row("Download", "", "downloads.html"), row("Changelog", "", "guide/changelog.html")];
+  const extras = [row("Download", "", "downloads.html", "download"), row("Changelog", "", "guide/changelog.html", "list")];
   write("assets/search-data.js", `/* GENERATED by tools/build-site.mjs: the site search index and the phone menu. Do not edit. */\nwindow.DovetailSearch = ${JSON.stringify(items)};\nwindow.DovetailNav = ${JSON.stringify({ tree: navTree, extras })};\n`);
 }
 
@@ -1618,7 +1611,11 @@ ${
         `<script src="../assets/specimens.js" defer></script>\n` +
         `<script src="../assets/playground.js" defer></script>\n`
       : "";
-    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md`, scripts: playScripts });
+    const sources = [
+      c.source && { href: `../${c.source}`, name: `${c.sourceName}.jsx`, kind: "JSX" },
+      c.types && { href: `../${c.types}`, name: `${c.sourceName}.d.ts`, kind: "Types" },
+    ].filter(Boolean);
+    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md`, scripts: playScripts, sources });
   }
 }
 
