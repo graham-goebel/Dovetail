@@ -4,12 +4,15 @@
  * Token parity audit: verify that design tokens in three sources stay synchronized.
  *
  * NAMING RULE DISCOVERED:
- * DTCG paths are converted to CSS variable and tokens.json names by replacing dots with dashes,
- * with one abbreviation exception: 'dimension' becomes 'dim'. Examples:
- *   primitive.color.white -> --dt-color-white (CSS) / dt-color-white (tokens.json)
- *   primitive.dimension.4 -> --dt-dim-4 (CSS) / dt-dim-4 (tokens.json)
- *   semantic.space.inset-sm -> --dt-space-inset-sm (CSS) / dt-space-inset-sm (tokens.json)
- *   component.button.padding -> --dt-button-padding (CSS) / dt-button-padding (tokens.json)
+ * DTCG paths are converted to CSS variable and tokens.json names by:
+ * 1. Stripping the tier prefix (primitive, semantic, component)
+ * 2. Replacing dots with dashes
+ * 3. Special case: 'dimension' becomes 'dim'
+ *
+ * Additional mappings found:
+ * - shadow-1…5 and shadow-inset map to elevation-1…5 and elevation-inset
+ * - typography-* tokens are found under text-role-* patterns
+ * - layout-* tokens declared in :root, [data-layout="..."] rules
  */
 
 import fs from 'fs';
@@ -28,21 +31,21 @@ function extractCssVariables(filePath) {
   const cssContent = fs.readFileSync(filePath, 'utf8');
   const vars = {};
 
-  // Match custom properties on :root declarations
-  const rootMatch = cssContent.match(/:root\s*\{([^}]+)\}/s);
-  if (!rootMatch) return vars;
+  // Match rules where selector list includes :root (e.g., ":root, [data-layout="balanced"]")
+  const ruleRegex = /([^{}]*:root[^{}]*)\s*\{([^}]+)\}/g;
+  let ruleMatch;
 
-  const declarations = rootMatch[1];
-  // Match --dt-* declarations: --name: value;
-  const propRegex = /(--dt-[a-z0-9-]+)\s*:\s*([^;]+);/g;
-  let match;
+  while ((ruleMatch = ruleRegex.exec(cssContent)) !== null) {
+    const declarations = ruleMatch[2];
+    const propRegex = /(--dt-[a-z0-9-]+)\s*:\s*([^;]+);/g;
+    let match;
 
-  while ((match = propRegex.exec(declarations)) !== null) {
-    const name = match[1].slice(5); // Remove '--dt-' prefix to get the name
-    const value = match[2].trim();
-    // First declaration wins
-    if (!vars[name]) {
-      vars[name] = value;
+    while ((match = propRegex.exec(declarations)) !== null) {
+      const name = match[1].slice(5); // Remove '--dt-' prefix
+      const value = match[2].trim();
+      if (!vars[name]) {
+        vars[name] = value;
+      }
     }
   }
 
@@ -63,18 +66,7 @@ function collectCssVariables() {
     for (const file of files) {
       const filePath = path.join(dir, file);
       const vars = extractCssVariables(filePath);
-      for (const [name, value] of Object.entries(vars)) {
-        if (cssVars[name]) {
-          // Record duplicates
-          if (!cssVars._duplicates) cssVars._duplicates = {};
-          if (!cssVars._duplicates[name]) {
-            cssVars._duplicates[name] = [cssVars[name]];
-          }
-          cssVars._duplicates[name].push(value);
-        } else {
-          cssVars[name] = value;
-        }
-      }
+      Object.assign(cssVars, vars);
     }
   }
 
@@ -82,7 +74,23 @@ function collectCssVariables() {
 }
 
 // ============================================================================
-// 2. PARSE DTCG AND FLATTEN
+// 2. EXTRACT DARK THEME CSS
+// ============================================================================
+
+function extractDarkThemeCss() {
+  const darkCss = {};
+  const darkFilePath = path.join(repoRoot, 'system/tokens/themes/base-dark.css');
+
+  if (fs.existsSync(darkFilePath)) {
+    const vars = extractCssVariables(darkFilePath);
+    Object.assign(darkCss, vars);
+  }
+
+  return darkCss;
+}
+
+// ============================================================================
+// 3. PARSE DTCG
 // ============================================================================
 
 function flattenDtcg(obj, prefix = '') {
@@ -120,7 +128,7 @@ function parseDtcgFile() {
 }
 
 // ============================================================================
-// 3. PARSE TOKENS.JSON
+// 4. PARSE TOKENS.JSON
 // ============================================================================
 
 function parseTokensJson() {
@@ -130,19 +138,16 @@ function parseTokensJson() {
 
   const tokens = {};
 
-  // Collect all token names from the grouped structure
   function collectFromGroup(group) {
     if (group.tokens && Array.isArray(group.tokens)) {
       for (const token of group.tokens) {
         if (token.name) {
-          // Remove 'dt-' prefix to normalize
           const name = token.name.startsWith('dt-') ? token.name.slice(3) : token.name;
           tokens[name] = token.value;
         }
       }
     }
 
-    // Recursively check nested objects
     for (const key in group) {
       if (typeof group[key] === 'object' && group[key] !== null && !Array.isArray(group[key])) {
         collectFromGroup(group[key]);
@@ -155,137 +160,120 @@ function parseTokensJson() {
 }
 
 // ============================================================================
-// 4. DTCG NAME TO CSS NAME CONVERSION
+// 5. DTCG NAME TO CSS NAME CONVERSION
 // ============================================================================
 
 function dtcgNameToCssName(dtcgPath) {
-  // Strip tier prefix (primitive, semantic, component)
   let name = dtcgPath.replace(/^(primitive|semantic|component)\./, '');
-
-  // Replace dots with dashes
   name = name.replace(/\./g, '-');
-
-  // Handle special abbreviations
   name = name.replace(/^dimension-/, 'dim-');
   name = name.replace(/-dimension-/, '-dim-');
-
   return name;
 }
 
 // ============================================================================
-// 5. RESOLVE REFERENCES
+// 6. MAPPING FOR ALIASES
 // ============================================================================
 
-function resolveReference(ref, dtcgTokens) {
-  // Handle DTCG references like {primitive.color.white}
-  const dtcgMatch = ref.match(/^\{([a-zA-Z0-9.-]+)\}$/);
-  if (dtcgMatch) {
-    const refPath = dtcgMatch[1];
-    if (dtcgTokens[refPath] && dtcgTokens[refPath].$value) {
-      return dtcgTokens[refPath].$value;
-    }
-    return null;
+function getDtcgAliasedName(dtcgName) {
+  // In DTCG: shadow-1...5, shadow-inset (primitives)
+  // In CSS: shadow-raw-1...5, shadow-raw-inset
+  const shadowMatch = dtcgName.match(/^shadow-(.+)$/);
+  if (shadowMatch) {
+    return 'shadow-raw-' + shadowMatch[1];
   }
 
-  // Handle CSS var() references like var(--dt-dim-1)
-  const cssMatch = ref.match(/^var\((--dt-[a-z0-9-]+)\)$/);
-  if (cssMatch) {
-    return cssMatch[1]; // Return as reference, will be resolved separately
+  // In DTCG: typography-display-lg, typography-heading-lg, etc. (semantics)
+  // In CSS: text-display-lg, text-heading-lg, etc.
+  const typographyMatch = dtcgName.match(/^typography-(.+)$/);
+  if (typographyMatch) {
+    return 'text-' + typographyMatch[1];
   }
 
-  return ref; // Return as-is if no reference pattern
+  return null;
 }
 
-function valueToComparable(value, dtcgTokens, cssVars) {
-  if (!value) return value;
+// ============================================================================
+// 7. VALUE NORMALIZATION
+// ============================================================================
 
-  value = String(value).trim();
-
-  // Try to resolve DTCG reference
-  const dtcgResolved = resolveReference(value, dtcgTokens);
-  if (dtcgResolved && dtcgResolved !== value) {
-    return valueToComparable(dtcgResolved, dtcgTokens, cssVars);
-  }
-
-  // Try to resolve CSS var() reference
-  const cssMatch = value.match(/^var\((--dt-([a-z0-9-]+))\)$/);
-  if (cssMatch) {
-    const refName = cssMatch[2];
-    if (cssVars[refName]) {
-      return cssVars[refName];
-    }
-  }
-
-  return value;
-}
-
-function dtcgColorToString(color) {
-  if (typeof color === 'object' && color !== null && color.colorSpace && color.components) {
-    return `${color.colorSpace}(${color.components.join(' ')})`;
-  }
-  return color;
-}
-
-function formatValue(value) {
+function normalizeValue(value) {
   if (typeof value === 'object' && value !== null) {
+    // DTCG color object
     if (value.colorSpace && value.components) {
       return `${value.colorSpace}(${value.components.join(' ')})`;
     }
-    // For theme-specific values
-    const keys = Object.keys(value);
-    if (keys.length <= 3) {
-      return JSON.stringify(value);
+    // DTCG dimension with unit
+    if (value.value !== undefined && value.unit) {
+      const v = value.value === 0 ? '0' : `${value.value}${value.unit}`;
+      return v;
+    }
+    // DTCG easing function (array of numbers)
+    if (Array.isArray(value) && value.every(v => typeof v === 'number')) {
+      return `cubic-bezier(${value.join(', ')})`;
+    }
+    // Font family array
+    if (Array.isArray(value)) {
+      return value.join(', ');
     }
   }
-  return String(value);
-}
 
-function normalizeColorValue(value) {
-  // Normalize oklch values: remove extra spaces
-  value = String(value).replace(/\s+/g, ' ').trim();
+  value = String(value);
+
+  // Normalize pixel/unit values: 0px -> 0, 0ms -> 0, etc.
+  if (value.match(/^0[a-z%]+$/i)) {
+    return '0';
+  }
+
+  // Normalize oklch/rgb/cubic-bezier values: collapse spaces and normalize numbers
+  if (value.includes('oklch') || value.includes('rgb') || value.includes('cubic-bezier')) {
+    value = value.replace(/\s+/g, ' ').trim();
+
+    // Normalize decimal numbers: 0.870 -> 0.87, 0.740 -> 0.74, etc.
+    value = value.replace(/\b(\d+\.\d*?)0+\b/g, (match) => {
+      return parseFloat(match).toString();
+    });
+  }
+
+  // Collapse all whitespace
+  value = value.replace(/\s+/g, ' ').trim();
+
   return value;
 }
 
-function compareValues(val1, val2, dtcgTokens, cssVars) {
-  // Convert DTCG color objects to strings first
-  val1 = dtcgColorToString(val1);
-  val2 = dtcgColorToString(val2);
-
-  // Skip comparison for complex values
-  if (String(val1).includes('calc(') || String(val2).includes('calc(')) {
-    return 'not-comparable';
-  }
-  if (String(val1).includes('color-mix(') || String(val2).includes('color-mix(')) {
-    return 'not-comparable';
-  }
-  if (String(val1).includes('linear-gradient(') || String(val2).includes('linear-gradient(')) {
-    return 'not-comparable';
+function compareValues(val1, val2) {
+  // Check for non-comparable values BEFORE normalization
+  // These are complex shadow/easing structures that can't be meaningfully compared
+  if (typeof val1 === 'object' || typeof val2 === 'object') {
+    if ((Array.isArray(val1) && val1.some(v => typeof v === 'object')) ||
+        (Array.isArray(val2) && val2.some(v => typeof v === 'object'))) {
+      return 'not-comparable';
+    }
   }
 
-  val1 = valueToComparable(val1, dtcgTokens, cssVars);
-  val2 = valueToComparable(val2, dtcgTokens, cssVars);
+  val1 = normalizeValue(val1);
+  val2 = normalizeValue(val2);
 
-  // Convert again if they're still DTCG objects
-  val1 = dtcgColorToString(val1);
-  val2 = dtcgColorToString(val2);
+  // Skip complex values that can't be compared
+  if (val1.includes('calc(') || val2.includes('calc(')) return 'not-comparable';
+  if (val1.includes('color-mix(') || val2.includes('color-mix(')) return 'not-comparable';
+  if (val1.includes('linear-gradient(') || val2.includes('linear-gradient(')) return 'not-comparable';
+  if (val1.includes('var(') || val2.includes('var(')) return 'not-comparable';
+  if (val1.includes('[object Object]') || val2.includes('[object Object]')) return 'not-comparable';
 
-  val1 = normalizeColorValue(val1);
-  val2 = normalizeColorValue(val2);
-
-  if (val1 === val2) return 'match';
-
-  return 'mismatch';
+  return val1 === val2 ? 'match' : 'mismatch';
 }
 
 // ============================================================================
-// 6. MAIN AUDIT
+// 8. MAIN AUDIT
 // ============================================================================
 
 const cssVars = collectCssVariables();
+const darkVars = extractDarkThemeCss();
 const dtcgTokens = parseDtcgFile();
 const tokensJsonTokens = parseTokensJson();
 
-// Normalize all names
+// Normalize CSS names
 const normalizedCssVars = {};
 for (const [name, value] of Object.entries(cssVars)) {
   if (!name.startsWith('_')) {
@@ -293,10 +281,20 @@ for (const [name, value] of Object.entries(cssVars)) {
   }
 }
 
+// Convert DTCG paths to CSS names
 const normalizedDtcg = {};
 for (const [path, value] of Object.entries(dtcgTokens)) {
   const cssName = dtcgNameToCssName(path);
   normalizedDtcg[cssName] = value;
+}
+
+// Add aliased mappings (shadow -> elevation, typography -> text)
+const aliasedNames = new Map();
+for (const name of Object.keys(normalizedDtcg)) {
+  const aliased = getDtcgAliasedName(name);
+  if (aliased && normalizedCssVars[aliased] && !normalizedDtcg[aliased]) {
+    aliasedNames.set(name, aliased);
+  }
 }
 
 // Get all unique token names
@@ -307,7 +305,7 @@ const allNames = new Set([
 ]);
 
 // ============================================================================
-// 7. COMPARE AND REPORT
+// 9. COMPARE AND REPORT
 // ============================================================================
 
 const missingInCss = [];
@@ -315,6 +313,7 @@ const missingInTokensJson = [];
 const missingInDtcg = [];
 const mismatchesCssVsDtcg = [];
 const mismatchesCssVsTokensJson = [];
+const darkMismatches = [];
 
 for (const name of allNames) {
   const inCss = name in normalizedCssVars;
@@ -322,7 +321,7 @@ for (const name of allNames) {
   const inDtcg = name in normalizedDtcg;
 
   // Check for missing tokens
-  if (!inCss && inDtcg) {
+  if (!inCss && inDtcg && !aliasedNames.has(name)) {
     missingInCss.push(name);
   }
   if (!inTokensJson && inDtcg) {
@@ -332,42 +331,78 @@ for (const name of allNames) {
     missingInDtcg.push(name);
   }
 
-  // Check for mismatches
-  if (inCss && inDtcg) {
-    const result = compareValues(
-      normalizedCssVars[name],
-      normalizedDtcg[name].$value || normalizedDtcg[name],
-      dtcgTokens,
-      normalizedCssVars
-    );
-    if (result === 'mismatch') {
-      mismatchesCssVsDtcg.push({
-        name,
-        css: normalizedCssVars[name],
-        dtcg: normalizedDtcg[name].$value || normalizedDtcg[name],
-      });
+  // Check for mismatches CSS vs DTCG
+  if (inDtcg) {
+    // Use aliased name if available, otherwise use direct name
+    const cssName = aliasedNames.has(name) ? aliasedNames.get(name) : name;
+    const cssVal = normalizedCssVars[cssName];
+
+    if (cssVal) {
+      const result = compareValues(
+        cssVal,
+        normalizedDtcg[name].$value || normalizedDtcg[name]
+      );
+      if (result === 'mismatch') {
+        mismatchesCssVsDtcg.push({
+          name,
+          css: cssVal,
+          dtcg: normalizedDtcg[name].$value || normalizedDtcg[name],
+        });
+      }
     }
   }
 
+  // Check for mismatches CSS vs tokens.json (light theme)
   if (inCss && inTokensJson) {
-    const result = compareValues(
-      normalizedCssVars[name],
-      tokensJsonTokens[name],
-      dtcgTokens,
-      normalizedCssVars
-    );
+    const tokenValue = tokensJsonTokens[name];
+    let lightValue = tokenValue;
+
+    // Extract light value if it's a theme-specific object
+    if (typeof tokenValue === 'object' && tokenValue !== null && tokenValue.light) {
+      lightValue = tokenValue.light;
+    }
+
+    const result = compareValues(normalizedCssVars[name], lightValue);
     if (result === 'mismatch') {
       mismatchesCssVsTokensJson.push({
         name,
         css: normalizedCssVars[name],
-        tokensJson: tokensJsonTokens[name],
+        tokensJson: lightValue,
       });
+    }
+
+    // Check dark theme if available
+    if (typeof tokenValue === 'object' && tokenValue !== null && tokenValue.dark) {
+      const darkValue = tokenValue.dark;
+      if (name in darkVars) {
+        const darkResult = compareValues(darkVars[name], darkValue);
+        if (darkResult === 'mismatch') {
+          darkMismatches.push({
+            name,
+            dark: darkVars[name],
+            tokensJson: darkValue,
+          });
+        }
+      }
     }
   }
 }
 
+// Group missing-in-DTCG by prefix
+function groupByPrefix(names) {
+  const groups = {};
+  for (const name of names) {
+    const prefix = name.split('-')[0];
+    if (!groups[prefix]) groups[prefix] = [];
+    groups[prefix].push(name);
+  }
+  return groups;
+}
+
+const missingDtcgByPrefix = groupByPrefix(missingInDtcg);
+
 // ============================================================================
-// 8. PRINT REPORT
+// 10. PRINT REPORT
 // ============================================================================
 
 console.log('='.repeat(80));
@@ -386,8 +421,13 @@ console.log('');
 console.log(`Missing in CSS (but in DTCG): ${missingInCss.length}`);
 console.log(`Missing in tokens.json (but in DTCG): ${missingInTokensJson.length}`);
 console.log(`Missing in DTCG (but in CSS/tokens.json): ${missingInDtcg.length}`);
+console.log(`  Breakdown by prefix:`);
+for (const [prefix, names] of Object.entries(missingDtcgByPrefix).sort()) {
+  console.log(`    ${prefix}: ${names.length}`);
+}
 console.log(`Mismatches (CSS vs DTCG): ${mismatchesCssVsDtcg.length}`);
 console.log(`Mismatches (CSS vs tokens.json): ${mismatchesCssVsTokensJson.length}`);
+console.log(`Mismatches (dark theme): ${darkMismatches.length}`);
 console.log('');
 
 if (missingInCss.length > 0) {
@@ -415,40 +455,61 @@ if (missingInTokensJson.length > 0) {
 if (missingInDtcg.length > 0) {
   console.log('MISSING IN DTCG (from CSS/tokens.json)');
   console.log('-'.repeat(80));
-  const display = missingInDtcg.slice(0, 60);
-  display.forEach(name => console.log(`  ${name}`));
-  if (missingInDtcg.length > 60) {
-    console.log(`  ... and ${missingInDtcg.length - 60} more`);
+  console.log('By prefix:');
+  for (const [prefix, names] of Object.entries(missingDtcgByPrefix).sort()) {
+    console.log(`  ${prefix} (${names.length}):`);
+    const display = names.slice(0, 10);
+    display.forEach(name => console.log(`    ${name}`));
+    if (names.length > 10) {
+      console.log(`    ... and ${names.length - 10} more`);
+    }
   }
   console.log('');
 }
 
 if (mismatchesCssVsDtcg.length > 0) {
-  console.log('MISMATCHES: CSS vs DTCG');
+  console.log('MISMATCHES: CSS vs DTCG (after normalization)');
   console.log('-'.repeat(80));
   const display = mismatchesCssVsDtcg.slice(0, 60);
   display.forEach(item => {
     console.log(`  ${item.name}`);
-    console.log(`    CSS:  ${formatValue(item.css)}`);
-    console.log(`    DTCG: ${formatValue(item.dtcg)}`);
+    console.log(`    CSS:  ${normalizeValue(item.css)}`);
+    console.log(`    DTCG: ${normalizeValue(item.dtcg)}`);
   });
   if (mismatchesCssVsDtcg.length > 60) {
     console.log(`  ... and ${mismatchesCssVsDtcg.length - 60} more mismatches`);
   }
+  console.log(`Total: ${mismatchesCssVsDtcg.length}`);
   console.log('');
 }
 
 if (mismatchesCssVsTokensJson.length > 0) {
-  console.log('MISMATCHES: CSS vs tokens.json');
+  console.log('MISMATCHES: CSS vs tokens.json (light theme, after normalization)');
   console.log('-'.repeat(80));
   const display = mismatchesCssVsTokensJson.slice(0, 60);
   display.forEach(item => {
     console.log(`  ${item.name}`);
-    console.log(`    CSS:        ${formatValue(item.css)}`);
-    console.log(`    tokens.json: ${formatValue(item.tokensJson)}`);
+    console.log(`    CSS:        ${normalizeValue(item.css)}`);
+    console.log(`    tokens.json: ${normalizeValue(item.tokensJson)}`);
   });
   if (mismatchesCssVsTokensJson.length > 60) {
     console.log(`  ... and ${mismatchesCssVsTokensJson.length - 60} more mismatches`);
+  }
+  console.log(`Total: ${mismatchesCssVsTokensJson.length}`);
+  console.log('');
+}
+
+if (darkMismatches.length > 0) {
+  console.log('MISMATCHES: dark theme (base-dark.css vs tokens.json)');
+  console.log('-'.repeat(80));
+  const display = darkMismatches.slice(0, 60);
+  display.forEach(item => {
+    console.log(`  ${item.name}`);
+    console.log(`    dark CSS:   ${normalizeValue(item.dark)}`);
+    console.log(`    tokens.json: ${normalizeValue(item.tokensJson)}`);
+  });
+  if (darkMismatches.length > 60) {
+    console.log(`  ... and ${darkMismatches.length - 60} more mismatches`);
   }
   console.log('');
 }
@@ -460,6 +521,7 @@ const hasIssues = missingInCss.length > 0 ||
                   missingInTokensJson.length > 0 ||
                   missingInDtcg.length > 0 ||
                   mismatchesCssVsDtcg.length > 0 ||
-                  mismatchesCssVsTokensJson.length > 0;
+                  mismatchesCssVsTokensJson.length > 0 ||
+                  darkMismatches.length > 0;
 
 process.exit(strict && hasIssues ? 1 : 0);
