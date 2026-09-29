@@ -1,0 +1,588 @@
+# How the Dovetail docs site works
+
+Notes on the documentation site itself: what is in the repository, how it builds and
+publishes, and why each piece of the site behaves as it does. For using the design system,
+see the [README](../README.md) and the [docs site](https://graham-goebel.github.io/Dovetail/).
+
+The site is the design system. Every page is styled with Dovetail's own tokens, so a
+broken token shows up as a broken page.
+
+## What is here
+
+```
+index.html          Overview
+foundations/        Colour, type, layout, shape, size, elevation, motion, themes
+components/         One page per component: live card, guidelines, props, source
+showcase/           Family reference cards, templates, tools
+guide/              README, theming, accessibility, contributing, token pipeline
+tokens.html         Every token, with its value in each theme
+downloads.html      How to take the system into a project
+
+system/             The design system itself, at the paths it was authored with
+previews/           The @dsCard preview documents, one per card
+assets/             Site chrome: site.css, site.js, theme.js (Configure), specimens.js,
+                    file-menu.js, graph.js (the node visualiser)
+tools/build-bundle.mjs The component bundle and card kit compiler
+tools/build-site.mjs   The page generator
+tools/check/        Browser checks, the static server, the "is the build current" check
+tools/changelog.mjs Changelog entries: create, validate, compile a release
+changes/            Pending changelog entries, one file per change
+docs/changelog.md   How changes are recorded, versioned and announced
+```
+
+`system/` is served as part of the site, so the stylesheets, tokens, component sources
+and typed contracts are all fetchable at stable URLs:
+
+```html
+<link rel="stylesheet" href="system/styles.css">
+<link rel="stylesheet" href="system/tokens/themes/theme-editorial.css">
+```
+
+Dark mode needs no second stylesheet. Put `class="dark"` on `<html>`.
+
+## Building
+
+```bash
+npm ci           # once: Babel for the bundle, Playwright for the checks
+npm run build    # the component bundle and card kit, then the pages
+npm run check    # generated files current, changelog valid, every card and page loads
+npm run serve    # the site at http://localhost:8099
+```
+
+Node 22 or newer. `tools/build-bundle.mjs` compiles every `.jsx` under
+`system/components/` into `system/components/bundle.js` (new files are picked up by
+themselves) and the card kit into `system/templates/_support/card-kit.js`.
+`tools/build-site.mjs` reads `system/` and `previews/` and writes the pages listed above.
+Everything either writes is derived: edit the system, not the output, then rebuild.
+Serve the directory rather than opening the files directly, so the previews can load the
+component bundle.
+
+## Publishing
+
+Pages has to be switched on once, in **Settings → Pages**. A workflow cannot do it for
+you: the token Actions runs with is not allowed to create the Pages site, so the first
+run fails with *Create Pages site failed: resource not accessible by integration* until
+someone with repository admin makes the choice. There are two ways to make it.
+
+**Source: GitHub Actions.** `.github/workflows/pages.yml` builds the site and deploys
+the repository root on every push to `main` or the development branch, and fails the
+build if the committed pages are out of date with `system/`, so what is deployed always
+matches what is in the repository. Pick this one, then re-run the workflow.
+
+**Source: Deploy from a branch**, with the branch set and the folder set to `/ (root)`.
+The whole site is committed, so this publishes with no build and no Actions run at all.
+The trade-off is that nothing then checks the pages against `system/` after an edit.
+
+Either way the site lands at `https://<owner>.github.io/<repo>/`.
+
+`.nojekyll` is committed because the system has paths that begin with an underscore, and
+Jekyll would drop them.
+
+## Live specimens
+
+The component index renders each component into its own card, from the same bundle the
+preview cards use, so a card cannot show something the component no longer does. One
+React root per card is heavier than a static list and much lighter than 56 iframes, which
+is the only other way to show the real thing. `assets/specimens.js` holds one entry per
+component: the smallest honest use of it, with real props and real content.
+
+Four cards carry a line of text instead. Dialog, Drawer and ToastRegion mount fixed to
+the viewport, so a specimen would cover the page rather than sit in a card, and
+VisuallyHidden renders nothing by design.
+
+Each card also carries a files menu, the ellipsis, that opens the component's guide,
+typed contract or source in a reader without leaving the index. It fetches the real file
+from `system/`, at the path the system was authored with, so it cannot show something the
+repository does not hold. The menu is drawn on `<body>` rather than inside the card,
+because on a phone the card sits in a scroller that would clip it, and it follows its
+button on scroll rather than closing, since a tap inside a scroller often scrolls a
+little.
+
+A card holds a link now rather than being one: a menu button cannot sit inside an anchor,
+so the heading's link is stretched over the card and the button is raised above it.
+Descriptions are clamped to three lines, so one long summary cannot make a card twice the
+height of its neighbour. The whole thing is on the component's own page.
+
+## Letting someone upload media
+
+`Image`, `Video` and `Cover` take an optional `onFile`, and their placeholder becomes a
+real drop target: drag a file onto it or click through to a picker, and it hands back the
+browser's own `File`. None of the three reads it, stores it or sends it anywhere; a
+template derives an object URL for a live preview and passes that back in as `src` once
+it has one. This is the system's card on the request for upload, and it stops exactly
+where a design system should: at the file, not at storage.
+
+## Text over an image
+
+`Cover` is the one component for a hero band, a lifestyle poster and a social caption
+card, because the difference between the three is a ratio and an anchor, not a different
+piece of markup. `align` anchors both the text block and the direction a gradient scrim
+fades from; `scrim` chooses none, a directional gradient, or a flat, caption-bar solid.
+Choosing `align="center"` turns a gradient scrim into a flat wash automatically, because a
+caption in the middle of a photo needs the whole frame dimmed, not one edge of it. Its
+`previews/Cover.html` card carries six specimens: a marketing hero, a centred lifestyle
+poster, a social caption bar, a name-and-handle bar over a portrait, a badge with no scrim
+at all, and the same upload-ready placeholder Image and Video use. Like both of those, the
+placeholder and the caption preview together before a real photo exists, so a template
+can see the words holding their weight before wiring the image in.
+
+## Cards on a phone
+
+Every card grid becomes one swipeable row per group, in the manner of a product page:
+cards are equal height because the row is a flex line, the next card peeks past the edge
+so the swipe is discoverable, and the row bleeds to the page edges so nothing looks
+cropped by the gutter. Scroll snapping makes each swipe land on a card. It saves most of
+the vertical space a stacked grid costs: 63 components in eight rows rather than 63
+screens of scrolling.
+
+## Chrome icons
+
+The tiles on the overview, foundations, showcase and guide pages carry inline SVG icons
+drawn on the same 24px grid the system documents: round caps, inherited colour, no fill.
+They are the site's own chrome, not copies of a library's glyphs: Dovetail ships no icon
+set, and the media lab is where you try real ones. They are stroked, so the icon controls
+in the Configure sheet move them, and their weight follows whichever library is selected:
+2px for Lucide, 1.5px for Heroicons.
+
+## Sketch marks
+
+`system/assets/icons/sketch/` is a second icon voice: six hand-drawn marks (sun, leaf,
+spark, heart, wave, loop) built to the same rules as the interface set, 24×24, one
+`currentColor` stroke, sized only from `--dt-size-icon-*`, so they sit in a sentence next
+to a library glyph without a size mismatch. They are not interface icons and are never
+swapped in through the library picker: a hand-drawn line in a toolbar reads as a mistake.
+They exist for the moments a page is allowed to feel like a person drew it: an empty
+state, a callout, a marketing accent. The `Sketch marks` foundation card compares one
+against a library icon at every step of the scale.
+
+## The default look
+
+Out of the box Dovetail is monochrome and round, the look of a calm product UI: ink on
+white, pure greys, pill buttons (ink for the primary action, a soft grey fill for the
+rest), 8px fields, 16px cards and menus, 24px dialogs and sheets, bordered flat cards,
+soft wide shadows on what floats, 500-weight headings with tight tracking, and tabular
+figures. The one colour is the primary, a warm orange (`#eb6834` at 500), used for accents:
+brand fills, charts, progress, badges and the thinking animation. Secondary text keeps
+AA-safe greys (7:1 and 4.7:1 on white) rather than the lighter greys such UIs often use.
+A theme changes any of it through the usual roles, and migration notes for this
+change are in `changes/monochrome-defaults.md` until it is released.
+
+## The Configure panel
+
+Every page carries a floating toolbar in the corner. It flips the colour mode, and it
+opens **Configure**, a sheet holding the decisions a brand actually makes, grouped the way
+the system is. The toolbar hides itself while the sheet is open, since the sheet's own
+close button already gets you back to it, and **Reset** lives in the sheet's own header,
+where it is always in reach rather than buried at the bottom of one tab:
+
+| Tab | Sets |
+| --- | --- |
+| Brand | Name, mark and wordmark colour, primary and secondary colours, buttons and links (ink or brand), monochrome, fill, texture, ramp hues, steps per ramp |
+| Shape | Radius roles, media radius, focus ring width |
+| Type | Display family, body family, secondary family, code family |
+| Space | Whitespace, control density, base unit |
+| Media | Photo, illustration, icon library, icon stroke, icon size, media blocks |
+| View | Colour mode, context |
+| Export | The theme as a file of token overrides, copyable or downloadable |
+
+Changes apply live to the page, to the sidebar and chrome, and to every preview card on
+it, then follow you to every other page.
+
+**Type** is two families, not one. The system points every role at one sans face;
+choosing a display family adds `--dt-font-family-display` and re-points the roles that
+carry a page's voice, which are the three display sizes, the five heading sizes and the
+eyebrow. Body, label and code stay where they are, because a display face set at 14px is
+a legibility problem rather than a brand. Left on *Same as body* the panel writes nothing
+and the page runs on one family, which is how the system ships. Twenty-two families are
+on offer, grouped as sans, serif, display and code, and they come from the configurator
+like every other preset.
+
+The **base unit** is the one worth trying first: every dimension token is a multiple and
+the number in each name is the multiplier, so moving the unit re-derives the whole scale
+and the names stay true. **Whitespace** moves the three space axes and the page rhythm
+together, landing every value on that same grid. **Icons** come from the media lab:
+picking a library sets the stroke it is drawn at, and the stroke applies to every icon
+already on the page and in the cards, since the system ships no icon set of its own.
+**Name and mark** are the white-label test. Set both and the header, the breadcrumb and
+the page title are someone else's, with nothing forked.
+
+**Media blocks** has two states, not a range. Dovetail ships no photography, so its cards
+reserve a box where a picture goes rather than drawing one; hiding them takes every image,
+video and reserved box out of the page and the cards at once, which answers whether the
+layout still works as words. There is no richer step because nothing in the repository
+would fill it. Bring your own imagery in the media lab.
+
+**Primary and secondary.** What the system used to call the accent is now the **primary**
+colour: `--dt-color-primary-*`, the ramp behind actions, links, selection and focus. The
+**secondary** colour is a second brand ramp, `--dt-color-secondary-*`, with its own fills
+(`--dt-surface-brand-secondary` and its muted tint), a text role, the **Duotone** fill that
+sweeps primary into secondary, and the second chart colour. It never drives an action, so
+adding it cannot change what a button looks like.
+
+**Your brand colour, exactly.** Both pickers take a tuned ramp or your own colour, typed as
+hex or picked. Your colour is used exactly as given, at the step nearest it in lightness,
+and the panel says which step that is. The other steps are spaced lighter and darker from
+it in its hue, on the system's lightness rhythm; where a screen cannot show your colour's
+saturation at a step's lightness, the chroma is lowered there and the panel lists those
+steps. Click any step to set it by hand. Nothing is then moved behind your back: every
+pair the ramp is used in (white text on a button, links on the page, dark-mode buttons and
+links, the selected tint, the focus ring) is measured on the colours that will ship, and a
+failing pair shows its ratio and a **Darken** or **Lighten** button that edits one step and
+says what it changed. **Undo edits** puts the ramp back. With fewer steps per ramp, the step
+your colour sits on is always one of the kept ones.
+
+**Steps per ramp** publishes 4 to 10 shades per chromatic ramp instead of eleven. The kept
+steps are spread evenly and always include the lightest and darkest. Every named step still
+exists and points at a kept one, and the direction is what protects contrast: a step at 500
+or lighter only ever snaps lighter, a step at 600 or darker only ever snaps darker, so every
+text and surface pair ends up at least as far apart as before. What a low count can cost
+is a state, since a button's hover may land on its resting colour, and the panel says so
+when it does. Neutral always keeps eleven: it carries every surface, border and line of
+text, and merging them would cost more than it saves.
+
+The ramp cards on the Color page follow both: a secondary ramp card sits beside the
+primary, and each chromatic card shows only the steps the theme publishes, with a line
+naming them. `system/templates/_support/ramp-steps.js` does the hiding, reading the
+saved configuration the same way the theme runtime does.
+
+**Buttons and links** decides what colour the controls are. **Ink**, the default, keeps
+buttons, links, selection and focus monochrome and saves the brand colour for accents;
+**Brand** points those roles at their `-brand` twins, which exist for light and dark, so
+the choice holds in a dark band too. The export carries the same lines under `:root` and
+`.dark`.
+
+**Wordmark colour** sets `--dt-text-wordmark`: **Ink** is the monochrome wordmark, and
+**Primary** or **Secondary** set the name in a brand hue through a text role, so it keeps
+text contrast in either mode. With a mark uploaded, **Mark colour** either keeps the file's
+own colours or uses its shape as a mask filled with the wordmark colour, so the mark goes
+monochrome with Ink and flips with dark mode.
+
+**Headline colour** sets `--dt-text-headline`, the role every display and heading reads:
+**Ink** is monochrome, and **Primary** or **Secondary** set every headline in a brand text
+colour at once while body copy stays ink. The brand text roles, `--dt-text-brand` and
+`--dt-text-brand-secondary`, are steps 700 in light mode and 400 in dark, so a brand
+headline keeps text contrast in both, and the ramp editor's checks cover them. For one
+heading or one line rather than all of them, `Heading` and `Text` take `tone="brand"` or
+`tone="brand-secondary"`. A brand, photo or dark `Section` re-points the headline role for
+its own surface, and the choice is declared under `.dark` too, so a heading in a dark band
+takes the dark-mode brand colour rather than the light one.
+
+**Secondary family** is the small UI voice. The label and eyebrow roles read
+`--dt-font-family-secondary`, so buttons, form labels, badges, tabs and eyebrows follow it
+while headings follow the display family and running text the body family.
+
+**Ramp hues** shift any of the seven named ramps, not only whichever one is chosen as the
+primary: dragging green's swatch also retunes success, amber retunes warning, red retunes
+danger, cyan retunes info. Each shift keeps the ramp's own lightness and chroma per step,
+the same math the custom primary colour already uses, so contrast holds
+while only the hue moves toward the brand.
+
+**Photo** and **illustration** are two separate uploads, held in this browser rather than
+sent anywhere, because a reader often wants one without the other: a photo for the
+marketing template's hero, an illustration for artwork that should read as drawn rather
+than shot. Both are wired into the marketing template live, the same way a mark or an
+primary colour already is: the template reads the same localStorage key across the same origin, so
+a new upload reaches it through the browser's own `storage` event with no extra wiring in
+the page. **Icon library** now includes a **Custom** option: pick it and a text field
+appears for the script tag, package import, or CDN URL of your own icon set, carried into
+the exported theme's iconography note in place of Lucide or Heroicons.
+
+**Fill** sets `--dt-surface-brand`, a full-bleed role independent of the buttons: solid is
+one step of the primary ramp, gradient sweeps two. **Texture** sets `--dt-surface-texture`
+to a dot or line pattern built from two CSS gradients, in the border-strength colour, so
+it never becomes a second colour decision. Both are read straight off the ramp, so
+changing the primary colour moves them with everything else; neither is a range, because a section
+either wants the brand's presence or it does not.
+
+It works by writing one localStorage key, `dovetail-theme-config`, the key the system's
+own `templates/_support/theme-runtime.js` already reads. Using that key rather than a
+site-only one is what makes a change reach the whole system, including the
+settings-page template, and the theme configurator card in the showcase, which writes the
+same payload when you press Save there. Set a primary colour in the configurator card and the
+site follows; set it in the sheet and the configurator agrees.
+
+The sheet never dims or blocks the page, because watching the system change is the point
+of the control. On a wide screen it floats over the page as frosted glass, so what is
+behind it stays readable through the blur; where `backdrop-filter` is unsupported the
+surface goes solid, since unreadable chrome is worse than flat chrome. On a narrow screen
+it takes the whole screen on a solid surface, and the page behind stops scrolling so a
+swipe moves the controls; closing it shows the result.
+
+The mark is held in a second key, `dovetail-docs-brand`, and capped at 512KB: it is a
+file, not a token, and it has no business in a theme stylesheet. The photo and
+illustration uploads share a third key, `dovetail-docs-media`, each capped at 768KB, for
+the same reason: content, not tokens.
+
+`assets/configure-data.js` is generated from `system/theme-configurator.html` and
+`previews/MediaLab.html`, so the panel offers exactly the configurator's presets and the
+lab's icon libraries and can't drift from either. Two refinements over the configurator
+card: the monochrome preset is carried into what gets saved and exported, where the card
+only previews it, and the type control is split so a mono face sets
+`--dt-font-family-mono` instead of the sans family.
+
+What the panel deliberately does not take from the media lab is sample photography. Those
+photos belong to the layouts the lab renders, and there is no honest way to push them into
+a card that was authored with its own content, so the lab keeps them, and the sheet links
+to it.
+
+The **Export** field at the bottom of the sheet is the theme as a file of token
+overrides. Paste it into `system/tokens/themes/theme-custom.css` and the theme ships with
+the repository, needing no JavaScript. Nothing in the panel edits a file; it is a preview
+held in one browser.
+
+## The mobile app layer
+
+The example builds, the Solace wellness screen most of all, kept hand-writing the same
+three things around the components: a phone frame with a bottom tab bar, translucent
+cards over a photograph, and blur. The system now ships them.
+
+- **`AppShell`** is a phone app's frame: a top bar (a title with leading and trailing
+  slots, or any header you pass), a body that scrolls, and a bottom navigation, with the
+  safe areas honoured on every side so nothing sits under the notch or the home
+  indicator. The bars are sticky inside whatever scrolls, the document by default or the
+  shell itself with `scroll="contained"` for a device frame or a dialog, so content
+  scrolls beneath them. `backdrop` takes a picture that stays put behind everything, and
+  `dark` scopes dark mode to the app.
+- **`BottomNav`** is the tab bar: three to five destinations with icons, labels and
+  badges, 44px-plus touch targets, `aria-current` on the active item and badges announced
+  with their label. `variant="bar"` docks full width with an indicator pill behind the
+  active icon; `variant="floating"` is an inset glass pill over a fade of the page, with
+  an `action` slot beside it.
+- **Layered surface tokens.** `--dt-surface-glass` and `-glass-strong` are the overlay
+  surface made translucent, following the colour mode; `--dt-surface-glass-tint` is a
+  faint wash of ink; `--dt-surface-glass-inverse` is dark glass in both modes for a card
+  over a photograph, with matching `--dt-border-glass*`. `--dt-scrim-bottom`, `-top` and
+  `-full` are image scrims dense enough at their dark end for `--dt-text-on-scrim`, and
+  `--dt-scrim-fade-bottom` fades the page up behind a floating bar. `--dt-blur-glass`,
+  `--dt-blur-chip` and `--dt-backdrop-glass` give every glass surface the same blur.
+- **`Card surface`** takes `glass`, `glass-strong` or `glass-inverse`; the inverse glass
+  scopes dark mode so a card's text and buttons read light over the picture. `Cover` and
+  `Section` now draw their scrims from the same tokens, which also fixed their solid scrim,
+  set as a background image it could not be and so never drawn.
+
+The same build found that dark mode declared the selected surface as a literal blue;
+`--dt-surface-selected` and its hover now point at the primary ramp, so a retuned brand's
+selected chips follow it in dark mode too.
+
+## Thinking states
+
+`Thinking` is what an assistant shows while you wait, in five states: **connecting**
+(satellites gather and breathe), **listening** (swells and wobbles with the voice),
+**thinking** (bodies orbit, merge and split), **searching** (a comet orbits the centre) and
+**speaking** (pulses outward with the reply). It sits inline beside a chat message, or with
+`mode="overlay"` it fills the screen for a voice session, with a caption or live transcript
+under the label. The overlay comes in two screens: `screen="dark"` (the default) dims the page
+behind the scrim, and `screen="light"` is a bright frosted screen with dark text that stays
+light on a dark page too, its figure sweeping the light-mode gradient stops
+(`--dt-thinking-screen-light*`, `--dt-thinking-light-*`).
+
+The motion is fluid because it is metaballs: a handful of circles, blurred and
+alpha-thresholded in one SVG filter so they merge like liquid, moved every frame by a
+`requestAnimationFrame` loop that writes attributes directly rather than re-rendering. It
+stays on the system's tokens throughout. The colours are the `--dt-thinking-*` gradient
+stops, which point at the primary and secondary ramps and are repeated under `.dark`; the
+`tile` shape takes its corners from `--dt-radius-container`; the pace is
+`--dt-thinking-duration`, which points at `--dt-duration-600`; and the sizes are the icon
+and dimension tokens. On top of the tokens, props change the base animation: `shape` (blob,
+orb, tile, dots, bars), `tone` or two `colors` of your own, `speed`, `intensity` (how far the
+fluid travels and deforms) and `level`, a live 0 to 1 amplitude from a microphone or the
+reply that listening and speaking follow. Under reduced motion the fluid holds still but
+still follows `level`. The Thinking card on the Feedback page has controls for every input
+and opens the voice overlay.
+
+Four more shapes are textural rather than fluid: they build the figure from many small marks,
+closer to a dot display or ascii art. `matrix` is a grid of dots that swell into the figure,
+`ascii` draws the same figure in glyphs of rising density (` .·:-=+*#%@`) set in the mono
+token, `particles` is a point cloud turning in 3D perspective, and `sequence` is a ring of
+dots lit in order. matrix and ascii sample one field per state (a shrinking ring, a lit
+sphere that swells with `level`, a spiral, a radar sweep, ripples); the sphere is shaded from
+above left, which gives the flat marks depth. They draw on a canvas and read the tone
+colours and the mono family back from the page about twice a second, so Configure and dark
+mode reach them too. The card's "Every shape, one state" row compares all nine side by side.
+
+## What two example sites changed
+
+`examples/dispensary/` and `examples/travel/` were built on the system without touching
+it, and `system/assets/notes/EXAMPLES-FINDINGS.md` is what came back. The system now
+answers each item:
+
+- **Drawer** sits at `--dt-z-overlay`, above sticky headers, instead of a literal 60.
+- **Scoped dark mode works for components.** The colour aliases in
+  `tokens/component/*.css` are repeated under `.dark`, so a ghost button inside a dark band
+  on a light page reads correctly instead of measuring 1.1:1. `guidelines/theming.md`
+  now says where each tier may be declared, and why.
+- **Cover** sets its caption in `--dt-text-on-scrim`, a new role that stays light in dark
+  mode, instead of `--dt-text-inverse`, which turned dark-on-dark.
+- **Grid** takes `track="fill"`, so a filtered list that lands on one result keeps one
+  card at its width.
+- **Button** as a link no longer inherits the global link underline.
+- **Heading** and **Text** (a new Typography group) replace the private `.h2`, `.eyebrow`,
+  `.lead`, `.fine` and `.price` classes both sites wrote for themselves.
+- **Section** is the page band both sites invented: a container width, the section
+  rhythm, brand and muted tones that re-point the text roles on themselves, a scoped
+  `dark` band, and a full-bleed photo band with a scrim.
+- **Container widths** `--dt-size-container-narrow`, `-default` and `-wide` sit beside the
+  measure tokens.
+- **Navbar** collapses to a menu button and a Drawer below `collapseBelow` (640px).
+- **Card** takes `href`, stretching one link over the card while a footer button keeps
+  its own click.
+- `guidelines/accessibility.md` describes measuring contrast over a photograph from the
+  pixels rather than the scrim's alpha, and `theming.md` names the fixed-band pattern.
+
+The mobile carousel both sites built is still a decision rather than a component.
+
+## Tokens on a component page
+
+Each component page lists every custom property its source resolves, read out of the
+`.jsx` at build time rather than out of the guide, so the list cannot fall behind the
+code. Interpolated names are expanded: `--dt-button-height-${size}` stands for every
+token that starts with it. Rows are ordered component tier first, then semantic, then
+primitive, because that is the order to reach for them in, and each one links to its row
+on the tokens page.
+
+A token the source asks for that no tier declares is marked *not declared* rather than
+left blank. There are ten of them across the system, among them
+`--dt-motion-duration-fast` and `--dt-surface-hover`, and they silently resolve to
+nothing today. Surfacing them is the point of reading the source rather than the guide.
+
+## Contexts
+
+Three now, not two: product, marketing and **social**. A context is a fourth axis beside
+brand theme, colour mode and density, and it retunes scale and rhythm rather than colour.
+Social is a feed read on a phone with one thumb, so the furniture recedes (a post is a
+borderless, unshadowed Card separated by space), the body runs at 16px because the text is
+what someone came for, targets are thumb-sized, and actions take the pill shape the
+convention expects. It is the one context that moves a shape role, and
+`system/tokens/contexts/context-social.css` says why in the file.
+
+Two things fell out of adding it. The context columns on the tokens page were empty:
+`tokens.json` carries light and dark but not one context value, so Product and Marketing
+had been three hundred dashes. The values live in the stylesheets the browser loads, so
+they are read from there and merged in at build time, and each family now shows only the
+columns that say something in it. And switching context did not reach inside a preview
+card: each card inlines its own copy of the system CSS, where the context rules sit
+*before* the `:root` they override and a class beats `:root` only on source order. All
+three context stylesheets are now linked in at the end of each card's head, so a context
+change moves the card as well as the page around it.
+
+## Copying code
+
+Every code block carries a copy button, added by `assets/site.js` rather than emitted into
+the markup: the generator writes a `<pre>` in three places, the file viewer writes a
+fourth at runtime, and a button that does nothing without JavaScript has no business in
+the HTML. The async clipboard needs a secure context, which a site opened from a file or
+served over plain HTTP on a LAN is not, so the old selection trick is the fallback rather
+than a failure.
+
+## The node graph
+
+The tier rule is a claim about direction, so the site draws the graph the claim
+describes. Every row on the tokens page and in a component's token table carries a
+button, and both pages carry one at the top. It opens a dialog with the selected node in
+the middle, what it resolves through on the left, and what consumes it on the right.
+Click any node to walk to it.
+
+Right is the direction worth walking. Starting from `--dt-font-family-sans` you can see
+the eighteen roles that carry it and, in the footer, that it reaches 42 components that
+never name a font. Starting from a component and walking left gives the chain the rule
+promises: `Button` to `--dt-button-border-width` to `--dt-border-width-default` to
+`--dt-dim-hair`, component to semantic to primitive, nothing skipped.
+
+Nodes are coloured on their left edge by tier and say it in words underneath, along with
+how many things consume them. A token declared by no tier is marked in red, because a
+dead end is the thing worth seeing.
+
+`assets/graph-data.js` holds 596 nodes and 1,343 edges, generated from `system/tokens/`
+and the component sources. At 96KB it is the largest file the site produces, so it is
+fetched the first time someone opens the visualiser and never on an ordinary page load.
+Edges between tokens come from the `var()` references in their declared values; edges
+from a component come from the same source scan the token table uses.
+
+The wires are orthogonal rather than curved. Forty edges leaving one node span the whole
+column vertically and only a gutter horizontally, which turns beziers into a vertical
+smear; a bus with square corners stays readable at any fan-out. On a phone the three
+columns stack and the wires are dropped, since the headings already say which side you
+are reading.
+
+## The menu on a phone
+
+The navigation drawer covers the page instead of pushing it down. It is fixed below the
+header, fills the rest of the viewport, and locks the page behind it so a scroll does not
+run underneath. The header stays visible and on top, which keeps the way out in the same
+place as the way in. Escape closes it, and widening the window past 900px drops the open
+state along with the drawer.
+
+## On this page, and the page menu
+
+Every page with three or more sections gets an "On this page" list in a right-hand column,
+built at generation time from the page's own `h2` and `h3` headings (and its live card
+blocks). It marks the section being read as you scroll. It shows from 1200px up, or from
+1600px on the wide pages (tokens, showcase), whose tables and full-width cards need the
+room more; below that it gives its space back to the content. A component's guide headings are demoted a level on the
+page, so they nest under Guidelines in the list and in the document outline.
+
+The ellipsis in the top corner of the content column opens the page menu:
+
+- **Copy page as Markdown**, **Download Markdown** and **View as Markdown**, where the page
+  has a Markdown version. Component pages get one generated beside them
+  (`components/Button.md`), carrying the guide, the props contract, the tokens the component
+  reads and its source. Guide pages use the Markdown file they are rendered from.
+- **Open in Claude** starts a Claude conversation that points at that Markdown (or the page
+  itself) and asks for help using it.
+- **Copy link**.
+
+The items are ordinary links and buttons, so Download and View work without script;
+`assets/site.js` adds copying, arrow-key navigation and Escape.
+
+## How the previews work
+
+Each card in `previews/` is a complete HTML document. It links the system's CSS
+(`../system/styles.css`) and the shared card code in `system/templates/_support/`:
+`card-theme-sync.js`, `theme-runtime.js`, and `card-kit.js` / `card-kit.css` for the
+component shelves. It links rather than pastes, so a token or kit change reaches every card
+at once; the browser check fails a card that inlines a copy again. Three script tags were
+added to every card so it runs on its own:
+
+```html
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+```
+
+The generator adds those on first build and leaves them alone afterwards. It also
+re-points the handful of resources a card loads by project-relative path, and writes
+`system/_ds_bundle.js`, a copy of `system/components/bundle.js` under the name the
+bundle was authored with, which is what the settings-page template and the authored
+`.card.html` documents ask for.
+
+Each card watches `data-theme` on its own `<html>`, which is how the theme controls in
+the site header reach inside the frames: the cards are same-origin, so the page sets
+the attribute directly.
+
+Two cards reach outside the site for third-party scripts: the media lab loads icon
+libraries from a CDN, and the settings-page template loads React from unpkg. Both are
+authored that way and both need network access to render fully.
+
+## The footer
+
+One line, set as the comment it is. The delimiters are dimmer than the words and hidden
+from assistive technology, which would otherwise spell them out.
+
+## Templates, and the name UI kits
+
+Templates and UI kits were two showcase groups, which was a distinction without a
+difference: both are whole screens assembled from the system. They are one group now,
+Templates. The name **UI kits** is held back for what it usually means, a kit for one
+surface or vertical such as a voice-only interface, and nothing in the repository is that
+yet. The cards keep their authored group in `previews/`; the generator aliases it, so
+nothing in the artifact content had to be rewritten to make the change.
+
+## Provenance
+
+The contents of `previews/` come from the Dovetail DS design system artifact, unchanged
+apart from the three script tags described above. `system/` came from the same place and
+has been edited since: phase 4 added `Combobox`, `BlockRenderer` and `integrations/`, the
+configurator carries fourteen more font presets, and the guides have had a copy pass. The
+card documents in `previews/` keep their own voice, including the `Name — description`
+form their subtitles use. `system/assets/notes/`
+carries the original authoring rules and the migration report that came with it.
