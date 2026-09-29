@@ -595,7 +595,7 @@ function nav(root, active) {
   const section = (title, items) =>
     `<details class="nav-section" open><summary>${esc(title)}</summary><ul>${items.join("")}</ul></details>`;
 
-  const componentItems = GROUP_ORDER.map((g) => {
+  const componentItems = GROUP_ORDER.filter((g) => g !== "blocks").map((g) => {
     const items = byGroup(g).map((c) => item(`components/${c.name}.html`, c.name, `component:${c.name}`));
     return `<li class="nav-group">${esc(GROUP_LABEL[g])}</li>${items.join("")}`;
   });
@@ -607,13 +607,13 @@ function nav(root, active) {
   </div>
   <ul class="nav-top">
     ${item("index.html", "Overview", "home")}
-    ${item("tokens.html", "Tokens", "tokens")}
     ${item("downloads.html", "Download", "downloads")}
   </ul>
   ${section(
     "Foundations",
     [item("foundations/index.html", "All foundations", "foundations")].concat(
-      FOUNDATIONS.map(([group, s]) => item(`foundations/${s}.html`, group, `foundations:${s}`))
+      FOUNDATIONS.map(([group, s]) => item(`foundations/${s}.html`, group, `foundations:${s}`)),
+      [item("tokens.html", "Tokens", "tokens")]
     )
   )}
   ${section(
@@ -621,9 +621,21 @@ function nav(root, active) {
     [item("components/index.html", "All components", "components")].concat(componentItems)
   )}
   ${section(
+    "Blocks",
+    [item("components/index.html#blocks", "All blocks", "blocks")].concat(
+      byGroup("blocks").map((c) => item(`components/${c.name}.html`, c.name, `component:${c.name}`))
+    )
+  )}
+  ${section(
+    "Templates",
+    [item("showcase/templates.html", "All templates", "showcase:templates")].concat(
+      templateCards().map((t) => item(`showcase/templates.html#${t.anchor}`, t.title, `template:${t.id}`))
+    )
+  )}
+  ${section(
     "Showcase",
     [item("showcase/index.html", "All showcases", "showcase")].concat(
-      SHOWCASE.map(([group, s]) => item(`showcase/${s}.html`, group, `showcase:${s}`))
+      SHOWCASE.filter(([, s]) => s !== "templates").map(([group, s]) => item(`showcase/${s}.html`, group, `showcase:${s}`))
     )
   )}
   ${section(
@@ -762,7 +774,7 @@ function pageActions({ title, root, md, mdName, pageUrl }) {
   const mdUrl = md ? new URL(md, SITE_URL + pageUrl).href : null;
   const subject = mdUrl || SITE_URL + pageUrl;
   const claude = `https://claude.ai/new?q=${encodeURIComponent(claudePrompt(SITE_URL, subject, title))}`;
-  const item = (glyph, label, attrs) => `<li role="none"><${attrs.href ? "a" : "button type=\"button\""} role="menuitem" class="page-menu-item" ${Object.entries(attrs)
+  const item = (glyph, label, attrs) => `<li><${attrs.href ? "a" : "button type=\"button\""} class="page-menu-item" ${Object.entries(attrs)
     .map(([k, v]) => `${k}="${attr(v)}"`)
     .join(" ")}>${icon(glyph)}<span>${esc(label)}</span></${attrs.href ? "a" : "button"}></li>`;
   const items = [
@@ -772,13 +784,22 @@ function pageActions({ title, root, md, mdName, pageUrl }) {
     item("sparkle", "Open in Claude", { href: claude, target: "_blank", rel: "noopener", "data-page-action": "claude", "data-title": title, ...(md ? { "data-md": md } : {}) }),
     item("link", "Copy link", { "data-page-action": "copy-link" }),
   ].filter(Boolean);
-  return `<div class="page-actions">
-  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions">${icon("more")}</button>
-  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
-    ${items.join("\n    ")}
-  </ul>
-  <span class="page-actions-status" role="status" aria-live="polite"></span>
+  const button = `<button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions">${icon("more").replace('class="tile-icon"', 'class="ic"')}</button>`;
+  /* The actions open in a sheet (a bottom sheet on a phone, a small dialog
+     on a wide screen) rather than a dropdown; assets/site.js drives it. */
+  const sheet = `<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><p class="asheet-eyebrow">This page</p><h2 class="asheet-title" id="page-sheet-title">${esc(title)}</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close">${icon("x").replace('class="tile-icon"', 'class="ic"')}</button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      ${items.join("\n      ")}
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
 </div>`;
+  return { button, sheet };
 }
 
 /* ------------------------------------------------------------ phone chrome */
@@ -792,23 +813,42 @@ const TABS = [
   ["home", "Home", "index.html", "home"],
   ["foundations", "Foundations", "foundations/index.html", "layers"],
   ["components", "Components", "components/index.html", "blocks"],
+  ["blocks", "Blocks", "components/index.html#blocks", "layout"],
+  ["templates", "Templates", "showcase/templates.html", "monitor"],
   ["showcase", "Showcase", "showcase/index.html", "monitor"],
   ["guide", "Guide", "guide/index.html", "book"],
 ];
 
+/* The top-level section a page belongs to. Blocks and templates are their
+   own sections even though their pages live under components/ and
+   showcase/; tokens belong to foundations. */
 function sectionOf(active) {
   const a = String(active || "home");
-  if (a.startsWith("component")) return "components";
+  if (a.startsWith("component:")) {
+    const c = components.find((x) => `component:${x.name}` === a);
+    return c && c.group === "blocks" ? "blocks" : "components";
+  }
+  if (a === "showcase:templates") return "templates";
+  if (a === "tokens") return "foundations";
   return a.split(":")[0];
 }
 
-function phoneChrome(root, active, title) {
+/* The template cards, as the templates page titles and anchors them. */
+function templateCards() {
+  return cardsInGroup("Templates").map((c) => {
+    const title = CARD_TITLE[c.id] || c.name || c.id;
+    return { id: c.id, title, anchor: slug(title) };
+  });
+}
+
+function phoneChrome(root, active, title, actionsButton = "") {
   const sec = sectionOf(active);
   const tab = TABS.find(([id]) => id === sec);
-  const eyebrow = sec === "home" ? "White-label design system" : tab ? tab[1] : sec === "tokens" ? "Reference" : "Dovetail";
+  const eyebrow = sec === "home" ? "White-label design system" : tab ? tab[1] : "Dovetail";
   const pageTitle = sec === "home" ? "Dovetail" : title;
   return `<header class="app-head" id="app-head">
   <div class="h-txt"><p class="h-eyebrow">${esc(eyebrow)}</p><p class="h-title" aria-hidden="true">${esc(pageTitle)}</p></div>
+  ${actionsButton ? `<div class="head-r">${actionsButton}</div>` : ""}
 </header>`;
 }
 
@@ -861,14 +901,14 @@ function page({ title, lede, body, active, root, wide = false, home = false, scr
   <span class="wordmark-note">White-label design system</span>
   <div class="header-controls">
     <button type="button" class="search-btn" data-open-search aria-label="Search components and pages">${icon("search").replace('class="tile-icon"', 'class="ic"')}<span>Search</span><kbd>/</kbd></button>
+    ${actions.button}
   </div>
 </header>
-${phoneChrome(root, active, title)}
+${phoneChrome(root, active, title, actions.button)}
 <div class="layout">
 ${nav(root, active)}
 <main id="main" class="${["main", wide ? "wide" : "", home ? "home" : "", hasToc ? "has-toc" : ""].filter(Boolean).join(" ")}">
 <div class="doc">
-${actions}
 ${body}
 </div>
 ${hasToc ? tocAside(toc) : ""}
@@ -879,6 +919,7 @@ ${graph ? GRAPH_SPRITE : ""}
   <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 ${fab()}
+${actions.sheet}
 ${scripts}<script src="${root}assets/configure-data.js" defer></script>
 <script src="${root}assets/search-data.js" defer></script>
 <script src="${root}assets/search.js" defer></script>
@@ -1057,6 +1098,7 @@ const CARD_TITLE = {
   DashboardKit: "Dashboard screen",
   MarketingKit: "Marketing page",
   BlocksKit: "Landing page from blocks",
+  SettingsPageTemplate: "Settings page",
 };
 
 /* Most cards open their subtitle with the name a reader wants: ColorCyan is
@@ -1128,11 +1170,12 @@ function buildSearchData() {
   const row = (t, d, u) => ({ t, d: String(d || "").replace(/[`*_]/g, ""), u });
   const navTree = [
     { id: "home", t: "Home", d: "Overview, templates and theming", u: "index.html" },
-    { id: "foundations", t: "Foundations", d: "Colour, type, space, shape and motion", items: FOUNDATIONS.map(([g, sl, text]) => row(g, text, `foundations/${sl}.html`)) },
-    { id: "components", t: "Components", d: `${components.length} components in ${GROUP_ORDER.length} families`, groups: GROUP_ORDER.map((g) => ({ id: g, t: GROUP_LABEL[g], d: `${byGroup(g).length} components`, items: byGroup(g).map((c) => row(c.name, c.summary, `components/${c.name}.html`)) })) },
-    { id: "showcase", t: "Showcase", d: "Templates, detail cards and tools", items: SHOWCASE.map(([g, sl, text]) => row(g, text, `showcase/${sl}.html`)) },
-    { id: "guide", t: "Guide", d: "Theming, accessibility and contributing", items: GUIDE_PAGES.map(([sl, label, , text]) => row(label, text, `guide/${sl}.html`)) },
-    { id: "tokens", t: "Tokens", d: "Every token, with its value in each theme", u: "tokens.html" },
+    { id: "foundations", t: "Foundations", d: "Colour, type, space, shape, motion and tokens", items: FOUNDATIONS.map(([g, sl, text]) => row(g, text, `foundations/${sl}.html`)).concat([row("Tokens", "Every token, with its value in each theme.", "tokens.html")]) },
+    { id: "components", t: "Components", d: "", groups: GROUP_ORDER.filter((g) => g !== "blocks").map((g) => ({ id: g, t: GROUP_LABEL[g], d: `${byGroup(g).length} components`, items: byGroup(g).map((c) => row(c.name, c.summary, `components/${c.name}.html`)) })) },
+    { id: "blocks", t: "Blocks", d: "", items: byGroup("blocks").map((c) => row(c.name, c.summary, `components/${c.name}.html`)) },
+    { id: "templates", t: "Templates", d: "", items: templateCards().map((t) => row(t.title, "", `showcase/templates.html#${t.anchor}`)) },
+    { id: "showcase", t: "Showcase", d: "", items: SHOWCASE.filter(([, sl]) => sl !== "templates").map(([g, sl, text]) => row(g, text, `showcase/${sl}.html`)) },
+    { id: "guide", t: "Guide", d: "", items: GUIDE_PAGES.map(([sl, label, , text]) => row(label, text, `guide/${sl}.html`)) },
   ];
   const extras = [row("Download", "", "downloads.html"), row("Changelog", "", "guide/changelog.html")];
   write("assets/search-data.js", `/* GENERATED by tools/build-site.mjs: the site search index and the phone menu. Do not edit. */\nwindow.DovetailSearch = ${JSON.stringify(items)};\nwindow.DovetailNav = ${JSON.stringify({ tree: navTree, extras })};\n`);
@@ -1289,6 +1332,7 @@ ${FOUNDATIONS.map(([group, s, text, glyph]) => {
   const n = cardsInGroup(group).length;
   return `<a class="tile" href="${s}.html">${icon(glyph)}<h2>${esc(group)}</h2><p>${esc(text)}</p><p class="tile-meta">${n} card${n === 1 ? "" : "s"}</p></a>`;
 }).join("\n")}
+<a class="tile" href="../tokens.html">${icon("braces")}<h2>Tokens</h2><p>Every token in the system, with its value in each theme.</p></a>
 </div>`;
   writePage("foundations/index.html", { title: "Foundations", lede: "The visual and structural decisions every component inherits.", body: index, active: "foundations", root: "../" });
 
@@ -1774,7 +1818,7 @@ function buildTokens() {
 
   const typeStyles = (tokens.type && tokens.type.groups) || [];
   const body = `
-${breadcrumb("", [{ label: "Dovetail", href: "index.html" }, { label: "Tokens" }])}
+${breadcrumb("", [{ label: "Dovetail", href: "index.html" }, { label: "Foundations", href: "foundations/index.html" }, { label: "Tokens" }])}
 <h1>Tokens</h1>
 <p class="lede">Every token the system declares, with its value in each theme. Components read the semantic tier; only chart code reads a primitive, and it says why.</p>
 <p class="lede">The tier rule is a claim about direction, and the graph is where you check it.

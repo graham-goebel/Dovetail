@@ -222,13 +222,17 @@
   /* The page menu: an ellipsis in the content column's top corner. The items
      are plain links and buttons, so Download and View work without script;
      this adds opening and closing, arrow keys, and the two copy actions. */
-  var actions = document.querySelector(".page-actions");
-  if (actions) {
-    var menuBtn = actions.querySelector(".page-actions-btn");
-    var menu = actions.querySelector(".page-menu");
-    var status = actions.querySelector(".page-actions-status");
-    var items = Array.prototype.slice.call(menu.querySelectorAll(".page-menu-item"));
+  /* Page actions: the ⋯ in the header opens a sheet of actions for this page
+     (a bottom sheet on a phone, a small dialog on a wide screen). */
+  var sheet = document.getElementById("page-sheet");
+  if (sheet) {
+    var sheetBtns = Array.prototype.slice.call(document.querySelectorAll(".page-actions-btn"));
+    var panel = sheet.querySelector(".asheet");
+    var status = sheet.querySelector(".page-actions-status");
+    var items = Array.prototype.slice.call(sheet.querySelectorAll(".page-menu-item"));
     var statusTimer = 0;
+    var closeTimer = 0;
+    var opener = null;
 
     function say(text) {
       clearTimeout(statusTimer);
@@ -238,13 +242,22 @@
       }, 1800);
     }
 
-    function setMenu(open, focusFirst) {
-      menu.hidden = !open;
-      menuBtn.setAttribute("aria-expanded", String(open));
+    function setSheet(open) {
+      clearTimeout(closeTimer);
       if (open) {
+        opener = document.activeElement;
         status.textContent = "";
-        if (focusFirst) items[0].focus();
+        sheet.hidden = false;
+        document.body.classList.add("asheet-open");
+        items[0].focus({ preventScroll: true });
+      } else {
+        if (sheet.hidden) return;
+        sheet.hidden = true;
+        document.body.classList.remove("asheet-open");
+        panel.style.transform = "";
+        if (opener && opener.focus) opener.focus();
       }
+      sheetBtns.forEach(function (b) { b.setAttribute("aria-expanded", String(open)); });
     }
 
     /* The same prompt tools/build-site.mjs writes (claudePrompt there); keep
@@ -281,37 +294,50 @@
       return "https://claude.ai/new?q=" + encodeURIComponent(claudePrompt(site, subject, link.getAttribute("data-title")));
     }
 
-    menuBtn.addEventListener("click", function () {
-      setMenu(menu.hidden, false);
+    sheetBtns.forEach(function (b) {
+      b.addEventListener("click", function () { setSheet(sheet.hidden); });
     });
+    sheet.querySelector("[data-sheet-close]").addEventListener("click", function () { setSheet(false); });
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) setSheet(false); });
 
-    menuBtn.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+    document.addEventListener("keydown", function (e) {
+      if (sheet.hidden) return;
+      if (e.key === "Escape") {
         e.preventDefault();
-        setMenu(true, true);
-      }
-    });
-
-    menu.addEventListener("keydown", function (e) {
-      var i = items.indexOf(document.activeElement);
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        var next = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
-        items[next].focus();
-      } else if (e.key === "Home" || e.key === "End") {
-        e.preventDefault();
-        items[e.key === "Home" ? 0 : items.length - 1].focus();
-      } else if (e.key === "Escape") {
-        setMenu(false);
-        menuBtn.focus();
+        setSheet(false);
       } else if (e.key === "Tab") {
-        setMenu(false);
+        var focusable = Array.prototype.slice.call(panel.querySelectorAll("a[href], button"));
+        var first = focusable[0], last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        var i = items.indexOf(document.activeElement);
+        if (i < 0) return;
+        e.preventDefault();
+        items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
       }
     });
 
-    document.addEventListener("click", function (e) {
-      if (!menu.hidden && !actions.contains(e.target)) setMenu(false);
-    });
+    /* A drag down from the top of the sheet closes it, as the menu does. */
+    (function () {
+      var y0 = null, dy = 0, t0 = 0;
+      panel.addEventListener("touchstart", function (e) {
+        y0 = e.touches.length === 1 ? e.touches[0].clientY : null;
+        dy = 0;
+        t0 = Date.now();
+      }, { passive: true });
+      panel.addEventListener("touchmove", function (e) {
+        if (y0 == null) return;
+        dy = e.touches[0].clientY - y0;
+        if (dy > 0) panel.style.transform = "translateY(" + dy + "px)";
+      }, { passive: true });
+      panel.addEventListener("touchend", function () {
+        if (y0 == null) return;
+        y0 = null;
+        if (dy > Math.min(120, panel.offsetHeight * 0.3) || (dy / Math.max(1, Date.now() - t0) > 0.6 && dy > 30)) setSheet(false);
+        else panel.style.transform = "";
+      });
+    })();
 
     items.forEach(function (item) {
       if (item.getAttribute("data-page-action") === "claude" && location.origin.indexOf("graham-goebel.github.io") === -1) {
@@ -319,10 +345,15 @@
       }
       item.addEventListener("click", function (e) {
         var action = item.getAttribute("data-page-action");
+        /* A copy confirms in the sheet, then the sheet closes itself. */
+        var done = function (text) {
+          say(text);
+          closeTimer = setTimeout(function () { setSheet(false); }, 900);
+        };
         if (action === "copy-link") {
           e.preventDefault();
           copy(location.href.split("#")[0], function (ok) {
-            say(ok ? "Link copied" : "Couldn't copy");
+            done(ok ? "Link copied" : "Couldn't copy");
           });
         } else if (action === "copy-md") {
           e.preventDefault();
@@ -334,15 +365,15 @@
             })
             .then(function (text) {
               copy(text, function (ok) {
-                say(ok ? "Markdown copied" : "Couldn't copy");
+                done(ok ? "Markdown copied" : "Couldn't copy");
               });
             })
             .catch(function () {
-              say("Couldn't load the Markdown");
+              done("Couldn't load the Markdown");
             });
+        } else {
+          setSheet(false);
         }
-        setMenu(false);
-        if (action === "copy-md" || action === "copy-link") menuBtn.focus();
       });
     });
   }
