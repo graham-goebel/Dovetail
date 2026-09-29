@@ -26,6 +26,7 @@
 
   /* The minimum hit area for any interactive element on touch. */
   --dt-size-touch-target: var(--dt-dim-11); /* 44 */
+  --dt-size-media-min: var(--dt-dim-64);   /* 256 — the least height for a card with a picture behind it */
 
   /* Layout widths. The measure tokens bound a line of text; these bound a
      page. Narrow is a reading column with room for media, default is the

@@ -34,6 +34,11 @@
      never re-declares them. Pair them with --dt-surface-scrim. */
   --dt-text-on-scrim: var(--dt-color-neutral-050);
   --dt-text-on-scrim-secondary: var(--dt-color-neutral-200);
+  /* Pure white, for type set large over a photograph or video where the
+     near-white above reads as grey; and a light brand step for a title that
+     should carry the brand hue over the same scrim. */
+  --dt-text-on-scrim-strong: var(--dt-color-white);
+  --dt-text-on-scrim-brand: var(--dt-color-primary-200);
 
   /* ---- Layers --------------------------------------------------------
      Surfaces that sit over other content: an app bar over a scrolling feed,
