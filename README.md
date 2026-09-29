@@ -10,7 +10,7 @@ never name a colour. Swap the theme and every surface follows.
 ## Install
 
 ```sh
-npm install dovetailds react react-dom
+npm install @dovetail-ds/react react react-dom
 ```
 
 React 18 or newer is a peer dependency.
@@ -18,8 +18,8 @@ React 18 or newer is a peer dependency.
 ## Use
 
 ```jsx
-import "dovetailds/styles.css";
-import { Button, Section, Stack } from "dovetailds";
+import "@dovetail-ds/react/styles.css";
+import { Button, Section, Stack } from "@dovetail-ds/react";
 
 export function Example() {
   return (
@@ -32,7 +32,7 @@ export function Example() {
 }
 ```
 
-- **Styles.** Import `dovetailds/styles.css` once, near the root. It is the whole token stack
+- **Styles.** Import `@dovetail-ds/react/styles.css` once, near the root. It is the whole token stack
   in one file, and the components read its `var(--dt-*)` tokens. It loads Geist from Google
   Fonts; to serve the fonts yourself, remove that `@import` and set `--dt-font-family-*` in
   your theme.
