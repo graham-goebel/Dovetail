@@ -8,6 +8,22 @@
     "react-dom": ">=18"
   },
   "type": "module",
+  "main": "./dist/react/index.js",
+  "module": "./dist/react/index.js",
+  "types": "./dist/react/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
   "engines": {
     "node": ">=22"
   },
