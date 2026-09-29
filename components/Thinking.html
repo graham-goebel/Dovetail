@@ -7,7 +7,7 @@
 <meta name="description" content="What an assistant is doing while you wait: connecting, listening, thinking, searching or speaking. Five states, drawn as a fluid or as a texture of small marks, all read from the system&#39;s tokens, that sit inline in a chat or fill the screen for a voice session.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
-<link rel="stylesheet" href="../assets/site.css?v=b8d8fa0aea">
+<link rel="stylesheet" href="../assets/site.css?v=27dd3d80a6">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -77,6 +77,16 @@
   <a href="../system/components/feedback/Thinking.d.ts">Thinking.d.ts</a>
   <a href="../system/components/feedback/Thinking.md">Thinking.md</a>
 </p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="Thinking" data-props="[{&quot;name&quot;:&quot;mode&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;inline&quot;,&quot;overlay&quot;],&quot;default&quot;:&quot;inline&quot;,&quot;note&quot;:&quot;inline sits in a line of text; overlay covers the screen for a voice session.&quot;},{&quot;name&quot;:&quot;shape&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;blob&quot;,&quot;orb&quot;,&quot;tile&quot;,&quot;dots&quot;,&quot;bars&quot;,&quot;matrix&quot;,&quot;ascii&quot;,&quot;particles&quot;,&quot;sequence&quot;],&quot;default&quot;:&quot;blob&quot;,&quot;note&quot;:&quot;Fluid shapes&quot;},{&quot;name&quot;:&quot;tone&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;brand&quot;,&quot;primary&quot;,&quot;secondary&quot;,&quot;duotone&quot;,&quot;neutral&quot;],&quot;default&quot;:&quot;brand&quot;,&quot;note&quot;:&quot;Which gradient the fluid sweeps&quot;},{&quot;name&quot;:&quot;speed&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;1&quot;,&quot;note&quot;:&quot;Multiplies the pace set by --dt-thinking-duration.&quot;},{&quot;name&quot;:&quot;intensity&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;0.6&quot;,&quot;note&quot;:&quot;How far the figure is allowed to travel and deform, 0 to 1.&quot;},{&quot;name&quot;:&quot;level&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A live level from 0 to 1, a microphone&#39;s or the reply&#39;s amplitude&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Announced to assistive technology, and shown unless showLabel is false&quot;},{&quot;name&quot;:&quot;showLabel&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;true&quot;,&quot;note&quot;:&quot;Inline only: show the label beside the animation&quot;},{&quot;name&quot;:&quot;screen&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;note&quot;:&quot;Overlay only&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Overlay: a caption or live transcript under the label&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="Thinking props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
 
 <section class="card-block" id="live">
   <div class="card-head">
@@ -921,6 +931,7 @@ export function Thinking({
 <aside class="page-toc" aria-labelledby="page-toc-title">
   <p class="page-toc-title" id="page-toc-title">On this page</p>
   <ol>
+    <li><a href="#playground">Playground</a></li>
     <li><a href="#live">Live</a></li>
     <li><a href="#guidelines">Guidelines</a></li>
     <li class="nested"><a href="#use-it-when">Use it when</a></li>
@@ -945,10 +956,15 @@ export function Thinking({
 <div class="fab" id="fab">
   <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
 </div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=6a237835af" defer></script>
+<script src="../assets/specimens.js?v=2b7d7057cd" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
 <script src="../assets/search-data.js?v=d34cb94e1f" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
-<script src="../assets/menu.js?v=36e39a2da9" defer></script>
+<script src="../assets/menu.js?v=d383743fcf" defer></script>
 <script src="../assets/theme.js?v=539f11225c" defer></script>
 <script src="../assets/site.js?v=43dbc5cde1" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>

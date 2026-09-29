@@ -1436,6 +1436,8 @@ ${breadcrumb("../", [
   ${c.guideFile ? `<a href="../${c.guideFile}">${esc(c.sourceName)}.md</a>` : ""}
 </p>
 
+${playgroundSection(c)}
+
 ${cardBlock(c.card, "../", { heading: "Live" })}
 
 <section class="prose">
@@ -1476,8 +1478,69 @@ ${
 }
 `;
     fs.writeFileSync(path.join(ROOT, "components", `${c.name}.md`), componentMarkdown(c));
-    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md` });
+    const playScripts = playgroundProps(c).length
+      ? `<script src="../system/components/lib/react.production.min.js" defer></script>\n` +
+        `<script src="../system/components/lib/react-dom.production.min.js" defer></script>\n` +
+        `<script src="../system/components/bundle.js" defer></script>\n` +
+        `<script src="../assets/specimens.js" defer></script>\n` +
+        `<script src="../assets/playground.js" defer></script>\n`
+      : "";
+    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md`, scripts: playScripts });
   }
+}
+
+/* ------------------------------------------------------------- playground */
+
+/* The props a reader can turn in the playground, read from the component's
+   .d.ts: string unions become chips, booleans a switch, numbers a number
+   field, and strings or ReactNode a text field. Functions, arrays, objects,
+   style and as are left to the code, since there is no honest control for
+   them. */
+function playgroundProps(c) {
+  if (!c.types) return [];
+  const src = read(path.join(ROOT, c.types));
+  const start = src.search(new RegExp(`export interface ${c.sourceName === c.name ? c.name : c.name}Props\\b`));
+  if (start < 0) return [];
+  const open = src.indexOf("{", start);
+  let depth = 0, end = open;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}" && --depth === 0) { end = i; break; }
+  }
+  const body = src.slice(open + 1, end);
+  const out = [];
+  const re = /(?:\/\*\*([\s\S]*?)\*\/\s*)?\n\s*([a-zA-Z]\w*)(\?)?:\s*([^;]+);/g;
+  let m;
+  while ((m = re.exec(body))) {
+    const [, doc = "", name, , rawType] = m;
+    const type = rawType.replace(/\s+/g, " ").trim();
+    if (/^(style|as|className|id)$/.test(name) || /^on[A-Z]/.test(name)) continue;
+    const def = (doc.match(/@default\s+([^\n*]+)/) || [])[1];
+    const note = doc.replace(/^\s*\*\s?/gm, "").replace(/@default[^\n]*/g, "").replace(/\s+/g, " ").trim();
+    let kind = null, options = null;
+    if (/^("[^"]*"\s*\|\s*)+"[^"]*"$/.test(type)) { kind = "enum"; options = type.split("|").map((x) => x.trim().replace(/"/g, "")); }
+    else if (type === "boolean") kind = "boolean";
+    else if (type === "number" || type === "number | string" || type === "string | number") kind = "number";
+    else if (type === "string") kind = "text";
+    else if (type === "React.ReactNode") kind = "node";
+    if (!kind) continue;
+    out.push({ name, kind, options, default: def ? def.trim().replace(/^"|"$/g, "") : null, note: note.split(". ")[0].slice(0, 120) });
+  }
+  return out;
+}
+
+function playgroundSection(c) {
+  const props = playgroundProps(c);
+  if (!props.length) return "";
+  return `<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="${attr(c.name)}" data-props="${attr(JSON.stringify(props))}">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="${attr(c.name)} props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>`;
 }
 
 /* ----------------------------------------------------------- showcase pages */

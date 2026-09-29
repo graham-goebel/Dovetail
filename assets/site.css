@@ -3976,3 +3976,127 @@ body.search-open {
   flex: none;
   color: #d97757;
 }
+
+/* ------------------------------------------------------------ playground */
+
+/* The live component beside its prop controls, with the JSX underneath. */
+.playground-wrap {
+  margin: var(--dt-space-stack-xl) 0;
+}
+
+.playground-wrap h2 {
+  margin-bottom: var(--dt-dim-1);
+}
+
+.playground {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  margin-top: var(--dt-space-stack-md);
+  overflow: hidden;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-raised);
+}
+
+.pg-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 240px;
+  padding: var(--dt-space-inset-xl);
+  overflow: auto;
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+}
+
+.pg-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-dim-4);
+  max-height: 420px;
+  padding: var(--dt-space-inset-lg);
+  overflow-y: auto;
+  border-left: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+.pg-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-dim-2);
+}
+
+.pg-label {
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-secondary);
+}
+
+.pg-label[title] {
+  cursor: help;
+}
+
+.pg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pg-controls .pan-opt {
+  padding: 5px 12px;
+  font-size: var(--dt-font-size-xs);
+}
+
+.pg-input {
+  height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+}
+
+.pg-code {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: var(--dt-space-inset-md) var(--dt-space-inset-lg);
+  overflow-x: auto;
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  background: var(--dt-surface-sunken);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pg-error {
+  margin: 0;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .playground {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pg-controls {
+    max-height: none;
+    border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+    border-left: 0;
+  }
+
+  .pg-stage {
+    min-height: 180px;
+    padding: var(--dt-space-inset-lg);
+  }
+}
+
+.pg-row > .pan-opt {
+  align-self: flex-start;
+  min-width: 56px;
+  justify-content: center;
+}

@@ -7,7 +7,7 @@
 <meta name="description" content="The top of a page. split sets the copy beside a picture and stacks them on a phone, centered centres it over the picture, and background turns the block into a photo band with the copy on a scrim.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
-<link rel="stylesheet" href="../assets/site.css?v=b8d8fa0aea">
+<link rel="stylesheet" href="../assets/site.css?v=27dd3d80a6">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -77,6 +77,16 @@
   <a href="../system/components/blocks/HeroBlock.d.ts">HeroBlock.d.ts</a>
   <a href="../system/components/blocks/HeroBlock.md">HeroBlock.md</a>
 </p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="HeroBlock" data-props="[{&quot;name&quot;:&quot;eyebrow&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A few words above the title.&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The block&#39;s heading.&quot;},{&quot;name&quot;:&quot;lead&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;One or two sentences under the title.&quot;},{&quot;name&quot;:&quot;actions&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The primary and secondary buttons.&quot;},{&quot;name&quot;:&quot;media&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A picture, video, product shot or live component beside (split) or under (centered) the copy.&quot;},{&quot;name&quot;:&quot;background&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;An image URL: the block becomes a photo band with the copy on a scrim, scoped dark&quot;},{&quot;name&quot;:&quot;layout&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;split&quot;,&quot;centered&quot;],&quot;default&quot;:&quot;split&quot;,&quot;note&quot;:&quot;split sets the copy beside media, stacking on a phone; centered centres it over media.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Anything under the actions: tags, a logo row, a note.&quot;},{&quot;name&quot;:&quot;tone&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;base&quot;,&quot;subtle&quot;,&quot;brand&quot;,&quot;brand-muted&quot;,&quot;secondary&quot;,&quot;secondary-muted&quot;],&quot;default&quot;:&quot;base&quot;,&quot;note&quot;:&quot;The band&#39;s surface, passed to Section.&quot;},{&quot;name&quot;:&quot;dark&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Scopes dark mode to this block, so everything inside reads light on dark.&quot;},{&quot;name&quot;:&quot;texture&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Layers the texture token over the tone.&quot;},{&quot;name&quot;:&quot;spacing&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;compact&quot;,&quot;none&quot;],&quot;default&quot;:&quot;default&quot;,&quot;note&quot;:&quot;Vertical padding: the section rhythm, the compact one, or none.&quot;},{&quot;name&quot;:&quot;width&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;narrow&quot;,&quot;default&quot;,&quot;wide&quot;,&quot;full&quot;],&quot;default&quot;:&quot;default&quot;,&quot;note&quot;:&quot;The inner column&#39;s width.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="HeroBlock props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
 
 <section class="card-block" id="live">
   <div class="card-head">
@@ -211,6 +221,7 @@ export function HeroBlock({ eyebrow, title, lead, actions, media, background, la
 <aside class="page-toc" aria-labelledby="page-toc-title">
   <p class="page-toc-title" id="page-toc-title">On this page</p>
   <ol>
+    <li><a href="#playground">Playground</a></li>
     <li><a href="#live">Live</a></li>
     <li><a href="#guidelines">Guidelines</a></li>
     <li class="nested"><a href="#use-it-when">Use it when</a></li>
@@ -233,10 +244,15 @@ export function HeroBlock({ eyebrow, title, lead, actions, media, background, la
 <div class="fab" id="fab">
   <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
 </div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=6a237835af" defer></script>
+<script src="../assets/specimens.js?v=2b7d7057cd" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
 <script src="../assets/search-data.js?v=d34cb94e1f" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
-<script src="../assets/menu.js?v=36e39a2da9" defer></script>
+<script src="../assets/menu.js?v=d383743fcf" defer></script>
 <script src="../assets/theme.js?v=539f11225c" defer></script>
 <script src="../assets/site.js?v=43dbc5cde1" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>

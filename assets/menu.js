@@ -116,7 +116,7 @@
   function mrow(item) {
     var on = here(item.u);
     return '<a class="mrow" href="' + esc(ROOT + item.u) + '"' + (on ? ' aria-current="page"' : "") + '><span class="t"><b>' + esc(item.t) + "</b>" +
-      (item.d ? "<small>" + esc(item.d) + "</small>" : "") + "</span>" + ic("next") + "</a>";
+      (item.d ? "<small>" + esc(item.d) + "</small>" : "") + "</span></a>";
   }
 
   function pageHtml(p) {
@@ -125,7 +125,7 @@
       body = '<nav class="big-links" aria-label="Sections">' + NAV.tree.map(function (s) {
         var label = '<span class="bl-t"><span class="lbl">' + esc(s.t) + "</span></span>";
         if (s.u) return '<a class="big-link" href="' + esc(ROOT + s.u) + '"' + (here(s.u) ? ' aria-current="page"' : "") + ">" + label + "</a>";
-        return '<button type="button" class="big-link" data-sec="' + s.id + '">' + label + ic("next") + "</button>";
+        return '<button type="button" class="big-link" data-sec="' + s.id + '">' + label + "</button>";
       }).join("") + "</nav>" +
         '<nav class="sub-links" aria-label="More">' + NAV.extras.map(function (x) {
           return '<a class="sub-link" href="' + esc(ROOT + x.u) + '">' + esc(x.t) + "</a>";
@@ -371,7 +371,7 @@
     var block = function (kind, label, limit) {
       var rows = hits.filter(function (h) { return h.k === kind; }).slice(0, limit);
       return rows.length ? '<p class="q-h">' + label + "</p>" + rows.map(function (h) {
-        return '<a class="mrow" href="' + esc(ROOT + h.u) + '"' + (here(h.u) ? ' aria-current="page"' : "") + '><span class="t"><b>' + esc(h.t) + "</b><small>" + esc(h.s) + "</small></span>" + ic("next") + "</a>";
+        return '<a class="mrow" href="' + esc(ROOT + h.u) + '"' + (here(h.u) ? ' aria-current="page"' : "") + '><span class="t"><b>' + esc(h.t) + "</b><small>" + esc(h.s) + "</small></span></a>";
       }).join("") : "";
     };
     return hits.length
