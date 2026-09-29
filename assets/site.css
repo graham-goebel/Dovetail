@@ -2489,107 +2489,141 @@ body.graph-open .configure-sheet {
   scroll-margin-top: calc(var(--site-header) + var(--dt-space-inset-md));
 }
 
-/* The page menu: an ellipsis in the top corner of the content column. */
-/* Centred on the breadcrumb line: the button is taller than the crumbs'
-   text, so it overhangs them equally above and below. */
-.page-actions {
-  position: relative;
-  float: right;
-  z-index: 2;
-  margin: calc((var(--dt-font-size-xs) * 2 - var(--dt-size-control-sm)) / 2) calc(-1 * var(--dt-dim-2)) 0 var(--dt-space-inline-sm);
-}
-
+/* Page actions: the ⋯ in the fixed header opens a sheet of actions for this
+   page. A bottom sheet on a phone, a small dialog on a wide screen. */
 .page-actions-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--dt-size-control-sm);
-  height: var(--dt-size-control-sm);
+  flex: none;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
-  border-radius: var(--dt-radius-control);
+  border-radius: 50%;
   background: transparent;
-  color: var(--dt-text-secondary);
+  color: var(--dt-text-primary);
   cursor: pointer;
-  transition: background var(--dt-motion-micro), color var(--dt-motion-micro);
+  transition: background var(--dt-motion-micro);
 }
 
-/* The glyphs share the chrome's icon class; here they sit inline and take
-   the button's colour rather than the tile's link colour and spacing. */
-.page-actions-btn svg {
+.page-actions-btn .ic {
   width: var(--dt-size-icon-md);
   height: var(--dt-size-icon-md);
-  margin: 0;
-  color: inherit;
   stroke-width: 3;
 }
 
 .page-actions-btn:hover,
 .page-actions-btn[aria-expanded="true"] {
-  background: var(--dt-surface-action-ghost-hover);
+  background: var(--dt-surface-sunken);
+}
+
+.asheet-bg {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--dt-z-dialog) + 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--dt-dim-4);
+  background: rgb(0 0 0 / 0.38);
+  animation: search-scrim 0.24s ease-out;
+}
+
+.asheet-bg[hidden] {
+  display: none;
+}
+
+.asheet {
+  width: min(400px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--dt-dim-4) var(--dt-dim-4) var(--dt-dim-3);
+  border-radius: 20px;
+  background: var(--dt-surface-overlay);
   color: var(--dt-text-primary);
+  box-shadow: var(--configure-shadow);
+  animation: configure-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.asheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--dt-dim-3);
+  padding: var(--dt-dim-1) var(--dt-dim-2) var(--dt-dim-3);
+}
+
+.asheet-titles {
+  min-width: 0;
+}
+
+.asheet-eyebrow {
+  margin: 0 0 2px;
+  font-size: var(--dt-font-size-xs);
+  color: var(--dt-text-tertiary);
+}
+
+.asheet-title {
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  font-weight: var(--dt-font-weight-regular);
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asheet-x {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--dt-surface-sunken);
+  color: var(--dt-text-primary);
+  cursor: pointer;
+}
+
+.asheet-x .ic {
+  width: 16px;
+  height: 16px;
 }
 
 .page-menu {
-  position: absolute;
-  top: calc(100% + var(--dt-dim-1));
-  right: 0;
-  z-index: var(--dt-z-dropdown);
-  min-width: 210px;
   margin: 0;
-  padding: 6px;
+  padding: 0;
   list-style: none;
-  background: var(--dt-surface-overlay);
-  border-radius: 14px;
-  box-shadow: var(--configure-shadow);
-  transform-origin: top right;
-}
-
-.page-menu:not([hidden]),
-.file-menu {
-  animation: menu-in 0.22s cubic-bezier(0.2, 0.9, 0.25, 1.05);
-}
-
-@keyframes menu-in {
-  from { opacity: 0; transform: scale(0.5); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .page-menu:not([hidden]),
-  .file-menu {
-    animation: none;
-  }
-}
-
-.page-menu[hidden] {
-  display: none;
 }
 
 .page-menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  padding: 11px 12px;
+  padding: 13px 12px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 12px;
   background: transparent;
   font-family: var(--dt-font-family-sans);
-  font-size: var(--dt-font-size-sm);
-  line-height: var(--dt-line-height-sm);
+  font-size: var(--dt-font-size-md);
   color: var(--dt-text-primary);
   text-align: left;
   text-decoration: none;
-  white-space: nowrap;
   cursor: pointer;
 }
 
 .page-menu-item svg {
   flex: none;
-  width: var(--dt-size-icon-sm);
-  height: var(--dt-size-icon-sm);
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
   margin: 0;
-  color: var(--dt-text-tertiary);
+  color: var(--dt-text-secondary);
 }
 
 .page-menu-item:hover,
@@ -2599,20 +2633,46 @@ body.graph-open .configure-sheet {
 }
 
 .page-actions-status {
-  position: absolute;
-  top: calc(100% + var(--dt-dim-1));
-  right: 0;
-  padding: var(--dt-dim-1) var(--dt-space-inset-xs);
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-inverse, var(--dt-color-neutral-900));
-  color: var(--dt-text-inverse, var(--dt-color-neutral-050));
-  font-size: var(--dt-font-size-xs);
-  white-space: nowrap;
-  pointer-events: none;
+  min-height: 1.4em;
+  margin: var(--dt-dim-1) 0 0;
+  padding: 0 var(--dt-dim-3);
+  font-size: var(--dt-font-size-sm);
+  color: var(--dt-text-secondary);
 }
 
 .page-actions-status:empty {
-  display: none;
+  min-height: 0;
+}
+
+body.asheet-open {
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .asheet-bg {
+    align-items: flex-end;
+    padding: 0 var(--dt-dim-2) calc(var(--dt-dim-2) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .asheet {
+    width: 100%;
+    border-radius: 24px;
+    animation-name: configure-up;
+    animation-duration: 0.36s;
+  }
+
+  .app-head .head-r {
+    display: flex;
+    flex: none;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asheet-bg,
+  .asheet {
+    animation: none;
+  }
 }
 
 /* -------------------------------------------------------------- home page */
@@ -2984,13 +3044,6 @@ body.graph-open .configure-sheet {
 button.btn {
   font-family: inherit;
   cursor: pointer;
-}
-
-/* The page menu floats over the hero instead of against the column edge. */
-.main.home .page-actions {
-  position: absolute;
-  right: var(--home-pad);
-  margin: var(--dt-dim-4) 0 0;
 }
 
 @media (max-width: 900px) {
@@ -4099,4 +4152,24 @@ body.search-open {
   align-self: flex-start;
   min-width: 56px;
   justify-content: center;
+}
+
+.file-menu {
+  animation: menu-in 0.22s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: scale(0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .file-menu {
+    animation: none;
+  }
+}
+
+/* The floating buttons step aside while the page actions sheet is up. */
+body.asheet-open .fab,
+body.asheet-open .configure-bar {
+  display: none;
 }
