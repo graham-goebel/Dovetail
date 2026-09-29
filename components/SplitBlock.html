@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SplitBlock · Dovetail</title>
+<meta name="description" content="Copy beside media: a picture, a video, a product shot or a live component. The two sit side by side on a wide screen and stack on a phone; points become a checked list.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
+<link rel="stylesheet" href="../assets/site.css?v=b8d8fa0aea">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-eyebrow">Components</p><p class="h-title" aria-hidden="true">SplitBlock</p></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li class="nav-group">Blocks</li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html" aria-current="page">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="SplitBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="SplitBlock.md" download="SplitBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="SplitBlock.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FSplitBlock.md%20(the%20%22SplitBlock%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="SplitBlock" data-md="SplitBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">SplitBlock</li></ol></nav>
+<h1>SplitBlock</h1>
+<p class="lede">Copy beside media: a picture, a video, a product shot or a live component. The two sit side by side on a wide screen and stack on a phone; <code>points</code> become a checked list.</p>
+<p class="meta">
+  <span class="pill">Blocks</span>
+  
+  <a href="../system/components/blocks/SplitBlock.jsx">SplitBlock.jsx</a>
+  <a href="../system/components/blocks/SplitBlock.d.ts">SplitBlock.d.ts</a>
+  <a href="../system/components/blocks/SplitBlock.md">SplitBlock.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/SplitBlock.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:520px">
+    <iframe src="../previews/SplitBlock.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>Copy beside media: a picture, a video, a product shot or a live component. The two sit side by side on a wide screen and stack on a phone; <code>points</code> become a checked list.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>One idea that needs a picture to land.</li><li>Alternating down a page: flip <code>reverse</code> on every other one.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>Several parallel ideas. Use <code>FeatureGridBlock</code>.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;SplitBlock
+  eyebrow=&quot;See it run&quot;
+  title=&quot;Retheme a whole product in one pass&quot;
+  body=&quot;Pick a colour, a type family and a radius. Every screen follows.&quot;
+  points={[&quot;Light and dark from the same roles&quot;, &quot;Contrast checked on every pairing&quot;]}
+  media={&lt;Video label=&quot;Walkthrough&quot; /&gt;}
+  actions={&lt;Button variant=&quot;secondary&quot;&gt;Watch the tour&lt;/Button&gt;}
+/&gt;</code></pre>
+<h3 id="stacking-blocks">Stacking blocks</h3>
+<p>Blocks are Sections, so a page is a list of them. Alternate <code>tone</code> (base, subtle, base, brand) so one band ends where the next begins, keep one <code>HeroBlock</code> at the top and one <code>CtaBlock</code> at the end, and let everything between be the argument. Pass <code>dark</code> to scope dark mode to a single block.</p>
+<h3 id="tokens">Tokens</h3>
+<p>Reads the section, typography and card tokens through <code>Section</code>, <code>Heading</code> and <code>Text</code>; it has none of its own. Retheme it by retheming those.</p>
+<h3 id="accessibility">Accessibility</h3>
+<p>Each block is a <code>&lt;section&gt;</code>. Give the page one <code>h1</code> (the HeroBlock's title) and let every other block's title be an <code>h2</code>, which is what they render.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>SplitBlock.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** Copy beside media, with an optional checked list and actions. Stacks on a phone. */
+export interface SplitBlockProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;title&quot;&gt; {
+  /** A few words above the title. */
+  eyebrow?: React.ReactNode;
+  /** The block's heading. */
+  title?: React.ReactNode;
+  /** The paragraph under the title. */
+  body?: React.ReactNode;
+  /** Short claims, shown as a checked list. */
+  points?: React.ReactNode[];
+  actions?: React.ReactNode;
+  /** A picture, video, product shot or live component. */
+  media?: React.ReactNode;
+  /** Puts the copy first, media second. @default false */
+  reverse?: boolean;
+  /** Vertical alignment of the two sides. @default &quot;center&quot; */
+  align?: &quot;center&quot; | &quot;top&quot;;
+  /** Anything after the points. */
+  children?: React.ReactNode;
+  /** The band's surface, passed to Section. @default &quot;base&quot; */
+  tone?: &quot;base&quot; | &quot;subtle&quot; | &quot;brand&quot; | &quot;brand-muted&quot; | &quot;secondary&quot; | &quot;secondary-muted&quot;;
+  /** Scopes dark mode to this block, so everything inside reads light on dark. */
+  dark?: boolean;
+  /** Layers the texture token over the tone. */
+  texture?: boolean;
+  /** Vertical padding: the section rhythm, the compact one, or none. @default &quot;default&quot; */
+  spacing?: &quot;default&quot; | &quot;compact&quot; | &quot;none&quot;;
+  /** The inner column's width. @default &quot;default&quot; */
+  width?: &quot;narrow&quot; | &quot;default&quot; | &quot;wide&quot; | &quot;full&quot;;
+}
+
+export declare function SplitBlock(props: SplitBlockProps): JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>SplitBlock.jsx</code> resolves, read from the source: 6 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:SplitBlock">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-size-icon-sm"><th scope="row"><span class="token-cell"><code>--dt-size-icon-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-sm" title="Show what --dt-size-icon-sm connects to" aria-label="Graph for --dt-size-icon-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-2xl"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-2xl"><code>--dt-space-inline-2xl</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-2xl" title="Show what --dt-space-inline-2xl connects to" aria-label="Graph for --dt-space-inline-2xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-stack-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-md"><code>--dt-space-stack-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-md" title="Show what --dt-space-stack-md connects to" aria-label="Graph for --dt-space-stack-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-text-brand"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-brand"><code>--dt-text-brand</code></a><button type="button" class="graph-btn" data-graph="--dt-text-brand" title="Show what --dt-text-brand connects to" aria-label="Graph for --dt-text-brand"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-primary-700)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Section } from &quot;../primitives/Section.jsx&quot;;
+import { Text } from &quot;../typography/Text.jsx&quot;;
+import { BlockHeader } from &quot;./BlockHeader.jsx&quot;;
+
+const CHECK = (
+  &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot; style={{ width: &quot;var(--dt-size-icon-sm)&quot;, height: &quot;var(--dt-size-icon-sm)&quot;, flex: &quot;none&quot;, marginTop: 3, color: &quot;var(--dt-text-brand)&quot; }}&gt;
+    &lt;path d=&quot;m5 12.5 4.5 4.5L19 7.5&quot; /&gt;
+  &lt;/svg&gt;
+);
+
+/* Copy beside media: a picture, a video, a product shot, a live component.
+   The two sit side by side on a wide screen and stack on a phone, the media
+   first unless reverse puts the copy first. Points become a checked list. */
+export function SplitBlock({ eyebrow, title, body, points, actions, media, reverse = false, align = &quot;center&quot;, tone = &quot;base&quot;, dark, texture, spacing = &quot;default&quot;, width = &quot;default&quot;, children, ...rest }) {
+  return (
+    &lt;Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}&gt;
+      &lt;div style={{ display: &quot;grid&quot;, gridTemplateColumns: &quot;repeat(auto-fit, minmax(min(100%, 320px), 1fr))&quot;, gap: &quot;var(--dt-space-inline-2xl)&quot;, alignItems: align === &quot;top&quot; ? &quot;start&quot; : &quot;center&quot; }}&gt;
+        {media &amp;&amp; &lt;div style={{ minWidth: 0, order: reverse ? 2 : 1 }}&gt;{media}&lt;/div&gt;}
+        &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-md)&quot;, order: reverse ? 1 : 2 }}&gt;
+          &lt;BlockHeader eyebrow={eyebrow} title={title} lead={body} /&gt;
+          {points &amp;&amp; points.length &gt; 0 &amp;&amp; (
+            &lt;ul style={{ listStyle: &quot;none&quot;, margin: 0, padding: 0, display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-xs)&quot; }}&gt;
+              {points.map((p) =&gt; (
+                &lt;li key={typeof p === &quot;string&quot; ? p : undefined} style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;, alignItems: &quot;flex-start&quot; }}&gt;
+                  {CHECK}&lt;Text as=&quot;span&quot;&gt;{p}&lt;/Text&gt;
+                &lt;/li&gt;
+              ))}
+            &lt;/ul&gt;
+          )}
+          {children}
+          {actions &amp;&amp; &lt;div style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, gap: &quot;var(--dt-space-inline-sm)&quot; }}&gt;{actions}&lt;/div&gt;}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/Section&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#stacking-blocks">Stacking blocks</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=d34cb94e1f" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=b377884865" defer></script>
+<script src="../assets/theme.js?v=539f11225c" defer></script>
+<script src="../assets/site.js?v=d794158e2e" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

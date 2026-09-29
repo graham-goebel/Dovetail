@@ -29,6 +29,30 @@
     "components/actions/actions.card.html",
     "components/bundle.css",
     "components/bundle.js",
+    "components/blocks/BlockHeader.d.ts",
+    "components/blocks/BlockHeader.jsx",
+    "components/blocks/BlockHeader.md",
+    "components/blocks/CtaBlock.d.ts",
+    "components/blocks/CtaBlock.jsx",
+    "components/blocks/CtaBlock.md",
+    "components/blocks/FaqBlock.d.ts",
+    "components/blocks/FaqBlock.jsx",
+    "components/blocks/FaqBlock.md",
+    "components/blocks/FeatureGridBlock.d.ts",
+    "components/blocks/FeatureGridBlock.jsx",
+    "components/blocks/FeatureGridBlock.md",
+    "components/blocks/HeroBlock.d.ts",
+    "components/blocks/HeroBlock.jsx",
+    "components/blocks/HeroBlock.md",
+    "components/blocks/SplitBlock.d.ts",
+    "components/blocks/SplitBlock.jsx",
+    "components/blocks/SplitBlock.md",
+    "components/blocks/StatsBlock.d.ts",
+    "components/blocks/StatsBlock.jsx",
+    "components/blocks/StatsBlock.md",
+    "components/blocks/TestimonialBlock.d.ts",
+    "components/blocks/TestimonialBlock.jsx",
+    "components/blocks/TestimonialBlock.md",
     "components/content/Accordion.d.ts",
     "components/content/Accordion.jsx",
     "components/content/Accordion.md",
@@ -538,6 +562,30 @@
     },
     {
       "name": "BottomNav"
+    },
+    {
+      "name": "HeroBlock"
+    },
+    {
+      "name": "FeatureGridBlock"
+    },
+    {
+      "name": "SplitBlock"
+    },
+    {
+      "name": "StatsBlock"
+    },
+    {
+      "name": "TestimonialBlock"
+    },
+    {
+      "name": "FaqBlock"
+    },
+    {
+      "name": "CtaBlock"
+    },
+    {
+      "name": "BlockHeader"
     }
   ],
   "lastChange": {

@@ -1,0 +1,96 @@
+<!-- @dsCard group="UI kits" height=4311 width=1280 subtitle="Blocks kit — A landing page stacked only from blocks: hero, features, splits, stats, a quote, questions and a call to action" page -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;background:var(--dt-surface-base)}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var Icon = function (p) { return window.DovetailTemplateIcons.Icon(p); };
+  var F = React.Fragment;
+
+  /* A landing page made only of blocks: each is a Section, so the page is a
+     list of them, alternating tone so one band ends where the next begins. */
+  function Page() {
+    return e("main", null,
+      e(NS.HeroBlock, {
+        eyebrow: "Hut-to-hut in the Alps",
+        title: "Walk the high route. We carry the rest.",
+        lead: "Four to nine days between mountain huts, with bags moved ahead, beds booked and the route in your pocket.",
+        actions: e(F, null, e(NS.Button, { iconEnd: e(Icon, { name: "arrowRight", size: "sm" }) }, "Plan a trip"), e(NS.Button, { variant: "secondary" }, "See routes")),
+        media: e(NS.Image, { src: "../examples/travel/img/scene/alpine.webp", alt: "", ratio: "4:3" }),
+      }, e(NS.Inline, { gap: "xs", wrap: true }, e(NS.Tag, null, "Bags moved daily"), e(NS.Tag, null, "Huts booked"), e(NS.Tag, null, "Offline maps"))),
+
+      e(NS.FeatureGridBlock, {
+        tone: "subtle", eyebrow: "How it works", title: "You walk. Everything else is arranged.",
+        items: [
+          { icon: e(Icon, { name: "calendar" }), title: "Pick your days", description: "Choose a route and a start date; we check every hut on it." },
+          { icon: e(Icon, { name: "box" }), title: "Bags go ahead", description: "Leave your bag at the door each morning. It is waiting at the next hut." },
+          { icon: e(Icon, { name: "shield" }), title: "Help on the trail", description: "A local guide on call every day, and weather calls before you set out." },
+        ],
+      }),
+
+      e(NS.SplitBlock, {
+        eyebrow: "The route", title: "Every turn, even without signal",
+        body: "The app holds the whole route offline: each day's path, the huts, water and the bail-out points.",
+        points: ["Turn-by-turn on the trail", "Elevation for every day", "Hut check-in in one tap"],
+        media: e(NS.Video, { label: "Route walkthrough", placeholder: "Route walkthrough video" }),
+        actions: e(NS.Button, { variant: "secondary", iconStart: e(Icon, { name: "play", size: "sm" }) }, "Watch the tour"),
+      }),
+
+      e(NS.StatsBlock, {
+        tone: "subtle", eyebrow: "Since 2019", title: "Thousands of nights above the tree line",
+        stats: [
+          { value: "14k", label: "Nights booked", caption: "across 120 huts" },
+          { value: "4.9", label: "Average rating", caption: "from 2,300 walkers" },
+          { value: "0", label: "Lost bags", caption: "and we count" },
+        ],
+      }),
+
+      e(NS.SplitBlock, {
+        reverse: true, eyebrow: "The huts", title: "Beds, dinner and a view",
+        body: "Family-run huts with hot showers, three-course dinners and dorms or private rooms.",
+        points: ["Private rooms where they exist", "Dietary needs sent ahead"],
+        media: e(NS.Image, { src: "../examples/travel/img/scene/lakehouse.webp", alt: "", ratio: "4:3" }),
+      }),
+
+      e(NS.TestimonialBlock, {
+        quotes: [{ quote: "We only had to walk. The bags, the beds, even the weather calls were done for us.", name: "Margaret Hamilton", role: "Walked the Haute Route, 2025" }],
+      }),
+
+      e(NS.FaqBlock, {
+        tone: "subtle", eyebrow: "Questions", title: "Before you book", lead: "Anything else, write to us.", defaultOpen: ["0"],
+        items: [
+          { question: "How fit do I need to be?", answer: "Comfortable walking six hours a day with a light pack. Each route lists its daily distance and climb." },
+          { question: "What if the weather turns?", answer: "Your guide calls the morning before, and every route has a lower alternative." },
+          { question: "Can I change dates?", answer: "Free up to 30 days before you start, subject to hut availability." },
+        ],
+      }),
+
+      e(NS.CtaBlock, {
+        title: "Your first hut is waiting", lead: "Routes open from June. The best dates go by March.",
+        actions: e(F, null, e(NS.Button, null, "Plan a trip"), e(NS.Button, { variant: "secondary" }, "Talk to a guide")),
+      })
+    );
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.CtaBlock || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

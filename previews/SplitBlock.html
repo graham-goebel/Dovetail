@@ -1,0 +1,49 @@
+<!-- @dsCard group="Blocks" height=520 -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var Icon = function (p) { return window.DovetailTemplateIcons.Icon(p); };
+  function Page() {
+    return e(Shelf, { name: "SplitBlock", summary: "Copy beside media, with a checked list and actions. Stacks on a phone.", props: [
+        { name: "body", type: "ReactNode" },
+        { name: "points", type: "ReactNode[]", notes: "A checked list." },
+        { name: "media", type: "ReactNode" },
+        { name: "reverse", type: "boolean", default: "false", notes: "Copy first, media second." },
+        { name: "actions", type: "ReactNode" },
+        { name: "tone", type: '"base" | "subtle" | "brand" | "brand-muted" | "secondary" | "secondary-muted"', notes: "The band surface, passed to Section." },
+        { name: "dark", type: "boolean", notes: "Scopes dark mode to this block." },
+        { name: "spacing", type: '"default" | "compact" | "none"', default: '"default"' },
+      ], guidance: [
+        "One idea with a picture.",
+        "Flip reverse on every other one down a page.",
+      ] },
+      e(Specimen, { label: "Example", bg: "var(--dt-surface-base)" },
+        e(NS.SplitBlock, { spacing: "compact", eyebrow: "See it run", title: "Retheme a whole product in one pass", body: "Pick a colour, a type family and a radius. Every screen follows.", points: ["Light and dark from the same roles", "Contrast checked on every pairing", "Exports CSS and DTCG tokens"], media: e(NS.Video, { label: "Walkthrough", placeholder: "Product walkthrough video" }), actions: e(NS.Button, { variant: "secondary" }, "Watch the tour") })));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.SplitBlock || !window.Shelf || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

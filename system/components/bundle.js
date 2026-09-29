@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"3ca15973e719","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"0908278f6d67","components/blocks/FeatureGridBlock.jsx":"8a2bed476461","components/blocks/HeroBlock.jsx":"5d708ac74dc8","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"6b92ba6e4df6","components/blocks/TestimonialBlock.jsx":"dc19cc075267"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -6914,6 +6914,614 @@ function Sheet({
 }
 Object.assign(__ds_scope, { Sheet });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Sheet.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/BlockHeader.jsx
+try { (() => {
+/* The eyebrow, title and lead every block opens with, so a page of blocks
+   keeps one rhythm. Centred for a section that introduces a grid; start for
+   one that sits beside media. */
+function BlockHeader({
+  eyebrow,
+  title,
+  lead,
+  actions,
+  align = "start",
+  level = 2,
+  size = "heading-lg",
+  style,
+  ...rest
+}) {
+  const centred = align === "center";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-sm)",
+      alignItems: centred ? "center" : "flex-start",
+      textAlign: centred ? "center" : "left",
+      marginInline: centred ? "auto" : undefined,
+      ...style
+    },
+    ...rest
+  }, eyebrow && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "eyebrow",
+    tone: "tertiary"
+  }, eyebrow), title && /*#__PURE__*/React.createElement(__ds_scope.Heading, {
+    level: level,
+    size: size,
+    align: centred ? "center" : "left",
+    measure: centred ? "default" : "wide",
+    balance: true
+  }, title), lead && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "lead",
+    tone: "secondary",
+    align: centred ? "center" : "left",
+    measure: "default"
+  }, lead), actions && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: "var(--dt-space-stack-xs)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Inline, {
+    gap: "sm",
+    wrap: true,
+    justify: centred ? "center" : "flex-start"
+  }, actions)));
+}
+Object.assign(__ds_scope, { BlockHeader });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/BlockHeader.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/CtaBlock.jsx
+try { (() => {
+/* The close of a page: one ask and its buttons, on the brand fill by default.
+   With media (an illustration, a product shot) the copy sits beside it. */
+function CtaBlock({
+  eyebrow,
+  title,
+  lead,
+  actions,
+  media,
+  tone = "brand",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, media ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+      gap: "var(--dt-space-inline-2xl)",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    actions: actions
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0,
+      display: "flex",
+      justifyContent: "center"
+    }
+  }, media)) : /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    actions: actions,
+    align: "center"
+  }));
+}
+Object.assign(__ds_scope, { CtaBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/CtaBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/FaqBlock.jsx
+try { (() => {
+/* Questions before someone commits. Split puts the header beside the
+   answers on a wide screen; stacked centres the header over them. */
+function FaqBlock({
+  eyebrow,
+  title,
+  lead,
+  actions,
+  items = [],
+  layout = "split",
+  defaultOpen,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const list = /*#__PURE__*/React.createElement(__ds_scope.Accordion, {
+    label: typeof title === "string" ? title : "Questions",
+    defaultOpen: defaultOpen,
+    items: items.map((q, i) => ({
+      id: q.id || String(i),
+      title: q.question,
+      content: q.answer
+    }))
+  });
+  const header = /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    actions: actions,
+    align: layout === "split" ? "start" : "center"
+  });
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, layout === "split" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+      gap: "var(--dt-space-inline-2xl)",
+      alignItems: "start"
+    }
+  }, header, /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, list)) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xl)",
+      maxWidth: "var(--dt-size-container-narrow)",
+      marginInline: "auto"
+    }
+  }, header, list));
+}
+Object.assign(__ds_scope, { FaqBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/FaqBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/FeatureGridBlock.jsx
+try { (() => {
+/* The narrowest a column may get before the grid drops a column, per count:
+   more columns ask for less room each, and a phone always ends up with one. */
+const MIN = {
+  2: "360px",
+  3: "260px",
+  4: "200px"
+};
+
+/* A header over a grid of features: an icon on a brand tint, a title and a
+   sentence each. Cards puts each on a raised surface; plain leaves the band's
+   own background. */
+function FeatureGridBlock({
+  eyebrow,
+  title,
+  lead,
+  actions,
+  items = [],
+  columns = 3,
+  align = "center",
+  variant = "plain",
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const card = variant === "cards";
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xl)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    actions: actions,
+    align: align
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN[columns] || MIN[3]}), 1fr))`,
+      gap: "var(--dt-space-inline-lg)"
+    }
+  }, items.map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: it.title || i,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xs)",
+      padding: card ? "var(--dt-card-padding)" : 0,
+      background: card ? "var(--dt-card-bg)" : undefined,
+      border: card ? "var(--dt-card-border-width) solid var(--dt-card-border-color)" : undefined,
+      borderRadius: card ? "var(--dt-card-radius)" : undefined,
+      color: card ? "var(--dt-card-fg)" : undefined
+    }
+  }, it.icon && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "flex-start",
+      width: "var(--dt-size-control-md)",
+      height: "var(--dt-size-control-md)",
+      marginBottom: "var(--dt-space-stack-xs)",
+      borderRadius: "var(--dt-radius-control)",
+      background: "var(--dt-surface-brand-muted)",
+      color: "var(--dt-text-on-brand-muted)"
+    }
+  }, it.icon), /*#__PURE__*/React.createElement(__ds_scope.Heading, {
+    level: 3,
+    size: "heading-sm"
+  }, it.title), it.description && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "small",
+    tone: "secondary"
+  }, it.description), it.href && /*#__PURE__*/React.createElement("a", {
+    href: it.href,
+    style: {
+      marginTop: "var(--dt-space-stack-2xs)",
+      color: "var(--dt-text-link)",
+      fontSize: "var(--dt-text-body-sm-size)",
+      textUnderlineOffset: 3
+    }
+  }, it.linkLabel || "Learn more"))))));
+}
+Object.assign(__ds_scope, { FeatureGridBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/FeatureGridBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/HeroBlock.jsx
+try { (() => {
+/* The top of a page. Split puts the copy beside a picture and stacks them on
+   a phone; centred puts the copy over the picture; a background image turns
+   the whole block into a photo band with the copy on a scrim. */
+function HeroBlock({
+  eyebrow,
+  title,
+  lead,
+  actions,
+  media,
+  background,
+  layout = "split",
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  children,
+  ...rest
+}) {
+  const header = /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    actions: actions,
+    level: 1,
+    size: "display-sm",
+    align: layout === "centered" || background ? layout === "centered" ? "center" : "start" : "start"
+  });
+  if (background) {
+    return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+      media: background,
+      align: layout === "centered" ? "center" : "bottom",
+      dark: dark,
+      spacing: spacing,
+      width: width,
+      ...rest
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-space-stack-lg)",
+        alignItems: layout === "centered" ? "center" : "flex-start"
+      }
+    }, header, children));
+  }
+  if (layout === "centered") {
+    return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+      tone: tone,
+      dark: dark,
+      texture: texture,
+      spacing: spacing,
+      width: width,
+      ...rest
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "var(--dt-space-stack-xl)"
+      }
+    }, header, children, media && /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: "100%"
+      }
+    }, media)));
+  }
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
+      gap: "var(--dt-space-inline-2xl)",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-lg)"
+    }
+  }, header, children), media && /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, media)));
+}
+Object.assign(__ds_scope, { HeroBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/HeroBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/SplitBlock.jsx
+try { (() => {
+const CHECK = /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": "true",
+  focusable: "false",
+  style: {
+    width: "var(--dt-size-icon-sm)",
+    height: "var(--dt-size-icon-sm)",
+    flex: "none",
+    marginTop: 3,
+    color: "var(--dt-text-brand)"
+  }
+}, /*#__PURE__*/React.createElement("path", {
+  d: "m5 12.5 4.5 4.5L19 7.5"
+}));
+
+/* Copy beside media: a picture, a video, a product shot, a live component.
+   The two sit side by side on a wide screen and stack on a phone, the media
+   first unless reverse puts the copy first. Points become a checked list. */
+function SplitBlock({
+  eyebrow,
+  title,
+  body,
+  points,
+  actions,
+  media,
+  reverse = false,
+  align = "center",
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  children,
+  ...rest
+}) {
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+      gap: "var(--dt-space-inline-2xl)",
+      alignItems: align === "top" ? "start" : "center"
+    }
+  }, media && /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0,
+      order: reverse ? 2 : 1
+    }
+  }, media), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-md)",
+      order: reverse ? 1 : 2
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: body
+  }), points && points.length > 0 && /*#__PURE__*/React.createElement("ul", {
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xs)"
+    }
+  }, points.map(p => /*#__PURE__*/React.createElement("li", {
+    key: typeof p === "string" ? p : undefined,
+    style: {
+      display: "flex",
+      gap: "var(--dt-space-inline-sm)",
+      alignItems: "flex-start"
+    }
+  }, CHECK, /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    as: "span"
+  }, p)))), children, actions && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-sm)"
+    }
+  }, actions))));
+}
+Object.assign(__ds_scope, { SplitBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/SplitBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/StatsBlock.jsx
+try { (() => {
+/* A few numbers that make the case, set large, each over a hairline. */
+function StatsBlock({
+  eyebrow,
+  title,
+  lead,
+  stats = [],
+  align = "start",
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xl)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    align: align
+  }), /*#__PURE__*/React.createElement("dl", {
+    style: {
+      margin: 0,
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
+      gap: "var(--dt-space-inline-lg)"
+    }
+  }, stats.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: s.label || i,
+    style: {
+      display: "flex",
+      flexDirection: "column-reverse",
+      gap: "var(--dt-space-stack-2xs)",
+      paddingTop: "var(--dt-space-stack-sm)",
+      borderTop: "var(--dt-border-width-default) solid var(--dt-border-subtle)"
+    }
+  }, /*#__PURE__*/React.createElement("dt", {
+    style: {
+      margin: 0
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    as: "span",
+    variant: "label"
+  }, s.label), s.caption && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    as: "span",
+    variant: "small",
+    tone: "tertiary",
+    style: {
+      display: "block"
+    }
+  }, s.caption)), /*#__PURE__*/React.createElement("dd", {
+    style: {
+      margin: 0,
+      fontFamily: "var(--dt-text-display-sm-family)",
+      fontSize: "var(--dt-text-display-sm-size)",
+      lineHeight: "var(--dt-text-display-sm-line)",
+      fontWeight: "var(--dt-text-display-sm-weight)",
+      letterSpacing: "var(--dt-text-display-sm-tracking)",
+      fontVariantNumeric: "tabular-nums",
+      color: "var(--dt-text-headline, var(--dt-text-primary))"
+    }
+  }, s.value))))));
+}
+Object.assign(__ds_scope, { StatsBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/StatsBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/TestimonialBlock.jsx
+try { (() => {
+/* What customers say. One quote is set large and centred; several sit in a
+   grid on raised surfaces. */
+function TestimonialBlock({
+  eyebrow,
+  title,
+  lead,
+  quotes = [],
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const one = quotes.length === 1;
+  const quote = (q, size) => /*#__PURE__*/React.createElement(__ds_scope.Quote, {
+    size: size,
+    attribution: q.name,
+    role: q.role,
+    avatar: q.avatar || (q.name ? /*#__PURE__*/React.createElement(__ds_scope.Avatar, {
+      name: q.name
+    }) : undefined)
+  }, q.quote);
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: one ? "narrow" : width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xl)",
+      alignItems: one ? "center" : "stretch"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    align: "center"
+  }), one ? quote(quotes[0], "lg") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+      gap: "var(--dt-space-inline-lg)"
+    }
+  }, quotes.map((q, i) => /*#__PURE__*/React.createElement("div", {
+    key: q.name || i,
+    style: {
+      padding: "var(--dt-card-padding)",
+      background: "var(--dt-card-bg)",
+      color: "var(--dt-card-fg)",
+      border: "var(--dt-card-border-width) solid var(--dt-card-border-color)",
+      borderRadius: "var(--dt-card-radius)"
+    }
+  }, quote(q, "md"))))));
+}
+Object.assign(__ds_scope, { TestimonialBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/TestimonialBlock.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -7047,5 +7655,21 @@ __ds_ns.AppShell = __ds_scope.AppShell;
 __ds_ns.BottomNav = __ds_scope.BottomNav;
 
 __ds_ns.Sheet = __ds_scope.Sheet;
+
+__ds_ns.BlockHeader = __ds_scope.BlockHeader;
+
+__ds_ns.CtaBlock = __ds_scope.CtaBlock;
+
+__ds_ns.FaqBlock = __ds_scope.FaqBlock;
+
+__ds_ns.FeatureGridBlock = __ds_scope.FeatureGridBlock;
+
+__ds_ns.HeroBlock = __ds_scope.HeroBlock;
+
+__ds_ns.SplitBlock = __ds_scope.SplitBlock;
+
+__ds_ns.StatsBlock = __ds_scope.StatsBlock;
+
+__ds_ns.TestimonialBlock = __ds_scope.TestimonialBlock;
 
 })();
