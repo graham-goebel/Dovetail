@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheet · Dovetail</title>
+<meta name="description" content="A modal panel that rises from the bottom of a phone, inset from its edges, and opens as a centred dialog on a wide screen. It is the surface phone apps are built from: a detail view, a form, a picker, a settings page, or a sheet opened from another sheet.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=be1a72b12a">
+<link rel="stylesheet" href="../assets/site.css?v=ebecf6f7cd">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-eyebrow">Components</p><p class="h-title" aria-hidden="true">Sheet</p></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <div class="nav-filter">
+    <label class="visually-hidden" for="nav-search">Filter navigation</label>
+    <input id="nav-search" type="search" placeholder="Filter…" autocomplete="off">
+  </div>
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../tokens.html">Tokens</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/space.html">Space</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html" aria-current="page">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li></ul></details>
+  <details class="nav-section" open><summary>Showcase</summary><ul><li><a href="../showcase/index.html">All showcases</a></li><li><a href="../showcase/overviews.html">Components</a></li><li><a href="../showcase/detail.html">Component detail</a></li><li><a href="../showcase/templates.html">Templates</a></li><li><a href="../showcase/tools.html">Tools</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/working-together.html">Working together</a></li><li><a href="../guide/changelog.html">Changelog</a></li><li><a href="../guide/changelog-strategy.html">Changelog strategy</a></li><li><a href="../guide/token-pipeline.html">Token pipeline</a></li><li><a href="../guide/authoring-rules.html">Authoring rules</a></li><li><a href="../guide/plan.html">Build plan</a></li><li><a href="../guide/provenance.html">Provenance</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+<div class="page-actions">
+  <button type="button" class="page-actions-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu" aria-label="Page actions"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  <ul class="page-menu" id="page-menu" role="menu" aria-label="Page actions" hidden>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-md" data-md="Sheet.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Sheet.md" download="Sheet.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="Sheet.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+    <li role="none"><a role="menuitem" class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20working%20with%20the%20Dovetail%20design%20system.%20Read%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FSheet.md%20(the%20%22Sheet%22%20docs)%20and%20help%20me%20use%20it." target="_blank" rel="noopener" data-page-action="claude" data-title="Sheet" data-md="Sheet.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+    <li role="none"><button type="button" role="menuitem" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+  </ul>
+  <span class="page-actions-status" role="status" aria-live="polite"></span>
+</div>
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Sheet</li></ol></nav>
+<h1>Sheet</h1>
+<p class="lede">A modal panel that rises from the bottom of a phone, inset from its edges, and opens as a centred dialog on a wide screen. It is the surface phone apps are built from: a detail view, a form, a picker, a settings page, or a sheet opened from another sheet.</p>
+<p class="meta">
+  <span class="pill">Feedback</span>
+  
+  <a href="../system/components/feedback/Sheet.jsx">Sheet.jsx</a>
+  <a href="../system/components/feedback/Sheet.d.ts">Sheet.d.ts</a>
+  <a href="../system/components/feedback/Sheet.md">Sheet.md</a>
+</p>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Sheet.html" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:640px">
+    <iframe src="../previews/Sheet.html" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A modal panel that rises from the bottom of a phone, inset from its edges, and opens as a centred dialog on a wide screen. It is the surface phone apps are built from: a detail view, a form, a picker, a settings page, or a sheet opened from another sheet.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>Showing detail or a short task on top of where the reader is, and they'll come straight back.</li><li>Stepping into a sub-task from a sheet (a picker inside a form): open the next sheet with <code>onBack</code>.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>The reader must answer before anything else happens. Use <code>Dialog</code>.</li><li>The panel should sit beside the page while the reader keeps working in it. Use <code>Drawer</code>.</li><li>The content is a page someone will link to or come back to. Give it a route.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>const [open, setOpen] = React.useState(false);
+
+&lt;Button onClick={() =&gt; setOpen(true)}&gt;Trip details&lt;/Button&gt;
+&lt;Sheet
+  open={open}
+  onClose={() =&gt; setOpen(false)}
+  eyebrow=&quot;Trip · 4 days&quot;
+  title=&quot;Alpine huts&quot;
+  description=&quot;Three huts, 42km, one pass.&quot;
+  actions={[
+    { label: &quot;Book&quot;, primary: true, onClick: book },
+    { label: &quot;Share&quot;, onClick: share },
+    { label: &quot;Save&quot;, onClick: save },
+  ]}
+&gt;
+  &lt;List label=&quot;Stops&quot; items={stops} /&gt;
+&lt;/Sheet&gt;</code></pre>
+<p>A sheet opened from another keeps the reader's place with a back arrow:</p>
+<pre class="code" data-lang="jsx"><code>&lt;Sheet open={picking} onBack={() =&gt; setPicking(false)} onClose={closeAll} title=&quot;Choose a hut&quot; action={&lt;Button size=&quot;sm&quot;&gt;Done&lt;/Button&gt;}&gt;…&lt;/Sheet&gt;</code></pre>
+<h3 id="behaviour">Behaviour</h3>
+<ul><li><strong>Opening and closing.</strong> It rises from the bottom on a phone and fades up on a wide screen. When <code>open</code> turns false it plays the exit, then unmounts. Reduced motion skips both.</li><li><strong>The bar.</strong> Close on the left, or back when <code>onBack</code> is set; the bar's small title fades in as the big one shrinks away over the first 72px of scroll; <code>action</code> goes on the right.</li><li><strong>Actions.</strong> <code>actions</code> float as chips along the bottom edge over a fade, scrolling sideways when they don't fit. Mark at most one <code>primary</code>. Use <code>footer</code> instead for a row of Buttons.</li><li><strong>Dismissal.</strong> The close button, Escape, the scrim, or on touch a drag down from the top of the sheet all call <code>onClose</code> with the reason. A drag right calls <code>onBack</code>. The sheet never closes itself: set <code>open</code> in response.</li></ul>
+<h3 id="tokens">Tokens</h3>
+<p>Shares the overlay tokens with Dialog: <code>--dt-dialog-bg</code>, <code>--dt-dialog-fg</code>, <code>--dt-dialog-radius</code>, <code>--dt-dialog-scrim</code>, <code>--dt-dialog-width-sm|md|lg</code> and <code>--dt-dialog-max-height</code>. Its own are <code>--dt-sheet-inset</code> (the gap to a phone's edges), <code>--dt-sheet-top-gap</code> (the page left showing above it), <code>--dt-sheet-padding</code>, <code>--dt-sheet-button-size</code>, <code>--dt-sheet-button-bg</code> and <code>--dt-sheet-shadow</code>.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>It is a <code>role=&quot;dialog&quot;</code> with <code>aria-modal</code>, named by <code>title</code> (or <code>label</code> when there is no title).</li><li>Focus moves to the close or back button on open, is kept inside the sheet while it is open, and returns to whatever opened it on close.</li><li>The page behind stops scrolling while it is open.</li><li>Drag gestures are a shortcut, never the only way: close and back are always buttons.</li></ul>
+<h3 id="content">Content</h3>
+<p>Eyebrow is a few words. Title is the thing's name. Description is one sentence. Chip labels are verbs.</p>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Sheet.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** One action chip along the bottom of a sheet. */
+export interface SheetAction {
+  /** The chip's text. Also its key, so keep labels unique within a sheet. */
+  label: string;
+  onClick?: (event: React.MouseEvent&lt;HTMLButtonElement&gt;) =&gt; void;
+  /** An icon before the label, drawn at `--dt-size-icon-sm`. */
+  icon?: React.ReactNode;
+  /** Fills the chip with the action colour. Use it for one chip at most. */
+  primary?: boolean;
+  disabled?: boolean;
+}
+
+/**
+ * A modal panel that rises from the bottom of a phone, inset from its edges,
+ * and opens as a centred dialog on a wide screen. A sticky bar holds close
+ * (or back) and an optional action; the big title shrinks into the bar as the
+ * sheet scrolls. On touch, a drag down from the top closes it, and a drag
+ * right goes back when `onBack` is set.
+ */
+export interface SheetProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElement&gt;, &quot;title&quot;&gt; {
+  /** Whether the sheet is showing. It animates out before it unmounts. */
+  open: boolean;
+  /**
+   * Called when the reader dismisses the sheet, with how they did it. Set
+   * `open` to false in response; the sheet does not close itself.
+   */
+  onClose?: (reason: &quot;close&quot; | &quot;escape&quot; | &quot;scrim&quot; | &quot;swipe&quot;) =&gt; void;
+  /**
+   * Makes this a sheet opened from another: the leading button becomes a back
+   * arrow, close moves to the right (unless `action` is set), and a drag right
+   * calls this.
+   */
+  onBack?: () =&gt; void;
+  /** The big title. Also the accessible name, and the small title in the bar once scrolled. */
+  title?: React.ReactNode;
+  /** A short line above the title: the item's type, a date, a count. */
+  eyebrow?: React.ReactNode;
+  /** One sentence under the title. */
+  description?: React.ReactNode;
+  /** The bar's trailing slot, usually one small Button such as Save or Done. */
+  action?: React.ReactNode;
+  /**
+   * Chips pinned along the bottom edge, scrolling sideways when they don't
+   * fit. Takes precedence over `footer`.
+   */
+  actions?: SheetAction[];
+  /** A footer pinned to the bottom edge, for a row of Buttons. Ignored when `actions` is set. */
+  footer?: React.ReactNode;
+  /** Width on a wide screen, from `--dt-dialog-width-*`. Phones always use the full width less the inset. @default &quot;md&quot; */
+  size?: &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot;;
+  /** Accessible name when there is no title. */
+  label?: string;
+  children?: React.ReactNode;
+}
+
+export declare function Sheet(props: SheetProps): JSX.Element | null;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Sheet.jsx</code> resolves, read from the source: 15 component, 28 semantic, 3 primitive, 1 undeclared. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Sheet">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li><li><strong>none</strong> Referenced by the source but declared by no tier, so it resolves to nothing.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-dialog-bg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dialog-bg"><code>--dt-dialog-bg</code></a><button type="button" class="graph-btn" data-graph="--dt-dialog-bg" title="Show what --dt-dialog-bg connects to" aria-label="Graph for --dt-dialog-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-overlay)</code></td></tr><tr id="uses-dt-dialog-border-color"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dialog-border-color"><code>--dt-dialog-border-color</code></a><button type="button" class="graph-btn" data-graph="--dt-dialog-border-color" title="Show what --dt-dialog-border-color connects to" aria-label="Graph for --dt-dialog-border-color"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-dialog-fg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dialog-fg"><code>--dt-dialog-fg</code></a><button type="button" class="graph-btn" data-graph="--dt-dialog-fg" title="Show what --dt-dialog-fg connects to" aria-label="Graph for --dt-dialog-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-dialog-max-height"><th scope="row"><span class="token-cell"><code>--dt-dialog-max-height</code><button type="button" class="graph-btn" data-graph="--dt-dialog-max-height" title="Show what --dt-dialog-max-height connects to" aria-label="Graph for --dt-dialog-max-height"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>85vh</code></td></tr><tr id="uses-dt-dialog-radius"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dialog-radius"><code>--dt-dialog-radius</code></a><button type="button" class="graph-btn" data-graph="--dt-dialog-radius" title="Show what --dt-dialog-radius connects to" aria-label="Graph for --dt-dialog-radius"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-radius-overlay)</code></td></tr><tr id="uses-dt-dialog-scrim"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-dialog-scrim"><code>--dt-dialog-scrim</code></a><button type="button" class="graph-btn" data-graph="--dt-dialog-scrim" title="Show what --dt-dialog-scrim connects to" aria-label="Graph for --dt-dialog-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-scrim)</code></td></tr><tr id="uses-dt-dialog-width-lg"><th scope="row"><span class="token-cell"><code>--dt-dialog-width-lg</code><button type="button" class="graph-btn" data-graph="--dt-dialog-width-lg" title="Show what --dt-dialog-width-lg connects to" aria-label="Graph for --dt-dialog-width-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>720px</code></td></tr><tr id="uses-dt-dialog-width-md"><th scope="row"><span class="token-cell"><code>--dt-dialog-width-md</code><button type="button" class="graph-btn" data-graph="--dt-dialog-width-md" title="Show what --dt-dialog-width-md connects to" aria-label="Graph for --dt-dialog-width-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>520px</code></td></tr><tr id="uses-dt-dialog-width-sm"><th scope="row"><span class="token-cell"><code>--dt-dialog-width-sm</code><button type="button" class="graph-btn" data-graph="--dt-dialog-width-sm" title="Show what --dt-dialog-width-sm connects to" aria-label="Graph for --dt-dialog-width-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>400px</code></td></tr><tr id="uses-dt-sheet-button-bg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-sheet-button-bg"><code>--dt-sheet-button-bg</code></a><button type="button" class="graph-btn" data-graph="--dt-sheet-button-bg" title="Show what --dt-sheet-button-bg connects to" aria-label="Graph for --dt-sheet-button-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-sunken)</code></td></tr><tr id="uses-dt-sheet-button-size"><th scope="row"><span class="token-cell"><code>--dt-sheet-button-size</code><button type="button" class="graph-btn" data-graph="--dt-sheet-button-size" title="Show what --dt-sheet-button-size connects to" aria-label="Graph for --dt-sheet-button-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-control-sm)</code></td></tr><tr id="uses-dt-sheet-inset"><th scope="row"><span class="token-cell"><code>--dt-sheet-inset</code><button type="button" class="graph-btn" data-graph="--dt-sheet-inset" title="Show what --dt-sheet-inset connects to" aria-label="Graph for --dt-sheet-inset"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-xs)</code></td></tr><tr id="uses-dt-sheet-padding"><th scope="row"><span class="token-cell"><code>--dt-sheet-padding</code><button type="button" class="graph-btn" data-graph="--dt-sheet-padding" title="Show what --dt-sheet-padding connects to" aria-label="Graph for --dt-sheet-padding"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-xl)</code></td></tr><tr id="uses-dt-sheet-shadow"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-sheet-shadow"><code>--dt-sheet-shadow</code></a><button type="button" class="graph-btn" data-graph="--dt-sheet-shadow" title="Show what --dt-sheet-shadow connects to" aria-label="Graph for --dt-sheet-shadow"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-elevation-4)</code></td></tr><tr id="uses-dt-sheet-top-gap"><th scope="row"><span class="token-cell"><code>--dt-sheet-top-gap</code><button type="button" class="graph-btn" data-graph="--dt-sheet-top-gap" title="Show what --dt-sheet-top-gap connects to" aria-label="Graph for --dt-sheet-top-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-stack-2xl)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-control-md"><th scope="row"><span class="token-cell"><code>--dt-size-control-md</code><button type="button" class="graph-btn" data-graph="--dt-size-control-md" title="Show what --dt-size-control-md connects to" aria-label="Graph for --dt-size-control-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-10)</code></td></tr><tr id="uses-dt-size-icon-sm"><th scope="row"><span class="token-cell"><code>--dt-size-icon-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-sm" title="Show what --dt-size-icon-sm connects to" aria-label="Graph for --dt-size-icon-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-2xs"><code>--dt-space-inset-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-2xs" title="Show what --dt-space-inset-2xs connects to" aria-label="Graph for --dt-space-inset-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-md" title="Show what --dt-space-inset-md connects to" aria-label="Graph for --dt-space-inset-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-sm" title="Show what --dt-space-inset-sm connects to" aria-label="Graph for --dt-space-inset-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xl"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xl"><code>--dt-space-inset-xl</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xl" title="Show what --dt-space-inset-xl connects to" aria-label="Graph for --dt-space-inset-xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xs" title="Show what --dt-space-inset-xs connects to" aria-label="Graph for --dt-space-inset-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-2xs" title="Show what --dt-space-stack-2xs connects to" aria-label="Graph for --dt-space-stack-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-stack-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-lg"><code>--dt-space-stack-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-lg" title="Show what --dt-space-stack-lg connects to" aria-label="Graph for --dt-space-stack-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-surface-action"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-action"><code>--dt-surface-action</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-action" title="Show what --dt-surface-action connects to" aria-label="Graph for --dt-surface-action"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-body-md-family"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-family</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-family" title="Show what --dt-text-body-md-family connects to" aria-label="Graph for --dt-text-body-md-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-md-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-line" title="Show what --dt-text-body-md-line connects to" aria-label="Graph for --dt-text-body-md-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-md)</code></td></tr><tr id="uses-dt-text-body-md-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-size" title="Show what --dt-text-body-md-size connects to" aria-label="Graph for --dt-text-body-md-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-line" title="Show what --dt-text-body-sm-line connects to" aria-label="Graph for --dt-text-body-sm-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-size" title="Show what --dt-text-body-sm-size connects to" aria-label="Graph for --dt-text-body-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-heading-lg-family"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-family</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-family" title="Show what --dt-text-heading-lg-family connects to" aria-label="Graph for --dt-text-heading-lg-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-lg-line"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-line</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-line" title="Show what --dt-text-heading-lg-line connects to" aria-label="Graph for --dt-text-heading-lg-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-3xl)</code></td></tr><tr id="uses-dt-text-heading-lg-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-size" title="Show what --dt-text-heading-lg-size connects to" aria-label="Graph for --dt-text-heading-lg-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-3xl)</code></td></tr><tr id="uses-dt-text-heading-lg-tracking"><th scope="row"><span class="token-cell"><code>--dt-text-heading-lg-tracking</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-lg-tracking" title="Show what --dt-text-heading-lg-tracking connects to" aria-label="Graph for --dt-text-heading-lg-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-tracking-tight)</code></td></tr><tr id="uses-dt-text-heading-xs-family"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-family</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-family" title="Show what --dt-text-heading-xs-family connects to" aria-label="Graph for --dt-text-heading-xs-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-on-action"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-on-action"><code>--dt-text-on-action</code></a><button type="button" class="graph-btn" data-graph="--dt-text-on-action" title="Show what --dt-text-on-action connects to" aria-label="Graph for --dt-text-on-action"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-secondary" title="Show what --dt-text-secondary connects to" aria-label="Graph for --dt-text-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-text-tertiary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-tertiary"><code>--dt-text-tertiary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-tertiary" title="Show what --dt-text-tertiary connects to" aria-label="Graph for --dt-text-tertiary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-500)</code></td></tr><tr id="uses-dt-z-overlay"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-z-overlay"><code>--dt-z-overlay</code></a><button type="button" class="graph-btn" data-graph="--dt-z-overlay" title="Show what --dt-z-overlay connects to" aria-label="Graph for --dt-z-overlay"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>300</code></td></tr><tr id="uses-dt-font-family-sans"><th scope="row"><span class="token-cell"><code>--dt-font-family-sans</code><button type="button" class="graph-btn" data-graph="--dt-font-family-sans" title="Show what --dt-font-family-sans connects to" aria-label="Graph for --dt-font-family-sans"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>&quot;Geist&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-medium" title="Show what --dt-font-weight-medium connects to" aria-label="Graph for --dt-font-weight-medium"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>500</code></td></tr><tr id="uses-dt-font-weight-regular"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-regular"><code>--dt-font-weight-regular</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-regular" title="Show what --dt-font-weight-regular connects to" aria-label="Graph for --dt-font-weight-regular"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>400</code></td></tr><tr id="uses-dt-sheet-p"><th scope="row"><span class="token-cell"><code>--dt-sheet-p</code><button type="button" class="graph-btn" data-graph="--dt-sheet-p" title="Show what --dt-sheet-p connects to" aria-label="Graph for --dt-sheet-p"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+
+/* The sheet the phone apps are built from: a panel that rises from the
+   bottom of a phone, inset from its edges, and opens as a centred dialog on a
+   wide screen. A sticky bar carries close (or back, for a sheet opened from
+   another) and an optional action; a big title under it shrinks into the bar
+   as the sheet scrolls. Actions float along the bottom as chips, or a footer
+   holds buttons. On touch, a drag down from the top closes it and a drag
+   right goes back.
+
+   Styles are inline and read tokens, so motion that needs keyframes runs
+   through the Web Animations API instead, and stops for reduced motion. */
+
+const NARROW = &quot;(max-width: 699px)&quot;;
+const EASE = &quot;cubic-bezier(.2,.8,.2,1)&quot;;
+
+const WIDTHS = { sm: &quot;var(--dt-dialog-width-sm)&quot;, md: &quot;var(--dt-dialog-width-md)&quot;, lg: &quot;var(--dt-dialog-width-lg)&quot; };
+
+function useMedia(query) {
+  const get = () =&gt; typeof window !== &quot;undefined&quot; &amp;&amp; !!window.matchMedia &amp;&amp; window.matchMedia(query).matches;
+  const [on, setOn] = React.useState(get);
+  React.useEffect(() =&gt; {
+    if (!window.matchMedia) return undefined;
+    const m = window.matchMedia(query);
+    const sync = () =&gt; setOn(m.matches);
+    sync();
+    if (m.addEventListener) m.addEventListener(&quot;change&quot;, sync);
+    else m.addListener(sync);
+    return () =&gt; (m.removeEventListener ? m.removeEventListener(&quot;change&quot;, sync) : m.removeListener(sync));
+  }, [query]);
+  return on;
+}
+
+const Icon = ({ d }) =&gt; (
+  &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot; style={{ width: &quot;var(--dt-size-icon-sm)&quot;, height: &quot;var(--dt-size-icon-sm)&quot;, display: &quot;block&quot; }}&gt;
+    {d.map((p) =&gt; &lt;path key={p} d={p} /&gt;)}
+  &lt;/svg&gt;
+);
+const CLOSE = [&quot;M6 6l12 12&quot;, &quot;M18 6 6 18&quot;];
+const BACK = [&quot;M19.5 12h-15&quot;, &quot;m10.5 6-6 6 6 6&quot;];
+
+const roundButton = {
+  appearance: &quot;none&quot;, border: 0, cursor: &quot;pointer&quot;, flex: &quot;none&quot;,
+  display: &quot;grid&quot;, placeItems: &quot;center&quot;,
+  width: &quot;var(--dt-sheet-button-size)&quot;, height: &quot;var(--dt-sheet-button-size)&quot;,
+  borderRadius: &quot;var(--dt-radius-pill)&quot;,
+  background: &quot;var(--dt-sheet-button-bg)&quot;, color: &quot;var(--dt-dialog-fg)&quot;,
+};
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=&quot;-1&quot;])';
+
+export function Sheet({
+  open,
+  onClose,
+  onBack,
+  title,
+  eyebrow,
+  description,
+  action,
+  actions,
+  footer,
+  size = &quot;md&quot;,
+  label,
+  children,
+  style,
+  ...rest
+}) {
+  const narrow = useMedia(NARROW);
+  const reduce = useMedia(&quot;(prefers-reduced-motion: reduce)&quot;);
+  const [mounted, setMounted] = React.useState(open);
+  const box = React.useRef(null);
+  const scrim = React.useRef(null);
+  const titleId = React.useId ? React.useId() : &quot;dt-sheet-title&quot;;
+
+  /* Mount on open; on close, play the exit and then unmount. */
+  React.useEffect(() =&gt; {
+    if (open) {
+      setMounted(true);
+      return undefined;
+    }
+    if (!mounted) return undefined;
+    const el = box.current;
+    if (!el || reduce || !el.animate) {
+      setMounted(false);
+      return undefined;
+    }
+    const out = narrow
+      ? [{ transform: &quot;none&quot; }, { transform: &quot;translateY(100%)&quot; }]
+      : [{ transform: &quot;none&quot;, opacity: 1 }, { transform: &quot;translateY(20px) scale(.98)&quot;, opacity: 0 }];
+    const a = el.animate(out, { duration: narrow ? 260 : 200, easing: &quot;cubic-bezier(.5,0,.9,.6)&quot;, fill: &quot;forwards&quot; });
+    if (scrim.current) scrim.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: &quot;forwards&quot; });
+    a.onfinish = () =&gt; setMounted(false);
+    return () =&gt; { a.onfinish = null; };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Entry motion, focus, Escape, a focus trap and a still page behind. */
+  React.useEffect(() =&gt; {
+    if (!open || !mounted) return undefined;
+    const el = box.current;
+    const prev = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = &quot;hidden&quot;;
+    if (el &amp;&amp; !reduce &amp;&amp; el.animate) {
+      el.animate(
+        narrow ? [{ transform: &quot;translateY(100%)&quot; }, { transform: &quot;none&quot; }] : [{ transform: &quot;translateY(28px) scale(.98)&quot;, opacity: 0 }, { transform: &quot;none&quot;, opacity: 1 }],
+        { duration: narrow ? 420 : 300, easing: EASE }
+      );
+      if (scrim.current) scrim.current.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 280, easing: &quot;ease-out&quot; });
+    }
+    if (el) {
+      el.scrollTop = 0;
+      el.style.setProperty(&quot;--dt-sheet-p&quot;, &quot;0&quot;);
+      const first = el.querySelector(&quot;[data-sheet-lead]&quot;);
+      (first || el).focus({ preventScroll: true });
+    }
+    const onKey = (e) =&gt; {
+      if (e.key === &quot;Escape&quot;) {
+        e.stopPropagation();
+        onClose &amp;&amp; onClose(&quot;escape&quot;);
+      } else if (e.key === &quot;Tab&quot; &amp;&amp; el) {
+        const items = Array.prototype.filter.call(el.querySelectorAll(FOCUSABLE), (n) =&gt; n.offsetParent !== null);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey &amp;&amp; document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey &amp;&amp; document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener(&quot;keydown&quot;, onKey);
+    return () =&gt; {
+      document.removeEventListener(&quot;keydown&quot;, onKey);
+      document.body.style.overflow = overflow;
+      if (prev &amp;&amp; prev.focus) prev.focus();
+    };
+  }, [open, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* The title shrinks into the bar over the first 72px of scroll. */
+  const onScroll = (e) =&gt; {
+    e.currentTarget.style.setProperty(&quot;--dt-sheet-p&quot;, String(Math.min(1, e.currentTarget.scrollTop / 72)));
+  };
+
+  /* Touch: down from the top closes, right goes back when there is a back. */
+  const drag = React.useRef(null);
+  const onTouchStart = (e) =&gt; {
+    if (e.touches.length !== 1 || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { drag.current = null; return; }
+    const t = e.touches[0];
+    drag.current = { x: t.clientX, y: t.clientY, t: Date.now(), top: box.current.scrollTop &lt;= 0, axis: null, dx: 0, dy: 0 };
+  };
+  const onTouchMove = (e) =&gt; {
+    const d = drag.current;
+    if (!d) return;
+    const t = e.touches[0];
+    d.dx = t.clientX - d.x;
+    d.dy = t.clientY - d.y;
+    if (!d.axis) {
+      if (d.top &amp;&amp; d.dy &gt; 8 &amp;&amp; d.dy &gt; Math.abs(d.dx)) d.axis = &quot;y&quot;;
+      else if (onBack &amp;&amp; d.dx &gt; 10 &amp;&amp; d.dx &gt; Math.abs(d.dy) * 1.3) d.axis = &quot;x&quot;;
+      else { if (Math.abs(d.dx) &gt; 14 || d.dy &lt; -6) drag.current = null; return; }
+    }
+    const el = box.current;
+    if (d.axis === &quot;y&quot;) el.style.transform = `translateY(${Math.max(0, d.dy)}px)`;
+    else el.style.transform = `translateX(${Math.max(0, d.dx)}px)`;
+  };
+  const onTouchEnd = () =&gt; {
+    const d = drag.current;
+    drag.current = null;
+    const el = box.current;
+    if (!d || !d.axis || !el) return;
+    const ms = Math.max(1, Date.now() - d.t);
+    const spring = () =&gt; {
+      el.style.transition = &quot;transform .2s ease&quot;;
+      el.style.transform = &quot;&quot;;
+      setTimeout(() =&gt; { el.style.transition = &quot;&quot;; }, 220);
+    };
+    if (d.axis === &quot;y&quot; &amp;&amp; (d.dy &gt; Math.min(140, el.offsetHeight * 0.3) || (d.dy / ms &gt; 0.6 &amp;&amp; d.dy &gt; 30))) {
+      el.style.transform = &quot;&quot;;
+      onClose &amp;&amp; onClose(&quot;swipe&quot;);
+    } else if (d.axis === &quot;x&quot; &amp;&amp; (d.dx &gt; Math.min(110, el.offsetWidth * 0.28) || (d.dx / ms &gt; 0.5 &amp;&amp; d.dx &gt; 40))) {
+      el.style.transform = &quot;&quot;;
+      onBack();
+    } else spring();
+  };
+
+  if (!mounted) return null;
+
+  const hasActions = Array.isArray(actions) &amp;&amp; actions.length &gt; 0;
+  const trailing = action || (onBack ? (
+    &lt;button type=&quot;button&quot; onClick={() =&gt; onClose &amp;&amp; onClose(&quot;close&quot;)} aria-label=&quot;Close&quot; style={roundButton}&gt;&lt;Icon d={CLOSE} /&gt;&lt;/button&gt;
+  ) : &lt;span /&gt;);
+
+  return (
+    &lt;div style={{ position: &quot;fixed&quot;, inset: 0, zIndex: &quot;var(--dt-z-overlay)&quot;, display: &quot;flex&quot;, alignItems: narrow ? &quot;flex-end&quot; : &quot;center&quot;, justifyContent: &quot;center&quot; }}&gt;
+      &lt;div ref={scrim} onClick={() =&gt; onClose &amp;&amp; onClose(&quot;scrim&quot;)} style={{ position: &quot;absolute&quot;, inset: 0, background: &quot;var(--dt-dialog-scrim)&quot; }} /&gt;
+      &lt;div
+        ref={box}
+        role=&quot;dialog&quot;
+        aria-modal=&quot;true&quot;
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={title ? undefined : label}
+        tabIndex={-1}
+        onScroll={onScroll}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
+        style={{
+          position: &quot;relative&quot;, boxSizing: &quot;border-box&quot;,
+          width: narrow ? &quot;calc(100% - 2 * var(--dt-sheet-inset))&quot; : &quot;100%&quot;,
+          maxWidth: narrow ? &quot;none&quot; : WIDTHS[size] || WIDTHS.md,
+          maxHeight: narrow ? &quot;calc(100% - var(--dt-sheet-top-gap))&quot; : &quot;var(--dt-dialog-max-height)&quot;,
+          marginBottom: narrow ? &quot;calc(var(--dt-sheet-inset) + env(safe-area-inset-bottom, 0px))&quot; : 0,
+          overflowY: &quot;auto&quot;, overflowX: &quot;hidden&quot;, overscrollBehavior: &quot;contain&quot;,
+          padding: &quot;0 var(--dt-sheet-padding)&quot;,
+          paddingBottom: hasActions || footer ? 0 : &quot;var(--dt-sheet-padding)&quot;,
+          background: &quot;var(--dt-dialog-bg)&quot;, color: &quot;var(--dt-dialog-fg)&quot;,
+          borderRadius: &quot;var(--dt-dialog-radius)&quot;,
+          boxShadow: &quot;var(--dt-sheet-shadow)&quot;,
+          outline: &quot;none&quot;,
+          ...style,
+        }}
+        {...rest}
+      &gt;
+        &lt;div style={{
+          position: &quot;sticky&quot;, top: 0, zIndex: 2,
+          display: &quot;grid&quot;, gridTemplateColumns: action ? &quot;auto minmax(0, 1fr) auto&quot; : &quot;var(--dt-sheet-button-size) minmax(0, 1fr) var(--dt-sheet-button-size)&quot;,
+          alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;,
+          margin: &quot;0 calc(-1 * var(--dt-space-inset-sm))&quot;,
+          padding: &quot;var(--dt-space-inset-md) var(--dt-space-inset-sm) var(--dt-space-inset-xs)&quot;,
+          background: &quot;var(--dt-dialog-bg)&quot;,
+          boxShadow: &quot;0 var(--dt-border-width-default) 0 color-mix(in oklab, var(--dt-dialog-border-color) calc(var(--dt-sheet-p, 0) * 100%), transparent)&quot;,
+        }}&gt;
+          {onBack ? (
+            &lt;button type=&quot;button&quot; data-sheet-lead onClick={onBack} aria-label=&quot;Back&quot; style={roundButton}&gt;&lt;Icon d={BACK} /&gt;&lt;/button&gt;
+          ) : (
+            &lt;button type=&quot;button&quot; data-sheet-lead onClick={() =&gt; onClose &amp;&amp; onClose(&quot;close&quot;)} aria-label=&quot;Close&quot; style={roundButton}&gt;&lt;Icon d={CLOSE} /&gt;&lt;/button&gt;
+          )}
+          &lt;p aria-hidden=&quot;true&quot; style={{
+            margin: 0, textAlign: &quot;center&quot;, whiteSpace: &quot;nowrap&quot;, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot;,
+            fontFamily: &quot;var(--dt-text-heading-xs-family)&quot;, fontSize: &quot;var(--dt-text-body-md-size)&quot;, fontWeight: &quot;var(--dt-font-weight-medium)&quot;,
+            opacity: &quot;clamp(0, calc((var(--dt-sheet-p, 0) - .6) * 2.5), 1)&quot;,
+          }}&gt;{title}&lt;/p&gt;
+          &lt;div style={{ justifySelf: &quot;end&quot; }}&gt;{trailing}&lt;/div&gt;
+        &lt;/div&gt;
+
+        {(eyebrow || title || description) &amp;&amp; (
+          &lt;div style={{
+            padding: &quot;var(--dt-space-inset-2xs, 4px) 0 var(--dt-space-inset-sm)&quot;,
+            transform: &quot;scale(calc(1 - .08 * var(--dt-sheet-p, 0)))&quot;, transformOrigin: &quot;0 0&quot;,
+            opacity: &quot;calc(1 - .8 * var(--dt-sheet-p, 0))&quot;,
+          }}&gt;
+            {eyebrow &amp;&amp; &lt;p style={{ margin: &quot;0 0 2px&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, color: &quot;var(--dt-text-tertiary)&quot; }}&gt;{eyebrow}&lt;/p&gt;}
+            {title &amp;&amp; &lt;h2 id={titleId} style={{
+              margin: 0, fontFamily: &quot;var(--dt-text-heading-lg-family)&quot;, fontSize: &quot;var(--dt-text-heading-lg-size)&quot;,
+              lineHeight: &quot;var(--dt-text-heading-lg-line)&quot;, fontWeight: &quot;var(--dt-font-weight-regular)&quot;, letterSpacing: &quot;var(--dt-text-heading-lg-tracking)&quot;,
+            }}&gt;{title}&lt;/h2&gt;}
+            {description &amp;&amp; &lt;p style={{ margin: &quot;var(--dt-space-stack-2xs) 0 0&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-text-secondary)&quot; }}&gt;{description}&lt;/p&gt;}
+          &lt;/div&gt;
+        )}
+
+        &lt;div style={{ fontFamily: &quot;var(--dt-text-body-md-family)&quot;, fontSize: &quot;var(--dt-text-body-md-size)&quot;, lineHeight: &quot;var(--dt-text-body-md-line)&quot; }}&gt;{children}&lt;/div&gt;
+
+        {hasActions &amp;&amp; (
+          &lt;div role=&quot;toolbar&quot; aria-label=&quot;Actions&quot; style={{
+            position: &quot;sticky&quot;, bottom: 0, zIndex: 2,
+            display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, overflowX: &quot;auto&quot;, scrollbarWidth: &quot;none&quot;,
+            margin: &quot;var(--dt-space-stack-lg) calc(-1 * var(--dt-sheet-padding)) 0&quot;,
+            padding: &quot;var(--dt-space-inset-xl) var(--dt-sheet-padding) var(--dt-space-inset-sm)&quot;,
+            background: &quot;linear-gradient(to top, var(--dt-dialog-bg) 58%, transparent)&quot;,
+          }}&gt;
+            {actions.map((a) =&gt; (
+              &lt;button key={a.label} type=&quot;button&quot; onClick={a.onClick} disabled={a.disabled} style={{
+                appearance: &quot;none&quot;, border: 0, cursor: a.disabled ? &quot;default&quot; : &quot;pointer&quot;, flex: &quot;none&quot;,
+                display: &quot;inline-flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;,
+                height: &quot;var(--dt-size-control-md)&quot;, padding: &quot;0 var(--dt-space-inset-md)&quot;,
+                borderRadius: &quot;var(--dt-radius-pill)&quot;, whiteSpace: &quot;nowrap&quot;,
+                background: a.primary ? &quot;var(--dt-surface-action)&quot; : &quot;var(--dt-sheet-button-bg)&quot;,
+                color: a.primary ? &quot;var(--dt-text-on-action)&quot; : &quot;var(--dt-dialog-fg)&quot;,
+                fontFamily: &quot;var(--dt-font-family-sans)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;,
+                opacity: a.disabled ? 0.4 : 1,
+              }}&gt;{a.icon}{a.label}&lt;/button&gt;
+            ))}
+          &lt;/div&gt;
+        )}
+
+        {footer &amp;&amp; !hasActions &amp;&amp; (
+          &lt;div style={{
+            position: &quot;sticky&quot;, bottom: 0, zIndex: 2,
+            display: &quot;flex&quot;, justifyContent: &quot;flex-end&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;, flexWrap: &quot;wrap&quot;,
+            margin: &quot;var(--dt-space-stack-lg) calc(-1 * var(--dt-sheet-padding)) 0&quot;,
+            padding: &quot;var(--dt-space-inset-md) var(--dt-sheet-padding)&quot;,
+            background: &quot;var(--dt-dialog-bg)&quot;,
+            borderTop: &quot;var(--dt-border-width-default) solid var(--dt-dialog-border-color)&quot;,
+          }}&gt;{footer}&lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Sheet also appears on the feedback reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#feedbackdetail">FeedbackDetail</a></li><li><a href="../showcase/detail.html#surfacesdetail">SurfacesDetail</a></li></ul>
+</section>
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#behaviour">Behaviour</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=223d1a3dd2" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=46eabc728b" defer></script>
+<script src="../assets/theme.js?v=539f11225c" defer></script>
+<script src="../assets/site.js?v=d794158e2e" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

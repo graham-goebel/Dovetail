@@ -5,7 +5,7 @@
    content, no scaffolding. They are rendered from the same bundle the preview
    cards use, so a specimen cannot drift from the component it shows.
 
-   Three components are missing on purpose. Dialog, Drawer and ToastRegion
+   Four components are missing on purpose. Dialog, Drawer, Sheet and ToastRegion
    mount fixed to the viewport when open, so a specimen of them would cover the
    page rather than sit in a card; VisuallyHidden renders nothing by design.
    Those cards say so instead of showing an empty box. */
@@ -334,6 +334,7 @@
   var NOTES = {
     Dialog: "Opens over the page, so it is shown on its own card.",
     Drawer: "Slides in over the page, so it is shown on its own card.",
+    Sheet: "Rises over the page, so it is shown on its own card.",
     ToastRegion: "Fixed to a corner of the viewport, so it is shown on its own card.",
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };
