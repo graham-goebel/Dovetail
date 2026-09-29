@@ -37,7 +37,6 @@
     back: '<path d="M19.5 12h-15"/><path d="m10.5 6-6 6 6 6"/>',
     x: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
     search: '<path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/>',
-    home: '<path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11.5h13V9"/><path d="M10 20.5v-6h4v6"/>',
   };
   function ic(name) {
     return '<svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + ICONS[name] + "</svg>";
@@ -151,7 +150,7 @@
         return '<button type="button" class="big-link" data-sec="' + s.id + '">' + label + "</button>";
       }).join("") + "</nav>" +
         '<nav class="sub-links" aria-label="More">' + NAV.extras.map(function (x) {
-          return '<a class="sub-link" href="' + esc(ROOT + x.u) + '">' + esc(x.t) + "</a>";
+          return '<a class="sub-link" href="' + esc(ROOT + x.u) + '">' + (x.i || "") + esc(x.t) + "</a>";
         }).join("") + claudeChip() + "</nav>";
     } else if (p.kind === "section") {
       var s = section(p.id);
@@ -171,10 +170,10 @@
       footHtml();
   }
 
-  /* Home sits top right of the sheet, a round button like the menu's own. */
+  /* Home sits top right of the sheet as text, set like "Menu" opposite it. */
   function homeBtn() {
     var u = "index.html";
-    return '<a class="msh-x mp-home" href="' + esc(ROOT + u) + '" aria-label="Home"' + (here(u) ? ' aria-current="page"' : "") + ">" + ic("home") + "</a>";
+    return '<a class="mp-home" href="' + esc(ROOT + u) + '"' + (here(u) ? ' aria-current="page"' : "") + ">Home</a>";
   }
 
   /* Back on the left when there is somewhere to go back to, and search in
@@ -285,6 +284,9 @@
   }
 
   function finish() {
+    clearTimeout(box._fs);
+    searching = false;
+    box.classList.remove("is-searching");
     bg.hidden = true;
     bg.classList.remove("closing", "morphout");
     box.style.transform = "";
@@ -412,17 +414,43 @@
       : '<p class="q-none">Nothing matches “' + esc(q.trim()) + "”.</p>";
   }
 
+  /* Swapping the sheet's content for search, and back, is a crossfade: what
+     is showing fades out, the sheet takes its new height while nothing is
+     visible, and the new content eases up into place, so nothing jumps. */
+  var FADE_OUT = 140;
+  function fadeSwap(swap, withFoot) {
+    if (reduce) return swap();
+    var sel = withFoot ? ".mp-head, .mp-body, .mfoot" : ".mp-head, .mp-body";
+    box.querySelectorAll(sel).forEach(function (el) {
+      el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_OUT, easing: "ease-in", fill: "forwards" });
+    });
+    clearTimeout(box._fs);
+    box._fs = setTimeout(function () {
+      swap();
+      box.querySelectorAll(sel).forEach(function (el, i) {
+        el.getAnimations().forEach(function (a) { a.cancel(); });
+        el.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 340, delay: i * 50, easing: EASE, fill: "backwards" });
+      });
+    }, FADE_OUT);
+  }
+
   function enterSearch() {
+    if (searching) return;
     searching = true;
-    box.classList.add("is-searching");
-    box.querySelector(".mp-head").innerHTML = '<p class="crumb"><span class="crumb-cur">Search</span></p>' + homeBtn();
-    var body = box.querySelector(".mp-body");
-    body.innerHTML = resultsHtml("");
+    /* The field replaces the footer at once, inside the tap, so a phone
+       raises its keyboard; the results fade in above it. */
     box.querySelector(".mfoot").outerHTML =
       '<div class="mfoot msearch"><label class="ms-field">' + ic("search") +
       '<input type="search" placeholder="Search components and pages" aria-label="Search components and pages" autocomplete="off" enterkeyhint="search">' +
       '<button type="button" class="ms-close" aria-label="Close search">' + ic("x") + "</button></label></div>";
     var input = box.querySelector(".msearch input");
+    var body = box.querySelector(".mp-body");
+    fadeSwap(function () {
+      box.classList.add("is-searching");
+      box.querySelector(".mp-head").innerHTML = '<p class="crumb"><span class="crumb-cur">Search</span></p>' + homeBtn();
+      body.innerHTML = resultsHtml(input.value);
+      box.scrollTop = 0;
+    });
     input.addEventListener("input", function () {
       body.innerHTML = resultsHtml(input.value);
       box.scrollTop = 0;
@@ -436,15 +464,17 @@
       e.preventDefault();
       exitSearch();
     };
-    box.scrollTop = 0;
-    if (!reduce) box.querySelector(".msearch").animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 260, easing: EASE });
+    if (!reduce) box.querySelector(".msearch").animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: EASE });
     input.focus({ preventScroll: true });
   }
 
   function exitSearch() {
+    if (!searching) return;
     searching = false;
-    box.classList.remove("is-searching");
-    render(0);
+    fadeSwap(function () {
+      box.classList.remove("is-searching");
+      render(0);
+    }, true);
   }
 
   /* Keep the pill above the on-screen keyboard. */

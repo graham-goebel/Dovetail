@@ -3305,13 +3305,6 @@ body.search-open {
     min-width: 0;
   }
 
-  .h-eyebrow {
-    margin: 0 0 2px;
-    font-size: var(--dt-font-size-xs);
-    color: var(--dt-text-tertiary);
-    opacity: calc(1 - var(--hc));
-  }
-
   .h-title {
     margin: 0;
     overflow: hidden;
@@ -3683,17 +3676,18 @@ body.search-open {
     flex: 1;
   }
 
-  /* Home: the round button the menu has, floated to the right of the head. */
+  /* Home: text at the right of the head, set like "Menu" at its left. */
   .mp-home {
     flex: none;
-    width: 44px;
-    height: 44px;
-    margin: -10px -12px -10px 0;
+    padding: 6px 0;
+    font-size: 0.92rem;
+    color: var(--dt-text-tertiary);
     text-decoration: none;
   }
 
+  .mp-home:hover,
   .mp-home[aria-current="page"] {
-    background: var(--dt-surface-sunken);
+    color: var(--dt-text-primary);
   }
 
   /* A leading icon in a small tile: Foundations, and the template kinds. */
@@ -3741,18 +3735,17 @@ body.search-open {
   }
 
   .mcard .row-ic {
-    display: grid;
+    display: block;
     flex: none;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    background: var(--dt-surface-overlay);
+    width: auto;
+    height: auto;
+    background: none;
   }
 
   .mcard .row-ic .ic {
-    width: 19px;
-    height: 19px;
+    display: block;
+    width: 22px;
+    height: 22px;
   }
 
   .mcard .t {
@@ -3913,6 +3906,7 @@ body.search-open {
   .sub-link {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
     padding: 9px 16px;
     border-radius: 999px;
     background: var(--dt-surface-sunken);
@@ -4162,9 +4156,13 @@ body.search-open {
   }
 }
 
-/* The menu's "Open in Claude" chip carries Claude's mark in its orange. */
-.sub-link-claude {
-  gap: 8px;
+/* The menu's chips lead with an icon; "Open in Claude" carries Claude's mark
+   in its orange. */
+.sub-link .ic {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  stroke-width: var(--site-icon-stroke, 2);
 }
 
 .sub-link-claude .claude-mark {
