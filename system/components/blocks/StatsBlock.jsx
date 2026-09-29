@@ -7,7 +7,7 @@ import { BlockHeader } from "./BlockHeader.jsx";
 export function StatsBlock({ eyebrow, title, lead, stats = [], align = "start", tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
         {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} align={align} />}
         <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: "var(--dt-space-inline-lg)" }}>
           {stats.map((s, i) => (

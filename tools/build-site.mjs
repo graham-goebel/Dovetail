@@ -595,8 +595,8 @@ const CARD_SECTIONS = {
   Layout: [
     ["Scale and axes", "One base unit, and three axes that say which way a gap runs: inset, stack and inline.",
       ["SpaceScale", "SpaceAxes"]],
-    ["Layers", "Four layers say how closely two things belong together, and the layout's character moves them as one: tight and technical, balanced, or open with room to breathe. Stack and Inline take a layer and a spacing prop.",
-      ["LayoutLayers", "SpaceInUse"]],
+    ["Layers", "Four layers say how closely two things belong together, and text and modules add the gaps inside a block of text and the room a module takes. The layout's character moves them as one: tight and technical, balanced, or open with room to breathe. Stack and Inline take a layer and a spacing prop.",
+      ["LayoutLayers", "LayoutModules", "SpaceInUse"]],
   ],
   Color: [
     ["Ramps", "The raw hues, eleven steps each. Nothing in a component names one.",

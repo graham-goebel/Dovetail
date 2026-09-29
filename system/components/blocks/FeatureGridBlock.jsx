@@ -15,7 +15,7 @@ export function FeatureGridBlock({ eyebrow, title, lead, actions, items = [], co
   const card = variant === "cards";
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
         {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} align={align} />}
         <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN[columns] || MIN[3]}), 1fr))`, gap: "var(--dt-space-inline-lg)" }}>
           {items.map((it, i) => (

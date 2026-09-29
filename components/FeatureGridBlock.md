@@ -95,11 +95,11 @@ export declare function FeatureGridBlock(props: FeatureGridBlockProps): JSX.Elem
 | `--dt-card-fg` | component | `var(--dt-text-primary)` |
 | `--dt-card-padding` | component | `var(--dt-space-inset-lg)` |
 | `--dt-card-radius` | component | `var(--dt-radius-container)` |
+| `--dt-layout-module-gap` | semantic | `var(--dt-space-stack-xl)` |
 | `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-size-control-md` | semantic | `var(--dt-dim-10)` |
 | `--dt-space-inline-lg` | semantic | `var(--dt-dim-6)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
-| `--dt-space-stack-xl` | semantic | `var(--dt-dim-10)` |
 | `--dt-space-stack-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-surface-brand-muted` | semantic | `var(--dt-color-primary-050)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |
@@ -126,7 +126,7 @@ export function FeatureGridBlock({ eyebrow, title, lead, actions, items = [], co
   const card = variant === "cards";
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
         {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} align={align} />}
         <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN[columns] || MIN[3]}), 1fr))`, gap: "var(--dt-space-inline-lg)" }}>
           {items.map((it, i) => (

@@ -80,9 +80,9 @@ export declare function FaqBlock(props: FaqBlockProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-layout-module-gap` | semantic | `var(--dt-space-stack-xl)` |
 | `--dt-size-container-narrow` | semantic | `var(--dt-dim-container-md)` |
 | `--dt-space-inline-2xl` | semantic | `var(--dt-dim-12)` |
-| `--dt-space-stack-xl` | semantic | `var(--dt-dim-10)` |
 
 ## Source
 
@@ -111,7 +111,7 @@ export function FaqBlock({ eyebrow, title, lead, actions, items = [], layout = "
           <div style={{ minWidth: 0 }}>{list}</div>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)", maxWidth: "var(--dt-size-container-narrow)", marginInline: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)", maxWidth: "var(--dt-size-container-narrow)", marginInline: "auto" }}>
           {header}
           {list}
         </div>

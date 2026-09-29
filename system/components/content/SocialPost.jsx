@@ -1,4 +1,6 @@
 import React from "react";
+import { Stack } from "../primitives/Stack.jsx";
+import { Inline } from "../primitives/Inline.jsx";
 
 /* A social post: an Instagram story (9:16) or grid post (4:5 or 1:1), drawn on
    an artboard at the format's native pixel size and scaled to fit its
@@ -111,6 +113,7 @@ export function SocialPost({
   cta,
   counter,
   label,
+  spacing,
   style,
   ...rest
 }) {
@@ -120,81 +123,83 @@ export function SocialPost({
   const pictured = !!PICTURED[layout];
   const onImage = layout === "cover" || layout === "poster" || layout === "card";
 
+  /* Everything is laid out with Stack and Inline layers, drawn at the
+     artboard's scale (--dt-layout-scale, set on [data-social]), so a post
+     follows the layout the page is set to: Configure's Spacing, Text and
+     Modules, or data-layout on a region around it. */
   const frame = {
     position: "absolute", inset: 0, zIndex: 2,
-    display: "flex", flexDirection: "column", justifyContent: "space-between",
-    padding: "var(--dt-social-padding)", gap: "var(--dt-social-gap)",
+    padding: "var(--dt-social-padding)",
     color: onImage ? "var(--dt-social-on-image)" : undefined,
     "--dt-social-muted": onImage ? "var(--dt-social-on-image-muted)" : undefined,
   };
   const top = (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--dt-social-gap)" }}>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: "calc(var(--dt-social-gap) / 2)", fontSize: "var(--dt-social-body-size)", fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-tracking-tight)" }}>
+    <Inline layer="group" justify="space-between" wrap={false}>
+      <Inline as="span" layer="related" wrap={false} style={{ fontSize: "var(--dt-social-body-size)", fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-tracking-tight)" }}>
         {mark || <span aria-hidden="true" style={{ width: "calc(var(--dt-social-meta-size) * 1.1)", height: "calc(var(--dt-social-meta-size) * 1.1)", borderRadius: "var(--dt-radius-pill)", background: "currentColor" }} />}
         {brand}
-      </span>
+      </Inline>
       {counter && <span style={meta}>{counter}</span>}
-    </div>
+    </Inline>
   );
   const bottom = (handle || cta) && (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--dt-social-gap)", ...meta }}>
+    <Inline layer="group" justify="space-between" wrap={false} style={meta}>
       <span>{handle}</span>
       {cta && <span style={{ padding: "calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.4)", border: "var(--dt-border-width-strong, 2px) solid currentColor", borderRadius: "var(--dt-radius-pill)" }}>{cta}</span>}
-    </div>
+    </Inline>
   );
   const eyebrowEl = eyebrow && <p style={{ margin: 0, ...meta, color: "var(--dt-social-muted)" }}>{eyebrow}</p>;
+  /* An eyebrow (or badge, or mark) binds to the heading it introduces; what
+     follows the pair is the subcopy. */
+  const lead = (kicker, headingEl, ...after) => (
+    <Stack layer="subcopy">
+      <Stack layer="eyebrow">{kicker}{headingEl}</Stack>
+      {after}
+    </Stack>
+  );
 
   let content = null;
   let background = null;
 
   if (layout === "headline") {
-    content = (
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
-        {eyebrowEl}
-        <h2 style={display(format)}>{heading}</h2>
-        {text && <p style={body}>{text}</p>}
-      </div>
-    );
+    content = lead(eyebrowEl, <h2 style={display(format)}>{heading}</h2>, text && <p style={body}>{text}</p>);
   } else if (layout === "quote") {
-    content = (
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
-        <span aria-hidden="true" style={{ ...display(format, 1.6), lineHeight: 0.6, height: "calc(var(--dt-social-display-size) * 0.5)" }}>“</span>
-        <blockquote style={{ margin: 0, ...title(format) }}>{heading}</blockquote>
-        {byline && <p style={{ margin: 0, ...meta }}>{byline}</p>}
-      </div>
+    content = lead(
+      <span aria-hidden="true" style={{ ...display(format, 1.6), lineHeight: 0.6, height: "calc(var(--dt-social-display-size) * 0.5)" }}>“</span>,
+      <blockquote style={{ margin: 0, ...title(format) }}>{heading}</blockquote>,
+      byline && <p style={{ margin: 0, ...meta }}>{byline}</p>
     );
   } else if (layout === "stat") {
-    content = (
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
-        {eyebrowEl}
-        <p style={{ ...display(format, 1.9), fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{heading}</p>
-        {text && <p style={{ ...body, fontSize: "calc(var(--dt-social-body-size) * 1.2)", color: "inherit" }}>{text}</p>}
-        {byline && <p style={{ margin: 0, ...meta, color: "var(--dt-social-muted)" }}>{byline}</p>}
-      </div>
+    content = lead(
+      eyebrowEl,
+      <p style={{ ...display(format, 1.9), fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{heading}</p>,
+      text && <p style={{ ...body, fontSize: "calc(var(--dt-social-body-size) * 1.2)", color: "inherit" }}>{text}</p>,
+      byline && <p style={{ margin: 0, ...meta, color: "var(--dt-social-muted)" }}>{byline}</p>
     );
   } else if (layout === "list") {
     content = (
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
-        {eyebrowEl}
-        <h2 style={title(format)}>{heading}</h2>
+      <Stack layer="group">
+        <Stack layer="eyebrow">{eyebrowEl}<h2 style={title(format)}>{heading}</h2></Stack>
         <ol style={{ listStyle: "none", margin: 0, padding: 0, maxWidth: "none" }}>
           {items.map((it, i) => (
-            <li key={i} style={{ display: "flex", gap: "var(--dt-social-gap)", alignItems: "baseline", padding: "calc(var(--dt-social-gap) * 0.6) 0", borderTop: "var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)", fontSize: "calc(var(--dt-social-body-size) * 1.1)", lineHeight: "var(--dt-social-body-line)" }}>
+            <Inline as="li" key={i} layer="group" align="baseline" wrap={false} style={{ padding: "calc(var(--dt-social-gap) * 0.6) 0", borderTop: "var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)", fontSize: "calc(var(--dt-social-body-size) * 1.1)", lineHeight: "var(--dt-social-body-line)" }}>
               <span style={{ ...meta, color: "var(--dt-social-muted)", minWidth: "2.4em" }}>{String(i + 1).padStart(2, "0")}</span>
               <span>{it}</span>
-            </li>
+            </Inline>
           ))}
         </ol>
-      </div>
+      </Stack>
     );
   } else if (layout === "announcement") {
     content = (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "var(--dt-social-gap)" }}>
-        {badge && <span style={{ ...meta, padding: "calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.2)", borderRadius: "var(--dt-radius-pill)", border: "var(--dt-border-width-strong, 2px) solid currentColor" }}>{badge}</span>}
-        <h2 style={display(format)}>{heading}</h2>
+      <Stack layer="subcopy" align="center" style={{ textAlign: "center" }}>
+        <Stack layer="eyebrow" align="center">
+          {badge && <span style={{ ...meta, padding: "calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.2)", borderRadius: "var(--dt-radius-pill)", border: "var(--dt-border-width-strong, 2px) solid currentColor" }}>{badge}</span>}
+          <h2 style={display(format)}>{heading}</h2>
+        </Stack>
         {text && <p style={{ ...body, maxWidth: "80%" }}>{text}</p>}
         {byline && <p style={{ margin: 0, ...meta }}>{byline}</p>}
-      </div>
+      </Stack>
     );
   } else if (layout === "cover") {
     background = (
@@ -204,13 +209,7 @@ export function SocialPost({
         <div style={{ position: "absolute", inset: "0 0 auto", height: "30%", background: "var(--dt-scrim-top)", opacity: 0.6 }} />
       </>
     );
-    content = (
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
-        {eyebrowEl}
-        <h2 style={display(format, 0.9)}>{heading}</h2>
-        {text && <p style={body}>{text}</p>}
-      </div>
-    );
+    content = lead(eyebrowEl, <h2 style={display(format, 0.9)}>{heading}</h2>, text && <p style={body}>{text}</p>);
   } else if (layout === "poster") {
     background = (
       <>
@@ -228,16 +227,14 @@ export function SocialPost({
       </>
     );
     content = (
-      <div className="dark" style={{
-        display: "flex", flexDirection: "column", gap: "calc(var(--dt-social-gap) * 0.6)",
+      <Stack layer="subcopy" className="dark" style={{
         padding: "var(--dt-social-gap)", borderRadius: "var(--dt-social-radius)",
         background: "var(--dt-surface-glass-inverse)", color: "var(--dt-social-on-image)",
         backdropFilter: "var(--dt-backdrop-glass, blur(24px))", WebkitBackdropFilter: "var(--dt-backdrop-glass, blur(24px))",
       }}>
-        {eyebrowEl}
-        <h2 style={title(format, 0.9)}>{heading}</h2>
+        <Stack layer="eyebrow">{eyebrowEl}<h2 style={title(format, 0.9)}>{heading}</h2></Stack>
         {text && <p style={{ ...body, color: "var(--dt-social-on-image-muted)" }}>{text}</p>}
-      </div>
+      </Stack>
     );
   }
 
@@ -249,54 +246,47 @@ export function SocialPost({
             <Picture image={image} position={imagePosition} label={label} />
             <div style={{ position: "absolute", inset: "0 0 auto", height: "40%", background: "var(--dt-scrim-top)", opacity: 0.6 }} />
           </div>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "var(--dt-social-padding)", gap: "var(--dt-social-gap)" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "calc(var(--dt-social-gap) * 0.6)" }}>
-              {eyebrowEl}
-              <h2 style={title(format)}>{heading}</h2>
-              {text && format !== "square" && <p style={body}>{text}</p>}
-            </div>
+          <Stack layer="group" justify="space-between" style={{ flex: 1, padding: "var(--dt-social-padding)" }}>
+            {lead(eyebrowEl, <h2 style={title(format)}>{heading}</h2>, text && format !== "square" && <p style={body}>{text}</p>)}
             {bottom}
-          </div>
+          </Stack>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "var(--dt-social-padding)", color: "var(--dt-social-on-image)" }}>{top}</div>
         </div>
       );
     }
     if (layout === "framed") {
       return (
-        <div style={frame}>
+        <Stack layer="group" justify="space-between" style={frame}>
           {top}
           <div style={{ position: "relative", flex: 1, minHeight: 0, borderRadius: "var(--dt-social-radius)", overflow: "hidden" }}>
             <Picture image={image} position={imagePosition} label={label} />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "calc(var(--dt-social-gap) * 0.5)" }}>
-            {eyebrowEl}
-            <h2 style={title(format, 0.85)}>{heading}</h2>
-          </div>
+          <Stack layer="eyebrow">{eyebrowEl}<h2 style={title(format, 0.85)}>{heading}</h2></Stack>
           {bottom}
-        </div>
+        </Stack>
       );
     }
     if (layout === "poster") {
       return (
-        <div style={frame}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
+        <Stack layer="group" justify="space-between" style={frame}>
+          <Stack layer="group">
             {top}
             {/* One word, set as large as its length allows without breaking it. */}
             <h2 style={{ ...display(format, Math.min(1.9, 9 / Math.max(4, String(heading || "").length))), lineHeight: 0.86, whiteSpace: "nowrap" }}>{heading}</h2>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
+          </Stack>
+          <Stack layer="group">
             {text && <p style={body}>{text}</p>}
             {bottom}
-          </div>
-        </div>
+          </Stack>
+        </Stack>
       );
     }
     return (
-      <div style={{ ...frame, justifyContent: "space-between" }}>
+      <Stack layer="group" justify="space-between" style={frame}>
         {top}
         {content}
         {bottom || <span />}
-      </div>
+      </Stack>
     );
   })();
 
@@ -309,6 +299,8 @@ export function SocialPost({
       {...rest}
     >
       <div
+        data-social=""
+        data-layout={spacing}
         className={t.dark ? "dark" : undefined}
         style={{
           position: "absolute", top: 0, left: 0,

@@ -19,7 +19,7 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   dark?: boolean;
   /** Layers --dt-surface-texture over the tone. @default false */
   texture?: boolean;
-  /** Vertical padding: --dt-space-section, -section-compact, or none. @default "default" */
+  /** Vertical padding: the module padding (--dt-layout-module-padding, which is --dt-space-section until the layout says otherwise), --dt-space-section-compact, or none. @default "default" */
   spacing?: "default" | "compact" | "none";
   /** Image URL. Turns the section into a full-bleed photo band. The image is decorative; say what matters in the text. */
   media?: string;

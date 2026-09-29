@@ -1,0 +1,24 @@
+/* TIER 2 — SEMANTIC SURFACE TINT
+   The page is white and the quiet band behind it is a neutral grey, which is
+   right for a product and flat for a brand. data-surface="brand-muted" sets a
+   region to the brand's own tint instead: the whole page (on html or body), or
+   one section. --dt-surface-base becomes --dt-surface-brand-muted (the primary's
+   050 step, 950 in dark), and the quiet band inside it, --dt-surface-subtle,
+   steps a little toward ink so a band still reads against the page it sits on.
+
+   Text keeps its ordinary roles, so a tinted page is still ink on a pale
+   ground. For a band that also re-colours its text from the brand, which is
+   the fixed-card pattern, use Section tone="brand-muted" instead.
+
+   Custom properties resolve where they are declared, so this is declared on the
+   region itself, after the dark theme, and a tinted region that is also .dark
+   resolves the dark tint. A .dark band inside a tinted region is its own band
+   and takes the ordinary dark surfaces. */
+
+[data-surface="brand-muted"] {
+  --dt-surface-base: var(--dt-surface-brand-muted);
+  --dt-surface-subtle: color-mix(in oklab, var(--dt-surface-brand-muted) 94%, var(--dt-text-primary));
+  --dt-focus-ring-offset-color: var(--dt-surface-base);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+}

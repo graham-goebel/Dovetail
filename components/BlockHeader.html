@@ -6,7 +6,7 @@
 <title>BlockHeader · Dovetail</title>
 <meta name="description" content="The eyebrow, title, lead and actions every block opens with, so a page of blocks keeps one rhythm. Use it to start a block of your own.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="../system/styles.css?v=cbe439c4db">
+<link rel="stylesheet" href="../system/styles.css?v=5fade5e9d1">
 <link rel="stylesheet" href="../assets/site.css?v=a69c534096">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/BlockHeader.html?v=bd31540b18&amp;b=080c954b5b" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/BlockHeader.html?v=bd31540b18&amp;b=360f8cf046" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:360px">
-    <iframe src="../previews/BlockHeader.html?v=bd31540b18&amp;b=080c954b5b" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/BlockHeader.html?v=bd31540b18&amp;b=360f8cf046" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -132,10 +132,10 @@ export declare function BlockHeader(props: BlockHeaderProps): JSX.Element;</code
 
 <section class="prose">
   <h2 id="tokens-used">Tokens it reads</h2>
-  <p class="muted">Every custom property <code>BlockHeader.jsx</code> resolves, read from the source: 2 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="muted">Every custom property <code>BlockHeader.jsx</code> resolves, read from the source: 1 semantic. Component tier first, because that is the one to reach for.</p>
   <p class="meta"><button type="button" class="btn-graph" data-graph="component:BlockHeader">Open the graph</button></p>
   <ul class="tier-key"><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
-  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-stack-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-sm"><code>--dt-space-stack-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-sm" title="Show what --dt-space-stack-sm connects to" aria-label="Graph for --dt-space-stack-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr></tbody></table></div>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr></tbody></table></div>
 </section>
 
 <section class="prose">
@@ -145,27 +145,33 @@ export declare function BlockHeader(props: BlockHeaderProps): JSX.Element;</code
 import { Heading } from &quot;../typography/Heading.jsx&quot;;
 import { Text } from &quot;../typography/Text.jsx&quot;;
 import { Inline } from &quot;../primitives/Inline.jsx&quot;;
+import { Stack } from &quot;../primitives/Stack.jsx&quot;;
 
 /* The eyebrow, title and lead every block opens with, so a page of blocks
    keeps one rhythm. Centred for a section that introduces a grid; start for
    one that sits beside media. */
 export function BlockHeader({ eyebrow, title, lead, actions, align = &quot;start&quot;, level = 2, size = &quot;heading-lg&quot;, style, ...rest }) {
   const centred = align === &quot;center&quot;;
+  const items = centred ? &quot;center&quot; : &quot;flex-start&quot;;
+  /* The gaps are the text layers of the layout: an eyebrow binds to the
+     heading it introduces (eyebrow), and the lead follows the pair (subcopy),
+     so Configure's Text control moves them apart from the rest. */
   return (
-    &lt;div
-      style={{
-        display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-sm)&quot;,
-        alignItems: centred ? &quot;center&quot; : &quot;flex-start&quot;, textAlign: centred ? &quot;center&quot; : &quot;left&quot;,
-        marginInline: centred ? &quot;auto&quot; : undefined,
-        ...style,
-      }}
+    &lt;Stack
+      layer=&quot;subcopy&quot;
+      align={items}
+      style={{ textAlign: centred ? &quot;center&quot; : &quot;left&quot;, marginInline: centred ? &quot;auto&quot; : undefined, ...style }}
       {...rest}
     &gt;
-      {eyebrow &amp;&amp; &lt;Text variant=&quot;eyebrow&quot; tone=&quot;tertiary&quot;&gt;{eyebrow}&lt;/Text&gt;}
-      {title &amp;&amp; &lt;Heading level={level} size={size} align={centred ? &quot;center&quot; : &quot;left&quot;} measure={centred ? &quot;default&quot; : &quot;wide&quot;} balance&gt;{title}&lt;/Heading&gt;}
+      {(eyebrow || title) &amp;&amp; (
+        &lt;Stack layer=&quot;eyebrow&quot; align={items}&gt;
+          {eyebrow &amp;&amp; &lt;Text variant=&quot;eyebrow&quot; tone=&quot;tertiary&quot;&gt;{eyebrow}&lt;/Text&gt;}
+          {title &amp;&amp; &lt;Heading level={level} size={size} align={centred ? &quot;center&quot; : &quot;left&quot;} measure={centred ? &quot;default&quot; : &quot;wide&quot;} balance&gt;{title}&lt;/Heading&gt;}
+        &lt;/Stack&gt;
+      )}
       {lead &amp;&amp; &lt;Text variant=&quot;lead&quot; tone=&quot;secondary&quot; align={centred ? &quot;center&quot; : &quot;left&quot;} measure=&quot;default&quot;&gt;{lead}&lt;/Text&gt;}
       {actions &amp;&amp; &lt;div style={{ marginTop: &quot;var(--dt-space-stack-xs)&quot; }}&gt;&lt;Inline gap=&quot;sm&quot; wrap justify={centred ? &quot;center&quot; : &quot;flex-start&quot;}&gt;{actions}&lt;/Inline&gt;&lt;/div&gt;}
-    &lt;/div&gt;
+    &lt;/Stack&gt;
   );
 }</code></pre>
 </section>
@@ -221,14 +227,14 @@ export function BlockHeader({ eyebrow, title, lead, actions, align = &quot;start
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=080c954b5b" defer></script>
+<script src="../system/components/bundle.js?v=360f8cf046" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
 <script src="../assets/search-data.js?v=01f596ed7a" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=e86531a11f" defer></script>
-<script src="../assets/theme.js?v=9949a846ba" defer></script>
+<script src="../assets/theme.js?v=29d5815710" defer></script>
 <script src="../assets/site.js?v=f25b56a9e9" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>
 </body>

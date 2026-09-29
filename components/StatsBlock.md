@@ -80,10 +80,10 @@ export declare function StatsBlock(props: StatsBlockProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
+| `--dt-layout-module-gap` | semantic | `var(--dt-space-stack-xl)` |
 | `--dt-space-inline-lg` | semantic | `var(--dt-dim-6)` |
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-stack-sm` | semantic | `var(--dt-dim-3)` |
-| `--dt-space-stack-xl` | semantic | `var(--dt-dim-10)` |
 | `--dt-text-display-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-display-sm-line` | semantic | `var(--dt-line-height-5xl)` |
 | `--dt-text-display-sm-size` | semantic | `var(--dt-font-size-5xl)` |
@@ -104,7 +104,7 @@ import { BlockHeader } from "./BlockHeader.jsx";
 export function StatsBlock({ eyebrow, title, lead, stats = [], align = "start", tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
         {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} align={align} />}
         <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: "var(--dt-space-inline-lg)" }}>
           {stats.map((s, i) => (

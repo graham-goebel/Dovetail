@@ -98,6 +98,13 @@ The themeable layer. This is where a consumer spends their time.
 | `--dt-surface-inverse` | a dark band on a light page |
 | `--dt-surface-scrim` | behind a modal |
 
+The page is white and the quiet band grey, which is right for a product and flat for a brand. Set
+`data-surface="brand-muted"` on `html` or `body` for a whole page, or on a section, and
+`--dt-surface-base` becomes `--dt-surface-brand-muted` (the primary's 050 step, 950 in dark) while
+`--dt-surface-subtle` steps a little toward ink so bands inside still read. Text keeps its ordinary
+roles. For a band that also re-colours its text from the brand, use `Section tone="brand-muted"`. Configure's
+Page and Sections controls do the same for the whole site.
+
 Six surfaces rather than two, because dense product UI needs more than a page colour and
 a card colour. A settings panel inside a card inside a dialog has three surfaces to
 distinguish, and guessing at opacity values is how that goes wrong.
@@ -134,6 +141,14 @@ of a set), `block` (one unit from the next) and `section` (a theme from the next
 character moves them as one: `tight` for a technical screen, `balanced`, or `open` for breathing room,
 where what is related stays close and the layers move apart. Set it on the page in Configure, or on
 any region with `data-layout`; `Stack` and `Inline` take `layer` and `spacing` props for it.
+
+Two more groups say what the gaps are between, for the two things a page is made of. **Text** is the
+gaps between the items of a block of text: `--dt-layout-text-eyebrow` (an eyebrow and its heading),
+`-subcopy` (a heading and the lead under it) and `-paragraph`. **Modules** is the room a module takes:
+`--dt-layout-module-padding` above and below its content, and `--dt-layout-module-gap` between its own
+parts. At the balanced character they are the space axes themselves, so a context still moves them.
+`--dt-layout-scale` multiplies every layer in `Stack` and `Inline` (1 on a page), which is how a social
+artboard drawn at 1080px keeps its proportions.
 
 ### Size
 

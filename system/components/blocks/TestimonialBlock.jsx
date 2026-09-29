@@ -13,7 +13,7 @@ export function TestimonialBlock({ eyebrow, title, lead, quotes = [], tone = "ba
   );
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={one ? "narrow" : width} {...rest}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)", alignItems: one ? "center" : "stretch" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)", alignItems: one ? "center" : "stretch" }}>
         {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} align="center" />}
         {one ? quote(quotes[0], "lg") : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "var(--dt-space-inline-lg)" }}>

@@ -6,7 +6,7 @@ const WIDTHS = {
   wide: "var(--dt-size-container-wide)",
   full: "none",
 };
-const SPACING = { default: "var(--dt-space-section)", compact: "var(--dt-space-section-compact)", none: "0" };
+const SPACING = { default: "var(--dt-layout-module-padding, var(--dt-space-section))", compact: "var(--dt-space-section-compact)", none: "0" };
 const ALIGN = { top: "flex-start", center: "center", bottom: "flex-end" };
 
 /* Each tone is a surface and the text roles that belong on it. The text roles

@@ -6,7 +6,7 @@
 <title>Token reference · Dovetail</title>
 <meta name="description" content="Every token, tier by tier.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="../system/styles.css?v=cbe439c4db">
+<link rel="stylesheet" href="../system/styles.css?v=5fade5e9d1">
 <link rel="stylesheet" href="../assets/site.css?v=a69c534096">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
@@ -86,6 +86,7 @@
 <p>The themeable layer. This is where a consumer spends their time.</p>
 <h3 id="surfaces">Surfaces</h3>
 <div class="table-wrap"><table><thead><tr><th>Token</th><th>Use for</th></tr></thead><tbody><tr><td><code>--dt-surface-base</code></td><td>the page</td></tr><tr><td><code>--dt-surface-subtle</code></td><td>a quiet section band</td></tr><tr><td><code>--dt-surface-raised</code></td><td>cards, anything with elevation</td></tr><tr><td><code>--dt-surface-sunken</code></td><td>wells, code blocks, inset areas</td></tr><tr><td><code>--dt-surface-overlay</code></td><td>dialogs, popovers, menus</td></tr><tr><td><code>--dt-surface-inverse</code></td><td>a dark band on a light page</td></tr><tr><td><code>--dt-surface-scrim</code></td><td>behind a modal</td></tr></tbody></table></div>
+<p>The page is white and the quiet band grey, which is right for a product and flat for a brand. Set <code>data-surface=&quot;brand-muted&quot;</code> on <code>html</code> or <code>body</code> for a whole page, or on a section, and <code>--dt-surface-base</code> becomes <code>--dt-surface-brand-muted</code> (the primary's 050 step, 950 in dark) while <code>--dt-surface-subtle</code> steps a little toward ink so bands inside still read. Text keeps its ordinary roles. For a band that also re-colours its text from the brand, use <code>Section tone=&quot;brand-muted&quot;</code>. Configure's Page and Sections controls do the same for the whole site.</p>
 <p>Six surfaces rather than two, because dense product UI needs more than a page colour and a card colour. A settings panel inside a card inside a dialog has three surfaces to distinguish, and guessing at opacity values is how that goes wrong.</p>
 <h3 id="text">Text</h3>
 <p><code>primary</code> · <code>secondary</code> · <code>tertiary</code> · <code>disabled</code> · <code>inverse</code> · <code>link</code> · <code>link-hover</code> · <code>link-visited</code></p>
@@ -98,6 +99,7 @@
 <ul><li><code>inset-*</code>: padding inside a container</li><li><code>stack-*</code>: vertical gap between blocks</li><li><code>inline-*</code>: horizontal gap between siblings</li></ul>
 <p>Naming the axis also lets a density theme retune one axis without touching the others.</p>
 <p>Four layers say how closely the two things either side of a gap belong together: <code>--dt-layout-stack-*</code> and <code>--dt-layout-inline-*</code> for <code>related</code> (parts of one thing), <code>group</code> (members of a set), <code>block</code> (one unit from the next) and <code>section</code> (a theme from the next). The layout's character moves them as one: <code>tight</code> for a technical screen, <code>balanced</code>, or <code>open</code> for breathing room, where what is related stays close and the layers move apart. Set it on the page in Configure, or on any region with <code>data-layout</code>; <code>Stack</code> and <code>Inline</code> take <code>layer</code> and <code>spacing</code> props for it.</p>
+<p>Two more groups say what the gaps are between, for the two things a page is made of. <strong>Text</strong> is the gaps between the items of a block of text: <code>--dt-layout-text-eyebrow</code> (an eyebrow and its heading), <code>-subcopy</code> (a heading and the lead under it) and <code>-paragraph</code>. <strong>Modules</strong> is the room a module takes: <code>--dt-layout-module-padding</code> above and below its content, and <code>--dt-layout-module-gap</code> between its own parts. At the balanced character they are the space axes themselves, so a context still moves them. <code>--dt-layout-scale</code> multiplies every layer in <code>Stack</code> and <code>Inline</code> (1 on a page), which is how a social artboard drawn at 1080px keeps its proportions.</p>
 <h3 id="size">Size</h3>
 <p>Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32. <code>--dt-size-touch-target</code> (44px) is the minimum hit area on touch surfaces.</p>
 <h3 id="shape">Shape</h3>
@@ -178,7 +180,7 @@
 <script src="../assets/search-data.js?v=01f596ed7a" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=e86531a11f" defer></script>
-<script src="../assets/theme.js?v=9949a846ba" defer></script>
+<script src="../assets/theme.js?v=29d5815710" defer></script>
 <script src="../assets/site.js?v=f25b56a9e9" defer></script>
 
 </body>

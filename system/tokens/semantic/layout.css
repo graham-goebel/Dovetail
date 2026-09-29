@@ -8,8 +8,18 @@
    block    — one unit from the next: a card from a card, a group from a group
    section  — a theme from the next within a region of the page
 
-   Each layer has a stack (vertical) and an inline (horizontal) gap. The
-   character of the layout moves them together:
+   Each layer has a stack (vertical) and an inline (horizontal) gap. Two more
+   groups say what the gaps are between, for the two things a page is made of:
+
+   text    — the gaps between the items of a block of text
+             eyebrow    an eyebrow and the heading it introduces
+             subcopy    a heading (with its eyebrow) and the lead under it
+             paragraph  one paragraph or body item and the next
+   module  — the room a module (a band or block) takes
+             padding    above and below its content
+             gap        between its own parts: header, content, call to action
+
+   The character of the layout moves all of them together:
 
    tight     Technical. The layers sit close, so a dense screen still reads in
              levels, and nothing is wasted.
@@ -21,7 +31,13 @@
    with data-layout="tight | balanced | open" (Stack and Inline take it as
    their spacing prop). Custom properties resolve where they are declared, so
    every character is declared under its own selector here, and a region set
-   inside a page of another character returns to its own. */
+   inside a page of another character returns to its own. Configure can set
+   text and modules apart from the rest, to say more or less room for words
+   than for sections.
+
+   --dt-layout-scale multiplies every layer in Stack and Inline. It is 1 on a
+   page; a surface drawn at another size, such as a social artboard at
+   1080px, sets it once and everything inside keeps its proportions. */
 
 :root,
 [data-layout="balanced"] {
@@ -34,6 +50,20 @@
   --dt-layout-inline-group: var(--dt-dim-3);    /* 12 */
   --dt-layout-inline-block: var(--dt-dim-6);    /* 24 */
   --dt-layout-inline-section: var(--dt-dim-12); /* 48 */
+
+  /* Balanced is the space axes themselves, so a context (product, marketing,
+     social) or a density theme that retunes them still moves text and
+     modules, as it always has. */
+  --dt-layout-text-eyebrow: var(--dt-space-stack-sm);
+  --dt-layout-text-subcopy: var(--dt-space-stack-sm);
+  --dt-layout-text-paragraph: var(--dt-space-stack-md);
+
+  --dt-layout-module-padding: var(--dt-space-section);
+  --dt-layout-module-gap: var(--dt-space-stack-xl);
+}
+
+:root {
+  --dt-layout-scale: 1;
 }
 
 [data-layout="tight"] {
@@ -46,6 +76,13 @@
   --dt-layout-inline-group: var(--dt-dim-2);    /* 8  */
   --dt-layout-inline-block: var(--dt-dim-3);    /* 12 */
   --dt-layout-inline-section: var(--dt-dim-6);  /* 24 */
+
+  --dt-layout-text-eyebrow: var(--dt-dim-2);    /* 8  */
+  --dt-layout-text-subcopy: var(--dt-dim-2);    /* 8  */
+  --dt-layout-text-paragraph: var(--dt-dim-3);  /* 12 */
+
+  --dt-layout-module-padding: var(--dt-dim-16); /* 64 */
+  --dt-layout-module-gap: var(--dt-dim-6);      /* 24 */
 }
 
 [data-layout="open"] {
@@ -58,4 +95,11 @@
   --dt-layout-inline-group: var(--dt-dim-4);    /* 16 */
   --dt-layout-inline-block: var(--dt-dim-8);    /* 32 */
   --dt-layout-inline-section: var(--dt-dim-16); /* 64 */
+
+  --dt-layout-text-eyebrow: var(--dt-dim-4);    /* 16 */
+  --dt-layout-text-subcopy: var(--dt-dim-6);    /* 24 */
+  --dt-layout-text-paragraph: var(--dt-dim-6);  /* 24 */
+
+  --dt-layout-module-padding: var(--dt-dim-32); /* 128 */
+  --dt-layout-module-gap: var(--dt-dim-16);     /* 64 */
 }
