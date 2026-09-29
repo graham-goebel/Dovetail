@@ -10,8 +10,7 @@
   --dt-social-height-square: var(--dt-size-artboard-square);
   --dt-social-height-portrait: var(--dt-size-artboard-portrait);
   --dt-social-height-story: var(--dt-size-artboard-story);
-  --dt-social-padding: var(--dt-space-artboard);
-  --dt-social-gap: var(--dt-space-artboard-gap);
+  --dt-social-scale: 2.5;
   --dt-social-radius: calc(var(--dt-radius-overlay) * 2);
 
   --dt-social-display-family: var(--dt-text-artboard-display-family);
@@ -32,6 +31,25 @@
   --dt-social-rule: var(--dt-border-default);
   --dt-social-on-image: var(--dt-text-on-scrim-strong);
   --dt-social-on-image-muted: var(--dt-text-on-scrim);
+}
+
+/* The margin and the gaps are layout layers, drawn at the artboard's scale, so
+   a post follows the layout the page is set to: the block layer for the
+   margin, the group layer between parts (balanced, that is 80px and 40px, as
+   ever). They are declared again on the artboard itself, [data-social],
+   because a custom property resolves where it is declared: there they see the
+   layout the post sits in, Configure's or a data-layout region around it,
+   not just the page's. The artboard also sets --dt-layout-scale, which Stack
+   and Inline multiply every layer by, so everything inside keeps its
+   proportions at 1080px. */
+:root,
+[data-social] {
+  --dt-social-padding: calc(var(--dt-layout-stack-block) * var(--dt-social-scale));
+  --dt-social-gap: calc(var(--dt-layout-stack-group) * var(--dt-social-scale));
+}
+
+[data-social] {
+  --dt-layout-scale: var(--dt-social-scale);
 }
 
 /* Colour aliases again, under .dark, so a post in a dark band or on a dark

@@ -2009,6 +2009,31 @@
       },
       "inline-section": {
         "$value": "{primitive.dimension.12}"
+      },
+      "text-eyebrow": {
+        "$value": "{semantic.space.stack-sm}",
+        "$description": "An eyebrow and the heading it introduces."
+      },
+      "text-subcopy": {
+        "$value": "{semantic.space.stack-sm}",
+        "$description": "A heading (with its eyebrow) and the lead under it."
+      },
+      "text-paragraph": {
+        "$value": "{semantic.space.stack-md}",
+        "$description": "One paragraph or body item and the next."
+      },
+      "module-padding": {
+        "$value": "{primitive.dimension.24}",
+        "$description": "Above and below a module's content. --dt-space-section at the default layout."
+      },
+      "module-gap": {
+        "$value": "{semantic.space.stack-xl}",
+        "$description": "Between a module's own parts: header, content, call to action."
+      },
+      "scale": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "Multiplies every layer in Stack and Inline. 1 on a page; a surface drawn at another size, such as a social artboard, sets it once."
       }
     },
     "radius": {

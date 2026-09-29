@@ -59,6 +59,8 @@
     iconSize: "default",
     mediaRadius: "auto",
     whitespace: "balanced",
+    textSpacing: "auto",
+    moduleSpacing: "auto",
     media: "shown",
     customIconInclude: "",
   };
@@ -153,6 +155,35 @@
      toward each other, open leaves what is related close and moves the rest
      apart. Same shape as the axes above, in multiples of the base unit. */
   var LAYERS = ["related", "group", "block", "section"];
+
+  /* Text and modules can be set apart from the spacing character. Text is
+     three gaps between the items of a block of text (eyebrow, subcopy,
+     paragraph); modules is a module's padding above and below, and the gap
+     between its own parts. Multiples of the base unit, as above. */
+  var TEXT_SPACING = { tight: [2, 2, 3], balanced: [3, 3, 4], open: [4, 6, 6] };
+  var MODULE_SPACING = { tight: [16, 6], balanced: [24, 10], open: [32, 16] };
+  var CHARACTER = { tight: "tight", balanced: "balanced", airy: "open" };
+
+  /* Auto follows the spacing character. Only a choice that differs from the
+     stylesheet's own default has to write anything, so balanced under a
+     balanced character writes nothing and keeps following its context. */
+  function textModuleVars(cfg) {
+    var out = {};
+    var follow = CHARACTER[cfg.whitespace] || "balanced";
+    var pick = function (choice) { return choice && choice !== "auto" ? choice : follow; };
+    var text = pick(cfg.textSpacing);
+    if (text !== "balanced" || (cfg.textSpacing && cfg.textSpacing !== "auto")) {
+      ["eyebrow", "subcopy", "paragraph"].forEach(function (name, i) {
+        out["--dt-layout-text-" + name] = "var(--dt-dim-" + TEXT_SPACING[text][i] + ")";
+      });
+    }
+    var mod = pick(cfg.moduleSpacing);
+    if (mod !== "balanced" || (cfg.moduleSpacing && cfg.moduleSpacing !== "auto")) {
+      out["--dt-layout-module-padding"] = "var(--dt-dim-" + MODULE_SPACING[mod][0] + ")";
+      out["--dt-layout-module-gap"] = "var(--dt-dim-" + MODULE_SPACING[mod][1] + ")";
+    }
+    return out;
+  }
 
   /* How much of a layout imagery carries. Dovetail ships no photography, so its
      cards reserve a box rather than draw a picture, which is why this hides the
@@ -709,12 +740,21 @@
       vars["--dt-space-section"] = "var(--dt-dim-" + space.section + ")";
       vars["--dt-space-gutter"] = "var(--dt-dim-" + space.gutter + ")";
     }
+    assign(vars, textModuleVars(cfg));
 
     /* --dt-surface-brand is one role either way; solid is the system default
        and needs nothing written, so only the gradient choice has to say
        anything. A component never sees which one it got. */
     if (cfg.brandFill === "gradient") vars["--dt-surface-brand"] = "var(--dt-surface-brand-gradient)";
     if (cfg.brandFill === "duotone") vars["--dt-surface-brand"] = "var(--dt-surface-brand-duotone)";
+    /* Quiet is the band that does not shout: the pale tint of the primary (its
+       050 step, 950 in dark) with the text that belongs on it, in place of the
+       solid step. Both roles move together, or the white on-brand text would
+       land on a pale band. */
+    if (cfg.brandFill === "quiet") {
+      vars["--dt-surface-brand"] = "var(--dt-surface-brand-muted)";
+      vars["--dt-text-on-brand"] = "var(--dt-text-on-brand-muted)";
+    }
 
     /* Ink writes nothing: the wordmark role already points at the primary
        text colour, which is the monochrome mark. The fallbacks cover a card
@@ -795,7 +835,7 @@
     /* A role written inline on the root resolves once, against the root. A
        band scoped .dark inside the page needs the same choice declared on the
        band, so its brand text role resolves as dark. */
-    var scoped = ["--dt-text-wordmark", "--dt-text-headline"].concat(Object.keys(BRAND_CONTROLS)).filter(function (name) { return vars[name]; });
+    var scoped = ["--dt-text-wordmark", "--dt-text-headline", "--dt-surface-brand", "--dt-text-on-brand"].concat(Object.keys(BRAND_CONTROLS)).filter(function (name) { return vars[name]; });
     var scope = doc.getElementById("dt-role-scope");
     if (!scoped.length) {
       if (scope) scope.remove();
@@ -1062,6 +1102,12 @@
       lines.push("  /* Fill: " + config.brandFill + " */");
       lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + config.brandFill + ");");
     }
+    if (config.brandFill === "quiet") {
+      lines.push("");
+      lines.push("  /* Fill: quiet, the pale tint of the primary (050) with the text that belongs on it */");
+      lines.push("  --dt-surface-brand: var(--dt-surface-brand-muted);");
+      lines.push("  --dt-text-on-brand: var(--dt-text-on-brand-muted);");
+    }
 
     if (config.texture && config.texture !== "none") {
       lines.push("");
@@ -1107,6 +1153,7 @@
       });
     }
 
+    var tm = textModuleVars(config);
     var space = WHITESPACE[config.whitespace];
     if (space) {
       lines.push("");
@@ -1123,6 +1170,13 @@
       });
       lines.push("  --dt-space-section: var(--dt-dim-" + space.section + ");");
       lines.push("  --dt-space-gutter: var(--dt-dim-" + space.gutter + ");");
+    }
+    if (Object.keys(tm).length) {
+      lines.push("");
+      lines.push("  /* Text " + (config.textSpacing || "auto") + ", modules " + (config.moduleSpacing || "auto") + " */");
+      Object.keys(tm).forEach(function (name) {
+        lines.push("  " + name + ": " + tm[name] + ";");
+      });
     }
 
     if (WORDMARK[config.headlineColor]) {
@@ -1157,9 +1211,16 @@
        light page resolves them against its own brand text roles. */
     var darkRoles = [["--dt-text-headline", config.headlineColor], ["--dt-text-wordmark", config.wordmarkColor]].filter(function (r) { return WORDMARK[r[1]]; });
     var brandControls = config.actions === "brand" && !config.mono;
-    if (darkRoles.length || brandControls) {
+    var fillDark = config.brandFill === "quiet" || config.brandFill === "gradient" || config.brandFill === "duotone";
+    if (darkRoles.length || brandControls || fillDark) {
       lines.push("");
       lines.push(".dark {");
+      if (config.brandFill === "quiet") {
+        lines.push("  --dt-surface-brand: var(--dt-surface-brand-muted);");
+        lines.push("  --dt-text-on-brand: var(--dt-text-on-brand-muted);");
+      } else if (fillDark) {
+        lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + config.brandFill + ");");
+      }
       darkRoles.forEach(function (r) {
         lines.push("  " + r[0] + ": " + WORDMARK[r[1]].replace(/, var\(.*\)\)$/, ")") + ";");
       });
@@ -1362,7 +1423,7 @@
     { id: "color", label: "Color", summary: "Primary, secondary, fill and steps", icon: "droplet", fields: colorFields },
     { id: "shape", label: "Shape", summary: "Radius and focus ring", icon: "square", fields: shapeFields },
     { id: "type", label: "Type", summary: "Display, body, secondary and code", icon: "type", fields: typeFields },
-    { id: "layout", label: "Layout", summary: "Spacing, density and base unit", icon: "ruler", fields: layoutFields },
+    { id: "layout", label: "Layout", summary: "Spacing, text, modules and density", icon: "ruler", fields: layoutFields },
     { id: "media", label: "Media", summary: "Photo, illustration and icons", icon: "image", fields: mediaFields },
     { id: "view", label: "View", summary: "Colour mode and context", icon: "monitor", fields: viewFields },
     { id: "export", label: "Export", summary: "Theme file and download", icon: "download", fields: exportFields },
@@ -1535,11 +1596,11 @@
     out.push(
       field(
         "Fill",
-        "Sets --dt-surface-brand for a full-bleed section. Solid is one step of the primary; gradient sweeps two; duotone sweeps primary into secondary.",
+        "Sets --dt-surface-brand for a full-bleed section. Solid is one step of the primary. Quiet is its palest tint (050, with the text that belongs on it), for a band that does not shout. Gradient sweeps two steps; duotone sweeps primary into secondary.",
         segmented(
           "Fill",
           "brandFill",
-          [{ value: "solid", label: "Solid" }, { value: "gradient", label: "Gradient" }, { value: "duotone", label: "Duotone" }],
+          [{ value: "solid", label: "Solid" }, { value: "quiet", label: "Quiet" }, { value: "gradient", label: "Gradient" }, { value: "duotone", label: "Duotone" }],
           config.brandFill,
           function (value) {
             commit({ brandFill: value });
@@ -1988,7 +2049,7 @@
     return [
       field(
         "Spacing",
-        "The character of the layout. Tight is technical: the layers of a screen sit close and nothing is wasted. Open is breathing room: what is related stays close and the layers move apart. It moves the layout layers, the three space axes and the page rhythm together, on the grid.",
+        "The character of the layout. Tight is technical: the layers of a screen sit close and nothing is wasted. Open is breathing room: what is related stays close and the layers move apart. It moves the layout layers, text, modules, the three space axes and the page rhythm together, on the grid. Text and modules can be set apart below.",
         segmented(
           "Spacing",
           "whitespace",
@@ -1996,6 +2057,32 @@
           config.whitespace,
           function (value) {
             commit({ whitespace: value });
+          }
+        )
+      ),
+      field(
+        "Text",
+        "The space between the items of a block of text: an eyebrow and its heading, a heading and its subcopy, one paragraph and the next. Auto follows Spacing.",
+        segmented(
+          "Text",
+          "textSpacing",
+          [{ value: "auto", label: "Auto" }, { value: "tight", label: "Tight" }, { value: "balanced", label: "Balanced" }, { value: "open", label: "Open" }],
+          config.textSpacing || "auto",
+          function (value) {
+            commit({ textSpacing: value });
+          }
+        )
+      ),
+      field(
+        "Modules",
+        "The room a module takes: its padding above and below, and the space between its own parts, such as a header and what follows it. Auto follows Spacing.",
+        segmented(
+          "Modules",
+          "moduleSpacing",
+          [{ value: "auto", label: "Auto" }, { value: "tight", label: "Tight" }, { value: "balanced", label: "Balanced" }, { value: "open", label: "Open" }],
+          config.moduleSpacing || "auto",
+          function (value) {
+            commit({ moduleSpacing: value });
           }
         )
       ),

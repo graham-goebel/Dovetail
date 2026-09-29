@@ -32,7 +32,7 @@ A page section: a column bounded by a container width, the section rhythm above 
 ```
 
 ### Tones
-A tone is a surface and the text roles that go on it. `brand` and `secondary` are full fills; the `-muted` tones are the pale tint of the same hue. The section re-points `--dt-text-primary`, `-secondary` and `-tertiary` on itself, so everything inside that reads the semantic text roles, `Stat` and `Card` descriptions included, follows the band. That is also how to build a band that should not follow the page's light or dark mode: its colours come from the brand roles, not the page surface.
+A tone is a surface and the text roles that go on it. The `brand` tone follows Configure's Fill: solid, gradient, duotone, or Quiet, which is the palest tint of the primary (`--dt-surface-brand-muted`, its 050 step) with the text that belongs on it, for a band that does not shout. Padding follows the layout's modules setting. `brand` and `secondary` are full fills; the `-muted` tones are the pale tint of the same hue. The section re-points `--dt-text-primary`, `-secondary` and `-tertiary` on itself, so everything inside that reads the semantic text roles, `Stat` and `Card` descriptions included, follows the band. That is also how to build a band that should not follow the page's light or dark mode: its colours come from the brand roles, not the page surface.
 
 On a `brand` fill the primary button and the fill are the same colour. Use a secondary or ghost button there, or a `-muted` tone.
 
@@ -42,7 +42,7 @@ On a `brand` fill the primary button and the fill are the same colour. Use a sec
 A scrim's alpha does not tell you the contrast over a specific photograph. Check it the way `guidelines/accessibility.md` describes: hide the text, sample the pixels behind where it sat, and take the worst case.
 
 ### Tokens
-`--dt-size-container-*`, `--dt-space-section`, `--dt-space-section-compact`, `--dt-space-gutter`, `--dt-surface-brand*`, `--dt-text-on-brand*`, `--dt-surface-scrim`, `--dt-text-on-scrim*`, `--dt-surface-texture`.
+`--dt-size-container-*`, `--dt-layout-module-padding` (`--dt-space-section` at the default layout), `--dt-space-section-compact`, `--dt-space-gutter`, `--dt-surface-brand*`, `--dt-text-on-brand*`, `--dt-surface-scrim`, `--dt-text-on-scrim*`, `--dt-surface-texture`.
 
 ## Props
 
@@ -68,7 +68,7 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   dark?: boolean;
   /** Layers --dt-surface-texture over the tone. @default false */
   texture?: boolean;
-  /** Vertical padding: --dt-space-section, -section-compact, or none. @default "default" */
+  /** Vertical padding: the module padding (--dt-layout-module-padding, which is --dt-space-section until the layout says otherwise), --dt-space-section-compact, or none. @default "default" */
   spacing?: "default" | "compact" | "none";
   /** Image URL. Turns the section into a full-bleed photo band. The image is decorative; say what matters in the text. */
   media?: string;
@@ -90,6 +90,7 @@ export declare function Section(props: SectionProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-layout-module-padding` | semantic | `var(--dt-space-section)` |
 | `--dt-scrim-full` | semantic | `color-mix(in oklab, var(--dt-color-neutral-950) 55%, transparent)` |
 | `--dt-size-container-default` | semantic | `var(--dt-dim-container-xl)` |
 | `--dt-size-container-narrow` | semantic | `var(--dt-dim-container-md)` |
@@ -128,7 +129,7 @@ const WIDTHS = {
   wide: "var(--dt-size-container-wide)",
   full: "none",
 };
-const SPACING = { default: "var(--dt-space-section)", compact: "var(--dt-space-section-compact)", none: "0" };
+const SPACING = { default: "var(--dt-layout-module-padding, var(--dt-space-section))", compact: "var(--dt-space-section-compact)", none: "0" };
 const ALIGN = { top: "flex-start", center: "center", bottom: "flex-end" };
 
 /* Each tone is a surface and the text roles that belong on it. The text roles

@@ -36,8 +36,4 @@
   --dt-space-section-compact: var(--dt-dim-16);
   --dt-space-gutter: var(--dt-dim-6);        /* 24 — page edge padding */
   --dt-space-gutter-wide: var(--dt-dim-10);
-
-  /* The margin inside a social artboard, and the gap between its parts. */
-  --dt-space-artboard: calc(var(--dt-dim-16) * 1.25);
-  --dt-space-artboard-gap: var(--dt-dim-10);
 }

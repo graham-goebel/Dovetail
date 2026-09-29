@@ -135,6 +135,14 @@ character moves them as one: `tight` for a technical screen, `balanced`, or `ope
 where what is related stays close and the layers move apart. Set it on the page in Configure, or on
 any region with `data-layout`; `Stack` and `Inline` take `layer` and `spacing` props for it.
 
+Two more groups say what the gaps are between, for the two things a page is made of. **Text** is the
+gaps between the items of a block of text: `--dt-layout-text-eyebrow` (an eyebrow and its heading),
+`-subcopy` (a heading and the lead under it) and `-paragraph`. **Modules** is the room a module takes:
+`--dt-layout-module-padding` above and below its content, and `--dt-layout-module-gap` between its own
+parts. At the balanced character they are the space axes themselves, so a context still moves them.
+`--dt-layout-scale` multiplies every layer in `Stack` and `Inline` (1 on a page), which is how a social
+artboard drawn at 1080px keeps its proportions.
+
 ### Size
 
 Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32.

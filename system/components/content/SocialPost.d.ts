@@ -45,6 +45,8 @@ export interface SocialPostProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   counter?: React.ReactNode;
   /** The accessible name of the post as an image. Defaults to its eyebrow, title and body. */
   label?: string;
+  /** The layout's character for this post: `tight` (technical), `balanced` or `open` (breathing room). Sets `data-layout` on the artboard, so its margin and every gap follow. Inherited from the page when not set. */
+  spacing?: "tight" | "balanced" | "open";
 }
 
 export declare function SocialPost(props: SocialPostProps): JSX.Element;

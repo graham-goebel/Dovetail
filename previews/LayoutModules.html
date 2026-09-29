@@ -1,0 +1,40 @@
+<!-- @dsCard group="Layout" height=760 width=700 subtitle="Text and modules — The gaps inside a block of text, and the room a module takes, at each character." page -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8"><link rel="stylesheet" href="../system/styles.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:16px 20px;font-family:var(--dt-font-family-sans);color:var(--dt-text-primary);background:var(--dt-surface-base)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);column-gap:16px;align-items:start}
+.h{font-family:var(--dt-font-family-mono);font-size:11px;color:var(--dt-text-tertiary);margin-bottom:8px}
+.h b{display:block;font-weight:600;color:var(--dt-text-primary);font-size:12px}
+.mod{padding-block:var(--dt-layout-module-padding);padding-inline:14px;background:var(--dt-surface-subtle);border:1px solid var(--dt-border-default);border-radius:var(--dt-radius-container)}
+.parts{display:flex;flex-direction:column;gap:var(--dt-layout-module-gap)}
+.head{display:flex;flex-direction:column;gap:var(--dt-layout-text-subcopy)}
+.pair{display:flex;flex-direction:column;gap:var(--dt-layout-text-eyebrow)}
+.paras{display:flex;flex-direction:column;gap:var(--dt-layout-text-paragraph)}
+i{display:block;border-radius:4px}
+.eb{height:6px;width:36%;background:var(--dt-text-tertiary)}.ti{height:14px;width:82%;background:var(--dt-text-primary)}
+.le{height:8px;width:100%;background:var(--dt-text-secondary);opacity:.6}
+.bx{height:44px;background:var(--dt-surface-brand-muted);border-radius:var(--dt-radius-control)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.px{font-family:var(--dt-font-family-mono);font-size:10px;line-height:1.7;color:var(--dt-text-tertiary);margin-top:8px}
+.note{margin:14px 0 0;font-size:12px;line-height:1.5;color:var(--dt-text-secondary);max-width:62ch}
+.note code{font-family:var(--dt-font-family-mono);font-size:11px}</style>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body>
+<div class="grid">
+<div data-layout="tight"><div class="h"><b>Tight</b>data-layout="tight"</div>
+<div class="mod"><div class="parts"><div class="head"><div class="pair"><i class="eb"></i><i class="ti"></i></div><i class="le"></i></div><div class="two"><i class="bx"></i><i class="bx"></i></div></div></div>
+<div class="px">module padding 64px<br>module gap 24px<br>eyebrow 8px · subcopy 8px<br>paragraph 12px</div></div>
+<div data-layout="balanced"><div class="h"><b>Balanced</b>data-layout="balanced"</div>
+<div class="mod"><div class="parts"><div class="head"><div class="pair"><i class="eb"></i><i class="ti"></i></div><i class="le"></i></div><div class="two"><i class="bx"></i><i class="bx"></i></div></div></div>
+<div class="px">module padding 96px<br>module gap 40px<br>eyebrow 12px · subcopy 12px<br>paragraph 16px</div></div>
+<div data-layout="open"><div class="h"><b>Open</b>data-layout="open"</div>
+<div class="mod"><div class="parts"><div class="head"><div class="pair"><i class="eb"></i><i class="ti"></i></div><i class="le"></i></div><div class="two"><i class="bx"></i><i class="bx"></i></div></div></div>
+<div class="px">module padding 128px<br>module gap 64px<br>eyebrow 16px · subcopy 24px<br>paragraph 24px</div></div>
+</div>
+<p class="note">A module is a band or block. Its padding is above and below its content; its gap is between its own parts, here the header and what follows it. Inside the header, the eyebrow binds to the heading (<code>--dt-layout-text-eyebrow</code>) and the lead follows the pair (<code>--dt-layout-text-subcopy</code>); <code>--dt-layout-text-paragraph</code> sits between one paragraph and the next. Configure sets Text and Modules apart from the rest of the layout.</p>
+</body></html>

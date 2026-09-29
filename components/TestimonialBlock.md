@@ -79,8 +79,8 @@ export declare function TestimonialBlock(props: TestimonialBlockProps): JSX.Elem
 | `--dt-card-fg` | component | `var(--dt-text-primary)` |
 | `--dt-card-padding` | component | `var(--dt-space-inset-lg)` |
 | `--dt-card-radius` | component | `var(--dt-radius-container)` |
+| `--dt-layout-module-gap` | semantic | `var(--dt-space-stack-xl)` |
 | `--dt-space-inline-lg` | semantic | `var(--dt-dim-6)` |
-| `--dt-space-stack-xl` | semantic | `var(--dt-dim-10)` |
 
 ## Source
 
@@ -100,7 +100,7 @@ export function TestimonialBlock({ eyebrow, title, lead, quotes = [], tone = "ba
   );
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={one ? "narrow" : width} {...rest}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)", alignItems: one ? "center" : "stretch" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)", alignItems: one ? "center" : "stretch" }}>
         {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} align="center" />}
         {one ? quote(quotes[0], "lg") : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "var(--dt-space-inline-lg)" }}>

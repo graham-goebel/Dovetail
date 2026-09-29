@@ -98,6 +98,7 @@
 <ul><li><code>inset-*</code>: padding inside a container</li><li><code>stack-*</code>: vertical gap between blocks</li><li><code>inline-*</code>: horizontal gap between siblings</li></ul>
 <p>Naming the axis also lets a density theme retune one axis without touching the others.</p>
 <p>Four layers say how closely the two things either side of a gap belong together: <code>--dt-layout-stack-*</code> and <code>--dt-layout-inline-*</code> for <code>related</code> (parts of one thing), <code>group</code> (members of a set), <code>block</code> (one unit from the next) and <code>section</code> (a theme from the next). The layout's character moves them as one: <code>tight</code> for a technical screen, <code>balanced</code>, or <code>open</code> for breathing room, where what is related stays close and the layers move apart. Set it on the page in Configure, or on any region with <code>data-layout</code>; <code>Stack</code> and <code>Inline</code> take <code>layer</code> and <code>spacing</code> props for it.</p>
+<p>Two more groups say what the gaps are between, for the two things a page is made of. <strong>Text</strong> is the gaps between the items of a block of text: <code>--dt-layout-text-eyebrow</code> (an eyebrow and its heading), <code>-subcopy</code> (a heading and the lead under it) and <code>-paragraph</code>. <strong>Modules</strong> is the room a module takes: <code>--dt-layout-module-padding</code> above and below its content, and <code>--dt-layout-module-gap</code> between its own parts. At the balanced character they are the space axes themselves, so a context still moves them. <code>--dt-layout-scale</code> multiplies every layer in <code>Stack</code> and <code>Inline</code> (1 on a page), which is how a social artboard drawn at 1080px keeps its proportions.</p>
 <h3 id="size">Size</h3>
 <p>Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32. <code>--dt-size-touch-target</code> (44px) is the minimum hit area on touch surfaces.</p>
 <h3 id="shape">Shape</h3>
@@ -178,7 +179,7 @@
 <script src="../assets/search-data.js?v=01f596ed7a" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=e86531a11f" defer></script>
-<script src="../assets/theme.js?v=9949a846ba" defer></script>
+<script src="../assets/theme.js?v=4934f0e409" defer></script>
 <script src="../assets/site.js?v=f25b56a9e9" defer></script>
 
 </body>

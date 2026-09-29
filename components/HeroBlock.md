@@ -76,9 +76,9 @@ export declare function HeroBlock(props: HeroBlockProps): JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-layout-module-gap` | semantic | `var(--dt-space-stack-xl)` |
 | `--dt-space-inline-2xl` | semantic | `var(--dt-dim-12)` |
 | `--dt-space-stack-lg` | semantic | `var(--dt-dim-6)` |
-| `--dt-space-stack-xl` | semantic | `var(--dt-dim-10)` |
 
 ## Source
 
@@ -105,7 +105,7 @@ export function HeroBlock({ eyebrow, title, lead, actions, media, background, la
   if (layout === "centered") {
     return (
       <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--dt-space-stack-xl)" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--dt-layout-module-gap)" }}>
           {header}
           {children}
           {media && <div style={{ width: "100%" }}>{media}</div>}

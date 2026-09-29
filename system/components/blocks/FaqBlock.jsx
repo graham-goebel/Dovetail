@@ -22,7 +22,7 @@ export function FaqBlock({ eyebrow, title, lead, actions, items = [], layout = "
           <div style={{ minWidth: 0 }}>{list}</div>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)", maxWidth: "var(--dt-size-container-narrow)", marginInline: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)", maxWidth: "var(--dt-size-container-narrow)", marginInline: "auto" }}>
           {header}
           {list}
         </div>

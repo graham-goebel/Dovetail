@@ -20,7 +20,7 @@ export function HeroBlock({ eyebrow, title, lead, actions, media, background, la
   if (layout === "centered") {
     return (
       <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--dt-space-stack-xl)" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--dt-layout-module-gap)" }}>
           {header}
           {children}
           {media && <div style={{ width: "100%" }}>{media}</div>}

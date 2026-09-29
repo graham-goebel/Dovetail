@@ -32,7 +32,7 @@ Ten layouts share one frame: the brand and an optional `counter` along the top, 
 Keep one `brand` and `handle`, alternate tone and pictured layouts down a carousel, and number it with `counter`. Every size and colour comes from tokens, so changing the theme rebrands the whole set.
 
 ## Tokens
-`--dt-social-*` in `tokens/component/social.css`: the artboard width and heights, padding, gap and radius, alias `--dt-size-artboard-*` and `--dt-space-artboard*`; the type sizes alias the `--dt-text-artboard-*` roles, drawn for a 1080px canvas and never retuned by a context; the colours alias the ordinary surface and text roles, and `--dt-text-on-scrim-strong` on photographs.
+`--dt-social-*` in `tokens/component/social.css`: the artboard width and heights alias `--dt-size-artboard-*`, and the padding and gap are layout layers (`--dt-layout-stack-block` and `--dt-layout-stack-group`) drawn at `--dt-social-scale`, 2.5, so a post follows the layout: Configure's Spacing, Text and Modules, or `spacing` on the post or `data-layout` on a region around it. Inside it, everything is a `Stack` or an `Inline` at a layer, scaled by `--dt-layout-scale`, which the artboard sets. The radius aliases the overlay radius; the type sizes alias the `--dt-text-artboard-*` roles, drawn for a 1080px canvas and never retuned by a context; the colours alias the ordinary surface and text roles, and `--dt-text-on-scrim-strong` on photographs.
 
 ## Accessibility
 The post is exposed as one image (`role="img"`) named by `label`, or by its eyebrow, title and body. When you publish it, write the same text into the platform's alt text.

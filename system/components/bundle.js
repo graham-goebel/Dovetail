@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"b3a66bda5e2c","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"6bb078c4ca36","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"3ca15973e719","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"0908278f6d67","components/blocks/FeatureGridBlock.jsx":"8a2bed476461","components/blocks/HeroBlock.jsx":"5d708ac74dc8","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"6b92ba6e4df6","components/blocks/TestimonialBlock.jsx":"dc19cc075267","components/content/SocialPost.jsx":"a2a789317818"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"6d9f69ace925"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -4261,11 +4261,15 @@ const GAPS = {
   xl: "var(--dt-space-inline-xl)",
   "2xl": "var(--dt-space-inline-2xl)"
 };
+
+/* Drawn at --dt-layout-scale, 1 on a page, so a surface at another size keeps
+   its proportions. */
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
 const LAYERS = {
-  related: "var(--dt-layout-inline-related)",
-  group: "var(--dt-layout-inline-group)",
-  block: "var(--dt-layout-inline-block)",
-  section: "var(--dt-layout-inline-section)"
+  related: scaled("--dt-layout-inline-related"),
+  group: scaled("--dt-layout-inline-group"),
+  block: scaled("--dt-layout-inline-block"),
+  section: scaled("--dt-layout-inline-section")
 };
 function Inline({
   gap = "sm",
@@ -4347,11 +4351,18 @@ const GAPS = {
   xl: "var(--dt-space-stack-xl)",
   "2xl": "var(--dt-space-stack-2xl)"
 };
+
+/* Each layer is drawn at --dt-layout-scale, 1 on a page, so a surface at
+   another size (a social artboard) keeps its proportions. */
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
 const LAYERS = {
-  related: "var(--dt-layout-stack-related)",
-  group: "var(--dt-layout-stack-group)",
-  block: "var(--dt-layout-stack-block)",
-  section: "var(--dt-layout-stack-section)"
+  related: scaled("--dt-layout-stack-related"),
+  group: scaled("--dt-layout-stack-group"),
+  block: scaled("--dt-layout-stack-block"),
+  section: scaled("--dt-layout-stack-section"),
+  eyebrow: scaled("--dt-layout-text-eyebrow"),
+  subcopy: scaled("--dt-layout-text-subcopy"),
+  paragraph: scaled("--dt-layout-text-paragraph")
 };
 function Stack({
   gap = "md",
@@ -5158,7 +5169,7 @@ const WIDTHS = {
   full: "none"
 };
 const SPACING = {
-  default: "var(--dt-space-section)",
+  default: "var(--dt-layout-module-padding, var(--dt-space-section))",
   compact: "var(--dt-space-section-compact)",
   none: "0"
 };
@@ -6979,17 +6990,22 @@ function BlockHeader({
   ...rest
 }) {
   const centred = align === "center";
-  return /*#__PURE__*/React.createElement("div", {
+  const items = centred ? "center" : "flex-start";
+  /* The gaps are the text layers of the layout: an eyebrow binds to the
+     heading it introduces (eyebrow), and the lead follows the pair (subcopy),
+     so Configure's Text control moves them apart from the rest. */
+  return /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "subcopy",
+    align: items,
     style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "var(--dt-space-stack-sm)",
-      alignItems: centred ? "center" : "flex-start",
       textAlign: centred ? "center" : "left",
       marginInline: centred ? "auto" : undefined,
       ...style
     },
     ...rest
+  }, (eyebrow || title) && /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "eyebrow",
+    align: items
   }, eyebrow && /*#__PURE__*/React.createElement(__ds_scope.Text, {
     variant: "eyebrow",
     tone: "tertiary"
@@ -6999,7 +7015,7 @@ function BlockHeader({
     align: centred ? "center" : "left",
     measure: centred ? "default" : "wide",
     balance: true
-  }, title), lead && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+  }, title)), lead && /*#__PURE__*/React.createElement(__ds_scope.Text, {
     variant: "lead",
     tone: "secondary",
     align: centred ? "center" : "left",
@@ -7125,7 +7141,7 @@ function FaqBlock({
     style: {
       display: "flex",
       flexDirection: "column",
-      gap: "var(--dt-space-stack-xl)",
+      gap: "var(--dt-layout-module-gap)",
       maxWidth: "var(--dt-size-container-narrow)",
       marginInline: "auto"
     }
@@ -7174,7 +7190,7 @@ function FeatureGridBlock({
     style: {
       display: "flex",
       flexDirection: "column",
-      gap: "var(--dt-space-stack-xl)"
+      gap: "var(--dt-layout-module-gap)"
     }
   }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
     eyebrow: eyebrow,
@@ -7292,7 +7308,7 @@ function HeroBlock({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "var(--dt-space-stack-xl)"
+        gap: "var(--dt-layout-module-gap)"
       }
     }, header, children, media && /*#__PURE__*/React.createElement("div", {
       style: {
@@ -7455,7 +7471,7 @@ function StatsBlock({
     style: {
       display: "flex",
       flexDirection: "column",
-      gap: "var(--dt-space-stack-xl)"
+      gap: "var(--dt-layout-module-gap)"
     }
   }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
     eyebrow: eyebrow,
@@ -7543,7 +7559,7 @@ function TestimonialBlock({
     style: {
       display: "flex",
       flexDirection: "column",
-      gap: "var(--dt-space-stack-xl)",
+      gap: "var(--dt-layout-module-gap)",
       alignItems: one ? "center" : "stretch"
     }
   }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
@@ -7749,6 +7765,7 @@ function SocialPost({
   cta,
   counter,
   label,
+  spacing,
   style,
   ...rest
 }) {
@@ -7757,30 +7774,28 @@ function SocialPost({
   const t = TONES[tone] || TONES.brand;
   const pictured = !!PICTURED[layout];
   const onImage = layout === "cover" || layout === "poster" || layout === "card";
+
+  /* Everything is laid out with Stack and Inline layers, drawn at the
+     artboard's scale (--dt-layout-scale, set on [data-social]), so a post
+     follows the layout the page is set to: Configure's Spacing, Text and
+     Modules, or data-layout on a region around it. */
   const frame = {
     position: "absolute",
     inset: 0,
     zIndex: 2,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
     padding: "var(--dt-social-padding)",
-    gap: "var(--dt-social-gap)",
     color: onImage ? "var(--dt-social-on-image)" : undefined,
     "--dt-social-muted": onImage ? "var(--dt-social-on-image-muted)" : undefined
   };
-  const top = /*#__PURE__*/React.createElement("div", {
+  const top = /*#__PURE__*/React.createElement(__ds_scope.Inline, {
+    layer: "group",
+    justify: "space-between",
+    wrap: false
+  }, /*#__PURE__*/React.createElement(__ds_scope.Inline, {
+    as: "span",
+    layer: "related",
+    wrap: false,
     style: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: "var(--dt-social-gap)"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "calc(var(--dt-social-gap) / 2)",
       fontSize: "var(--dt-social-body-size)",
       fontWeight: "var(--dt-font-weight-semibold)",
       letterSpacing: "var(--dt-tracking-tight)"
@@ -7796,14 +7811,11 @@ function SocialPost({
   }), brand), counter && /*#__PURE__*/React.createElement("span", {
     style: meta
   }, counter));
-  const bottom = (handle || cta) && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: "var(--dt-social-gap)",
-      ...meta
-    }
+  const bottom = (handle || cta) && /*#__PURE__*/React.createElement(__ds_scope.Inline, {
+    layer: "group",
+    justify: "space-between",
+    wrap: false,
+    style: meta
   }, /*#__PURE__*/React.createElement("span", null, handle), cta && /*#__PURE__*/React.createElement("span", {
     style: {
       padding: "calc(var(--dt-social-gap) / 2.5) calc(var(--dt-social-gap) / 1.4)",
@@ -7818,28 +7830,23 @@ function SocialPost({
       color: "var(--dt-social-muted)"
     }
   }, eyebrow);
+  /* An eyebrow (or badge, or mark) binds to the heading it introduces; what
+     follows the pair is the subcopy. */
+  const lead = (kicker, headingEl, ...after) => /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "subcopy"
+  }, /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "eyebrow"
+  }, kicker, headingEl), after);
   let content = null;
   let background = null;
   if (layout === "headline") {
-    content = /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--dt-social-gap)"
-      }
-    }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+    content = lead(eyebrowEl, /*#__PURE__*/React.createElement("h2", {
       style: display(format)
     }, heading), text && /*#__PURE__*/React.createElement("p", {
       style: body
     }, text));
   } else if (layout === "quote") {
-    content = /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--dt-social-gap)"
-      }
-    }, /*#__PURE__*/React.createElement("span", {
+    content = lead(/*#__PURE__*/React.createElement("span", {
       "aria-hidden": "true",
       style: {
         ...display(format, 1.6),
@@ -7858,13 +7865,7 @@ function SocialPost({
       }
     }, byline));
   } else if (layout === "stat") {
-    content = /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--dt-social-gap)"
-      }
-    }, eyebrowEl, /*#__PURE__*/React.createElement("p", {
+    content = lead(eyebrowEl, /*#__PURE__*/React.createElement("p", {
       style: {
         ...display(format, 1.9),
         fontVariantNumeric: "tabular-nums",
@@ -7884,27 +7885,26 @@ function SocialPost({
       }
     }, byline));
   } else if (layout === "list") {
-    content = /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--dt-social-gap)"
-      }
+    content = /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "group"
+    }, /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "eyebrow"
     }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
       style: title(format)
-    }, heading), /*#__PURE__*/React.createElement("ol", {
+    }, heading)), /*#__PURE__*/React.createElement("ol", {
       style: {
         listStyle: "none",
         margin: 0,
         padding: 0,
         maxWidth: "none"
       }
-    }, items.map((it, i) => /*#__PURE__*/React.createElement("li", {
+    }, items.map((it, i) => /*#__PURE__*/React.createElement(__ds_scope.Inline, {
+      as: "li",
       key: i,
+      layer: "group",
+      align: "baseline",
+      wrap: false,
       style: {
-        display: "flex",
-        gap: "var(--dt-social-gap)",
-        alignItems: "baseline",
         padding: "calc(var(--dt-social-gap) * 0.6) 0",
         borderTop: "var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)",
         fontSize: "calc(var(--dt-social-body-size) * 1.1)",
@@ -7918,14 +7918,15 @@ function SocialPost({
       }
     }, String(i + 1).padStart(2, "0")), /*#__PURE__*/React.createElement("span", null, it)))));
   } else if (layout === "announcement") {
-    content = /*#__PURE__*/React.createElement("div", {
+    content = /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "subcopy",
+      align: "center",
       style: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-        gap: "var(--dt-social-gap)"
+        textAlign: "center"
       }
+    }, /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "eyebrow",
+      align: "center"
     }, badge && /*#__PURE__*/React.createElement("span", {
       style: {
         ...meta,
@@ -7935,7 +7936,7 @@ function SocialPost({
       }
     }, badge), /*#__PURE__*/React.createElement("h2", {
       style: display(format)
-    }, heading), text && /*#__PURE__*/React.createElement("p", {
+    }, heading)), text && /*#__PURE__*/React.createElement("p", {
       style: {
         ...body,
         maxWidth: "80%"
@@ -7966,13 +7967,7 @@ function SocialPost({
         opacity: 0.6
       }
     }));
-    content = /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--dt-social-gap)"
-      }
-    }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+    content = lead(eyebrowEl, /*#__PURE__*/React.createElement("h2", {
       style: display(format, 0.9)
     }, heading), text && /*#__PURE__*/React.createElement("p", {
       style: body
@@ -8011,12 +8006,10 @@ function SocialPost({
         opacity: 0.6
       }
     }));
-    content = /*#__PURE__*/React.createElement("div", {
+    content = /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "subcopy",
       className: "dark",
       style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "calc(var(--dt-social-gap) * 0.6)",
         padding: "var(--dt-social-gap)",
         borderRadius: "var(--dt-social-radius)",
         background: "var(--dt-surface-glass-inverse)",
@@ -8024,9 +8017,11 @@ function SocialPost({
         backdropFilter: "var(--dt-backdrop-glass, blur(24px))",
         WebkitBackdropFilter: "var(--dt-backdrop-glass, blur(24px))"
       }
+    }, /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "eyebrow"
     }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
       style: title(format, 0.9)
-    }, heading), text && /*#__PURE__*/React.createElement("p", {
+    }, heading)), text && /*#__PURE__*/React.createElement("p", {
       style: {
         ...body,
         color: "var(--dt-social-on-image-muted)"
@@ -8059,22 +8054,14 @@ function SocialPost({
           background: "var(--dt-scrim-top)",
           opacity: 0.6
         }
-      })), /*#__PURE__*/React.createElement("div", {
+      })), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+        layer: "group",
+        justify: "space-between",
         style: {
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "var(--dt-social-padding)",
-          gap: "var(--dt-social-gap)"
+          padding: "var(--dt-social-padding)"
         }
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: "calc(var(--dt-social-gap) * 0.6)"
-        }
-      }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
+      }, lead(eyebrowEl, /*#__PURE__*/React.createElement("h2", {
         style: title(format)
       }, heading), text && format !== "square" && /*#__PURE__*/React.createElement("p", {
         style: body
@@ -8090,7 +8077,9 @@ function SocialPost({
       }, top));
     }
     if (layout === "framed") {
-      return /*#__PURE__*/React.createElement("div", {
+      return /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+        layer: "group",
+        justify: "space-between",
         style: frame
       }, top, /*#__PURE__*/React.createElement("div", {
         style: {
@@ -8104,46 +8093,35 @@ function SocialPost({
         image: image,
         position: imagePosition,
         label: label
-      })), /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: "calc(var(--dt-social-gap) * 0.5)"
-        }
+      })), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+        layer: "eyebrow"
       }, eyebrowEl, /*#__PURE__*/React.createElement("h2", {
         style: title(format, 0.85)
       }, heading)), bottom);
     }
     if (layout === "poster") {
-      return /*#__PURE__*/React.createElement("div", {
+      return /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+        layer: "group",
+        justify: "space-between",
         style: frame
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--dt-social-gap)"
-        }
+      }, /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+        layer: "group"
       }, top, /*#__PURE__*/React.createElement("h2", {
         style: {
           ...display(format, Math.min(1.9, 9 / Math.max(4, String(heading || "").length))),
           lineHeight: 0.86,
           whiteSpace: "nowrap"
         }
-      }, heading)), /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--dt-social-gap)"
-        }
+      }, heading)), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+        layer: "group"
       }, text && /*#__PURE__*/React.createElement("p", {
         style: body
       }, text), bottom));
     }
-    return /*#__PURE__*/React.createElement("div", {
-      style: {
-        ...frame,
-        justifyContent: "space-between"
-      }
+    return /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+      layer: "group",
+      justify: "space-between",
+      style: frame
     }, top, content, bottom || /*#__PURE__*/React.createElement("span", null));
   })();
   return /*#__PURE__*/React.createElement("div", {
@@ -8160,6 +8138,8 @@ function SocialPost({
     },
     ...rest
   }, /*#__PURE__*/React.createElement("div", {
+    "data-social": "",
+    "data-layout": spacing,
     className: t.dark ? "dark" : undefined,
     style: {
       position: "absolute",
