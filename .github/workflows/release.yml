@@ -12,14 +12,16 @@ name: Release
 # It does nothing on a push that leaves the version alone, or when the tag
 # already exists, so re-running it is always safe.
 #
-# After the release exists, a second job publishes the package to npm. It runs
-# only when this run created the release, on main, and only while package.json
-# is not "private": true. It needs an NPM_TOKEN repository secret (an npm
-# automation token that can publish the package) and fails with a message if
-# the secret is missing. `id-token: write` is what lets npm sign the provenance
-# statement. If the publish fails, use "Re-run failed jobs" on this run: the
-# release job's outputs are kept, so it publishes the same version again
-# without trying to tag it twice.
+# After the release exists, a second job stages the package on npm. The
+# NPM_TOKEN secret is a stage-only token: it can upload a version but not make
+# it public, so no one-time password is needed here. A maintainer then approves
+# the staged version with 2FA (on npmjs.com, or `npm stage approve <id>`), and
+# that approval is the publish. `id-token: write` lets npm sign the provenance.
+#
+# The job runs when this run created the release, or when the workflow is
+# started by hand ("Run workflow" on main), which is how a version that is
+# tagged but not yet on npm gets staged. It skips a version npm already has,
+# and anything while package.json is "private": true.
 on:
   push:
     branches: [main]
@@ -90,8 +92,7 @@ jobs:
   publish:
     needs: release
     if: >-
-      needs.release.outputs.created == 'true' &&
-      github.event_name != 'pull_request' &&
+      (needs.release.outputs.created == 'true' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -105,12 +106,16 @@ jobs:
       - name: Decide whether this package is published
         id: gate
         run: |
+          name=$(node -p "require('./package.json').name")
           if [ "$(node -p "require('./package.json').private === true")" = "true" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "::notice::package.json is private, so v$VERSION was tagged and released on GitHub but not published to npm. Remove \"private\" to publish."
+          elif npm view "$name@$VERSION" version >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$name@$VERSION is already on npm; nothing to stage."
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "Publishing $(node -p "require('./package.json').name")@$VERSION to npm."
+            echo "Staging $name@$VERSION on npm."
           fi
 
       - name: Require NPM_TOKEN
@@ -119,7 +124,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ -z "$NPM_TOKEN" ]; then
-            echo "::error::The NPM_TOKEN repository secret is not set, so v$VERSION cannot be published to npm. Add an npm automation token under Settings > Secrets and variables > Actions, then re-run the failed jobs of this run."
+            echo "::error::The NPM_TOKEN repository secret is not set, so v$VERSION cannot be staged on npm. Add an npm granular token with stage-only write access under Settings > Secrets and variables > Actions, then re-run the failed jobs of this run."
             exit 1
           fi
 
@@ -143,8 +148,21 @@ jobs:
         if: steps.gate.outputs.publish == 'true'
         run: node tools/check/consumer.mjs
 
-      - name: Publish to npm
+      # `npm stage` arrived in npm 11; Node 22 bundles npm 10.
+      - name: Use npm 12
+        if: steps.gate.outputs.publish == 'true'
+        run: npm install -g npm@12
+
+      - name: Stage on npm
         if: steps.gate.outputs.publish == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --provenance --access public
+        run: |
+          npm stage publish --provenance --access public
+          name=$(node -p "require('./package.json').name")
+          {
+            echo "### $name@$VERSION is staged on npm"
+            echo
+            echo "It is not public until a maintainer approves it with 2FA: on npmjs.com,"
+            echo "or with \`npm stage list $name\` then \`npm stage approve <id>\`."
+          } >> "$GITHUB_STEP_SUMMARY"
