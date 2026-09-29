@@ -3,7 +3,7 @@ import * as React from "react";
 /**
  * Content container. The most context-sensitive component in the system.
  */
-export interface CardProps extends React.HTMLAttributes<HTMLElement> {
+export interface CardProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   /** Uppercase label above the title. */
   eyebrow?: string;
   title?: React.ReactNode;

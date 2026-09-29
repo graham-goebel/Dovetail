@@ -38,7 +38,7 @@ import * as React from "react";
 /**
  * Single-line text field.
  */
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   label?: string;
   hint?: string;
   /** Sets aria-invalid and the error border. */

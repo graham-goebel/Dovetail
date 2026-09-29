@@ -35,6 +35,16 @@ function prefersReducedMotion() {
 
 export function Card({ eyebrow, title, description, media, footer, href, interactive = false, selected = false, surface = "raised", background, backgroundVideo, backgroundPosition = "center", scrim = "gradient", onMedia = "light", as: Tag = "div", className, children, style, ...rest }) {
   const [hover, setHover] = React.useState(false);
+  /* The video starts from an effect rather than an autoPlay attribute, so the
+     server and the browser render the same markup; reduced motion leaves it on
+     its poster. It is muted and inline, which browsers let play unprompted. */
+  const video = React.useRef(null);
+  React.useEffect(() => {
+    const v = video.current;
+    if (!v || prefersReducedMotion()) return;
+    const playing = v.play();
+    if (playing && playing.catch) playing.catch(() => {});
+  }, [backgroundVideo]);
   const linked = !!href;
   const lift = interactive || linked;
   const glass = SURFACES[surface];
@@ -68,7 +78,7 @@ export function Card({ eyebrow, title, description, media, footer, href, interac
       >
         <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           {backgroundVideo ? (
-            <video src={backgroundVideo} poster={background} muted loop playsInline autoPlay={!prefersReducedMotion()} preload="metadata" tabIndex={-1}
+            <video ref={video} src={backgroundVideo} poster={background} muted loop playsInline preload="metadata" tabIndex={-1}
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: backgroundPosition, display: "block" }} />
           ) : (
             <img src={background} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: backgroundPosition, display: "block" }} />

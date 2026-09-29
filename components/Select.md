@@ -33,7 +33,7 @@ Placeholder is an instruction, not a fake value: "Choose a plan". Options are se
 import * as React from "react";
 
 /** Dropdown for a known set of options. Native select underneath. */
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
   label?: string;
   hint?: string;
   error?: string;

@@ -36,7 +36,7 @@ Title says what happened. Body says what to do next. Never lead with an apology.
 import * as React from "react";
 
 /** Inline message about the state of the page or a form. Stays until the condition clears. */
-export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** @default "info" */
   tone?: "info" | "success" | "warning" | "danger";
   title?: React.ReactNode;

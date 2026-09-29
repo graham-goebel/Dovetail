@@ -41,7 +41,7 @@ export interface TabItem {
 }
 
 /** Switches between sibling views without leaving the page. */
-export interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TabsProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
   tabs: TabItem[];
   /** Id of the selected tab. Controlled. */
   value: string;

@@ -160,6 +160,12 @@ function copyDeclaration(rel) {
   return { code: out, exp, rewrites: edits.length };
 }
 
+/* Exports that exist so one component file can share a piece with another,
+   not for consumers. They stay in their own module (Cover and Video import
+   UploadFrame from Image) but are left out of index.js, so they are not public
+   API that a later refactor would break. */
+const INTERNAL = new Set(["UploadFrame"]);
+
 function main() {
   const warnings = [];
   const warn = (msg) => warnings.push(msg);
@@ -193,9 +199,10 @@ function main() {
       warn(`${rel}: no ${path.basename(dts)} beside it`);
     }
     for (const n of exp.names) {
+      if (INTERNAL.has(n)) continue;
       if (declared && !declared.has(n)) warn(`${n} (${rel}) is exported at runtime but not declared in ${path.basename(dts)}`);
     }
-    modules.push({ base, names: exp.names.filter((n) => owners.get(n) === rel), hasDts: !!declared });
+    modules.push({ base, names: exp.names.filter((n) => owners.get(n) === rel && !INTERNAL.has(n)), hasDts: !!declared });
   }
 
   const js = modules
@@ -210,7 +217,7 @@ function main() {
      what ships. Report any difference either way. */
   const manifest = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
   const listed = new Set((manifest.components || []).map((c) => c.name));
-  const exported = new Set(owners.keys());
+  const exported = new Set([...owners.keys()].filter((n) => !INTERNAL.has(n)));
   for (const n of exported) if (!listed.has(n)) warn(`${n} (${owners.get(n)}) is exported but not in system/manifest.json`);
   for (const n of listed) if (!exported.has(n)) warn(`${n} is in system/manifest.json but no source exports it`);
 

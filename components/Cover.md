@@ -75,7 +75,7 @@ import { AspectRatioProps } from "./AspectRatio";
  * between them is a ratio and where the text sits, not a different piece of
  * markup. Renders Image's own upload-ready placeholder when \`src\` is absent.
  */
-export interface CoverProps extends Omit<React.HTMLAttributes<HTMLElement>, "placeholder"> {
+export interface CoverProps extends Omit<React.HTMLAttributes<HTMLElement>, "placeholder" | "title"> {
   /** Image URL. Omit to render the placeholder frame. */
   src?: string;
   /** Alternative text. Required; pass an empty string when the visible title already says what the image shows. */

@@ -31,7 +31,7 @@ Stack several Media blocks and flip \`reverse\` on every other one. The zigzag g
 import * as React from "react";
 
 /** A media-and-copy row: the workhorse block of a marketing or lifestyle page. */
-export interface MediaProps extends React.HTMLAttributes<HTMLElement> {
+export interface MediaProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   /** The visual half, usually an \`Image\` or \`Figure\`. */
   media?: React.ReactNode;
   /** Short kicker above the title. Uppercased by the eyebrow role. */
