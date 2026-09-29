@@ -156,7 +156,10 @@ try {
     const declared = Object.keys(installed.peerDependencies || {});
     for (const p of ["react", "react-dom"]) if (!declared.includes(p)) fail(`peerDependencies does not list ${p}`);
     const ex = installed.exports || {};
-    for (const k of [".", "./styles.css", "./tokens/*"]) if (!(k in ex)) fail(`the installed package.json has no exports["${k}"]`);
+    /* The token subpath is required once the token build puts dist/tokens in
+       the package; until then an export pointing at nothing would be a lie. */
+    const wants = [".", "./styles.css"].concat(tarFiles.includes("dist/tokens/tokens.css") ? ["./tokens/*"] : []);
+    for (const k of wants) if (!(k in ex)) fail(`the installed package.json has no exports["${k}"]`);
   });
 
   await step(`render from "${NAME}" (server) and resolve ${NAME}/styles.css`, () => {
