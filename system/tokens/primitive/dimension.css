@@ -30,6 +30,14 @@
   --dt-dim-56: 224px;
   --dt-dim-64: 256px;
 
+  /* Artboards: the native pixel sizes of social formats. A post is drawn at
+     these sizes and scaled to fit, so a screenshot at full size is ready to
+     publish. */
+  --dt-dim-artboard-width: 1080px;
+  --dt-dim-artboard-square: 1080px;
+  --dt-dim-artboard-portrait: 1350px;
+  --dt-dim-artboard-story: 1920px;
+
   /* Sub-unit. Hairlines and optical corrections only — never layout. */
   --dt-dim-hair: 1px;
   --dt-dim-hair-2: 2px;

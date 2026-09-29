@@ -52,6 +52,17 @@ export declare function Quote(props: QuoteProps): JSX.Element;
 | --- | --- | --- |
 | `--dt-space-inline-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-stack-sm` | semantic | `var(--dt-dim-3)` |
+| `--dt-text-artboard-body-line` | semantic | `calc(var(--dt-line-height-md) * 2.35)` |
+| `--dt-text-artboard-body-size` | semantic | `calc(var(--dt-font-size-md) * 2.5)` |
+| `--dt-text-artboard-display-family` | semantic | `var(--dt-text-display-lg-family)` |
+| `--dt-text-artboard-display-line` | semantic | `calc(var(--dt-line-height-7xl) * 2.55)` |
+| `--dt-text-artboard-display-size` | semantic | `calc(var(--dt-font-size-7xl) * 2.8)` |
+| `--dt-text-artboard-display-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-artboard-display-weight` | semantic | `var(--dt-text-display-lg-weight)` |
+| `--dt-text-artboard-meta-size` | semantic | `calc(var(--dt-font-size-sm) * 2.2)` |
+| `--dt-text-artboard-meta-tracking` | semantic | `var(--dt-tracking-wider)` |
+| `--dt-text-artboard-title-line` | semantic | `calc(var(--dt-line-height-7xl) * 1.7)` |
+| `--dt-text-artboard-title-size` | semantic | `calc(var(--dt-font-size-7xl) * 1.75)` |
 | `--dt-text-body-lg-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-lg-line` | semantic | `var(--dt-line-height-lg)` |
 | `--dt-text-body-lg-size` | semantic | `var(--dt-font-size-lg)` |

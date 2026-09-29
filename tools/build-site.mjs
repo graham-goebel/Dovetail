@@ -1099,6 +1099,7 @@ const CARD_TITLE = {
   MarketingKit: "Marketing page",
   BlocksKit: "Landing page from blocks",
   SettingsPageTemplate: "Settings page",
+  SocialKit: "Social templates",
 };
 
 /* Most cards open their subtitle with the name a reader wants: ColorCyan is

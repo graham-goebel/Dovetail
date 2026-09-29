@@ -321,6 +321,9 @@
         blocks: [{ _type: "callout", _key: "a", tone: "note", title: "Rendered from a block", children: "{ _type: \"callout\" } and a registry entry." }],
       });
     },
+    SocialPost: function () {
+      return e("div", { style: { width: "96px" } }, e(NS.SocialPost, { layout: "headline", tone: "brand", eyebrow: "Summer", title: "Walk the high route.", handle: "@highroute" }));
+    },
     Media: function () {
       return e(NS.Media, {
         media: e(NS.Image, { alt: "Route map with three waypoints", ratio: "4:3" }),

@@ -125,4 +125,20 @@
   --dt-text-code-sm-line: var(--dt-line-height-xs);
   --dt-text-code-sm-weight: var(--dt-font-weight-regular);
   --dt-text-code-sm-tracking: var(--dt-tracking-normal);
+
+  /* ---- Artboard ---------------------------------------------------
+     Type for a 1080px social artboard (SocialPost). Sized in artboard
+     pixels, so no context retunes it: a post reads the same wherever it is
+     previewed. The display family and weight still follow the theme. */
+  --dt-text-artboard-display-family: var(--dt-text-display-lg-family);
+  --dt-text-artboard-display-size: calc(var(--dt-font-size-7xl) * 2.8);
+  --dt-text-artboard-display-line: calc(var(--dt-line-height-7xl) * 2.55);
+  --dt-text-artboard-display-weight: var(--dt-text-display-lg-weight);
+  --dt-text-artboard-display-tracking: var(--dt-tracking-tightest);
+  --dt-text-artboard-title-size: calc(var(--dt-font-size-7xl) * 1.75);
+  --dt-text-artboard-title-line: calc(var(--dt-line-height-7xl) * 1.7);
+  --dt-text-artboard-body-size: calc(var(--dt-font-size-md) * 2.5);
+  --dt-text-artboard-body-line: calc(var(--dt-line-height-md) * 2.35);
+  --dt-text-artboard-meta-size: calc(var(--dt-font-size-sm) * 2.2);
+  --dt-text-artboard-meta-tracking: var(--dt-tracking-wider);
 }

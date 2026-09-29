@@ -1,0 +1,80 @@
+<!-- @dsCard group="Templates" height=2508 width=1280 subtitle="Social templates — Ten story and grid layouts: large editorial type on plain tones and photographs, drawn at native size" page -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>
+body{margin:0;background:var(--dt-surface-subtle);color:var(--dt-text-primary);font-family:var(--dt-font-family-sans)}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 32px 96px;display:flex;flex-direction:column;gap:56px}
+.head h1{margin:0 0 8px;font-size:var(--dt-text-heading-xl-size);line-height:var(--dt-text-heading-xl-line);font-weight:var(--dt-font-weight-medium);letter-spacing:var(--dt-tracking-tight)}
+.head p{margin:0;max-width:60ch;color:var(--dt-text-secondary);font-size:var(--dt-text-body-lg-size);line-height:var(--dt-text-body-lg-line)}
+.row-h{margin:0 0 16px;font-family:var(--dt-font-family-mono);font-size:var(--dt-font-size-2xs);letter-spacing:var(--dt-tracking-wider);text-transform:uppercase;color:var(--dt-text-tertiary)}
+.stories{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-width:720px}
+.cap{margin:8px 0 0;font-family:var(--dt-font-family-mono);font-size:var(--dt-font-size-2xs);color:var(--dt-text-tertiary)}
+@media (max-width:900px){.wrap{padding:28px 16px 88px;gap:40px}.stories{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{gap:3px}}
+</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+</head><body><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var IMG = "../examples/travel/img/";
+  var common = { brand: "High Route", handle: "@highroute" };
+
+  /* Ten layouts, one voice: the same frame, type scale and brand across
+     plain tones and photographs, for a hut-to-hut walking company. */
+  var POSTS = [
+    { layout: "headline", tone: "brand", eyebrow: "Summer 2026", title: "Walk the high route.", body: "Four to nine days between mountain huts. We carry the rest.", cta: "Link in bio" },
+    { layout: "cover", image: IMG + "scene/alpine.webp", eyebrow: "Route 04", title: "Above the tree line", body: "Four days, three huts, one pass.", cta: "Swipe" },
+    { layout: "quote", tone: "ink", title: "We only had to walk. Everything else was done for us.", meta: "Margaret H. · Haute Route, 2025" },
+    { layout: "stat", tone: "brand-muted", eyebrow: "Since 2019", title: "14k", body: "nights booked across 120 mountain huts.", meta: "And zero lost bags" },
+    { layout: "split", tone: "paper", image: IMG + "scene/lakehouse.webp", eyebrow: "The huts", title: "Beds, dinner and a view", body: "Family-run huts with hot showers and three-course dinners.", cta: "Read more" },
+    { layout: "list", tone: "paper", eyebrow: "Packing", title: "Five things you won’t need", items: ["A second pair of boots", "Your laptop", "A paper map", "Snacks for four days", "A plan B"] },
+    { layout: "card", image: IMG + "photo/tuscany.webp", eyebrow: "Guide", title: "Tuscany by rail", body: "Five towns, one pass, no car.", cta: "Save" },
+    { layout: "announcement", tone: "secondary", badge: "New route", title: "The Dolomites loop", body: "Six days, five huts, one very good pass.", meta: "Opens 14 June" },
+    { layout: "framed", tone: "brand-muted", image: IMG + "scene/rome.webp", eyebrow: "Weekend", title: "Rome, slowly", cta: "Swipe" },
+    { layout: "poster", image: IMG + "scene/amalfi.webp", title: "Amalfi", body: "Five days on the coast path, bags sent ahead.", cta: "Book" },
+  ];
+
+  function Page() {
+    return e("div", { className: "wrap" },
+      e("div", { className: "head" },
+        e("h1", null, "Social templates"),
+        e("p", null, "Ten layouts for stories and the grid, drawn at native size (1080 × 1920 and 1080 × 1350) and themed by the same tokens as everything else. Change the brand in Configure and every post follows.")),
+      e("section", null,
+        e("p", { className: "row-h" }, "Stories · 9:16"),
+        e("div", { className: "stories" }, POSTS.map(function (p, i) {
+          return e("figure", { key: i, style: { margin: 0 } },
+            e(NS.SocialPost, Object.assign({ format: "story", counter: String(i + 1).padStart(2, "0") + "/10" }, common, p)),
+            e("figcaption", { className: "cap" }, p.layout + (p.tone ? " · " + p.tone : "")));
+        }))),
+      e("section", null,
+        e("p", { className: "row-h" }, "Grid · 4:5"),
+        e("div", { className: "grid" }, POSTS.slice(0, 9).map(function (p, i) {
+          return e(NS.SocialPost, Object.assign({ key: i, format: "portrait" }, common, p, { cta: undefined, style: { borderRadius: 0 } }));
+        }))),
+      e("section", null,
+        e("p", { className: "row-h" }, "Square · 1:1"),
+        e("div", { className: "stories" }, [POSTS[0], POSTS[3], POSTS[6], POSTS[2], POSTS[9]].map(function (p, i) {
+          return e(NS.SocialPost, Object.assign({ key: i, format: "square" }, common, p));
+        })))
+    );
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.SocialPost || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>
