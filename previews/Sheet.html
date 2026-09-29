@@ -1,0 +1,100 @@
+<!-- @dsCard group="Feedback" height=640 -->
+<!DOCTYPE html>
+<html><head>
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script src="../system/components/bundle.js"></script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+
+  var STOPS = [
+    { id: 1, title: "Refuge du Lac", description: "Day 1 · 11km · 820m up" },
+    { id: 2, title: "Cabane des Pierres", description: "Day 2 · 14km · the pass" },
+    { id: 3, title: "Rifugio Alto", description: "Day 3 · 9km · lake loop" },
+    { id: 4, title: "Back to the valley", description: "Day 4 · 8km · all downhill" },
+  ];
+  var HUTS = ["Refuge du Lac", "Cabane des Pierres", "Rifugio Alto", "Hütte am See", "Bivouac Nord"];
+
+  function Page() {
+    var which = React.useState(null);
+    var hut = React.useState(HUTS[1]);
+    var open = which[0];
+    var set = which[1];
+    var close = function () { set(null); };
+
+    return e(React.Fragment, null,
+      e(Shelf, { name: "Sheet", summary: "A modal panel that rises from the bottom of a phone and opens as a centred dialog on a wide screen.", props: [
+          { name: "open", type: "boolean", notes: "Whether it shows. It animates out before it unmounts." },
+          { name: "onClose", type: '(reason: "close" | "escape" | "scrim" | "swipe") => void', notes: "Set open to false in response." },
+          { name: "onBack", type: "() => void", notes: "A sheet opened from another: back arrow on the left, close on the right, drag right to go back." },
+          { name: "title", type: "ReactNode", notes: "Big title; shrinks into the bar on scroll. Also the accessible name." },
+          { name: "eyebrow", type: "ReactNode", notes: "A short line above the title." },
+          { name: "description", type: "ReactNode", notes: "One sentence under the title." },
+          { name: "action", type: "ReactNode", notes: "The bar's trailing slot: one small Button." },
+          { name: "actions", type: "SheetAction[]", notes: "Chips pinned along the bottom; one may be primary." },
+          { name: "footer", type: "ReactNode", notes: "A row of Buttons pinned to the bottom, when there are no chips." },
+          { name: "size", type: '"sm" | "md" | "lg"', default: '"md"', notes: "Width on a wide screen." },
+        ], guidance: [
+          "Sheet for a short task or detail over where the reader is. Dialog when they must answer first; Drawer when the panel sits beside the page.",
+          "A sheet opened from another takes onBack, so the reader steps back rather than losing their place.",
+          "Chips are verbs. Mark one primary at most; the rest stay quiet.",
+          "Drag gestures are a shortcut. Close and back are always buttons too.",
+        ] },
+        e(Specimen, { label: "Open one", bg: "var(--dt-surface-base)" },
+          e(NS.Inline, { gap: "sm", wrap: true },
+            e(NS.Button, { onClick: function () { set("detail"); } }, "Detail with chips"),
+            e(NS.Button, { variant: "secondary", onClick: function () { set("form"); } }, "Form with footer"),
+            e(NS.Button, { variant: "secondary", onClick: function () { set("picker"); } }, "Nested picker")))),
+
+      e(NS.Sheet, {
+        open: open === "detail", onClose: close,
+        eyebrow: "Trip · 4 days", title: "Alpine huts", description: "Three huts, 42km and one pass, above the tree line the whole way.",
+        actions: [
+          { label: "Book", primary: true, onClick: close },
+          { label: "Share", onClick: function () {} },
+          { label: "Save", onClick: function () {} },
+          { label: "Download map", onClick: function () {} },
+        ],
+      }, e(NS.List, { label: "Stops", items: STOPS })),
+
+      e(NS.Sheet, {
+        open: open === "form", onClose: close, size: "sm",
+        title: "Edit stop", description: "Changes apply to everyone on the trip.",
+        footer: e(React.Fragment, null,
+          e(NS.Button, { variant: "secondary", onClick: close }, "Cancel"),
+          e(NS.Button, { onClick: close }, "Save")),
+      }, e(NS.Stack, { gap: "md" },
+          e(NS.Field, { label: "Name" }, e(NS.Input, { defaultValue: "Cabane des Pierres" })),
+          e(NS.Field, { label: "Distance" }, e(NS.Input, { defaultValue: "14km" })))),
+
+      e(NS.Sheet, {
+        open: open === "picker", onClose: close, onBack: close,
+        title: "Choose a hut", action: e(NS.Button, { size: "sm", onClick: close }, "Done"),
+      }, e(NS.List, { label: "Huts", interactive: true, items: HUTS.map(function (h) {
+          return { id: h, title: h, trailing: hut[0] === h ? "✓" : null, onClick: function () { hut[1](h); } };
+        }) }))
+    );
+  }
+
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.Sheet || !window.Shelf || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

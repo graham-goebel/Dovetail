@@ -26,6 +26,16 @@
   --dt-popover-radius: var(--dt-radius-container);
   --dt-popover-padding: var(--dt-space-inset-md);
   --dt-popover-elevation: var(--dt-elevation-3); /* @kind other */
+
+  /* Sheet: inset from a phone's edges, with room above it to show the page
+     it came from; round buttons on a quiet fill; a shadow that reads over a
+     busy page without a border. */
+  --dt-sheet-inset: var(--dt-space-inset-xs);
+  --dt-sheet-top-gap: var(--dt-space-stack-2xl);
+  --dt-sheet-padding: var(--dt-space-inset-xl);
+  --dt-sheet-button-size: var(--dt-size-control-sm);
+  --dt-sheet-button-bg: var(--dt-surface-sunken);
+  --dt-sheet-shadow: var(--dt-elevation-4); /* @kind other */
 }
 
 /* Colour aliases again, under .dark. A custom property resolves where it is
@@ -39,4 +49,5 @@
   --dt-dialog-fg: var(--dt-text-primary);
   --dt-dialog-border-color: var(--dt-border-subtle);
   --dt-dialog-scrim: var(--dt-surface-scrim);
+  --dt-sheet-button-bg: var(--dt-surface-sunken);
 }

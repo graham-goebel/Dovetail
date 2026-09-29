@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"5cf90fead5b2","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"c77f411e1358","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"7e4cc628d9f1","components/feedback/Drawer.jsx":"7ad36dd3a1be","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"22594e22a9bc","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"bfbfe41ac1b5","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"8e6b82b9d921","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"51c84dda543c","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"96e96631111c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"1f95e9c9a694"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -6458,6 +6458,462 @@ function BottomNav({
 }
 Object.assign(__ds_scope, { BottomNav });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/BottomNav.jsx", error: String((e && e.message) || e) }); }
+// components/feedback/Sheet.jsx
+try { (() => {
+/* The sheet the phone apps are built from: a panel that rises from the
+   bottom of a phone, inset from its edges, and opens as a centred dialog on a
+   wide screen. A sticky bar carries close (or back, for a sheet opened from
+   another) and an optional action; a big title under it shrinks into the bar
+   as the sheet scrolls. Actions float along the bottom as chips, or a footer
+   holds buttons. On touch, a drag down from the top closes it and a drag
+   right goes back.
+
+   Styles are inline and read tokens, so motion that needs keyframes runs
+   through the Web Animations API instead, and stops for reduced motion. */
+
+const NARROW = "(max-width: 699px)";
+const EASE = "cubic-bezier(.2,.8,.2,1)";
+const WIDTHS = {
+  sm: "var(--dt-dialog-width-sm)",
+  md: "var(--dt-dialog-width-md)",
+  lg: "var(--dt-dialog-width-lg)"
+};
+function useMedia(query) {
+  const get = () => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia(query).matches;
+  const [on, setOn] = React.useState(get);
+  React.useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const m = window.matchMedia(query);
+    const sync = () => setOn(m.matches);
+    sync();
+    if (m.addEventListener) m.addEventListener("change", sync);else m.addListener(sync);
+    return () => m.removeEventListener ? m.removeEventListener("change", sync) : m.removeListener(sync);
+  }, [query]);
+  return on;
+}
+const Icon = ({
+  d
+}) => /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "2",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": "true",
+  focusable: "false",
+  style: {
+    width: "var(--dt-size-icon-sm)",
+    height: "var(--dt-size-icon-sm)",
+    display: "block"
+  }
+}, d.map(p => /*#__PURE__*/React.createElement("path", {
+  key: p,
+  d: p
+})));
+const CLOSE = ["M6 6l12 12", "M18 6 6 18"];
+const BACK = ["M19.5 12h-15", "m10.5 6-6 6 6 6"];
+const roundButton = {
+  appearance: "none",
+  border: 0,
+  cursor: "pointer",
+  flex: "none",
+  display: "grid",
+  placeItems: "center",
+  width: "var(--dt-sheet-button-size)",
+  height: "var(--dt-sheet-button-size)",
+  borderRadius: "var(--dt-radius-pill)",
+  background: "var(--dt-sheet-button-bg)",
+  color: "var(--dt-dialog-fg)"
+};
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+function Sheet({
+  open,
+  onClose,
+  onBack,
+  title,
+  eyebrow,
+  description,
+  action,
+  actions,
+  footer,
+  size = "md",
+  label,
+  children,
+  style,
+  ...rest
+}) {
+  const narrow = useMedia(NARROW);
+  const reduce = useMedia("(prefers-reduced-motion: reduce)");
+  const [mounted, setMounted] = React.useState(open);
+  const box = React.useRef(null);
+  const scrim = React.useRef(null);
+  const titleId = React.useId ? React.useId() : "dt-sheet-title";
+
+  /* Mount on open; on close, play the exit and then unmount. */
+  React.useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return undefined;
+    }
+    if (!mounted) return undefined;
+    const el = box.current;
+    if (!el || reduce || !el.animate) {
+      setMounted(false);
+      return undefined;
+    }
+    const out = narrow ? [{
+      transform: "none"
+    }, {
+      transform: "translateY(100%)"
+    }] : [{
+      transform: "none",
+      opacity: 1
+    }, {
+      transform: "translateY(20px) scale(.98)",
+      opacity: 0
+    }];
+    const a = el.animate(out, {
+      duration: narrow ? 260 : 200,
+      easing: "cubic-bezier(.5,0,.9,.6)",
+      fill: "forwards"
+    });
+    if (scrim.current) scrim.current.animate([{
+      opacity: 1
+    }, {
+      opacity: 0
+    }], {
+      duration: 260,
+      fill: "forwards"
+    });
+    a.onfinish = () => setMounted(false);
+    return () => {
+      a.onfinish = null;
+    };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Entry motion, focus, Escape, a focus trap and a still page behind. */
+  React.useEffect(() => {
+    if (!open || !mounted) return undefined;
+    const el = box.current;
+    const prev = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (el && !reduce && el.animate) {
+      el.animate(narrow ? [{
+        transform: "translateY(100%)"
+      }, {
+        transform: "none"
+      }] : [{
+        transform: "translateY(28px) scale(.98)",
+        opacity: 0
+      }, {
+        transform: "none",
+        opacity: 1
+      }], {
+        duration: narrow ? 420 : 300,
+        easing: EASE
+      });
+      if (scrim.current) scrim.current.animate([{
+        opacity: 0
+      }, {
+        opacity: 1
+      }], {
+        duration: 280,
+        easing: "ease-out"
+      });
+    }
+    if (el) {
+      el.scrollTop = 0;
+      el.style.setProperty("--dt-sheet-p", "0");
+      const first = el.querySelector("[data-sheet-lead]");
+      (first || el).focus({
+        preventScroll: true
+      });
+    }
+    const onKey = e => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose && onClose("escape");
+      } else if (e.key === "Tab" && el) {
+        const items = Array.prototype.filter.call(el.querySelectorAll(FOCUSABLE), n => n.offsetParent !== null);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      if (prev && prev.focus) prev.focus();
+    };
+  }, [open, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* The title shrinks into the bar over the first 72px of scroll. */
+  const onScroll = e => {
+    e.currentTarget.style.setProperty("--dt-sheet-p", String(Math.min(1, e.currentTarget.scrollTop / 72)));
+  };
+
+  /* Touch: down from the top closes, right goes back when there is a back. */
+  const drag = React.useRef(null);
+  const onTouchStart = e => {
+    if (e.touches.length !== 1 || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) {
+      drag.current = null;
+      return;
+    }
+    const t = e.touches[0];
+    drag.current = {
+      x: t.clientX,
+      y: t.clientY,
+      t: Date.now(),
+      top: box.current.scrollTop <= 0,
+      axis: null,
+      dx: 0,
+      dy: 0
+    };
+  };
+  const onTouchMove = e => {
+    const d = drag.current;
+    if (!d) return;
+    const t = e.touches[0];
+    d.dx = t.clientX - d.x;
+    d.dy = t.clientY - d.y;
+    if (!d.axis) {
+      if (d.top && d.dy > 8 && d.dy > Math.abs(d.dx)) d.axis = "y";else if (onBack && d.dx > 10 && d.dx > Math.abs(d.dy) * 1.3) d.axis = "x";else {
+        if (Math.abs(d.dx) > 14 || d.dy < -6) drag.current = null;
+        return;
+      }
+    }
+    const el = box.current;
+    if (d.axis === "y") el.style.transform = `translateY(${Math.max(0, d.dy)}px)`;else el.style.transform = `translateX(${Math.max(0, d.dx)}px)`;
+  };
+  const onTouchEnd = () => {
+    const d = drag.current;
+    drag.current = null;
+    const el = box.current;
+    if (!d || !d.axis || !el) return;
+    const ms = Math.max(1, Date.now() - d.t);
+    const spring = () => {
+      el.style.transition = "transform .2s ease";
+      el.style.transform = "";
+      setTimeout(() => {
+        el.style.transition = "";
+      }, 220);
+    };
+    if (d.axis === "y" && (d.dy > Math.min(140, el.offsetHeight * 0.3) || d.dy / ms > 0.6 && d.dy > 30)) {
+      el.style.transform = "";
+      onClose && onClose("swipe");
+    } else if (d.axis === "x" && (d.dx > Math.min(110, el.offsetWidth * 0.28) || d.dx / ms > 0.5 && d.dx > 40)) {
+      el.style.transform = "";
+      onBack();
+    } else spring();
+  };
+  if (!mounted) return null;
+  const hasActions = Array.isArray(actions) && actions.length > 0;
+  const trailing = action || (onBack ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => onClose && onClose("close"),
+    "aria-label": "Close",
+    style: roundButton
+  }, /*#__PURE__*/React.createElement(Icon, {
+    d: CLOSE
+  })) : /*#__PURE__*/React.createElement("span", null));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: "var(--dt-z-overlay)",
+      display: "flex",
+      alignItems: narrow ? "flex-end" : "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: scrim,
+    onClick: () => onClose && onClose("scrim"),
+    style: {
+      position: "absolute",
+      inset: 0,
+      background: "var(--dt-dialog-scrim)"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    ref: box,
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-labelledby": title ? titleId : undefined,
+    "aria-label": title ? undefined : label,
+    tabIndex: -1,
+    onScroll: onScroll,
+    onTouchStart: onTouchStart,
+    onTouchMove: onTouchMove,
+    onTouchEnd: onTouchEnd,
+    onTouchCancel: onTouchEnd,
+    style: {
+      position: "relative",
+      boxSizing: "border-box",
+      width: narrow ? "calc(100% - 2 * var(--dt-sheet-inset))" : "100%",
+      maxWidth: narrow ? "none" : WIDTHS[size] || WIDTHS.md,
+      maxHeight: narrow ? "calc(100% - var(--dt-sheet-top-gap))" : "var(--dt-dialog-max-height)",
+      marginBottom: narrow ? "calc(var(--dt-sheet-inset) + env(safe-area-inset-bottom, 0px))" : 0,
+      overflowY: "auto",
+      overflowX: "hidden",
+      overscrollBehavior: "contain",
+      padding: "0 var(--dt-sheet-padding)",
+      paddingBottom: hasActions || footer ? 0 : "var(--dt-sheet-padding)",
+      background: "var(--dt-dialog-bg)",
+      color: "var(--dt-dialog-fg)",
+      borderRadius: "var(--dt-dialog-radius)",
+      boxShadow: "var(--dt-sheet-shadow)",
+      outline: "none",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "sticky",
+      top: 0,
+      zIndex: 2,
+      display: "grid",
+      gridTemplateColumns: action ? "auto minmax(0, 1fr) auto" : "var(--dt-sheet-button-size) minmax(0, 1fr) var(--dt-sheet-button-size)",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)",
+      margin: "0 calc(-1 * var(--dt-space-inset-sm))",
+      padding: "var(--dt-space-inset-md) var(--dt-space-inset-sm) var(--dt-space-inset-xs)",
+      background: "var(--dt-dialog-bg)",
+      boxShadow: "0 var(--dt-border-width-default) 0 color-mix(in oklab, var(--dt-dialog-border-color) calc(var(--dt-sheet-p, 0) * 100%), transparent)"
+    }
+  }, onBack ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "data-sheet-lead": true,
+    onClick: onBack,
+    "aria-label": "Back",
+    style: roundButton
+  }, /*#__PURE__*/React.createElement(Icon, {
+    d: BACK
+  })) : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "data-sheet-lead": true,
+    onClick: () => onClose && onClose("close"),
+    "aria-label": "Close",
+    style: roundButton
+  }, /*#__PURE__*/React.createElement(Icon, {
+    d: CLOSE
+  })), /*#__PURE__*/React.createElement("p", {
+    "aria-hidden": "true",
+    style: {
+      margin: 0,
+      textAlign: "center",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      fontFamily: "var(--dt-text-heading-xs-family)",
+      fontSize: "var(--dt-text-body-md-size)",
+      fontWeight: "var(--dt-font-weight-medium)",
+      opacity: "clamp(0, calc((var(--dt-sheet-p, 0) - .6) * 2.5), 1)"
+    }
+  }, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      justifySelf: "end"
+    }
+  }, trailing)), (eyebrow || title || description) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "var(--dt-space-inset-2xs, 4px) 0 var(--dt-space-inset-sm)",
+      transform: "scale(calc(1 - .08 * var(--dt-sheet-p, 0)))",
+      transformOrigin: "0 0",
+      opacity: "calc(1 - .8 * var(--dt-sheet-p, 0))"
+    }
+  }, eyebrow && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 2px",
+      fontSize: "var(--dt-text-body-sm-size)",
+      color: "var(--dt-text-tertiary)"
+    }
+  }, eyebrow), title && /*#__PURE__*/React.createElement("h2", {
+    id: titleId,
+    style: {
+      margin: 0,
+      fontFamily: "var(--dt-text-heading-lg-family)",
+      fontSize: "var(--dt-text-heading-lg-size)",
+      lineHeight: "var(--dt-text-heading-lg-line)",
+      fontWeight: "var(--dt-font-weight-regular)",
+      letterSpacing: "var(--dt-text-heading-lg-tracking)"
+    }
+  }, title), description && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "var(--dt-space-stack-2xs) 0 0",
+      fontSize: "var(--dt-text-body-sm-size)",
+      lineHeight: "var(--dt-text-body-sm-line)",
+      color: "var(--dt-text-secondary)"
+    }
+  }, description)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "var(--dt-text-body-md-family)",
+      fontSize: "var(--dt-text-body-md-size)",
+      lineHeight: "var(--dt-text-body-md-line)"
+    }
+  }, children), hasActions && /*#__PURE__*/React.createElement("div", {
+    role: "toolbar",
+    "aria-label": "Actions",
+    style: {
+      position: "sticky",
+      bottom: 0,
+      zIndex: 2,
+      display: "flex",
+      gap: "var(--dt-space-inline-xs)",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      margin: "var(--dt-space-stack-lg) calc(-1 * var(--dt-sheet-padding)) 0",
+      padding: "var(--dt-space-inset-xl) var(--dt-sheet-padding) var(--dt-space-inset-sm)",
+      background: "linear-gradient(to top, var(--dt-dialog-bg) 58%, transparent)"
+    }
+  }, actions.map(a => /*#__PURE__*/React.createElement("button", {
+    key: a.label,
+    type: "button",
+    onClick: a.onClick,
+    disabled: a.disabled,
+    style: {
+      appearance: "none",
+      border: 0,
+      cursor: a.disabled ? "default" : "pointer",
+      flex: "none",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)",
+      height: "var(--dt-size-control-md)",
+      padding: "0 var(--dt-space-inset-md)",
+      borderRadius: "var(--dt-radius-pill)",
+      whiteSpace: "nowrap",
+      background: a.primary ? "var(--dt-surface-action)" : "var(--dt-sheet-button-bg)",
+      color: a.primary ? "var(--dt-text-on-action)" : "var(--dt-dialog-fg)",
+      fontFamily: "var(--dt-font-family-sans)",
+      fontSize: "var(--dt-text-body-sm-size)",
+      opacity: a.disabled ? 0.4 : 1
+    }
+  }, a.icon, a.label))), footer && !hasActions && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "sticky",
+      bottom: 0,
+      zIndex: 2,
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: "var(--dt-space-inline-sm)",
+      flexWrap: "wrap",
+      margin: "var(--dt-space-stack-lg) calc(-1 * var(--dt-sheet-padding)) 0",
+      padding: "var(--dt-space-inset-md) var(--dt-sheet-padding)",
+      background: "var(--dt-dialog-bg)",
+      borderTop: "var(--dt-border-width-default) solid var(--dt-dialog-border-color)"
+    }
+  }, footer)));
+}
+Object.assign(__ds_scope, { Sheet });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Sheet.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -6589,5 +7045,7 @@ __ds_ns.Thinking = __ds_scope.Thinking;
 __ds_ns.AppShell = __ds_scope.AppShell;
 
 __ds_ns.BottomNav = __ds_scope.BottomNav;
+
+__ds_ns.Sheet = __ds_scope.Sheet;
 
 })();

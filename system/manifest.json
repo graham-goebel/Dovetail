@@ -111,6 +111,9 @@
     "components/feedback/Drawer.d.ts",
     "components/feedback/Drawer.jsx",
     "components/feedback/Drawer.md",
+    "components/feedback/Sheet.d.ts",
+    "components/feedback/Sheet.jsx",
+    "components/feedback/Sheet.md",
     "components/feedback/Popover.d.ts",
     "components/feedback/Popover.jsx",
     "components/feedback/Popover.md",
@@ -421,6 +424,9 @@
     },
     {
       "name": "Drawer"
+    },
+    {
+      "name": "Sheet"
     },
     {
       "name": "Popover"
