@@ -667,6 +667,18 @@ hr {
   margin: 0;
 }
 
+/* The templates page: a heading per kind (Product, Marketing, Social), the
+   same three the menu opens on, with its templates as h3 cards under it. */
+.tpl-kind {
+  margin-bottom: 0;
+  scroll-margin-top: calc(var(--site-header) + var(--dt-dim-4));
+}
+
+.tpl-kind-sub {
+  margin: var(--dt-dim-1) 0 var(--dt-space-stack-md);
+  color: var(--dt-text-tertiary);
+}
+
 .card-open {
   flex: none;
   font-size: var(--dt-font-size-xs);
@@ -3661,7 +3673,69 @@ body.search-open {
   }
 
   .mp-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 2px 0 6px;
+  }
+
+  .mp-head .crumb {
+    flex: 1;
+  }
+
+  /* Home: the round button the menu has, floated to the right of the head. */
+  .mp-home {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    margin: -10px -12px -10px 0;
+    text-decoration: none;
+  }
+
+  .mp-home[aria-current="page"] {
+    background: var(--dt-surface-sunken);
+  }
+
+  /* A leading icon in a small tile: Foundations, and the template kinds. */
+  .mrow .row-ic {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--dt-surface-sunken);
+    color: var(--dt-text-primary);
+  }
+
+  .mrow .row-ic .ic {
+    width: 19px;
+    height: 19px;
+  }
+
+  .mrow.drill {
+    padding: 16px 0;
+  }
+
+  .mrow.drill .row-ic {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .mrow.drill b {
+    font-size: 1.2rem;
+  }
+
+  .mrow .n {
+    flex: none;
+    min-width: 28px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--dt-surface-sunken);
+    color: var(--dt-text-tertiary);
+    font-size: 0.8rem;
+    text-align: center;
   }
 
   .crumb {
