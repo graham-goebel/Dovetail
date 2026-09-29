@@ -11,6 +11,51 @@ changes are in [docs/changelog.md](docs/changelog.md).
 The site is the design system. Every page is styled with Dovetail's own tokens, so a
 broken token shows up as a broken page.
 
+## Install
+
+The components are an npm package, [`dovetailds`](https://www.npmjs.com/package/dovetailds),
+with React as a peer dependency (18 or newer):
+
+```sh
+npm install dovetailds react react-dom
+```
+
+```jsx
+import "dovetailds/styles.css";
+import { Button, Section, Stack } from "dovetailds";
+
+export function Example() {
+  return (
+    <Section>
+      <Stack gap="md">
+        <Button variant="primary">Save changes</Button>
+      </Stack>
+    </Section>
+  );
+}
+```
+
+`dovetailds/styles.css` is the whole token stack in one file, with every `@import` inside
+it already inlined. Import it once, near the root of the app. The components read
+`var(--dt-*)` tokens, so they are unstyled without it. The stylesheet does keep one `@import`
+of a Google Fonts URL for Geist, at the top; a bundler leaves it alone, and the browser
+fetches it. To serve the fonts yourself, remove that line and declare `--dt-font-family-*`
+in your own theme.
+
+Dark mode is a class: put `class="dark"` on `<html>` (or on any element, such as a
+`Section`, to darken just that band). There is no second stylesheet.
+
+Types ship with the package; every component has a `.d.ts` with a JSDoc comment on each
+prop, and nothing needs `@types/dovetailds`.
+
+**Browsers.** The CSS uses `oklch()` and `color-mix()`, so the floor is Safari 16.4,
+Chrome 111 (and Edge 111) and Firefox 113. Older browsers ignore those declarations, so
+colour goes missing rather than being approximated. `package.json` states the same range in
+`browserslist`.
+
+Installing from npm is not yet available: the package is still private in `package.json`
+until its first release is published.
+
 ## What is here
 
 ```

@@ -1,8 +1,25 @@
 {
-  "name": "dovetail",
+  "name": "dovetailds",
   "version": "0.1.0",
   "private": true,
   "description": "The Dovetail design system and its documentation site.",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "react",
+    "components",
+    "css-variables",
+    "theming",
+    "dark-mode",
+    "white-label",
+    "oklch"
+  ],
+  "homepage": "https://graham-goebel.github.io/Dovetail/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graham-goebel/Dovetail.git"
+  },
+  "license": "MIT",
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
@@ -16,16 +33,30 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js"
     },
+    "./styles.css": "./dist/styles.css",
+    "./tokens/*": "./dist/tokens/*",
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "sideEffects": [
     "*.css"
   ],
+  "browserslist": [
+    "safari >= 16.4",
+    "chrome >= 111",
+    "firefox >= 113"
+  ],
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "node tools/build-bundle.mjs && node tools/build-site.mjs",
