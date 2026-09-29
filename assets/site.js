@@ -247,14 +247,38 @@
       }
     }
 
+    /* The same prompt tools/build-site.mjs writes (claudePrompt there); keep
+       the two in step. */
+    function claudePrompt(site, subject, title) {
+      return [
+        "I'm building with Dovetail, a white-label React design system: primitive tokens, semantic roles and components, rebranded by a theme file of token overrides.",
+        "",
+        "Read these first, in order:",
+        "1. " + site + "llms.txt: the map of the docs, with raw Markdown links to every guide, token file and component (its .md guide, .d.ts props and .jsx source).",
+        "2. " + subject + ': the "' + title + '" page I\'m looking at.',
+        "3. " + site + "system/assets/notes/CLAUDE.from-standalone.md: the authoring rules. Follow them.",
+        "",
+        "When you write code:",
+        "- Use Dovetail's components and --dt-* tokens. No literal colours, sizes, radii, shadows or durations.",
+        "- Product code reads semantic (--dt-surface-*, --dt-text-*) or component tokens, never primitives (--dt-color-*).",
+        "- Check every prop against the component's .d.ts, and follow the rules in its .md.",
+        "- Rebrand by overriding tokens in a theme file, not by editing components.",
+        "- Make it work at 390px, in dark mode (.dark) and with reduced motion.",
+        "- If the docs don't cover something, say so rather than inventing an API or a token.",
+        "",
+        "My task: ",
+      ].join("\n");
+    }
+
     /* The Claude link is written for the published site. Served from anywhere
        else (a fork, a local server) it is rebuilt from the page's own address,
        so Claude reads the page you are actually looking at. */
     function claudeHref(link) {
       var md = link.getAttribute("data-md");
       var subject = md ? new URL(md, location.href).href : location.href.split("#")[0];
-      var prompt = "I'm working with the Dovetail design system. Read " + subject + ' (the "' + link.getAttribute("data-title") + '" docs) and help me use it.';
-      return "https://claude.ai/new?q=" + encodeURIComponent(prompt);
+      var home = document.querySelector(".wordmark");
+      var site = new URL(home ? home.getAttribute("href").replace(/index\.html$/, "") : "./", location.href).href;
+      return "https://claude.ai/new?q=" + encodeURIComponent(claudePrompt(site, subject, link.getAttribute("data-title")));
     }
 
     menuBtn.addEventListener("click", function () {

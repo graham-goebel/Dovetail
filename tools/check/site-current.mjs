@@ -19,7 +19,7 @@ function snapshot() {
       const rel = path.join(dir, e.name);
       if (/^(\.git|node_modules)/.test(rel)) continue;
       if (e.isDirectory()) walk(rel);
-      else if (/\.(html|js|json|md)$/.test(e.name)) out.set(rel, crypto.createHash("sha1").update(fs.readFileSync(path.join(ROOT, rel))).digest("hex"));
+      else if (/\.(html|js|json|md|txt)$/.test(e.name)) out.set(rel, crypto.createHash("sha1").update(fs.readFileSync(path.join(ROOT, rel))).digest("hex"));
     }
   })("");
   return out;
