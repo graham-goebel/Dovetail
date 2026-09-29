@@ -103,6 +103,15 @@
     }).join("");
   }
 
+  /* "Open in Claude" for the page you're on: the page menu's own link, which
+     already carries this page's address and its Markdown when it has one. */
+  var CLAUDE_MARK = '<svg class="claude-mark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M13.2 12H22.5M12.96 12.72l5.59 4.21M12.6 13.04l4.1 7.1M11.85 13.19l-1.13 9.23M11.4 13.04l-3.5 6.06M10.9 12.47l-7.55 3.2M10.8 12H1.5M11.04 11.28L5.45 7.07M11.4 10.96L7.3 3.86M12.15 10.81l1.13-9.23M12.6 10.96l3.5-6.06M13.1 11.53l7.55-3.2"/></svg>';
+  function claudeChip() {
+    var own = document.querySelector('[data-page-action="claude"]');
+    var href = own ? own.getAttribute("href") : "https://claude.ai/new?q=" + encodeURIComponent("Read " + location.href + " and help me use it.");
+    return '<a class="sub-link sub-link-claude" href="' + esc(href) + '" target="_blank" rel="noopener">' + CLAUDE_MARK + "Open in Claude</a>";
+  }
+
   function mrow(item) {
     var on = here(item.u);
     return '<a class="mrow" href="' + esc(ROOT + item.u) + '"' + (on ? ' aria-current="page"' : "") + '><span class="t"><b>' + esc(item.t) + "</b>" +
@@ -113,13 +122,13 @@
     var body = "";
     if (p.kind === "menu") {
       body = '<nav class="big-links" aria-label="Sections">' + NAV.tree.map(function (s) {
-        var label = '<span class="bl-t"><span class="lbl">' + esc(s.t) + "</span><small>" + esc(s.d) + "</small></span>";
+        var label = '<span class="bl-t"><span class="lbl">' + esc(s.t) + "</span></span>";
         if (s.u) return '<a class="big-link" href="' + esc(ROOT + s.u) + '"' + (here(s.u) ? ' aria-current="page"' : "") + ">" + label + "</a>";
         return '<button type="button" class="big-link" data-sec="' + s.id + '">' + label + ic("next") + "</button>";
       }).join("") + "</nav>" +
         '<nav class="sub-links" aria-label="More">' + NAV.extras.map(function (x) {
           return '<a class="sub-link" href="' + esc(ROOT + x.u) + '">' + esc(x.t) + "</a>";
-        }).join("") + "</nav>";
+        }).join("") + claudeChip() + "</nav>";
     } else if (p.kind === "section") {
       var s = section(p.id);
       body = s.items
@@ -228,11 +237,13 @@
     bg.hidden = false;
     bg.classList.remove("closing");
     document.body.classList.add("msheet-open");
+    /* The pill hides while the sheet is up; its close sits where the menu
+       button was. */
+    fab.classList.add("gone");
     if (reduce) return;
     /* The sheet grows out of the menu button. */
     var c = menuBtn.getBoundingClientRect();
     var b = box.getBoundingClientRect();
-    fab.classList.add("gone");
     bg.classList.add("morph");
     box.animate([{ clipPath: inset(c, b, c.height / 2 + "px") }, { clipPath: inset(b, b, "24px") }], { duration: 500, easing: EASE });
     bg.animate([{ backgroundColor: "rgba(0,0,0,0)" }, { backgroundColor: "rgba(0,0,0,.38)" }], { duration: 400, easing: "ease-out" });

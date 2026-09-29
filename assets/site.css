@@ -3966,3 +3966,13 @@ body.search-open {
     margin-bottom: calc(8px + env(safe-area-inset-bottom, 0px) + var(--kb, 0px));
   }
 }
+
+/* The menu's "Open in Claude" chip carries Claude's mark in its orange. */
+.sub-link-claude {
+  gap: 8px;
+}
+
+.sub-link-claude .claude-mark {
+  flex: none;
+  color: #d97757;
+}
