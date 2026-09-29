@@ -1,13 +1,15 @@
 <!-- @dsCard group="Layout" height=560 width=700 subtitle="Layers — How closely two things belong together, and how the layout's character moves the gap." page -->
 <!DOCTYPE html>
 <html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
 <script src="../system/components/lib/react.production.min.js"></script>
 <script src="../system/components/lib/react-dom.production.min.js"></script>
 <script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
 <script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8"><link rel="stylesheet" href="../system/styles.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
 <style>body{margin:0;padding:16px 20px;font-family:var(--dt-font-family-sans);color:var(--dt-text-primary);background:var(--dt-surface-base)}
-.grid{display:grid;grid-template-columns:132px repeat(3,1fr);column-gap:16px;row-gap:14px;align-items:start}
+.grid{display:grid;grid-template-columns:132px repeat(3,minmax(0,1fr));column-gap:16px;row-gap:14px;align-items:start}
+@media(max-width:560px){.grid{grid-template-columns:80px repeat(3,minmax(0,1fr));column-gap:8px}.h{overflow-wrap:anywhere}.name small{display:none}}
 .h{font-family:var(--dt-font-family-mono);font-size:11px;color:var(--dt-text-tertiary)}
 .h b{display:block;font-weight:600;color:var(--dt-text-primary);font-size:12px}
 .name{font-size:12px;font-weight:600}.name small{display:block;font-weight:400;color:var(--dt-text-tertiary);font-size:11px;line-height:1.35;margin-top:2px}

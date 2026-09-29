@@ -12,6 +12,8 @@
              design system" notice.
      pages   a script error, a local file that 404s, or a console error that
              is not about a third-party font or CDN.
+     both    on a 390px phone: no viewport meta, or content wider than the
+             screen.
      links   an href or src on a generated page that points at a local file
              that does not exist, or a card that pastes in a copy of shared
              code (the system CSS, the card kit, the theme scripts) instead
@@ -102,6 +104,41 @@ async function visit(ctx, origin, url, kind) {
   return errs.map((e) => `${url}: ${e}`);
 }
 
+/* Responsive means responsive on a phone, which a narrow desktop window is not:
+   a phone lays a page out at 980px unless it says width=device-width, and then
+   shrinks it to fit, so no media query runs and it only looks small. Each page
+   is loaded as a 390px phone; it has to keep that width, which is what the
+   viewport meta makes it do, and nothing on it may be wider. */
+const PHONE = 390;
+async function phone(ctx, origin, url) {
+  const pg = await ctx.newPage();
+  const errs = [];
+  try {
+    await pg.goto(`${origin}/${url}`, { waitUntil: "load", timeout: 30000 });
+    await pg.waitForTimeout(500);
+    const r = await pg.evaluate(() => ({ iw: innerWidth, sw: document.documentElement.scrollWidth, meta: !!document.querySelector('meta[name="viewport"]') }));
+    if (!r.meta) errs.push("no viewport meta, so a phone lays it out at 980px");
+    else if (r.sw > PHONE + 1) errs.push(`content is ${r.sw}px wide on a ${PHONE}px phone`);
+  } catch (e) {
+    errs.push("did not load: " + e.message.split("\n")[0]);
+  }
+  await pg.close();
+  return errs.map((e) => `${url}: ${e}`);
+}
+
+async function phoneAll(browser, origin, urls) {
+  const ctx = await browser.newContext({ viewport: { width: PHONE, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+  const problems = [];
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: 4 }, async () => {
+      while (next < urls.length) problems.push(...(await phone(ctx, origin, urls[next++])));
+    })
+  );
+  await ctx.close();
+  return problems;
+}
+
 /* A few pages at a time: fast enough, and gentle on a small CI runner. */
 async function visitAll(ctx, origin, urls, kind) {
   const problems = [];
@@ -150,12 +187,18 @@ if (run("cards") || run("pages")) {
       const found = await visitAll(ctx, server.origin, list, "card");
       console.log(`cards: ${list.length} checked, ${found.length} problems`);
       problems.push(...found);
+      const onPhone = await phoneAll(browser, server.origin, list);
+      console.log(`cards on a ${PHONE}px phone: ${list.length} checked, ${onPhone.length} problems`);
+      problems.push(...onPhone);
     }
     if (run("pages")) {
       const list = sitePages();
       const found = await visitAll(ctx, server.origin, list, "page");
       console.log(`pages: ${list.length} checked, ${found.length} problems`);
       problems.push(...found);
+      const onPhone = await phoneAll(browser, server.origin, list);
+      console.log(`pages on a ${PHONE}px phone: ${list.length} checked, ${onPhone.length} problems`);
+      problems.push(...onPhone);
     }
   } finally {
     await browser.close();

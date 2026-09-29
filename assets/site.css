@@ -752,6 +752,16 @@ th code {
   border-radius: var(--dt-radius-raw-4);
 }
 
+/* A long path in a sentence or a table cell breaks where it must rather than
+   widening the page: on a phone that stretched the layout and shrank it. */
+p code,
+li code,
+td code,
+th code,
+blockquote p {
+  overflow-wrap: anywhere;
+}
+
 .table-wrap {
   overflow-x: auto;
   margin: var(--dt-space-stack-md) 0;
