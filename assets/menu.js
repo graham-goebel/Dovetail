@@ -3,7 +3,9 @@
    A floating pill holds Configure and the menu button. The menu sheet grows
    out of the menu button: sections as big links, and a section with pages
    under it pushes a layer ("Menu / Components") that slides in from the
-   right; Components filters its list with Gainer-style chips. Back, search
+   right; Components filters its list with Gainer-style chips, and Templates
+   opens on its three kinds, each a layer of its own. Home is a round button
+   at the top right of every layer. Back, search
    and close sit in a footer, close exactly where the menu button was, so the
    button that opened the menu also shuts it. Search turns the footer into a
    field fixed to the sheet, with results in the sheet above it. A swipe down
@@ -35,6 +37,7 @@
     back: '<path d="M19.5 12h-15"/><path d="m10.5 6-6 6 6 6"/>',
     x: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
     search: '<path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/>',
+    home: '<path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11.5h13V9"/><path d="M10 20.5v-6h4v6"/>',
   };
   function ic(name) {
     return '<svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + ICONS[name] + "</svg>";
@@ -113,10 +116,22 @@
     return '<a class="sub-link sub-link-claude" href="' + esc(href) + '" target="_blank" rel="noopener">' + CLAUDE_MARK + "Open in Claude</a>";
   }
 
+  /* A row, with its icon in a tile ahead of it when it has one. */
+  function rowInner(item) {
+    return (item.i ? '<span class="row-ic">' + item.i + "</span>" : "") +
+      '<span class="t"><b>' + esc(item.t) + "</b>" + (item.d ? "<small>" + esc(item.d) + "</small>" : "") + "</span>";
+  }
+
   function mrow(item) {
     var on = here(item.u);
-    return '<a class="mrow" href="' + esc(ROOT + item.u) + '"' + (on ? ' aria-current="page"' : "") + '><span class="t"><b>' + esc(item.t) + "</b>" +
-      (item.d ? "<small>" + esc(item.d) + "</small>" : "") + "</span></a>";
+    return '<a class="mrow' + (item.i ? " has-ic" : "") + '" href="' + esc(ROOT + item.u) + '"' + (on ? ' aria-current="page"' : "") + ">" + rowInner(item) + "</a>";
+  }
+
+  /* An interstitial row (Templates: Product, Marketing, Social) opens the
+     layer of everything in that kind. */
+  function drillRow(g) {
+    return '<button type="button" class="mrow has-ic drill" data-group="' + esc(g.id) + '">' + rowInner(g) +
+      '<span class="n">' + g.items.length + "</span></button>";
   }
 
   function pageHtml(p) {
@@ -134,14 +149,22 @@
       var s = section(p.id);
       body = s.items
         ? '<div class="mlist">' + s.items.map(mrow).join("") + "</div>"
-        : chipsHtml(s) + '<div class="mlist" id="mlist">' + filtered(s).map(mrow).join("") + "</div>";
+        : s.drill
+          ? '<div class="mlist">' + s.groups.map(drillRow).join("") + "</div>"
+          : chipsHtml(s) + '<div class="mlist" id="mlist">' + filtered(s).map(mrow).join("") + "</div>";
     } else {
       var grp = section(p.sec).groups.filter(function (g) { return g.id === p.id; })[0];
       body = '<div class="mlist">' + grp.items.map(mrow).join("") + "</div>";
     }
-    return '<div class="mp-head"><p class="crumb">' + crumbs() + "</p></div>" +
+    return '<div class="mp-head"><p class="crumb">' + crumbs() + "</p>" + homeBtn() + "</div>" +
       '<div class="mp-body">' + body + "</div>" +
       footHtml();
+  }
+
+  /* Home sits top right of the sheet, a round button like the menu's own. */
+  function homeBtn() {
+    var u = "index.html";
+    return '<a class="msh-x mp-home" href="' + esc(ROOT + u) + '" aria-label="Home"' + (here(u) ? ' aria-current="page"' : "") + ">" + ic("home") + "</a>";
   }
 
   /* Back on the left when there is somewhere to go back to, and search in
@@ -382,7 +405,7 @@
   function enterSearch() {
     searching = true;
     box.classList.add("is-searching");
-    box.querySelector(".mp-head").innerHTML = '<p class="crumb"><span class="crumb-cur">Search</span></p>';
+    box.querySelector(".mp-head").innerHTML = '<p class="crumb"><span class="crumb-cur">Search</span></p>' + homeBtn();
     var body = box.querySelector(".mp-body");
     body.innerHTML = resultsHtml("");
     box.querySelector(".mfoot").outerHTML =

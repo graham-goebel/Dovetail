@@ -46,7 +46,29 @@ function stampAssets(rel, html) {
     return v ? `${lead}${url}?v=${v}"` : m;
   });
 }
-const writePage = (rel, opts) => write(rel, stampAssets(rel, page({ ...opts, pageUrl: rel })));
+/* A preview card is its own document with its own script tags, so the stamps
+   above never reach inside it. A link to one carries a stamp of the card, v,
+   and one of the component bundle, b, which the card hands on to the bundle
+   (RUNTIME_BUNDLE), so every card on a page shares one download of it. A new
+   component then can't meet a cached bundle from before it existed, which
+   leaves its card waiting on a component that never comes. */
+const hashOf = (...files) => {
+  const h = crypto.createHash("sha1");
+  for (const f of files) if (fs.existsSync(f)) h.update(fs.readFileSync(f));
+  return h.digest("hex").slice(0, 10);
+};
+function stampPreviews(rel, html) {
+  const dir = path.dirname(path.join(ROOT, rel));
+  const bundle = path.join(ROOT, "system/components/bundle.js");
+  return html.replace(/((?:src|href)=")((?:\.\.\/)*previews\/[^"?#:]+\.html)(?=[#"])/g, (m, lead, url) => {
+    const file = path.resolve(dir, url);
+    if (!fs.existsSync(file)) return m;
+    if (!stamps.has(file)) stamps.set(file, hashOf(file));
+    if (!stamps.has(bundle)) stamps.set(bundle, hashOf(bundle));
+    return `${lead}${url}?v=${stamps.get(file)}&amp;b=${stamps.get(bundle)}`;
+  });
+}
+const writePage = (rel, opts) => write(rel, stampPreviews(rel, stampAssets(rel, page({ ...opts, pageUrl: rel }))));
 
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -250,6 +272,7 @@ const ICONS = {
   sparkle: ['<path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/>', '<path d="M19 17.5v3"/>', '<path d="M17.5 19h3"/>'],
   more: ['<path d="M5 12h.01"/>', '<path d="M12 12h.01"/>', '<path d="M19 12h.01"/>'],
   check: ['<path d="m5 12.5 4.5 4.5L19 7.5"/>'],
+  image: ['<rect x="3.5" y="3.5" width="17" height="17" rx="2"/>', '<circle cx="9" cy="9" r="1.5"/>', '<path d="m20.5 15-4.5-4.5-10 10"/>'],
   menu: ['<path d="M4 8.5h16"/>', '<path d="M4 15.5h16"/>'],
   x: ['<path d="M6 6l12 12"/>', '<path d="M18 6 6 18"/>'],
   home: ['<path d="M3.5 10.5 12 3.5l8.5 7"/>', '<path d="M5.5 9v11.5h13V9"/>', '<path d="M10 20.5v-6h4v6"/>'],
@@ -289,6 +312,14 @@ const CONTEXT_LINKS =
   '<link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">' +
   '<link rel="stylesheet" href="../system/tokens/contexts/context-social.css">';
 
+/* The bundle is loaded with the stamp the site's link to this card carries
+   (stampPreviews), written in as a parser-blocking script so it still runs
+   before the card's own. Opened bare, the card loads it unstamped. */
+const PLAIN_BUNDLE = '<script src="../system/components/bundle.js"></script>';
+const RUNTIME_BUNDLE =
+  "<script>(function(){var b=/[?&]b=(\\w+)/.exec(location.search);" +
+  "document.write('<script src=\"../system/components/bundle.js'+(b?'?v='+b[1]:'')+'\"><\\/script>')})()</script>";
+
 /* The previews were authored against a host that pre-loaded React and the
    component bundle. Standalone they have to load both themselves. */
 function patchPreview(file) {
@@ -299,10 +330,11 @@ function patchPreview(file) {
     const inject = `<!-- ${RUNTIME_MARKER}: added by tools/build-site.mjs so this card runs on its own -->
 <script src="../system/components/lib/react.production.min.js"></script>
 <script src="../system/components/lib/react-dom.production.min.js"></script>
-<script src="../system/components/bundle.js"></script>
+${RUNTIME_BUNDLE}
 `;
     out = out.replace(/<head>/i, `<head>\n${inject}`);
   }
+  out = out.replace(PLAIN_BUNDLE, RUNTIME_BUNDLE).replace(/<script>\(function\(\)\{[^\n]*?components\/bundle\.js[^\n]*?<\/script>/g, RUNTIME_BUNDLE);
 
   /* A card was written from its place in the project, so the few resources it
      loads by path need re-pointing at system/. Each rewrite stops matching once
@@ -551,7 +583,7 @@ const FOUNDATIONS = [
 const SHOWCASE = [
   ["Components", "overviews", "Each component family at a glance.", "box"],
   ["Component detail", "detail", "Full reference cards: specimens, props and usage rules.", "list"],
-  ["Templates", "templates", "Whole screens to copy into a product, built only from Dovetail components.", "layout"],
+  ["Templates", "templates", "Product screens, marketing pages and social posts, built only from Dovetail components.", "layout"],
   ["Tools", "tools", "The theme configurator and the media lab.", "wrench"],
 ];
 const cardsInGroup = (group) => [...cards.values()].filter((c) => c.group === group);
@@ -629,13 +661,10 @@ function nav(root, active) {
   ${section(
     "Templates",
     [item("showcase/templates.html", "All templates", "showcase:templates")].concat(
-      templateCards().map((t) => item(`showcase/templates.html#${t.anchor}`, t.title, `template:${t.id}`))
-    )
-  )}
-  ${section(
-    "Showcase",
-    [item("showcase/index.html", "All showcases", "showcase")].concat(
-      SHOWCASE.filter(([, s]) => s !== "templates").map(([group, s]) => item(`showcase/${s}.html`, group, `showcase:${s}`))
+      TEMPLATE_KINDS.map(([kind, label]) => {
+        const list = templateCards().filter((t) => t.kind === kind);
+        return list.length ? `<li class="nav-group">${esc(label)}</li>` + list.map((t) => item(`showcase/templates.html#${t.anchor}`, t.title, `template:${t.id}`)).join("") : "";
+      })
     )
   )}
   ${section(
@@ -837,7 +866,7 @@ function sectionOf(active) {
 function templateCards() {
   return cardsInGroup("Templates").map((c) => {
     const title = CARD_TITLE[c.id] || c.name || c.id;
-    return { id: c.id, title, anchor: slug(title) };
+    return { id: c.id, title, anchor: slug(title), kind: TEMPLATE_KIND[c.id] || "product" };
   });
 }
 
@@ -1153,6 +1182,53 @@ function breadcrumb(root, trail) {
     .join("")}</ol></nav>`;
 }
 
+/* The phone menu's subcopy: a few words under each row, enough to tell two
+   neighbours apart. The pages keep their full sentences. Anything missing here
+   falls back to the first clause of its own summary. */
+const NAV_BLURB = {
+  Foundations: "The token contract", Color: "Ramps and roles", Type: "Scale and roles", Space: "The 4px grid",
+  Shape: "Radius and focus", Size: "Controls and icons", Elevation: "Layers and shadow", Motion: "Duration and easing",
+  Themes: "Brand and density", Tokens: "Every value, every theme",
+  Divider: "A rule between groups", Grid: "Equal columns", Inline: "A row that wraps", Spacer: "Push siblings apart",
+  Stack: "A vertical column", VisuallyHidden: "For screen readers only", Section: "A page band",
+  Heading: "Level and size apart", Text: "Body, lead, eyebrow",
+  Button: "The main action", ButtonGroup: "Related buttons", IconButton: "An icon-only action", Link: "Goes somewhere",
+  Checkbox: "Yes or no", CheckboxGroup: "Several of many", Field: "Label, hint, error", Input: "One line of text",
+  Radio: "One of a few", RadioGroup: "One of a few, grouped", Select: "Pick from a list", Slider: "A value on a range",
+  Switch: "On or off, instantly", Textarea: "Several lines of text", Combobox: "Type to filter a list",
+  Avatar: "A person at a glance", AvatarGroup: "Who is involved", Badge: "A status label", Card: "A content container",
+  Code: "Literal text", EmptyState: "Nothing here yet", List: "Rows of records", Skeleton: "While it loads",
+  Stat: "One key number", Table: "Compare across rows", Tag: "A removable chip",
+  Breadcrumbs: "Where you are", Navbar: "Top navigation", Pagination: "Page through results", Sidebar: "Side navigation",
+  Stepper: "Steps in a task", Tabs: "Sibling views", TabPanel: "A tab's content", AppShell: "A phone app frame",
+  BottomNav: "Phone tab bar",
+  Alert: "An inline message", Banner: "A page-wide message", Dialog: "Stop and decide", Drawer: "A side panel",
+  Sheet: "A bottom panel", Popover: "Anchored detail", Progress: "How much is done", Spinner: "Please wait",
+  Toast: "It worked", ToastRegion: "Where toasts appear", Tooltip: "Names a control", Thinking: "An assistant at work",
+  Accordion: "Fold content away", AspectRatio: "Hold a shape", Cover: "Text over an image", Callout: "An aside",
+  Figure: "Media and caption", Image: "A framed image", Video: "A framed video", Media: "Media beside copy",
+  Prose: "Long-form text", Quote: "A pull quote", BlockRenderer: "Blocks from content", SocialPost: "Stories and grid posts",
+  HeroBlock: "The top of a page", FeatureGridBlock: "Features in a grid", SplitBlock: "Copy beside media",
+  StatsBlock: "Numbers that matter", TestimonialBlock: "What customers say", FaqBlock: "Common questions",
+  CtaBlock: "The closing ask", BlockHeader: "Every block's heading",
+  README: "Start here", "Token reference": "Tier by tier", Theming: "Make it your brand", Accessibility: "What's guaranteed",
+  "Headless integration": "Content sources", Contributing: "Add a component", "Working together": "Branches and reviews",
+  Changelog: "What's new", "Changelog strategy": "How changes ship", "Token pipeline": "DTCG to CSS",
+  "Authoring rules": "Always-on rules", "Build plan": "Phases and inventory", Provenance: "Where files came from",
+};
+const blurb = (name, text) =>
+  NAV_BLURB[name] || String(text || "").replace(/[`*_]/g, "").split(/[.:;,(]| \u2014 /)[0].trim();
+
+/* Templates sort into three kinds. The menu opens on the kinds and each kind
+   lists its templates; the templates page is laid out the same way. */
+const TEMPLATE_KINDS = [
+  ["product", "Product", "App screens", "monitor"],
+  ["marketing", "Marketing", "Pages and landing pages", "layout"],
+  ["social", "Social", "Stories and posts", "image"],
+];
+const TEMPLATE_KIND = { DashboardKit: "product", SettingsPageTemplate: "product", MarketingKit: "marketing", BlocksKit: "marketing", SocialKit: "social" };
+const TEMPLATE_BLURB = { DashboardKit: "Metrics and tables", SettingsPageTemplate: "Forms and switches", MarketingKit: "A full marketing page", BlocksKit: "Stacked blocks", SocialKit: "Ten layouts" };
+
 /* --------------------------------------------------------------- home page */
 
 /* The search index: every component, foundation, showcase and guide page,
@@ -1161,22 +1237,26 @@ function buildSearchData() {
   const items = [
     ...components.map((c) => ({ t: c.name, s: `Component · ${GROUP_LABEL[c.group] || c.group}`, d: String(c.summary || "").replace(/[`*_]/g, ""), u: `components/${c.name}.html`, k: "component" })),
     ...FOUNDATIONS.map(([g, sl, text]) => ({ t: g, s: "Foundation", d: text, u: `foundations/${sl}.html`, k: "page" })),
-    ...SHOWCASE.map(([g, sl, text]) => ({ t: g, s: "Showcase", d: text, u: `showcase/${sl}.html`, k: "page" })),
+    ...SHOWCASE.filter(([, sl]) => sl === "templates").map(([g, sl, text]) => ({ t: g, s: "Templates", d: text, u: `showcase/${sl}.html`, k: "page" })),
     ...GUIDE_PAGES.map(([sl, label, , text]) => ({ t: label, s: "Guide", d: text, u: `guide/${sl}.html`, k: "page" })),
     { t: "Tokens", s: "Reference", d: "Every token in the system, with its value in each theme.", u: "tokens.html", k: "page" },
     { t: "Download", s: "Reference", d: "Take the stylesheets, tokens and components into your project.", u: "downloads.html", k: "page" },
   ];
   /* The phone menu's tree: sections as big links, their pages (and, for
      components, their families) as the layers under them. */
-  const row = (t, d, u) => ({ t, d: String(d || "").replace(/[`*_]/g, ""), u });
+  /* Home is the sheet's own button, top right, so it isn't a section here;
+     Showcase is hidden for now. Foundations carry their icons (i). */
+  const row = (t, d, u, i) => ({ t, d: blurb(t, d), u, ...(i ? { i: icon(i).replace('class="tile-icon"', 'class="ic"') } : {}) });
+  const templates = templateCards();
   const navTree = [
-    { id: "home", t: "Home", d: "Overview, templates and theming", u: "index.html" },
-    { id: "foundations", t: "Foundations", d: "Colour, type, space, shape, motion and tokens", items: FOUNDATIONS.map(([g, sl, text]) => row(g, text, `foundations/${sl}.html`)).concat([row("Tokens", "Every token, with its value in each theme.", "tokens.html")]) },
-    { id: "components", t: "Components", d: "", groups: GROUP_ORDER.filter((g) => g !== "blocks").map((g) => ({ id: g, t: GROUP_LABEL[g], d: `${byGroup(g).length} components`, items: byGroup(g).map((c) => row(c.name, c.summary, `components/${c.name}.html`)) })) },
-    { id: "blocks", t: "Blocks", d: "", items: byGroup("blocks").map((c) => row(c.name, c.summary, `components/${c.name}.html`)) },
-    { id: "templates", t: "Templates", d: "", items: templateCards().map((t) => row(t.title, "", `showcase/templates.html#${t.anchor}`)) },
-    { id: "showcase", t: "Showcase", d: "", items: SHOWCASE.filter(([, sl]) => sl !== "templates").map(([g, sl, text]) => row(g, text, `showcase/${sl}.html`)) },
-    { id: "guide", t: "Guide", d: "", items: GUIDE_PAGES.map(([sl, label, , text]) => row(label, text, `guide/${sl}.html`)) },
+    { id: "foundations", t: "Foundations", items: FOUNDATIONS.map(([g, sl, text, i]) => row(g, text, `foundations/${sl}.html`, i)).concat([row("Tokens", "", "tokens.html", "braces")]) },
+    { id: "components", t: "Components", groups: GROUP_ORDER.filter((g) => g !== "blocks").map((g) => ({ id: g, t: GROUP_LABEL[g], items: byGroup(g).map((c) => row(c.name, c.summary, `components/${c.name}.html`)) })) },
+    { id: "blocks", t: "Blocks", items: byGroup("blocks").map((c) => row(c.name, c.summary, `components/${c.name}.html`)) },
+    { id: "templates", t: "Templates", drill: true, groups: TEMPLATE_KINDS.map(([id, t, d, i]) => ({
+      id, t, d, u: `showcase/templates.html#${id}`, i: icon(i).replace('class="tile-icon"', 'class="ic"'),
+      items: templates.filter((x) => x.kind === id).map((x) => row(x.title, TEMPLATE_BLURB[x.id], `showcase/templates.html#${x.anchor}`)),
+    })).filter((g) => g.items.length) },
+    { id: "guide", t: "Guide", items: GUIDE_PAGES.map(([sl, label, , text]) => row(label, text, `guide/${sl}.html`)) },
   ];
   const extras = [row("Download", "", "downloads.html"), row("Changelog", "", "guide/changelog.html")];
   write("assets/search-data.js", `/* GENERATED by tools/build-site.mjs: the site search index and the phone menu. Do not edit. */\nwindow.DovetailSearch = ${JSON.stringify(items)};\nwindow.DovetailNav = ${JSON.stringify({ tree: navTree, extras })};\n`);
@@ -1197,7 +1277,7 @@ function buildHome() {
     ["foundations/index.html", "Foundations", "Colour, type, space, shape, elevation and motion, each with live spec cards.", "layers"],
     ["components/index.html", "Components", `${components.length} components across ${FAMILIES} families, with props, source and usage rules.`, "blocks"],
     ["tokens.html", "Tokens", "Every token in the system, with its value in each theme.", "braces"],
-    ["showcase/index.html", "Showcase", "Detail cards, templates and tools.", "monitor"],
+    ["showcase/templates.html", "Templates", "Product screens, marketing pages and social posts.", "monitor"],
     ["guide/index.html", "Guide", "Theming, accessibility, contribution and the token pipeline.", "book"],
     ["downloads.html", "Download", "Take the stylesheets, tokens and components into your project.", "download"],
   ];
@@ -1591,10 +1671,7 @@ function playgroundSection(c) {
 /* ----------------------------------------------------------- showcase pages */
 
 /* A page that needs a paragraph the index tile should not carry. */
-const SHOWCASE_NOTE = {
-  Templates:
-    "These were two groups until now, templates and UI kits, which was a distinction without a difference: both are whole screens assembled from the system. The name UI kits is held back for what it usually means, a kit for one surface or vertical such as a voice-only interface, and nothing here is that yet.",
-};
+const SHOWCASE_NOTE = {};
 
 function buildShowcase() {
   const index = `
@@ -1611,12 +1688,25 @@ ${SHOWCASE.map(([group, s, text, glyph]) => {
 
   for (const [group, s, text] of SHOWCASE) {
     const list = cardsInGroup(group);
+    /* Templates are laid out by kind, the same three the menu opens on, and
+       sit at the top of the site rather than under Showcase. */
+    const cardsHtml = group === "Templates"
+      ? TEMPLATE_KINDS.map(([kind, label, d]) => {
+          const mine = list.filter((c) => (TEMPLATE_KIND[c.id] || "product") === kind);
+          return mine.length
+            ? `<h2 id="${kind}" class="tpl-kind">${esc(label)}</h2>\n<p class="tpl-kind-sub">${esc(d)}</p>\n${mine.map((c) => cardBlock(c, "../", { level: 3 })).join("\n")}`
+            : "";
+        }).join("\n")
+      : list.map((c) => cardBlock(c, "../")).join("\n");
+    const trail = group === "Templates"
+      ? [{ label: "Dovetail", href: "index.html" }, { label: group }]
+      : [{ label: "Dovetail", href: "index.html" }, { label: "Showcase", href: "showcase/index.html" }, { label: group }];
     const body = `
-${breadcrumb("../", [{ label: "Dovetail", href: "index.html" }, { label: "Showcase", href: "showcase/index.html" }, { label: group }])}
+${breadcrumb("../", trail)}
 <h1>${esc(group)}</h1>
 <p class="lede">${esc(text)}</p>
 ${SHOWCASE_NOTE[group] ? `<p class="group-note">${esc(SHOWCASE_NOTE[group])}</p>` : ""}
-${list.map((c) => cardBlock(c, "../")).join("\n")}
+${cardsHtml}
 `;
     writePage(`showcase/${s}.html`, { title: group, lede: text, body, active: `showcase:${s}`, root: "../", wide: true });
   }

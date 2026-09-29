@@ -10,10 +10,14 @@ import React from "react";
    a plain tone and half on a photograph. */
 
 const RATIO = { story: "9 / 16", portrait: "4 / 5", square: "1 / 1" };
+/* The fallbacks are the artboard sizes themselves, so a page whose copy of the
+   tokens predates this component still draws a post rather than a blank. */
+const NATIVE_WIDTH = 1080;
+const WIDTH = `var(--dt-social-width, ${NATIVE_WIDTH}px)`;
 const HEIGHT = {
-  story: "var(--dt-social-height-story)",
-  portrait: "var(--dt-social-height-portrait)",
-  square: "var(--dt-social-height-square)",
+  story: "var(--dt-social-height-story, 1920px)",
+  portrait: "var(--dt-social-height-portrait, 1350px)",
+  square: "var(--dt-social-height-square, 1080px)",
 };
 /* The display size steps down as the format gets shorter. */
 const SCALE = { story: 1, portrait: 0.86, square: 0.74 };
@@ -36,7 +40,7 @@ function useScale(ref) {
     const el = ref.current;
     if (!el) return undefined;
     const measure = () => {
-      const native = parseFloat(getComputedStyle(el).getPropertyValue("--dt-social-width")) || 1;
+      const native = parseFloat(getComputedStyle(el).getPropertyValue("--dt-social-width")) || NATIVE_WIDTH;
       setScale(el.clientWidth / native);
     };
     measure();
@@ -52,12 +56,13 @@ const meta = {
   fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-social-meta-size)",
   letterSpacing: "var(--dt-social-meta-tracking)", textTransform: "uppercase", lineHeight: 1.2,
 };
-const body = { margin: 0, fontSize: "var(--dt-social-body-size)", lineHeight: "var(--dt-social-body-line)", color: "var(--dt-social-muted)", textWrap: "pretty" };
+const body = { margin: 0, maxWidth: "none", fontSize: "var(--dt-social-body-size)", lineHeight: "var(--dt-social-body-line)", color: "var(--dt-social-muted)", textWrap: "pretty" };
 
 function display(format, factor = 1) {
   const k = SCALE[format] * factor;
   return {
     margin: 0,
+    color: "inherit",
     fontFamily: "var(--dt-social-display-family)",
     fontSize: `calc(var(--dt-social-display-size) * ${k})`,
     lineHeight: `calc(var(--dt-social-display-line) * ${k})`,
@@ -70,6 +75,7 @@ function title(format, factor = 1) {
   const k = SCALE[format] * factor;
   return {
     margin: 0,
+    color: "inherit",
     fontFamily: "var(--dt-social-display-family)",
     fontSize: `calc(var(--dt-social-title-size) * ${k})`,
     lineHeight: `calc(var(--dt-social-title-line) * ${k})`,
@@ -171,7 +177,7 @@ export function SocialPost({
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-social-gap)" }}>
         {eyebrowEl}
         <h2 style={title(format)}>{heading}</h2>
-        <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        <ol style={{ listStyle: "none", margin: 0, padding: 0, maxWidth: "none" }}>
           {items.map((it, i) => (
             <li key={i} style={{ display: "flex", gap: "var(--dt-social-gap)", alignItems: "baseline", padding: "calc(var(--dt-social-gap) * 0.6) 0", borderTop: "var(--dt-border-width-strong, 2px) solid var(--dt-social-rule)", fontSize: "calc(var(--dt-social-body-size) * 1.1)", lineHeight: "var(--dt-social-body-line)" }}>
               <span style={{ ...meta, color: "var(--dt-social-muted)", minWidth: "2.4em" }}>{String(i + 1).padStart(2, "0")}</span>
@@ -306,7 +312,7 @@ export function SocialPost({
         className={t.dark ? "dark" : undefined}
         style={{
           position: "absolute", top: 0, left: 0,
-          width: "var(--dt-social-width)", height: HEIGHT[format] || HEIGHT.story,
+          width: WIDTH, height: HEIGHT[format] || HEIGHT.story,
           transform: `scale(${scale})`, transformOrigin: "0 0", visibility: scale ? "visible" : "hidden",
           overflow: "hidden", fontFamily: "var(--dt-font-family-sans)",
           ...(pictured && layout !== "framed" && layout !== "split" ? { background: "var(--dt-surface-sunken)", color: "var(--dt-social-on-image)" } : t.style),
