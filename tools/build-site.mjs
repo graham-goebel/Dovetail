@@ -1313,7 +1313,7 @@ function buildHome() {
         <a class="btn btn-primary" href="components/index.html">Browse components ${glyph("arrowRight")}</a>
         <a class="btn" href="guide/index.html">${glyph("book")} Read the guide</a>
       </div>
-      <pre class="code hero-install" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+      <pre class="code hero-install" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
       <p class="pills"><span>No lock-in</span><span>DTCG tokens</span><span>Light and dark</span></p>
     </div>
     <div class="hero-stage" aria-hidden="true">
@@ -2057,9 +2057,9 @@ ${breadcrumb("", [{ label: "Dovetail", href: "index.html" }, { label: "Download"
 
 <section class="prose">
   <h2 id="npm">Install from npm</h2>
-  <p><a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a> has every component, typed, with the stylesheets. React 18 or newer is the only peer dependency.</p>
+  <p><a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a> has every component, typed, with the stylesheets. React 18 or newer is the only peer dependency; install <code>react-dom</code> alongside, since your app renders with it and npm won't add it for you.</p>
 </section>
-<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
 <p>Import the stylesheets once at your app's root, your theme last:</p>
 <pre class="code" data-lang="jsx"><code>${esc(`import "@dovetail-ds/react/fonts.css"; // optional: Geist from Google Fonts
 import "@dovetail-ds/react/styles.css";
