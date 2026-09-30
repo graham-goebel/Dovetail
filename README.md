@@ -10,10 +10,12 @@ never name a colour. Swap the theme and every surface follows.
 ## Install
 
 ```sh
-npm install @dovetail-ds/react react
+npm install @dovetail-ds/react react react-dom
 ```
 
-React 18 or newer is the only peer dependency (your app brings its own `react-dom`).
+React 18 or newer is the only peer dependency. `react-dom` isn't one, because nothing in the package imports it, but your app needs it to render anything, so install both together: npm writes only the peer to your lockfile on its own, and a fresh project ends up with no `react-dom` and no `react` in `package.json`.
+
+Starting from an empty folder? The setup skill below scaffolds a Vite + React + TypeScript app around the package, or run `npm create vite@latest` first.
 
 ## Set up with Claude Code
 

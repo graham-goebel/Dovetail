@@ -61,9 +61,9 @@
 
 <section class="prose">
   <h2 id="npm">Install from npm</h2>
-  <p><a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a> has every component, typed, with the stylesheets. React 18 or newer is the only peer dependency.</p>
+  <p><a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a> has every component, typed, with the stylesheets. React 18 or newer is the only peer dependency; install <code>react-dom</code> alongside, since your app renders with it and npm won't add it for you.</p>
 </section>
-<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
 <p>Import the stylesheets once at your app's root, your theme last:</p>
 <pre class="code" data-lang="jsx"><code>import &quot;@dovetail-ds/react/fonts.css&quot;; // optional: Geist from Google Fonts
 import &quot;@dovetail-ds/react/styles.css&quot;;

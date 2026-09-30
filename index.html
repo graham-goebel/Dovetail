@@ -65,7 +65,7 @@
         <a class="btn btn-primary" href="components/index.html">Browse components <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 12h15"/><path d="m13.5 6 6 6-6 6"/></svg></a>
         <a class="btn" href="guide/index.html"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/><path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/></svg> Read the guide</a>
       </div>
-      <pre class="code hero-install" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+      <pre class="code hero-install" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
       <p class="pills"><span>No lock-in</span><span>DTCG tokens</span><span>Light and dark</span></p>
     </div>
     <div class="hero-stage" aria-hidden="true">
@@ -142,8 +142,8 @@
   <div class="narrow">
     <section class="prose">
       <h2 id="start-here">Start here</h2>
-      <p><strong>Install it.</strong> Dovetail is on npm as <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. React 18 or newer is the only peer dependency.</p>
-<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+      <p><strong>Install it.</strong> Dovetail is on npm as <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. React 18 or newer is the only peer dependency; install <code>react-dom</code> alongside, since your app renders with it and npm won't add it for you.</p>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
 <p>Import the stylesheets once at your app's root, then use the components:</p>
 <pre class="code" data-lang="jsx"><code>import &quot;@dovetail-ds/react/fonts.css&quot;; // optional: Geist from Google Fonts
 import &quot;@dovetail-ds/react/styles.css&quot;;

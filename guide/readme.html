@@ -62,8 +62,8 @@
 <p>Most design systems encode one company's taste. Dovetail encodes the <em>structure</em> that taste needs: a strict token contract, a 4px dimensional grid, and components that never name a colour. Brand arrives last, as a file of token overrides.</p>
 <hr>
 <h2 id="start-here">Start here</h2>
-<p><strong>Install it.</strong> Dovetail is on npm as <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. React 18 or newer is the only peer dependency.</p>
-<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+<p><strong>Install it.</strong> Dovetail is on npm as <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. React 18 or newer is the only peer dependency; install <code>react-dom</code> alongside, since your app renders with it and npm won't add it for you.</p>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
 <p>Import the stylesheets once at your app's root, then use the components:</p>
 <pre class="code" data-lang="jsx"><code>import &quot;@dovetail-ds/react/fonts.css&quot;; // optional: Geist from Google Fonts
 import &quot;@dovetail-ds/react/styles.css&quot;;

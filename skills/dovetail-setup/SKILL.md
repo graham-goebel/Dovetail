@@ -15,7 +15,9 @@ Everything here uses `scripts/theme.mjs` next to this file. It runs the docs sit
 
 Before asking anything, find out:
 
-- Whether `@dovetail-ds/react` is installed, and which version (`npm ls @dovetail-ds/react`). The theme script needs 0.5.0 or later. If it's missing or older, install it with `npm install @dovetail-ds/react@latest` (with `react` if absent), after saying so.
+- Whether there is an app at all. A folder with only a README, or a `package.json` with no framework, no entry file and no build script, has nothing to wire a theme into. Say so, and offer to scaffold one: Vite + React + TypeScript by default, or Next.js if they plan to deploy there. `references/scaffold.md` has the files. Do this before the theme questions, so the theme has somewhere to land and step 5 has something to build.
+- Whether `@dovetail-ds/react` is installed, and which version (`npm ls @dovetail-ds/react`). The theme script needs 0.5.0 or later. If it's missing or older, install it with `npm install @dovetail-ds/react@latest react react-dom`, after saying so.
+- Whether `react` and `react-dom` are listed in `package.json` `dependencies`, not only present in the lockfile. npm installs a missing peer on its own but records it only in the lockfile, and `react-dom` isn't a peer of the package (nothing in it imports `react-dom`), so a fresh project can end up with neither declared and nothing to render with. Add whichever is missing with `npm install react react-dom`.
 - The framework and the app's root module: `app/layout.tsx` (Next.js App Router), `pages/_app.tsx` (Pages Router), `src/main.tsx` or `src/index.tsx` (Vite, CRA), `app/root.tsx` (Remix, React Router). Wiring differs per framework: read `references/wiring.md` when you get to step 4.
 - Whether a Dovetail theme already exists: grep for `--dt-color-primary-` in the project's CSS. If one does and its first comment holds `dovetail-setup choices`, this is a change to an existing theme (see "Changing a theme later").
 

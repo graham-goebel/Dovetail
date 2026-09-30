@@ -8,10 +8,10 @@ Most design systems encode one company's taste. Dovetail encodes the *structure*
 
 ## Start here
 
-**Install it.** Dovetail is on npm as [`@dovetail-ds/react`](https://www.npmjs.com/package/@dovetail-ds/react). React 18 or newer is the only peer dependency.
+**Install it.** Dovetail is on npm as [`@dovetail-ds/react`](https://www.npmjs.com/package/@dovetail-ds/react). React 18 or newer is the only peer dependency; install `react-dom` alongside, since your app renders with it and npm won't add it for you.
 
 ```sh
-npm install @dovetail-ds/react
+npm install @dovetail-ds/react react react-dom
 ```
 
 Import the stylesheets once at your app's root, then use the components:
