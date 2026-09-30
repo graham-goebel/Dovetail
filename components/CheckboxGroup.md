@@ -16,6 +16,10 @@ Checkboxes mean any number, including none. Radios mean exactly one. If the answ
 
 Vertical by default, because a column is faster to scan and leaves room for hints. Use \`orientation="horizontal"\` only for three or fewer short options with no hint text.
 
+### Control at the end
+
+Set \`labelPosition="start"\` to put each label on the left and each box at the right edge of the row. The labels then line up with the group's question instead of indenting past the boxes, which reads better in narrow panels, settings lists and filter sidebars. The whole row stays clickable.
+
 \`\`\`jsx
 <CheckboxGroup
   label="Notify me about"
@@ -26,6 +30,17 @@ Vertical by default, because a column is faster to scan and leaves room for hint
     { value: "digest", label: "Weekly digest" },
   ]}
   defaultValue={["incidents"]}
+/>
+\`\`\`
+
+\`\`\`jsx
+<CheckboxGroup
+  label="Show"
+  labelPosition="start"
+  options={[
+    { value: "paid", label: "Paid invoices" },
+    { value: "overdue", label: "Overdue invoices" },
+  ]}
 />
 \`\`\`
 
@@ -56,6 +71,8 @@ export interface CheckboxGroupProps extends Omit<React.HTMLAttributes<HTMLElemen
   disabled?: boolean;
   /** @default "vertical" */
   orientation?: "vertical" | "horizontal";
+  /** Passed to every option. "start" puts each label on the left and each control at the right edge of the row, so labels line up with the group's question instead of indenting. @default "end" */
+  labelPosition?: "start" | "end";
   name?: string;
 }
 
@@ -76,7 +93,7 @@ import React from "react";
 import { Field } from "./Field.jsx";
 import { Checkbox } from "./Checkbox.jsx";
 
-export function CheckboxGroup({ label, hint, error, required = false, options = [], value, defaultValue = [], onChange, disabled = false, orientation = "vertical", name, style, ...rest }) {
+export function CheckboxGroup({ label, hint, error, required = false, options = [], value, defaultValue = [], onChange, disabled = false, orientation = "vertical", labelPosition = "end", name, style, ...rest }) {
   const [internal, setInternal] = React.useState(defaultValue);
   const selected = value !== undefined ? value : internal;
 
@@ -97,6 +114,7 @@ export function CheckboxGroup({ label, hint, error, required = false, options = 
             hint={opt.hint}
             checked={selected.includes(opt.value)}
             disabled={disabled || opt.disabled}
+            labelPosition={labelPosition}
             onChange={() => toggle(opt.value)}
           />
         ))}

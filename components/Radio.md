@@ -24,6 +24,9 @@ One choice from a mutually exclusive set, with all options visible.
 </Stack>
 ```
 
+### Variants
+labelPosition="start" puts the label on the left and the radio at the right edge of the row, so a column of options lines up with the text above it. In a group, set it once on `RadioGroup`.
+
 ### Accessibility
 Every radio in a group needs the same name: that is what gives the group arrow-key navigation and a single tab stop. Wrap the group in a fieldset with a legend, or a Field with role="radiogroup".
 
@@ -46,6 +49,8 @@ export interface RadioProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   defaultChecked?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
+  /** "start" puts the label on the left and pushes the control to the right edge, so labels in a column line up with the text above them instead of indenting past the control. @default "end" */
+  labelPosition?: "start" | "end";
 }
 
 export declare function Radio(props: RadioProps): React.JSX.Element;
@@ -74,7 +79,7 @@ export declare function Radio(props: RadioProps): React.JSX.Element;
 ```jsx
 import React from "react";
 
-export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, style, ...rest }) {
+export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, labelPosition = "end", style, ...rest }) {
   const [internal, setInternal] = React.useState(!!defaultChecked);
   const auto = React.useId();
   const radioId = id || auto;
@@ -92,7 +97,15 @@ export function Radio({ label, hint, name, value, checked, defaultChecked, onCha
         style={{ position: "absolute", opacity: 0, width: 0, height: 0 }}
         {...rest}
       />
-      <label htmlFor={radioId} style={{ display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center" }}>
+      <label
+        htmlFor={radioId}
+        style={{
+          display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center",
+          justifyContent: labelPosition === "start" ? "space-between" : undefined,
+          width: labelPosition === "start" ? "100%" : undefined,
+          flexDirection: labelPosition === "start" ? "row-reverse" : "row",
+        }}
+      >
         <span
           aria-hidden="true"
           style={{

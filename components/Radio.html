@@ -69,7 +69,7 @@
 <section class="playground-wrap">
   <h2 id="playground">Playground</h2>
   <p class="muted">Change a prop and watch it. The code below follows along.</p>
-  <div class="playground" data-playground="Radio" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;hint&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;name&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Shared across the group&quot;},{&quot;name&quot;:&quot;value&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;checked&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;defaultChecked&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;disabled&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
+  <div class="playground" data-playground="Radio" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;hint&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;name&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Shared across the group&quot;},{&quot;name&quot;:&quot;value&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;checked&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;defaultChecked&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;disabled&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;labelPosition&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;end&quot;],&quot;default&quot;:&quot;end&quot;,&quot;note&quot;:&quot;\&quot;start\&quot; puts the label on the left and pushes the control to the right edge, so labels in a column line up with the text&quot;}]">
     <div class="pg-stage" aria-live="polite"></div>
     <div class="pg-controls" role="group" aria-label="Radio props"></div>
     <pre class="pg-code"><code></code></pre>
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Radio.html?v=9026fcdcbd&amp;b=e356f00d72" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Radio.html?v=d25048d6d9&amp;b=b42d3f01b0" target="_blank" rel="noopener">Open full card</a>
   </div>
   
-  <div class="frame" style="height:528px">
-    <iframe src="../previews/Radio.html?v=9026fcdcbd&amp;b=e356f00d72" title="Live preview" loading="lazy"></iframe>
+  <div class="frame" style="height:740px">
+    <iframe src="../previews/Radio.html?v=d25048d6d9&amp;b=b42d3f01b0" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -107,6 +107,8 @@
   &lt;Radio name=&quot;billing&quot; value=&quot;monthly&quot; label=&quot;Monthly&quot; hint=&quot;$20 per seat&quot; defaultChecked /&gt;
   &lt;Radio name=&quot;billing&quot; value=&quot;annual&quot; label=&quot;Annual&quot; hint=&quot;$16 per seat, billed yearly&quot; /&gt;
 &lt;/Stack&gt;</code></pre>
+<h3 id="variants">Variants</h3>
+<p>labelPosition=&quot;start&quot; puts the label on the left and the radio at the right edge of the row, so a column of options lines up with the text above it. In a group, set it once on <code>RadioGroup</code>.</p>
 <h3 id="accessibility">Accessibility</h3>
 <p>Every radio in a group needs the same name: that is what gives the group arrow-key navigation and a single tab stop. Wrap the group in a fieldset with a legend, or a Field with role=&quot;radiogroup&quot;.</p>
 <h3 id="content">Content</h3>
@@ -129,6 +131,8 @@ export interface RadioProps extends Omit&lt;React.InputHTMLAttributes&lt;HTMLInp
   defaultChecked?: boolean;
   onChange?: (e: React.ChangeEvent&lt;HTMLInputElement&gt;) =&gt; void;
   disabled?: boolean;
+  /** &quot;start&quot; puts the label on the left and pushes the control to the right edge, so labels in a column line up with the text above them instead of indenting past the control. @default &quot;end&quot; */
+  labelPosition?: &quot;start&quot; | &quot;end&quot;;
 }
 
 export declare function Radio(props: RadioProps): React.JSX.Element;</code></pre>
@@ -147,7 +151,7 @@ export declare function Radio(props: RadioProps): React.JSX.Element;</code></pre
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
 
-export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, style, ...rest }) {
+export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, labelPosition = &quot;end&quot;, style, ...rest }) {
   const [internal, setInternal] = React.useState(!!defaultChecked);
   const auto = React.useId();
   const radioId = id || auto;
@@ -165,7 +169,15 @@ export function Radio({ label, hint, name, value, checked, defaultChecked, onCha
         style={{ position: &quot;absolute&quot;, opacity: 0, width: 0, height: 0 }}
         {...rest}
       /&gt;
-      &lt;label htmlFor={radioId} style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, cursor: disabled ? &quot;not-allowed&quot; : &quot;pointer&quot;, alignItems: hint ? &quot;flex-start&quot; : &quot;center&quot; }}&gt;
+      &lt;label
+        htmlFor={radioId}
+        style={{
+          display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, cursor: disabled ? &quot;not-allowed&quot; : &quot;pointer&quot;, alignItems: hint ? &quot;flex-start&quot; : &quot;center&quot;,
+          justifyContent: labelPosition === &quot;start&quot; ? &quot;space-between&quot; : undefined,
+          width: labelPosition === &quot;start&quot; ? &quot;100%&quot; : undefined,
+          flexDirection: labelPosition === &quot;start&quot; ? &quot;row-reverse&quot; : &quot;row&quot;,
+        }}
+      &gt;
         &lt;span
           aria-hidden=&quot;true&quot;
           style={{
@@ -202,6 +214,7 @@ export function Radio({ label, hint, name, value, checked, defaultChecked, onCha
     <li class="nested"><a href="#use-it-when">Use it when</a></li>
     <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
     <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#variants">Variants</a></li>
     <li class="nested"><a href="#accessibility">Accessibility</a></li>
     <li class="nested"><a href="#content">Content</a></li>
     <li><a href="#props">Props</a></li>
@@ -242,7 +255,7 @@ export function Radio({ label, hint, name, value, checked, defaultChecked, onCha
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e356f00d72" defer></script>
+<script src="../system/components/bundle.js?v=b42d3f01b0" defer></script>
 <script src="../assets/specimens.js?v=b602d275ae" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

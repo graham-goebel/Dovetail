@@ -1,6 +1,6 @@
 import React from "react";
 
-export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, style, ...rest }) {
+export function Radio({ label, hint, name, value, checked, defaultChecked, onChange, disabled = false, id, labelPosition = "end", style, ...rest }) {
   const [internal, setInternal] = React.useState(!!defaultChecked);
   const auto = React.useId();
   const radioId = id || auto;
@@ -18,7 +18,15 @@ export function Radio({ label, hint, name, value, checked, defaultChecked, onCha
         style={{ position: "absolute", opacity: 0, width: 0, height: 0 }}
         {...rest}
       />
-      <label htmlFor={radioId} style={{ display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center" }}>
+      <label
+        htmlFor={radioId}
+        style={{
+          display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center",
+          justifyContent: labelPosition === "start" ? "space-between" : undefined,
+          width: labelPosition === "start" ? "100%" : undefined,
+          flexDirection: labelPosition === "start" ? "row-reverse" : "row",
+        }}
+      >
         <span
           aria-hidden="true"
           style={{

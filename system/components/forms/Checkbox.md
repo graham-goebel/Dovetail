@@ -17,6 +17,13 @@ Binary choice inside a form, committed when the form is submitted.
 <Checkbox label="Select all" indeterminate={some && !all} onChange={toggleAll} />
 ```
 
+## Variants
+labelPosition="start" puts the label on the left and the box at the right edge of the row. Use it in a column of options under a heading or field label, where a leading box would indent every label past the text above it. It's the same settings-row pattern as `Switch`.
+
+```jsx
+<Checkbox label="Include archived invoices" labelPosition="start" />
+```
+
 ## Accessibility
 The real input stays in the DOM and receives focus, so keyboard and screen-reader behaviour is native. The indeterminate flag is set on the element, not faked with an attribute.
 
