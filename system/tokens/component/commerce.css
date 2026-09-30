@@ -21,6 +21,90 @@
 
   /* QuantityStepper has no tokens of its own: it is a field, so it reads the
      --dt-input-* geometry and colours, and its buttons the ghost button's. */
+
+  /* Food ordering */
+
+  /* StoreHeader: the space reserved for the cover before it loads, the logo
+     tile and the ring that lifts it off the cover, the meta line, and the
+     open and closed status. A closed store's cover is greyed and laid under
+     the scrim, and its status reads in the danger colour. */
+  --dt-store-cover-bg: var(--dt-surface-sunken);
+  --dt-store-cover-radius: var(--dt-radius-media);
+  --dt-store-cover-max-height: var(--dt-size-media-min);
+  --dt-store-logo-size: var(--dt-size-avatar-xl);
+  --dt-store-logo-radius: var(--dt-radius-media);
+  --dt-store-logo-bg: var(--dt-surface-raised);
+  --dt-store-logo-ring: var(--dt-surface-base);
+  --dt-store-meta-color: var(--dt-text-secondary);
+  --dt-store-open-color: var(--dt-text-success);
+  --dt-store-closed-color: var(--dt-text-danger);
+  --dt-store-closed-scrim: var(--dt-surface-scrim);
+
+  /* FulfilmentToggle: a sunken track with the chosen segment raised on it.
+     The thumb's radius is the track's less the inset, so the corners nest. */
+  --dt-fulfilment-track-bg: var(--dt-surface-sunken);
+  --dt-fulfilment-thumb-bg: var(--dt-surface-raised);
+  --dt-fulfilment-thumb-shadow: var(--dt-elevation-1);
+  --dt-fulfilment-fg: var(--dt-text-secondary);
+  --dt-fulfilment-fg-selected: var(--dt-text-primary);
+  --dt-fulfilment-detail-color: var(--dt-text-tertiary);
+  --dt-fulfilment-detail-color-selected: var(--dt-text-secondary);
+  --dt-fulfilment-inset: var(--dt-space-inset-2xs);
+  --dt-fulfilment-radius: var(--dt-radius-container);
+  --dt-fulfilment-thumb-radius: var(--dt-radius-media);
+
+  /* MenuSection and MenuItem: the gap between a dish's text and its
+     thumbnail, the thumbnail itself, the dividers of a list and the cards of
+     a grid, and the dimmed text of a dish that is sold out. A grid column is
+     never narrower than --dt-menu-grid-min, so it is two up at most. */
+  --dt-menu-item-gap: var(--dt-space-inline-md);
+  --dt-menu-item-padding: var(--dt-space-inset-md);
+  --dt-menu-item-divider: var(--dt-border-subtle);
+  --dt-menu-item-bg-hover: var(--dt-surface-subtle);
+  --dt-menu-item-card-bg: var(--dt-surface-base);
+  --dt-menu-item-card-border: var(--dt-border-subtle);
+  --dt-menu-item-description-color: var(--dt-text-secondary);
+  --dt-menu-item-soldout-color: var(--dt-text-disabled);
+  --dt-menu-thumb-size: calc(2 * var(--dt-size-control-lg));
+  --dt-menu-thumb-radius: var(--dt-radius-media);
+  --dt-menu-thumb-bg: var(--dt-surface-sunken);
+  --dt-menu-grid-min: calc(0.4 * var(--dt-size-container-narrow));
+  --dt-menu-section-gap: var(--dt-space-stack-sm);
+
+  /* ModifierGroup: full-width rows at least a touch target tall, the drawn
+     radio or checkbox, the price delta, the hint, the Required pill, and the
+     error, which also turns the pill. */
+  --dt-modifier-row-min-height: var(--dt-size-touch-target);
+  --dt-modifier-divider: var(--dt-border-subtle);
+  --dt-modifier-control-size: var(--dt-size-icon-md);
+  --dt-modifier-control-border: var(--dt-border-strong);
+  --dt-modifier-control-bg: var(--dt-input-bg);
+  --dt-modifier-control-accent: var(--dt-surface-action);
+  --dt-modifier-control-mark: var(--dt-text-on-action);
+  --dt-modifier-delta-color: var(--dt-text-secondary);
+  --dt-modifier-hint-color: var(--dt-text-secondary);
+  --dt-modifier-pill-bg: var(--dt-surface-sunken);
+  --dt-modifier-pill-fg: var(--dt-text-secondary);
+  --dt-modifier-error-color: var(--dt-text-danger);
+  --dt-modifier-error-pill-bg: var(--dt-surface-danger-subtle);
+
+  /* Dietary and highlight tags on a dish. Each kind is a subtle status
+     surface and its text role; the label is always shown, so colour is
+     never the only signal. */
+  --dt-dietary-vegetarian-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegetarian-fg: var(--dt-text-success);
+  --dt-dietary-vegan-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegan-fg: var(--dt-text-success);
+  --dt-dietary-spicy-bg: var(--dt-surface-danger-subtle);
+  --dt-dietary-spicy-fg: var(--dt-text-danger);
+  --dt-dietary-gluten-free-bg: var(--dt-surface-info-subtle);
+  --dt-dietary-gluten-free-fg: var(--dt-text-info);
+  --dt-dietary-popular-bg: var(--dt-surface-warning-subtle);
+  --dt-dietary-popular-fg: var(--dt-text-warning);
+  --dt-dietary-new-bg: var(--dt-surface-brand-muted);
+  --dt-dietary-new-fg: var(--dt-text-brand);
+  --dt-dietary-default-bg: var(--dt-surface-sunken);
+  --dt-dietary-default-fg: var(--dt-text-secondary);
 }
 
 .dark {
@@ -31,4 +115,52 @@
   --dt-rating-color: var(--dt-surface-warning);
   --dt-rating-empty-color: var(--dt-border-strong);
   --dt-rating-count-color: var(--dt-text-secondary);
+
+  /* Food ordering */
+  --dt-store-cover-bg: var(--dt-surface-sunken);
+  --dt-store-logo-bg: var(--dt-surface-raised);
+  --dt-store-logo-ring: var(--dt-surface-base);
+  --dt-store-meta-color: var(--dt-text-secondary);
+  --dt-store-open-color: var(--dt-text-success);
+  --dt-store-closed-color: var(--dt-text-danger);
+  --dt-store-closed-scrim: var(--dt-surface-scrim);
+  --dt-fulfilment-track-bg: var(--dt-surface-sunken);
+  --dt-fulfilment-thumb-bg: var(--dt-surface-raised);
+  --dt-fulfilment-thumb-shadow: var(--dt-elevation-1);
+  --dt-fulfilment-fg: var(--dt-text-secondary);
+  --dt-fulfilment-fg-selected: var(--dt-text-primary);
+  --dt-fulfilment-detail-color: var(--dt-text-tertiary);
+  --dt-fulfilment-detail-color-selected: var(--dt-text-secondary);
+  --dt-menu-item-divider: var(--dt-border-subtle);
+  --dt-menu-item-bg-hover: var(--dt-surface-subtle);
+  --dt-menu-item-card-bg: var(--dt-surface-base);
+  --dt-menu-item-card-border: var(--dt-border-subtle);
+  --dt-menu-item-description-color: var(--dt-text-secondary);
+  --dt-menu-item-soldout-color: var(--dt-text-disabled);
+  --dt-menu-thumb-bg: var(--dt-surface-sunken);
+  --dt-modifier-divider: var(--dt-border-subtle);
+  --dt-modifier-control-border: var(--dt-border-strong);
+  --dt-modifier-control-bg: var(--dt-input-bg);
+  --dt-modifier-control-accent: var(--dt-surface-action);
+  --dt-modifier-control-mark: var(--dt-text-on-action);
+  --dt-modifier-delta-color: var(--dt-text-secondary);
+  --dt-modifier-hint-color: var(--dt-text-secondary);
+  --dt-modifier-pill-bg: var(--dt-surface-sunken);
+  --dt-modifier-pill-fg: var(--dt-text-secondary);
+  --dt-modifier-error-color: var(--dt-text-danger);
+  --dt-modifier-error-pill-bg: var(--dt-surface-danger-subtle);
+  --dt-dietary-vegetarian-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegetarian-fg: var(--dt-text-success);
+  --dt-dietary-vegan-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegan-fg: var(--dt-text-success);
+  --dt-dietary-spicy-bg: var(--dt-surface-danger-subtle);
+  --dt-dietary-spicy-fg: var(--dt-text-danger);
+  --dt-dietary-gluten-free-bg: var(--dt-surface-info-subtle);
+  --dt-dietary-gluten-free-fg: var(--dt-text-info);
+  --dt-dietary-popular-bg: var(--dt-surface-warning-subtle);
+  --dt-dietary-popular-fg: var(--dt-text-warning);
+  --dt-dietary-new-bg: var(--dt-surface-brand-muted);
+  --dt-dietary-new-fg: var(--dt-text-brand);
+  --dt-dietary-default-bg: var(--dt-surface-sunken);
+  --dt-dietary-default-fg: var(--dt-text-secondary);
 }

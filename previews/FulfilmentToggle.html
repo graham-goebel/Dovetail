@@ -1,0 +1,169 @@
+<!-- @dsCard group="Commerce" height=990 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", alignItems: "flex-start", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function row() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 168px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "end",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      row.apply(null, arguments));
+  }
+  /* Two examples side by side, one up on a phone. */
+  function pair() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "start",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band holding wider examples. */
+  function darkBand() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      pair.apply(null, arguments));
+  }
+  /* Pictures are small inline SVGs, so the card needs no network. */
+  function svg(w, h, body) {
+    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + " " + h + '">' + body + "</svg>");
+  }
+  function dish(bg, food, bits) {
+    return svg(96, 96, '<rect width="96" height="96" fill="' + bg + '"/><circle cx="48" cy="52" r="34" fill="#fbf8f2"/>' +
+      '<circle cx="48" cy="52" r="25" fill="' + food + '"/><circle cx="40" cy="46" r="4.5" fill="' + bits + '"/>' +
+      '<circle cx="57" cy="56" r="4" fill="' + bits + '"/><circle cx="51" cy="41" r="3" fill="' + bits + '"/><circle cx="42" cy="61" r="3" fill="' + bits + '"/>');
+  }
+  var DISH = {
+    padThai: { src: dish("#f1dcb8", "#e4a046", "#5d8f45"), alt: "Pad thai on a white plate" },
+    curry: { src: dish("#dde8d3", "#d9822b", "#3f7f3a"), alt: "Green curry in a bowl" },
+    seeEw: { src: dish("#e8e2f0", "#c9a36a", "#4f7f3a"), alt: "Pad see ew with greens" },
+    soup: { src: dish("#f5d5cc", "#c8553d", "#f1dcb8"), alt: "Khao soi noodle soup" },
+    rolls: { src: dish("#d7e6ea", "#e9c46a", "#5d8f45"), alt: "Fresh spring rolls" },
+    tea: { src: dish("#f3e3c9", "#d08c3a", "#fbf8f2"), alt: "Iced Thai tea" },
+  };
+  var COVER = svg(900, 300,
+    '<rect width="900" height="300" fill="#35503f"/>' +
+    '<circle cx="190" cy="250" r="150" fill="#f4efe6"/><circle cx="190" cy="250" r="112" fill="#e4a046"/>' +
+    '<circle cx="160" cy="215" r="14" fill="#5d8f45"/><circle cx="228" cy="258" r="11" fill="#c8553d"/><circle cx="200" cy="200" r="8" fill="#5d8f45"/>' +
+    '<circle cx="560" cy="80" r="112" fill="#f4efe6"/><circle cx="560" cy="80" r="82" fill="#c8553d"/>' +
+    '<circle cx="538" cy="62" r="10" fill="#f4efe6"/><circle cx="588" cy="98" r="8" fill="#5d8f45"/>' +
+    '<rect x="690" y="190" width="170" height="22" rx="11" fill="#caa56b" transform="rotate(-20 775 201)"/>' +
+    '<rect x="700" y="225" width="170" height="22" rx="11" fill="#b58d52" transform="rotate(-20 785 236)"/>');
+  var LOGO = { src: svg(64, 64, '<rect width="64" height="64" fill="#c8553d"/><text x="32" y="42" font-family="Georgia, serif" font-size="26" font-weight="700" text-anchor="middle" fill="#fff">BK</text>'), alt: "" };
+  var noop = function () {};
+  /* A small live readout under an interactive example. */
+  function note(text) {
+    return e("p", { "aria-live": "polite", style: Object.assign({ margin: "var(--dt-space-stack-2xs) 0 0" }, cap) }, text);
+  }
+  /* One example, stretched to its column, and what it shows. */
+  function wide(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  var NEED = ["FulfilmentToggle", "Section"];
+  var TIMED = [
+    { value: "delivery", label: "Delivery", detail: "25–35 min" },
+    { value: "pickup", label: "Pickup", detail: "Ready in 15" },
+  ];
+  /* A controlled toggle with its own value, and a readout of what it reports. */
+  function Live(props) {
+    var s = React.useState(props.start);
+    return e("div", null,
+      e(NS.FulfilmentToggle, Object.assign({}, props, { start: undefined, value: s[0], onChange: s[1] })),
+      note("value: " + s[0]));
+  }
+  function Page() {
+    return e(Shelf, { name: "FulfilmentToggle", summary: "Delivery or pickup: a segmented control with radio semantics, each segment with an optional detail line.", props: [
+        { name: "value", type: '"delivery" | "pickup" | string', required: true, notes: "Controlled." },
+        { name: "onChange", type: "(value: string) => void", required: true, notes: "From a click or an arrow key." },
+        { name: "label", type: "string", required: true, notes: "The radio group's accessible name." },
+        { name: "options", type: "{ value, label, detail? }[]", default: "Delivery, Pickup", notes: "Add Dine in, or a detail line such as 25–35 min." },
+        { name: "fullWidth", type: "boolean", default: "true", notes: "Fills its container. false sizes it to its segments." },
+        { name: "disabled", type: "boolean" },
+      ], guidance: [
+        "It is one radio group: Tab lands on the chosen segment, and the arrow keys move and choose together.",
+        "Put it under the StoreHeader, full width on a phone. Changing it should change the times and fees the page shows.",
+        "Keep labels to one word. The detail line carries the time: 25–35 min, Ready in 15.",
+        "Two or three options. More than that is a RadioGroup or a Select.",
+      ] },
+      e(Specimen, { label: "Both values, with detail lines", bg: "var(--dt-surface-base)" },
+        pair(
+          wide("value delivery", e(Live, { label: "How to get your order", start: "delivery", options: TIMED })),
+          wide("value pickup", e(Live, { label: "How to get your order (pickup)", start: "pickup", options: TIMED })))),
+      e(Specimen, { label: "Options and sizing", bg: "var(--dt-surface-base)" },
+        pair(
+          wide("default options, no detail", e(Live, { label: "Fulfilment", start: "delivery" })),
+          wide("three options", e(Live, { label: "Fulfilment (three)", start: "dine-in", options: [
+            { value: "delivery", label: "Delivery" }, { value: "pickup", label: "Pickup" }, { value: "dine-in", label: "Dine in" }] })),
+          wide("fullWidth false", e(Live, { label: "Fulfilment (inline)", start: "pickup", fullWidth: false })),
+          wide("disabled", e(NS.FulfilmentToggle, { label: "Fulfilment (disabled)", value: "delivery", onChange: noop, disabled: true, options: TIMED })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        darkBand(
+          wide("delivery", e(Live, { label: "How to get your order (dark)", start: "delivery", options: TIMED })),
+          wide("pickup", e(Live, { label: "How to get your order (dark, pickup)", start: "pickup", options: TIMED })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

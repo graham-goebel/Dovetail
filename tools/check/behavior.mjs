@@ -26,6 +26,14 @@
         focus) while ArrowDown never removes.
       - Rating input: one roving tab stop that follows the chosen star;
         arrows choose and focus, wrapping; Home/End.
+      - FulfilmentToggle: one tab stop; arrow keys choose, focus and wrap,
+        and onChange reports each value.
+      - MenuItem: the row button and the add button are two separate focus
+        targets, neither inside the other, each calling its own callback.
+      - ModifierGroup: single mode is a radio group that arrows move through;
+        multiple mode stops at max and disables the rest, saying why; a
+        required group's error is linked by aria-describedby and marks the
+        group aria-invalid.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -74,6 +82,7 @@ const PAGE = `<!doctype html>
 </head><body>
 <div id="root"></div>
 <div id="commerce-root"></div>
+<div id="food-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -131,6 +140,36 @@ function Commerce() {
 }
 createRoot(document.getElementById("commerce-root")).render(h(Commerce));
 window.__commerceReady = true;
+</script>
+<script type="module">
+/* Food ordering: FulfilmentToggle, MenuItem and ModifierGroup, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { FulfilmentToggle, MenuItem, ModifierGroup } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__food = { how: [], selected: 0, added: 0 };
+const EXTRAS = [
+  { id: "egg", label: "Fried egg", price: 2 },
+  { id: "tofu", label: "Extra tofu", price: 1.5 },
+  { id: "peanuts", label: "Peanuts", price: 0.5 },
+  { id: "prawns", label: "Prawns", price: 3 },
+];
+function Food() {
+  const [how, setHow] = React.useState("delivery");
+  const [size, setSize] = React.useState([]);
+  const [extras, setExtras] = React.useState([]);
+  return h("div", null,
+    h(FulfilmentToggle, { label: "Test fulfilment", value: how, onChange: (v) => { window.__food.how.push(v); setHow(v); },
+      options: [{ value: "delivery", label: "Delivery", detail: "25–35 min" }, { value: "pickup", label: "Pickup" }, { value: "dine-in", label: "Dine in" }] }),
+    h(MenuItem, { name: "Test noodles", price: 12.5, locale: "en-US",
+      onSelect: () => { window.__food.selected++; }, onAdd: () => { window.__food.added++; } }),
+    h(ModifierGroup, { title: "Test size", mode: "single", required: true, value: size, onChange: setSize, locale: "en-US",
+      error: size.length ? undefined : "Choose a size",
+      options: [{ id: "s", label: "Small" }, { id: "m", label: "Medium", price: 1 }, { id: "l", label: "Large", price: 2 }] }),
+    h(ModifierGroup, { title: "Test extras", mode: "multiple", max: 2, value: extras, onChange: setExtras, options: EXTRAS, locale: "en-US" }));
+}
+createRoot(document.getElementById("food-root")).render(h(Food));
+window.__foodReady = true;
 </script>
 </body></html>
 `;
@@ -325,6 +364,95 @@ try {
     const seen = await page.evaluate(() => window.__commerce.ratings);
     expect(seen.every((n) => Number.isInteger(n) && n >= 1 && n <= 5), `onChange got out-of-range values: ${seen.join(", ")}`);
     ok(`onChange saw ${seen.join(", ")}`);
+  });
+
+  await step("FulfilmentToggle: one tab stop, arrows choose and wrap", async () => {
+    await page.waitForFunction(() => window.__foodReady === true);
+    const group = page.getByRole("radiogroup", { name: "Test fulfilment", exact: true });
+    const radio = (name) => group.getByRole("radio", { name: new RegExp("^" + name) });
+    const checked = async (name) => (await radio(name).getAttribute("aria-checked")) === "true";
+    const stops = () => group.evaluate((el) => [...el.querySelectorAll('[role="radio"]')].map((r) => r.tabIndex));
+    expect((await group.getByRole("radio").count()) === 3, "three options should give three radios");
+    expect(JSON.stringify(await stops()) === "[0,-1,-1]", `only the chosen segment should be a tab stop, got ${JSON.stringify(await stops())}`);
+    ok("three radios; the chosen segment is the one tab stop");
+    await radio("Delivery").focus();
+    await page.keyboard.press("ArrowRight");
+    expect(await checked("Pickup"), "ArrowRight from Delivery should choose Pickup");
+    expect((await active()) === "Pickup", `ArrowRight should move focus to Pickup, got "${await active()}"`);
+    expect(JSON.stringify(await stops()) === "[-1,0,-1]", `the tab stop should follow the choice, got ${JSON.stringify(await stops())}`);
+    ok("ArrowRight chooses and focuses the next segment; the tab stop follows");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    expect(await checked("Delivery"), "ArrowRight from the last segment should wrap to the first");
+    await page.keyboard.press("ArrowLeft");
+    expect(await checked("Dine in"), "ArrowLeft from the first segment should wrap to the last");
+    await page.keyboard.press("Home");
+    expect(await checked("Delivery"), "Home should choose the first segment");
+    ok("arrows wrap both ways; Home chooses the first");
+    const seen = await page.evaluate(() => window.__food.how);
+    expect(JSON.stringify(seen) === JSON.stringify(["pickup", "dine-in", "delivery", "dine-in", "delivery"]), `onChange should report each value, got ${JSON.stringify(seen)}`);
+    ok(`onChange reported ${seen.join(", ")}`);
+  });
+
+  await step("MenuItem: row and add are separate targets with their own callbacks", async () => {
+    const row = page.getByRole("button", { name: "Test noodles", exact: true });
+    const add = page.getByRole("button", { name: "Add Test noodles", exact: true });
+    expect((await row.count()) === 1 && (await add.count()) === 1, "there should be one row button and one add button");
+    const nested = await row.evaluate((r) => {
+      const a = [...document.querySelectorAll("button")].find((b) => b.getAttribute("aria-label") === "Add Test noodles");
+      return r.contains(a) || a.contains(r);
+    });
+    expect(!nested, "the add button and the row button must not be nested");
+    await row.focus();
+    await page.keyboard.press("Tab");
+    expect((await active()) === "Add Test noodles", `Tab from the row should reach the add button, got "${await active()}"`);
+    ok("two focus targets, not nested; Tab goes from the row to add");
+    await page.keyboard.press("Enter");
+    let f = await page.evaluate(() => window.__food);
+    expect(f.added === 1 && f.selected === 0, `Enter on add should call onAdd only, got added ${f.added}, selected ${f.selected}`);
+    await row.focus();
+    await page.keyboard.press("Enter");
+    f = await page.evaluate(() => window.__food);
+    expect(f.selected === 1 && f.added === 1, `Enter on the row should call onSelect only, got added ${f.added}, selected ${f.selected}`);
+    ok("the keyboard reaches each; add calls onAdd, the row calls onSelect");
+    const item = row.locator("xpath=ancestor::div[.//button[@aria-label='Add Test noodles']][1]");
+    const box = await item.boundingBox();
+    await page.mouse.click(box.x + 4, box.y + box.height - 4);
+    await add.click();
+    f = await page.evaluate(() => window.__food);
+    expect(f.selected === 2 && f.added === 2, `a click on the row's corner should select and a click on add should only add, got added ${f.added}, selected ${f.selected}`);
+    ok("a click anywhere on the row selects; a click on add only adds");
+  });
+
+  await step("ModifierGroup: radios, max, required error", async () => {
+    const size = page.getByRole("radiogroup", { name: /^Test size/ });
+    expect((await size.count()) === 1, "single mode should be a radiogroup named by its legend");
+    const desc = await size.evaluate((el) => (el.getAttribute("aria-describedby") || "").split(" ").map((id) => document.getElementById(id)).filter(Boolean).map((n) => n.textContent).join(" "));
+    expect(desc.includes("Choose a size"), `the error should be linked by aria-describedby, got ${JSON.stringify(desc)}`);
+    expect((await size.getAttribute("aria-invalid")) === "true", "a group with an error should be aria-invalid");
+    expect((await size.getAttribute("aria-required")) === "true", "a required single group should be aria-required");
+    ok("named by its legend; the error is linked by aria-describedby; aria-invalid and aria-required are set");
+    const radio = (name) => size.getByRole("radio", { name: new RegExp("^" + name) });
+    await radio("Small").focus();
+    await page.keyboard.press("Space");
+    expect(await radio("Small").isChecked(), "Space should choose Small");
+    await page.keyboard.press("ArrowDown");
+    expect(await radio("Medium").isChecked() && !(await radio("Small").isChecked()), "ArrowDown should move the choice to Medium");
+    expect((await size.getAttribute("aria-invalid")) === null, "the error should clear once something is chosen");
+    ok("Space chooses; ArrowDown moves the single choice; the error clears");
+
+    const extras = page.getByRole("group", { name: /^Test extras/ });
+    const box = (name) => extras.getByRole("checkbox", { name: new RegExp("^" + name) });
+    await box("Fried egg").check();
+    await box("Extra tofu").check();
+    const off = await extras.evaluate((el) => [...el.querySelectorAll("input")].filter((i) => i.disabled).length);
+    expect(off === 2, `at max 2 the two unchosen options should be disabled, got ${off}`);
+    const limitName = await box("Prawns").evaluate((el) => el.labels[0].textContent);
+    expect(/limit of 2 reached/.test(limitName), `a disabled option should say why in its name, got ${JSON.stringify(limitName)}`);
+    await box("Extra tofu").uncheck();
+    const offAfter = await extras.evaluate((el) => [...el.querySelectorAll("input")].filter((i) => i.disabled).length);
+    expect(offAfter === 0, `below max no option should be disabled, got ${offAfter}`);
+    ok("multiple mode stops at max, disables the rest with the reason in their names, and frees them below max");
   });
 
   await step("page errors", () => {
