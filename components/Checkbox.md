@@ -23,6 +23,13 @@ Binary choice inside a form, committed when the form is submitted.
 <Checkbox label="Select all" indeterminate={some && !all} onChange={toggleAll} />
 ```
 
+### Variants
+labelPosition="start" puts the label on the left and the box at the right edge of the row. Use it in a column of options under a heading or field label, where a leading box would indent every label past the text above it. It's the same settings-row pattern as `Switch`.
+
+```jsx
+<Checkbox label="Include archived invoices" labelPosition="start" />
+```
+
 ### Accessibility
 The real input stays in the DOM and receives focus, so keyboard and screen-reader behaviour is native. The indeterminate flag is set on the element, not faked with an attribute.
 
@@ -45,6 +52,8 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   indeterminate?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
+  /** "start" puts the label on the left and pushes the control to the right edge, so labels in a column line up with the text above them instead of indenting past the control. @default "end" */
+  labelPosition?: "start" | "end";
 }
 
 export declare function Checkbox(props: CheckboxProps): React.JSX.Element;
@@ -75,7 +84,7 @@ export declare function Checkbox(props: CheckboxProps): React.JSX.Element;
 ```jsx
 import React from "react";
 
-export function Checkbox({ label, hint, checked, defaultChecked = false, indeterminate = false, onChange, disabled = false, id, style, ...rest }) {
+export function Checkbox({ label, hint, checked, defaultChecked = false, indeterminate = false, onChange, disabled = false, id, labelPosition = "end", style, ...rest }) {
   const [internal, setInternal] = React.useState(defaultChecked);
   const ref = React.useRef(null);
   const auto = React.useId();
@@ -98,7 +107,12 @@ export function Checkbox({ label, hint, checked, defaultChecked = false, indeter
       />
       <label
         htmlFor={boxId}
-        style={{ display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center" }}
+        style={{
+          display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center",
+          justifyContent: labelPosition === "start" ? "space-between" : undefined,
+          width: labelPosition === "start" ? "100%" : undefined,
+          flexDirection: labelPosition === "start" ? "row-reverse" : "row",
+        }}
       >
         <span
           aria-hidden="true"

@@ -10,6 +10,10 @@ Checkboxes mean any number, including none. Radios mean exactly one. If the answ
 
 Vertical by default, because a column is faster to scan and leaves room for hints. Use \`orientation="horizontal"\` only for three or fewer short options with no hint text.
 
+## Control at the end
+
+Set \`labelPosition="start"\` to put each label on the left and each box at the right edge of the row. The labels then line up with the group's question instead of indenting past the boxes, which reads better in narrow panels, settings lists and filter sidebars. The whole row stays clickable.
+
 \`\`\`jsx
 <CheckboxGroup
   label="Notify me about"
@@ -20,5 +24,16 @@ Vertical by default, because a column is faster to scan and leaves room for hint
     { value: "digest", label: "Weekly digest" },
   ]}
   defaultValue={["incidents"]}
+/>
+\`\`\`
+
+\`\`\`jsx
+<CheckboxGroup
+  label="Show"
+  labelPosition="start"
+  options={[
+    { value: "paid", label: "Paid invoices" },
+    { value: "overdue", label: "Overdue invoices" },
+  ]}
 />
 \`\`\`

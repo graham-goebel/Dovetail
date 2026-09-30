@@ -2,7 +2,7 @@ import React from "react";
 import { Field } from "./Field.jsx";
 import { Radio } from "./Radio.jsx";
 
-export function RadioGroup({ label, hint, error, required = false, options = [], value, defaultValue, onChange, disabled = false, orientation = "vertical", name, style, ...rest }) {
+export function RadioGroup({ label, hint, error, required = false, options = [], value, defaultValue, onChange, disabled = false, orientation = "vertical", labelPosition = "end", name, style, ...rest }) {
   const auto = React.useId();
   const groupName = name || auto;
   const [internal, setInternal] = React.useState(defaultValue);
@@ -25,6 +25,7 @@ export function RadioGroup({ label, hint, error, required = false, options = [],
             hint={opt.hint}
             checked={selected === opt.value}
             disabled={disabled || opt.disabled}
+            labelPosition={labelPosition}
             onChange={() => pick(opt.value)}
           />
         ))}

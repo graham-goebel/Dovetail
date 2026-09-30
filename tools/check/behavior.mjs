@@ -61,6 +61,9 @@
       - OrderStatus: exactly one step is aria-current="step"; horizontal
         turns vertical at 390px and back.
       - AddressFields: every field carries its autocomplete token.
+      - CheckboxGroup and RadioGroup with labelPosition="start": each label
+        lines up with the group's question and the control sits at the
+        row's right edge; clicking the label text still toggles or picks.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -112,6 +115,7 @@ const PAGE = `<!doctype html>
 <div id="product-root"></div>
 <div id="food-root"></div>
 <div id="checkout-root"></div>
+<div id="forms-root" style="width:360px"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -283,6 +287,22 @@ function Checkout() {
 }
 createRoot(document.getElementById("checkout-root")).render(h(Checkout));
 window.__checkoutReady = true;
+</script>
+<script type="module">
+/* Forms: CheckboxGroup and RadioGroup with the control at the end. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { CheckboxGroup, RadioGroup } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__forms = { checks: [], radio: [] };
+createRoot(document.getElementById("forms-root")).render(h("div", null,
+  h(CheckboxGroup, { label: "Test end checkboxes", labelPosition: "start", defaultValue: ["a"],
+    onChange: (v) => window.__forms.checks.push(v.join(",")),
+    options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta", hint: "With a hint" }] }),
+  h(RadioGroup, { label: "Test end radios", labelPosition: "start", defaultValue: "a",
+    onChange: (v) => window.__forms.radio.push(v),
+    options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta" }] })));
+window.__formsReady = true;
 </script>
 </body></html>
 `;
@@ -841,6 +861,35 @@ try {
     expect(tel === "tel:tel", `phone should be type tel with inputMode tel, got ${tel}`);
     ok(all);
     ok(`${listed} (country is a select)`);
+  });
+
+  await step("Checkbox and Radio groups: labelPosition start puts the control at the end", async () => {
+    await page.waitForFunction(() => window.__formsReady === true);
+    for (const name of ["Test end checkboxes", "Test end radios"]) {
+      /* The group's Field: its question label, then the rows. */
+      const layout = await page.getByText(name, { exact: true }).evaluate((question) => {
+        const left = Math.round(question.getBoundingClientRect().left);
+        const right = Math.round(question.parentElement.getBoundingClientRect().right);
+        return [...question.parentElement.querySelectorAll("input + label")].map((label) => {
+          const box = label.querySelector("[aria-hidden=true]").getBoundingClientRect();
+          const text = label.querySelector("span:not([aria-hidden]) > span").getBoundingClientRect();
+          return { indent: Math.round(text.left) - left, gap: right - Math.round(box.right), after: box.left > text.right };
+        });
+      });
+      expect(layout.length === 2, `${name}: expected 2 rows, got ${layout.length}`);
+      for (const r of layout) {
+        expect(r.indent === 0, `${name}: each label should line up with the question, got an indent of ${r.indent}px`);
+        expect(r.gap === 0 && r.after, `${name}: each control should sit at the row's right edge, after its label (${JSON.stringify(r)})`);
+      }
+      ok(`${name}: labels line up with the question, controls at the right edge`);
+    }
+    await page.locator("#forms-root").getByText("Beta", { exact: true }).first().click();
+    expect(await page.getByRole("checkbox", { name: /^Beta/ }).isChecked(), "clicking a checkbox label should check it");
+    await page.locator("#forms-root").getByText("Beta", { exact: true }).last().click();
+    expect(await page.getByRole("radio", { name: "Beta", exact: true }).isChecked(), "clicking a radio label should pick it");
+    const calls = await page.evaluate(() => window.__forms);
+    expect(calls.checks.join("|") === "a,b" && calls.radio.join("|") === "b", `onChange should report a,b and b, got ${JSON.stringify(calls)}`);
+    ok("clicking the label text toggles and picks, and onChange reports it");
   });
 
   await step("page errors", () => {

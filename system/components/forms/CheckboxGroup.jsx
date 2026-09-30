@@ -2,7 +2,7 @@ import React from "react";
 import { Field } from "./Field.jsx";
 import { Checkbox } from "./Checkbox.jsx";
 
-export function CheckboxGroup({ label, hint, error, required = false, options = [], value, defaultValue = [], onChange, disabled = false, orientation = "vertical", name, style, ...rest }) {
+export function CheckboxGroup({ label, hint, error, required = false, options = [], value, defaultValue = [], onChange, disabled = false, orientation = "vertical", labelPosition = "end", name, style, ...rest }) {
   const [internal, setInternal] = React.useState(defaultValue);
   const selected = value !== undefined ? value : internal;
 
@@ -23,6 +23,7 @@ export function CheckboxGroup({ label, hint, error, required = false, options = 
             hint={opt.hint}
             checked={selected.includes(opt.value)}
             disabled={disabled || opt.disabled}
+            labelPosition={labelPosition}
             onChange={() => toggle(opt.value)}
           />
         ))}

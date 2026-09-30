@@ -69,7 +69,7 @@
 <section class="playground-wrap">
   <h2 id="playground">Playground</h2>
   <p class="muted">Change a prop and watch it. The code below follows along.</p>
-  <div class="playground" data-playground="RadioGroup" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The question the set answers&quot;},{&quot;name&quot;:&quot;hint&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;error&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;required&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;value&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;defaultValue&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;disabled&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;orientation&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;vertical&quot;,&quot;horizontal&quot;],&quot;default&quot;:&quot;vertical&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;name&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Shared input name&quot;}]">
+  <div class="playground" data-playground="RadioGroup" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The question the set answers&quot;},{&quot;name&quot;:&quot;hint&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;error&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;required&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;value&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;defaultValue&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;disabled&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;orientation&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;vertical&quot;,&quot;horizontal&quot;],&quot;default&quot;:&quot;vertical&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;labelPosition&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;end&quot;],&quot;default&quot;:&quot;end&quot;,&quot;note&quot;:&quot;Passed to every option&quot;},{&quot;name&quot;:&quot;name&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Shared input name&quot;}]">
     <div class="pg-stage" aria-live="polite"></div>
     <div class="pg-controls" role="group" aria-label="RadioGroup props"></div>
     <pre class="pg-code"><code></code></pre>
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/RadioGroup.html?v=9026fcdcbd&amp;b=e356f00d72" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/RadioGroup.html?v=d25048d6d9&amp;b=b42d3f01b0" target="_blank" rel="noopener">Open full card</a>
   </div>
   
-  <div class="frame" style="height:528px">
-    <iframe src="../previews/RadioGroup.html?v=9026fcdcbd&amp;b=e356f00d72" title="Live preview" loading="lazy"></iframe>
+  <div class="frame" style="height:740px">
+    <iframe src="../previews/RadioGroup.html?v=d25048d6d9&amp;b=b42d3f01b0" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -100,6 +100,9 @@
   <p>A labelled set of radios where exactly one option wins. Always use the group rather than loose <code>Radio</code> elements: it generates the shared <code>name</code>, applies <code>role=&quot;radiogroup&quot;</code>, and gives the set an accessible name.</p>
 <h3 id="always-preselect">Always preselect</h3>
 <p>Ship a <code>defaultValue</code>. An empty radio group forces a decision before the user has read the options and cannot be returned to its original state once touched. If no option is a safe default, the question is a <code>Select</code> with a placeholder, not a radio group.</p>
+<h3 id="control-at-the-end">Control at the end</h3>
+<p><code>labelPosition=&quot;start&quot;</code> puts each label on the left and each radio at the right edge of the row, so the options line up with the group's question instead of indenting. It suits narrow panels and settings lists, where the right edge is where the eye looks for the control.</p>
+<p>``<code>jsx &lt;RadioGroup label=&quot;Sort by&quot; labelPosition=&quot;start&quot; defaultValue=&quot;due&quot; options={[   { value: &quot;due&quot;, label: &quot;Due date&quot; },   { value: &quot;amount&quot;, label: &quot;Amount&quot; }, ]} /&gt; </code>``</p>
 <h3 id="when-to-use-a-select-instead">When to use a Select instead</h3>
 <p>Radios show every option at once, which is their advantage and their cost. Past about five options they crowd the form, so switch to <code>Select</code>. Below three, consider whether the choice is really a <code>Switch</code>.</p>
 <p>``<code>jsx &lt;RadioGroup   label=&quot;Deployment target&quot;   defaultValue=&quot;staging&quot;   options={[     { value: &quot;staging&quot;, label: &quot;Staging&quot;, hint: &quot;Rebuilt on every merge&quot; },     { value: &quot;canary&quot;, label: &quot;Canary&quot;, hint: &quot;Five percent of traffic&quot; },     { value: &quot;production&quot;, label: &quot;Production&quot; },   ]} /&gt; </code>``</p>
@@ -131,6 +134,8 @@ export interface RadioGroupProps extends Omit&lt;React.HTMLAttributes&lt;HTMLEle
   disabled?: boolean;
   /** @default &quot;vertical&quot; */
   orientation?: &quot;vertical&quot; | &quot;horizontal&quot;;
+  /** Passed to every option. &quot;start&quot; puts each label on the left and each control at the right edge of the row, so labels line up with the group's question instead of indenting. @default &quot;end&quot; */
+  labelPosition?: &quot;start&quot; | &quot;end&quot;;
   /** Shared input name. Generated when omitted. */
   name?: string;
 }
@@ -153,7 +158,7 @@ export declare function RadioGroup(props: RadioGroupProps): React.JSX.Element;</
 import { Field } from &quot;./Field.jsx&quot;;
 import { Radio } from &quot;./Radio.jsx&quot;;
 
-export function RadioGroup({ label, hint, error, required = false, options = [], value, defaultValue, onChange, disabled = false, orientation = &quot;vertical&quot;, name, style, ...rest }) {
+export function RadioGroup({ label, hint, error, required = false, options = [], value, defaultValue, onChange, disabled = false, orientation = &quot;vertical&quot;, labelPosition = &quot;end&quot;, name, style, ...rest }) {
   const auto = React.useId();
   const groupName = name || auto;
   const [internal, setInternal] = React.useState(defaultValue);
@@ -176,6 +181,7 @@ export function RadioGroup({ label, hint, error, required = false, options = [],
             hint={opt.hint}
             checked={selected === opt.value}
             disabled={disabled || opt.disabled}
+            labelPosition={labelPosition}
             onChange={() =&gt; pick(opt.value)}
           /&gt;
         ))}
@@ -200,6 +206,7 @@ export function RadioGroup({ label, hint, error, required = false, options = [],
     <li><a href="#install">Install and import</a></li>
     <li><a href="#guidelines">Guidelines</a></li>
     <li class="nested"><a href="#always-preselect">Always preselect</a></li>
+    <li class="nested"><a href="#control-at-the-end">Control at the end</a></li>
     <li class="nested"><a href="#when-to-use-a-select-instead">When to use a Select instead</a></li>
     <li><a href="#props">Props</a></li>
     <li><a href="#tokens-used">Tokens it reads</a></li>
@@ -239,7 +246,7 @@ export function RadioGroup({ label, hint, error, required = false, options = [],
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e356f00d72" defer></script>
+<script src="../system/components/bundle.js?v=b42d3f01b0" defer></script>
 <script src="../assets/specimens.js?v=b602d275ae" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

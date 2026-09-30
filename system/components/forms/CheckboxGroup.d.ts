@@ -22,6 +22,8 @@ export interface CheckboxGroupProps extends Omit<React.HTMLAttributes<HTMLElemen
   disabled?: boolean;
   /** @default "vertical" */
   orientation?: "vertical" | "horizontal";
+  /** Passed to every option. "start" puts each label on the left and each control at the right edge of the row, so labels line up with the group's question instead of indenting. @default "end" */
+  labelPosition?: "start" | "end";
   name?: string;
 }
 

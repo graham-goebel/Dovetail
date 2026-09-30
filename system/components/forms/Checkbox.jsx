@@ -1,6 +1,6 @@
 import React from "react";
 
-export function Checkbox({ label, hint, checked, defaultChecked = false, indeterminate = false, onChange, disabled = false, id, style, ...rest }) {
+export function Checkbox({ label, hint, checked, defaultChecked = false, indeterminate = false, onChange, disabled = false, id, labelPosition = "end", style, ...rest }) {
   const [internal, setInternal] = React.useState(defaultChecked);
   const ref = React.useRef(null);
   const auto = React.useId();
@@ -23,7 +23,12 @@ export function Checkbox({ label, hint, checked, defaultChecked = false, indeter
       />
       <label
         htmlFor={boxId}
-        style={{ display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center" }}
+        style={{
+          display: "flex", gap: "var(--dt-space-inline-xs)", cursor: disabled ? "not-allowed" : "pointer", alignItems: hint ? "flex-start" : "center",
+          justifyContent: labelPosition === "start" ? "space-between" : undefined,
+          width: labelPosition === "start" ? "100%" : undefined,
+          flexDirection: labelPosition === "start" ? "row-reverse" : "row",
+        }}
       >
         <span
           aria-hidden="true"
