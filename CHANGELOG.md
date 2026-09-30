@@ -4,6 +4,36 @@ Everything notable that changes in the Dovetail design system (`system/`), newes
 
 <!-- Contributors: don't edit this file directly. Add an entry to `changes/` with your pull request (`npm run change -- <slug>`); releases compile the entries into a new section here. Unreleased entries can be previewed with `npm run changelog`. -->
 
+## 0.3.0 - 2026-09-30
+
+### Breaking changes
+
+- `@dovetail-ds/react/styles.css` no longer loads Geist from Google Fonts. The font `@import` moves to a new opt-in `@dovetail-ds/react/fonts.css`, so the stylesheet makes no third-party request, works offline and under a strict CSP, and leaves self-hosting up to you. *(visual)* `--dt-font-family-sans` `--dt-font-family-mono`
+
+  Without `fonts.css` or your own `@font-face` for "Geist" and "Geist Mono", text falls back to the system font. The docs site is unchanged.
+
+  **Migration**
+
+  To keep Geist from Google Fonts, import `fonts.css` before `styles.css`:
+
+  ```js
+  import "@dovetail-ds/react/fonts.css";
+  import "@dovetail-ds/react/styles.css";
+  ```
+
+  To self-host, leave `fonts.css` out and serve the fonts under the same family names (for example with `next/font/local` or `@font-face`), or point `--dt-font-family-sans` and `--dt-font-family-mono` at your own families. Afterwards, check that headings and body text render in Geist rather than the system font.
+
+### Changed
+
+- `react` is the package's only peer dependency: `react-dom` is no longer required (nothing in the package imports it), and the published manifest has no `engines` field, so installs on any Node version stop warning. The npm description now describes the package rather than the repository.
+
+### Fixed
+
+- The type declarations work with React 19: every `.d.ts` uses `React.JSX` instead of the global `JSX` namespace, which `@types/react` 19 removed. With React 19 types, every component's declaration previously failed with "Cannot find namespace 'JSX'". The package check now type-checks against `@types/react` 18 and 19.
+- The package works in React Server Components and the Next.js App Router: interactive components start with `"use client"`, while layout and type components (`Section`, `Stack`, `Heading`, `Text` and others) stay server components. `Navbar` no longer crashes when it collapses on a narrow screen, and `Navbar` and `Sheet` render the same markup on the server and on the first client pass, so hydration matches. `Navbar` `Sheet`
+
+  `Navbar` rendered its mobile menu with `Drawer` without importing it, which only worked on the docs site, where every component shares one scope. Both components now read `matchMedia` through `useSyncExternalStore`, with a server snapshot of `false`, instead of in their initial state. The package build now fails on any component that renders another one without importing it.
+
 ## 0.2.0 - 2026-09-29
 
 ### Breaking changes
