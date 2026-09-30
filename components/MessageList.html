@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MessageList · Dovetail</title>
+<meta name="description" content="The scrolling log of a conversation, kept pinned to the newest message unless the reader has scrolled up to read history. MessageDivider, exported from the same file, labels days and events across it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">MessageList</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html" aria-current="page">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">MessageList</li></ol></nav>
+<h1>MessageList</h1>
+<p class="lede">The scrolling log of a conversation, kept pinned to the newest message unless the reader has scrolled up to read history. <code>MessageDivider</code>, exported from the same file, labels days and events across it.</p>
+<p class="meta">
+  <span class="pill">Chat</span>
+  
+  <a href="../system/components/chat/MessageList.jsx">MessageList.jsx</a>
+  <a href="../system/components/chat/MessageList.d.ts">MessageList.d.ts</a>
+  <a href="../system/components/chat/MessageList.md">MessageList.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="MessageList" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Accessible name of the log, e.g&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The conversation, oldest first: MessageBubble, MessageDivider, TypingIndicator and QuickReplies.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="MessageList props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/MessageList.html?v=add23fcea0&amp;b=d27537cd6d" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/MessageList.html?v=add23fcea0&amp;b=d27537cd6d" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>The scrolling log of a conversation, kept pinned to the newest message unless the reader has scrolled up to read history. <code>MessageDivider</code>, exported from the same file, labels days and events across it.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>You show a conversation: bubbles, dividers, a typing indicator, quick replies.</li><li>New messages arrive while the conversation is open and the view should follow them.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>It is a feed of records or notifications. Use <code>List</code>; a log announces every addition.</li><li>It is a single message or a quote. Use <code>MessageBubble</code> on its own, or <code>Quote</code>.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, height: &quot;100dvh&quot; }}&gt;
+  &lt;ChatHeader title=&quot;Maya Chen&quot; presence=&quot;online&quot; avatar={{ name: &quot;Maya Chen&quot; }} /&gt;
+  &lt;MessageList label=&quot;Conversation with Maya Chen&quot; style={{ flex: 1 }}&gt;
+    &lt;MessageDivider&gt;Today&lt;/MessageDivider&gt;
+    {messages.map((m) =&gt; (
+      &lt;MessageBubble key={m.id} from={m.mine ? &quot;me&quot; : &quot;them&quot;} time={m.time} status={m.status} grouped={m.grouped}&gt;
+        {m.text}
+      &lt;/MessageBubble&gt;
+    ))}
+    {typing &amp;&amp; &lt;TypingIndicator name=&quot;Maya&quot; /&gt;}
+  &lt;/MessageList&gt;
+  &lt;Composer label=&quot;Message Maya Chen&quot; value={draft} onChange={setDraft} onSend={send} /&gt;
+&lt;/div&gt;</code></pre>
+<h3 id="behaviour">Behaviour</h3>
+<ul><li><strong>Pinned.</strong> On mount, and whenever children change or the content changes size (an image loads, a bubble grows), the list scrolls to the bottom, as long as the reader is already there.</li><li><strong>Scrolled up.</strong> If the reader has scrolled away from the bottom, new content leaves them where they are and a &quot;New messages&quot; button (a <code>Button</code>) appears at the bottom. It scrolls down (smoothly, unless reduced motion is set), and focus moves to the log so it is not lost when the button goes.</li><li><strong>Short conversations</strong> sit at the bottom of the list, next to the composer, not at the top.</li><li>It never fetches, pages or reorders. Pass the conversation oldest first; load older history in your app and prepend it.</li></ul>
+<h3 id="messagedivider">MessageDivider</h3>
+<p>A centred label with a rule on each side: <code>&lt;MessageDivider&gt;Today&lt;/MessageDivider&gt;</code>, <code>&lt;MessageDivider&gt;Conversation assigned to Maya&lt;/MessageDivider&gt;</code>. Use it for days and for events that change the conversation (assigned, transferred, ended), not for every timestamp. <code>children</code> is the label; when it is not a plain string, pass <code>label</code> as its accessible name. Long labels wrap.</p>
+<h3 id="composition">Composition</h3>
+<p>The <code>flex: 1</code> middle of a column with <code>ChatHeader</code> above and <code>Composer</code> below, or any box with a bounded height. A list with no height bound never scrolls, so it has nothing to pin. Children are <code>MessageBubble</code>, <code>MessageDivider</code>, <code>TypingIndicator</code> and <code>QuickReplies</code>, which carry their own spacing: a run gap before each run and around dividers, a small gap inside a run.</p>
+<h3 id="tokens">Tokens</h3>
+<p>Reads <code>--dt-chat-border</code> and <code>--dt-chat-divider-fg</code> for the divider, <code>--dt-bubble-run-gap</code> for the divider's margin, and <code>--dt-space-inset-sm</code> for the list's padding. The jump button is a <code>Button</code> and reads <code>--dt-button-*</code> and <code>--dt-elevation-2</code>. Exposes nothing of its own beyond the shared <code>--dt-chat-*</code> tokens.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>The root is <code>role=&quot;log&quot;</code> with <code>aria-live=&quot;polite&quot;</code>, named by the required <code>label</code>. Screen readers announce messages as they are added, without interrupting. Don't wrap it in another live region.</li><li>The log is focusable (<code>tabIndex={0}</code>), so keyboard users can scroll it with the arrow keys and Page Up and Page Down.</li><li>The &quot;New messages&quot; button is a real button, reachable with Tab while it shows. Activating it moves focus to the log.</li><li><code>MessageDivider</code> is <code>role=&quot;separator&quot;</code> named by its text, because a separator's content is not read on its own.</li><li>The jump scrolls instantly under <code>prefers-reduced-motion: reduce</code>.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li><code>label</code>: who the conversation is with: &quot;Conversation with Maya Chen&quot;, &quot;Support chat&quot;.</li><li>Divider labels: sentence case, no full stop. Days as &quot;Today&quot;, &quot;Yesterday&quot;, then a date; events in the past tense or as a state: &quot;Conversation assigned to Maya&quot;, &quot;Chat ended&quot;.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>MessageList.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** The scrolling log of a conversation. Pinned to the newest message unless the reader has scrolled up, when it offers a &quot;New messages&quot; jump instead. */
+export interface MessageListProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; {
+  /** Accessible name of the log, e.g. &quot;Conversation with Maya&quot;. Required. */
+  label: string;
+  /** The conversation, oldest first: MessageBubble, MessageDivider, TypingIndicator and QuickReplies. */
+  children?: React.ReactNode;
+}
+
+/** A centred label across the log: a day, or an event such as a hand-off. */
+export interface MessageDividerProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; {
+  /** The label, e.g. &quot;Today&quot; or &quot;Conversation assigned to Maya&quot;. */
+  children: React.ReactNode;
+  /** Accessible name of the separator. Defaults to `children` when it is a string; set it when it is not. */
+  label?: string;
+}
+
+export declare function MessageList(props: MessageListProps): React.JSX.Element;
+export declare function MessageDivider(props: MessageDividerProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>MessageList.jsx</code> resolves, read from the source: 3 component, 9 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:MessageList">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-bubble-run-gap"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-bubble-run-gap"><code>--dt-bubble-run-gap</code></a><button type="button" class="graph-btn" data-graph="--dt-bubble-run-gap" title="Show what --dt-bubble-run-gap connects to" aria-label="Graph for --dt-bubble-run-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-stack-sm)</code></td></tr><tr id="uses-dt-chat-border"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-chat-border"><code>--dt-chat-border</code></a><button type="button" class="graph-btn" data-graph="--dt-chat-border" title="Show what --dt-chat-border connects to" aria-label="Graph for --dt-chat-border"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-chat-divider-fg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-chat-divider-fg"><code>--dt-chat-divider-fg</code></a><button type="button" class="graph-btn" data-graph="--dt-chat-divider-fg" title="Show what --dt-chat-divider-fg connects to" aria-label="Graph for --dt-chat-divider-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-tertiary)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-elevation-2"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-elevation-2"><code>--dt-elevation-2</code></a><button type="button" class="graph-btn" data-graph="--dt-elevation-2" title="Show what --dt-elevation-2 connects to" aria-label="Graph for --dt-elevation-2"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-shadow-raw-2)</code></td></tr><tr id="uses-dt-size-icon-sm"><th scope="row"><span class="token-cell"><code>--dt-size-icon-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-sm" title="Show what --dt-size-icon-sm connects to" aria-label="Graph for --dt-size-icon-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-sm" title="Show what --dt-space-inset-sm connects to" aria-label="Graph for --dt-space-inset-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xs" title="Show what --dt-space-inset-xs connects to" aria-label="Graph for --dt-space-inset-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-text-label-sm-family"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-family</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-family" title="Show what --dt-text-label-sm-family connects to" aria-label="Graph for --dt-text-label-sm-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-secondary)</code></td></tr><tr id="uses-dt-text-label-sm-line"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-line</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-line" title="Show what --dt-text-label-sm-line connects to" aria-label="Graph for --dt-text-label-sm-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-label-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-label-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-label-sm-size" title="Show what --dt-text-label-sm-size connects to" aria-label="Graph for --dt-text-label-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-medium" title="Show what --dt-font-weight-medium connects to" aria-label="Graph for --dt-font-weight-medium"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>500</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Button } from &quot;../actions/Button.jsx&quot;;
+
+/* The scrolling log of a conversation. It stays pinned to the newest message
+   as children arrive, unless the reader has scrolled up to read history; then
+   it leaves them where they are and offers a jump back down. It never fetches
+   or invents messages: the children are the conversation.
+
+   Every DOM read happens in an effect, never during render, so the list
+   server-renders as a plain log. */
+
+/* How close to the bottom, in CSS pixels, still counts as at the bottom: a
+   rounding allowance for fractional scroll positions, not a visual size. */
+const SLACK = 8;
+
+/* A layout effect in the browser, so a new message never paints one frame
+   off the bottom; a plain effect on the server, where layout effects warn. */
+const useIsoLayoutEffect = typeof document !== &quot;undefined&quot; ? React.useLayoutEffect : React.useEffect;
+
+function prefersReducedMotion() {
+  return typeof window !== &quot;undefined&quot; &amp;&amp; !!window.matchMedia &amp;&amp; window.matchMedia(&quot;(prefers-reduced-motion: reduce)&quot;).matches;
+}
+
+const DOWN = [&quot;M12 4.5v15&quot;, &quot;m6 13.5 6 6 6-6&quot;];
+
+export function MessageList({ label, children, style, ...rest }) {
+  const scroller = React.useRef(null);
+  const content = React.useRef(null);
+  const pinned = React.useRef(true);
+  const lastHeight = React.useRef(0);
+  const [unseen, setUnseen] = React.useState(false);
+
+  const toBottom = React.useCallback((smooth) =&gt; {
+    const el = scroller.current;
+    if (!el) return;
+    const top = el.scrollHeight - el.clientHeight;
+    if (smooth &amp;&amp; el.scrollTo &amp;&amp; !prefersReducedMotion()) el.scrollTo({ top, behavior: &quot;smooth&quot; });
+    else el.scrollTop = top;
+  }, []);
+
+  /* Called whenever the content may have changed size: new children, an image
+     that loaded, a bubble that grew. Pinned, follow it; scrolled up, say that
+     something new is below. */
+  const sync = React.useCallback(() =&gt; {
+    const el = scroller.current;
+    if (!el) return;
+    const height = el.scrollHeight;
+    const grew = height &gt; lastHeight.current;
+    lastHeight.current = height;
+    if (pinned.current) toBottom(false);
+    else if (grew) setUnseen(true);
+  }, [toBottom]);
+
+  useIsoLayoutEffect(() =&gt; {
+    sync();
+  }, [children, sync]);
+
+  React.useEffect(() =&gt; {
+    if (typeof ResizeObserver === &quot;undefined&quot; || !content.current) return undefined;
+    const ro = new ResizeObserver(() =&gt; sync());
+    ro.observe(content.current);
+    return () =&gt; ro.disconnect();
+  }, [sync]);
+
+  const onScroll = (e) =&gt; {
+    const el = e.currentTarget;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight &lt;= SLACK;
+    pinned.current = atBottom;
+    if (atBottom &amp;&amp; unseen) setUnseen(false);
+    if (rest.onScroll) rest.onScroll(e);
+  };
+
+  const jump = () =&gt; {
+    pinned.current = true;
+    setUnseen(false);
+    toBottom(true);
+    /* The button is about to unmount; keep focus on the log rather than
+       letting it fall back to the page. */
+    if (scroller.current) scroller.current.focus({ preventScroll: true });
+  };
+
+  return (
+    &lt;div
+      role=&quot;log&quot;
+      aria-live=&quot;polite&quot;
+      aria-label={label}
+      tabIndex={0}
+      {...rest}
+      ref={scroller}
+      onScroll={onScroll}
+      style={{
+        position: &quot;relative&quot;,
+        display: &quot;flex&quot;, flexDirection: &quot;column&quot;,
+        minHeight: 0, overflowY: &quot;auto&quot;, overflowX: &quot;hidden&quot;,
+        overscrollBehavior: &quot;contain&quot;,
+        padding: &quot;var(--dt-space-inset-sm)&quot;,
+        ...style,
+      }}
+    &gt;
+      {/* margin-top: auto keeps a short conversation at the bottom, next to
+          the composer, the way every messenger does. */}
+      &lt;div ref={content} style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, marginTop: &quot;auto&quot;, minWidth: 0 }}&gt;
+        {children}
+      &lt;/div&gt;
+      {unseen &amp;&amp; (
+        &lt;div aria-live=&quot;off&quot; style={{
+          position: &quot;sticky&quot;, bottom: &quot;var(--dt-space-inset-xs)&quot;, height: 0, flex: &quot;none&quot;,
+          display: &quot;flex&quot;, justifyContent: &quot;center&quot;, alignItems: &quot;flex-end&quot;, overflow: &quot;visible&quot;,
+        }}&gt;
+          &lt;Button
+            type=&quot;button&quot;
+            size=&quot;sm&quot;
+            onClick={jump}
+            iconStart={
+              &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;
+                style={{ width: &quot;var(--dt-size-icon-sm)&quot;, height: &quot;var(--dt-size-icon-sm)&quot;, display: &quot;block&quot; }}&gt;
+                {DOWN.map((d) =&gt; &lt;path key={d} d={d} /&gt;)}
+              &lt;/svg&gt;
+            }
+            style={{ boxShadow: &quot;var(--dt-elevation-2)&quot;, flex: &quot;none&quot; }}
+          &gt;
+            New messages
+          &lt;/Button&gt;
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+
+/* A centred label across the log: a day, or an event such as a hand-off.
+   A separator's content is presentational, so the text is also its name. */
+export function MessageDivider({ children, label, style, ...rest }) {
+  const name = label || (typeof children === &quot;string&quot; ? children : undefined);
+  const rule = { flex: &quot;1 1 0&quot;, minWidth: 0, borderTop: &quot;var(--dt-border-width-default) solid var(--dt-chat-border)&quot; };
+  return (
+    &lt;div
+      role=&quot;separator&quot;
+      aria-label={name}
+      style={{
+        display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;,
+        margin: &quot;var(--dt-bubble-run-gap) 0&quot;,
+        fontFamily: &quot;var(--dt-text-label-sm-family)&quot;, fontSize: &quot;var(--dt-text-label-sm-size)&quot;,
+        lineHeight: &quot;var(--dt-text-label-sm-line)&quot;, fontWeight: &quot;var(--dt-font-weight-medium)&quot;,
+        color: &quot;var(--dt-chat-divider-fg)&quot;,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      &lt;span aria-hidden=&quot;true&quot; style={rule} /&gt;
+      &lt;span style={{ flex: &quot;0 1 auto&quot;, minWidth: 0, textAlign: &quot;center&quot;, overflowWrap: &quot;anywhere&quot; }}&gt;{children}&lt;/span&gt;
+      &lt;span aria-hidden=&quot;true&quot; style={rule} /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#behaviour">Behaviour</a></li>
+    <li class="nested"><a href="#messagedivider">MessageDivider</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">MessageList</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="MessageList.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="MessageList.md" download="MessageList.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="MessageList.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/chat/MessageList.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy MessageList.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/chat/MessageList.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View MessageList.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/chat/MessageList.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy MessageList.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/chat/MessageList.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View MessageList.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FMessageList.md%3A%20the%20%22MessageList%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="MessageList" data-md="MessageList.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=d27537cd6d" defer></script>
+<script src="../assets/specimens.js?v=6356e89d2e" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=c1042cbd3b" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/site.js?v=f25b56a9e9" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

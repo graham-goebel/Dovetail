@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChatHeader · Dovetail</title>
+<meta name="description" content="The bar above a conversation: who it is with, whether they are there, a way back, and a slot for a few actions.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">ChatHeader</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html" aria-current="page">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">ChatHeader</li></ol></nav>
+<h1>ChatHeader</h1>
+<p class="lede">The bar above a conversation: who it is with, whether they are there, a way back, and a slot for a few actions.</p>
+<p class="meta">
+  <span class="pill">Chat</span>
+  
+  <a href="../system/components/chat/ChatHeader.jsx">ChatHeader.jsx</a>
+  <a href="../system/components/chat/ChatHeader.d.ts">ChatHeader.d.ts</a>
+  <a href="../system/components/chat/ChatHeader.md">ChatHeader.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="ChatHeader" data-props="[{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The person, team or assistant the conversation is with&quot;},{&quot;name&quot;:&quot;subtitle&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A second line, e.g&quot;},{&quot;name&quot;:&quot;presence&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;online&quot;,&quot;away&quot;,&quot;offline&quot;],&quot;default&quot;:null,&quot;note&quot;:&quot;A dot on the avatar, with the same state in text: read by screen readers, and shown when there is no subtitle.&quot;},{&quot;name&quot;:&quot;actions&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The right-hand slot: a few IconButtons, e.g&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="ChatHeader props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/ChatHeader.html?v=b30a3561bd&amp;b=d27537cd6d" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:870px">
+    <iframe src="../previews/ChatHeader.html?v=b30a3561bd&amp;b=d27537cd6d" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>The bar above a conversation: who it is with, whether they are there, a way back, and a slot for a few actions.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A screen or panel is one conversation, with a person, a team or an assistant.</li><li>You need to show presence (online, away, offline) next to the person's name.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>It is the top of an ordinary page. Use <code>Navbar</code>, or <code>AppShell</code>'s title bar on a phone.</li><li>It heads a list of conversations rather than one. That is a page heading and a <code>List</code>.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;ChatHeader
+  title=&quot;Maya Chen&quot;
+  subtitle=&quot;Typically replies in 5 min&quot;
+  avatar={{ name: &quot;Maya Chen&quot;, src: maya.photo }}
+  presence=&quot;online&quot;
+  onBack={() =&gt; navigate(&quot;/inbox&quot;)}
+  actions={&lt;IconButton label=&quot;More options&quot;&gt;&lt;MoreIcon /&gt;&lt;/IconButton&gt;}
+/&gt;</code></pre>
+<h3 id="props">Props</h3>
+<div class="table-wrap"><table><thead><tr><th>prop</th><th>what it is for</th></tr></thead><tbody><tr><td><code>title</code></td><td>Required. The person, team or assistant. A heading (<code>h2</code> by default, <code>headingLevel</code> to change); truncates to one line.</td></tr><tr><td><code>subtitle</code></td><td>A second line: response time, role, &quot;Answers from the help centre&quot;.</td></tr><tr><td><code>avatar</code></td><td><code>{ name, src? }</code>, rendered with <code>Avatar</code>. Decorative, because the title already names them.</td></tr><tr><td><code>presence</code></td><td><code>&quot;online&quot;</code>, <code>&quot;away&quot;</code> or <code>&quot;offline&quot;</code>: a dot on the avatar and the same word in text.</td></tr><tr><td><code>onBack</code></td><td>Shows a back button (<code>IconButton</code>, labelled &quot;Back&quot;) before everything else.</td></tr><tr><td><code>actions</code></td><td>The right-hand slot. Two or three <code>IconButton</code>s at most.</td></tr></tbody></table></div>
+<h3 id="composition">Composition</h3>
+<p>The first child of a flex column that holds the conversation: <code>ChatHeader</code>, then <code>MessageList</code> with <code>flex: 1</code>, then <code>Composer</code>. It does not stick itself; the column keeps it at the top. It uses <code>Avatar</code> and <code>IconButton</code> inside. Keep <code>actions</code> to icon buttons with real labels; put anything more behind a More button.</p>
+<h3 id="tokens">Tokens</h3>
+<p>Reads <code>--dt-chat-surface</code> (background), <code>--dt-chat-border</code> (bottom rule), <code>--dt-presence-online</code>, <code>--dt-presence-away</code>, <code>--dt-presence-offline</code> and <code>--dt-presence-size</code> for the dot, and the text roles <code>--dt-text-primary</code> and <code>--dt-text-secondary</code>. Exposes those <code>--dt-chat-*</code> and <code>--dt-presence-*</code> tokens (Tier 3, in <code>tokens/component/chat.css</code>); the colour ones are repeated under <code>.dark</code>.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>Renders a <code>&lt;header&gt;</code> with the title as a real heading, so screen reader users can jump to the conversation.</li><li>Presence is never colour alone. With no subtitle the word shows beside the title; with one, it is read before the subtitle (&quot;Online. Typically replies in 5 min&quot;) in visually hidden text. The dot itself is hidden from assistive technology.</li><li>The avatar is hidden from assistive technology, since the heading already says who it is.</li><li>The back button is an <code>IconButton</code> named &quot;Back&quot;. Every action you pass needs its own label.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li>Title: the name as the person would recognise it. No &quot;Chat with&quot;.</li><li>Subtitle: sentence case, no full stop, short enough for one line on a phone.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>ChatHeader.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** Who the conversation is with, shown in a ChatHeader. */
+export interface ChatHeaderAvatar {
+  /** Full name. The initials fall back to it when there is no image. */
+  name: string;
+  /** Image URL. */
+  src?: string;
+}
+
+/** The bar above a conversation: title, avatar with presence, a back button and actions. Renders a `&lt;header&gt;`. */
+export interface ChatHeaderProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;title&quot;&gt; {
+  /** The person, team or assistant the conversation is with. Rendered as a heading. */
+  title: string;
+  /** A second line, e.g. &quot;Typically replies in 5 min&quot;. Shown under the title. */
+  subtitle?: React.ReactNode;
+  /** Shown before the title. Decorative: the title already names them. */
+  avatar?: ChatHeaderAvatar;
+  /** A dot on the avatar, with the same state in text: read by screen readers, and shown when there is no subtitle. */
+  presence?: &quot;online&quot; | &quot;away&quot; | &quot;offline&quot;;
+  /** Shows a back button, labelled &quot;Back&quot;, before everything else. */
+  onBack?: () =&gt; void;
+  /** The right-hand slot: a few IconButtons, e.g. call or more. */
+  actions?: React.ReactNode;
+  /** Level of the title's heading element. @default 2 */
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+}
+
+export declare function ChatHeader(props: ChatHeaderProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>ChatHeader.jsx</code> resolves, read from the source: 6 component, 16 semantic, 1 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:ChatHeader">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-chat-border"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-chat-border"><code>--dt-chat-border</code></a><button type="button" class="graph-btn" data-graph="--dt-chat-border" title="Show what --dt-chat-border connects to" aria-label="Graph for --dt-chat-border"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-chat-surface"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-chat-surface"><code>--dt-chat-surface</code></a><button type="button" class="graph-btn" data-graph="--dt-chat-surface" title="Show what --dt-chat-surface connects to" aria-label="Graph for --dt-chat-surface"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-base)</code></td></tr><tr id="uses-dt-presence-away"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-presence-away"><code>--dt-presence-away</code></a><button type="button" class="graph-btn" data-graph="--dt-presence-away" title="Show what --dt-presence-away connects to" aria-label="Graph for --dt-presence-away"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-warning)</code></td></tr><tr id="uses-dt-presence-offline"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-presence-offline"><code>--dt-presence-offline</code></a><button type="button" class="graph-btn" data-graph="--dt-presence-offline" title="Show what --dt-presence-offline connects to" aria-label="Graph for --dt-presence-offline"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-tertiary)</code></td></tr><tr id="uses-dt-presence-online"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-presence-online"><code>--dt-presence-online</code></a><button type="button" class="graph-btn" data-graph="--dt-presence-online" title="Show what --dt-presence-online connects to" aria-label="Graph for --dt-presence-online"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-success)</code></td></tr><tr id="uses-dt-presence-size"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-presence-size"><code>--dt-presence-size</code></a><button type="button" class="graph-btn" data-graph="--dt-presence-size" title="Show what --dt-presence-size connects to" aria-label="Graph for --dt-presence-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-icon-xs)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-border-width-strong"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-strong"><code>--dt-border-width-strong</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-strong" title="Show what --dt-border-width-strong connects to" aria-label="Graph for --dt-border-width-strong"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair-2)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-icon-md"><th scope="row"><span class="token-cell"><code>--dt-size-icon-md</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-md" title="Show what --dt-size-icon-md connects to" aria-label="Graph for --dt-size-icon-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-5)</code></td></tr><tr id="uses-dt-space-inline-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-2xs"><code>--dt-space-inline-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-2xs" title="Show what --dt-space-inline-2xs connects to" aria-label="Graph for --dt-space-inline-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-sm" title="Show what --dt-space-inset-sm connects to" aria-label="Graph for --dt-space-inset-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xs" title="Show what --dt-space-inset-xs connects to" aria-label="Graph for --dt-space-inset-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-text-body-xs-family"><th scope="row"><span class="token-cell"><code>--dt-text-body-xs-family</code><button type="button" class="graph-btn" data-graph="--dt-text-body-xs-family" title="Show what --dt-text-body-xs-family connects to" aria-label="Graph for --dt-text-body-xs-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-xs-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-xs-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-xs-line" title="Show what --dt-text-body-xs-line connects to" aria-label="Graph for --dt-text-body-xs-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-xs)</code></td></tr><tr id="uses-dt-text-body-xs-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-xs-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-xs-size" title="Show what --dt-text-body-xs-size connects to" aria-label="Graph for --dt-text-body-xs-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-label-lg-family"><th scope="row"><span class="token-cell"><code>--dt-text-label-lg-family</code><button type="button" class="graph-btn" data-graph="--dt-text-label-lg-family" title="Show what --dt-text-label-lg-family connects to" aria-label="Graph for --dt-text-label-lg-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-secondary)</code></td></tr><tr id="uses-dt-text-label-lg-line"><th scope="row"><span class="token-cell"><code>--dt-text-label-lg-line</code><button type="button" class="graph-btn" data-graph="--dt-text-label-lg-line" title="Show what --dt-text-label-lg-line connects to" aria-label="Graph for --dt-text-label-lg-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-md)</code></td></tr><tr id="uses-dt-text-label-lg-size"><th scope="row"><span class="token-cell"><code>--dt-text-label-lg-size</code><button type="button" class="graph-btn" data-graph="--dt-text-label-lg-size" title="Show what --dt-text-label-lg-size connects to" aria-label="Graph for --dt-text-label-lg-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-primary" title="Show what --dt-text-primary connects to" aria-label="Graph for --dt-text-primary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-text-secondary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-secondary"><code>--dt-text-secondary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-secondary" title="Show what --dt-text-secondary connects to" aria-label="Graph for --dt-text-secondary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-600)</code></td></tr><tr id="uses-dt-font-weight-semibold"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-semibold"><code>--dt-font-weight-semibold</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-semibold" title="Show what --dt-font-weight-semibold connects to" aria-label="Graph for --dt-font-weight-semibold"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>600</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Avatar } from &quot;../display/Avatar.jsx&quot;;
+import { IconButton } from &quot;../actions/IconButton.jsx&quot;;
+import { VisuallyHidden } from &quot;../primitives/VisuallyHidden.jsx&quot;;
+
+/* The bar above a conversation: who it is with, whether they are there, and
+   a way back. Presence is a prop; nothing here polls for it. */
+
+const PRESENCE = {
+  online: { color: &quot;var(--dt-presence-online)&quot;, text: &quot;Online&quot; },
+  away: { color: &quot;var(--dt-presence-away)&quot;, text: &quot;Away&quot; },
+  offline: { color: &quot;var(--dt-presence-offline)&quot;, text: &quot;Offline&quot; },
+};
+
+const BACK = [&quot;M19.5 12h-15&quot;, &quot;m10.5 6-6 6 6 6&quot;];
+
+function Glyph({ paths }) {
+  return (
+    &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;
+      style={{ width: &quot;var(--dt-size-icon-md)&quot;, height: &quot;var(--dt-size-icon-md)&quot;, display: &quot;block&quot; }}&gt;
+      {paths.map((d) =&gt; &lt;path key={d} d={d} /&gt;)}
+    &lt;/svg&gt;
+  );
+}
+
+export function ChatHeader({ title, subtitle, avatar, presence, onBack, actions, headingLevel = 2, style, ...rest }) {
+  const state = PRESENCE[presence];
+  const Heading = `h${Math.min(6, Math.max(1, headingLevel))}`;
+  return (
+    &lt;header
+      style={{
+        display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;,
+        padding: &quot;var(--dt-space-inset-xs) var(--dt-space-inset-sm)&quot;,
+        background: &quot;var(--dt-chat-surface)&quot;, color: &quot;var(--dt-text-primary)&quot;,
+        borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-chat-border)&quot;,
+        minWidth: 0,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      {onBack &amp;&amp; (
+        &lt;IconButton label=&quot;Back&quot; onClick={onBack} style={{ flex: &quot;none&quot; }}&gt;
+          &lt;Glyph paths={BACK} /&gt;
+        &lt;/IconButton&gt;
+      )}
+      {avatar &amp;&amp; (
+        &lt;span aria-hidden=&quot;true&quot; style={{ position: &quot;relative&quot;, display: &quot;inline-flex&quot;, flex: &quot;none&quot; }}&gt;
+          &lt;Avatar name={avatar.name} src={avatar.src} size=&quot;md&quot; /&gt;
+          {state &amp;&amp; (
+            &lt;span style={{
+              position: &quot;absolute&quot;, right: 0, bottom: 0,
+              width: &quot;var(--dt-presence-size)&quot;, height: &quot;var(--dt-presence-size)&quot;,
+              borderRadius: &quot;var(--dt-radius-pill)&quot;, background: state.color,
+              border: &quot;var(--dt-border-width-strong) solid var(--dt-chat-surface)&quot;,
+            }} /&gt;
+          )}
+        &lt;/span&gt;
+      )}
+      &lt;div style={{ flex: &quot;1 1 auto&quot;, minWidth: 0 }}&gt;
+        &lt;Heading style={{
+          margin: 0, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot;, whiteSpace: &quot;nowrap&quot;,
+          fontFamily: &quot;var(--dt-text-label-lg-family)&quot;, fontSize: &quot;var(--dt-text-label-lg-size)&quot;,
+          lineHeight: &quot;var(--dt-text-label-lg-line)&quot;, fontWeight: &quot;var(--dt-font-weight-semibold)&quot;,
+          color: &quot;var(--dt-text-primary)&quot;,
+        }}&gt;
+          {title}
+        &lt;/Heading&gt;
+        {(subtitle || state) &amp;&amp; (
+          &lt;p style={{
+            margin: 0, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot;, whiteSpace: &quot;nowrap&quot;,
+            fontFamily: &quot;var(--dt-text-body-xs-family)&quot;, fontSize: &quot;var(--dt-text-body-xs-size)&quot;,
+            lineHeight: &quot;var(--dt-text-body-xs-line)&quot;, color: &quot;var(--dt-text-secondary)&quot;,
+          }}&gt;
+            {state &amp;&amp; (subtitle ? &lt;VisuallyHidden&gt;{state.text}. &lt;/VisuallyHidden&gt; : state.text)}
+            {subtitle}
+          &lt;/p&gt;
+        )}
+      &lt;/div&gt;
+      {actions &amp;&amp; (
+        &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-2xs)&quot;, flex: &quot;none&quot; }}&gt;
+          {actions}
+        &lt;/div&gt;
+      )}
+    &lt;/header&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#props">Props</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">ChatHeader</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="ChatHeader.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="ChatHeader.md" download="ChatHeader.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="ChatHeader.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/chat/ChatHeader.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy ChatHeader.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/chat/ChatHeader.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View ChatHeader.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/chat/ChatHeader.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy ChatHeader.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/chat/ChatHeader.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View ChatHeader.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FChatHeader.md%3A%20the%20%22ChatHeader%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="ChatHeader" data-md="ChatHeader.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=d27537cd6d" defer></script>
+<script src="../assets/specimens.js?v=6356e89d2e" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=c1042cbd3b" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/site.js?v=f25b56a9e9" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

@@ -342,6 +342,48 @@
     QuantityStepper: function () {
       return e(LiveQuantity, null, e(NS.QuantityStepper, { label: "Quantity", value: 2, max: 9, size: "sm", onChange: function () {} }));
     },
+    /* Chat */
+    ChatHeader: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280, borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+        e(NS.ChatHeader, { title: "Maya Chen", subtitle: "Typically replies in 5 min", presence: "online", avatar: { name: "Maya Chen" } }));
+    },
+    MessageList: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280, height: 150, display: "flex", flexDirection: "column", borderRadius: "var(--dt-radius-container)", overflow: "hidden", background: "var(--dt-surface-base)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+        e(NS.MessageList, { label: "Conversation with Maya Chen", style: { flex: "1 1 auto" } },
+          e(NS.MessageBubble, { from: "them" }, "Your replacement ships today."),
+          e(NS.MessageBubble, { from: "me", time: "9:41", status: "read" }, "Thank you!")));
+    },
+    MessageDivider: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280 } }, e(NS.MessageDivider, null, "Today"));
+    },
+    MessageBubble: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280, display: "flex", flexDirection: "column" } },
+        e(NS.MessageBubble, { from: "them", grouped: "first", style: { marginTop: 0 } }, "Still on for 11?"),
+        e(NS.MessageBubble, { from: "me", time: "9:39", status: "read" }, "Yes, see you there."));
+    },
+    /* Controlled, so it holds its own draft; sending clears it. */
+    Composer: (function () {
+      function ComposerSpecimen() {
+        var draft = React.useState("");
+        return e("div", { style: { width: "100%", maxWidth: 280, borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+          e(NS.Composer, { label: "Message", placeholder: "Write a message", value: draft[0], onChange: draft[1], onSend: function () { draft[1](""); } }));
+      }
+      return function () {
+        return e(ComposerSpecimen);
+      };
+    })(),
+    TypingIndicator: function () {
+      return e(NS.TypingIndicator, { name: "Maya", style: { marginTop: 0 } });
+    },
+    QuickReplies: function () {
+      return e(NS.QuickReplies, {
+        label: "Suggested replies",
+        align: "start",
+        style: { marginTop: 0 },
+        options: [{ id: "track", label: "Track my order" }, { id: "human", label: "Talk to a person" }],
+        onSelect: function () {},
+      });
+    },
   };
 
   /* Holds the value of a controlled specimen, so it can be used on the card.

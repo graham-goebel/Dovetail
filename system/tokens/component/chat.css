@@ -2,10 +2,77 @@
    Tier 3 for the chat family: headers, message bubbles, the composer, typing
    and quick replies. Every value aliases a semantic role; none reads a
    primitive. A colour alias that must follow a dark band is repeated under
-   .dark below, because custom properties resolve where they are declared. */
+   .dark below, because custom properties resolve where they are declared.
+
+   Sent bubbles take the action surface, so they follow the ink-or-brand
+   choice in Configure with no chat-specific setting. Received bubbles take
+   the sunken surface, which reads on both the page and a raised card, and
+   the overlay surface under .dark, where sunken is darker than the page. The
+   composer reuses the --dt-input-* tokens, so it matches every other field. */
 
 :root {
+  /* Bubbles */
+  --dt-bubble-sent-bg: var(--dt-surface-action);
+  --dt-bubble-sent-fg: var(--dt-text-on-action);
+  --dt-bubble-received-bg: var(--dt-surface-sunken);
+  --dt-bubble-received-fg: var(--dt-text-primary);
+  --dt-bubble-meta-fg: var(--dt-text-tertiary);
+  --dt-bubble-author-fg: var(--dt-text-secondary);
+  --dt-bubble-read-fg: var(--dt-text-link);
+  --dt-bubble-failed-fg: var(--dt-text-danger);
+  --dt-bubble-radius: var(--dt-radius-container);
+  /* The corner where two bubbles of one run meet. Half the control radius,
+     so a sharp Shape setting squares it along with everything else. */
+  --dt-bubble-radius-tight: calc(var(--dt-radius-control) / 2);
+  --dt-bubble-padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  --dt-bubble-gap: var(--dt-space-stack-2xs);     /* between bubbles of one run */
+  --dt-bubble-run-gap: var(--dt-space-stack-sm);  /* between runs, and around a divider */
+
+  /* Presence: the dot on a header's avatar. */
+  --dt-presence-online: var(--dt-surface-success);
+  --dt-presence-away: var(--dt-surface-warning);
+  --dt-presence-offline: var(--dt-text-tertiary);
+  --dt-presence-size: var(--dt-size-icon-xs);
+
+  /* The bars above and below a conversation: header and composer. */
+  --dt-chat-surface: var(--dt-surface-base);
+  --dt-chat-border: var(--dt-border-subtle);
+  --dt-chat-divider-fg: var(--dt-text-tertiary);
+
+  /* Typing: one beat of the dots, from the emphasis motion role, so reduced
+     motion (which makes the role instant) stops them too. */
+  --dt-typing-beat: var(--dt-motion-emphasis);
+  --dt-typing-dot: var(--dt-text-tertiary);
+  --dt-typing-dot-size: calc(var(--dt-size-icon-xs) / 2);
+
+  --dt-quick-replies-gap: var(--dt-space-inline-xs);
+  --dt-quick-replies-border: var(--dt-border-default);
 }
 
+/* Colour aliases again, under .dark, so a conversation in a dark band
+   resolves against the band's own roles. Sizes, radii and motion stay on
+   :root, so a context's retuning of them still reaches inside the band. */
 .dark {
+  --dt-bubble-sent-bg: var(--dt-surface-action);
+  --dt-bubble-sent-fg: var(--dt-text-on-action);
+  /* Dark sunken is black, which hardly separates from a dark page; the
+     overlay role is the lifted surface that does. */
+  --dt-bubble-received-bg: var(--dt-surface-overlay);
+  --dt-bubble-received-fg: var(--dt-text-primary);
+  --dt-bubble-meta-fg: var(--dt-text-tertiary);
+  --dt-bubble-author-fg: var(--dt-text-secondary);
+  --dt-bubble-read-fg: var(--dt-text-link);
+  --dt-bubble-failed-fg: var(--dt-text-danger);
+
+  --dt-presence-online: var(--dt-surface-success);
+  --dt-presence-away: var(--dt-surface-warning);
+  --dt-presence-offline: var(--dt-text-tertiary);
+
+  --dt-chat-surface: var(--dt-surface-base);
+  --dt-chat-border: var(--dt-border-subtle);
+  --dt-chat-divider-fg: var(--dt-text-tertiary);
+
+  --dt-typing-dot: var(--dt-text-tertiary);
+
+  --dt-quick-replies-border: var(--dt-border-default);
 }

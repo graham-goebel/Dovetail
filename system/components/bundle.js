@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -8718,6 +8718,873 @@ function Rating({
 }
 Object.assign(__ds_scope, { Rating });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/Rating.jsx", error: String((e && e.message) || e) }); }
+// components/chat/ChatHeader.jsx
+try { (() => {
+/* The bar above a conversation: who it is with, whether they are there, and
+   a way back. Presence is a prop; nothing here polls for it. */
+
+const PRESENCE = {
+  online: {
+    color: "var(--dt-presence-online)",
+    text: "Online"
+  },
+  away: {
+    color: "var(--dt-presence-away)",
+    text: "Away"
+  },
+  offline: {
+    color: "var(--dt-presence-offline)",
+    text: "Offline"
+  }
+};
+const BACK = ["M19.5 12h-15", "m10.5 6-6 6 6 6"];
+function Glyph({
+  paths
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    style: {
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)",
+      display: "block"
+    }
+  }, paths.map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+function ChatHeader({
+  title,
+  subtitle,
+  avatar,
+  presence,
+  onBack,
+  actions,
+  headingLevel = 2,
+  style,
+  ...rest
+}) {
+  const state = PRESENCE[presence];
+  const Heading = `h${Math.min(6, Math.max(1, headingLevel))}`;
+  return /*#__PURE__*/React.createElement("header", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)",
+      padding: "var(--dt-space-inset-xs) var(--dt-space-inset-sm)",
+      background: "var(--dt-chat-surface)",
+      color: "var(--dt-text-primary)",
+      borderBottom: "var(--dt-border-width-default) solid var(--dt-chat-border)",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, onBack && /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: "Back",
+    onClick: onBack,
+    style: {
+      flex: "none"
+    }
+  }, /*#__PURE__*/React.createElement(Glyph, {
+    paths: BACK
+  })), avatar && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      position: "relative",
+      display: "inline-flex",
+      flex: "none"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Avatar, {
+    name: avatar.name,
+    src: avatar.src,
+    size: "md"
+  }), state && /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "absolute",
+      right: 0,
+      bottom: 0,
+      width: "var(--dt-presence-size)",
+      height: "var(--dt-presence-size)",
+      borderRadius: "var(--dt-radius-pill)",
+      background: state.color,
+      border: "var(--dt-border-width-strong) solid var(--dt-chat-surface)"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "1 1 auto",
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement(Heading, {
+    style: {
+      margin: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      fontFamily: "var(--dt-text-label-lg-family)",
+      fontSize: "var(--dt-text-label-lg-size)",
+      lineHeight: "var(--dt-text-label-lg-line)",
+      fontWeight: "var(--dt-font-weight-semibold)",
+      color: "var(--dt-text-primary)"
+    }
+  }, title), (subtitle || state) && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      fontFamily: "var(--dt-text-body-xs-family)",
+      fontSize: "var(--dt-text-body-xs-size)",
+      lineHeight: "var(--dt-text-body-xs-line)",
+      color: "var(--dt-text-secondary)"
+    }
+  }, state && (subtitle ? /*#__PURE__*/React.createElement(__ds_scope.VisuallyHidden, null, state.text, ". ") : state.text), subtitle)), actions && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-2xs)",
+      flex: "none"
+    }
+  }, actions));
+}
+Object.assign(__ds_scope, { ChatHeader });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/ChatHeader.jsx", error: String((e && e.message) || e) }); }
+// components/chat/Composer.jsx
+try { (() => {
+/* Where a message is written. Controlled: the app owns the text, receives it
+   on send, and clears it. Enter sends and Shift+Enter breaks the line; Enter
+   that confirms an IME composition (Japanese, Chinese, Korean input) is left
+   to the IME. The field grows with its text up to maxRows, then scrolls. */
+
+/* A layout effect in the browser, so the field never paints at the wrong
+   height; a plain effect on the server, where layout effects warn. */
+const useIsoLayoutEffect = typeof document !== "undefined" ? React.useLayoutEffect : React.useEffect;
+const ATTACH = ["m20.5 11.5-8.3 8.3a5.3 5.3 0 0 1-7.5-7.5l8.6-8.6a3.5 3.5 0 0 1 5 5l-8.6 8.6a1.8 1.8 0 0 1-2.5-2.5l7.9-7.9"];
+const SEND = ["M12 19.5v-15", "m5.5 11 6.5-6.5 6.5 6.5"];
+function Glyph({
+  paths
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    style: {
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)",
+      display: "block"
+    }
+  }, paths.map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+function Composer({
+  value,
+  onChange,
+  onSend,
+  label,
+  placeholder,
+  disabled = false,
+  onAttach,
+  maxRows = 6,
+  style,
+  ...rest
+}) {
+  const area = React.useRef(null);
+  const [focus, setFocus] = React.useState(false);
+  const id = React.useId();
+  const text = value == null ? "" : String(value);
+  const empty = text.trim() === "";
+
+  /* Grow to fit, up to maxRows lines, measured from the field's own line
+     height and padding so a theme or density change is honoured. */
+  useIsoLayoutEffect(() => {
+    const el = area.current;
+    if (!el || typeof getComputedStyle === "undefined") return;
+    const cs = getComputedStyle(el);
+    const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
+    const box = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    const max = line * Math.max(1, maxRows) + box;
+    el.style.height = "auto";
+    const needed = el.scrollHeight + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    el.style.height = `${Math.min(needed, max)}px`;
+    el.style.overflowY = needed > max ? "auto" : "hidden";
+  }, [text, maxRows]);
+  const send = () => {
+    if (disabled || empty) return;
+    onSend(text.trim());
+  };
+  const onKeyDown = e => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    /* keyCode 229 is how older Safari reports a key the IME consumed. */
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+    e.preventDefault();
+    send();
+  };
+  const onSendClick = () => {
+    send();
+    /* The send button disables itself once the app clears the text; return
+       focus to the field so it is not dropped on the page. */
+    if (area.current) area.current.focus();
+  };
+  const border = focus ? "var(--dt-input-border-focus)" : "var(--dt-input-border)";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-end",
+      gap: "var(--dt-space-inline-xs)",
+      padding: "var(--dt-space-inset-xs)",
+      background: "var(--dt-chat-surface)",
+      borderTop: "var(--dt-border-width-default) solid var(--dt-chat-border)",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, onAttach && /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: "Attach a file",
+    onClick: onAttach,
+    disabled: disabled,
+    style: {
+      flex: "none"
+    }
+  }, /*#__PURE__*/React.createElement(Glyph, {
+    paths: ATTACH
+  })), /*#__PURE__*/React.createElement("textarea", {
+    ref: area,
+    id: id,
+    rows: 1,
+    value: text,
+    "aria-label": label,
+    placeholder: placeholder,
+    disabled: disabled,
+    onChange: e => onChange(e.target.value),
+    onKeyDown: onKeyDown,
+    onFocus: () => setFocus(true),
+    onBlur: () => setFocus(false),
+    enterKeyHint: "send",
+    style: {
+      flex: "1 1 auto",
+      minWidth: 0,
+      width: "100%",
+      margin: 0,
+      minHeight: "var(--dt-input-height-md)",
+      padding: "var(--dt-space-inset-xs) var(--dt-input-padding-x)",
+      fontFamily: "var(--dt-input-font-family)",
+      fontSize: "var(--dt-input-font-size)",
+      lineHeight: "var(--dt-text-body-sm-line)",
+      color: disabled ? "var(--dt-input-fg-disabled)" : "var(--dt-input-fg)",
+      background: disabled ? "var(--dt-input-bg-disabled)" : "var(--dt-input-bg)",
+      border: `var(--dt-input-border-width) solid ${disabled ? "var(--dt-input-border-disabled)" : border}`,
+      borderRadius: "var(--dt-input-radius)",
+      outline: "none",
+      resize: "none",
+      overflowY: "hidden",
+      transition: "border-color var(--dt-input-transition)",
+      boxSizing: "border-box"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: "Send",
+    variant: "solid",
+    onClick: onSendClick,
+    disabled: disabled || empty,
+    style: {
+      flex: "none"
+    }
+  }, /*#__PURE__*/React.createElement(Glyph, {
+    paths: SEND
+  })));
+}
+Object.assign(__ds_scope, { Composer });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/Composer.jsx", error: String((e && e.message) || e) }); }
+// components/chat/MessageBubble.jsx
+try { (() => {
+/* One message. Sent ("me") bubbles sit on the right in the action colours,
+   received ("them") on the left in the sunken surface. Consecutive messages
+   from one author form a run: the corners where they meet tighten and the
+   gap between them closes, the shape every messenger uses. Status, time and
+   author are props; delivery itself is the app's business. */
+
+const R = "var(--dt-bubble-radius)";
+const T = "var(--dt-bubble-radius-tight)";
+
+/* Corners, clockwise from top left, for a bubble on the right. A bubble on
+   the left mirrors them. */
+const CORNERS = {
+  single: [R, R, R, R],
+  first: [R, R, T, R],
+  middle: [R, T, T, R],
+  last: [R, T, R, R]
+};
+const ICONS = {
+  sending: ["M12 7.5V12l3 2", "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"],
+  sent: ["m5 12.5 4.5 4.5L19 7.5"],
+  delivered: ["m2.5 12.5 4.5 4.5 9.5-9.5", "m12 16 1 1 9.5-9.5"],
+  read: ["m2.5 12.5 4.5 4.5 9.5-9.5", "m12 16 1 1 9.5-9.5"],
+  failed: ["M12 8v4.5", "M12 16h.01", "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"]
+};
+const STATUS_TEXT = {
+  sending: "Sending",
+  sent: "Sent",
+  delivered: "Delivered",
+  read: "Read",
+  failed: "Not sent"
+};
+function StatusIcon({
+  status
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    style: {
+      width: "var(--dt-size-icon-sm)",
+      height: "var(--dt-size-icon-sm)",
+      display: "block",
+      flex: "none"
+    }
+  }, ICONS[status].map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+function MessageBubble({
+  from,
+  children,
+  time,
+  status,
+  onRetry,
+  author,
+  grouped = "single",
+  style,
+  ...rest
+}) {
+  const mine = from === "me";
+  const shape = CORNERS[grouped] ? grouped : "single";
+  const [tl, tr, br, bl] = CORNERS[shape];
+  const radius = mine ? `${tl} ${tr} ${br} ${bl}` : `${tr} ${tl} ${bl} ${br}`;
+  const opensRun = shape === "single" || shape === "first";
+  const showStatus = mine && STATUS_TEXT[status];
+  const failed = showStatus && status === "failed";
+  const withAuthor = !mine && author;
+  const bubble = /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: "100%",
+      minWidth: 0,
+      padding: "var(--dt-bubble-padding)",
+      borderRadius: radius,
+      background: mine ? "var(--dt-bubble-sent-bg)" : "var(--dt-bubble-received-bg)",
+      color: mine ? "var(--dt-bubble-sent-fg)" : "var(--dt-bubble-received-fg)",
+      fontFamily: "var(--dt-text-body-sm-family)",
+      fontSize: "var(--dt-text-body-sm-size)",
+      lineHeight: "var(--dt-text-body-sm-line)",
+      letterSpacing: "var(--dt-text-body-sm-tracking)",
+      /* Newlines from the composer survive; a long word or URL breaks rather
+         than pushing the bubble past the edge. */
+      whiteSpace: "pre-wrap",
+      overflowWrap: "anywhere",
+      wordBreak: "break-word"
+    }
+  }, withAuthor && !opensRun && /*#__PURE__*/React.createElement(__ds_scope.VisuallyHidden, null, author.name, ": "), children);
+  const meta = (time || showStatus) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-2xs)",
+      marginTop: "var(--dt-space-stack-2xs)",
+      fontFamily: "var(--dt-text-body-xs-family)",
+      fontSize: "var(--dt-text-body-xs-size)",
+      lineHeight: "var(--dt-text-body-xs-line)",
+      color: "var(--dt-bubble-meta-fg)",
+      justifyContent: mine ? "flex-end" : "flex-start"
+    }
+  }, time && /*#__PURE__*/React.createElement("span", null, time), showStatus && !failed && /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      color: status === "read" ? "var(--dt-bubble-read-fg)" : undefined
+    }
+  }, /*#__PURE__*/React.createElement(StatusIcon, {
+    status: status
+  }), /*#__PURE__*/React.createElement(__ds_scope.VisuallyHidden, null, STATUS_TEXT[status])), failed && /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-2xs)",
+      color: "var(--dt-bubble-failed-fg)"
+    }
+  }, /*#__PURE__*/React.createElement(StatusIcon, {
+    status: "failed"
+  }), STATUS_TEXT.failed), failed && onRetry && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onRetry,
+    style: {
+      appearance: "none",
+      background: "none",
+      border: 0,
+      padding: 0,
+      margin: 0,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: "inherit",
+      lineHeight: "inherit",
+      fontWeight: "var(--dt-font-weight-medium)",
+      color: "var(--dt-text-link)",
+      textDecoration: "underline",
+      textUnderlineOffset: "0.2em"
+    }
+  }, "Retry"));
+  const column = /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: mine ? "flex-end" : "flex-start",
+      /* About three quarters of the list, so a reply never spans edge to edge
+         and sent and received stay easy to tell apart. A proportion, not a size. */
+      maxWidth: "75%",
+      minWidth: 0
+    }
+  }, withAuthor && opensRun && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginBottom: "var(--dt-space-stack-2xs)",
+      paddingInline: "var(--dt-space-inset-sm)",
+      fontFamily: "var(--dt-text-label-sm-family)",
+      fontSize: "var(--dt-text-label-sm-size)",
+      lineHeight: "var(--dt-text-label-sm-line)",
+      fontWeight: "var(--dt-font-weight-medium)",
+      color: "var(--dt-bubble-author-fg)"
+    }
+  }, author.name), bubble, meta);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: mine ? "flex-end" : "flex-start",
+      alignItems: "flex-start",
+      gap: withAuthor ? "var(--dt-space-inline-xs)" : undefined,
+      marginTop: opensRun ? "var(--dt-bubble-run-gap)" : "var(--dt-bubble-gap)",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, withAuthor && /*#__PURE__*/
+  /* The gutter is kept on every bubble of the run so they line up; the
+     avatar shows beside the first. Its name is already read above. */
+  React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      flex: "none",
+      width: "var(--dt-size-avatar-sm)",
+      display: "inline-flex"
+    }
+  }, opensRun && /*#__PURE__*/React.createElement(__ds_scope.Avatar, {
+    name: author.name,
+    src: author.src,
+    size: "sm"
+  })), column);
+}
+Object.assign(__ds_scope, { MessageBubble });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/MessageBubble.jsx", error: String((e && e.message) || e) }); }
+// components/chat/MessageList.jsx
+try { (() => {
+/* The scrolling log of a conversation. It stays pinned to the newest message
+   as children arrive, unless the reader has scrolled up to read history; then
+   it leaves them where they are and offers a jump back down. It never fetches
+   or invents messages: the children are the conversation.
+
+   Every DOM read happens in an effect, never during render, so the list
+   server-renders as a plain log. */
+
+/* How close to the bottom, in CSS pixels, still counts as at the bottom: a
+   rounding allowance for fractional scroll positions, not a visual size. */
+const SLACK = 8;
+
+/* A layout effect in the browser, so a new message never paints one frame
+   off the bottom; a plain effect on the server, where layout effects warn. */
+const useIsoLayoutEffect = typeof document !== "undefined" ? React.useLayoutEffect : React.useEffect;
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+const DOWN = ["M12 4.5v15", "m6 13.5 6 6 6-6"];
+function MessageList({
+  label,
+  children,
+  style,
+  ...rest
+}) {
+  const scroller = React.useRef(null);
+  const content = React.useRef(null);
+  const pinned = React.useRef(true);
+  const lastHeight = React.useRef(0);
+  const [unseen, setUnseen] = React.useState(false);
+  const toBottom = React.useCallback(smooth => {
+    const el = scroller.current;
+    if (!el) return;
+    const top = el.scrollHeight - el.clientHeight;
+    if (smooth && el.scrollTo && !prefersReducedMotion()) el.scrollTo({
+      top,
+      behavior: "smooth"
+    });else el.scrollTop = top;
+  }, []);
+
+  /* Called whenever the content may have changed size: new children, an image
+     that loaded, a bubble that grew. Pinned, follow it; scrolled up, say that
+     something new is below. */
+  const sync = React.useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const height = el.scrollHeight;
+    const grew = height > lastHeight.current;
+    lastHeight.current = height;
+    if (pinned.current) toBottom(false);else if (grew) setUnseen(true);
+  }, [toBottom]);
+  useIsoLayoutEffect(() => {
+    sync();
+  }, [children, sync]);
+  React.useEffect(() => {
+    if (typeof ResizeObserver === "undefined" || !content.current) return undefined;
+    const ro = new ResizeObserver(() => sync());
+    ro.observe(content.current);
+    return () => ro.disconnect();
+  }, [sync]);
+  const onScroll = e => {
+    const el = e.currentTarget;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= SLACK;
+    pinned.current = atBottom;
+    if (atBottom && unseen) setUnseen(false);
+    if (rest.onScroll) rest.onScroll(e);
+  };
+  const jump = () => {
+    pinned.current = true;
+    setUnseen(false);
+    toBottom(true);
+    /* The button is about to unmount; keep focus on the log rather than
+       letting it fall back to the page. */
+    if (scroller.current) scroller.current.focus({
+      preventScroll: true
+    });
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    role: "log",
+    "aria-live": "polite",
+    "aria-label": label,
+    tabIndex: 0,
+    ...rest,
+    ref: scroller,
+    onScroll: onScroll,
+    style: {
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      minHeight: 0,
+      overflowY: "auto",
+      overflowX: "hidden",
+      overscrollBehavior: "contain",
+      padding: "var(--dt-space-inset-sm)",
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: content,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      marginTop: "auto",
+      minWidth: 0
+    }
+  }, children), unseen && /*#__PURE__*/React.createElement("div", {
+    "aria-live": "off",
+    style: {
+      position: "sticky",
+      bottom: "var(--dt-space-inset-xs)",
+      height: 0,
+      flex: "none",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "flex-end",
+      overflow: "visible"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Button, {
+    type: "button",
+    size: "sm",
+    onClick: jump,
+    iconStart: /*#__PURE__*/React.createElement("svg", {
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: "2",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      "aria-hidden": "true",
+      focusable: "false",
+      style: {
+        width: "var(--dt-size-icon-sm)",
+        height: "var(--dt-size-icon-sm)",
+        display: "block"
+      }
+    }, DOWN.map(d => /*#__PURE__*/React.createElement("path", {
+      key: d,
+      d: d
+    }))),
+    style: {
+      boxShadow: "var(--dt-elevation-2)",
+      flex: "none"
+    }
+  }, "New messages")));
+}
+
+/* A centred label across the log: a day, or an event such as a hand-off.
+   A separator's content is presentational, so the text is also its name. */
+function MessageDivider({
+  children,
+  label,
+  style,
+  ...rest
+}) {
+  const name = label || (typeof children === "string" ? children : undefined);
+  const rule = {
+    flex: "1 1 0",
+    minWidth: 0,
+    borderTop: "var(--dt-border-width-default) solid var(--dt-chat-border)"
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    role: "separator",
+    "aria-label": name,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)",
+      margin: "var(--dt-bubble-run-gap) 0",
+      fontFamily: "var(--dt-text-label-sm-family)",
+      fontSize: "var(--dt-text-label-sm-size)",
+      lineHeight: "var(--dt-text-label-sm-line)",
+      fontWeight: "var(--dt-font-weight-medium)",
+      color: "var(--dt-chat-divider-fg)",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: rule
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: "0 1 auto",
+      minWidth: 0,
+      textAlign: "center",
+      overflowWrap: "anywhere"
+    }
+  }, children), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: rule
+  }));
+}
+Object.assign(__ds_scope, { MessageList, MessageDivider });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/MessageList.jsx", error: String((e && e.message) || e) }); }
+// components/chat/QuickReplies.jsx
+try { (() => {
+/* Suggested answers, one tap each: a row of chip buttons that wraps onto as
+   many lines as it needs, so every option stays visible on a phone and Tab
+   reaches them in reading order. Choosing one is the app's to handle,
+   usually by sending the label as the person's message. */
+
+const ALIGN = {
+  start: "flex-start",
+  end: "flex-end"
+};
+function QuickReplies({
+  options = [],
+  onSelect,
+  label,
+  align = "end",
+  style,
+  ...rest
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    role: "group",
+    "aria-label": label,
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-quick-replies-gap)",
+      justifyContent: ALIGN[align] || ALIGN.end,
+      marginTop: "var(--dt-bubble-run-gap)",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, options.map(o => /*#__PURE__*/React.createElement(__ds_scope.Button, {
+    key: o.id,
+    type: "button",
+    variant: "ghost",
+    size: "md",
+    onClick: () => onSelect(o.id),
+    style: {
+      /* A long suggestion wraps inside its chip rather than running off
+         a phone screen. */
+      maxWidth: "100%",
+      height: "auto",
+      minHeight: "var(--dt-button-height-md)",
+      border: "var(--dt-button-border-width) solid var(--dt-quick-replies-border)",
+      padding: "var(--dt-space-inset-2xs) var(--dt-button-padding-md)",
+      whiteSpace: "normal",
+      textAlign: "center",
+      lineHeight: "var(--dt-text-label-md-line)"
+    }
+  }, o.label)));
+}
+Object.assign(__ds_scope, { QuickReplies });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/QuickReplies.jsx", error: String((e && e.message) || e) }); }
+// components/chat/TypingIndicator.jsx
+try { (() => {
+/* Someone is writing a reply: three dots in a received bubble. Show it while
+   the app knows the other side is typing, and remove it when their message
+   arrives. For an assistant working on an answer, Thinking says more.
+
+   The dots are animated with the Web Animations API from an effect, paced by
+   --dt-typing-beat, because inline styles cannot declare keyframes. Under
+   prefers-reduced-motion they hold still. */
+
+const REDUCE = "(prefers-reduced-motion: reduce)";
+function useReducedMotion() {
+  const [reduced, setReduced] = React.useState(false);
+  React.useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia(REDUCE);
+    const sync = () => setReduced(mq.matches);
+    sync();
+    if (mq.addEventListener) mq.addEventListener("change", sync);else mq.addListener(sync);
+    return () => mq.removeEventListener ? mq.removeEventListener("change", sync) : mq.removeListener(sync);
+  }, []);
+  return reduced;
+}
+
+/* One beat, in milliseconds, and its easing, read from the token on the
+   element so a theme or context that retunes the motion role is honoured. */
+function readBeat(node) {
+  const raw = getComputedStyle(node).getPropertyValue("--dt-typing-beat").trim();
+  const m = raw.match(/^(-?[\d.]+)(ms|s)\b\s*(.*)$/);
+  if (!m) return {
+    ms: 0,
+    easing: "linear"
+  };
+  return {
+    ms: parseFloat(m[1]) * (m[2] === "s" ? 1000 : 1),
+    easing: m[3] || "linear"
+  };
+}
+function TypingIndicator({
+  name,
+  style,
+  ...rest
+}) {
+  const dots = React.useRef(null);
+  const reduced = useReducedMotion();
+  const message = name ? `${name} is typing` : "Typing";
+
+  /* The live region mounts empty and is filled a moment later, so a screen
+     reader announces the text once instead of missing a region that arrived
+     already full. */
+  const [spoken, setSpoken] = React.useState("");
+  React.useEffect(() => {
+    setSpoken(message);
+  }, [message]);
+  React.useEffect(() => {
+    const box = dots.current;
+    if (reduced || !box || typeof box.animate !== "function") return undefined;
+    const {
+      ms,
+      easing
+    } = readBeat(box);
+    if (!ms) return undefined;
+    /* Each dot rises over two beats and rests for two, a beat after the one
+       before it, so the three read as a wave. */
+    const running = Array.from(box.children).map((dot, i) => dot.animate([{
+      opacity: 0.4,
+      transform: "scale(0.75)"
+    }, {
+      opacity: 1,
+      transform: "scale(1)",
+      offset: 0.25
+    }, {
+      opacity: 0.4,
+      transform: "scale(0.75)",
+      offset: 0.5
+    }, {
+      opacity: 0.4,
+      transform: "scale(0.75)"
+    }], {
+      duration: ms * 4,
+      delay: ms * i,
+      iterations: Infinity,
+      easing
+    }));
+    return () => running.forEach(a => a.cancel());
+  }, [reduced]);
+  const dot = {
+    display: "block",
+    flex: "none",
+    width: "var(--dt-typing-dot-size)",
+    height: "var(--dt-typing-dot-size)",
+    borderRadius: "var(--dt-radius-pill)",
+    background: "var(--dt-typing-dot)",
+    opacity: reduced ? 0.7 : 0.4
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    "aria-live": "polite",
+    style: {
+      display: "flex",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-xs)",
+      marginTop: "var(--dt-bubble-run-gap)",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    ref: dots,
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-2xs)",
+      padding: "var(--dt-bubble-padding)",
+      /* The height of one line of bubble text, so the indicator is the same
+         height as the one-line reply that replaces it. */
+      minHeight: "calc(var(--dt-text-body-sm-line) + var(--dt-space-inset-xs) * 2)",
+      borderRadius: "var(--dt-bubble-radius)",
+      background: "var(--dt-bubble-received-bg)"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: dot
+  }), /*#__PURE__*/React.createElement("span", {
+    style: dot
+  }), /*#__PURE__*/React.createElement("span", {
+    style: dot
+  })), name && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      fontFamily: "var(--dt-text-body-xs-family)",
+      fontSize: "var(--dt-text-body-xs-size)",
+      lineHeight: "var(--dt-text-body-xs-line)",
+      color: "var(--dt-bubble-meta-fg)"
+    }
+  }, message), /*#__PURE__*/React.createElement(__ds_scope.VisuallyHidden, null, spoken));
+}
+Object.assign(__ds_scope, { TypingIndicator });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/TypingIndicator.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -8875,5 +9742,19 @@ __ds_ns.Price = __ds_scope.Price;
 __ds_ns.QuantityStepper = __ds_scope.QuantityStepper;
 
 __ds_ns.Rating = __ds_scope.Rating;
+
+__ds_ns.ChatHeader = __ds_scope.ChatHeader;
+
+__ds_ns.Composer = __ds_scope.Composer;
+
+__ds_ns.MessageBubble = __ds_scope.MessageBubble;
+
+__ds_ns.MessageList = __ds_scope.MessageList;
+
+__ds_ns.MessageDivider = __ds_scope.MessageDivider;
+
+__ds_ns.QuickReplies = __ds_scope.QuickReplies;
+
+__ds_ns.TypingIndicator = __ds_scope.TypingIndicator;
 
 })();

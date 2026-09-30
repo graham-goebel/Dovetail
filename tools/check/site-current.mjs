@@ -17,7 +17,9 @@ function snapshot() {
   (function walk(dir) {
     for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
       const rel = path.join(dir, e.name);
-      if (/^(\.git|node_modules)/.test(rel)) continue;
+      /* Dot folders hold no site pages: .git, and .claude, where agents'
+         worktrees (each a whole checkout, node_modules included) live. */
+      if (/^(\.|node_modules)/.test(rel)) continue;
       if (e.isDirectory()) walk(rel);
       else if (/\.(html|js|json|md|txt)$/.test(e.name)) out.set(rel, crypto.createHash("sha1").update(fs.readFileSync(path.join(ROOT, rel))).digest("hex"));
     }
