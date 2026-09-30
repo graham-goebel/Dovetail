@@ -11,6 +11,10 @@ export interface FieldProps extends React.HTMLAttributes<HTMLDivElement> {
   required?: boolean;
   /** id of the control this labels. */
   htmlFor?: string;
+  /** id for the label element, so a control that isn't a single input (a group) can point aria-labelledby at it. */
+  labelId?: string;
+  /** id for the hint or error line, so a control can point aria-describedby at it. */
+  messageId?: string;
   children?: React.ReactNode;
 }
 

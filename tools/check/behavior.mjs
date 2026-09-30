@@ -61,6 +61,8 @@
       - OrderStatus: exactly one step is aria-current="step"; horizontal
         turns vertical at 390px and back.
       - AddressFields: every field carries its autocomplete token.
+      - CheckboxGroup and RadioGroup: the group is named by its label and
+        described by its hint.
       - CheckboxGroup and RadioGroup with labelPosition="start": each label
         lines up with the group's question and the control sits at the
         row's right edge; clicking the label text still toggles or picks.
@@ -312,10 +314,10 @@ import { CheckboxGroup, RadioGroup } from "@dovetail-ds/react";
 const h = React.createElement;
 window.__forms = { checks: [], radio: [] };
 createRoot(document.getElementById("forms-root")).render(h("div", null,
-  h(CheckboxGroup, { label: "Test end checkboxes", labelPosition: "start", defaultValue: ["a"],
+  h(CheckboxGroup, { label: "Test end checkboxes", hint: "Test checkbox hint", labelPosition: "start", defaultValue: ["a"],
     onChange: (v) => window.__forms.checks.push(v.join(",")),
     options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta", hint: "With a hint" }] }),
-  h(RadioGroup, { label: "Test end radios", labelPosition: "start", defaultValue: "a",
+  h(RadioGroup, { label: "Test end radios", hint: "Test radio hint", labelPosition: "start", defaultValue: "a",
     onChange: (v) => window.__forms.radio.push(v),
     options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta" }] })));
 window.__formsReady = true;
@@ -957,8 +959,18 @@ try {
     ok(`${listed} (country is a select)`);
   });
 
-  await step("Checkbox and Radio groups: labelPosition start puts the control at the end", async () => {
+  await step("Checkbox and Radio groups: named by the label, described by the hint", async () => {
     await page.waitForFunction(() => window.__formsReady === true);
+    for (const [role, name, hint] of [["group", "Test end checkboxes", "Test checkbox hint"], ["radiogroup", "Test end radios", "Test radio hint"]]) {
+      const group = page.getByRole(role, { name, exact: true });
+      expect((await group.count()) === 1, `role="${role}" should be named "${name}" by the group's label`);
+      const described = await group.evaluate((el) => (el.getAttribute("aria-describedby") || "").split(" ").map((id) => document.getElementById(id)?.textContent).join(" "));
+      expect(described === hint, `the ${role} should be described by its hint, got "${described}"`);
+      ok(`role="${role}" named "${name}", described by "${hint}"`);
+    }
+  });
+
+  await step("Checkbox and Radio groups: labelPosition start puts the control at the end", async () => {
     for (const name of ["Test end checkboxes", "Test end radios"]) {
       /* The group's Field: its question label, then the rows. */
       const layout = await page.getByText(name, { exact: true }).evaluate((question) => {
