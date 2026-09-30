@@ -61,6 +61,10 @@
       - OrderStatus: exactly one step is aria-current="step"; horizontal
         turns vertical at 390px and back.
       - AddressFields: every field carries its autocomplete token.
+      - CheckoutBlock: in a narrow box the order summary is a disclosure
+        whose button toggles aria-expanded and shows its panel; the email
+        field has autocomplete="email"; choosing a delivery option calls
+        onDeliveryChange with its id.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -112,6 +116,7 @@ const PAGE = `<!doctype html>
 <div id="product-root"></div>
 <div id="food-root"></div>
 <div id="checkout-root"></div>
+<div id="store-checkout-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -283,6 +288,27 @@ function Checkout() {
 }
 createRoot(document.getElementById("checkout-root")).render(h(Checkout));
 window.__checkoutReady = true;
+</script>
+<script type="module">
+/* Store blocks: CheckoutBlock in a phone-width box, on its own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { CheckoutBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__store = { delivery: [], emails: [] };
+function StoreCheckout() {
+  const [email, setEmail] = React.useState("");
+  const [delivery, setDelivery] = React.useState("store-standard");
+  return h("div", { style: { width: "360px" } },
+    h(CheckoutBlock, { title: "Store test checkout", locale: "en-US", collapseBelow: 600,
+      email, onEmailChange: (v) => { window.__store.emails.push(v); setEmail(v); }, emailLabel: "Store email",
+      deliveryLegend: "Store delivery", delivery, onDeliveryChange: (id) => { window.__store.delivery.push(id); setDelivery(id); },
+      deliveryOptions: [{ id: "store-standard", label: "Store standard", price: 0 }, { id: "store-express", label: "Store express", price: 12 }],
+      lines: [{ id: "store-mug", name: "Store test mug", price: 24, quantity: 2, lineTotal: 48 }],
+      summary: { title: "Store test summary", lines: [{ label: "Subtotal", amount: 48 }], total: { amount: 48 } } }));
+}
+createRoot(document.getElementById("store-checkout-root")).render(h(StoreCheckout));
+window.__storeReady = true;
 </script>
 </body></html>
 `;
@@ -841,6 +867,39 @@ try {
     expect(tel === "tel:tel", `phone should be type tel with inputMode tel, got ${tel}`);
     ok(all);
     ok(`${listed} (country is a select)`);
+  });
+
+  await step("CheckoutBlock: summary disclosure, email autocomplete, delivery callback", async () => {
+    await page.waitForFunction(() => window.__storeReady === true);
+    const toggle = page.getByRole("button", { name: /^Show order summary/ });
+    await toggle.waitFor();
+    expect((await toggle.getAttribute("aria-expanded")) === "false", "in a narrow box the summary disclosure should start collapsed");
+    const panel = page.locator("#" + (await toggle.getAttribute("aria-controls")).replace(/:/g, "\\:"));
+    expect(!(await panel.isVisible()), "the summary panel should be hidden while collapsed");
+    const name = await toggle.textContent();
+    expect(/\$48\.00/.test(name), `the disclosure should carry the total, got ${JSON.stringify(name)}`);
+    await toggle.click();
+    const open = page.getByRole("button", { name: /^Hide order summary/ });
+    expect((await open.getAttribute("aria-expanded")) === "true", "clicking should set aria-expanded to true");
+    expect(await panel.isVisible(), "the summary panel should show once expanded");
+    expect((await panel.getByRole("heading", { name: "Store test summary" }).count()) === 1, "the panel should hold the order summary");
+    await open.click();
+    expect((await page.getByRole("button", { name: /^Show order summary/ }).getAttribute("aria-expanded")) === "false", "a second click should collapse it");
+    ok(`the disclosure "${name.trim()}" toggles aria-expanded and its panel`);
+    const email = page.getByRole("textbox", { name: "Store email" });
+    const attrs = await email.evaluate((el) => `${el.type}:${el.getAttribute("autocomplete")}`);
+    expect(attrs === "email:email", `the email field should be type email with autocomplete email, got ${attrs}`);
+    await email.fill("ana@example.com");
+    expect((await page.evaluate(() => window.__store.emails.pop())) === "ana@example.com", "typing should call onEmailChange with the text");
+    ok('the email field is type="email" autocomplete="email" and calls onEmailChange');
+    const express = page.getByRole("radio", { name: /^Store express/ });
+    await page.getByText("Store express", { exact: true }).click();
+    const seen = await page.evaluate(() => window.__store.delivery);
+    expect(seen.length === 1 && seen[0] === "store-express", `choosing Store express should call onDeliveryChange("store-express"), got ${JSON.stringify(seen)}`);
+    expect(await express.isChecked(), "Store express should be checked after choosing it");
+    const group = await page.getByRole("group", { name: "Store delivery", exact: true }).count();
+    expect(group === 1, "the delivery options should be a group named by its legend");
+    ok('choosing a delivery option calls onDeliveryChange("store-express"); the options are grouped by their legend');
   });
 
   await step("page errors", () => {

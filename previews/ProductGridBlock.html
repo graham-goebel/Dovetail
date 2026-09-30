@@ -1,0 +1,83 @@
+<!-- @dsCard group="Blocks" height=1480 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  /* Flat product shots as inline SVG, drawn the way the ProductCard card
+     draws them, so the card fetches no photos. */
+  var SHAPES = {
+    mug: "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/><path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='F' stroke-width='5'/><rect x='30' y='34' width='36' height='43' rx='5' fill='F'/>",
+    bottle: "<ellipse cx='50' cy='83' rx='17' ry='3' fill='#000' opacity='.08'/><rect x='44' y='14' width='12' height='10' rx='2' fill='F'/><path d='M42 24h16v8c6 3 8 7 8 12v34a4 4 0 0 1-4 4H38a4 4 0 0 1-4-4V44c0-5 2-9 8-12z' fill='F'/>",
+    tote: "<ellipse cx='50' cy='84' rx='28' ry='3' fill='#000' opacity='.08'/><path d='M38 38V30a12 12 0 0 1 24 0v8' fill='none' stroke='F' stroke-width='4'/><path d='M26 38h48l-4 44H30z' fill='F'/>",
+    lamp: "<ellipse cx='50' cy='85' rx='18' ry='3' fill='#000' opacity='.08'/><path d='M34 18h32l8 26H26z' fill='F'/><rect x='48' y='44' width='4' height='35' fill='F'/><rect x='36' y='79' width='28' height='5' rx='2' fill='F'/>",
+    bowl: "<ellipse cx='50' cy='74' rx='26' ry='3' fill='#000' opacity='.08'/><path d='M20 46h60a30 26 0 0 1-60 0z' fill='F'/>",
+    candle: "<ellipse cx='50' cy='81' rx='18' ry='3' fill='#000' opacity='.08'/><rect x='34' y='41' width='32' height='40' rx='4' fill='F'/><path d='M50 25c4 5 4 9 0 13-4-4-4-8 0-13z' fill='#e8a33d'/>",
+  };
+  function art(kind, bg, fg) {
+    return "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" + SHAPES[kind].replace(/F/g, fg) + "</svg>");
+  }
+  var noop = function () {};
+  var PRODUCTS = [
+    { id: "mug", name: "Stoneware mug", subtitle: "Fern glaze", price: 24, rating: { value: 4.5, count: 128 }, image: { src: art("mug", "#e9e4dc", "#5b7a6a"), alt: "" } },
+    { id: "carafe", name: "Glass carafe", subtitle: "Kiln & Co.", price: 38, compareAt: 48, badge: "-20%", image: { src: art("bottle", "#e4e7ee", "#3d5a80"), alt: "" } },
+    { id: "tote", name: "Canvas tote", subtitle: "3 colours", price: 32, badge: "New", swatches: [{ name: "Terracotta", color: "#b5654a" }, { name: "Fern", color: "#5b7a6a" }, { name: "Chalk", color: "#ffffff" }], image: { src: art("tote", "#efe3dc", "#b5654a"), alt: "" } },
+    { id: "lamp", name: "Desk lamp", subtitle: "Brass", price: 129, rating: { value: 4, count: 36 }, image: { src: art("lamp", "#f1ece0", "#b08d3e"), alt: "" } },
+    { id: "bowl", name: "Serving bowl", subtitle: "Harbour glaze", price: 42, image: { src: art("bowl", "#e4e7ee", "#3d5a80"), alt: "" } },
+    { id: "candle", name: "Soy candle", subtitle: "Cedar and smoke", price: 18, soldOut: true, image: { src: art("candle", "#ece8f1", "#8a6fa8"), alt: "" } },
+    { id: "mug-chalk", name: "Stoneware mug", subtitle: "Chalk glaze", price: 24, image: { src: art("mug", "#ecebe8", "#d8d4cc"), alt: "" } },
+    { id: "bottle-fern", name: "Water bottle", subtitle: "Fern", price: 28, image: { src: art("bottle", "#e9e4dc", "#5b7a6a"), alt: "" } },
+  ].map(function (p) { return Object.assign({ href: "#" + p.id, locale: "en-US", onQuickAdd: noop }, p); });
+  var viewAll = function () { return e(NS.Link, { href: "#shop", underline: "hover" }, "View all"); };
+
+  function Page() {
+    return e(Shelf, { name: "ProductGridBlock", summary: "A header over a responsive grid of product cards: a collection, search results, “You may also like”.", props: [
+        { name: "products", type: "(ProductCardProps & { id })[]", required: true, notes: "Each spread into a ProductCard rendered as a list item; id is the key." },
+        { name: "eyebrow / title / lead", type: "ReactNode", notes: "The BlockHeader." },
+        { name: "columns", type: "2 | 3 | 4", default: "4", notes: "On a wide screen. Cards keep a least width, so a phone shows two." },
+        { name: "action", type: "ReactNode", notes: "Beside the header: a View all Link, a sort Select." },
+        { name: "emptyState", type: "ReactNode", notes: "Shown when products is empty. Defaults to an EmptyState." },
+        { name: "level", type: "1–6", default: "2", notes: "The title's heading level." },
+        { name: "tone / dark / texture / spacing / width", type: "Section props", notes: "The band, as on every block." },
+      ], guidance: [
+        "Give every product an href: the card is then one link, named by the product.",
+        "Use one ratio and one add affordance across a grid, or the rows go ragged.",
+        "Four columns for a shop grid; three or two for a short editorial row such as related products.",
+        "Say what to do in the empty state: clear a filter, browse another collection.",
+      ] },
+      e(Specimen, { label: "Four columns, with an action", bg: "var(--dt-surface-base)" },
+        e(NS.ProductGridBlock, { spacing: "compact", eyebrow: "The kitchen shelf", title: "New this season", lead: "Glazed by hand in small batches, so every piece is a little different.", action: viewAll(), products: PRODUCTS })),
+      e(Specimen, { label: "Three columns, no header action", bg: "var(--dt-surface-base)" },
+        e(NS.ProductGridBlock, { spacing: "compact", columns: 3, title: "You may also like", products: PRODUCTS.slice(0, 3) })),
+      e(Specimen, { label: "Empty", bg: "var(--dt-surface-base)" },
+        e(NS.ProductGridBlock, { spacing: "compact", title: "Lighting", products: [],
+          emptyState: e(NS.EmptyState, { title: "Nothing here yet", description: "Lamps arrive in October. Browse the kitchen shelf in the meantime.", action: e(NS.Button, { variant: "secondary", size: "sm" }, "Browse the kitchen") }) })),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        e(NS.ProductGridBlock, { dark: true, spacing: "compact", title: "Bestsellers", action: viewAll(), products: PRODUCTS.slice(0, 4), style: { borderRadius: "var(--dt-radius-container)" } })));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.ProductGridBlock || !window.Shelf || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

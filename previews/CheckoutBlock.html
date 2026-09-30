@@ -1,0 +1,104 @@
+<!-- @dsCard group="Blocks" height=2200 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  /* Flat product shots as inline SVG, drawn the way the ProductCard card
+     draws them. */
+  var SHAPES = {
+    mug: "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/><path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='F' stroke-width='5'/><rect x='30' y='34' width='36' height='43' rx='5' fill='F'/>",
+    lamp: "<ellipse cx='50' cy='85' rx='18' ry='3' fill='#000' opacity='.08'/><path d='M34 18h32l8 26H26z' fill='F'/><rect x='48' y='44' width='4' height='35' fill='F'/><rect x='36' y='79' width='28' height='5' rx='2' fill='F'/>",
+  };
+  function art(kind, bg, fg) {
+    return "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" + SHAPES[kind].replace(/F/g, fg) + "</svg>");
+  }
+  var LINES = [
+    { id: "mug", name: "Stoneware mug", details: ["Fern", "Regular"], price: 24, quantity: 2, lineTotal: 48, image: { src: art("mug", "#e9e4dc", "#5b7a6a"), alt: "" } },
+    { id: "lamp", name: "Desk lamp", details: ["Brass"], price: 129, quantity: 1, lineTotal: 129, image: { src: art("lamp", "#f1ece0", "#b08d3e"), alt: "" } },
+  ];
+  var DELIVERY = [
+    { id: "standard", label: "Standard", detail: "3–5 working days", price: 0 },
+    { id: "express", label: "Express", detail: "Next working day, order by 2pm", price: 12 },
+    { id: "pickup", label: "Pick up in store", detail: "Ready tomorrow at Harbour Street", price: 0 },
+  ];
+  var TAX = 0.08;
+
+  /* Every value and every figure is the page's: the block validates and
+     adds up nothing. */
+  function Demo(props) {
+    var em = React.useState(""), email = em[0], setEmail = em[1];
+    var ad = React.useState({ name: "", line1: "", line2: "", city: "", region: "", postalCode: "", country: "" }), address = ad[0], setAddress = ad[1];
+    var dl = React.useState("standard"), delivery = dl[0], setDelivery = dl[1];
+    var pm = React.useState({ number: "", expiry: "", cvc: "", name: "" }), card = pm[0], setCard = pm[1];
+    var dn = React.useState(false), done = dn[0], setDone = dn[1];
+    var subtotal = LINES.reduce(function (s, x) { return s + x.lineTotal; }, 0);
+    var ship = DELIVERY.filter(function (d) { return d.id === delivery; })[0].price;
+    var tax = Math.round(subtotal * TAX * 100) / 100;
+    return e(NS.CheckoutBlock, Object.assign({
+      spacing: "compact", locale: "en-US",
+      email: email, onEmailChange: setEmail, emailHint: "For your receipt and delivery updates.",
+      address: { value: address, onChange: setAddress, fields: { line2: false } },
+      deliveryOptions: DELIVERY, delivery: delivery, onDeliveryChange: setDelivery,
+      payment: { value: card, onChange: setCard },
+      lines: LINES,
+      summary: { lines: [{ label: "Subtotal", amount: subtotal }, { label: "Shipping", amount: ship }, { label: "Tax", amount: tax }], total: { amount: subtotal + ship + tax } },
+      onSubmit: function (ev) { ev.preventDefault(); setDone(true); },
+      submitAction: e(React.Fragment, null,
+        e(NS.Button, { type: "submit", size: "lg", fullWidth: true }, "Place order"),
+        e(NS.Text, { variant: "fine", align: "center" }, done ? "Order placed. This demo sends nothing." : "You won’t be charged until your order ships.")),
+    }, props.extra || {}));
+  }
+
+  function Page() {
+    return e(Shelf, { name: "CheckoutBlock", summary: "A one-page checkout: contact, address, delivery and payment beside the order, which folds into a disclosure on a phone.", props: [
+        { name: "email / onEmailChange", type: "string / (v) => void", required: true, notes: "type email, autocomplete email." },
+        { name: "address", type: "AddressFieldsProps", notes: "Spread into AddressFields." },
+        { name: "deliveryOptions", type: "{ id, label, detail?, price? }[]", notes: "A RadioGroup, each price shown with Price." },
+        { name: "delivery / onDeliveryChange", type: "string / (id) => void" },
+        { name: "payment", type: "PaymentFieldsProps", notes: "UI only: real payments use your provider's hosted fields." },
+        { name: "submitAction", type: "ReactNode", notes: "The place-order Button and any note." },
+        { name: "onSubmit", type: "FormEventHandler", notes: "Wraps the block's content in a form; otherwise a div." },
+        { name: "summary", type: "OrderSummaryProps", required: true },
+        { name: "lines", type: "(CartLineProps & { id })[]", notes: "Read-only CartLines at size sm, above the figures." },
+        { name: "collapseBelow", type: "number", default: "768", notes: "The block's own width under which the order folds into a disclosure." },
+        { name: "showSummaryLabel / hideSummaryLabel", type: "string", default: '"Show order summary"' },
+      ], guidance: [
+        "Keep the whole checkout on one page: people abandon at every extra step.",
+        "Show the total before the form on a phone, folded, as the disclosure does. People want to check it without scrolling to the end.",
+        "Put the place-order button last in the form and name it for what it does: Place order, Pay $141.09.",
+        "Pass onSubmit to get a real form, so Enter submits and the browser can autofill it.",
+      ] },
+      e(Specimen, { label: "Wide: the order beside the form, sticky", bg: "var(--dt-surface-base)" }, e(Demo)),
+      e(Specimen, { label: "Narrow (390px): the order folds into a disclosure at the top", bg: "var(--dt-surface-base)" },
+        e("div", { style: { maxWidth: "390px", marginInline: "auto", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)", borderRadius: "var(--dt-radius-container)", overflow: "hidden" } },
+          e(Demo, { extra: { level: 2 } }))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        e(Demo, { extra: { dark: true, level: 2, title: "Pay and place your order", style: { borderRadius: "var(--dt-radius-container)" } } })));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.CheckoutBlock || !window.Shelf || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

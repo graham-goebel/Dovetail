@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"a0f22b401b3a"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -12637,6 +12637,696 @@ function PromoCode({
 }
 Object.assign(__ds_scope, { PromoCode });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/PromoCode.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/CartBlock.jsx
+try { (() => {
+/* The summary column's width. The lines take the rest, and when they would
+   get narrower than they are wide enough for, the summary wraps below them. */
+const SUMMARY = "calc(var(--dt-size-media-min) * 1.375)";
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+
+/* The cart page: the lines on the left, the summary on the right (sticky, so
+   the checkout button stays in reach down a long cart), wrapping below the
+   lines on a narrow screen. The block adds nothing up: lines, their totals
+   and the summary's figures are the cart's, passed in as they are. */
+function CartBlock({
+  eyebrow,
+  title = "Your cart",
+  lead,
+  action,
+  lines = [],
+  summary,
+  checkoutAction,
+  promo,
+  emptyState,
+  level = 1,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const empty = lines.length === 0;
+  const s = summary || {
+    lines: [],
+    total: {
+      amount: 0
+    }
+  };
+  const footer = checkoutAction || promo || s.footer ? /*#__PURE__*/React.createElement(React.Fragment, null, promo && /*#__PURE__*/React.createElement(__ds_scope.PromoCode, promo), checkoutAction, s.footer) : undefined;
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-layout-module-gap)"
+    }
+  }, (eyebrow || title || lead || action) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      columnGap: "var(--dt-space-inline-lg)",
+      rowGap: "var(--dt-space-stack-sm)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    level: level,
+    style: {
+      flex: "1 1 auto",
+      minWidth: 0
+    }
+  }), action && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)"
+    }
+  }, action)), empty ? emptyState || /*#__PURE__*/React.createElement(__ds_scope.EmptyState, {
+    title: "Your cart is empty",
+    description: "Items you add will show here."
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      gap: scaled("--dt-layout-inline-section")
+    }
+  }, /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      flex: `999 1 0`,
+      minWidth: `min(100%, calc(${SUMMARY} * 1.25))`,
+      borderBlockStart: "var(--dt-border-width-default) solid var(--dt-cart-line-divider)"
+    }
+  }, lines.map(({
+    id,
+    ...line
+  }, i) => /*#__PURE__*/React.createElement("li", {
+    key: id != null ? id : i
+  }, /*#__PURE__*/React.createElement(__ds_scope.CartLine, {
+    divider: true,
+    ...line
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: `1 1 ${SUMMARY}`,
+      minWidth: 0,
+      position: "sticky",
+      insetBlockStart: "var(--dt-space-stack-lg)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.OrderSummary, {
+    headingLevel: level + 1 > 6 ? 6 : level + 1,
+    ...s,
+    footer: footer
+  })))));
+}
+Object.assign(__ds_scope, { CartBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/CartBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/CheckoutBlock.jsx
+try { (() => {
+const SUMMARY = "calc(var(--dt-size-media-min) * 1.5)";
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+
+/* A fieldset whose legend is set like AddressFields' and PaymentFields', so
+   the four steps of the form read as one list of headings. */
+const fieldset = {
+  border: 0,
+  margin: 0,
+  padding: 0,
+  minWidth: 0
+};
+const legend = {
+  ...role("heading-xs"),
+  padding: 0,
+  marginBlockEnd: "var(--dt-space-stack-md)",
+  color: "var(--dt-text-primary)"
+};
+
+/* The block's own width, not the viewport's, so it acts as a container
+   query. False while server rendering and until the first measurement, so
+   the server's markup and the first client render match. */
+function useNarrow(ref, below) {
+  const [narrow, setNarrow] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => setNarrow(el.getBoundingClientRect().width < below);
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, below]);
+  return narrow;
+}
+function Chevron({
+  open
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      flex: "none",
+      width: "var(--dt-size-icon-sm)",
+      height: "var(--dt-size-icon-sm)",
+      transform: open ? "rotate(180deg)" : "none",
+      transition: "transform var(--dt-motion-micro)"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m6 9 6 6 6-6"
+  }));
+}
+
+/* One-page checkout. The form (contact, address, delivery, payment and the
+   place-order action) on the left; the order on the right, sticky. When the
+   block is narrower than collapseBelow the order moves to the top, folded
+   into a "Show order summary · total" disclosure, the usual phone pattern.
+   The block validates and adds up nothing: every value and figure is the
+   consumer's. */
+function CheckoutBlock({
+  eyebrow,
+  title = "Checkout",
+  lead,
+  email = "",
+  onEmailChange,
+  emailLabel = "Email",
+  emailHint,
+  contactLegend = "Contact",
+  address,
+  deliveryOptions = [],
+  delivery,
+  onDeliveryChange,
+  deliveryLegend = "Delivery",
+  payment,
+  submitAction,
+  onSubmit,
+  summary,
+  lines = [],
+  currency,
+  locale,
+  collapseBelow = 768,
+  showSummaryLabel = "Show order summary",
+  hideSummaryLabel = "Hide order summary",
+  level = 1,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const uid = React.useId();
+  const panelId = `${uid}-summary`;
+  const box = React.useRef(null);
+  const narrow = useNarrow(box, collapseBelow);
+  const [open, setOpen] = React.useState(false);
+  const money = {
+    currency: currency || summary && summary.currency,
+    locale: locale || summary && summary.locale
+  };
+  const s = summary || {
+    lines: [],
+    total: {
+      amount: 0
+    }
+  };
+  const items = lines.length > 0 && /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-sm)"
+    }
+  }, lines.map(({
+    id,
+    ...line
+  }, i) => /*#__PURE__*/React.createElement("li", {
+    key: id != null ? id : i
+  }, /*#__PURE__*/React.createElement(__ds_scope.CartLine, {
+    readOnly: true,
+    size: "sm",
+    ...money,
+    ...line
+  }))));
+  /* The read-only lines, then the figures. The panel around them is the
+     column's (or the disclosure's), so the summary drops its own frame. */
+  const panel = /*#__PURE__*/React.createElement(React.Fragment, null, items, /*#__PURE__*/React.createElement(__ds_scope.OrderSummary, {
+    headingLevel: level + 1 > 6 ? 6 : level + 1,
+    ...money,
+    ...s,
+    style: {
+      padding: 0,
+      border: 0,
+      borderRadius: 0,
+      background: "transparent",
+      paddingBlockStart: items ? "var(--dt-space-stack-md)" : 0,
+      borderBlockStart: items ? "var(--dt-border-width-default) solid var(--dt-border-subtle)" : 0,
+      ...(s.style || {})
+    }
+  }));
+  const form = /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "block",
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("fieldset", {
+    style: fieldset
+  }, /*#__PURE__*/React.createElement("legend", {
+    style: legend
+  }, contactLegend), /*#__PURE__*/React.createElement(__ds_scope.Input, {
+    type: "email",
+    label: emailLabel,
+    hint: emailHint,
+    autoComplete: "email",
+    inputMode: "email",
+    spellCheck: false,
+    required: true,
+    value: email,
+    onChange: ev => {
+      if (onEmailChange) onEmailChange(ev.target.value);
+    }
+  })), address && /*#__PURE__*/React.createElement(__ds_scope.AddressFields, address), deliveryOptions.length > 0 && /*#__PURE__*/React.createElement("fieldset", {
+    style: fieldset
+  }, /*#__PURE__*/React.createElement("legend", {
+    style: legend
+  }, deliveryLegend), /*#__PURE__*/React.createElement(__ds_scope.RadioGroup, {
+    name: `${uid}-delivery`,
+    value: delivery,
+    onChange: onDeliveryChange,
+    options: deliveryOptions.map(o => ({
+      value: o.id,
+      hint: o.detail,
+      label: /*#__PURE__*/React.createElement("span", {
+        style: {
+          display: "inline-flex",
+          flexWrap: "wrap",
+          alignItems: "baseline",
+          columnGap: "var(--dt-space-inline-xs)"
+        }
+      }, /*#__PURE__*/React.createElement("span", null, o.label), typeof o.price === "number" && /*#__PURE__*/React.createElement(__ds_scope.Price, {
+        amount: o.price,
+        size: "sm",
+        ...money
+      }))
+    }))
+  })), payment && /*#__PURE__*/React.createElement(__ds_scope.PaymentFields, payment), submitAction && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-sm)"
+    }
+  }, submitAction));
+  const Tag = onSubmit ? "form" : "div";
+  const formProps = onSubmit ? {
+    onSubmit
+  } : {};
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: box,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-layout-module-gap)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    level: level
+  }), narrow && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderRadius: "var(--dt-radius-container)",
+      background: "var(--dt-surface-subtle)",
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "aria-expanded": open,
+    "aria-controls": panelId,
+    onClick: () => setOpen(v => !v),
+    style: {
+      width: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "var(--dt-space-inline-sm)",
+      padding: "var(--dt-space-inset-md)",
+      minHeight: "var(--dt-size-touch-target)",
+      boxSizing: "border-box",
+      appearance: "none",
+      border: 0,
+      background: "transparent",
+      cursor: "pointer",
+      textAlign: "start",
+      color: "var(--dt-text-link)",
+      ...role("label-md")
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)"
+    }
+  }, open ? hideSummaryLabel : showSummaryLabel, /*#__PURE__*/React.createElement(Chevron, {
+    open: open
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--dt-text-primary)",
+      flex: "none"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Price, {
+    amount: s.total ? s.total.amount : 0,
+    size: "md",
+    ...money
+  }))), /*#__PURE__*/React.createElement("div", {
+    id: panelId,
+    hidden: !open,
+    style: {
+      display: open ? "flex" : "none",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-md)",
+      padding: "0 var(--dt-space-inset-md) var(--dt-space-inset-md)"
+    }
+  }, panel)), /*#__PURE__*/React.createElement(Tag, {
+    ...formProps,
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      gap: scaled("--dt-layout-inline-section")
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "999 1 0",
+      minWidth: `min(100%, calc(${SUMMARY} * 1.25))`
+    }
+  }, form), !narrow && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: `1 1 ${SUMMARY}`,
+      minWidth: 0,
+      position: "sticky",
+      insetBlockStart: "var(--dt-space-stack-lg)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-md)",
+      padding: "var(--dt-space-inset-md)",
+      boxSizing: "border-box",
+      background: "var(--dt-surface-subtle)",
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderRadius: "var(--dt-radius-container)"
+    }
+  }, panel)))));
+}
+Object.assign(__ds_scope, { CheckoutBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/CheckoutBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/ProductDetailBlock.jsx
+try { (() => {
+/* A column is at least this wide before the two stack: a gallery any
+   narrower loses its thumbnails, and a buy box its one-line price. */
+const MIN_COLUMN = "calc(var(--dt-size-media-min) * 1.25)";
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+
+/* The top of a product page: the gallery on the left, the buy box on the
+   right, stacked gallery first on a narrow screen. The block holds no state;
+   the variants, the quantity and whether the product can be added are the
+   consumer's, passed in as props. */
+function ProductDetailBlock({
+  images = [],
+  galleryLabel,
+  ratio = "1:1",
+  name,
+  subtitle,
+  price,
+  compareAt,
+  currency,
+  locale,
+  rating,
+  description,
+  variants = [],
+  quantity,
+  onQuantityChange,
+  maxQuantity,
+  onAddToCart,
+  addToCartLabel = "Add to cart",
+  canAddToCart = true,
+  addToCartNote,
+  soldOut = false,
+  soldOutLabel = "Sold out",
+  details = [],
+  badges,
+  level = 1,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const uid = React.useId();
+  const noteId = `${uid}-note`;
+  const disabled = soldOut || !canAddToCart;
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      alignItems: "start",
+      gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN_COLUMN}), 1fr))`,
+      columnGap: scaled("--dt-layout-inline-section"),
+      rowGap: "var(--dt-layout-module-gap)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.ProductGallery, {
+    images: images,
+    label: galleryLabel || `Images of ${name}`,
+    ratio: ratio
+  })), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "group",
+    style: {
+      minWidth: 0
+    }
+  }, badges && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-xs)"
+    }
+  }, badges), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "eyebrow"
+  }, /*#__PURE__*/React.createElement(__ds_scope.Heading, {
+    level: level,
+    size: "heading-lg",
+    measure: "wide",
+    style: {
+      overflowWrap: "break-word"
+    }
+  }, name), subtitle && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    tone: "secondary"
+  }, subtitle)), rating && /*#__PURE__*/React.createElement(__ds_scope.Rating, {
+    value: rating.value,
+    count: rating.count,
+    locale: locale,
+    size: "sm",
+    style: {
+      alignSelf: "flex-start"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.Price, {
+    amount: price,
+    compareAt: compareAt,
+    currency: currency,
+    locale: locale,
+    size: "lg"
+  }), description && (typeof description === "string" ? /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    tone: "secondary"
+  }, description) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "var(--dt-text-secondary)"
+    }
+  }, description)), variants.length > 0 && /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "group"
+  }, variants.map((v, i) => /*#__PURE__*/React.createElement(__ds_scope.VariantPicker, {
+    key: v.label || i,
+    ...v
+  }))), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "related",
+    style: {
+      marginBlockStart: "var(--dt-space-stack-xs)"
+    }
+  }, onQuantityChange && /*#__PURE__*/React.createElement(__ds_scope.QuantityStepper, {
+    label: `Quantity, ${name}`,
+    value: quantity == null ? 1 : quantity,
+    onChange: onQuantityChange,
+    max: maxQuantity,
+    disabled: soldOut,
+    style: {
+      alignSelf: "flex-start"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.Button, {
+    size: "lg",
+    fullWidth: true,
+    disabled: disabled,
+    onClick: disabled ? undefined : onAddToCart,
+    "aria-describedby": addToCartNote ? noteId : undefined
+  }, soldOut ? soldOutLabel : addToCartLabel), addToCartNote && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    id: noteId,
+    variant: "small",
+    tone: "secondary"
+  }, addToCartNote)), details.length > 0 && /*#__PURE__*/React.createElement(__ds_scope.Accordion, {
+    label: `About ${name}`,
+    allowMultiple: true,
+    items: details.map((d, i) => ({
+      id: `${uid}-detail-${i}`,
+      title: d.title,
+      content: d.content
+    })),
+    style: {
+      marginBlockStart: "var(--dt-space-stack-sm)"
+    }
+  }))));
+}
+Object.assign(__ds_scope, { ProductDetailBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/ProductDetailBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/ProductGridBlock.jsx
+try { (() => {
+/* The least width a card may take before the grid drops a column: three
+   large controls, so a 390px phone still fits two cards side by side and a
+   card never gets too thin for its name and price. */
+const MIN_CARD = "calc(var(--dt-size-control-lg) * 3)";
+const GAP = "var(--dt-space-inline-md)";
+
+/* A header over a grid of ProductCards. columns is the count on a wide
+   screen; each track is at least a share of the row and at least MIN_CARD,
+   so the grid gives up columns as the width runs out and lands on two on a
+   phone. */
+function ProductGridBlock({
+  eyebrow,
+  title,
+  lead,
+  products = [],
+  columns = 4,
+  action,
+  emptyState,
+  level = 2,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const n = [2, 3, 4].includes(columns) ? columns : 4;
+  const hasHeader = !!(eyebrow || title || lead || action);
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-layout-module-gap)"
+    }
+  }, hasHeader && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      columnGap: "var(--dt-space-inline-lg)",
+      rowGap: "var(--dt-space-stack-sm)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    level: level,
+    style: {
+      flex: "1 1 auto",
+      minWidth: 0
+    }
+  }), action && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)"
+    }
+  }, action)), products.length === 0 ? emptyState || /*#__PURE__*/React.createElement(__ds_scope.EmptyState, {
+    title: "No products to show",
+    description: "Try another filter, or check back soon."
+  }) : /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "grid",
+      alignItems: "stretch",
+      gap: `var(--dt-space-stack-lg) ${GAP}`,
+      gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, max(${MIN_CARD}, calc((100% - ${n - 1} * ${GAP}) / ${n}))), 1fr))`
+    }
+  }, products.map(({
+    id,
+    ...card
+  }, i) => /*#__PURE__*/React.createElement(__ds_scope.ProductCard, {
+    key: id != null ? id : i,
+    as: "li",
+    ...card
+  })))));
+}
+Object.assign(__ds_scope, { ProductGridBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/ProductGridBlock.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -12836,5 +13526,13 @@ __ds_ns.OrderSummary = __ds_scope.OrderSummary;
 __ds_ns.PaymentFields = __ds_scope.PaymentFields;
 
 __ds_ns.PromoCode = __ds_scope.PromoCode;
+
+__ds_ns.CartBlock = __ds_scope.CartBlock;
+
+__ds_ns.CheckoutBlock = __ds_scope.CheckoutBlock;
+
+__ds_ns.ProductDetailBlock = __ds_scope.ProductDetailBlock;
+
+__ds_ns.ProductGridBlock = __ds_scope.ProductGridBlock;
 
 })();
