@@ -2818,6 +2818,17 @@ body.asheet-open {
   flex: none;
 }
 
+/* The install command sits in the hero's column, as wide as its buttons. */
+.main.home .code-wrap:has(> .hero-install) {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.main.home .hero-install {
+  margin: 0;
+  padding-right: calc(var(--dt-space-inset-md) + 4.5em);
+}
+
 .main.home .pills {
   display: flex;
   flex-wrap: wrap;

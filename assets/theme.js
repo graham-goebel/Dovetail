@@ -796,6 +796,60 @@
     return vars;
   }
 
+  /* ------------------------------------------------------------- headless */
+
+  /* Loaded with DovetailThemeHeadless set (the package's theme script does
+     this, with no document), the file stops here and hands over the pure
+     part: the same ramps, contrast checks and stylesheet the panel produces,
+     for any configuration. Everything below needs a page. */
+  if (window.DovetailThemeHeadless) {
+    var complete = function (cfg) { return assign(assign({}, DEFAULTS), cfg || {}); };
+    var keys = function (o) { return Object.keys(o); };
+    window.DovetailThemeCore = {
+      defaults: assign({}, DEFAULTS),
+      data: DATA,
+      /* The values each choice takes, so a caller validates against the same
+         lists the panel offers rather than a copy that drifts. */
+      choices: {
+        primary: DATA.brandRamps.map(function (r) { return r.id; }).concat("custom"),
+        secondary: DATA.brandRamps.map(function (r) { return r.id; }).concat("custom"),
+        actions: ["ink", "brand"],
+        font: keys(DATA.fonts),
+        displayFont: [""].concat(keys(DATA.fonts)),
+        secondaryFont: [""].concat(keys(DATA.fonts)),
+        codeFont: keys(DATA.fonts),
+        radius: keys(DATA.radii),
+        whitespace: keys(WHITESPACE),
+        textSpacing: ["auto"].concat(keys(TEXT_SPACING)),
+        moduleSpacing: ["auto"].concat(keys(MODULE_SPACING)),
+        brandFill: ["solid", "quiet", "gradient", "duotone"],
+        pageTint: ["neutral", "muted"],
+        sectionTint: ["neutral", "muted"],
+        texture: ["none", "dots", "grid"],
+        headlineColor: keys(WORDMARK),
+        wordmarkColor: keys(WORDMARK),
+        iconSize: keys(ICON_SIZES),
+        mediaRadius: keys(MEDIA_RADII),
+        iconLib: keys(DATA.icons),
+      },
+      css: function (cfg, brandInfo) { return exportCss(complete(cfg), brandInfo || {}); },
+      vars: function (cfg) { return computeVars(complete(cfg)); },
+      fontHref: function (cfg) { return fontHrefFor(complete(cfg)); },
+      checks: function (cfg) {
+        var full = complete(cfg);
+        return ["primary", "secondary"].map(function (which) {
+          return {
+            ramp: which,
+            results: runChecks(full, which).map(function (r) {
+              return { label: r.check.label, ratio: Math.round(r.ratio * 100) / 100, min: r.check.min, pass: r.pass, step: r.target, fix: r.pass ? null : fixFor(full, which, r) };
+            }),
+          };
+        });
+      },
+    };
+    return;
+  }
+
   /* ------------------------------------------------------------ application */
 
   function applyTo(doc, cfg, context, vars) {
@@ -1040,12 +1094,17 @@
 
   /* --------------------------------------------------------------- the CSS */
 
-  function exportCss() {
-    var ramps = brandRamps(config);
-    var radius = DATA.radii[config.radius];
-    var ui = DATA.fonts[config.font];
-    var code = DATA.fonts[config.codeFont];
-    var n = Number(config.steps) || 0;
+  /* The stylesheet for a configuration: the panel's own state by default, or
+     any configuration and brand passed in, which is how the headless core
+     (above) serves the package's theme script. */
+  function exportCss(cfg, brandInfo) {
+    cfg = cfg || config;
+    var mark = brandInfo || brand || {};
+    var ramps = brandRamps(cfg);
+    var radius = DATA.radii[cfg.radius];
+    var ui = DATA.fonts[cfg.font];
+    var code = DATA.fonts[cfg.codeFont];
+    var n = Number(cfg.steps) || 0;
     var lines = [];
     var rampLines = function (key, title) {
       lines.push("  /* " + title + " */");
@@ -1057,27 +1116,27 @@
     lines.push("/* A theme is a file of token overrides. Nothing below names a component. */");
     lines.push(":root {");
     if (n) {
-      lines.push("  /* Steps: " + n + " per ramp. Primary keeps " + keptSteps(n, brandRamp(config, "primary").anchor).map(function (i) { return DATA.steps[i]; }).join(", ") + ".");
+      lines.push("  /* Steps: " + n + " per ramp. Primary keeps " + keptSteps(n, brandRamp(cfg, "primary").anchor).map(function (i) { return DATA.steps[i]; }).join(", ") + ".");
       lines.push("     Every named step still exists and points at a kept one, lighter steps");
       lines.push("     snapping lighter and darker steps darker, so no pair loses contrast. */");
       lines.push("");
     }
     var editNote = function (which) {
-      var slot = brandRamp(config, which);
+      var slot = brandRamp(cfg, which);
       var bits = [];
-      if (config[which] === "custom") bits.push("your colour at step " + slot.anchor);
+      if (cfg[which] === "custom") bits.push("your colour at step " + slot.anchor);
       var edited = Object.keys(slot.edits || {});
       if (edited.length) bits.push("edited by hand at " + edited.sort().join(", "));
       return bits.length ? ", " + bits.join(", ") : "";
     };
-    rampLines("primary", "Primary: " + brandLabel(config.primary, config.primaryHex) + editNote("primary"));
+    rampLines("primary", "Primary: " + brandLabel(cfg.primary, cfg.primaryHex) + editNote("primary"));
     lines.push("");
-    rampLines("secondary", "Secondary: " + brandLabel(config.secondary, config.secondaryHex) + editNote("secondary"));
+    rampLines("secondary", "Secondary: " + brandLabel(cfg.secondary, cfg.secondaryHex) + editNote("secondary"));
 
     var named = RAMP_KEYS.filter(function (item) { return ramps[item.key]; });
     if (named.length) {
       lines.push("");
-      lines.push("  /* Named ramps" + (Object.keys(config.rampHues || {}).some(function (k) { return config.rampHues[k]; }) ? ", with the brand's hue shifts. Lightness and chroma per step are unchanged." : ".") + " */");
+      lines.push("  /* Named ramps" + (Object.keys(cfg.rampHues || {}).some(function (k) { return cfg.rampHues[k]; }) ? ", with the brand's hue shifts. Lightness and chroma per step are unchanged." : ".") + " */");
       named.forEach(function (item) {
         DATA.steps.forEach(function (step) {
           lines.push("  --dt-color-" + item.key + "-" + step + ": " + ramps[item.key][step] + ";");
@@ -1093,8 +1152,8 @@
     lines.push("  --dt-radius-media: " + radius.media + ";");
     lines.push("  --dt-radius-pill: " + radius.pill + ";");
     lines.push("");
-    var display = DATA.fonts[config.displayFont];
-    var secondaryFace = DATA.fonts[config.secondaryFont];
+    var display = DATA.fonts[cfg.displayFont];
+    var secondaryFace = DATA.fonts[cfg.secondaryFont];
     lines.push("  /* Type: " + ui.label + ", " + code.label + (display ? ", " + display.label + " for display" : "") + (secondaryFace ? ", " + secondaryFace.label + " as the secondary face" : "") + " */");
     lines.push("  --dt-font-family-sans: " + ui.value + ";");
     lines.push("  --dt-font-family-mono: " + code.value + ";");
@@ -1111,22 +1170,22 @@
       });
     }
 
-    if (config.brandFill === "gradient" || config.brandFill === "duotone") {
+    if (cfg.brandFill === "gradient" || cfg.brandFill === "duotone") {
       lines.push("");
-      lines.push("  /* Fill: " + config.brandFill + " */");
-      lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + config.brandFill + ");");
+      lines.push("  /* Fill: " + cfg.brandFill + " */");
+      lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + cfg.brandFill + ");");
     }
-    if (config.brandFill === "quiet") {
+    if (cfg.brandFill === "quiet") {
       lines.push("");
       lines.push("  /* Fill: quiet, the pale tint of the primary (050) with the text that belongs on it */");
       lines.push("  --dt-surface-brand: var(--dt-surface-brand-muted);");
       lines.push("  --dt-text-on-brand: var(--dt-text-on-brand-muted);");
     }
 
-    if (config.pageTint === "muted" || config.sectionTint === "muted") {
+    if (cfg.pageTint === "muted" || cfg.sectionTint === "muted") {
       lines.push("");
-      lines.push("  /* Surfaces: " + (config.pageTint === "muted" ? "page and quiet band" : "quiet band") + " in the brand's own tint */");
-      if (config.pageTint === "muted") {
+      lines.push("  /* Surfaces: " + (cfg.pageTint === "muted" ? "page and quiet band" : "quiet band") + " in the brand's own tint */");
+      if (cfg.pageTint === "muted") {
         lines.push("  --dt-surface-base: var(--dt-surface-brand-muted);");
         lines.push("  --dt-surface-subtle: color-mix(in oklab, var(--dt-surface-brand-muted) 94%, var(--dt-text-primary));");
         lines.push("  --dt-focus-ring-offset-color: var(--dt-surface-base);");
@@ -1135,20 +1194,20 @@
       }
     }
 
-    if (config.texture && config.texture !== "none") {
+    if (cfg.texture && cfg.texture !== "none") {
       lines.push("");
-      lines.push("  /* Texture: " + config.texture + " */");
-      lines.push("  --dt-surface-texture: var(--dt-pattern-" + config.texture + ");");
+      lines.push("  /* Texture: " + cfg.texture + " */");
+      lines.push("  --dt-surface-texture: var(--dt-pattern-" + cfg.texture + ");");
     }
 
-    if (config.density) {
+    if (cfg.density) {
       lines.push("");
       lines.push("  /* Density: compact */");
       Object.keys(DATA.density).forEach(function (name) {
         lines.push("  " + name + ": " + DATA.density[name] + ";");
       });
     }
-    if (config.mono) {
+    if (cfg.mono) {
       lines.push("");
       lines.push("  /* Monochrome: action surfaces read as ink, not colour */");
       Object.keys(DATA.monochrome).forEach(function (name) {
@@ -1156,34 +1215,34 @@
       });
     }
 
-    if (Number(config.baseUnit) !== 4) {
+    if (Number(cfg.baseUnit) !== 4) {
       lines.push("");
-      lines.push("  /* Space: " + config.baseUnit + "px base unit. The number in each name is still the multiplier. */");
+      lines.push("  /* Space: " + cfg.baseUnit + "px base unit. The number in each name is still the multiplier. */");
       DATA.dimSteps.forEach(function (step) {
-        lines.push("  --dt-dim-" + step + ": " + step * Number(config.baseUnit) + "px;");
+        lines.push("  --dt-dim-" + step + ": " + step * Number(cfg.baseUnit) + "px;");
       });
     }
 
-    if (Number(config.focusRing) !== 2) {
+    if (Number(cfg.focusRing) !== 2) {
       lines.push("");
       lines.push("  /* Focus */");
-      lines.push("  --dt-focus-ring-width: " + Number(config.focusRing) + "px;");
+      lines.push("  --dt-focus-ring-width: " + Number(cfg.focusRing) + "px;");
     }
 
-    var sizes = ICON_SIZES[config.iconSize];
+    var sizes = ICON_SIZES[cfg.iconSize];
     if (sizes) {
       lines.push("");
-      lines.push("  /* Icon sizes: " + config.iconSize + " */");
+      lines.push("  /* Icon sizes: " + cfg.iconSize + " */");
       ["xs", "sm", "md", "lg", "xl"].forEach(function (name, i) {
         lines.push("  --dt-size-icon-" + name + ": var(--dt-dim-" + sizes[i] + ");");
       });
     }
 
-    var tm = textModuleVars(config);
-    var space = WHITESPACE[config.whitespace];
+    var tm = textModuleVars(cfg);
+    var space = WHITESPACE[cfg.whitespace];
     if (space) {
       lines.push("");
-      lines.push("  /* Spacing: " + config.whitespace + " */");
+      lines.push("  /* Spacing: " + cfg.whitespace + " */");
       ["inset", "stack", "inline"].forEach(function (axis) {
         SPACE_STEPS.forEach(function (step, i) {
           lines.push("  --dt-space-" + axis + "-" + step + ": var(--dt-dim-" + space[axis][i] + ");");
@@ -1199,25 +1258,25 @@
     }
     if (Object.keys(tm).length) {
       lines.push("");
-      lines.push("  /* Text " + (config.textSpacing || "auto") + ", modules " + (config.moduleSpacing || "auto") + " */");
+      lines.push("  /* Text " + (cfg.textSpacing || "auto") + ", modules " + (cfg.moduleSpacing || "auto") + " */");
       Object.keys(tm).forEach(function (name) {
         lines.push("  " + name + ": " + tm[name] + ";");
       });
     }
 
-    if (WORDMARK[config.headlineColor]) {
+    if (WORDMARK[cfg.headlineColor]) {
       lines.push("");
-      lines.push("  /* Headlines: " + config.headlineColor + " */");
-      lines.push("  --dt-text-headline: " + WORDMARK[config.headlineColor].replace(/, var\(.*\)\)$/, ")") + ";");
+      lines.push("  /* Headlines: " + cfg.headlineColor + " */");
+      lines.push("  --dt-text-headline: " + WORDMARK[cfg.headlineColor].replace(/, var\(.*\)\)$/, ")") + ";");
     }
 
-    if (WORDMARK[config.wordmarkColor]) {
+    if (WORDMARK[cfg.wordmarkColor]) {
       lines.push("");
-      lines.push("  /* Wordmark: " + config.wordmarkColor + " */");
-      lines.push("  --dt-text-wordmark: " + WORDMARK[config.wordmarkColor].replace(/, var\(.*\)\)$/, ")") + ";");
+      lines.push("  /* Wordmark: " + cfg.wordmarkColor + " */");
+      lines.push("  --dt-text-wordmark: " + WORDMARK[cfg.wordmarkColor].replace(/, var\(.*\)\)$/, ")") + ";");
     }
 
-    if (config.actions === "brand" && !config.mono) {
+    if (cfg.actions === "brand" && !cfg.mono) {
       lines.push("");
       lines.push("  /* Buttons, links, selection and focus in the brand colour */");
       Object.keys(BRAND_CONTROLS).forEach(function (name) {
@@ -1225,35 +1284,35 @@
       });
     }
 
-    if (MEDIA_RADII[config.mediaRadius]) {
+    if (MEDIA_RADII[cfg.mediaRadius]) {
       lines.push("");
       lines.push("  /* Imagery */");
-      lines.push("  --dt-radius-media: " + MEDIA_RADII[config.mediaRadius] + ";");
+      lines.push("  --dt-radius-media: " + MEDIA_RADII[cfg.mediaRadius] + ";");
     }
 
     lines.push("}");
 
     /* The same role choices again under .dark, so a band scoped dark inside a
        light page resolves them against its own brand text roles. */
-    var darkRoles = [["--dt-text-headline", config.headlineColor], ["--dt-text-wordmark", config.wordmarkColor]].filter(function (r) { return WORDMARK[r[1]]; });
-    var brandControls = config.actions === "brand" && !config.mono;
-    var fillDark = config.brandFill === "quiet" || config.brandFill === "gradient" || config.brandFill === "duotone";
-    var tintDark = config.pageTint === "muted" || config.sectionTint === "muted";
+    var darkRoles = [["--dt-text-headline", cfg.headlineColor], ["--dt-text-wordmark", cfg.wordmarkColor]].filter(function (r) { return WORDMARK[r[1]]; });
+    var brandControls = cfg.actions === "brand" && !cfg.mono;
+    var fillDark = cfg.brandFill === "quiet" || cfg.brandFill === "gradient" || cfg.brandFill === "duotone";
+    var tintDark = cfg.pageTint === "muted" || cfg.sectionTint === "muted";
     if (darkRoles.length || brandControls || fillDark || tintDark) {
       lines.push("");
       lines.push(".dark {");
-      if (config.pageTint === "muted") {
+      if (cfg.pageTint === "muted") {
         lines.push("  --dt-surface-base: var(--dt-surface-brand-muted);");
         lines.push("  --dt-surface-subtle: color-mix(in oklab, var(--dt-surface-brand-muted) 94%, var(--dt-text-primary));");
         lines.push("  --dt-focus-ring-offset-color: var(--dt-surface-base);");
-      } else if (config.sectionTint === "muted") {
+      } else if (cfg.sectionTint === "muted") {
         lines.push("  --dt-surface-subtle: var(--dt-surface-brand-muted);");
       }
-      if (config.brandFill === "quiet") {
+      if (cfg.brandFill === "quiet") {
         lines.push("  --dt-surface-brand: var(--dt-surface-brand-muted);");
         lines.push("  --dt-text-on-brand: var(--dt-text-on-brand-muted);");
       } else if (fillDark) {
-        lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + config.brandFill + ");");
+        lines.push("  --dt-surface-brand: var(--dt-surface-brand-" + cfg.brandFill + ");");
       }
       darkRoles.forEach(function (r) {
         lines.push("  " + r[0] + ": " + WORDMARK[r[1]].replace(/, var\(.*\)\)$/, ")") + ";");
@@ -1266,33 +1325,33 @@
       lines.push("}");
     }
 
-    var lib = iconLibInfo(config.iconLib);
+    var lib = iconLibInfo(cfg.iconLib);
     lines.push("");
     lines.push("/* Iconography: " + lib.label + ", " + lib.licence + ".");
     lines.push("   The system ships no icon set. Load one and size it from --dt-size-icon-*;");
     lines.push("   icons inherit text colour and are never given their own.");
     lines.push("     " + lib.include);
-    if (config.iconStroke !== "authored") {
-      lines.push("   Drawn at " + config.iconStroke + "px stroke, round caps and joins. */");
+    if (cfg.iconStroke !== "authored") {
+      lines.push("   Drawn at " + cfg.iconStroke + "px stroke, round caps and joins. */");
     } else {
       lines.push("   Drawn at the stroke width each icon ships with. */");
     }
 
-    if (config.media !== "shown") {
+    if (cfg.media !== "shown") {
       lines.push("");
       lines.push("/* Media blocks hidden. A way of reading the layout, not a token: how much");
       lines.push("   imagery a screen carries is a content decision, and components take");
       lines.push("   content as props. */");
     }
 
-    if (brand.name || brand.mark || brand.wordmark) {
+    if (mark.name || mark.mark || mark.wordmark) {
       lines.push("");
       lines.push("/* Brand: the wordmark is the name set in the sans family at");
       lines.push("   --dt-font-weight-semibold with --dt-tracking-tight.");
-      lines.push("     Name: " + (brand.name || "Dovetail"));
-      lines.push("     Colour: " + (config.wordmarkColor === "ink" ? "ink (--dt-text-primary)" : config.wordmarkColor + ", set in the :root block above"));
-      if (brand.wordmark) lines.push("     Wordmark: supplied as a file, shown in place of the name; it is not a token and does not belong in this sheet.");
-      if (brand.mark) lines.push("     Brand mark: supplied as a file; it is not a token and does not belong in this sheet.");
+      lines.push("     Name: " + (mark.name || "Dovetail"));
+      lines.push("     Colour: " + (cfg.wordmarkColor === "ink" ? "ink (--dt-text-primary)" : cfg.wordmarkColor + ", set in the :root block above"));
+      if (mark.wordmark) lines.push("     Wordmark: supplied as a file, shown in place of the name; it is not a token and does not belong in this sheet.");
+      if (mark.mark) lines.push("     Brand mark: supplied as a file; it is not a token and does not belong in this sheet.");
       lines.push(" */");
     }
 

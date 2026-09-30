@@ -9,8 +9,9 @@
    node_modules is next door. This check does what `npm install <name>` does:
 
    1. Runs the package build, then `npm pack` into a temp directory.
-   2. Fails if the tarball holds anything but dist/, package.json, README.md,
-      LICENSE and CHANGELOG.md, or lacks the files the exports map points at.
+   2. Fails if the tarball holds anything but dist/, skills/, package.json,
+      README.md, LICENSE and CHANGELOG.md, or lacks the files the exports map
+      points at, the Configure core or the dovetail-setup skill.
    3. Creates a temp consumer project and installs the tarball into it with
       `npm install --no-save --offline`. React, react-dom and their types are
       symlinked in from the repo's node_modules,
@@ -113,10 +114,13 @@ try {
 
   await step("tarball contents", () => {
     if (!tarFiles.length) throw new Error("no tarball to inspect");
-    const stray = tarFiles.filter((f) => !f.startsWith("dist/") && !ALLOWED.has(f));
-    if (stray.length) fail(`outside dist/, package.json, README.md, LICENSE, CHANGELOG.md: ${stray.join(", ")}`);
-    else ok("only dist/, package.json, README.md, LICENSE and CHANGELOG.md");
-    const want = ["package.json", "README.md", "dist/react/index.js", "dist/react/index.d.ts", "dist/styles.css", "dist/fonts.css"];
+    const stray = tarFiles.filter((f) => !f.startsWith("dist/") && !f.startsWith("skills/") && !ALLOWED.has(f));
+    if (stray.length) fail(`outside dist/, skills/, package.json, README.md, LICENSE, CHANGELOG.md: ${stray.join(", ")}`);
+    else ok("only dist/, skills/, package.json, README.md, LICENSE and CHANGELOG.md");
+    const want = [
+      "package.json", "README.md", "dist/react/index.js", "dist/react/index.d.ts", "dist/styles.css", "dist/fonts.css",
+      "dist/configure/core.js", "skills/dovetail-setup/SKILL.md", "skills/dovetail-setup/scripts/theme.mjs", "skills/dovetail-setup/references/wiring.md",
+    ];
     for (const f of ["LICENSE", "CHANGELOG.md"]) if (fs.existsSync(path.join(ROOT, f))) want.push(f);
     const missing = want.filter((f) => !tarFiles.includes(f));
     if (missing.length) fail(`missing from the tarball: ${missing.join(", ")}`);
@@ -286,6 +290,43 @@ say("tokens/tokens.css resolves through exports");`
     const r = spawnSync(process.execPath, ["check.mjs"], { cwd: CONSUMER, encoding: "utf8", env });
     process.stdout.write(r.stdout || "");
     if (r.status !== 0) throw new Error(`the consumer script exited ${r.status}\n${(r.stderr || "").trim()}`);
+  });
+
+  /* The skill's script, run the way the skill runs it: from the consumer's
+     root, finding the package through node_modules, with nothing from the
+     repo on its path. */
+  await step("the dovetail-setup skill builds and checks a theme from the installed package", () => {
+    if (!installed) throw new Error("nothing installed");
+    const script = path.join(CONSUMER, "node_modules", ...NAME.split("/"), "skills", "dovetail-setup", "scripts", "theme.mjs");
+    const node = (args, input) => {
+      const r = spawnSync(process.execPath, [script, ...args], { cwd: CONSUMER, encoding: "utf8", env: { ...env, DOVETAIL_PACKAGE: "" }, input });
+      return { code: r.status, out: `${r.stdout}${r.stderr}` };
+    };
+    const opts = node(["options"]);
+    if (opts.code !== 0) throw new Error(`options exited ${opts.code}:\n${indent(opts.out)}`);
+    const choices = JSON.parse(opts.out);
+    if (!choices.radius || !choices.font || !choices.primary.values.includes("custom")) throw new Error("options is missing radius, font or a custom primary");
+    ok(`options lists ${Object.keys(choices).length} choices from the installed package`);
+
+    const answers = { primaryHex: "#1f6feb", actions: "brand", font: "inter", radius: "soft" };
+    const built = node(["build", "-", "--out", "dovetail-theme.css"], JSON.stringify(answers));
+    if (built.code !== 0) throw new Error(`build exited ${built.code}:\n${indent(built.out)}`);
+    const theme = fs.readFileSync(path.join(CONSUMER, "dovetail-theme.css"), "utf8");
+    if (!theme.startsWith("/* dovetail-setup choices: ")) throw new Error("the theme does not record its choices");
+    if (!/--dt-color-primary-600: #1f6feb;/.test(theme)) throw new Error("the brand colour is not at primary 600");
+    if (!/fonts\.googleapis\.com\/css2\?family=Inter/.test(built.out)) throw new Error(`build did not report the Inter font URL:\n${indent(built.out)}`);
+    ok("build writes a theme with the brand colour at primary 600, records its choices, and reports the Inter URL");
+
+    const checked = node(["check", "dovetail-theme.css"]);
+    if (checked.code !== 0 || !/ok: a valid Dovetail theme/.test(checked.out) || /warning:/.test(checked.out)) throw new Error(`check did not pass it cleanly:\n${indent(checked.out)}`);
+    fs.appendFileSync(path.join(CONSUMER, "dovetail-theme.css"), "\n.button { border-radius: 0; }\n");
+    const bad = node(["check", "dovetail-theme.css"]);
+    if (bad.code !== 1 || !/not a token/.test(bad.out)) throw new Error(`check did not reject a component rule:\n${indent(bad.out)}`);
+    ok("check passes the built theme with no warnings, and rejects a component rule");
+
+    const wrong = node(["build", "-"], JSON.stringify({ radius: "round" }));
+    if (wrong.code !== 1 || !/"round" is not one of/.test(wrong.out)) throw new Error(`build accepted an invalid choice:\n${indent(wrong.out)}`);
+    ok("build rejects an invalid choice and lists the valid ones");
   });
 
   await step(`types (tsc --noEmit on a consumer .tsx importing "${NAME}")`, () => {

@@ -1313,6 +1313,7 @@ function buildHome() {
         <a class="btn btn-primary" href="components/index.html">Browse components ${glyph("arrowRight")}</a>
         <a class="btn" href="guide/index.html">${glyph("book")} Read the guide</a>
       </div>
+      <pre class="code hero-install" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
       <p class="pills"><span>No lock-in</span><span>DTCG tokens</span><span>Light and dark</span></p>
     </div>
     <div class="hero-stage" aria-hidden="true">
@@ -2052,8 +2053,31 @@ function buildDownloads() {
   const body = `
 ${breadcrumb("", [{ label: "Dovetail", href: "index.html" }, { label: "Download" }])}
 <h1>Take it with you</h1>
-<p class="lede">The whole system is served from this site under <code>system/</code>, at the paths it was authored with. Link one stylesheet and you have the tokens; add a theme file and the system is yours.</p>
+<p class="lede">Install the React package from npm, or link the stylesheets straight from this site. Either way, add a theme file and the system is yours.</p>
 
+<section class="prose">
+  <h2 id="npm">Install from npm</h2>
+  <p><a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a> has every component, typed, with the stylesheets. React 18 or newer is the only peer dependency.</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+<p>Import the stylesheets once at your app's root, your theme last:</p>
+<pre class="code" data-lang="jsx"><code>${esc(`import "@dovetail-ds/react/fonts.css"; // optional: Geist from Google Fonts
+import "@dovetail-ds/react/styles.css";
+import "./dovetail-theme.css"; // from Configure, or written by the setup skill
+
+import { Button, Section, Stack } from "@dovetail-ds/react";`)}</code></pre>
+
+<section class="prose">
+  <h2 id="claude-code">Set up with Claude Code</h2>
+  <p>The package ships a Claude Code skill that asks about your brand, or takes a theme you downloaded from Configure, then writes the theme and wires it into your app. Copy it in, then ask Claude to “set up Dovetail with our brand”.</p>
+</section>
+<pre class="code" data-lang="sh"><code>${esc(`mkdir -p .claude/skills
+cp -r node_modules/@dovetail-ds/react/skills/dovetail-setup .claude/skills/`)}</code></pre>
+
+<section class="prose">
+  <h2 id="link">Link from this site</h2>
+  <p>The whole system is served from this site under <code>system/</code>, at the paths it was authored with. Link one stylesheet and you have the tokens.</p>
+</section>
 <pre class="code" data-lang="html"><code>${esc(`<link rel="stylesheet" href="system/styles.css">
 <link rel="stylesheet" href="system/tokens/themes/theme-editorial.css">`)}</code></pre>
 <p>Dark mode needs no second stylesheet. Put <code>class="dark"</code> on <code>&lt;html&gt;</code>.</p>

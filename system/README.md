@@ -8,14 +8,39 @@ Most design systems encode one company's taste. Dovetail encodes the *structure*
 
 ## Start here
 
-**Consuming Dovetail.** Link one stylesheet, then optionally a theme.
+**Install it.** Dovetail is on npm as [`@dovetail-ds/react`](https://www.npmjs.com/package/@dovetail-ds/react). React 18 or newer is the only peer dependency.
+
+```sh
+npm install @dovetail-ds/react
+```
+
+Import the stylesheets once at your app's root, then use the components:
+
+```jsx
+import "@dovetail-ds/react/fonts.css"; // optional: Geist from Google Fonts
+import "@dovetail-ds/react/styles.css";
+import "./dovetail-theme.css"; // your theme, after styles.css
+
+import { Button, Section, Stack } from "@dovetail-ds/react";
+```
+
+Dark mode needs no second stylesheet. Put `class="dark"` on `<html>`, or on any element to darken one band. Interactive components ship with `"use client"`, so they work in the Next.js App Router.
+
+**Set it up with Claude Code.** The package ships a skill that asks about your brand (or takes a theme downloaded from Configure), writes your theme, and wires it into your app:
+
+```sh
+mkdir -p .claude/skills
+cp -r node_modules/@dovetail-ds/react/skills/dovetail-setup .claude/skills/
+```
+
+Then ask Claude to "set up Dovetail with our brand".
+
+**Without a bundler.** Link the stylesheets directly, then optionally a theme:
 
 ```html
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="tokens/themes/theme-editorial.css">
 ```
-
-Dark mode needs no second stylesheet. Put `class="dark"` on `<html>`.
 
 **Building with it.** Read `CLAUDE.md` for the authoring rules, then the component's own `.md` file before you use it.
 
