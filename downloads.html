@@ -7,7 +7,7 @@
 <meta name="description" content="Take the stylesheets, tokens and components into your project.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="system/styles.css?v=5fade5e9d1">
-<link rel="stylesheet" href="assets/site.css?v=24057f06b3">
+<link rel="stylesheet" href="assets/site.css?v=80956e1e94">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -57,8 +57,31 @@
 
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html">Dovetail</a></li><li aria-current="page">Download</li></ol></nav>
 <h1>Take it with you</h1>
-<p class="lede">The whole system is served from this site under <code>system/</code>, at the paths it was authored with. Link one stylesheet and you have the tokens; add a theme file and the system is yours.</p>
+<p class="lede">Install the React package from npm, or link the stylesheets straight from this site. Either way, add a theme file and the system is yours.</p>
 
+<section class="prose">
+  <h2 id="npm">Install from npm</h2>
+  <p><a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a> has every component, typed, with the stylesheets. React 18 or newer is the only peer dependency.</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+<p>Import the stylesheets once at your app's root, your theme last:</p>
+<pre class="code" data-lang="jsx"><code>import &quot;@dovetail-ds/react/fonts.css&quot;; // optional: Geist from Google Fonts
+import &quot;@dovetail-ds/react/styles.css&quot;;
+import &quot;./dovetail-theme.css&quot;; // from Configure, or written by the setup skill
+
+import { Button, Section, Stack } from &quot;@dovetail-ds/react&quot;;</code></pre>
+
+<section class="prose">
+  <h2 id="claude-code">Set up with Claude Code</h2>
+  <p>The package ships a Claude Code skill that asks about your brand, or takes a theme you downloaded from Configure, then writes the theme and wires it into your app. Copy it in, then ask Claude to “set up Dovetail with our brand”.</p>
+</section>
+<pre class="code" data-lang="sh"><code>mkdir -p .claude/skills
+cp -r node_modules/@dovetail-ds/react/skills/dovetail-setup .claude/skills/</code></pre>
+
+<section class="prose">
+  <h2 id="link">Link from this site</h2>
+  <p>The whole system is served from this site under <code>system/</code>, at the paths it was authored with. Link one stylesheet and you have the tokens.</p>
+</section>
 <pre class="code" data-lang="html"><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;system/styles.css&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;system/tokens/themes/theme-editorial.css&quot;&gt;</code></pre>
 <p>Dark mode needs no second stylesheet. Put <code>class="dark"</code> on <code>&lt;html&gt;</code>.</p>
@@ -103,6 +126,9 @@
 <aside class="page-toc" aria-labelledby="page-toc-title">
   <p class="page-toc-title" id="page-toc-title">On this page</p>
   <ol>
+    <li><a href="#npm">Install from npm</a></li>
+    <li><a href="#claude-code">Set up with Claude Code</a></li>
+    <li><a href="#link">Link from this site</a></li>
     <li><a href="#stylesheets">Stylesheets</a></li>
     <li><a href="#tokens">Tokens</a></li>
     <li><a href="#themes">Themes</a></li>

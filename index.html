@@ -7,7 +7,7 @@
 <meta name="description" content="A white-label design system: a strict token contract, a 4px grid, and components that never name a colour.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="system/styles.css?v=5fade5e9d1">
-<link rel="stylesheet" href="assets/site.css?v=24057f06b3">
+<link rel="stylesheet" href="assets/site.css?v=80956e1e94">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after. */
@@ -65,6 +65,7 @@
         <a class="btn btn-primary" href="components/index.html">Browse components <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 12h15"/><path d="m13.5 6 6 6-6 6"/></svg></a>
         <a class="btn" href="guide/index.html"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/><path d="M6.5 2.5H20v19H6.5A2.5 2.5 0 0 1 4 19V5a2.5 2.5 0 0 1 2.5-2.5Z"/></svg> Read the guide</a>
       </div>
+      <pre class="code hero-install" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
       <p class="pills"><span>No lock-in</span><span>DTCG tokens</span><span>Light and dark</span></p>
     </div>
     <div class="hero-stage" aria-hidden="true">
@@ -141,10 +142,22 @@
   <div class="narrow">
     <section class="prose">
       <h2 id="start-here">Start here</h2>
-      <p><strong>Consuming Dovetail.</strong> Link one stylesheet, then optionally a theme.</p>
+      <p><strong>Install it.</strong> Dovetail is on npm as <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. React 18 or newer is the only peer dependency.</p>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react</code></pre>
+<p>Import the stylesheets once at your app's root, then use the components:</p>
+<pre class="code" data-lang="jsx"><code>import &quot;@dovetail-ds/react/fonts.css&quot;; // optional: Geist from Google Fonts
+import &quot;@dovetail-ds/react/styles.css&quot;;
+import &quot;./dovetail-theme.css&quot;; // your theme, after styles.css
+
+import { Button, Section, Stack } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p>Dark mode needs no second stylesheet. Put <code>class=&quot;dark&quot;</code> on <code>&lt;html&gt;</code>, or on any element to darken one band. Interactive components ship with <code>&quot;use client&quot;</code>, so they work in the Next.js App Router.</p>
+<p><strong>Set it up with Claude Code.</strong> The package ships a skill that asks about your brand (or takes a theme downloaded from Configure), writes your theme, and wires it into your app:</p>
+<pre class="code" data-lang="sh"><code>mkdir -p .claude/skills
+cp -r node_modules/@dovetail-ds/react/skills/dovetail-setup .claude/skills/</code></pre>
+<p>Then ask Claude to &quot;set up Dovetail with our brand&quot;.</p>
+<p><strong>Without a bundler.</strong> Link the stylesheets directly, then optionally a theme:</p>
 <pre class="code" data-lang="html"><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;styles.css&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;tokens/themes/theme-editorial.css&quot;&gt;</code></pre>
-<p>Dark mode needs no second stylesheet. Put <code>class=&quot;dark&quot;</code> on <code>&lt;html&gt;</code>.</p>
 <p><strong>Building with it.</strong> Read <code>CLAUDE.md</code> for the authoring rules, then the component's own <code>.md</code> file before you use it.</p>
 <p><strong>Theming it.</strong> <code>guidelines/theming.md</code> walks from a brand palette to a working theme.</p>
 <hr>
