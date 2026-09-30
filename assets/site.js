@@ -350,7 +350,12 @@
           say(text);
           closeTimer = setTimeout(function () { setSheet(false); }, 900);
         };
-        if (action === "copy-link") {
+        if (action === "copy-text") {
+          e.preventDefault();
+          copy(item.getAttribute("data-text"), function (ok) {
+            done(ok ? item.getAttribute("data-done") || "Copied" : "Couldn't copy");
+          });
+        } else if (action === "copy-link") {
           e.preventDefault();
           copy(location.href.split("#")[0], function (ok) {
             done(ok ? "Link copied" : "Couldn't copy");
