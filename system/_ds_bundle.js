@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -8239,6 +8239,485 @@ function SocialPost({
 }
 Object.assign(__ds_scope, { SocialPost });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/content/SocialPost.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/Price.jsx
+try { (() => {
+/* Each size is a type role for the amount and a smaller one for the struck
+   compare-at price and the unit beside it. */
+const SIZES = {
+  sm: {
+    amount: "label-md",
+    aside: "body-xs"
+  },
+  md: {
+    amount: "label-lg",
+    aside: "body-sm"
+  },
+  lg: {
+    amount: "heading-md",
+    aside: "body-sm"
+  }
+};
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+
+/* One formatter per currency and locale. An unknown currency code makes
+   Intl throw; the amount still shows, with the code after it. */
+function useFormat(currency, locale) {
+  return React.useMemo(() => {
+    try {
+      const nf = new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency
+      });
+      return n => nf.format(n);
+    } catch (err) {
+      return n => `${n} ${currency}`;
+    }
+  }, [currency, locale]);
+}
+function Price({
+  amount,
+  currency = "USD",
+  locale,
+  compareAt,
+  unit,
+  size = "md",
+  freeLabel = "Free",
+  style,
+  ...rest
+}) {
+  const format = useFormat(currency, locale);
+  const s = SIZES[size] || SIZES.md;
+  const shown = amount === 0 ? freeLabel : format(amount);
+  const onSale = typeof compareAt === "number" && compareAt > amount;
+  const was = onSale ? format(compareAt) : null;
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "relative",
+      display: "inline-flex",
+      alignItems: "baseline",
+      flexWrap: "wrap",
+      columnGap: "var(--dt-space-inline-xs)",
+      fontVariantNumeric: "tabular-nums",
+      ...style
+    },
+    ...rest
+  }, onSale && /*#__PURE__*/React.createElement(__ds_scope.VisuallyHidden, null, `Was ${was}, now ${shown}`), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": onSale || undefined,
+    style: {
+      ...role(s.amount),
+      color: onSale ? "var(--dt-price-sale-color)" : "var(--dt-price-color)",
+      whiteSpace: "nowrap"
+    }
+  }, shown), onSale && /*#__PURE__*/React.createElement("s", {
+    "aria-hidden": "true",
+    style: {
+      ...role(s.aside),
+      color: "var(--dt-price-compare-color)",
+      whiteSpace: "nowrap"
+    }
+  }, was), unit && /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...role(s.aside),
+      color: "var(--dt-price-unit-color)",
+      whiteSpace: "nowrap"
+    }
+  }, unit));
+}
+Object.assign(__ds_scope, { Price });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/Price.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/QuantityStepper.jsx
+try { (() => {
+const ICONS = {
+  minus: ["M5 12h14"],
+  plus: ["M5 12h14", "M12 5v14"],
+  trash: ["M3 6h18", "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6", "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2", "M10 11v6", "M14 11v6"]
+};
+function Icon({
+  name,
+  size
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      flex: "none",
+      width: size,
+      height: size
+    }
+  }, ICONS[name].map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+const SIZES = {
+  sm: {
+    height: "var(--dt-input-height-sm)",
+    icon: "var(--dt-size-icon-sm)",
+    text: "label-md"
+  },
+  md: {
+    height: "var(--dt-input-height-md)",
+    icon: "var(--dt-size-icon-md)",
+    text: "label-lg"
+  }
+};
+function QuantityStepper({
+  value,
+  onChange,
+  label,
+  min = 1,
+  max,
+  step = 1,
+  size = "md",
+  disabled = false,
+  onRemove,
+  decreaseLabel = "Decrease quantity",
+  increaseLabel = "Increase quantity",
+  removeLabel = "Remove",
+  id,
+  style,
+  ...rest
+}) {
+  const s = SIZES[size] || SIZES.md;
+  const auto = React.useId();
+  const inputId = id || auto;
+  const [draft, setDraft] = React.useState(null);
+  const [hover, setHover] = React.useState(null);
+  const top = typeof max === "number" ? max : Infinity;
+  /* Onto the step grid counted from min, then inside the limits. */
+  const clamp = n => {
+    const snapped = min + Math.round((n - min) / step) * step;
+    return Math.min(Math.max(snapped, min), top);
+  };
+  const commit = n => {
+    setDraft(null);
+    const next = clamp(n);
+    if (next !== value) onChange(next);
+  };
+  /* What is typed counts once it is committed; until then a step starts from
+     it, so typing 4 and pressing ArrowUp gives 5. */
+  const current = () => {
+    if (draft == null) return value;
+    const typed = Number(draft.replace(/[^\d.-]/g, ""));
+    return draft.trim() === "" || Number.isNaN(typed) ? value : typed;
+  };
+  const atMin = value <= min;
+  const atMax = value >= top;
+  const removing = !!onRemove && atMin;
+  const decOff = disabled || atMin && !removing;
+  const incOff = disabled || atMax;
+  const onKeyDown = e => {
+    if (disabled) return;
+    const big = step * 10;
+    let next = null;
+    if (e.key === "ArrowUp") next = current() + step;else if (e.key === "ArrowDown") next = current() - step;else if (e.key === "PageUp") next = current() + big;else if (e.key === "PageDown") next = current() - big;else if (e.key === "Home") next = min;else if (e.key === "End" && top !== Infinity) next = top;else if (e.key === "Enter") next = current();else if (e.key === "Escape" && draft != null) {
+      e.preventDefault();
+      setDraft(null);
+      return;
+    }
+    if (next == null) return;
+    e.preventDefault();
+    commit(next);
+  };
+
+  /* The limit buttons stay focusable (aria-disabled, not disabled), so focus
+     is not dropped to the page when a click reaches the limit. */
+  const button = (kind, off, onPress, ariaLabel, icon) => /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "aria-label": ariaLabel,
+    title: ariaLabel,
+    "aria-disabled": off && !disabled ? true : undefined,
+    "aria-controls": inputId,
+    disabled: disabled,
+    onClick: () => {
+      if (!off) onPress();
+    },
+    onMouseEnter: () => setHover(kind),
+    onMouseLeave: () => setHover(null),
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flex: "none",
+      width: s.height,
+      height: "100%",
+      padding: 0,
+      border: 0,
+      borderRadius: "var(--dt-input-radius)",
+      background: hover === kind && !off ? "var(--dt-button-ghost-bg-hover)" : "var(--dt-button-ghost-bg)",
+      color: off ? "var(--dt-text-disabled)" : "var(--dt-button-ghost-fg)",
+      cursor: off ? "not-allowed" : "pointer",
+      transition: "background var(--dt-button-transition), color var(--dt-button-transition)"
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: icon,
+    size: s.icon
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    role: "group",
+    "aria-label": label,
+    style: {
+      display: "inline-flex",
+      alignItems: "stretch",
+      boxSizing: "border-box",
+      height: s.height,
+      border: `var(--dt-input-border-width) solid ${disabled ? "var(--dt-input-border-disabled)" : "var(--dt-input-border)"}`,
+      borderRadius: "var(--dt-input-radius)",
+      background: disabled ? "var(--dt-input-bg-disabled)" : "var(--dt-input-bg)",
+      ...style
+    },
+    ...rest
+  }, removing ? button("dec", decOff, onRemove, removeLabel, "trash") : button("dec", decOff, () => commit(value - step), decreaseLabel, "minus"), /*#__PURE__*/React.createElement("input", {
+    id: inputId,
+    type: "text",
+    role: "spinbutton",
+    inputMode: "numeric",
+    autoComplete: "off",
+    "aria-label": label,
+    "aria-valuenow": value,
+    "aria-valuemin": min,
+    "aria-valuemax": top === Infinity ? undefined : top,
+    disabled: disabled,
+    value: draft != null ? draft : String(value),
+    onChange: e => setDraft(e.target.value),
+    onBlur: () => {
+      if (draft != null) commit(current());
+    },
+    onKeyDown: onKeyDown,
+    style: {
+      width: s.height,
+      minWidth: 0,
+      flex: "none",
+      padding: 0,
+      margin: 0,
+      border: 0,
+      background: "transparent",
+      textAlign: "center",
+      fontFamily: `var(--dt-text-${s.text}-family)`,
+      fontSize: `var(--dt-text-${s.text}-size)`,
+      fontWeight: `var(--dt-text-${s.text}-weight)`,
+      lineHeight: `var(--dt-text-${s.text}-line)`,
+      fontVariantNumeric: "tabular-nums",
+      color: disabled ? "var(--dt-input-fg-disabled)" : "var(--dt-input-fg)",
+      borderRadius: "var(--dt-input-radius)"
+    }
+  }), button("inc", incOff, () => commit(value + step), increaseLabel, "plus"));
+}
+Object.assign(__ds_scope, { QuantityStepper });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/QuantityStepper.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/Rating.jsx
+try { (() => {
+/* A star on the 24-unit icon grid, filled and stroked with round joins so its
+   points are softened the way the rest of the system's icons are. */
+const STAR = "M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z";
+
+/* The star, the box an input star sits in (a comfortable hit area), and the
+   count's type role. */
+const SIZES = {
+  sm: {
+    star: "var(--dt-size-icon-sm)",
+    box: "var(--dt-size-control-xs)",
+    text: "body-xs"
+  },
+  md: {
+    star: "var(--dt-size-icon-md)",
+    box: "var(--dt-size-control-sm)",
+    text: "body-sm"
+  },
+  lg: {
+    star: "var(--dt-size-icon-lg)",
+    box: "var(--dt-size-control-md)",
+    text: "body-md"
+  }
+};
+function Glyph({
+  size
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "currentColor",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      flex: "none",
+      width: size,
+      height: size,
+      maxWidth: "none"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: STAR
+  }));
+}
+
+/* fill is 0, 0.5 or 1. A half star lays the filled glyph over the empty one
+   and clips it to its inline-start half, so it needs no SVG ids, follows the
+   colour tokens into a dark band, and fills from the right in RTL. */
+function Star({
+  fill,
+  size
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "relative",
+      display: "block",
+      flex: "none",
+      width: size,
+      height: size
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "block",
+      color: fill === 1 ? "var(--dt-rating-color)" : "var(--dt-rating-empty-color)",
+      transition: "color var(--dt-motion-micro)"
+    }
+  }, /*#__PURE__*/React.createElement(Glyph, {
+    size: size
+  })), fill === 0.5 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "absolute",
+      insetBlockStart: 0,
+      insetInlineStart: 0,
+      width: "50%",
+      height: "100%",
+      overflow: "hidden",
+      color: "var(--dt-rating-color)"
+    }
+  }, /*#__PURE__*/React.createElement(Glyph, {
+    size: size
+  })));
+}
+const fillFor = (shown, n) => shown >= n ? 1 : shown >= n - 0.5 ? 0.5 : 0;
+function Rating({
+  value = 0,
+  max = 5,
+  count,
+  size = "md",
+  onChange,
+  label,
+  locale,
+  style,
+  ...rest
+}) {
+  const s = SIZES[size] || SIZES.md;
+  const [hover, setHover] = React.useState(null);
+  const refs = React.useRef([]);
+  const stars = Array.from({
+    length: max
+  }, (_, i) => i + 1);
+  const num = React.useMemo(() => new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 1
+  }), [locale]);
+  if (!onChange) {
+    const rounded = Math.round(Math.min(Math.max(value, 0), max) * 2) / 2;
+    const reviews = typeof count === "number" ? `, ${num.format(count)} ${count === 1 ? "review" : "reviews"}` : "";
+    return /*#__PURE__*/React.createElement("span", {
+      role: "img",
+      "aria-label": label || `${num.format(rounded)} out of ${max} stars${reviews}`,
+      style: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "var(--dt-space-inline-xs)",
+        verticalAlign: "middle",
+        ...style
+      },
+      ...rest
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: "inline-flex",
+        alignItems: "center"
+      }
+    }, stars.map(n => /*#__PURE__*/React.createElement(Star, {
+      key: n,
+      fill: fillFor(rounded, n),
+      size: s.star
+    }))), typeof count === "number" && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: `var(--dt-text-${s.text}-family)`,
+        fontSize: `var(--dt-text-${s.text}-size)`,
+        lineHeight: `var(--dt-text-${s.text}-line)`,
+        color: "var(--dt-rating-count-color)",
+        fontVariantNumeric: "tabular-nums"
+      }
+    }, "(", num.format(count), ")"));
+  }
+
+  /* Input: a radio group of whole stars. The checked star is the one tab
+     stop (the first when nothing is chosen yet); arrows move and select. */
+  const selected = Math.min(Math.max(Math.round(value), 0), max);
+  const shown = hover != null ? hover : selected;
+  const tabStop = selected || 1;
+  const choose = n => {
+    const next = Math.min(Math.max(n, 1), max);
+    if (next !== selected) onChange(next);
+    const el = refs.current[next];
+    if (el) el.focus();
+  };
+  const onKeyDown = (e, n) => {
+    const rtl = !!(e.currentTarget.closest && e.currentTarget.closest('[dir="rtl"]'));
+    const fwd = rtl ? "ArrowLeft" : "ArrowRight";
+    const back = rtl ? "ArrowRight" : "ArrowLeft";
+    let next = null;
+    if (e.key === fwd || e.key === "ArrowUp") next = n >= max ? 1 : n + 1;else if (e.key === back || e.key === "ArrowDown") next = n <= 1 ? max : n - 1;else if (e.key === "Home") next = 1;else if (e.key === "End") next = max;else if (e.key === " " || e.key === "Enter") next = n;
+    if (next == null) return;
+    e.preventDefault();
+    choose(next);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    role: "radiogroup",
+    "aria-label": label,
+    onMouseLeave: () => setHover(null),
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      verticalAlign: "middle",
+      ...style
+    },
+    ...rest
+  }, stars.map(n => /*#__PURE__*/React.createElement("span", {
+    key: n,
+    ref: el => {
+      refs.current[n] = el;
+    },
+    role: "radio",
+    "aria-checked": n === selected,
+    "aria-label": `${n} ${n === 1 ? "star" : "stars"}`,
+    tabIndex: n === tabStop ? 0 : -1,
+    onClick: () => choose(n),
+    onKeyDown: e => onKeyDown(e, n),
+    onMouseEnter: () => setHover(n),
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: s.box,
+      height: s.box,
+      borderRadius: "var(--dt-radius-control)",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(Star, {
+    fill: fillFor(shown, n),
+    size: s.star
+  }))));
+}
+Object.assign(__ds_scope, { Rating });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/Rating.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -8390,5 +8869,11 @@ __ds_ns.StatsBlock = __ds_scope.StatsBlock;
 __ds_ns.TestimonialBlock = __ds_scope.TestimonialBlock;
 
 __ds_ns.SocialPost = __ds_scope.SocialPost;
+
+__ds_ns.Price = __ds_scope.Price;
+
+__ds_ns.QuantityStepper = __ds_scope.QuantityStepper;
+
+__ds_ns.Rating = __ds_scope.Rating;
 
 })();

@@ -5,7 +5,30 @@
    .dark below, because custom properties resolve where they are declared. */
 
 :root {
+  /* Price: the amount, the sale amount beside a compare-at price, the struck
+     compare-at price itself, and the unit ("/ month", "each"). */
+  --dt-price-color: var(--dt-text-primary);
+  --dt-price-sale-color: var(--dt-text-danger);
+  --dt-price-compare-color: var(--dt-text-tertiary);
+  --dt-price-unit-color: var(--dt-text-secondary);
+
+  /* Rating: the star fill, the unfilled part of the scale, and the review
+     count beside it. The empty star reads the strong border so the scale is
+     still visible at a glance on every surface. */
+  --dt-rating-color: var(--dt-surface-warning);
+  --dt-rating-empty-color: var(--dt-border-strong);
+  --dt-rating-count-color: var(--dt-text-secondary);
+
+  /* QuantityStepper has no tokens of its own: it is a field, so it reads the
+     --dt-input-* geometry and colours, and its buttons the ghost button's. */
 }
 
 .dark {
+  --dt-price-color: var(--dt-text-primary);
+  --dt-price-sale-color: var(--dt-text-danger);
+  --dt-price-compare-color: var(--dt-text-tertiary);
+  --dt-price-unit-color: var(--dt-text-secondary);
+  --dt-rating-color: var(--dt-surface-warning);
+  --dt-rating-empty-color: var(--dt-border-strong);
+  --dt-rating-count-color: var(--dt-text-secondary);
 }

@@ -348,7 +348,17 @@
     "components/navigation/BottomNav.d.ts",
     "components/navigation/BottomNav.jsx",
     "components/navigation/BottomNav.md",
-    "tokens/component/appshell.css"
+    "tokens/component/appshell.css",
+    "components/commerce/Price.d.ts",
+    "components/commerce/Price.jsx",
+    "components/commerce/Price.md",
+    "components/commerce/Rating.d.ts",
+    "components/commerce/Rating.jsx",
+    "components/commerce/Rating.md",
+    "components/commerce/QuantityStepper.d.ts",
+    "components/commerce/QuantityStepper.jsx",
+    "components/commerce/QuantityStepper.md",
+    "tokens/component/commerce.css"
   ],
   "libraries": [
     {
@@ -592,6 +602,15 @@
     },
     {
       "name": "SocialPost"
+    },
+    {
+      "name": "Price"
+    },
+    {
+      "name": "Rating"
+    },
+    {
+      "name": "QuantityStepper"
     }
   ],
   "lastChange": {

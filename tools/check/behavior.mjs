@@ -20,6 +20,12 @@
         the opener. A dialog with no title is named by `label`.
       - Drawer: named by its title; focus moves inside; Tab stays inside;
         Escape returns focus to the opener.
+      - QuantityStepper: ArrowUp/Down step, Home/End jump to min/max,
+        PageUp and typed values clamp, the limit buttons turn aria-disabled,
+        and at min an onRemove stepper's minus becomes Remove (keeping
+        focus) while ArrowDown never removes.
+      - Rating input: one roving tab stop that follows the chosen star;
+        arrows choose and focus, wrapping; Home/End.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -67,6 +73,7 @@ const PAGE = `<!doctype html>
 <script type="importmap">{"imports":{"react":"./react.js","react-dom/client":"./react-dom-client.js","@dovetail-ds/react":"../react/index.js"}}</script>
 </head><body>
 <div id="root"></div>
+<div id="commerce-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -104,6 +111,26 @@ function App() {
 }
 createRoot(document.getElementById("root")).render(h(App));
 window.__ready = true;
+</script>
+<script type="module">
+/* Commerce: QuantityStepper and Rating, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { QuantityStepper, Rating } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__commerce = { removed: 0, ratings: [] };
+function Commerce() {
+  const [qty, setQty] = React.useState(2);
+  const [line, setLine] = React.useState(2);
+  const [stars, setStars] = React.useState(0);
+  return h("div", null,
+    h(QuantityStepper, { label: "Test quantity", value: qty, onChange: setQty, min: 1, max: 5 }),
+    h(QuantityStepper, { label: "Test line", removeLabel: "Remove test line", value: line, onChange: setLine,
+      onRemove: () => { window.__commerce.removed++; } }),
+    h(Rating, { label: "Test rating", value: stars, onChange: (n) => { window.__commerce.ratings.push(n); setStars(n); } }));
+}
+createRoot(document.getElementById("commerce-root")).render(h(Commerce));
+window.__commerceReady = true;
 </script>
 </body></html>
 `;
@@ -218,6 +245,86 @@ try {
     expect((await page.getByRole("dialog").count()) === 0, "Escape should close the drawer");
     expect((await active()) === "Open drawer", `focus should return to the drawer's opener, got "${await active()}"`);
     ok("Escape closes the drawer and focus returns to the opener");
+  });
+
+  await step("QuantityStepper: keys step and clamp, limits, remove at min", async () => {
+    await page.waitForFunction(() => window.__commerceReady === true);
+    const group = page.getByRole("group", { name: "Test quantity", exact: true });
+    const field = page.getByRole("spinbutton", { name: "Test quantity", exact: true });
+    const now = async () => Number(await field.getAttribute("aria-valuenow"));
+    const off = async (name) => (await group.getByRole("button", { name, exact: true }).getAttribute("aria-disabled")) === "true";
+    expect((await field.getAttribute("aria-valuemin")) === "1" && (await field.getAttribute("aria-valuemax")) === "5",
+      "the spinbutton should carry aria-valuemin 1 and aria-valuemax 5");
+    await field.focus();
+    await page.keyboard.press("ArrowUp");
+    expect((await now()) === 3, `ArrowUp from 2 should give 3, got ${await now()}`);
+    await page.keyboard.press("ArrowDown");
+    expect((await now()) === 2, `ArrowDown from 3 should give 2, got ${await now()}`);
+    ok("ArrowUp and ArrowDown step by one");
+    await page.keyboard.press("End");
+    expect((await now()) === 5, `End should jump to max 5, got ${await now()}`);
+    await page.keyboard.press("ArrowUp");
+    expect((await now()) === 5, `ArrowUp at max should stay at 5, got ${await now()}`);
+    expect(await off("Increase quantity"), "the increase button should be aria-disabled at max");
+    ok("End jumps to max; ArrowUp clamps there and the increase button turns off");
+    await page.keyboard.press("Home");
+    expect((await now()) === 1, `Home should jump to min 1, got ${await now()}`);
+    await page.keyboard.press("ArrowDown");
+    expect((await now()) === 1, `ArrowDown at min should stay at 1, got ${await now()}`);
+    expect(await off("Decrease quantity"), "the decrease button should be aria-disabled at min");
+    ok("Home jumps to min; ArrowDown clamps there and the decrease button turns off");
+    await page.keyboard.press("PageUp");
+    expect((await now()) === 5, `PageUp from 1 should clamp at 5, got ${await now()}`);
+    await field.fill("9");
+    await page.keyboard.press("Enter");
+    expect((await now()) === 5 && (await field.inputValue()) === "5", "a typed 9 should commit on Enter, clamped to 5");
+    await field.fill("3");
+    await field.blur();
+    expect((await now()) === 3, `a typed 3 should commit on blur, got ${await now()}`);
+    ok("PageUp clamps; a typed value commits on Enter or blur, clamped");
+
+    const line = page.getByRole("group", { name: "Test line", exact: true });
+    await line.getByRole("button", { name: "Decrease quantity", exact: true }).click();
+    const lineField = page.getByRole("spinbutton", { name: "Test line", exact: true });
+    expect((await lineField.getAttribute("aria-valuenow")) === "1", "decrease from 2 should give 1");
+    expect((await line.getByRole("button", { name: "Decrease quantity", exact: true }).count()) === 0,
+      "at min with onRemove there should be no decrease button");
+    const remove = line.getByRole("button", { name: "Remove test line", exact: true });
+    expect((await remove.count()) === 1, "at min with onRemove the minus should become a button named by removeLabel");
+    expect(await remove.evaluate((el) => el === document.activeElement), "focus should stay on the button as it becomes remove");
+    await lineField.focus();
+    await page.keyboard.press("ArrowDown");
+    expect((await page.evaluate(() => window.__commerce.removed)) === 0, "ArrowDown at min must not call onRemove");
+    await remove.click();
+    expect((await page.evaluate(() => window.__commerce.removed)) === 1, "pressing remove should call onRemove once");
+    ok("at min the minus becomes Remove, keeps focus, and calls onRemove; ArrowDown never removes");
+  });
+
+  await step("Rating input: arrows choose, one roving tab stop", async () => {
+    const group = page.getByRole("radiogroup", { name: "Test rating", exact: true });
+    const star = (n) => group.getByRole("radio", { name: `${n} ${n === 1 ? "star" : "stars"}`, exact: true });
+    const checked = async (n) => (await star(n).getAttribute("aria-checked")) === "true";
+    const stops = () => group.evaluate((el) => [...el.querySelectorAll('[role="radio"]')].map((r) => r.tabIndex));
+    expect((await group.getByRole("radio").count()) === 5, "a five-star input should have five radios");
+    expect(JSON.stringify(await stops()) === "[0,-1,-1,-1,-1]", `with nothing chosen only the first star should be a tab stop, got ${JSON.stringify(await stops())}`);
+    ok("five radios; with nothing chosen the first star is the one tab stop");
+    await star(1).focus();
+    await page.keyboard.press("ArrowRight");
+    expect(await checked(2), "ArrowRight from the first star should choose 2 stars");
+    expect((await active()) === "2 stars", `ArrowRight should move focus to 2 stars, got "${await active()}"`);
+    expect(JSON.stringify(await stops()) === "[-1,0,-1,-1,-1]", `the tab stop should follow the chosen star, got ${JSON.stringify(await stops())}`);
+    ok("ArrowRight chooses and focuses the next star; the tab stop follows it");
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("ArrowLeft");
+    expect(await checked(5), "ArrowLeft from the first star should wrap to the last");
+    await page.keyboard.press("Home");
+    expect(await checked(1) && (await active()) === "1 star", "Home should choose and focus the first star");
+    await page.keyboard.press("End");
+    expect(await checked(5) && (await active()) === "5 stars", "End should choose and focus the last star");
+    ok("ArrowLeft wraps; Home and End choose the first and last");
+    const seen = await page.evaluate(() => window.__commerce.ratings);
+    expect(seen.every((n) => Number.isInteger(n) && n >= 1 && n <= 5), `onChange got out-of-range values: ${seen.join(", ")}`);
+    ok(`onChange saw ${seen.join(", ")}`);
   });
 
   await step("page errors", () => {

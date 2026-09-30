@@ -331,7 +331,27 @@
         body: "Five nights and 62km, with the huts that take card payments.",
       });
     },
+
+    /* Commerce */
+    Price: function () {
+      return e(NS.Price, { amount: 24.5, compareAt: 30, locale: "en-US" });
+    },
+    Rating: function () {
+      return e(NS.Rating, { value: 4.5, count: 128, locale: "en-US" });
+    },
+    QuantityStepper: function () {
+      return e(LiveQuantity, null, e(NS.QuantityStepper, { label: "Quantity", value: 2, max: 9, size: "sm", onChange: function () {} }));
+    },
   };
+
+  /* Holds the value of a controlled specimen, so it can be used on the card.
+     The component's own element stays the child, where the playground finds
+     its starting props. */
+  function LiveQuantity(props) {
+    var child = props.children;
+    var state = React.useState(child.props.value);
+    return React.cloneElement(child, { value: state[0], onChange: state[1] });
+  }
 
   /* Why a card has no specimen, in the card. */
   var NOTES = {
