@@ -519,6 +519,7 @@
     TestimonialBlock: "A full-width page section, so it is shown on its own card.",
     FaqBlock: "A full-width page section, so it is shown on its own card.",
     CtaBlock: "A full-width page section, so it is shown on its own card.",
+    ChatBlock: "A whole conversation panel with its own header and composer, so it is shown on its own card.",
     ToastRegion: "Fixed to a corner of the viewport, so it is shown on its own card.",
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };

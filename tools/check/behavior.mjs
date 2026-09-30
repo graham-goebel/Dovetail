@@ -61,6 +61,11 @@
       - OrderStatus: exactly one step is aria-current="step"; horizontal
         turns vertical at 390px and back.
       - AddressFields: every field carries its autocomplete token.
+      - ChatBlock: a run of three from one author is first/middle/last
+        (data-grouped); exactly one day divider per day change, and an event
+        breaks a run; sending through its composer calls onSend. Mounted on
+        demand and unmounted after, so its Send button and log never meet
+        the Composer and MessageList checks above.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -112,6 +117,7 @@ const PAGE = `<!doctype html>
 <div id="product-root"></div>
 <div id="food-root"></div>
 <div id="checkout-root"></div>
+<div id="chat-kit-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -283,6 +289,34 @@ function Checkout() {
 }
 createRoot(document.getElementById("checkout-root")).render(h(Checkout));
 window.__checkoutReady = true;
+</script>
+<script type="module">
+/* ChatBlock, on its own root, mounted only by its own step. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ChatBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__chatKit = { sent: [], retried: [] };
+const CHAT_KIT_MESSAGES = [
+  { id: "ck1", from: "them", day: "Chat kit day one", text: "Chat kit first" },
+  { id: "ck2", from: "them", day: "Chat kit day one", text: "Chat kit middle" },
+  { id: "ck3", from: "them", text: "Chat kit last" },
+  { id: "ck4", from: "me", text: "Chat kit reply", status: "failed" },
+  { id: "ck5", kind: "event", text: "Chat kit tester joined" },
+  { id: "ck6", from: "them", day: "Chat kit day one", text: "Chat kit after event" },
+  { id: "ck7", from: "them", day: "Chat kit day two", text: "Chat kit next day" },
+  { id: "ck8", from: "them", day: "Chat kit day two", text: "Chat kit same day" },
+];
+function ChatKit() {
+  const [draft, setDraft] = React.useState("");
+  return h(ChatBlock, { title: "Chat kit tester", height: 480, messages: CHAT_KIT_MESSAGES,
+    onRetry: (id) => window.__chatKit.retried.push(id),
+    composer: { value: draft, onChange: setDraft, onSend: (t) => { window.__chatKit.sent.push(t); setDraft(""); } } });
+}
+let chatKitRoot = null;
+window.__chatKitMount = () => { chatKitRoot = createRoot(document.getElementById("chat-kit-root")); chatKitRoot.render(h(ChatKit)); };
+window.__chatKitUnmount = () => { if (chatKitRoot) chatKitRoot.unmount(); chatKitRoot = null; };
+window.__chatKitReady = true;
 </script>
 </body></html>
 `;
@@ -841,6 +875,35 @@ try {
     expect(tel === "tel:tel", `phone should be type tel with inputMode tel, got ${tel}`);
     ok(all);
     ok(`${listed} (country is a select)`);
+  });
+
+  await step("Chat kit ChatBlock: computed runs, one divider per day change, composer sends", async () => {
+    await page.waitForFunction(() => window.__chatKitReady === true);
+    await page.evaluate(() => window.__chatKitMount());
+    try {
+      const log = page.getByRole("log", { name: "Conversation with Chat kit tester", exact: true });
+      await log.waitFor();
+      const grouped = await log.evaluate((el) => Object.fromEntries([...el.querySelectorAll("[data-message-id]")].map((n) => [n.dataset.messageId, n.dataset.grouped])));
+      const want = { ck1: "first", ck2: "middle", ck3: "last", ck4: "single", ck6: "single", ck7: "first", ck8: "last" };
+      expect(JSON.stringify(grouped) === JSON.stringify(want), `data-grouped should be ${JSON.stringify(want)}, got ${JSON.stringify(grouped)}`);
+      ok("a run of three is first/middle/last; an event and a day change end a run");
+      const seps = await log.evaluate((el) => [...el.querySelectorAll('[role="separator"]')].map((n) => n.getAttribute("aria-label")));
+      expect(JSON.stringify(seps) === JSON.stringify(["Chat kit day one", "Chat kit tester joined", "Chat kit day two"]),
+        `expected one divider per day change plus the event, got ${JSON.stringify(seps)}`);
+      ok("exactly one day divider per day change, and the event as a separator");
+      await log.getByRole("button", { name: "Retry", exact: true }).click();
+      expect(JSON.stringify(await page.evaluate(() => window.__chatKit.retried)) === '["ck4"]', "Retry should call onRetry with the failed message's id");
+      ok("Retry calls onRetry(id)");
+      const field = page.getByRole("textbox", { name: "Message Chat kit tester", exact: true });
+      await field.fill("Chat kit hello");
+      await field.press("Enter");
+      const sentNow = await page.evaluate(() => window.__chatKit.sent.slice());
+      expect(sentNow.length === 1 && sentNow[0] === "Chat kit hello", `the composer should call onSend("Chat kit hello"), got ${JSON.stringify(sentNow)}`);
+      expect((await field.inputValue()) === "", "the consumer cleared the draft, so the field should be empty");
+      ok("sending through its composer calls onSend with the text");
+    } finally {
+      await page.evaluate(() => window.__chatKitUnmount());
+    }
   });
 
   await step("page errors", () => {

@@ -1,6 +1,6 @@
 # Dovetail
 
-> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and 100 React components that never name a colour. Brand arrives last, as a theme file of token overrides.
+> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and 101 React components that never name a colour. Brand arrives last, as a theme file of token overrides.
 
 Link `system/styles.css` for every token and base style; put `class="dark"` on an element to scope dark mode to it. Components are React (inline styles read from tokens) in `system/components/<family>/`, each with a `.md` guide, a `.d.ts` props contract and the `.jsx` source. Read a component's guide before using it: it holds the rules the types cannot.
 
@@ -173,6 +173,7 @@ Page sections that stack into a landing page. Each is a Section with its layout 
 - [FaqBlock](https://graham-goebel.github.io/Dovetail/system/components/blocks/FaqBlock.md): Questions before someone commits, in an `Accordion`. `split` puts the header beside the answers on a wide screen; `stacked` centres it above them. ([props](https://graham-goebel.github.io/Dovetail/system/components/blocks/FaqBlock.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/blocks/FaqBlock.jsx))
 - [CtaBlock](https://graham-goebel.github.io/Dovetail/system/components/blocks/CtaBlock.md): The close of a page: one ask and its buttons, on the brand fill by default. With `media` the copy sits beside an illustration or product shot. ([props](https://graham-goebel.github.io/Dovetail/system/components/blocks/CtaBlock.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/blocks/CtaBlock.jsx))
 - [BlockHeader](https://graham-goebel.github.io/Dovetail/system/components/blocks/BlockHeader.md): The eyebrow, title, lead and actions every block opens with, so a page of blocks keeps one rhythm. Use it to start a block of your own. ([props](https://graham-goebel.github.io/Dovetail/system/components/blocks/BlockHeader.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/blocks/BlockHeader.jsx))
+- [ChatBlock](https://graham-goebel.github.io/Dovetail/system/components/blocks/ChatBlock.md): A whole conversation from data. Pass the messages as an array and the block draws the header, a scrolling log with day dividers, events and runs worked out for you, typing, quick replies and the composer, in one fixed-height panel. ([props](https://graham-goebel.github.io/Dovetail/system/components/blocks/ChatBlock.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/blocks/ChatBlock.jsx))
 
 ## Optional
 

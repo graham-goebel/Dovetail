@@ -1,0 +1,277 @@
+<!-- @dsCard group="Templates" height=1112 width=1280 subtitle="Chat — Customer support and an assistant, composed from Dovetail blocks" page -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;background:var(--dt-surface-base)}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-product"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var Icon = function (p) { return window.DovetailTemplateIcons.Icon(p); };
+
+  /* Two working conversations built from one ChatBlock each. Everything the
+     block does not do (delivery, timers, canned replies, streaming) lives
+     here in the template, the way an app would own it. */
+
+  function reduced() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+  /* A story clock: the seeded conversation ends at 9:15 today, so every new
+     message is stamped a minute after the last. */
+  var minute = 9 * 60 + 15;
+  function now() {
+    minute += 1;
+    return Math.floor(minute / 60) + ":" + String(minute % 60).padStart(2, "0");
+  }
+  var seq = 0;
+  function uid(p) { seq += 1; return p + seq; }
+
+  /* A timer set that is cleared when the conversation unmounts. */
+  function useTimers() {
+    var ids = React.useRef([]);
+    React.useEffect(function () { return function () { ids.current.forEach(clearTimeout); }; }, []);
+    return function (fn, ms) { ids.current.push(setTimeout(fn, ms)); };
+  }
+
+  /* Flat product shots as inline SVG, so no photo is fetched. */
+  function mug(bg, glaze) {
+    return "data:image/svg+xml," + encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" +
+      "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/>" +
+      "<path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='" + glaze + "' stroke-width='5'/>" +
+      "<rect x='30' y='34' width='36' height='43' rx='5' fill='" + glaze + "'/></svg>");
+  }
+
+  function orderCard(current) {
+    return e(NS.OrderStatus, {
+      label: "Order 4821 progress", current: current,
+      steps: [
+        { id: "ordered", label: "Ordered", time: "Sep 26" },
+        { id: "shipped", label: "Shipped", time: "Sep 30, 8:05", description: "Left the Leeds depot" },
+        { id: "out", label: "Out for delivery", time: current === "out" ? "Today" : undefined },
+        { id: "delivered", label: "Delivered", time: "Expected Oct 2" },
+      ],
+    });
+  }
+
+  /* ---------- Support ---------- */
+
+  var SUPPORT_OPTIONS = [
+    { id: "track", label: "Track my order" },
+    { id: "address", label: "Change address" },
+    { id: "person", label: "Talk to a person" },
+  ];
+
+  /* The canned responses: which one answers depends on the quick reply
+     chosen or on words in what was typed. */
+  var CANNED = {
+    track: { text: "Your mugs are out for delivery with Parcelgo and should be with you by 6pm today.", content: function () { return orderCard("out"); } },
+    address: { text: "I can change it until the courier collects the parcel. What's the new address? I'll update it straight away." },
+    person: { text: "You already are! I'm Maya, one of the Northwind team in Leeds. What else can I help with?" },
+    return: { text: "No problem. I've emailed you a free returns label; drop the parcel at any post office within 30 days." },
+    thanks: { text: "You're welcome, Sam. Enjoy the new mugs!" },
+    fallback: { text: "Thanks, Sam. Let me check that with the warehouse and I'll reply here in a few minutes." },
+  };
+  function cannedFor(text, id) {
+    if (id && CANNED[id]) return CANNED[id];
+    var t = text.toLowerCase();
+    if (/track|where|deliver|arriv/.test(t)) return CANNED.track;
+    if (/address|moved|move/.test(t)) return CANNED.address;
+    if (/person|human|agent|someone/.test(t)) return CANNED.person;
+    if (/return|refund|exchange|broken|chipped/.test(t)) return CANNED.return;
+    if (/thank|cheers|great|brilliant/.test(t)) return CANNED.thanks;
+    return CANNED.fallback;
+  }
+
+  /* Built on mount, once the bundle has loaded, since it holds components. */
+  function supportSeed() { return [
+    { id: "s1", from: "me", day: "Yesterday", text: "Hi, could I change the colour on my order before it ships?", time: "17:48", status: "read" },
+    { id: "s2", kind: "event", text: "Maya joined the conversation" },
+    { id: "s3", from: "them", text: "Hi Sam, I'm Maya. Happy to help. Is it this one?" },
+    { id: "s4", from: "them", time: "17:50",
+      content: e(NS.ProductCard, { name: "Stoneware mug, set of two", subtitle: "Forest glaze", price: 38, locale: "en-US", layout: "horizontal", image: { src: mug("#e7ece5", "#3f6b4f"), alt: "" } }) },
+    { id: "s5", from: "me", text: "That's the one, but in sand please.", time: "17:51", status: "read" },
+    { id: "s6", from: "them", day: "Today", text: "Done. The sand pair shipped this morning, and here's where it is.", time: "9:12", content: orderCard("shipped") },
+    { id: "s7", from: "me", text: "Brilliant, thank you!", time: "9:15", status: "failed" },
+  ]; }
+
+  function Support() {
+    var st = React.useState(supportSeed);
+    var messages = st[0], setMessages = st[1];
+    var d = React.useState(""), draft = d[0], setDraft = d[1];
+    var t = React.useState(false), typing = t[0], setTyping = t[1];
+    var u = React.useState([]), used = u[0], setUsed = u[1];
+    var p = React.useState(0), pending = p[0], setPending = p[1];
+    var later = useTimers();
+
+    function setStatus(id, status) {
+      setMessages(function (xs) { return xs.map(function (m) { return m.id === id ? Object.assign({}, m, { status: status }) : m; }); });
+    }
+    /* Sending, sent, delivered, read, then Maya types and answers. Under
+       reduced motion the delays go and the reply arrives at once. */
+    function deliver(id, text, optionId) {
+      var reply = cannedFor(text, optionId);
+      var answer = function () {
+        setTyping(false);
+        setPending(function (n) { return n - 1; });
+        setMessages(function (xs) { return xs.concat({ id: uid("r"), from: "them", text: reply.text, content: reply.content && reply.content(), time: now() }); });
+      };
+      setPending(function (n) { return n + 1; });
+      if (reduced()) { setStatus(id, "read"); answer(); return; }
+      setStatus(id, "sending");
+      later(function () { setStatus(id, "sent"); }, 500);
+      later(function () { setStatus(id, "delivered"); }, 1000);
+      later(function () { setStatus(id, "read"); setTyping("Maya"); }, 1600);
+      later(answer, 3200);
+    }
+    function send(text, optionId) {
+      var id = uid("m");
+      setMessages(function (xs) { return xs.concat({ id: id, from: "me", text: text, time: now(), status: "sending" }); });
+      setDraft("");
+      if (optionId) setUsed(function (xs) { return xs.concat(optionId); });
+      deliver(id, text, optionId);
+    }
+    function retry(id) {
+      var m = messages.filter(function (x) { return x.id === id; })[0];
+      if (m) deliver(id, m.text || "");
+    }
+    var options = SUPPORT_OPTIONS.filter(function (o) { return used.indexOf(o.id) < 0; });
+
+    return e(NS.ChatBlock, {
+      title: "Maya Chen",
+      subtitle: "Northwind support · usually replies in 2 min",
+      avatar: { name: "Maya Chen" },
+      presence: "online",
+      label: "Support conversation with Maya Chen",
+      messages: messages,
+      typing: typing,
+      onRetry: retry,
+      quickReplies: !pending && options.length ? { options: options, onSelect: function (oid) { send(options.filter(function (o) { return o.id === oid; })[0].label, oid); } } : undefined,
+      composer: { value: draft, onChange: setDraft, onSend: function (text) { send(text); }, placeholder: "Write a message" },
+      height: "min(46rem, 85dvh)",
+    });
+  }
+
+  /* ---------- Assistant ---------- */
+
+  var SUGGESTIONS = [
+    { id: "order", label: "Where's my order?" },
+    { id: "return", label: "How do returns work?" },
+    { id: "care", label: "Are the mugs dishwasher safe?" },
+  ];
+  var ANSWERS = {
+    order: "Your latest order, 4821, shipped on September 30 and is out for delivery today with Parcelgo. It should arrive by 6pm. You can follow it from Orders in your account, or I can send the tracking link by email.",
+    return: "You have 30 days from delivery to return anything unused. Start a return from Orders, print the free label, and drop the parcel at any post office. Refunds reach your card within five working days of the item arriving back with us.",
+    care: "Yes. Every Northwind mug is stoneware fired at 1,240°C, so it is safe in the dishwasher, the microwave and the oven up to 220°C. Hand washing keeps the glaze glossy for longer.",
+    fallback: "I can help with orders, deliveries, returns and product care. Could you tell me a little more, such as an order number or the product you have in mind?",
+  };
+  function answerFor(text, id) {
+    if (id && ANSWERS[id]) return ANSWERS[id];
+    var t = text.toLowerCase();
+    if (/order|track|deliver|where|arriv|ship/.test(t)) return ANSWERS.order;
+    if (/return|refund|exchange|send back/.test(t)) return ANSWERS.return;
+    if (/dishwasher|microwave|oven|wash|care|safe/.test(t)) return ANSWERS.care;
+    return ANSWERS.fallback;
+  }
+
+  function Assistant() {
+    var st = React.useState([
+      { id: "a1", from: "them", text: "Hi Sam, I'm the Northwind assistant. I can look up orders, explain returns and answer questions about our products.", time: "9:15" },
+    ]);
+    var messages = st[0], setMessages = st[1];
+    var d = React.useState(""), draft = d[0], setDraft = d[1];
+    var t = React.useState(false), thinking = t[0], setThinking = t[1];
+    var b = React.useState(0), busy = b[0], setBusy = b[1];
+    var u = React.useState([]), used = u[0], setUsed = u[1];
+    var later = useTimers();
+
+    /* The answer streams in word by word: the template appends to the
+       message's text on a timer, after a moment of thinking. Under reduced
+       motion the whole answer is inserted at once. */
+    function answer(text, optionId) {
+      var full = answerFor(text, optionId);
+      var id = uid("a");
+      setBusy(function (n) { return n + 1; });
+      var finish = function () { setBusy(function (n) { return n - 1; }); };
+      if (reduced()) {
+        setMessages(function (xs) { return xs.concat({ id: id, from: "them", text: full, time: now() }); });
+        finish();
+        return;
+      }
+      setThinking(true);
+      var words = full.split(" ");
+      later(function () {
+        setThinking(false);
+        setMessages(function (xs) { return xs.concat({ id: id, from: "them", text: words[0] }); });
+        words.slice(1).forEach(function (w, i) {
+          later(function () {
+            var last = i === words.length - 2;
+            setMessages(function (xs) { return xs.map(function (m) { return m.id === id ? Object.assign({}, m, { text: m.text + " " + w, time: last ? now() : undefined }) : m; }); });
+            if (last) finish();
+          }, (i + 1) * 45);
+        });
+        if (words.length === 1) finish();
+      }, 1400);
+    }
+    function send(text, optionId) {
+      var id = uid("q");
+      setMessages(function (xs) { return xs.concat({ id: id, from: "me", text: text, time: now(), status: "read" }); });
+      setDraft("");
+      if (optionId) setUsed(function (xs) { return xs.concat(optionId); });
+      answer(text, optionId);
+    }
+    var options = SUGGESTIONS.filter(function (o) { return used.indexOf(o.id) < 0; });
+
+    return e(NS.ChatBlock, {
+      variant: "assistant",
+      title: "Northwind assistant",
+      subtitle: "Answers from your account and the help centre",
+      avatar: { name: "Northwind assistant" },
+      messages: messages,
+      typing: thinking ? "Thinking" : false,
+      quickReplies: !busy && options.length ? { label: "Suggested questions", align: "start", options: options, onSelect: function (oid) { send(options.filter(function (o) { return o.id === oid; })[0].label, oid); } } : undefined,
+      composer: { value: draft, onChange: setDraft, onSend: function (text) { send(text); }, placeholder: "Ask about an order or a product" },
+      height: "min(46rem, 85dvh)",
+    });
+  }
+
+  function Panel(props) {
+    return e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-sm)", minWidth: 0 } },
+      e(NS.Inline, { gap: "xs", align: "center" },
+        e("span", { style: { display: "inline-flex", color: "var(--dt-text-secondary)" } }, e(Icon, { name: props.icon, size: "sm" })),
+        e(NS.Heading, { level: 2, size: "heading-md" }, props.title)),
+      e(NS.Text, { tone: "secondary", variant: "small" }, props.lead),
+      props.children);
+  }
+
+  function Page() {
+    return e("main", null,
+      e(NS.Section, { tone: "subtle", spacing: "compact" },
+        e(NS.Stack, { gap: "xl" },
+          e(NS.BlockHeader, { level: 1, size: "heading-xl", eyebrow: "Northwind", title: "Help, in the conversation", lead: "A support chat with a real person and an in-app assistant, each one ChatBlock. Send a message, pick a suggestion, or retry the one that failed." }),
+          e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 26rem), 1fr))", gap: "var(--dt-space-inline-xl)", alignItems: "start" } },
+            e(Panel, { icon: "users", title: "Support", lead: "Maya answers from the Northwind team. Messages move from sending to read, then she replies." }, e(Support)),
+            e(Panel, { icon: "sparkle", title: "Assistant", lead: "Answers stream in word by word after a moment of thinking." }, e(Assistant))))));
+  }
+
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.ChatBlock || !NS.OrderStatus || !NS.ProductCard || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

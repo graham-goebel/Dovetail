@@ -83,6 +83,9 @@ const FALLBACKS = {
   TestimonialBlock: () => e(NS.TestimonialBlock, { title: "Kind words", quotes: [{ quote: "Best week of the year.", name: "Ana", role: "Walker" }] }),
   FaqBlock: () => e(NS.FaqBlock, { title: "Questions", items: [{ id: "a", question: "Do huts take cards?", answer: "Most do." }, { id: "b", question: "Is there signal?", answer: "Rarely." }], defaultOpen: ["a"] }),
   CtaBlock: () => e(NS.CtaBlock, { title: "Ready to go?", lead: "Pick your dates.", actions: e(NS.Button, null, "Start") }),
+  ChatBlock: () => e(NS.ChatBlock, { title: "Maya Chen", presence: "online", typing: "Maya", onRetry: noop,
+    messages: [{ id: "a", from: "them", day: "Today", text: "How can I help?" }, { id: "e", kind: "event", text: "Maya joined the conversation" }, { id: "b", from: "me", text: "Where is my order?", status: "failed" }],
+    quickReplies: { options: [{ id: "track", label: "Track my order" }], onSelect: noop }, composer: { value: "", onChange: noop, onSend: noop } }),
 };
 
 function render(name) {

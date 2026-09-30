@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/ChatBlock.jsx":"aca3780ec706"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -12637,6 +12637,190 @@ function PromoCode({
 }
 Object.assign(__ds_scope, { PromoCode });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/PromoCode.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/ChatBlock.jsx
+try { (() => {
+/* A whole conversation from data. The app passes the messages as an array,
+   oldest first, and the block works out what every messenger shows: a day
+   divider where the day changes, runs of consecutive messages from one
+   author with their corners tightened, names and avatars when several
+   people answer, and a Retry on a message that failed. Sending, timers and
+   replies stay in the app; the block only draws what it is given.
+
+   It is a panel, not a page band: a fixed-height column with the header at
+   the top, the log filling the middle and scrolling, and the composer at
+   the bottom. Put it inside a Section (dark or not) to place it on a page. */
+
+/* Tall enough for a real exchange on a desktop, never taller than most of
+   the screen on a phone. A proportion of the narrow container, not a size. */
+const DEFAULT_HEIGHT = "min(calc(var(--dt-size-container-narrow) * 0.8), 80dvh)";
+
+/* Turns the messages into rows: dividers where the day changes, events as
+   dividers, and every message with its place in a run. */
+function layout(messages) {
+  const rows = [];
+  let day;
+  let run = [];
+  const close = () => {
+    run.forEach((row, i) => {
+      row.grouped = run.length === 1 ? "single" : i === 0 ? "first" : i === run.length - 1 ? "last" : "middle";
+    });
+    run = [];
+  };
+  for (const m of messages || []) {
+    if (!m) continue;
+    if (m.day && m.day !== day) {
+      close();
+      day = m.day;
+      rows.push({
+        kind: "day",
+        key: `day-${m.id}`,
+        text: m.day
+      });
+    }
+    if (m.kind === "event") {
+      close();
+      rows.push({
+        kind: "event",
+        key: `event-${m.id}`,
+        text: m.text
+      });
+      continue;
+    }
+    const who = m.from === "me" ? "me" : `them:${m.author ? m.author.name : ""}`;
+    if (run.length && run[run.length - 1].who !== who) close();
+    const row = {
+      kind: "message",
+      key: m.id,
+      message: m,
+      who,
+      grouped: "single"
+    };
+    run.push(row);
+    rows.push(row);
+  }
+  close();
+  return rows;
+}
+function ChatBlock({
+  title,
+  subtitle,
+  avatar,
+  presence,
+  onBack,
+  actions,
+  headingLevel,
+  messages = [],
+  typing,
+  quickReplies,
+  composer,
+  onRetry,
+  variant = "support",
+  height = DEFAULT_HEIGHT,
+  label,
+  style,
+  ...rest
+}) {
+  const assistant = variant === "assistant";
+  const rows = React.useMemo(() => layout(messages), [messages]);
+
+  /* Names and avatars only earn their space when more than one person
+     answers; with one, the header already says who it is. */
+  const group = React.useMemo(() => {
+    const names = new Set();
+    for (const m of messages || []) if (m && m.kind !== "event" && m.from !== "me" && m.author) names.add(m.author.name);
+    return names.size > 1;
+  }, [messages]);
+  const logLabel = label || `Conversation with ${title}`;
+  const typingText = typeof typing === "string" ? typing : undefined;
+  return /*#__PURE__*/React.createElement("section", {
+    ...rest,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      height,
+      minHeight: 0,
+      minWidth: 0,
+      overflow: "hidden",
+      background: "var(--dt-chat-surface)",
+      color: "var(--dt-text-primary)",
+      border: "var(--dt-border-width-default) solid var(--dt-chat-border)",
+      borderRadius: "var(--dt-radius-container)",
+      boxSizing: "border-box",
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.ChatHeader, {
+    title: title,
+    subtitle: subtitle,
+    avatar: avatar,
+    presence: assistant ? undefined : presence,
+    onBack: onBack,
+    actions: actions,
+    headingLevel: headingLevel,
+    style: {
+      flex: "none"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.MessageList, {
+    label: logLabel,
+    style: {
+      flex: "1 1 auto"
+    }
+  }, rows.map(row => {
+    if (row.kind !== "message") return /*#__PURE__*/React.createElement(__ds_scope.MessageDivider, {
+      key: row.key,
+      "data-divider": row.kind
+    }, row.text);
+    const m = row.message;
+    const mine = m.from === "me";
+    return /*#__PURE__*/React.createElement(__ds_scope.MessageBubble, {
+      key: row.key,
+      from: mine ? "me" : "them",
+      time: m.time,
+      status: mine ? m.status : undefined,
+      onRetry: mine && m.status === "failed" && onRetry ? () => onRetry(m.id) : undefined,
+      author: !mine && group ? m.author : undefined,
+      grouped: row.grouped,
+      "data-grouped": row.grouped,
+      "data-message-id": m.id
+    }, m.text, m.content != null && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: m.text ? "var(--dt-space-stack-xs)" : undefined,
+        whiteSpace: "normal",
+        minWidth: 0
+      }
+    }, m.content));
+  }), typing && !assistant && /*#__PURE__*/React.createElement(__ds_scope.TypingIndicator, {
+    name: typingText
+  }), typing && assistant && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "flex-start",
+      marginTop: "var(--dt-bubble-run-gap)",
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Thinking, {
+    state: "thinking",
+    size: "sm",
+    label: typingText || "Thinking"
+  })), quickReplies && quickReplies.options && quickReplies.options.length > 0 && /*#__PURE__*/React.createElement(__ds_scope.QuickReplies, {
+    label: quickReplies.label || "Suggested replies",
+    options: quickReplies.options,
+    onSelect: quickReplies.onSelect,
+    align: quickReplies.align
+  })), composer && /*#__PURE__*/React.createElement(__ds_scope.Composer, {
+    label: composer.label || (assistant ? `Ask ${title}` : `Message ${title}`),
+    placeholder: composer.placeholder,
+    value: composer.value,
+    onChange: composer.onChange,
+    onSend: composer.onSend,
+    onAttach: composer.onAttach,
+    disabled: composer.disabled,
+    style: {
+      flex: "none"
+    }
+  }));
+}
+Object.assign(__ds_scope, { ChatBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/ChatBlock.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -12836,5 +13020,7 @@ __ds_ns.OrderSummary = __ds_scope.OrderSummary;
 __ds_ns.PaymentFields = __ds_scope.PaymentFields;
 
 __ds_ns.PromoCode = __ds_scope.PromoCode;
+
+__ds_ns.ChatBlock = __ds_scope.ChatBlock;
 
 })();

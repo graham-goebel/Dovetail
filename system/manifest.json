@@ -419,7 +419,10 @@
     "components/commerce/PaymentFields.md",
     "components/commerce/OrderStatus.d.ts",
     "components/commerce/OrderStatus.jsx",
-    "components/commerce/OrderStatus.md"
+    "components/commerce/OrderStatus.md",
+    "components/blocks/ChatBlock.d.ts",
+    "components/blocks/ChatBlock.jsx",
+    "components/blocks/ChatBlock.md"
   ],
   "libraries": [
     {
@@ -736,6 +739,9 @@
     },
     {
       "name": "OrderStatus"
+    },
+    {
+      "name": "ChatBlock"
     }
   ],
   "lastChange": {
