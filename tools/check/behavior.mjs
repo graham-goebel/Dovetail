@@ -26,6 +26,16 @@
         focus) while ArrowDown never removes.
       - Rating input: one roving tab stop that follows the chosen star;
         arrows choose and focus, wrapping; Home/End.
+      - CartLine: the stepper and remove are named after the item and call
+        back; at 1 the stepper's minus becomes remove too.
+      - PromoCode: the disclosure opens (aria-expanded) and focuses the
+        field; Enter applies the trimmed code; the chip's "Remove code …"
+        calls onRemove and returns focus to the field.
+      - PaymentFields: a typed number groups in fours (Amex 4-6-5), expiry
+        reads MM / YY, and the cc-* autocomplete tokens are set.
+      - OrderStatus: exactly one step is aria-current="step"; horizontal
+        turns vertical at 390px and back.
+      - AddressFields: every field carries its autocomplete token.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -74,6 +84,7 @@ const PAGE = `<!doctype html>
 </head><body>
 <div id="root"></div>
 <div id="commerce-root"></div>
+<div id="checkout-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -131,6 +142,39 @@ function Commerce() {
 }
 createRoot(document.getElementById("commerce-root")).render(h(Commerce));
 window.__commerceReady = true;
+</script>
+<script type="module">
+/* Cart and checkout: CartLine, PromoCode, PaymentFields, OrderStatus and
+   AddressFields, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { AddressFields, CartLine, OrderStatus, PaymentFields, PromoCode } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__checkout = { quantities: [], removed: 0, applied: [], promoRemoved: 0 };
+function Checkout() {
+  const [qty, setQty] = React.useState(2);
+  const [code, setCode] = React.useState("");
+  const [applied, setApplied] = React.useState(null);
+  const [card, setCard] = React.useState({ number: "", expiry: "", cvc: "" });
+  const [address, setAddress] = React.useState({ name: "", line1: "", line2: "", city: "", region: "", postalCode: "", country: "" });
+  return h("div", null,
+    h(CartLine, { name: "Test shirt", price: 20, quantity: qty, locale: "en-US",
+      onQuantityChange: (n) => { window.__checkout.quantities.push(n); setQty(n); },
+      onRemove: () => { window.__checkout.removed++; } }),
+    h(PromoCode, { value: code, onChange: setCode, applied: applied || undefined,
+      onApply: (c) => { window.__checkout.applied.push(c); setApplied({ code: c.toUpperCase(), description: "10% off" }); },
+      onRemove: () => { window.__checkout.promoRemoved++; setApplied(null); setCode(""); } }),
+    h(PaymentFields, { value: card, onChange: setCard, legend: "Test card" }),
+    h(OrderStatus, { label: "Test order", current: "shipped", steps: [
+      { id: "ordered", label: "Ordered" }, { id: "shipped", label: "Shipped" }, { id: "delivered", label: "Delivered" }] }),
+    h(OrderStatus, { label: "Test order, horizontal", current: "ordered", status: "delayed", orientation: "horizontal", steps: [
+      { id: "ordered", label: "Ordered" }, { id: "shipped", label: "Shipped" }, { id: "delivered", label: "Delivered" }] }),
+    h(AddressFields, { value: address, onChange: setAddress, legend: "Test address" }),
+    h(AddressFields, { value: address, onChange: setAddress, legend: "Test address, countries", fields: { phone: false, line2: false },
+      countries: [{ value: "US", label: "United States" }, { value: "CA", label: "Canada" }] }));
+}
+createRoot(document.getElementById("checkout-root")).render(h(Checkout));
+window.__checkoutReady = true;
 </script>
 </body></html>
 `;
@@ -325,6 +369,109 @@ try {
     const seen = await page.evaluate(() => window.__commerce.ratings);
     expect(seen.every((n) => Number.isInteger(n) && n >= 1 && n <= 5), `onChange got out-of-range values: ${seen.join(", ")}`);
     ok(`onChange saw ${seen.join(", ")}`);
+  });
+
+  await step("CartLine: controls carry the item name and call back", async () => {
+    await page.waitForFunction(() => window.__checkoutReady === true);
+    const group = page.getByRole("group", { name: "Quantity, Test shirt", exact: true });
+    expect((await group.count()) === 1, 'the stepper should be a group named "Quantity, Test shirt"');
+    await group.getByRole("button", { name: "Increase quantity, Test shirt", exact: true }).click();
+    const seen = await page.evaluate(() => window.__checkout.quantities);
+    expect(seen.length === 1 && seen[0] === 3, `increase from 2 should call onQuantityChange(3), got ${JSON.stringify(seen)}`);
+    ok("the stepper is named after the item, and increase calls onQuantityChange(3)");
+    const removes = page.getByRole("button", { name: "Remove Test shirt", exact: true });
+    expect((await removes.count()) === 1, "above the minimum there should be one Remove Test shirt button, beside the stepper");
+    await removes.click();
+    expect((await page.evaluate(() => window.__checkout.removed)) === 1, "Remove Test shirt should call onRemove once");
+    await group.getByRole("button", { name: "Decrease quantity, Test shirt", exact: true }).click();
+    await group.getByRole("button", { name: "Decrease quantity, Test shirt", exact: true }).click();
+    expect((await removes.count()) === 2, "at 1 the stepper's minus should also become Remove Test shirt");
+    await group.getByRole("button", { name: "Remove Test shirt", exact: true }).click();
+    expect((await page.evaluate(() => window.__checkout.removed)) === 2, "the stepper's remove should call onRemove");
+    ok("Remove Test shirt calls onRemove, from the button and from the stepper at 1");
+  });
+
+  await step("PromoCode: disclosure, Enter applies, the chip removes", async () => {
+    const toggle = page.getByRole("button", { name: "Have a promo code?", exact: true });
+    expect((await toggle.getAttribute("aria-expanded")) === "false", "the disclosure should start collapsed");
+    expect((await page.getByRole("textbox", { name: "Promo code", exact: true }).count()) === 0, "the field should be hidden while collapsed");
+    await toggle.click();
+    const field = page.getByRole("textbox", { name: "Promo code", exact: true });
+    expect((await toggle.getAttribute("aria-expanded")) === "true", "aria-expanded should turn true");
+    expect(await field.evaluate((el) => el === document.activeElement), "opening should move focus to the field");
+    ok("the disclosure opens with aria-expanded and focuses the field");
+    await page.keyboard.type("  summer10 ");
+    await page.keyboard.press("Enter");
+    const applied = await page.evaluate(() => window.__checkout.applied);
+    expect(applied.length === 1 && applied[0] === "summer10", `Enter should call onApply with the trimmed code, got ${JSON.stringify(applied)}`);
+    const remove = page.getByRole("button", { name: "Remove code SUMMER10", exact: true });
+    expect((await remove.count()) === 1, 'the applied chip should have a button named "Remove code SUMMER10"');
+    ok('Enter calls onApply("summer10"); the chip shows a Remove code SUMMER10 button');
+    await remove.click();
+    expect((await page.evaluate(() => window.__checkout.promoRemoved)) === 1, "the chip's remove should call onRemove");
+    expect(await page.getByRole("textbox", { name: "Promo code", exact: true }).evaluate((el) => el === document.activeElement),
+      "after removing, focus should move to the field");
+    ok("the chip's remove calls onRemove and focus moves to the field");
+  });
+
+  await step("PaymentFields: formats as the user types", async () => {
+    const number = page.getByRole("textbox", { name: "Card number", exact: true });
+    await number.click();
+    await page.keyboard.type("4242424242424242");
+    expect((await number.inputValue()) === "4242 4242 4242 4242", `a typed Visa number should read "4242 4242 4242 4242", got "${await number.inputValue()}"`);
+    expect((await page.getByText("Visa", { exact: true }).count()) === 1, "a number starting 4 should show the Visa badge");
+    ok("16 digits group in fours, and the Visa badge shows");
+    await number.fill("");
+    await number.click();
+    await page.keyboard.type("378282246310005");
+    expect((await number.inputValue()) === "3782 822463 10005", `an Amex number should group 4-6-5, got "${await number.inputValue()}"`);
+    ok("an Amex number groups 4-6-5");
+    const expiry = page.getByRole("textbox", { name: "Expiry date", exact: true });
+    await expiry.click();
+    await page.keyboard.type("1228");
+    expect((await expiry.inputValue()) === "12 / 28", `expiry 1228 should read "12 / 28", got "${await expiry.inputValue()}"`);
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    expect((await expiry.inputValue()) === "12", `two Backspaces should leave "12", got "${await expiry.inputValue()}"`);
+    await expiry.fill("");
+    await expiry.click();
+    await page.keyboard.type("4");
+    expect((await expiry.inputValue()) === "04", `a single 4 should become "04", got "${await expiry.inputValue()}"`);
+    ok("expiry reads MM / YY, Backspace passes the separator, and 4 becomes 04");
+    const attrs = await page.getByRole("group", { name: "Test card", exact: true }).evaluate((el) =>
+      [...el.querySelectorAll("input")].map((i) => `${i.autocomplete}:${i.inputMode || "-"}`).join(" "));
+    expect(attrs === "cc-number:numeric cc-exp:numeric cc-csc:numeric cc-name:-", `autocomplete and inputMode should be cc-number, cc-exp, cc-csc (numeric) and cc-name, got ${attrs}`);
+    ok(attrs);
+  });
+
+  await step("OrderStatus: one aria-current step; horizontal collapses when narrow", async () => {
+    const list = page.getByRole("list", { name: "Test order", exact: true });
+    const current = await list.evaluate((el) => [...el.querySelectorAll('[aria-current="step"]')].map((li) => li.textContent));
+    expect(current.length === 1 && /Shipped/.test(current[0]), `exactly one step, Shipped, should be aria-current="step", got ${JSON.stringify(current)}`);
+    expect((await list.getByRole("listitem").count()) === 3, "each step should be a listitem of the ordered list");
+    ok('exactly one listitem, "Shipped", has aria-current="step"');
+    const wrap = page.getByRole("list", { name: "Test order, horizontal", exact: true }).locator("xpath=..");
+    expect((await wrap.getAttribute("data-orientation")) === "horizontal", "a horizontal timeline at 1280px should stay horizontal");
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.waitForFunction(() => document.querySelector('[aria-label="Test order, horizontal"]').parentElement.dataset.orientation === "vertical");
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForFunction(() => document.querySelector('[aria-label="Test order, horizontal"]').parentElement.dataset.orientation === "horizontal");
+    ok("horizontal turns vertical at 390px and back at 1280px");
+  });
+
+  await step("AddressFields: autocomplete tokens", async () => {
+    const tokens = (legend) => page.getByRole("group", { name: legend, exact: true }).evaluate((el) =>
+      [...el.querySelectorAll("input, select")].map((i) => i.getAttribute("autocomplete")).join(" "));
+    const all = await tokens("Test address");
+    expect(all === "name address-line1 address-line2 address-level2 address-level1 postal-code country-name tel",
+      `every field should carry its token, got "${all}"`);
+    const listed = await tokens("Test address, countries");
+    expect(listed === "name address-line1 address-level2 address-level1 postal-code country",
+      `with countries and phone and line2 hidden, got "${listed}"`);
+    const tel = await page.getByRole("textbox", { name: "Phone (optional)", exact: true }).evaluate((el) => `${el.type}:${el.inputMode}`);
+    expect(tel === "tel:tel", `phone should be type tel with inputMode tel, got ${tel}`);
+    ok(all);
+    ok(`${listed} (country is a select)`);
   });
 
   await step("page errors", () => {

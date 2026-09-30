@@ -358,7 +358,25 @@
     "components/commerce/QuantityStepper.d.ts",
     "components/commerce/QuantityStepper.jsx",
     "components/commerce/QuantityStepper.md",
-    "tokens/component/commerce.css"
+    "tokens/component/commerce.css",
+    "components/commerce/CartLine.d.ts",
+    "components/commerce/CartLine.jsx",
+    "components/commerce/CartLine.md",
+    "components/commerce/OrderSummary.d.ts",
+    "components/commerce/OrderSummary.jsx",
+    "components/commerce/OrderSummary.md",
+    "components/commerce/PromoCode.d.ts",
+    "components/commerce/PromoCode.jsx",
+    "components/commerce/PromoCode.md",
+    "components/commerce/AddressFields.d.ts",
+    "components/commerce/AddressFields.jsx",
+    "components/commerce/AddressFields.md",
+    "components/commerce/PaymentFields.d.ts",
+    "components/commerce/PaymentFields.jsx",
+    "components/commerce/PaymentFields.md",
+    "components/commerce/OrderStatus.d.ts",
+    "components/commerce/OrderStatus.jsx",
+    "components/commerce/OrderStatus.md"
   ],
   "libraries": [
     {
@@ -611,6 +629,25 @@
     },
     {
       "name": "QuantityStepper"
+    }
+,
+    {
+      "name": "CartLine"
+    },
+    {
+      "name": "OrderSummary"
+    },
+    {
+      "name": "PromoCode"
+    },
+    {
+      "name": "AddressFields"
+    },
+    {
+      "name": "PaymentFields"
+    },
+    {
+      "name": "OrderStatus"
     }
   ],
   "lastChange": {

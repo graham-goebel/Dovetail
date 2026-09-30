@@ -1,0 +1,143 @@
+<!-- @dsCard group="Commerce" height=820 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)", alignItems: "stretch", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function grid(min) {
+    return function () {
+      return e.apply(null, ["div", { style: {
+        display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, " + min + "), 1fr))",
+        gap: "var(--dt-space-stack-xl) var(--dt-space-inline-xl)", alignItems: "start",
+      } }].concat([].slice.call(arguments)));
+    };
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band(row) {
+    return function () {
+      return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+        row.apply(null, [].slice.call(arguments)));
+    };
+  }
+  var noop = function () {};
+  var NEED = ["PromoCode", "Section", "Input", "Button"];
+  var row = grid("280px");
+  /* A PromoCode wired as an app would: SUMMER10 applies after a short check,
+     anything else comes back with an error. */
+  function Live(props) {
+    var v = React.useState(props.value || "");
+    var a = React.useState(props.applied || null);
+    var err = React.useState(props.error || null);
+    var busy = React.useState(!!props.loading);
+    return e(NS.PromoCode, Object.assign({}, props, {
+      value: v[0],
+      onChange: function (x) { v[1](x); err[1](null); },
+      onApply: function (c) {
+        busy[1](true);
+        setTimeout(function () {
+          busy[1](false);
+          if (c.toUpperCase() === "SUMMER10") { a[1]({ code: "SUMMER10", description: "10% off" }); err[1](null); }
+          else err[1]("That code isn't valid. Try SUMMER10.");
+        }, 600);
+      },
+      applied: a[0] || undefined,
+      onRemove: function () { a[1](null); v[1](""); },
+      error: err[0] || undefined,
+      loading: props.loading || busy[0],
+    }));
+  }
+  function Page() {
+    return e(Shelf, { name: "PromoCode", summary: "A promo or gift code field with Apply, behind a disclosure, that becomes a removable chip once a code is applied.", props: [
+        { name: "value", type: "string", required: true },
+        { name: "onChange", type: "(value: string) => void", required: true },
+        { name: "onApply", type: "(code: string) => void", required: true, notes: "Trimmed code, on Apply or Enter. Not called when empty or loading." },
+        { name: "applied", type: "{ code; description? }", notes: "Shows the chip instead of the field." },
+        { name: "onRemove", type: "() => void", notes: "Chip remove button, named Remove code SUMMER10." },
+        { name: "error", type: "string", notes: "Under the field; keeps it open." },
+        { name: "loading", type: "boolean", default: "false", notes: "Spinner on Apply." },
+        { name: "label", type: "string", default: '"Promo code"' },
+        { name: "collapsible", type: "boolean", default: "true", notes: "Starts as a Have a promo code? disclosure." },
+        { name: "toggleLabel / applyLabel", type: "string", default: '"Have a promo code?" / "Apply"' },
+      ], guidance: [
+        "Keep it collapsed by default: an open code field sends people without a code off to search for one.",
+        "PromoCode never checks a code. onApply hands it to your app; pass back loading, then error or applied.",
+        "Enter in the field applies the code without submitting the checkout form around it.",
+        "After a code is removed, focus moves to the field, so keyboard users are not dropped to the top of the page.",
+        "Show the applied code's effect as a discount line in the OrderSummary.",
+      ] },
+      e(Specimen, { label: "States (try SUMMER10)", bg: "var(--dt-surface-base)" },
+        row(
+          cell("collapsed · default", e(Live, {})),
+          cell("open · collapsible false", e(Live, { collapsible: false })),
+          cell("error", e(Live, { collapsible: false, value: "WINTER5", error: "This code has expired" })),
+          cell("loading", e(NS.PromoCode, { collapsible: false, value: "SUMMER10", loading: true, onChange: noop, onApply: noop })),
+          cell("applied · with description", e(Live, { applied: { code: "SUMMER10", description: "10% off" } })),
+          cell("applied · no onRemove", e(NS.PromoCode, { value: "", onChange: noop, onApply: noop, applied: { code: "FREESHIP" } })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        band(row)(
+          cell("collapsed", e(Live, {})),
+          cell("error", e(Live, { collapsible: false, value: "WINTER5", error: "This code has expired" })),
+          cell("applied", e(Live, { applied: { code: "SUMMER10", description: "10% off" } })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

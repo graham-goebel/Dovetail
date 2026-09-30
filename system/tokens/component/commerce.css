@@ -21,6 +21,66 @@
 
   /* QuantityStepper has no tokens of its own: it is a field, so it reads the
      --dt-input-* geometry and colours, and its buttons the ghost button's. */
+
+  /* Cart and checkout */
+  /* CartLine, OrderSummary, PromoCode, AddressFields,
+     PaymentFields and OrderStatus. AddressFields and PaymentFields are
+     fields, so they read the --dt-input-* tokens and add none here. */
+
+  /* CartLine: the divider between lines (when divider is set), the
+     thumbnail's frame and size, and the secondary text under the name. */
+  --dt-cart-line-divider: var(--dt-border-subtle);
+  --dt-cart-thumb-bg: var(--dt-surface-sunken);
+  --dt-cart-thumb-border: var(--dt-border-subtle);
+  --dt-cart-thumb-fg: var(--dt-text-tertiary);
+  --dt-cart-detail-color: var(--dt-text-secondary);
+  --dt-cart-note-color: var(--dt-text-secondary);
+  --dt-cart-thumb-radius: var(--dt-radius-media);
+  --dt-cart-thumb-size-sm: var(--dt-size-control-lg);
+  --dt-cart-thumb-size-md: var(--dt-size-avatar-xl);
+
+  /* OrderSummary: the panel, its rules, the label and figure colours, and
+     the total. A discount reads the success text role, not the sale red of
+     --dt-price-sale-color: in a summary it is money saved, and red beside a
+     promo field reads as an error. The minus sign carries the meaning, so
+     the colour is never the only signal. */
+  --dt-summary-bg: var(--dt-surface-base);
+  --dt-summary-border: var(--dt-border-subtle);
+  --dt-summary-divider: var(--dt-border-subtle);
+  --dt-summary-label-color: var(--dt-text-secondary);
+  --dt-summary-value-color: var(--dt-text-primary);
+  --dt-summary-muted-color: var(--dt-text-tertiary);
+  --dt-summary-hint-color: var(--dt-text-tertiary);
+  --dt-summary-discount-color: var(--dt-text-success);
+  --dt-summary-total-color: var(--dt-text-primary);
+  --dt-summary-radius: var(--dt-radius-container);
+  --dt-summary-padding: var(--dt-space-inset-lg);
+
+  /* PromoCode: the chip of an applied code. */
+  --dt-promo-chip-bg: var(--dt-surface-success-subtle);
+  --dt-promo-chip-fg: var(--dt-text-primary);
+  --dt-promo-chip-border: var(--dt-border-success);
+  --dt-promo-chip-icon: var(--dt-text-success);
+  --dt-promo-chip-description: var(--dt-text-secondary);
+
+  /* OrderStatus: marker fills and the icon colour on each, the connecting
+     line, and the words for a delayed or cancelled order. */
+  --dt-order-status-complete: var(--dt-surface-action);
+  --dt-order-status-on-complete: var(--dt-text-on-action);
+  --dt-order-status-current: var(--dt-surface-action);
+  --dt-order-status-upcoming: var(--dt-border-strong);
+  --dt-order-status-line: var(--dt-border-default);
+  --dt-order-status-delayed: var(--dt-surface-warning);
+  --dt-order-status-on-delayed: var(--dt-text-on-warning);
+  --dt-order-status-delayed-text: var(--dt-text-warning);
+  --dt-order-status-cancelled: var(--dt-surface-danger);
+  --dt-order-status-on-cancelled: var(--dt-text-on-danger);
+  --dt-order-status-cancelled-text: var(--dt-text-danger);
+  --dt-order-status-marker-size: var(--dt-size-icon-lg);
+  --dt-order-status-line-width: var(--dt-border-width-strong);
+  /* The least width a step takes in a horizontal timeline. Below the steps'
+     total the timeline turns vertical. */
+  --dt-order-status-step-min-width: calc(var(--dt-size-control-lg) * 3);
 }
 
 .dark {
@@ -31,4 +91,37 @@
   --dt-rating-color: var(--dt-surface-warning);
   --dt-rating-empty-color: var(--dt-border-strong);
   --dt-rating-count-color: var(--dt-text-secondary);
+
+  /* Cart and checkout */
+  --dt-cart-line-divider: var(--dt-border-subtle);
+  --dt-cart-thumb-bg: var(--dt-surface-sunken);
+  --dt-cart-thumb-border: var(--dt-border-subtle);
+  --dt-cart-thumb-fg: var(--dt-text-tertiary);
+  --dt-cart-detail-color: var(--dt-text-secondary);
+  --dt-cart-note-color: var(--dt-text-secondary);
+  --dt-summary-bg: var(--dt-surface-base);
+  --dt-summary-border: var(--dt-border-subtle);
+  --dt-summary-divider: var(--dt-border-subtle);
+  --dt-summary-label-color: var(--dt-text-secondary);
+  --dt-summary-value-color: var(--dt-text-primary);
+  --dt-summary-muted-color: var(--dt-text-tertiary);
+  --dt-summary-hint-color: var(--dt-text-tertiary);
+  --dt-summary-discount-color: var(--dt-text-success);
+  --dt-summary-total-color: var(--dt-text-primary);
+  --dt-promo-chip-bg: var(--dt-surface-success-subtle);
+  --dt-promo-chip-fg: var(--dt-text-primary);
+  --dt-promo-chip-border: var(--dt-border-success);
+  --dt-promo-chip-icon: var(--dt-text-success);
+  --dt-promo-chip-description: var(--dt-text-secondary);
+  --dt-order-status-complete: var(--dt-surface-action);
+  --dt-order-status-on-complete: var(--dt-text-on-action);
+  --dt-order-status-current: var(--dt-surface-action);
+  --dt-order-status-upcoming: var(--dt-border-strong);
+  --dt-order-status-line: var(--dt-border-default);
+  --dt-order-status-delayed: var(--dt-surface-warning);
+  --dt-order-status-on-delayed: var(--dt-text-on-warning);
+  --dt-order-status-delayed-text: var(--dt-text-warning);
+  --dt-order-status-cancelled: var(--dt-surface-danger);
+  --dt-order-status-on-cancelled: var(--dt-text-on-danger);
+  --dt-order-status-cancelled-text: var(--dt-text-danger);
 }
