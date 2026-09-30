@@ -377,7 +377,16 @@
     "components/chat/QuickReplies.d.ts",
     "components/chat/QuickReplies.jsx",
     "components/chat/QuickReplies.md",
-    "tokens/component/chat.css"
+    "tokens/component/chat.css",
+    "components/commerce/ProductCard.d.ts",
+    "components/commerce/ProductCard.jsx",
+    "components/commerce/ProductCard.md",
+    "components/commerce/ProductGallery.d.ts",
+    "components/commerce/ProductGallery.jsx",
+    "components/commerce/ProductGallery.md",
+    "components/commerce/VariantPicker.d.ts",
+    "components/commerce/VariantPicker.jsx",
+    "components/commerce/VariantPicker.md"
   ],
   "libraries": [
     {
@@ -651,6 +660,15 @@
     },
     {
       "name": "QuickReplies"
+    },
+    {
+      "name": "ProductCard"
+    },
+    {
+      "name": "ProductGallery"
+    },
+    {
+      "name": "VariantPicker"
     }
   ],
   "lastChange": {

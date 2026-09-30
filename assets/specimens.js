@@ -384,7 +384,38 @@
         onSelect: function () {},
       });
     },
+    ProductCard: function () {
+      return e("div", { style: { width: "100%", maxWidth: 200 } }, e(NS.ProductCard, {
+        name: "Stoneware mug", subtitle: "Fern glaze", price: 24, compareAt: 30, locale: "en-US", badge: "-20%",
+        image: { src: productArt("#e9e4dc", "#5b7a6a"), alt: "" },
+      }));
+    },
+    ProductGallery: function () {
+      return e("div", { style: { width: "100%", maxWidth: 220 } }, e(NS.ProductGallery, {
+        label: "Images of the stoneware mug", thumbnails: "none",
+        images: [
+          { src: productArt("#e9e4dc", "#5b7a6a"), alt: "Mug in fern glaze" },
+          { src: productArt("#e4e7ee", "#3d5a80"), alt: "Mug in harbour blue" },
+          { src: productArt("#efe3dc", "#b5654a"), alt: "Mug in terracotta" },
+        ],
+      }));
+    },
+    VariantPicker: function () {
+      return e(LiveQuantity, null, e(NS.VariantPicker, { label: "Size", value: "m", onChange: function () {}, options: [
+        { value: "s", label: "S" }, { value: "m", label: "M" }, { value: "l", label: "L" }, { value: "xl", label: "XL", disabled: true },
+      ] }));
+    },
   };
+
+  /* A flat product shot for the commerce specimens: a mug in a glaze colour
+     on a backdrop, as an inline SVG so no photo is fetched. */
+  function productArt(bg, glaze) {
+    return "data:image/svg+xml," + encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" +
+      "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/>" +
+      "<path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='" + glaze + "' stroke-width='5'/>" +
+      "<rect x='30' y='34' width='36' height='43' rx='5' fill='" + glaze + "'/></svg>");
+  }
 
   /* Holds the value of a controlled specimen, so it can be used on the card.
      The component's own element stays the child, where the playground finds
