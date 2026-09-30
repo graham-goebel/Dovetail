@@ -88,6 +88,14 @@
 </section>
 
 <section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>OrderSummary is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { OrderSummary } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
   <h2 id="guidelines">Guidelines</h2>
   <p>The money breakdown of a cart or checkout: subtotal, shipping, tax and discounts as a description list, an emphasised total, an optional free-shipping progress bar, and a footer for the checkout button. It is presentational: it prints the figures it is given and adds nothing up, so your cart or your commerce platform stays the source of truth.</p>
 <h3 id="use-it-when">Use it when</h3>
@@ -329,6 +337,7 @@ export function OrderSummary({
   <ol>
     <li><a href="#playground">Playground</a></li>
     <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
     <li><a href="#guidelines">Guidelines</a></li>
     <li class="nested"><a href="#use-it-when">Use it when</a></li>
     <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
@@ -362,6 +371,7 @@ export function OrderSummary({
       <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="OrderSummary.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
       <li><a class="page-menu-item" href="OrderSummary.md" download="OrderSummary.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
       <li><a class="page-menu-item" href="OrderSummary.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { OrderSummary } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
       <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/commerce/OrderSummary.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy OrderSummary.jsx</span></button></li>
       <li><a class="page-menu-item" href="../system/components/commerce/OrderSummary.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View OrderSummary.jsx</span></a></li>
       <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/commerce/OrderSummary.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy OrderSummary.d.ts</span></button></li>
@@ -382,7 +392,7 @@ export function OrderSummary({
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=e86531a11f" defer></script>
 <script src="../assets/theme.js?v=6f81cef7ad" defer></script>
-<script src="../assets/site.js?v=f25b56a9e9" defer></script>
+<script src="../assets/site.js?v=544ba24909" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>
 </body>
 </html>

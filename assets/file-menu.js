@@ -45,12 +45,35 @@
     var available = FILES.filter(function (f) {
       return button.getAttribute("data-" + f.key);
     });
-    if (!available.length) return;
+    var importLine = button.getAttribute("data-import");
+    if (!available.length && !importLine) return;
 
     menu = document.createElement("div");
     menu.className = "file-menu";
     menu.setAttribute("role", "menu");
     menu.setAttribute("aria-label", "Files for " + name);
+
+    /* The import line first: the one thing most people want from the card
+       without opening anything. The label is the confirmation. */
+    if (importLine) {
+      var copyItem = document.createElement("button");
+      copyItem.type = "button";
+      copyItem.className = "file-menu-item";
+      copyItem.setAttribute("role", "menuitem");
+      copyItem.innerHTML =
+        '<span class="file-menu-label" aria-live="polite">Copy import</span>' +
+        '<code class="file-menu-name">' + escapeHtml("{ " + name + " }") + "</code>";
+      copyItem.addEventListener("click", function () {
+        var write = window.DovetailCopy && window.DovetailCopy.write;
+        var label = copyItem.querySelector(".file-menu-label");
+        if (!write) return;
+        write(importLine, function (ok) {
+          label.textContent = ok ? "Copied" : "Press Ctrl+C";
+          setTimeout(closeMenu, 700);
+        });
+      });
+      menu.appendChild(copyItem);
+    }
 
     available.forEach(function (file) {
       var item = document.createElement("button");

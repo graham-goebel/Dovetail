@@ -820,7 +820,7 @@ function buildLlmsTxt() {
 /* The page menu: copy or take the page as Markdown, where the page has a
    Markdown version, and hand it to Claude. The menu is plain markup that works
    as links without script; assets/site.js adds copying and keyboard handling. */
-function pageActions({ title, root, md, mdName, pageUrl, sources = [] }) {
+function pageActions({ title, root, md, mdName, pageUrl, sources = [], copies = [] }) {
   const mdUrl = md ? new URL(md, SITE_URL + pageUrl).href : null;
   const subject = mdUrl || SITE_URL + pageUrl;
   const claude = `https://claude.ai/new?q=${encodeURIComponent(claudePrompt(SITE_URL, subject, title))}`;
@@ -831,6 +831,8 @@ function pageActions({ title, root, md, mdName, pageUrl, sources = [] }) {
     md && item("copy", "Copy page as Markdown", { "data-page-action": "copy-md", "data-md": md }),
     md && item("download", "Download Markdown", { href: md, download: mdName }),
     md && item("file", "View as Markdown", { href: md, target: "_blank", rel: "noopener" }),
+    /* Plain text to copy, such as a component's import line. */
+    ...copies.map(({ label, text, done }) => item("copy", label, { "data-page-action": "copy-text", "data-text": text, "data-done": done })),
     /* A component's source and its typed props, to copy or to read. */
     ...sources.flatMap(({ href, name, kind }) => [
       item("copy", `Copy ${name}`, { "data-page-action": "copy-md", "data-md": href, "data-done": `${kind} copied` }),
@@ -905,11 +907,11 @@ function fab() {
 </div>`;
 }
 
-function page({ title, lede, body, active, root, wide = false, home = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "", sources = [] }) {
+function page({ title, lede, body, active, root, wide = false, home = false, scripts = "", graph = false, md = null, mdName = null, pageUrl = "", sources = [], copies = [] }) {
   const heading = title === "Dovetail" ? "Dovetail" : `${title} · Dovetail`;
   const toc = tocFrom(body);
   const hasToc = !home && toc.length >= 3;
-  const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl, sources });
+  const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl, sources, copies });
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -1104,6 +1106,23 @@ const TIER_NOTE = {
   primitive: "Raw values. A component reading one directly is a deliberate exception.",
   undefined: "Referenced by the source but declared by no tier, so it resolves to nothing.",
 };
+
+/* Every public component is a named export of the package root, including
+   the two that live in a sibling's file, so one import line fits them all. */
+const PACKAGE = "@dovetail-ds/react";
+const importLine = (c) => `import { ${c.name} } from "${PACKAGE}";`;
+
+/* How to get this component into an app: the install, its import, and the
+   one-time stylesheet setup it depends on. */
+function installSection(c) {
+  return `<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>${esc(c.name)} is in <a href="https://www.npmjs.com/package/${PACKAGE}"><code>${PACKAGE}</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install ${PACKAGE} react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>${esc(importLine(c))}</code></pre>
+<p class="muted">Import <code>${PACKAGE}/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>`;
+}
 
 function tokenUsageSection(c, root) {
   if (!c.source) return "";
@@ -1539,6 +1558,7 @@ ${GROUP_ORDER.map((g) => {
         c.guideFile ? `data-md="../${attr(c.guideFile)}"` : "",
         c.types ? `data-types="../${attr(c.types)}"` : "",
         c.source ? `data-source="../${attr(c.source)}"` : "",
+        `data-import="${attr(importLine(c))}"`,
       ].filter(Boolean).join(" ");
       return (
         `<article class="tile tile-component">` +
@@ -1601,6 +1621,8 @@ ${playgroundSection(c)}
 
 ${cardBlock(c.card, "../", { heading: "Live" })}
 
+${installSection(c)}
+
 <section class="prose">
   <h2 id="guidelines">Guidelines</h2>
   ${guideHtml}
@@ -1650,7 +1672,8 @@ ${
       c.source && { href: `../${c.source}`, name: `${c.sourceName}.jsx`, kind: "JSX" },
       c.types && { href: `../${c.types}`, name: `${c.sourceName}.d.ts`, kind: "Types" },
     ].filter(Boolean);
-    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md`, scripts: playScripts, sources });
+    const copies = [{ label: "Copy import", text: importLine(c), done: "Import copied" }];
+    writePage(`components/${c.name}.html`, { title: c.name, lede: c.summary.replace(/`/g, ""), body, active: `component:${c.name}`, root: "../", graph: true, md: `${c.name}.md`, scripts: playScripts, sources, copies });
   }
 }
 
