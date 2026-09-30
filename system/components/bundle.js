@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"e6d58815f754","components/forms/CheckboxGroup.jsx":"c60122d37acd","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"e4567c39a6f3","components/forms/RadioGroup.jsx":"b49074644f5a","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -8718,6 +8718,797 @@ function Rating({
 }
 Object.assign(__ds_scope, { Rating });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/Rating.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/ProductCard.jsx
+try { (() => {
+/* Product photography ratios. AspectRatio names the square "square" and
+   has no 4:5, so both are mapped here; a number passes straight through. */
+const RATIOS = {
+  "1:1": "square",
+  "4:5": 4 / 5,
+  "3:4": "3:4",
+  "4:3": "4:3"
+};
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+function PlusIcon() {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M5 12h14"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 5v14"
+  }));
+}
+
+/* Colour dots, display only. One accessible name lists every colour, the
+   ones past the limit included, so "+3" is never all a screen reader gets. */
+function Swatches({
+  swatches,
+  max
+}) {
+  const shown = swatches.slice(0, max);
+  const extra = swatches.length - shown.length;
+  return /*#__PURE__*/React.createElement("span", {
+    role: "img",
+    "aria-label": `Colours: ${swatches.map(s => s.name).join(", ")}`,
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-2xs)"
+    }
+  }, shown.map((s, i) => /*#__PURE__*/React.createElement("span", {
+    key: `${i}-${s.name}`,
+    title: s.name,
+    style: {
+      display: "block",
+      flex: "none",
+      boxSizing: "border-box",
+      width: "var(--dt-size-icon-sm)",
+      height: "var(--dt-size-icon-sm)",
+      borderRadius: "var(--dt-radius-pill)",
+      background: s.color,
+      border: "var(--dt-border-width-default) solid var(--dt-swatch-border)"
+    }
+  })), extra > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...role("body-xs"),
+      color: "var(--dt-product-subtitle-color)",
+      fontVariantNumeric: "tabular-nums"
+    }
+  }, "+", extra));
+}
+function ProductCard({
+  name,
+  href,
+  image,
+  ratio = "1:1",
+  price,
+  compareAt,
+  currency,
+  locale,
+  rating,
+  badge,
+  subtitle,
+  swatches,
+  maxSwatches = 5,
+  soldOut = false,
+  soldOutLabel = "Sold out",
+  action,
+  onQuickAdd,
+  quickAddLabel,
+  layout = "vertical",
+  style,
+  onMouseEnter,
+  onMouseLeave,
+  ...rest
+}) {
+  const [hover, setHover] = React.useState(false);
+  const horizontal = layout === "horizontal";
+  const linked = !!href;
+  const r = typeof ratio === "number" ? ratio : RATIOS[ratio] || RATIOS["1:1"];
+  const corner = "var(--dt-space-inset-xs)";
+
+  /* A string badge becomes a solid neutral Badge, which reads on any photo;
+     pass a Badge of your own for another tone. Sold out takes its place. */
+  const flag = soldOut ? /*#__PURE__*/React.createElement(__ds_scope.Badge, {
+    tone: "neutral"
+  }, soldOutLabel) : typeof badge === "string" || typeof badge === "number" ? /*#__PURE__*/React.createElement(__ds_scope.Badge, {
+    tone: "neutral",
+    variant: "solid"
+  }, badge) : badge;
+
+  /* A sold-out product can't be added: the consumer's action is disabled
+     when it is an element that takes a disabled prop, such as Button. */
+  const act = soldOut && React.isValidElement(action) ? React.cloneElement(action, {
+    disabled: true
+  }) : action;
+
+  /* The photo comes after the text in the source and before it on screen
+     (order -1), so a screen reader meets the name first and the quick-add
+     button after the link. */
+  const media = /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      minWidth: 0,
+      order: -1
+    }
+  }, image && image.src ? /*#__PURE__*/React.createElement(__ds_scope.Image, {
+    src: image.src,
+    alt: image.alt,
+    ratio: r,
+    radius: "media"
+  }) : /*#__PURE__*/React.createElement(__ds_scope.Image, {
+    alt: "",
+    placeholder: name,
+    ratio: r,
+    radius: "media",
+    "aria-hidden": "true"
+  }), soldOut && /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      borderRadius: "var(--dt-radius-media)",
+      background: "var(--dt-product-soldout-overlay)"
+    }
+  }), flag && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      insetBlockStart: corner,
+      insetInlineStart: corner,
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-2xs)"
+    }
+  }, flag), onQuickAdd && /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: quickAddLabel || `Add ${name} to cart`,
+    variant: "solid",
+    size: "md",
+    disabled: soldOut,
+    onClick: onQuickAdd,
+    style: {
+      position: "absolute",
+      insetBlockEnd: corner,
+      insetInlineEnd: corner,
+      zIndex: 1,
+      borderRadius: "var(--dt-radius-pill)",
+      boxShadow: soldOut ? "none" : "var(--dt-elevation-2)"
+    }
+  }, /*#__PURE__*/React.createElement(PlusIcon, null)));
+  const body = /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-2xs)",
+      minWidth: 0,
+      flex: horizontal ? undefined : 1
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...role("label-lg"),
+      color: "var(--dt-card-fg)",
+      display: "-webkit-box",
+      WebkitBoxOrient: "vertical",
+      WebkitLineClamp: 2,
+      overflow: "hidden"
+    }
+  }, linked ? /*#__PURE__*/React.createElement("a", {
+    href: href,
+    style: {
+      color: "inherit",
+      textDecoration: hover ? "underline" : "none",
+      textUnderlineOffset: "0.2em"
+    }
+  }, name) : name), subtitle && /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...role("body-sm"),
+      color: "var(--dt-product-subtitle-color)"
+    }
+  }, subtitle), /*#__PURE__*/React.createElement(__ds_scope.Price, {
+    amount: price,
+    compareAt: compareAt,
+    currency: currency,
+    locale: locale
+  }), rating && /*#__PURE__*/React.createElement(__ds_scope.Rating, {
+    value: rating.value,
+    count: rating.count,
+    locale: locale,
+    size: "sm",
+    style: {
+      alignSelf: "flex-start"
+    }
+  }), swatches && swatches.length > 0 && /*#__PURE__*/React.createElement(Swatches, {
+    swatches: swatches,
+    max: maxSwatches
+  }), act && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: horizontal ? "var(--dt-space-stack-xs)" : "auto",
+      paddingTop: horizontal ? undefined : "var(--dt-space-stack-xs)",
+      position: "relative",
+      zIndex: 1
+    }
+  }, act));
+  return /*#__PURE__*/React.createElement(__ds_scope.Card, {
+    href: href,
+    onMouseEnter: e => {
+      setHover(true);
+      if (onMouseEnter) onMouseEnter(e);
+    },
+    onMouseLeave: e => {
+      setHover(false);
+      if (onMouseLeave) onMouseLeave(e);
+    },
+    style: {
+      padding: "var(--dt-space-inset-sm)",
+      height: "100%",
+      boxSizing: "border-box",
+      minWidth: 0,
+      boxShadow: linked && hover ? "var(--dt-card-elevation-hover)" : "var(--dt-card-elevation)",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: horizontal ? {
+      display: "grid",
+      gridTemplateColumns: "min(33%, calc(var(--dt-size-avatar-xl) * 2.5)) minmax(0, 1fr)",
+      gap: "var(--dt-space-inline-md)",
+      alignItems: "start",
+      flex: 1
+    } : {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-sm)",
+      flex: 1
+    }
+  }, body, media));
+}
+Object.assign(__ds_scope, { ProductCard });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/ProductCard.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/ProductGallery.jsx
+try { (() => {
+/* Product photography ratios. AspectRatio names the square "square" and
+   has no 4:5, so both are mapped here; a number passes straight through. */
+const RATIOS = {
+  "1:1": "square",
+  "4:5": 4 / 5,
+  "3:4": "3:4",
+  "4:3": "4:3"
+};
+const CHEVRONS = {
+  prev: "m15 18-6-6 6-6",
+  next: "m9 18 6-6-6-6"
+};
+function Chevron({
+  dir
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: CHEVRONS[dir]
+  }));
+}
+
+/* The gallery's own width, not the viewport's: a gallery usually sits in a
+   column of a product page, so this acts as a container query. It reads
+   false while server rendering and until the first measurement, so the
+   server's markup and the first client render match. */
+function useNarrow(ref, below) {
+  const [narrow, setNarrow] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => setNarrow(el.getBoundingClientRect().width < below);
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, below]);
+  return narrow;
+}
+const defaultCounter = (n, total) => `Image ${n} of ${total}`;
+function ProductGallery({
+  images = [],
+  label,
+  value,
+  onChange,
+  defaultIndex = 0,
+  ratio = "1:1",
+  thumbnails = "bottom",
+  collapseBelow = 480,
+  previousLabel = "Previous image",
+  nextLabel = "Next image",
+  thumbnailsLabel = "Thumbnails",
+  counterLabel = defaultCounter,
+  style,
+  ...rest
+}) {
+  const total = images.length;
+  const controlled = typeof value === "number";
+  const [inner, setInner] = React.useState(defaultIndex);
+  const raw = controlled ? value : inner;
+  const index = total ? Math.min(Math.max(Math.round(raw) || 0, 0), total - 1) : 0;
+  const current = images[index] || {
+    src: undefined,
+    alt: ""
+  };
+  const multi = total > 1;
+  const root = React.useRef(null);
+  const thumbs = React.useRef([]);
+  const moved = React.useRef(false);
+  const swipe = React.useRef(null);
+  const [rtl, setRtl] = React.useState(false);
+  const [hover, setHover] = React.useState(null);
+  const narrow = useNarrow(root, collapseBelow);
+  const r = typeof ratio === "number" ? ratio : RATIOS[ratio] || RATIOS["1:1"];
+  const strip = !multi || thumbnails === "none" ? "none" : thumbnails === "left" && !narrow ? "left" : "bottom";
+  const counterShown = multi && (narrow || strip === "none");
+  React.useEffect(() => {
+    const el = root.current;
+    setRtl(!!(el && el.closest && el.closest('[dir="rtl"]')));
+  }, []);
+
+  /* Bring the chosen thumbnail into view after a change the user made, never
+     on mount, so a gallery low on the page does not scroll it. */
+  React.useEffect(() => {
+    if (!moved.current) return;
+    moved.current = false;
+    const el = thumbs.current[index];
+    if (el && el.scrollIntoView) el.scrollIntoView({
+      block: "nearest",
+      inline: "nearest"
+    });
+  }, [index]);
+  const select = (n, focus) => {
+    if (!total) return;
+    const next = (n % total + total) % total;
+    moved.current = true;
+    if (next !== index) {
+      if (!controlled) setInner(next);
+      if (onChange) onChange(next);
+    }
+    if (focus) {
+      const el = thumbs.current[next];
+      if (el) el.focus();
+    }
+  };
+
+  /* Selection follows focus, the way tabs do: the arrows move and show. */
+  const onThumbKey = (e, i) => {
+    const fwd = rtl ? "ArrowLeft" : "ArrowRight";
+    const back = rtl ? "ArrowRight" : "ArrowLeft";
+    let next = null;
+    if (e.key === fwd || e.key === "ArrowDown") next = i + 1;else if (e.key === back || e.key === "ArrowUp") next = i - 1;else if (e.key === "Home") next = 0;else if (e.key === "End") next = total - 1;
+    if (next == null) return;
+    e.preventDefault();
+    select(next, true);
+  };
+
+  /* A horizontal swipe on touch or pen changes the image; a mouse drag and a
+     mostly vertical swipe do not. The change is instant, so there is no
+     motion to reduce. */
+  const onPointerDown = e => {
+    if (!multi || e.pointerType === "mouse") return;
+    swipe.current = {
+      x: e.clientX,
+      y: e.clientY,
+      w: e.currentTarget.offsetWidth
+    };
+  };
+  const onPointerUp = e => {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (Math.abs(dx) < s.w * 0.15 || Math.abs(dx) < Math.abs(dy)) return;
+    select(index + (dx < 0 !== rtl ? 1 : -1));
+  };
+  const control = kind => {
+    const prev = kind === "prev";
+    const onStart = prev !== rtl;
+    return /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+      label: prev ? previousLabel : nextLabel,
+      size: "md",
+      onClick: () => select(index + (prev ? -1 : 1)),
+      onMouseEnter: () => setHover(kind),
+      onMouseLeave: () => setHover(null),
+      style: {
+        position: "absolute",
+        insetBlockStart: "50%",
+        transform: "translateY(-50%)",
+        [onStart ? "left" : "right"]: "var(--dt-space-inset-xs)",
+        borderRadius: "var(--dt-radius-pill)",
+        background: hover === kind ? "var(--dt-gallery-control-bg-hover)" : "var(--dt-gallery-control-bg)",
+        color: "var(--dt-gallery-control-fg)",
+        backdropFilter: "var(--dt-backdrop-glass)",
+        WebkitBackdropFilter: "var(--dt-backdrop-glass)",
+        boxShadow: "var(--dt-elevation-1)"
+      }
+    }, /*#__PURE__*/React.createElement(Chevron, {
+      dir: onStart ? "prev" : "next"
+    }));
+  };
+  const main = /*#__PURE__*/React.createElement("div", {
+    onPointerDown: onPointerDown,
+    onPointerUp: onPointerUp,
+    onPointerCancel: () => {
+      swipe.current = null;
+    },
+    style: {
+      position: "relative",
+      minWidth: 0,
+      touchAction: "pan-y",
+      gridColumn: strip === "left" ? 2 : undefined,
+      gridRow: strip === "left" ? 1 : undefined
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Image, {
+    src: current.src,
+    alt: current.alt,
+    ratio: r,
+    radius: "media",
+    loading: index === 0 ? "eager" : "lazy"
+  }), multi && control("prev"), multi && control("next"), counterShown && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      insetBlockEnd: "var(--dt-space-inset-xs)",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "var(--dt-space-inset-2xs) var(--dt-space-inset-xs)",
+      borderRadius: "var(--dt-radius-pill)",
+      background: "var(--dt-gallery-control-bg)",
+      color: "var(--dt-gallery-control-fg)",
+      backdropFilter: "var(--dt-backdrop-glass)",
+      WebkitBackdropFilter: "var(--dt-backdrop-glass)",
+      fontFamily: "var(--dt-text-label-sm-family)",
+      fontSize: "var(--dt-text-label-sm-size)",
+      lineHeight: "var(--dt-text-label-sm-line)",
+      fontWeight: "var(--dt-text-label-sm-weight)",
+      fontVariantNumeric: "tabular-nums",
+      whiteSpace: "nowrap"
+    }
+  }, index + 1, " / ", total));
+  const left = strip === "left";
+  /* The strip keeps a little inset so the focus ring of a thumbnail is not
+     clipped by the scroll container. */
+  const pad = "var(--dt-space-inset-2xs)";
+  const thumbSize = "var(--dt-size-avatar-xl)";
+  const list = strip === "none" ? null : /*#__PURE__*/React.createElement("div", {
+    role: "group",
+    "aria-label": thumbnailsLabel,
+    style: {
+      display: "flex",
+      flexDirection: left ? "column" : "row",
+      gap: "var(--dt-space-inline-xs)",
+      padding: pad,
+      overflowX: left ? "hidden" : "auto",
+      overflowY: left ? "auto" : "hidden",
+      ...(left ? {
+        position: "absolute",
+        inset: 0
+      } : null)
+    }
+  }, images.map((img, i) => {
+    const on = i === index;
+    return /*#__PURE__*/React.createElement("button", {
+      key: `${i}-${img.src}`,
+      ref: el => {
+        thumbs.current[i] = el;
+      },
+      type: "button",
+      "aria-label": img.alt ? `${img.alt} (${i + 1} of ${total})` : counterLabel(i + 1, total),
+      "aria-current": on ? "true" : undefined,
+      tabIndex: on ? 0 : -1,
+      onClick: () => select(i),
+      onKeyDown: e => onThumbKey(e, i),
+      style: {
+        flex: "none",
+        display: "block",
+        width: thumbSize,
+        padding: 0,
+        margin: 0,
+        border: `var(--dt-border-width-strong) solid ${on ? "var(--dt-gallery-thumb-selected-border)" : "var(--dt-gallery-thumb-border)"}`,
+        borderRadius: "var(--dt-radius-media)",
+        background: "none",
+        cursor: "pointer",
+        overflow: "hidden",
+        transition: "border-color var(--dt-motion-micro)"
+      }
+    }, /*#__PURE__*/React.createElement(__ds_scope.Image, {
+      src: img.src,
+      alt: "",
+      ratio: r,
+      radius: "none",
+      loading: "lazy"
+    }));
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    ref: root,
+    role: "region",
+    "aria-label": label,
+    style: {
+      display: left ? "grid" : "flex",
+      flexDirection: left ? undefined : "column",
+      gridTemplateColumns: left ? `calc(${thumbSize} + ${pad} * 2) minmax(0, 1fr)` : undefined,
+      gap: "var(--dt-space-stack-sm)",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, main, list && (left ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      gridColumn: 1,
+      gridRow: 1
+    }
+  }, list) : list), multi && /*#__PURE__*/React.createElement(__ds_scope.VisuallyHidden, {
+    "aria-live": "polite",
+    "aria-atomic": "true"
+  }, counterLabel(index + 1, total)));
+}
+Object.assign(__ds_scope, { ProductGallery });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/ProductGallery.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/VariantPicker.jsx
+try { (() => {
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+
+/* A cross over an unavailable swatch, drawn twice so it shows on a black
+   swatch and a white one alike: a wide stroke in the surface colour under a
+   thin one in the text colour. */
+function Cross() {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    strokeLinecap: "round",
+    style: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M5 19 19 5",
+    strokeWidth: "4",
+    style: {
+      stroke: "var(--dt-surface-base)"
+    }
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M5 19 19 5",
+    strokeWidth: "1.5",
+    style: {
+      stroke: "var(--dt-text-secondary)"
+    }
+  }));
+}
+function VariantPicker({
+  label,
+  options = [],
+  value,
+  onChange,
+  variant = "chips",
+  showSelected = true,
+  placeholder,
+  unavailableLabel = "unavailable",
+  style,
+  ...rest
+}) {
+  const labelId = React.useId();
+  const refs = React.useRef({});
+  const [hover, setHover] = React.useState(null);
+  const selected = options.find(o => o.value === value);
+  const nameOf = o => [o.label, o.note, o.disabled ? unavailableLabel : null].filter(Boolean).join(", ");
+  if (variant === "select") {
+    return /*#__PURE__*/React.createElement(__ds_scope.Select, {
+      label: label,
+      value: value == null ? "" : value,
+      placeholder: placeholder || `Choose ${label.toLowerCase()}`,
+      options: options.map(o => ({
+        value: o.value,
+        label: o.disabled || o.note ? `${o.label} (${[o.note, o.disabled ? unavailableLabel : null].filter(Boolean).join(", ")})` : o.label
+      })),
+      onChange: e => {
+        /* Select renders options as strings, so an unavailable one can be
+           picked in the native list; it is ignored here and the controlled
+           value snaps back. */
+        const o = options.find(x => x.value === e.target.value);
+        if (o && !o.disabled && o.value !== value && onChange) onChange(o.value);
+      },
+      style: style,
+      ...rest
+    });
+  }
+  const swatches = variant === "swatches";
+  const count = options.length;
+  const firstEnabled = options.findIndex(o => !o.disabled);
+  /* One tab stop: the chosen option, or the first available one. */
+  const tabStop = selected && !selected.disabled ? selected.value : firstEnabled >= 0 ? options[firstEnabled].value : null;
+  const choose = o => {
+    if (!o || o.disabled) return;
+    if (o.value !== value && onChange) onChange(o.value);
+    const el = refs.current[o.value];
+    if (el) el.focus();
+  };
+
+  /* The next available option from i in direction dir, wrapping. */
+  const step = (i, dir) => {
+    for (let k = 1; k <= count; k++) {
+      const j = ((i + dir * k) % count + count) % count;
+      if (!options[j].disabled) return options[j];
+    }
+    return null;
+  };
+  const onKeyDown = (e, i) => {
+    const rtl = !!(e.currentTarget.closest && e.currentTarget.closest('[dir="rtl"]'));
+    const fwd = rtl ? "ArrowLeft" : "ArrowRight";
+    const back = rtl ? "ArrowRight" : "ArrowLeft";
+    let next = null;
+    if (e.key === fwd || e.key === "ArrowDown") next = step(i, 1);else if (e.key === back || e.key === "ArrowUp") next = step(i, -1);else if (e.key === "Home") next = step(-1, 1);else if (e.key === "End") next = step(count, -1);else return;
+    e.preventDefault();
+    choose(next);
+  };
+  const option = (o, i) => {
+    const checked = o.value === value;
+    const off = !!o.disabled;
+    const hovered = hover === o.value && !off && !checked;
+    const common = {
+      ref: el => {
+        refs.current[o.value] = el;
+      },
+      type: "button",
+      role: "radio",
+      "aria-checked": checked,
+      "aria-disabled": off || undefined,
+      "aria-label": nameOf(o),
+      tabIndex: o.value === tabStop ? 0 : -1,
+      onClick: () => choose(o),
+      onKeyDown: e => onKeyDown(e, i),
+      onMouseEnter: () => setHover(o.value),
+      onMouseLeave: () => setHover(null)
+    };
+    if (swatches) {
+      return /*#__PURE__*/React.createElement("button", {
+        key: o.value,
+        ...common,
+        title: nameOf(o),
+        style: {
+          flex: "none",
+          boxSizing: "border-box",
+          width: "var(--dt-size-touch-target)",
+          height: "var(--dt-size-touch-target)",
+          padding: "var(--dt-space-inset-2xs)",
+          margin: 0,
+          border: `var(--dt-border-width-strong) solid ${checked ? "var(--dt-swatch-ring)" : hovered ? "var(--dt-variant-border)" : "transparent"}`,
+          borderRadius: "var(--dt-radius-pill)",
+          background: "transparent",
+          cursor: off ? "not-allowed" : "pointer",
+          transition: "border-color var(--dt-motion-micro)"
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        "aria-hidden": "true",
+        style: {
+          position: "relative",
+          display: "block",
+          boxSizing: "border-box",
+          width: "100%",
+          height: "100%",
+          borderRadius: "var(--dt-radius-pill)",
+          overflow: "hidden",
+          backgroundColor: o.color || "var(--dt-surface-sunken)",
+          backgroundImage: o.image ? `url(${JSON.stringify(o.image)})` : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          border: "var(--dt-border-width-default) solid var(--dt-swatch-border)"
+        }
+      }, off && /*#__PURE__*/React.createElement(Cross, null)));
+    }
+    return /*#__PURE__*/React.createElement("button", {
+      key: o.value,
+      ...common,
+      style: {
+        display: "inline-flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        boxSizing: "border-box",
+        minWidth: "var(--dt-size-touch-target)",
+        minHeight: "var(--dt-size-touch-target)",
+        padding: "var(--dt-space-inset-2xs) var(--dt-space-inset-sm)",
+        margin: 0,
+        border: `var(--dt-border-width-default) ${off ? "dashed" : "solid"} ${checked ? "var(--dt-variant-selected-border)" : off ? "var(--dt-variant-unavailable-border)" : "var(--dt-variant-border)"}`,
+        borderRadius: "var(--dt-radius-control)",
+        background: checked ? "var(--dt-variant-selected-bg)" : hovered ? "var(--dt-variant-bg-hover)" : "var(--dt-variant-bg)",
+        color: checked ? "var(--dt-variant-selected-fg)" : off ? "var(--dt-variant-unavailable-fg)" : "var(--dt-variant-fg)",
+        cursor: off ? "not-allowed" : "pointer",
+        transition: "background var(--dt-motion-micro), border-color var(--dt-motion-micro)",
+        ...role("label-md")
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        textDecoration: off ? "line-through" : "none",
+        whiteSpace: "nowrap"
+      }
+    }, o.label), o.note && /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...role("body-xs"),
+        color: off ? "var(--dt-variant-unavailable-fg)" : "var(--dt-variant-note-color)",
+        whiteSpace: "nowrap"
+      }
+    }, o.note));
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xs)",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...role("label-md"),
+      color: "var(--dt-text-primary)"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    id: labelId
+  }, label), showSelected && selected && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true"
+  }, ": ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--dt-text-secondary)",
+      fontWeight: "var(--dt-text-body-sm-weight)"
+    }
+  }, selected.label))), /*#__PURE__*/React.createElement("div", {
+    role: "radiogroup",
+    "aria-labelledby": labelId,
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: swatches ? "var(--dt-space-inline-2xs)" : "var(--dt-space-inline-xs)"
+    }
+  }, options.map(option)));
+}
+Object.assign(__ds_scope, { VariantPicker });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/VariantPicker.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -8875,5 +9666,11 @@ __ds_ns.Price = __ds_scope.Price;
 __ds_ns.QuantityStepper = __ds_scope.QuantityStepper;
 
 __ds_ns.Rating = __ds_scope.Rating;
+
+__ds_ns.ProductCard = __ds_scope.ProductCard;
+
+__ds_ns.ProductGallery = __ds_scope.ProductGallery;
+
+__ds_ns.VariantPicker = __ds_scope.VariantPicker;
 
 })();

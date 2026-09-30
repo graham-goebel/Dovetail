@@ -358,7 +358,16 @@
     "components/commerce/QuantityStepper.d.ts",
     "components/commerce/QuantityStepper.jsx",
     "components/commerce/QuantityStepper.md",
-    "tokens/component/commerce.css"
+    "tokens/component/commerce.css",
+    "components/commerce/ProductCard.d.ts",
+    "components/commerce/ProductCard.jsx",
+    "components/commerce/ProductCard.md",
+    "components/commerce/ProductGallery.d.ts",
+    "components/commerce/ProductGallery.jsx",
+    "components/commerce/ProductGallery.md",
+    "components/commerce/VariantPicker.d.ts",
+    "components/commerce/VariantPicker.jsx",
+    "components/commerce/VariantPicker.md"
   ],
   "libraries": [
     {
@@ -611,6 +620,15 @@
     },
     {
       "name": "QuantityStepper"
+    },
+    {
+      "name": "ProductCard"
+    },
+    {
+      "name": "ProductGallery"
+    },
+    {
+      "name": "VariantPicker"
     }
   ],
   "lastChange": {

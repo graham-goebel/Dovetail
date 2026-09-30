@@ -26,6 +26,15 @@
         focus) while ArrowDown never removes.
       - Rating input: one roving tab stop that follows the chosen star;
         arrows choose and focus, wrapping; Home/End.
+      - VariantPicker: arrows choose and focus, skipping unavailable options
+        and wrapping; Home/End; one roving tab stop; an unavailable option
+        is named "…, unavailable" and never reaches onChange.
+      - ProductGallery: Next/Previous change the image and aria-current and
+        wrap; thumbnail arrows, Home and End move focus and show the image;
+        one roving tab stop; the live region reads "Image n of total".
+      - ProductCard: one link, named by the product (the stretched copy is
+        aria-hidden); the quick-add button is its own tab stop and its click
+        does not follow the link.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -74,6 +83,7 @@ const PAGE = `<!doctype html>
 </head><body>
 <div id="root"></div>
 <div id="commerce-root"></div>
+<div id="product-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -131,6 +141,35 @@ function Commerce() {
 }
 createRoot(document.getElementById("commerce-root")).render(h(Commerce));
 window.__commerceReady = true;
+</script>
+<script type="module">
+/* Commerce: VariantPicker, ProductGallery and ProductCard, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ProductCard, ProductGallery, VariantPicker } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__product = { sizes: [], images: [], quickAdds: 0 };
+const img = (n) => "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><text y='8'>" + n + "</text></svg>");
+function Product() {
+  const [size, setSize] = React.useState("s");
+  const [index, setIndex] = React.useState(0);
+  return h("div", null,
+    h(VariantPicker, { label: "Test size", value: size, onChange: (v) => { window.__product.sizes.push(v); setSize(v); }, options: [
+      { value: "xs", label: "XS", disabled: true },
+      { value: "s", label: "S" },
+      { value: "m", label: "M", disabled: true },
+      { value: "l", label: "L" },
+      { value: "xl", label: "XL" },
+      { value: "xxl", label: "XXL", disabled: true },
+    ] }),
+    h(ProductGallery, { label: "Test gallery", value: index, onChange: (i) => { window.__product.images.push(i); setIndex(i); },
+      images: [1, 2, 3, 4, 5].map((n) => ({ src: img(n), alt: "Test view " + n })) }),
+    h("div", { style: { width: "240px" } },
+      h(ProductCard, { name: "Test mug", href: "#test-mug", price: 24, image: { src: img("M"), alt: "" },
+        onQuickAdd: () => { window.__product.quickAdds++; } })));
+}
+createRoot(document.getElementById("product-root")).render(h(Product));
+window.__productReady = true;
 </script>
 </body></html>
 `;
@@ -325,6 +364,98 @@ try {
     const seen = await page.evaluate(() => window.__commerce.ratings);
     expect(seen.every((n) => Number.isInteger(n) && n >= 1 && n <= 5), `onChange got out-of-range values: ${seen.join(", ")}`);
     ok(`onChange saw ${seen.join(", ")}`);
+  });
+
+  await step("VariantPicker: arrows choose, skip unavailable, one roving tab stop", async () => {
+    await page.waitForFunction(() => window.__productReady === true);
+    const group = page.getByRole("radiogroup", { name: "Test size", exact: true });
+    const radio = (name) => group.getByRole("radio", { name, exact: true });
+    const checked = async (name) => (await radio(name).getAttribute("aria-checked")) === "true";
+    const stops = () => group.evaluate((el) => [...el.querySelectorAll('[role="radio"]')].map((r) => r.tabIndex));
+    expect((await group.getByRole("radio").count()) === 6, "six options should render six radios, unavailable ones included");
+    expect((await radio("M, unavailable").getAttribute("aria-disabled")) === "true", 'an unavailable option should be named "M, unavailable" and be aria-disabled');
+    expect(JSON.stringify(await stops()) === "[-1,0,-1,-1,-1,-1]", `only the chosen S should be a tab stop, got ${JSON.stringify(await stops())}`);
+    ok('six radios; unavailable ones are named "…, unavailable" and aria-disabled; the chosen one is the one tab stop');
+    await radio("S").focus();
+    await page.keyboard.press("ArrowRight");
+    expect(await checked("L"), "ArrowRight from S should choose L, skipping the unavailable M");
+    expect((await active()) === "L", `ArrowRight should move focus to L, got "${await active()}"`);
+    expect(JSON.stringify(await stops()) === "[-1,-1,-1,0,-1,-1]", `the tab stop should follow the chosen option, got ${JSON.stringify(await stops())}`);
+    ok("ArrowRight skips an unavailable option, chooses and focuses the next; the tab stop follows");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    expect(await checked("S"), "ArrowRight from XL should wrap to S, skipping the unavailable XXL and XS");
+    await page.keyboard.press("ArrowLeft");
+    expect(await checked("XL"), "ArrowLeft from S should wrap back to XL");
+    await page.keyboard.press("Home");
+    expect(await checked("S") && (await active()) === "S", "Home should choose and focus the first available option, S");
+    await page.keyboard.press("End");
+    expect(await checked("XL") && (await active()) === "XL", "End should choose and focus the last available option, XL");
+    ok("arrows wrap past unavailable options; Home and End land on available ones");
+    await radio("M, unavailable").click({ force: true });
+    expect(await checked("XL"), "clicking an unavailable option should not choose it");
+    const seen = await page.evaluate(() => window.__product.sizes);
+    const bad = seen.filter((v) => v === "xs" || v === "m" || v === "xxl");
+    expect(bad.length === 0, `onChange was called with an unavailable value: ${bad.join(", ")}`);
+    ok(`onChange saw ${seen.join(", ")}, none unavailable`);
+  });
+
+  await step("ProductGallery: buttons and thumbnail arrows change the image and aria state", async () => {
+    const gallery = page.getByRole("region", { name: "Test gallery", exact: true });
+    const thumbs = gallery.getByRole("group", { name: "Thumbnails", exact: true });
+    const mainAlt = () => gallery.locator("img").first().getAttribute("alt");
+    const current = () => thumbs.evaluate((el) => [...el.querySelectorAll("button")].findIndex((b) => b.getAttribute("aria-current") === "true"));
+    const stops = () => thumbs.evaluate((el) => [...el.querySelectorAll("button")].map((b) => b.tabIndex));
+    expect((await thumbs.getByRole("button").count()) === 5, "five images should give five thumbnails");
+    expect((await mainAlt()) === "Test view 1" && (await current()) === 0, "the gallery should start on the first image, its thumbnail aria-current");
+    await gallery.getByRole("button", { name: "Next image", exact: true }).click();
+    expect((await mainAlt()) === "Test view 2", `Next image should show the second image, got alt ${JSON.stringify(await mainAlt())}`);
+    expect((await current()) === 1, "the second thumbnail should become aria-current");
+    await gallery.getByRole("button", { name: "Previous image", exact: true }).click();
+    await gallery.getByRole("button", { name: "Previous image", exact: true }).click();
+    expect((await mainAlt()) === "Test view 5" && (await current()) === 4, "Previous image from the first should wrap to the last");
+    ok("Next and Previous change the image and aria-current, and wrap");
+    expect(JSON.stringify(await stops()) === "[-1,-1,-1,-1,0]", `only the shown thumbnail should be a tab stop, got ${JSON.stringify(await stops())}`);
+    await thumbs.getByRole("button").nth(4).focus();
+    await page.keyboard.press("ArrowRight");
+    expect((await current()) === 0 && (await mainAlt()) === "Test view 1", "ArrowRight on the last thumbnail should wrap to the first and show it");
+    expect((await active()) === "Test view 1 (1 of 5)", `focus should follow to the first thumbnail, got "${await active()}"`);
+    await page.keyboard.press("ArrowRight");
+    expect((await current()) === 1 && (await mainAlt()) === "Test view 2", "ArrowRight should show the next image");
+    await page.keyboard.press("ArrowLeft");
+    expect((await current()) === 0, "ArrowLeft should show the previous image");
+    await page.keyboard.press("End");
+    expect((await current()) === 4 && (await mainAlt()) === "Test view 5", "End should show the last image");
+    await page.keyboard.press("Home");
+    expect((await current()) === 0, "Home should show the first image");
+    expect(JSON.stringify(await stops()) === "[0,-1,-1,-1,-1]", `the tab stop should follow the shown thumbnail, got ${JSON.stringify(await stops())}`);
+    ok("thumbnail arrows, Home and End move focus and show the image; one roving tab stop");
+    const live = await gallery.locator('[aria-live="polite"]').textContent();
+    expect(live === "Image 1 of 5", `the live region should read "Image 1 of 5", got ${JSON.stringify(live)}`);
+    ok('a polite live region announces "Image 1 of 5"');
+  });
+
+  await step("ProductCard: one link named by the product; quick add separately focusable", async () => {
+    const root = page.locator("#product-root");
+    const links = root.getByRole("link");
+    expect((await links.count()) === 1, `the card should expose exactly one link, got ${await links.count()}`);
+    expect((await links.first().textContent()) === "Test mug", `the link should be named by the product, got ${JSON.stringify(await links.first().textContent())}`);
+    const anchors = await root.evaluate((el) => [...el.querySelectorAll("a")].map((a) => ({ hidden: a.getAttribute("aria-hidden"), tab: a.tabIndex })));
+    expect(anchors.length === 2 && anchors.filter((a) => a.hidden === "true" && a.tab === -1).length === 1,
+      `the stretched copy should be aria-hidden and out of the tab order, got ${JSON.stringify(anchors)}`);
+    ok('one link, "Test mug"; the stretched copy is aria-hidden with tabindex -1');
+    const add = root.getByRole("button", { name: "Add Test mug to cart", exact: true });
+    expect((await add.count()) === 1, 'the quick-add button should be named "Add Test mug to cart"');
+    await links.first().focus();
+    await page.keyboard.press("Tab");
+    expect((await active()) === "Add Test mug to cart" || (await add.evaluate((el) => el === document.activeElement)),
+      `Tab from the link should reach the quick-add button, got "${await active()}"`);
+    await page.keyboard.press("Shift+Tab");
+    expect((await active()) === "Test mug", `Shift+Tab from quick add should return to the link, got "${await active()}"`);
+    await add.click();
+    expect((await page.evaluate(() => window.__product.quickAdds)) === 1, "clicking quick add should call onQuickAdd, above the stretched link");
+    expect(!(await page.evaluate(() => location.hash === "#test-mug")), "clicking quick add must not follow the card's link");
+    ok("quick add is its own tab stop and its click reaches onQuickAdd, not the link");
   });
 
   await step("page errors", () => {

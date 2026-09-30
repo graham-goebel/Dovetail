@@ -21,6 +21,39 @@
 
   /* QuantityStepper has no tokens of its own: it is a field, so it reads the
      --dt-input-* geometry and colours, and its buttons the ghost button's. */
+
+  /* Product: ProductCard, ProductGallery and VariantPicker.
+     ProductCard's subtitle, and the wash over a sold-out product's picture:
+     the translucent glass surface, so the photo reads as dimmed in both
+     modes without an opacity token. */
+  --dt-product-subtitle-color: var(--dt-text-secondary);
+  --dt-product-soldout-overlay: var(--dt-surface-glass);
+
+  /* Colour swatches, on a card and in a picker. The hairline sits around
+     every swatch so a white one shows on a white surface; the ring marks the
+     chosen one. */
+  --dt-swatch-border: var(--dt-border-strong);
+  --dt-swatch-ring: var(--dt-border-selected);
+
+  /* VariantPicker chips: resting, chosen and unavailable. */
+  --dt-variant-bg: var(--dt-surface-base);
+  --dt-variant-bg-hover: var(--dt-surface-subtle);
+  --dt-variant-fg: var(--dt-text-primary);
+  --dt-variant-border: var(--dt-border-default);
+  --dt-variant-selected-bg: var(--dt-surface-selected);
+  --dt-variant-selected-fg: var(--dt-text-on-selected);
+  --dt-variant-selected-border: var(--dt-border-selected);
+  --dt-variant-unavailable-fg: var(--dt-text-disabled);
+  --dt-variant-unavailable-border: var(--dt-border-disabled);
+  --dt-variant-note-color: var(--dt-text-secondary);
+
+  /* ProductGallery: the previous and next buttons and the counter sit on
+     the photo in glass; the thumbnails take the selected border. */
+  --dt-gallery-control-bg: var(--dt-surface-glass-strong);
+  --dt-gallery-control-bg-hover: var(--dt-surface-overlay);
+  --dt-gallery-control-fg: var(--dt-text-primary);
+  --dt-gallery-thumb-border: var(--dt-border-subtle);
+  --dt-gallery-thumb-selected-border: var(--dt-border-selected);
 }
 
 .dark {
@@ -31,4 +64,25 @@
   --dt-rating-color: var(--dt-surface-warning);
   --dt-rating-empty-color: var(--dt-border-strong);
   --dt-rating-count-color: var(--dt-text-secondary);
+
+  /* Product */
+  --dt-product-subtitle-color: var(--dt-text-secondary);
+  --dt-product-soldout-overlay: var(--dt-surface-glass);
+  --dt-swatch-border: var(--dt-border-strong);
+  --dt-swatch-ring: var(--dt-border-selected);
+  --dt-variant-bg: var(--dt-surface-base);
+  --dt-variant-bg-hover: var(--dt-surface-subtle);
+  --dt-variant-fg: var(--dt-text-primary);
+  --dt-variant-border: var(--dt-border-default);
+  --dt-variant-selected-bg: var(--dt-surface-selected);
+  --dt-variant-selected-fg: var(--dt-text-on-selected);
+  --dt-variant-selected-border: var(--dt-border-selected);
+  --dt-variant-unavailable-fg: var(--dt-text-disabled);
+  --dt-variant-unavailable-border: var(--dt-border-disabled);
+  --dt-variant-note-color: var(--dt-text-secondary);
+  --dt-gallery-control-bg: var(--dt-surface-glass-strong);
+  --dt-gallery-control-bg-hover: var(--dt-surface-overlay);
+  --dt-gallery-control-fg: var(--dt-text-primary);
+  --dt-gallery-thumb-border: var(--dt-border-subtle);
+  --dt-gallery-thumb-selected-border: var(--dt-border-selected);
 }

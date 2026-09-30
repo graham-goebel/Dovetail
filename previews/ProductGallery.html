@@ -1,0 +1,163 @@
+<!-- @dsCard group="Commerce" height=2870 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", alignItems: "flex-start", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function row() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 168px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "end",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      row.apply(null, arguments));
+  }
+  var NEED = ["ProductGallery", "Section"];
+  /* Flat product shots as inline SVG, so the card fetches no photos. A view
+     turns, crops or pairs the same object, for a gallery. */
+  var SHAPES = {
+    mug: "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/><path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='F' stroke-width='5'/><rect x='30' y='34' width='36' height='43' rx='5' fill='F'/>",
+    bottle: "<ellipse cx='50' cy='83' rx='17' ry='3' fill='#000' opacity='.08'/><rect x='44' y='14' width='12' height='10' rx='2' fill='F'/><path d='M42 24h16v8c6 3 8 7 8 12v34a4 4 0 0 1-4 4H38a4 4 0 0 1-4-4V44c0-5 2-9 8-12z' fill='F'/>",
+    tote: "<ellipse cx='50' cy='84' rx='28' ry='3' fill='#000' opacity='.08'/><path d='M38 38V30a12 12 0 0 1 24 0v8' fill='none' stroke='F' stroke-width='4'/><path d='M26 38h48l-4 44H30z' fill='F'/>",
+    lamp: "<ellipse cx='50' cy='85' rx='18' ry='3' fill='#000' opacity='.08'/><path d='M34 18h32l8 26H26z' fill='F'/><rect x='48' y='44' width='4' height='35' fill='F'/><rect x='36' y='79' width='28' height='5' rx='2' fill='F'/>",
+    bowl: "<ellipse cx='50' cy='74' rx='26' ry='3' fill='#000' opacity='.08'/><path d='M20 46h60a30 26 0 0 1-60 0z' fill='F'/>",
+    candle: "<ellipse cx='50' cy='81' rx='18' ry='3' fill='#000' opacity='.08'/><rect x='34' y='41' width='32' height='40' rx='4' fill='F'/><path d='M50 25c4 5 4 9 0 13-4-4-4-8 0-13z' fill='#e8a33d'/>",
+  };
+  function art(kind, bg, fg, view, fg2) {
+    var g = SHAPES[kind].replace(/F/g, fg);
+    if (view === "mirror") g = "<g transform='translate(100 0) scale(-1 1)'>" + g + "</g>";
+    if (view === "zoom") g = "<g transform='translate(-58 -52) scale(2.1)'>" + g + "</g>";
+    if (view === "top") g = "<circle cx='50' cy='50' r='24' fill='" + fg + "'/><circle cx='50' cy='50' r='19' fill='#000' opacity='.18'/><rect x='72' y='46' width='13' height='8' rx='3' fill='" + fg + "'/>";
+    if (view === "pair") g = "<g transform='translate(-4 16) scale(.68)'>" + g + "</g><g transform='translate(36 16) scale(.68)'>" + SHAPES[kind].replace(/F/g, fg2 || fg) + "</g>";
+    return "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" + g + "</svg>");
+  }
+  var MUG = [
+    { src: art("mug", "#e9e4dc", "#5b7a6a"), alt: "Mug in fern glaze, handle to the right" },
+    { src: art("mug", "#e9e4dc", "#5b7a6a", "mirror"), alt: "Mug from the other side" },
+    { src: art("mug", "#e9e4dc", "#5b7a6a", "top"), alt: "Mug from above" },
+    { src: art("mug", "#e9e4dc", "#5b7a6a", "zoom"), alt: "Close-up of the glaze" },
+    { src: art("mug", "#e9e4dc", "#5b7a6a", "pair", "#b5654a"), alt: "Two mugs, fern and terracotta" },
+  ];
+  var TOTE = [
+    { src: art("tote", "#efe3dc", "#b5654a"), alt: "Tote in terracotta" },
+    { src: art("tote", "#efe3dc", "#b5654a", "mirror"), alt: "Tote from the back" },
+    { src: art("tote", "#efe3dc", "#b5654a", "zoom"), alt: "Close-up of the canvas" },
+    { src: art("tote", "#e4e7ee", "#3d5a80"), alt: "Tote in harbour blue" },
+    { src: art("tote", "#efe3dc", "#b5654a", "pair", "#3d5a80"), alt: "Two totes, terracotta and harbour" },
+  ];
+  /* A controlled gallery, with the index shown beside it, as an app would hold it. */
+  function Controlled() {
+    var s = React.useState(2);
+    return e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" } },
+      e(NS.ProductGallery, { label: "Images of the stoneware mug (controlled)", images: MUG, value: s[0], onChange: s[1] }),
+      e("span", { style: cap }, "value " + s[0] + " · onChange sets it"));
+  }
+  /* Galleries side by side on a wide screen, one per row on a phone. */
+  function pair() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 22rem), 1fr))",
+      gap: "var(--dt-space-stack-xl) var(--dt-space-inline-xl)", alignItems: "start",
+    } }].concat([].slice.call(arguments)));
+  }
+  function Page() {
+    return e(Shelf, { name: "ProductGallery", summary: "The images on a product page: a main image with previous and next buttons, and thumbnails that choose it.", props: [
+        { name: "images", type: "{ src, alt }[]", required: true, notes: "At least one. With one, no buttons, thumbnails or counter." },
+        { name: "label", type: "string", required: true, notes: "Accessible name of the gallery region." },
+        { name: "value / onChange", type: "number / (index) => void", notes: "Controlled index. Leave value out for an uncontrolled gallery." },
+        { name: "defaultIndex", type: "number", default: "0" },
+        { name: "ratio", type: '"1:1" | "4:5" | "3:4" | "4:3" | number', default: '"1:1"' },
+        { name: "thumbnails", type: '"bottom" | "left" | "none"', default: '"bottom"', notes: "left moves below when the gallery is narrower than collapseBelow." },
+        { name: "collapseBelow", type: "number", default: "480", notes: "The gallery's own width in px (ResizeObserver), not the viewport's." },
+        { name: "previousLabel / nextLabel", type: "string", default: '"Previous image" / "Next image"' },
+        { name: "thumbnailsLabel", type: "string", default: '"Thumbnails"' },
+        { name: "counterLabel", type: "(n, total) => string", default: "Image n of total", notes: "Announced politely on each change." },
+      ], guidance: [
+        "Every image needs its own alt: it names the main image and its thumbnail. Say what differs (from above, close-up of the glaze), not the product name again.",
+        "Thumbnails are one tab stop. Arrow keys move and show at once, Home and End jump to the ends, and every change is announced as Image 2 of 5.",
+        "Previous and next wrap around. A swipe on touch does the same; a mouse drag and a vertical swipe scroll the page as usual.",
+        "left suits a wide product column. It measures the gallery itself, so it moves under the image in a narrow column even on a wide screen.",
+        "The 2 / 5 counter shows on the image when the gallery is narrow or has no thumbnails.",
+        "Changes are instant, with no slide, so there is no motion to reduce.",
+      ] },
+      e(Specimen, { label: "Thumbnails bottom (default), five images", bg: "var(--dt-surface-base)" },
+        pair(
+          e(NS.ProductGallery, { label: "Images of the stoneware mug", images: MUG }),
+          e(Controlled))),
+      e(Specimen, { label: "Thumbnails left, collapsing below at narrow widths", bg: "var(--dt-surface-base)" },
+        e("div", { style: { maxWidth: "32rem" } },
+          e(NS.ProductGallery, { label: "Images of the canvas tote", images: TOTE, thumbnails: "left", ratio: "4:5" }))),
+      e(Specimen, { label: "Thumbnails none, with the counter; and a single image", bg: "var(--dt-surface-base)" },
+        pair(
+          e(NS.ProductGallery, { label: "Images of the canvas tote (no thumbnails)", images: TOTE, thumbnails: "none" }),
+          e(NS.ProductGallery, { label: "Image of the serving bowl", images: [{ src: art("bowl", "#e4e7ee", "#3d5a80"), alt: "Serving bowl in harbour glaze" }] }))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+          pair(
+            e(NS.ProductGallery, { label: "Images of the stoneware mug (dark)", images: MUG }),
+            e(NS.ProductGallery, { label: "Images of the canvas tote (dark)", images: TOTE, thumbnails: "left" })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>
