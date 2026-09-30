@@ -419,7 +419,16 @@
     "components/commerce/PaymentFields.md",
     "components/commerce/OrderStatus.d.ts",
     "components/commerce/OrderStatus.jsx",
-    "components/commerce/OrderStatus.md"
+    "components/commerce/OrderStatus.md",
+    "components/blocks/MenuBlock.d.ts",
+    "components/blocks/MenuBlock.jsx",
+    "components/blocks/MenuBlock.md",
+    "components/commerce/BasketBar.d.ts",
+    "components/commerce/BasketBar.jsx",
+    "components/commerce/BasketBar.md",
+    "components/blocks/OrderTrackingBlock.d.ts",
+    "components/blocks/OrderTrackingBlock.jsx",
+    "components/blocks/OrderTrackingBlock.md"
   ],
   "libraries": [
     {
@@ -736,6 +745,15 @@
     },
     {
       "name": "OrderStatus"
+    },
+    {
+      "name": "MenuBlock"
+    },
+    {
+      "name": "BasketBar"
+    },
+    {
+      "name": "OrderTrackingBlock"
     }
   ],
   "lastChange": {

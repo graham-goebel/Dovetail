@@ -1163,6 +1163,7 @@ const CARD_TITLE = {
   BlocksKit: "Landing page from blocks",
   SettingsPageTemplate: "Settings page",
   SocialKit: "Social templates",
+  FoodKit: "Food ordering",
 };
 
 /* Most cards open their subtitle with the name a reader wants: ColorCyan is
@@ -1268,8 +1269,8 @@ const TEMPLATE_KINDS = [
   ["marketing", "Marketing", "Pages and landing pages", "layout"],
   ["social", "Social", "Stories and posts", "image"],
 ];
-const TEMPLATE_KIND = { DashboardKit: "product", SettingsPageTemplate: "product", MarketingKit: "marketing", BlocksKit: "marketing", SocialKit: "social" };
-const TEMPLATE_BLURB = { DashboardKit: "Metrics and tables", SettingsPageTemplate: "Forms and switches", MarketingKit: "A full marketing page", BlocksKit: "Stacked blocks", SocialKit: "Ten layouts" };
+const TEMPLATE_KIND = { DashboardKit: "product", SettingsPageTemplate: "product", MarketingKit: "marketing", BlocksKit: "marketing", SocialKit: "social", FoodKit: "product" };
+const TEMPLATE_BLURB = { DashboardKit: "Metrics and tables", SettingsPageTemplate: "Forms and switches", MarketingKit: "A full marketing page", BlocksKit: "Stacked blocks", SocialKit: "Ten layouts", FoodKit: "Menu to delivery" };
 
 /* --------------------------------------------------------------- home page */
 
