@@ -55,4 +55,4 @@ export interface SheetProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
   children?: React.ReactNode;
 }
 
-export declare function Sheet(props: SheetProps): JSX.Element | null;
+export declare function Sheet(props: SheetProps): React.JSX.Element | null;

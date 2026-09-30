@@ -46,7 +46,7 @@ export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement>
   children?: React.ReactNode;
 }
 
-export declare function Link(props: LinkProps): JSX.Element;
+export declare function Link(props: LinkProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

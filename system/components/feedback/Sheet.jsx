@@ -16,19 +16,18 @@ const EASE = "cubic-bezier(.2,.8,.2,1)";
 
 const WIDTHS = { sm: "var(--dt-dialog-width-sm)", md: "var(--dt-dialog-width-md)", lg: "var(--dt-dialog-width-lg)" };
 
+/* False while server rendering and hydrating, so the markup matches what the
+   server sent; matchMedia is read after that, and at once in a client-only
+   render. */
 function useMedia(query) {
-  const get = () => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia(query).matches;
-  const [on, setOn] = React.useState(get);
-  React.useEffect(() => {
-    if (!window.matchMedia) return undefined;
+  const subscribe = React.useCallback((sync) => {
+    if (!window.matchMedia) return () => {};
     const m = window.matchMedia(query);
-    const sync = () => setOn(m.matches);
-    sync();
     if (m.addEventListener) m.addEventListener("change", sync);
     else m.addListener(sync);
     return () => (m.removeEventListener ? m.removeEventListener("change", sync) : m.removeListener(sync));
   }, [query]);
-  return on;
+  return React.useSyncExternalStore(subscribe, () => !!window.matchMedia && window.matchMedia(query).matches, () => false);
 }
 
 const Icon = ({ d }) => (

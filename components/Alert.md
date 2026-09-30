@@ -47,7 +47,7 @@ export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
   children?: React.ReactNode;
 }
 
-export declare function Alert(props: AlertProps): JSX.Element;
+export declare function Alert(props: AlertProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

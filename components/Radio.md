@@ -48,7 +48,7 @@ export interface RadioProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   disabled?: boolean;
 }
 
-export declare function Radio(props: RadioProps): JSX.Element;
+export declare function Radio(props: RadioProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

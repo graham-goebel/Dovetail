@@ -43,7 +43,7 @@ export interface AvatarProps extends React.HTMLAttributes<HTMLSpanElement> {
   status?: "online" | "busy" | "away" | "offline";
 }
 
-export declare function Avatar(props: AvatarProps): JSX.Element;
+export declare function Avatar(props: AvatarProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

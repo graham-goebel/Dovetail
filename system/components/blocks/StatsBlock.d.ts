@@ -31,4 +31,4 @@ export interface StatsBlockProps extends Omit<React.HTMLAttributes<HTMLElement>,
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function StatsBlock(props: StatsBlockProps): JSX.Element;
+export declare function StatsBlock(props: StatsBlockProps): React.JSX.Element;

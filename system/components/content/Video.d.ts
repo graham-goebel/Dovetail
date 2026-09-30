@@ -37,4 +37,4 @@ export interface VideoProps extends React.HTMLAttributes<HTMLElement> {
   onFile?: (file: File) => void;
 }
 
-export declare function Video(props: VideoProps): JSX.Element;
+export declare function Video(props: VideoProps): React.JSX.Element;

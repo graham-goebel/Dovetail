@@ -39,7 +39,7 @@ export interface PaginationProps extends Omit<React.HTMLAttributes<HTMLElement>,
   label?: string;
 }
 
-export declare function Pagination(props: PaginationProps): JSX.Element;
+export declare function Pagination(props: PaginationProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

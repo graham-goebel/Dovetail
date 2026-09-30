@@ -50,7 +50,7 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   iconStart?: React.ReactNode;
 }
 
-export declare function Input(props: InputProps): JSX.Element;
+export declare function Input(props: InputProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

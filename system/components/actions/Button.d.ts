@@ -17,8 +17,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Icon after the label. Reserve for external links and disclosure. */
   iconEnd?: React.ReactNode;
   /** Render as another element, e.g. "a" for a link that looks like a button. @default "button" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Button(props: ButtonProps): JSX.Element;
+export declare function Button(props: ButtonProps): React.JSX.Element;

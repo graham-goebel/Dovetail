@@ -49,10 +49,10 @@ export interface MediaProps extends Omit<React.HTMLAttributes<HTMLElement>, "tit
   /** Narrowest either column may get before the row stacks to one column. @default "300px" */
   minColumnWidth?: string;
   /** @default "section" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 }
 
-export declare function Media(props: MediaProps): JSX.Element;
+export declare function Media(props: MediaProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

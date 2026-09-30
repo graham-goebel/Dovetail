@@ -68,11 +68,11 @@ export interface StackProps extends React.HTMLAttributes<HTMLElement> {
   align?: React.CSSProperties["alignItems"];
   justify?: React.CSSProperties["justifyContent"];
   /** Element to render. @default "div" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Stack(props: StackProps): JSX.Element;
+export declare function Stack(props: StackProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

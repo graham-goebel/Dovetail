@@ -26,4 +26,4 @@ export interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   children?: React.ReactNode;
 }
 
-export declare function Heading(props: HeadingProps): JSX.Element;
+export declare function Heading(props: HeadingProps): React.JSX.Element;

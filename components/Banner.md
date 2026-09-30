@@ -47,7 +47,7 @@ export interface BannerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   dismissLabel?: string;
 }
 
-export declare function Banner(props: BannerProps): JSX.Element;
+export declare function Banner(props: BannerProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

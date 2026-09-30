@@ -20,4 +20,4 @@ export interface BlockRendererProps {
   onUnknown?: (type: string, block: Block) => void;
 }
 
-export declare function BlockRenderer(props: BlockRendererProps): JSX.Element;
+export declare function BlockRenderer(props: BlockRendererProps): React.JSX.Element;

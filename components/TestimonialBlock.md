@@ -66,7 +66,7 @@ export interface TestimonialBlockProps extends Omit<React.HTMLAttributes<HTMLEle
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function TestimonialBlock(props: TestimonialBlockProps): JSX.Element;
+export declare function TestimonialBlock(props: TestimonialBlockProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

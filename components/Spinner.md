@@ -38,7 +38,7 @@ export interface SpinnerProps extends React.HTMLAttributes<HTMLSpanElement> {
   inline?: boolean;
 }
 
-export declare function Spinner(props: SpinnerProps): JSX.Element;
+export declare function Spinner(props: SpinnerProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

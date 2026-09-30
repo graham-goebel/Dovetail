@@ -39,7 +39,7 @@ export interface FigureProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
 }
 
-export declare function Figure(props: FigureProps): JSX.Element;
+export declare function Figure(props: FigureProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

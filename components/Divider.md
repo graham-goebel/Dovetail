@@ -44,7 +44,7 @@ export interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
   tone?: "subtle" | "default" | "strong";
 }
 
-export declare function Divider(props: DividerProps): JSX.Element;
+export declare function Divider(props: DividerProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

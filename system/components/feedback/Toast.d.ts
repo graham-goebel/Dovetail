@@ -23,5 +23,5 @@ export interface ToastRegionProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: string;
 }
 
-export declare function Toast(props: ToastProps): JSX.Element;
-export declare function ToastRegion(props: ToastRegionProps): JSX.Element;
+export declare function Toast(props: ToastProps): React.JSX.Element;
+export declare function ToastRegion(props: ToastRegionProps): React.JSX.Element;

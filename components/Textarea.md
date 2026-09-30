@@ -39,7 +39,7 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   rows?: number;
 }
 
-export declare function Textarea(props: TextareaProps): JSX.Element;
+export declare function Textarea(props: TextareaProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

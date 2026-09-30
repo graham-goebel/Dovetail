@@ -24,4 +24,4 @@ export interface CalloutProps extends Omit<React.HTMLAttributes<HTMLElement>, "t
   texture?: boolean;
 }
 
-export declare function Callout(props: CalloutProps): JSX.Element;
+export declare function Callout(props: CalloutProps): React.JSX.Element;

@@ -60,7 +60,7 @@ export interface DialogProps {
   children?: React.ReactNode;
 }
 
-export declare function Dialog(props: DialogProps): JSX.Element | null;
+export declare function Dialog(props: DialogProps): React.JSX.Element | null;
 ```
 
 ## Tokens it reads

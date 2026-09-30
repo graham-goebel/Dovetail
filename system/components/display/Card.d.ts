@@ -65,8 +65,8 @@ export interface CardProps extends Omit<React.HTMLAttributes<HTMLElement>, "titl
   /** Primary-colour border and tinted background for a chosen option. */
   selected?: boolean;
   /** @default "div" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Card(props: CardProps): JSX.Element;
+export declare function Card(props: CardProps): React.JSX.Element;

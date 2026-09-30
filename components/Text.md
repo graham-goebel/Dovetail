@@ -75,11 +75,11 @@ export interface TextProps extends React.HTMLAttributes<HTMLElement> {
   /** Tabular numerals, so a column of prices lines up. @default false */
   numeric?: boolean;
   /** Overrides the tag: p for paragraph variants, span for eyebrow and label. */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Text(props: TextProps): JSX.Element;
+export declare function Text(props: TextProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

@@ -97,7 +97,7 @@ export interface SocialPostProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   spacing?: "tight" | "balanced" | "open";
 }
 
-export declare function SocialPost(props: SocialPostProps): JSX.Element;
+export declare function SocialPost(props: SocialPostProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

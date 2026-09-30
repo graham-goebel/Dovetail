@@ -49,7 +49,7 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   children: React.ReactNode;
 }
 
-export declare function IconButton(props: IconButtonProps): JSX.Element;
+export declare function IconButton(props: IconButtonProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

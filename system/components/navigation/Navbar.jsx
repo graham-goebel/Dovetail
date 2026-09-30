@@ -1,4 +1,5 @@
 import React from "react";
+import { Drawer } from "../feedback/Drawer.jsx";
 
 function MenuIcon() {
   return (
@@ -8,18 +9,22 @@ function MenuIcon() {
   );
 }
 
+/* False while server rendering and hydrating, so the markup matches what the
+   server sent; matchMedia is read after that, and at once in a client-only
+   render. */
 function useNarrow(below) {
   const query = below ? `(max-width: ${below - 1}px)` : null;
-  const [narrow, setNarrow] = React.useState(() => !!(query && typeof window !== "undefined" && window.matchMedia && window.matchMedia(query).matches));
-  React.useEffect(() => {
-    if (!query || !window.matchMedia) return undefined;
+  const subscribe = React.useCallback((sync) => {
+    if (!query || !window.matchMedia) return () => {};
     const mq = window.matchMedia(query);
-    const sync = () => setNarrow(mq.matches);
-    sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, [query]);
-  return narrow;
+  return React.useSyncExternalStore(
+    subscribe,
+    () => !!(query && window.matchMedia && window.matchMedia(query).matches),
+    () => false,
+  );
 }
 
 export function Navbar({ brand, links = [], actions, current, onNavigate, label = "Main", sticky = false, collapseBelow = 640, style, ...rest }) {

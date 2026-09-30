@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Sheet.html?v=af0ef9f22c&amp;b=e65605a26b" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Sheet.html?v=af0ef9f22c&amp;b=e5be6854b7" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:640px">
-    <iframe src="../previews/Sheet.html?v=af0ef9f22c&amp;b=e65605a26b" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Sheet.html?v=af0ef9f22c&amp;b=e5be6854b7" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -184,7 +184,7 @@ export interface SheetProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivEleme
   children?: React.ReactNode;
 }
 
-export declare function Sheet(props: SheetProps): JSX.Element | null;</code></pre>
+export declare function Sheet(props: SheetProps): React.JSX.Element | null;</code></pre>
 </section>
 
 <section class="prose">
@@ -216,19 +216,18 @@ const EASE = &quot;cubic-bezier(.2,.8,.2,1)&quot;;
 
 const WIDTHS = { sm: &quot;var(--dt-dialog-width-sm)&quot;, md: &quot;var(--dt-dialog-width-md)&quot;, lg: &quot;var(--dt-dialog-width-lg)&quot; };
 
+/* False while server rendering and hydrating, so the markup matches what the
+   server sent; matchMedia is read after that, and at once in a client-only
+   render. */
 function useMedia(query) {
-  const get = () =&gt; typeof window !== &quot;undefined&quot; &amp;&amp; !!window.matchMedia &amp;&amp; window.matchMedia(query).matches;
-  const [on, setOn] = React.useState(get);
-  React.useEffect(() =&gt; {
-    if (!window.matchMedia) return undefined;
+  const subscribe = React.useCallback((sync) =&gt; {
+    if (!window.matchMedia) return () =&gt; {};
     const m = window.matchMedia(query);
-    const sync = () =&gt; setOn(m.matches);
-    sync();
     if (m.addEventListener) m.addEventListener(&quot;change&quot;, sync);
     else m.addListener(sync);
     return () =&gt; (m.removeEventListener ? m.removeEventListener(&quot;change&quot;, sync) : m.removeListener(sync));
   }, [query]);
-  return on;
+  return React.useSyncExternalStore(subscribe, () =&gt; !!window.matchMedia &amp;&amp; window.matchMedia(query).matches, () =&gt; false);
 }
 
 const Icon = ({ d }) =&gt; (
@@ -555,7 +554,7 @@ export function Sheet({
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e65605a26b" defer></script>
+<script src="../system/components/bundle.js?v=e5be6854b7" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

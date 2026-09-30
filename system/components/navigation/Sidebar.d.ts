@@ -32,4 +32,4 @@ export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   width?: number | string;
 }
 
-export declare function Sidebar(props: SidebarProps): JSX.Element;
+export declare function Sidebar(props: SidebarProps): React.JSX.Element;

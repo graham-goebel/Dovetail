@@ -35,4 +35,4 @@ export interface BottomNavProps extends React.HTMLAttributes<HTMLElement> {
   label?: string;
 }
 
-export declare function BottomNav(props: BottomNavProps): JSX.Element;
+export declare function BottomNav(props: BottomNavProps): React.JSX.Element;

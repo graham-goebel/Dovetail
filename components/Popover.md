@@ -44,7 +44,7 @@ export interface PopoverProps extends React.HTMLAttributes<HTMLSpanElement> {
   width?: number | string;
 }
 
-export declare function Popover(props: PopoverProps): JSX.Element;
+export declare function Popover(props: PopoverProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

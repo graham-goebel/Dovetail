@@ -12,4 +12,4 @@ export interface TooltipProps extends Omit<React.HTMLAttributes<HTMLSpanElement>
   delay?: number;
 }
 
-export declare function Tooltip(props: TooltipProps): JSX.Element;
+export declare function Tooltip(props: TooltipProps): React.JSX.Element;

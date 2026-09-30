@@ -52,7 +52,7 @@ export interface SliderProps extends Omit<React.HTMLAttributes<HTMLElement>, "on
   id?: string;
 }
 
-export declare function Slider(props: SliderProps): JSX.Element;
+export declare function Slider(props: SliderProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

@@ -14,4 +14,4 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
   size?: "sm" | "md" | "lg";
 }
 
-export declare function Select(props: SelectProps): JSX.Element;
+export declare function Select(props: SelectProps): React.JSX.Element;

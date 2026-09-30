@@ -14,8 +14,8 @@ export interface InlineProps extends React.HTMLAttributes<HTMLElement> {
   /** Allow children to wrap onto a new row. @default true */
   wrap?: boolean;
   /** @default "div" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Inline(props: InlineProps): JSX.Element;
+export declare function Inline(props: InlineProps): React.JSX.Element;

@@ -42,7 +42,7 @@ export interface AvatarGroupProps extends React.HTMLAttributes<HTMLSpanElement> 
   label: string;
 }
 
-export declare function AvatarGroup(props: AvatarGroupProps): JSX.Element;
+export declare function AvatarGroup(props: AvatarGroupProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

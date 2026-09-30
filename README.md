@@ -10,14 +10,15 @@ never name a colour. Swap the theme and every surface follows.
 ## Install
 
 ```sh
-npm install @dovetail-ds/react react react-dom
+npm install @dovetail-ds/react react
 ```
 
-React 18 or newer is a peer dependency.
+React 18 or newer is the only peer dependency (your app brings its own `react-dom`).
 
 ## Use
 
 ```jsx
+import "@dovetail-ds/react/fonts.css"; // optional: Geist from Google Fonts
 import "@dovetail-ds/react/styles.css";
 import { Button, Section, Stack } from "@dovetail-ds/react";
 
@@ -33,14 +34,51 @@ export function Example() {
 ```
 
 - **Styles.** Import `@dovetail-ds/react/styles.css` once, near the root. It is the whole token stack
-  in one file, and the components read its `var(--dt-*)` tokens. It loads Geist from Google
-  Fonts; to serve the fonts yourself, remove that `@import` and set `--dt-font-family-*` in
-  your theme.
+  in one file, and the components read its `var(--dt-*)` tokens. It makes no network request.
+- **Fonts.** `@dovetail-ds/react/fonts.css` loads Geist and Geist Mono from Google Fonts. Leave it
+  out to self-host them under the same family names (with `next/font` or `@font-face`), or set
+  `--dt-font-family-*` in your theme. Without either, text falls back to the system font.
+- **Server components.** Works in the Next.js App Router. Interactive components ship with
+  `"use client"`; layout and type (`Section`, `Stack`, `Heading`, `Text` and others) render on
+  the server.
 - **Dark mode.** Put `class="dark"` on `<html>`, or on any element (a `Section`, say) to
   darken just that band.
 - **Types.** Every component ships a `.d.ts` with a comment on each prop.
 - **Browsers.** Safari 16.4, Chrome and Edge 111, Firefox 113 or newer, for `oklch()` and
   `color-mix()`.
+
+## Without a bundler
+
+The package is ES modules that `import React from "react"`, so a plain HTML page needs an import
+map. This one loads the modules from esm.sh, the stylesheets from jsDelivr, and keeps a single
+copy of React:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@dovetail-ds/react/dist/fonts.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@dovetail-ds/react/dist/styles.css">
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.3.1",
+      "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?external=react",
+      "@dovetail-ds/react": "https://esm.sh/@dovetail-ds/react?external=react"
+    }
+  }
+</script>
+<div id="root"></div>
+<script type="module">
+  import React from "react";
+  import { createRoot } from "react-dom/client";
+  import { Button, Stack } from "@dovetail-ds/react";
+
+  const h = React.createElement;
+  createRoot(document.getElementById("root")).render(
+    h(Stack, { gap: "md" }, h(Button, { variant: "primary" }, "Save changes")),
+  );
+</script>
+```
+
+Pin a version (`@dovetail-ds/react@0.3.0`) in production.
 
 ## Theme it
 

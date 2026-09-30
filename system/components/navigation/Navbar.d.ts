@@ -29,4 +29,4 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
   collapseBelow?: number;
 }
 
-export declare function Navbar(props: NavbarProps): JSX.Element;
+export declare function Navbar(props: NavbarProps): React.JSX.Element;

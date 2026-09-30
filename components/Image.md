@@ -74,7 +74,7 @@ export interface ImageProps extends Omit<React.HTMLAttributes<HTMLElement>, "pla
   onFile?: (file: File) => void;
 }
 
-export declare function Image(props: ImageProps): JSX.Element;
+export declare function Image(props: ImageProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

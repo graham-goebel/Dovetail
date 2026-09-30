@@ -17,4 +17,4 @@ export interface DrawerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   label?: string;
 }
 
-export declare function Drawer(props: DrawerProps): JSX.Element | null;
+export declare function Drawer(props: DrawerProps): React.JSX.Element | null;

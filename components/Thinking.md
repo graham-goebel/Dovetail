@@ -123,7 +123,7 @@ export interface ThinkingProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   children?: React.ReactNode;
 }
 
-export declare function Thinking(props: ThinkingProps): JSX.Element;
+export declare function Thinking(props: ThinkingProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

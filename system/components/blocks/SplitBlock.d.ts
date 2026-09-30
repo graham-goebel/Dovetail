@@ -31,4 +31,4 @@ export interface SplitBlockProps extends Omit<React.HTMLAttributes<HTMLElement>,
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function SplitBlock(props: SplitBlockProps): JSX.Element;
+export declare function SplitBlock(props: SplitBlockProps): React.JSX.Element;
