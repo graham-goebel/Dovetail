@@ -4,6 +4,22 @@ Everything notable that changes in the Dovetail design system (`system/`), newes
 
 <!-- Contributors: don't edit this file directly. Add an entry to `changes/` with your pull request (`npm run change -- <slug>`); releases compile the entries into a new section here. Unreleased entries can be previewed with `npm run changelog`. -->
 
+## 0.7.0 - 2026-09-30
+
+### Added
+
+- `ChatBlock` draws a whole conversation from a `messages` array: it passes `title`, `subtitle`, `avatar`, `presence`, `onBack` and `actions` to `ChatHeader`, computes runs (`grouped` first, middle, last), inserts a `MessageDivider` where `day` changes and for `{ kind: "event" }` items, shows author names in group chats, and takes `typing`, `quickReplies`, `composer`, `onRetry`, `height`, `label` and `variant="assistant"` (a `Thinking` indicator and no presence). `ChatBlock`
+
+  A new Chat template (`previews/ChatKit.html`) composes two working prototypes from it: a customer support conversation with delivery statuses, a retry and canned replies, and an in-app assistant whose answer streams in word by word.
+
+- `Checkbox`, `Radio`, `CheckboxGroup` and `RadioGroup` take `labelPosition="start"`, which puts the label on the left and the control at the right edge of the row, so the labels in a vertical group line up with the question above them instead of indenting. It matches `Switch`'s prop of the same name. Set it on a group and every option follows. The default, `"end"`, keeps the control first as before. `Checkbox` `Radio` `CheckboxGroup` `RadioGroup`
+- `MenuBlock` lays out a restaurant's ordering page from `store`, `fulfilment` and `sections`, with a sticky category nav that scrolls to each section and follows the reader, and per-dish `quantities`, `onItemSelect`, `onItemAdd` and `onQuantityChange`; `BasketBar` is the floating "View basket" bar (`count`, `total`, `onClick`) that renders nothing while the basket is empty; `OrderTrackingBlock` shows the `eta`, `status`, a `map` slot with a drawn placeholder, a `courier` card with named Call and Message buttons, and the order's `lines` and `summary`. The new Food ordering template (FoodKit) composes them into a working phone ordering flow, from menu to delivery. `MenuBlock` `BasketBar` `OrderTrackingBlock`
+- Four store blocks compose the commerce components into page sections: `ProductGridBlock` sets `products` in a grid of `columns` (2, 3 or 4) that drops to two on a phone, with an `action` beside the header and an `emptyState`; `ProductDetailBlock` puts a gallery beside a buy box with `variants`, `quantity`, a full-width add button gated by `canAddToCart` or `soldOut`, and `details` in an accordion; `CartBlock` sets `lines` beside a sticky `summary` with `promo` and `checkoutAction`, or an empty state; and `CheckoutBlock` lays out contact, `address`, `deliveryOptions` and `payment` beside the order, which folds into a "Show order summary" disclosure below `collapseBelow` and becomes a form when you pass `onSubmit`. A new StoreKit template shows them working together, from browsing to an order confirmation. `ProductGridBlock` `ProductDetailBlock` `CartBlock` `CheckoutBlock`
+
+### Fixed
+
+- `CheckboxGroup` and `RadioGroup` now name their `role="group"` / `role="radiogroup"` element with their `label` and describe it with their `hint` or `error`, so a screen reader announces the question before the options. Before, the group had no accessible name. To make this work, `Field` takes two new optional props, `labelId` and `messageId`, which set the ids of its label and its hint or error line. Use them to wire any custom group the same way. `CheckboxGroup` `RadioGroup` `Field`
+
 ## 0.6.0 - 2026-09-30
 
 ### Added
