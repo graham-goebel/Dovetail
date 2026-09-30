@@ -4,6 +4,20 @@ Everything notable that changes in the Dovetail design system (`system/`), newes
 
 <!-- Contributors: don't edit this file directly. Add an entry to `changes/` with your pull request (`npm run change -- <slug>`); releases compile the entries into a new section here. Unreleased entries can be previewed with `npm run changelog`. -->
 
+## 0.4.0 - 2026-09-30
+
+### Added
+
+- `require("@dovetail-ds/react")` works on Node 22.12 and later: the exports map uses the `default` condition, so a Node that can `require()` an ES module loads the package without a separate CommonJS build. Older Node versions still need `import`.
+
+### Fixed
+
+- `Dialog` behaves as a modal: it is named by its `title` (`aria-labelledby`) and described by its `description`, focus moves into it when it opens, Tab and Shift+Tab stay inside, the page behind stops scrolling, and focus returns to the opener on close. A new `label` prop names a dialog with no visible title, and `style` and other `div` attributes pass through to the panel. `Drawer` gains the same focus trap and scroll lock, and is named by its title whatever type it is. `Dialog` `Drawer`
+
+  Before this, a screen reader announced the dialog with no name, focus stayed on the opener, and Tab after the last button left the modal. Consumer audits of 0.2.0 found all three.
+
+- `Tabs` skips disabled tabs from the keyboard: ArrowLeft, ArrowRight, Home and End move only among enabled tabs, wrapping at the ends, and `onChange` is never called with a disabled tab's id. Before this, ArrowRight from a tab next to a disabled one selected the disabled tab and showed its panel. `Tabs`
+
 ## 0.3.0 - 2026-09-30
 
 ### Breaking changes

@@ -1,6 +1,6 @@
 {
   "name": "@dovetail-ds/react",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "White-label React design system: token-driven components with theming and dark mode.",
   "keywords": [
     "design-system",

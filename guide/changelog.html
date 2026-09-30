@@ -60,6 +60,13 @@
 <h1 id="changelog">Changelog</h1>
 <p>Everything notable that changes in the Dovetail design system (<code>system/</code>), newest first. Versions follow <a href="https://semver.org">Semantic Versioning</a> as applied to a design system in <a href="changelog-strategy.html">docs/changelog.md</a>: a renamed or removed token, component, prop or default is a breaking change.</p>
 <p>&lt;!-- Contributors: don't edit this file directly. Add an entry to <code>changes/</code> with your pull request (<code>npm run change -- &lt;slug&gt;</code>); releases compile the entries into a new section here. Unreleased entries can be previewed with <code>npm run changelog</code>. --&gt;</p>
+<h2 id="0-4-0-2026-09-30">0.4.0 - 2026-09-30</h2>
+<h3 id="added">Added</h3>
+<ul><li><code>require(&quot;@dovetail-ds/react&quot;)</code> works on Node 22.12 and later: the exports map uses the <code>default</code> condition, so a Node that can <code>require()</code> an ES module loads the package without a separate CommonJS build. Older Node versions still need <code>import</code>.</li></ul>
+<h3 id="fixed">Fixed</h3>
+<ul><li><code>Dialog</code> behaves as a modal: it is named by its <code>title</code> (<code>aria-labelledby</code>) and described by its <code>description</code>, focus moves into it when it opens, Tab and Shift+Tab stay inside, the page behind stops scrolling, and focus returns to the opener on close. A new <code>label</code> prop names a dialog with no visible title, and <code>style</code> and other <code>div</code> attributes pass through to the panel. <code>Drawer</code> gains the same focus trap and scroll lock, and is named by its title whatever type it is. <code>Dialog</code> <code>Drawer</code></li></ul>
+<p>  Before this, a screen reader announced the dialog with no name, focus stayed on the opener, and Tab after the last button left the modal. Consumer audits of 0.2.0 found all three.</p>
+<ul><li><code>Tabs</code> skips disabled tabs from the keyboard: ArrowLeft, ArrowRight, Home and End move only among enabled tabs, wrapping at the ends, and <code>onChange</code> is never called with a disabled tab's id. Before this, ArrowRight from a tab next to a disabled one selected the disabled tab and showed its panel. <code>Tabs</code></li></ul>
 <h2 id="0-3-0-2026-09-30">0.3.0 - 2026-09-30</h2>
 <h3 id="breaking-changes">Breaking changes</h3>
 <ul><li><code>@dovetail-ds/react/styles.css</code> no longer loads Geist from Google Fonts. The font <code>@import</code> moves to a new opt-in <code>@dovetail-ds/react/fonts.css</code>, so the stylesheet makes no third-party request, works offline and under a strict CSP, and leaves self-hosting up to you. <em>(visual)</em> <code>--dt-font-family-sans</code> <code>--dt-font-family-mono</code></li></ul>
@@ -122,6 +129,9 @@
 <aside class="page-toc" aria-labelledby="page-toc-title">
   <p class="page-toc-title" id="page-toc-title">On this page</p>
   <ol>
+    <li><a href="#0-4-0-2026-09-30">0.4.0 - 2026-09-30</a></li>
+    <li class="nested"><a href="#added">Added</a></li>
+    <li class="nested"><a href="#fixed">Fixed</a></li>
     <li><a href="#0-3-0-2026-09-30">0.3.0 - 2026-09-30</a></li>
     <li class="nested"><a href="#breaking-changes">Breaking changes</a></li>
     <li class="nested"><a href="#changed">Changed</a></li>
