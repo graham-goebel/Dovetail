@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrderTrackingBlock · Dovetail</title>
+<meta name="description" content="The screen after checkout: when the order arrives, how far it has got, a map, who is bringing it, and what was ordered. Two columns when there is room (progress on the left, the order on the right), one on a phone.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">OrderTrackingBlock</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html" aria-current="page">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">OrderTrackingBlock</li></ol></nav>
+<h1>OrderTrackingBlock</h1>
+<p class="lede">The screen after checkout: when the order arrives, how far it has got, a map, who is bringing it, and what was ordered. Two columns when there is room (progress on the left, the order on the right), one on a phone.</p>
+<p class="meta">
+  <span class="pill">Blocks</span>
+  
+  <a href="../system/components/blocks/OrderTrackingBlock.jsx">OrderTrackingBlock.jsx</a>
+  <a href="../system/components/blocks/OrderTrackingBlock.d.ts">OrderTrackingBlock.d.ts</a>
+  <a href="../system/components/blocks/OrderTrackingBlock.md">OrderTrackingBlock.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="OrderTrackingBlock" data-props="[{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The page&#39;s heading: \&quot;Your order is on its way\&quot;&quot;},{&quot;name&quot;:&quot;eta&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;When it arrives, as display text: \&quot;Arriving 7:45–7:55 pm\&quot;&quot;},{&quot;name&quot;:&quot;map&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A live map&quot;},{&quot;name&quot;:&quot;help&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Under the order: a \&quot;Get help\&quot; Link, a cancel Button.&quot;},{&quot;name&quot;:&quot;orderTitle&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Your order&quot;,&quot;note&quot;:&quot;Heading over the lines.&quot;},{&quot;name&quot;:&quot;courierLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Your courier&quot;,&quot;note&quot;:&quot;The small line over the courier&#39;s name.&quot;},{&quot;name&quot;:&quot;currency&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;USD&quot;,&quot;note&quot;:&quot;ISO 4217 currency code for the lines and summary that do not set their own.&quot;},{&quot;name&quot;:&quot;locale&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;BCP 47 locale for the lines and summary that do not set their own&quot;},{&quot;name&quot;:&quot;tone&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;base&quot;,&quot;subtle&quot;,&quot;brand&quot;,&quot;brand-muted&quot;,&quot;secondary&quot;,&quot;secondary-muted&quot;],&quot;default&quot;:&quot;base&quot;,&quot;note&quot;:&quot;The band&#39;s surface, passed to Section.&quot;},{&quot;name&quot;:&quot;dark&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Scopes dark mode to this block.&quot;},{&quot;name&quot;:&quot;texture&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Layers the texture token over the tone.&quot;},{&quot;name&quot;:&quot;spacing&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;compact&quot;,&quot;none&quot;],&quot;default&quot;:&quot;default&quot;,&quot;note&quot;:&quot;Vertical padding: the section rhythm, the compact one, or none.&quot;},{&quot;name&quot;:&quot;width&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;narrow&quot;,&quot;default&quot;,&quot;wide&quot;,&quot;full&quot;],&quot;default&quot;:&quot;default&quot;,&quot;note&quot;:&quot;The inner column&#39;s width.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="OrderTrackingBlock props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/OrderTrackingBlock.html?v=fe65384cfc&amp;b=01953f82ec" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/OrderTrackingBlock.html?v=fe65384cfc&amp;b=01953f82ec" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>OrderTrackingBlock is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { OrderTrackingBlock } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>The screen after checkout: when the order arrives, how far it has got, a map, who is bringing it, and what was ordered. Two columns when there is room (progress on the left, the order on the right), one on a phone.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>Tracking a delivery or collection order in the minutes after it is placed.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>It is a parcel over days with no courier. Use <code>OrderStatus</code> with <code>CartLine</code>s and an <code>OrderSummary</code> on an order page.</li><li>It is the order history. Use a <code>List</code> of orders that each link here.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;OrderTrackingBlock
+  locale=&quot;en-US&quot;
+  title=&quot;Your order is on its way&quot;
+  eta=&quot;Arriving 7:45–7:55 pm&quot;
+  status={{ current: &quot;on-the-way&quot;, steps: [
+    { id: &quot;placed&quot;, label: &quot;Order placed&quot;, time: &quot;7:12 pm&quot; },
+    { id: &quot;preparing&quot;, label: &quot;Preparing&quot;, time: &quot;7:15 pm&quot; },
+    { id: &quot;on-the-way&quot;, label: &quot;On the way&quot;, description: &quot;Sam picked it up at 7:31 pm&quot; },
+    { id: &quot;delivered&quot;, label: &quot;Delivered&quot; },
+  ] }}
+  courier={{ name: &quot;Sam&quot;, vehicle: &quot;Blue e-bike&quot;, onCall: call, onMessage: message }}
+  lines={[{ name: &quot;Pad thai&quot;, details: [&quot;Large&quot;, &quot;Fried egg&quot;], price: 16.5, quantity: 1 }]}
+  summary={{ lines: [{ label: &quot;Subtotal&quot;, amount: 16.5 }, { label: &quot;Delivery&quot;, amount: 2.99 }], total: { amount: 19.49 } }}
+  help={&lt;Link href=&quot;/help&quot;&gt;Get help with this order&lt;/Link&gt;}
+/&gt;</code></pre>
+<h3 id="variants">Variants</h3>
+<div class="table-wrap"><table><thead><tr><th>Prop</th><th>What it is for</th></tr></thead><tbody><tr><td><code>status.status</code></td><td><code>delayed</code> or <code>cancelled</code> turn the current step amber or red with a badge; change <code>title</code> and <code>eta</code> to say what happens next.</td></tr><tr><td><code>map</code></td><td>A live map from your provider, filling the 16:10 slot. Without it the slot shows a drawn street map in the system's colours with the courier placed along the route by the current step.</td></tr><tr><td><code>courier</code></td><td>The courier's card. Leave it out before one is assigned. <code>onCall</code> and <code>onMessage</code> each add a button.</td></tr><tr><td><code>help</code></td><td>A &quot;Get help&quot; <code>Link</code>, a cancel <code>Button</code>: whatever goes under the order.</td></tr></tbody></table></div>
+<h3 id="composition">Composition</h3>
+<p>A <code>Section</code>, like every block, taking <code>tone</code>, <code>dark</code>, <code>spacing</code> and <code>width</code>. It composes <code>OrderStatus</code>, <code>Avatar</code>, <code>IconButton</code>, read-only compact <code>CartLine</code>s and <code>OrderSummary</code>. Everything is data: your app polls the order and passes the next <code>status</code>, <code>eta</code> and <code>title</code>.</p>
+<h3 id="tokens">Tokens</h3>
+<p>None of its own. The courier card reads the card tokens (<code>--dt-card-bg</code>, <code>--dt-card-fg</code>, <code>--dt-card-border-*</code>, <code>--dt-card-radius</code>) with <code>--dt-space-inset-md</code> padding; the map slot <code>--dt-radius-container</code>, <code>--dt-border-subtle</code> and <code>--dt-surface-sunken</code>. The drawn map uses <code>--dt-surface-sunken</code>, <code>--dt-surface-base</code>, <code>--dt-surface-success-subtle</code>, <code>--dt-surface-info-subtle</code>, <code>--dt-surface-inverse</code> and <code>--dt-surface-action</code>, so it follows the theme and dark mode. Columns split at the same point as <code>HeroBlock</code>, with <code>--dt-layout-module-gap</code> between rows.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>The title and ETA sit in a polite live region, so a change (&quot;Your order is running late&quot;) is announced.</li><li><code>OrderStatus</code> is an ordered list named &quot;Order progress&quot; with one step <code>aria-current=&quot;step&quot;</code>.</li><li>The Call and Message buttons are named after the courier: &quot;Call Sam&quot;, &quot;Message Sam&quot;.</li><li>The drawn map is decoration and hidden from assistive technology; the ETA and status say everything it shows. A live map you pass is yours to label.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li>Title says the state in plain words: &quot;Your order is on its way&quot;, &quot;Your order is running late&quot;.</li><li>ETA is a window, not a countdown: &quot;Arriving 7:45–7:55 pm&quot;.</li><li>The courier's first name only, and the vehicle as the courier would describe it.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>OrderTrackingBlock.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+import type { OrderStatusProps } from &quot;../commerce/OrderStatus&quot;;
+import type { CartLineProps } from &quot;../commerce/CartLine&quot;;
+import type { OrderSummaryProps } from &quot;../commerce/OrderSummary&quot;;
+
+/** The person bringing the order. */
+export interface OrderTrackingCourier {
+  /** Their first name, as the app shows it: &quot;Sam&quot;. Also goes into the Call and Message buttons' names. */
+  name: string;
+  /** Their picture. Without src, Avatar shows the initials of name. */
+  avatar?: { src?: string; name: string };
+  /** How they travel, shown under the name: &quot;Blue e-bike · KX12&quot;. */
+  vehicle?: string;
+  /** Shows a Call IconButton, named `Call ${name}`. */
+  onCall?: () =&gt; void;
+  /** Shows a Message IconButton, named `Message ${name}`. */
+  onMessage?: () =&gt; void;
+  /** Replaces the Call button's accessible name. @default `Call ${name}` */
+  callLabel?: string;
+  /** Replaces the Message button's accessible name. @default `Message ${name}` */
+  messageLabel?: string;
+}
+
+/** After checkout: the ETA and progress, a map slot, the courier and the order, in two columns when there is room. */
+export interface OrderTrackingBlockProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;title&quot;&gt; {
+  /** The page's heading: &quot;Your order is on its way&quot;. Announced politely when it changes. */
+  title?: React.ReactNode;
+  /** When it arrives, as display text: &quot;Arriving 7:45–7:55 pm&quot;. Shown under the title and announced with it. */
+  eta?: string;
+  /** The progress timeline, passed to OrderStatus. Its label defaults to &quot;Order progress&quot;. */
+  status: Omit&lt;OrderStatusProps, &quot;label&quot;&gt; &amp; { label?: string };
+  /** Shows a card with the courier's Avatar, name, vehicle, and Message and Call buttons. */
+  courier?: OrderTrackingCourier;
+  /** A live map. The system ships none: without it the slot shows an illustrated street map with the courier along the route. */
+  map?: React.ReactNode;
+  /** The order's lines, shown read-only and compact (CartLine readOnly, size sm). */
+  lines?: CartLineProps[];
+  /** The money breakdown, passed to OrderSummary. Its headingLevel defaults to one below the title. */
+  summary?: OrderSummaryProps;
+  /** Under the order: a &quot;Get help&quot; Link, a cancel Button. */
+  help?: React.ReactNode;
+  /** Heading over the lines. @default &quot;Your order&quot; */
+  orderTitle?: string;
+  /** The small line over the courier's name. @default &quot;Your courier&quot; */
+  courierLabel?: string;
+  /** Level of the title's heading; the order's headings are one below. @default 1 */
+  headingLevel?: 1 | 2 | 3 | 4 | 5;
+  /** ISO 4217 currency code for the lines and summary that do not set their own. @default &quot;USD&quot; */
+  currency?: string;
+  /** BCP 47 locale for the lines and summary that do not set their own. Set it when server rendering. */
+  locale?: string;
+  /** The band's surface, passed to Section. @default &quot;base&quot; */
+  tone?: &quot;base&quot; | &quot;subtle&quot; | &quot;brand&quot; | &quot;brand-muted&quot; | &quot;secondary&quot; | &quot;secondary-muted&quot;;
+  /** Scopes dark mode to this block. */
+  dark?: boolean;
+  /** Layers the texture token over the tone. */
+  texture?: boolean;
+  /** Vertical padding: the section rhythm, the compact one, or none. @default &quot;default&quot; */
+  spacing?: &quot;default&quot; | &quot;compact&quot; | &quot;none&quot;;
+  /** The inner column's width. @default &quot;default&quot; */
+  width?: &quot;narrow&quot; | &quot;default&quot; | &quot;wide&quot; | &quot;full&quot;;
+}
+
+export declare function OrderTrackingBlock(props: OrderTrackingBlockProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>OrderTrackingBlock.jsx</code> resolves, read from the source: 5 component, 21 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:OrderTrackingBlock">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-card-bg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-card-bg"><code>--dt-card-bg</code></a><button type="button" class="graph-btn" data-graph="--dt-card-bg" title="Show what --dt-card-bg connects to" aria-label="Graph for --dt-card-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-raised)</code></td></tr><tr id="uses-dt-card-border-color"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-card-border-color"><code>--dt-card-border-color</code></a><button type="button" class="graph-btn" data-graph="--dt-card-border-color" title="Show what --dt-card-border-color connects to" aria-label="Graph for --dt-card-border-color"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-default)</code></td></tr><tr id="uses-dt-card-border-width"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-card-border-width"><code>--dt-card-border-width</code></a><button type="button" class="graph-btn" data-graph="--dt-card-border-width" title="Show what --dt-card-border-width connects to" aria-label="Graph for --dt-card-border-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-width-default)</code></td></tr><tr id="uses-dt-card-fg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-card-fg"><code>--dt-card-fg</code></a><button type="button" class="graph-btn" data-graph="--dt-card-fg" title="Show what --dt-card-fg connects to" aria-label="Graph for --dt-card-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-card-radius"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-card-radius"><code>--dt-card-radius</code></a><button type="button" class="graph-btn" data-graph="--dt-card-radius" title="Show what --dt-card-radius connects to" aria-label="Graph for --dt-card-radius"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-radius-container)</code></td></tr><tr id="uses-dt-border-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-default"><code>--dt-border-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-default" title="Show what --dt-border-default connects to" aria-label="Graph for --dt-border-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-200)</code></td></tr><tr id="uses-dt-border-subtle"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-subtle"><code>--dt-border-subtle</code></a><button type="button" class="graph-btn" data-graph="--dt-border-subtle" title="Show what --dt-border-subtle connects to" aria-label="Graph for --dt-border-subtle"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-layout-module-gap"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-layout-module-gap"><code>--dt-layout-module-gap</code></a><button type="button" class="graph-btn" data-graph="--dt-layout-module-gap" title="Show what --dt-layout-module-gap connects to" aria-label="Graph for --dt-layout-module-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-space-stack-xl)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-16)</code></td></tr><tr id="uses-dt-size-control-lg"><th scope="row"><span class="token-cell"><code>--dt-size-control-lg</code><button type="button" class="graph-btn" data-graph="--dt-size-control-lg" title="Show what --dt-size-control-lg connects to" aria-label="Graph for --dt-size-control-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-size-icon-md"><th scope="row"><span class="token-cell"><code>--dt-size-icon-md</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-md" title="Show what --dt-size-icon-md connects to" aria-label="Graph for --dt-size-icon-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-5)</code></td></tr><tr id="uses-dt-space-inline-2xl"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-2xl"><code>--dt-space-inline-2xl</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-2xl" title="Show what --dt-space-inline-2xl connects to" aria-label="Graph for --dt-space-inline-2xl"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-md" title="Show what --dt-space-inset-md connects to" aria-label="Graph for --dt-space-inset-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-2xs" title="Show what --dt-space-stack-2xs connects to" aria-label="Graph for --dt-space-stack-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-stack-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-lg"><code>--dt-space-stack-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-lg" title="Show what --dt-space-stack-lg connects to" aria-label="Graph for --dt-space-stack-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-stack-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-md"><code>--dt-space-stack-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-md" title="Show what --dt-space-stack-md connects to" aria-label="Graph for --dt-space-stack-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-surface-action"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-action"><code>--dt-surface-action</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-action" title="Show what --dt-surface-action connects to" aria-label="Graph for --dt-surface-action"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-surface-base"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-base"><code>--dt-surface-base</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-base" title="Show what --dt-surface-base connects to" aria-label="Graph for --dt-surface-base"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-surface-info-subtle"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-info-subtle"><code>--dt-surface-info-subtle</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-info-subtle" title="Show what --dt-surface-info-subtle connects to" aria-label="Graph for --dt-surface-info-subtle"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-cyan-050)</code></td></tr><tr id="uses-dt-surface-inverse"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-inverse"><code>--dt-surface-inverse</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-inverse" title="Show what --dt-surface-inverse connects to" aria-label="Graph for --dt-surface-inverse"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr><tr id="uses-dt-surface-success-subtle"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-success-subtle"><code>--dt-surface-success-subtle</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-success-subtle" title="Show what --dt-surface-success-subtle connects to" aria-label="Graph for --dt-surface-success-subtle"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-green-050)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-sunken" title="Show what --dt-surface-sunken connects to" aria-label="Graph for --dt-surface-sunken"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Section } from &quot;../primitives/Section.jsx&quot;;
+import { Heading } from &quot;../typography/Heading.jsx&quot;;
+import { Text } from &quot;../typography/Text.jsx&quot;;
+import { AspectRatio } from &quot;../content/AspectRatio.jsx&quot;;
+import { Avatar } from &quot;../display/Avatar.jsx&quot;;
+import { IconButton } from &quot;../actions/IconButton.jsx&quot;;
+import { OrderStatus } from &quot;../commerce/OrderStatus.jsx&quot;;
+import { CartLine } from &quot;../commerce/CartLine.jsx&quot;;
+import { OrderSummary } from &quot;../commerce/OrderSummary.jsx&quot;;
+
+const ICONS = {
+  phone: [&quot;M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z&quot;],
+  message: [&quot;M7.9 20A9 9 0 1 0 4 16.1L2 22Z&quot;],
+};
+
+function Icon({ name }) {
+  return (
+    &lt;svg
+      viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;
+      fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot;
+      style={{ display: &quot;block&quot;, width: &quot;var(--dt-size-icon-md)&quot;, height: &quot;var(--dt-size-icon-md)&quot; }}
+    &gt;
+      {ICONS[name].map((d) =&gt; &lt;path key={d} d={d} /&gt;)}
+    &lt;/svg&gt;
+  );
+}
+
+/* The route on the placeholder map, store to door, and a point along it. */
+const ROUTE = [[44, 164], [44, 116], [132, 116], [132, 68], [236, 68], [236, 40], [276, 40]];
+function along(p) {
+  const segs = ROUTE.slice(1).map((pt, i) =&gt; [ROUTE[i], pt, Math.hypot(pt[0] - ROUTE[i][0], pt[1] - ROUTE[i][1])]);
+  let left = Math.max(0, Math.min(1, p)) * segs.reduce((s, x) =&gt; s + x[2], 0);
+  for (const [a, b, len] of segs) {
+    if (left &lt;= len) return [a[0] + ((b[0] - a[0]) * left) / len, a[1] + ((b[1] - a[1]) * left) / len];
+    left -= len;
+  }
+  return ROUTE[ROUTE.length - 1];
+}
+
+/* A drawn street map in the system's colours, standing in for a live map.
+   It says nothing a sighted reader needs, so it is hidden from assistive
+   technology; the status and the ETA carry the information. */
+function MapPlaceholder({ progress }) {
+  const [cx, cy] = along(progress);
+  const pts = ROUTE.map((p) =&gt; p.join(&quot;,&quot;)).join(&quot; &quot;);
+  return (
+    &lt;svg viewBox=&quot;0 0 320 200&quot; preserveAspectRatio=&quot;xMidYMid slice&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;
+      style={{ position: &quot;absolute&quot;, inset: 0, width: &quot;100%&quot;, height: &quot;100%&quot;, display: &quot;block&quot; }}&gt;
+      &lt;rect width=&quot;320&quot; height=&quot;200&quot; style={{ fill: &quot;var(--dt-surface-sunken)&quot; }} /&gt;
+      &lt;rect x=&quot;160&quot; y=&quot;96&quot; width=&quot;96&quot; height=&quot;64&quot; rx=&quot;8&quot; style={{ fill: &quot;var(--dt-surface-success-subtle)&quot; }} /&gt;
+      &lt;path d=&quot;M0 184 C 80 176, 120 196, 200 188 S 300 176, 320 182 L 320 200 L 0 200 Z&quot; style={{ fill: &quot;var(--dt-surface-info-subtle)&quot; }} /&gt;
+      &lt;g style={{ stroke: &quot;var(--dt-surface-base)&quot;, fill: &quot;none&quot;, strokeLinecap: &quot;round&quot; }}&gt;
+        &lt;path d=&quot;M0 116 H320 M0 68 H320 M44 0 V200 M132 0 V200 M236 0 V200&quot; strokeWidth=&quot;12&quot; /&gt;
+        &lt;path d=&quot;M0 24 H320 M0 150 H320 M88 0 V200 M184 0 V200 M284 0 V200&quot; strokeWidth=&quot;5&quot; /&gt;
+      &lt;/g&gt;
+      &lt;polyline points={pts} fill=&quot;none&quot; strokeWidth=&quot;5&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; style={{ stroke: &quot;var(--dt-surface-action)&quot; }} /&gt;
+      &lt;circle cx=&quot;44&quot; cy=&quot;164&quot; r=&quot;9&quot; style={{ fill: &quot;var(--dt-surface-inverse)&quot; }} /&gt;
+      &lt;circle cx=&quot;44&quot; cy=&quot;164&quot; r=&quot;3.5&quot; style={{ fill: &quot;var(--dt-surface-base)&quot; }} /&gt;
+      &lt;path d=&quot;M276 22 a12 12 0 0 1 12 12 c0 9 -12 20 -12 20 s-12 -11 -12 -20 a12 12 0 0 1 12 -12 z&quot; style={{ fill: &quot;var(--dt-surface-action)&quot; }} /&gt;
+      &lt;circle cx=&quot;276&quot; cy=&quot;34&quot; r=&quot;4.5&quot; style={{ fill: &quot;var(--dt-surface-base)&quot; }} /&gt;
+      &lt;circle cx={cx} cy={cy} r=&quot;11&quot; style={{ fill: &quot;var(--dt-surface-base)&quot;, stroke: &quot;var(--dt-surface-action)&quot; }} strokeWidth=&quot;3&quot; /&gt;
+      &lt;circle cx={cx} cy={cy} r=&quot;4.5&quot; style={{ fill: &quot;var(--dt-surface-action)&quot; }} /&gt;
+    &lt;/svg&gt;
+  );
+}
+
+/* After checkout: when it arrives, where it has got to, who is bringing it,
+   and what was ordered. Two columns when there is room (progress on the
+   left, the order on the right), one on a phone. */
+export function OrderTrackingBlock({
+  title,
+  eta,
+  status,
+  courier,
+  map,
+  lines = [],
+  summary,
+  help,
+  orderTitle = &quot;Your order&quot;,
+  courierLabel = &quot;Your courier&quot;,
+  headingLevel = 1,
+  currency,
+  locale,
+  tone = &quot;base&quot;,
+  dark,
+  texture,
+  spacing = &quot;default&quot;,
+  width = &quot;default&quot;,
+  ...rest
+}) {
+  const level = Math.min(Math.max(Math.round(headingLevel) || 1, 1), 5);
+  const steps = (status &amp;&amp; status.steps) || [];
+  const at = Math.max(0, steps.findIndex((s) =&gt; s.id === (status &amp;&amp; status.current)));
+  const progress = steps.length &gt; 1 ? at / (steps.length - 1) : 0;
+  const card = {
+    boxSizing: &quot;border-box&quot;, minWidth: 0,
+    padding: &quot;var(--dt-space-inset-md)&quot;,
+    background: &quot;var(--dt-card-bg)&quot;, color: &quot;var(--dt-card-fg)&quot;,
+    border: &quot;var(--dt-card-border-width) solid var(--dt-card-border-color)&quot;,
+    borderRadius: &quot;var(--dt-card-radius)&quot;,
+  };
+  const round = { boxShadow: &quot;inset 0 0 0 var(--dt-border-width-default) var(--dt-border-default)&quot; };
+
+  return (
+    &lt;Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}&gt;
+      &lt;div style={{ display: &quot;grid&quot;, gridTemplateColumns: &quot;repeat(auto-fit, minmax(min(100%, 340px), 1fr))&quot;, gap: &quot;var(--dt-layout-module-gap) var(--dt-space-inline-2xl)&quot;, alignItems: &quot;start&quot; }}&gt;
+        &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-lg)&quot;, minWidth: 0 }}&gt;
+          {(title || eta) &amp;&amp; (
+            &lt;div aria-live=&quot;polite&quot; style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-2xs)&quot; }}&gt;
+              {title &amp;&amp; &lt;Heading level={level} size=&quot;heading-lg&quot; balance&gt;{title}&lt;/Heading&gt;}
+              {eta &amp;&amp; &lt;Text variant=&quot;lead&quot; tone=&quot;secondary&quot;&gt;{eta}&lt;/Text&gt;}
+            &lt;/div&gt;
+          )}
+          {status &amp;&amp; &lt;OrderStatus label=&quot;Order progress&quot; {...status} /&gt;}
+          &lt;AspectRatio
+            ratio={1.6}
+            style={{ borderRadius: &quot;var(--dt-radius-container)&quot;, border: &quot;var(--dt-border-width-default) solid var(--dt-border-subtle)&quot;, background: &quot;var(--dt-surface-sunken)&quot; }}
+          &gt;
+            {map || &lt;MapPlaceholder progress={progress} /&gt;}
+          &lt;/AspectRatio&gt;
+          {courier &amp;&amp; (
+            &lt;div style={{ ...card, display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot; }}&gt;
+              &lt;Avatar name={(courier.avatar &amp;&amp; courier.avatar.name) || courier.name} src={courier.avatar &amp;&amp; courier.avatar.src} size=&quot;lg&quot; /&gt;
+              {/* The name keeps room for a few words; below that the buttons wrap under it. */}
+              &lt;div style={{ flex: &quot;1 1 calc(3 * var(--dt-size-control-lg))&quot;, minWidth: 0, display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;
+                &lt;Text variant=&quot;small&quot; tone=&quot;tertiary&quot;&gt;{courierLabel}&lt;/Text&gt;
+                &lt;Text variant=&quot;label&quot; weight=&quot;semibold&quot; style={{ overflowWrap: &quot;anywhere&quot; }}&gt;{courier.name}&lt;/Text&gt;
+                {courier.vehicle &amp;&amp; &lt;Text variant=&quot;small&quot; tone=&quot;secondary&quot; style={{ overflowWrap: &quot;anywhere&quot; }}&gt;{courier.vehicle}&lt;/Text&gt;}
+              &lt;/div&gt;
+              {(courier.onCall || courier.onMessage) &amp;&amp; (
+                &lt;div style={{ flex: &quot;none&quot;, display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, marginInlineStart: &quot;auto&quot; }}&gt;
+                  {courier.onMessage &amp;&amp; (
+                    &lt;IconButton label={courier.messageLabel || `Message ${courier.name}`} onClick={courier.onMessage} style={round}&gt;&lt;Icon name=&quot;message&quot; /&gt;&lt;/IconButton&gt;
+                  )}
+                  {courier.onCall &amp;&amp; (
+                    &lt;IconButton label={courier.callLabel || `Call ${courier.name}`} onClick={courier.onCall} style={round}&gt;&lt;Icon name=&quot;phone&quot; /&gt;&lt;/IconButton&gt;
+                  )}
+                &lt;/div&gt;
+              )}
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+
+        &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-md)&quot;, minWidth: 0 }}&gt;
+          {lines.length &gt; 0 &amp;&amp; (
+            &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-xs)&quot; }}&gt;
+              &lt;Heading level={level + 1} size=&quot;heading-sm&quot;&gt;{orderTitle}&lt;/Heading&gt;
+              &lt;ul role=&quot;list&quot; style={{ listStyle: &quot;none&quot;, margin: 0, padding: 0, minWidth: 0 }}&gt;
+                {lines.map((line, i) =&gt; (
+                  &lt;li key={line.name + i} style={{ minWidth: 0 }}&gt;
+                    &lt;CartLine currency={currency} locale={locale} size=&quot;sm&quot; {...line} readOnly divider={i &lt; lines.length - 1} /&gt;
+                  &lt;/li&gt;
+                ))}
+              &lt;/ul&gt;
+            &lt;/div&gt;
+          )}
+          {summary &amp;&amp; &lt;OrderSummary currency={currency} locale={locale} headingLevel={level + 1} {...summary} /&gt;}
+          {help &amp;&amp; &lt;div style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;, alignItems: &quot;center&quot; }}&gt;{help}&lt;/div&gt;}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/Section&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#variants">Variants</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">OrderTrackingBlock</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="OrderTrackingBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="OrderTrackingBlock.md" download="OrderTrackingBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="OrderTrackingBlock.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { OrderTrackingBlock } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/blocks/OrderTrackingBlock.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy OrderTrackingBlock.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/blocks/OrderTrackingBlock.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View OrderTrackingBlock.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/blocks/OrderTrackingBlock.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy OrderTrackingBlock.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/blocks/OrderTrackingBlock.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View OrderTrackingBlock.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FOrderTrackingBlock.md%3A%20the%20%22OrderTrackingBlock%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="OrderTrackingBlock" data-md="OrderTrackingBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=01953f82ec" defer></script>
+<script src="../assets/specimens.js?v=6cc848c41d" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=b4fcd21e42" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/site.js?v=544ba24909" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

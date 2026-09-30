@@ -1,0 +1,400 @@
+<!-- @dsCard group="Templates" height=1920 width=1280 subtitle="Store — Browse, product, cart and checkout, composed from Dovetail blocks" page -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;background:var(--dt-surface-base)}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var Icon = function (p) { return window.DovetailTemplateIcons.Icon(p); };
+  var F = React.Fragment;
+  var LOCALE = "en-US";
+
+  /* ---------------------------------------------------------------- data */
+
+  /* Flat product shots as inline SVG, drawn the way the ProductCard card
+     draws them, so the page fetches no photos. A view turns, crops or looks
+     down on the same object, for the product gallery. */
+  var SHAPES = {
+    mug: "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/><path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='F' stroke-width='5'/><rect x='30' y='34' width='36' height='43' rx='5' fill='F'/>",
+    bottle: "<ellipse cx='50' cy='83' rx='17' ry='3' fill='#000' opacity='.08'/><rect x='44' y='14' width='12' height='10' rx='2' fill='F'/><path d='M42 24h16v8c6 3 8 7 8 12v34a4 4 0 0 1-4 4H38a4 4 0 0 1-4-4V44c0-5 2-9 8-12z' fill='F'/>",
+    tote: "<ellipse cx='50' cy='84' rx='28' ry='3' fill='#000' opacity='.08'/><path d='M38 38V30a12 12 0 0 1 24 0v8' fill='none' stroke='F' stroke-width='4'/><path d='M26 38h48l-4 44H30z' fill='F'/>",
+    lamp: "<ellipse cx='50' cy='85' rx='18' ry='3' fill='#000' opacity='.08'/><path d='M34 18h32l8 26H26z' fill='F'/><rect x='48' y='44' width='4' height='35' fill='F'/><rect x='36' y='79' width='28' height='5' rx='2' fill='F'/>",
+    bowl: "<ellipse cx='50' cy='74' rx='26' ry='3' fill='#000' opacity='.08'/><path d='M20 46h60a30 26 0 0 1-60 0z' fill='F'/>",
+    candle: "<ellipse cx='50' cy='81' rx='18' ry='3' fill='#000' opacity='.08'/><rect x='34' y='41' width='32' height='40' rx='4' fill='F'/><path d='M50 25c4 5 4 9 0 13-4-4-4-8 0-13z' fill='#e8a33d'/>",
+  };
+  function art(kind, bg, fg, view) {
+    var g = SHAPES[kind].replace(/F/g, fg);
+    if (view === "mirror") g = "<g transform='translate(100 0) scale(-1 1)'>" + g + "</g>";
+    if (view === "zoom") g = "<g transform='translate(-58 -52) scale(2.1)'>" + g + "</g>";
+    if (view === "pair") g = "<g transform='translate(-4 16) scale(.68)'>" + g + "</g><g transform='translate(36 16) scale(.68)'>" + SHAPES[kind].replace(/F/g, "#b5654a") + "</g>";
+    return "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" + g + "</svg>");
+  }
+
+  /* Colours are product data, so they are literal here: they describe the
+     glaze, not the interface. */
+  var PRODUCTS = [
+    { id: "mug", name: "Stoneware mug", kind: "mug", bg: "#e9e4dc", price: 24, rating: { value: 4.5, count: 128 }, badge: "Bestseller",
+      blurb: "A heavy, straight-sided mug with a wide handle. Every glaze pools a little differently, so no two are quite alike.",
+      colours: [["fern", "Fern", "#5b7a6a"], ["harbour", "Harbour", "#3d5a80"], ["terracotta", "Terracotta", "#b5654a"]],
+      sizes: [["regular", "Regular", "350 ml", 0], ["large", "Large", "450 ml", 4]] },
+    { id: "carafe", name: "Glass carafe", kind: "bottle", bg: "#e4e7ee", price: 38, compareAt: 48, badge: "-20%", rating: { value: 4.5, count: 64 },
+      blurb: "Mouth-blown glass with a narrow neck that pours without dripping. Holds a litre.",
+      colours: [["harbour", "Harbour", "#3d5a80"], ["clear", "Smoke", "#8f9aa6"]] },
+    { id: "tote", name: "Canvas tote", kind: "tote", bg: "#efe3dc", price: 32, badge: "New",
+      blurb: "Heavy cotton canvas with leather handles, deep enough for a week of groceries.",
+      colours: [["terracotta", "Terracotta", "#b5654a"], ["fern", "Fern", "#5b7a6a"], ["chalk", "Chalk", "#f4f1ea"]] },
+    { id: "lamp", name: "Desk lamp", kind: "lamp", bg: "#f1ece0", price: 129, rating: { value: 4, count: 36 },
+      blurb: "A spun-brass shade on a weighted base, with a warm LED bulb included.",
+      colours: [["brass", "Brass", "#b08d3e"], ["black", "Black", "#2b2b2b"]] },
+    { id: "bowl", name: "Serving bowl", kind: "bowl", bg: "#e4e7ee", price: 42, rating: { value: 5, count: 21 },
+      blurb: "Wide and shallow, for salads, fruit or a loaf of bread. Glazed on the inside, bare clay underneath.",
+      colours: [["harbour", "Harbour", "#3d5a80"], ["fern", "Fern", "#5b7a6a"]] },
+    { id: "candle", name: "Soy candle", kind: "candle", bg: "#ece8f1", price: 18, soldOut: true,
+      blurb: "Poured by hand into a reusable glass. About 40 hours of burn time.",
+      colours: [["cedar", "Cedar and smoke", "#8a6fa8"]] },
+    { id: "bottle", name: "Water bottle", kind: "bottle", bg: "#e9e4dc", price: 28,
+      blurb: "Double-walled steel that keeps water cold all day and fits a cup holder.",
+      colours: [["fern", "Fern", "#5b7a6a"], ["terracotta", "Terracotta", "#b5654a"]] },
+    { id: "mugs", name: "Mug set of two", kind: "mug", bg: "#e9e4dc", price: 44, view: "pair",
+      blurb: "Two stoneware mugs in contrasting glazes, boxed as a gift.",
+      colours: [["fern", "Fern and terracotta", "#5b7a6a"]] },
+  ];
+  var byId = function (id) { return PRODUCTS.filter(function (p) { return p.id === id; })[0]; };
+  var colourOf = function (p, c) { return p.colours.filter(function (x) { return x[0] === c; })[0] || p.colours[0]; };
+  var thumb = function (p, c) { return art(p.kind, p.bg, colourOf(p, c)[2], p.view); };
+
+  var FREE_SHIPPING = 75;
+  var TAX_RATE = 0.08;
+  var round = function (n) { return Math.round(n * 100) / 100; };
+
+  /* The cart's arithmetic lives here, in the page, not in the blocks: they
+     only show the figures they are given. */
+  function totals(lines, promo, deliveryPrice) {
+    var subtotal = round(lines.reduce(function (s, l) { return s + l.price * l.quantity; }, 0));
+    var discount = promo ? round(subtotal * 0.1) : 0;
+    var shipping = deliveryPrice != null ? deliveryPrice : (subtotal - discount >= FREE_SHIPPING || !lines.length ? 0 : 6);
+    var tax = round((subtotal - discount) * TAX_RATE);
+    return { subtotal: subtotal, discount: discount, shipping: shipping, tax: tax, total: round(subtotal - discount + shipping + tax) };
+  }
+  function summaryLines(t, promo, shippingHint) {
+    return [{ label: "Subtotal", amount: t.subtotal }]
+      .concat(promo ? [{ label: "Discount (" + promo + ")", amount: t.discount, kind: "discount" }] : [])
+      .concat([{ label: "Shipping", amount: t.shipping, hint: shippingHint }, { label: "Tax", amount: t.tax, hint: "8% sales tax" }]);
+  }
+
+  /* ---------------------------------------------------------------- chrome */
+
+  function BagIcon() {
+    return e("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+      style: { width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)" } },
+      e("path", { d: "M6 7h12l1 13H5z" }), e("path", { d: "M9 7V6a3 3 0 0 1 6 0v1" }));
+  }
+
+  function Wordmark() {
+    return e("span", { style: { fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)", fontWeight: "var(--dt-font-weight-semibold)", letterSpacing: "var(--dt-text-heading-xs-tracking)", color: "var(--dt-text-primary)", whiteSpace: "nowrap" } }, "Kiln & Co.");
+  }
+
+  function CartButton(props) {
+    var n = props.count;
+    return e("span", { style: { position: "relative", display: "inline-flex" } },
+      e(NS.IconButton, { label: n ? "Cart, " + n + (n === 1 ? " item" : " items") : "Cart, empty", onClick: props.onClick }, e(BagIcon)),
+      n > 0 && e(NS.Badge, { tone: "primary", variant: "solid", "aria-hidden": true,
+        style: { position: "absolute", insetBlockStart: 0, insetInlineEnd: 0, transform: "translate(35%, -25%)", pointerEvents: "none", fontVariantNumeric: "tabular-nums" } }, String(n)));
+  }
+
+  /* The prototype's own control, above the store: which screen is showing.
+     The store's navigation (grid, product, cart, checkout) switches it too. */
+  var SCREENS = [
+    { id: "browse", label: "Browse" }, { id: "product", label: "Product" }, { id: "cart", label: "Cart" },
+    { id: "checkout", label: "Checkout" }, { id: "placed", label: "Order placed" },
+  ];
+  function ScreenBar(props) {
+    var strip = React.useRef(null);
+    /* On a phone the row scrolls; keep the chosen screen in view. */
+    React.useEffect(function () {
+      var el = strip.current && strip.current.querySelector('[aria-selected="true"]');
+      if (el && strip.current.scrollWidth > strip.current.clientWidth) strip.current.scrollLeft = el.offsetLeft - strip.current.clientWidth / 2 + el.offsetWidth / 2;
+    }, [props.value]);
+    return e("div", { style: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--dt-space-inline-sm)", padding: "var(--dt-space-inset-xs) var(--dt-space-gutter)", background: "var(--dt-surface-subtle)", borderBlockEnd: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+      e(NS.Text, { as: "span", variant: "fine" }, "Screen"),
+      e("div", { ref: strip, style: { position: "relative", minWidth: 0, maxWidth: "100%", overflowX: "auto" } },
+        e(NS.Tabs, { label: "Screen", variant: "pill", value: props.value, onChange: props.onChange, tabs: SCREENS })));
+  }
+
+  /* ---------------------------------------------------------------- screens */
+
+  function cards(list, onAdd) {
+    return list.map(function (p) {
+      var c = p.colours[0];
+      return { id: p.id, name: p.name, href: "#product-" + p.id, price: p.price, compareAt: p.compareAt, rating: p.rating, locale: LOCALE,
+        badge: p.soldOut ? undefined : p.badge, soldOut: p.soldOut,
+        subtitle: p.colours.length > 1 ? p.colours.length + " colours" : c[1],
+        swatches: p.colours.length > 1 ? p.colours.map(function (x) { return { name: x[1], color: x[2] }; }) : undefined,
+        image: { src: thumb(p, c[0]), alt: "" },
+        onQuickAdd: p.sizes ? undefined : function () { onAdd(p, c[0], null, 1); },
+      };
+    });
+  }
+
+  /* A click on a product's link opens it in the prototype instead of
+     following the href. */
+  function openOnClick(open) {
+    return function (ev) {
+      var a = ev.target.closest && ev.target.closest('a[href^="#product-"]');
+      if (!a) return;
+      ev.preventDefault();
+      open(a.getAttribute("href").slice(9));
+    };
+  }
+
+  function Browse(props) {
+    return e("div", { onClick: openOnClick(props.open) },
+      e(NS.HeroBlock, {
+        tone: "subtle", spacing: "compact",
+        eyebrow: "The autumn collection",
+        title: "Made slowly. Used every day.",
+        lead: "Stoneware, glass and brass from small workshops, made to be used, washed and used again.",
+        actions: e(F, null,
+          e(NS.Button, { onClick: function () { props.open("mug"); }, iconEnd: e(Icon, { name: "arrowRight", size: "sm" }) }, "Shop the mug"),
+          e(NS.Button, { variant: "secondary", onClick: function () { var el = document.getElementById("store-grid"); if (el) el.scrollIntoView({ block: "start" }); } }, "See everything")),
+        media: e(NS.Image, { src: art("mug", "#e9e4dc", "#5b7a6a", "pair"), alt: "Two stoneware mugs, fern and terracotta", ratio: "4:3" }),
+      }, e(NS.Inline, { gap: "xs", wrap: true }, e(NS.Tag, null, "Free shipping over $75"), e(NS.Tag, null, "30-day returns"))),
+      e(NS.ProductGridBlock, {
+        id: "store-grid",
+        eyebrow: "Shop", title: "Everything in the studio", lead: "Eight things we make, in the glazes we fire this season.",
+        action: e(NS.Link, { href: "#all", underline: "hover", onClick: function (ev) { ev.preventDefault(); } }, "View all"),
+        products: cards(PRODUCTS, props.add),
+      }));
+  }
+
+  function Product(props) {
+    var p = byId(props.id) || PRODUCTS[0];
+    var c = React.useState(p.colours[0][0]), colour = c[0], setColour = c[1];
+    var s = React.useState(""), size = s[0], setSize = s[1];
+    var q = React.useState(1), qty = q[0], setQty = q[1];
+    var a = React.useState(0), added = a[0], setAdded = a[1];
+    var col = colourOf(p, colour)[2];
+    var sizeRow = p.sizes && p.sizes.filter(function (x) { return x[0] === size; })[0];
+    var price = p.price + (sizeRow ? sizeRow[3] : 0);
+    var needSize = !!p.sizes && !size;
+    var variants = [{ label: "Colour", variant: "swatches", value: colour, onChange: setColour,
+      options: p.colours.map(function (x) { return { value: x[0], label: x[1], color: x[2] }; }) }];
+    if (p.sizes) variants.push({ label: "Size", value: size || undefined, onChange: setSize,
+      options: p.sizes.map(function (x) { return { value: x[0], label: x[1], note: x[2] + (x[3] ? ", +$" + x[3] : "") }; }) });
+    var note = p.soldOut ? "Back in November."
+      : needSize ? "Choose a size to add it to your cart."
+      : added ? e(F, null, "Added to your cart. ", e(NS.Link, { href: "#cart", onClick: function (ev) { ev.preventDefault(); props.go("cart"); } }, "View cart"))
+      : "Free shipping on orders over $75.";
+    var more = PRODUCTS.filter(function (x) { return x.id !== p.id && !x.soldOut; }).slice(0, 4);
+    return e("div", null,
+      e("div", { style: { padding: "var(--dt-space-stack-md) var(--dt-space-gutter) 0", maxWidth: "var(--dt-size-container-default)", marginInline: "auto", boxSizing: "border-box" } },
+        e(NS.Text, { as: "span", variant: "small" }, e(NS.Link, { href: "#shop", underline: "hover", onClick: function (ev) { ev.preventDefault(); props.go("browse"); } }, "← Back to the shop"))),
+      e(NS.ProductDetailBlock, {
+        spacing: "compact", locale: LOCALE,
+        images: [
+          { src: art(p.kind, p.bg, col, p.view), alt: p.name + ", front" },
+          { src: art(p.kind, p.bg, col, "mirror"), alt: p.name + ", from the other side" },
+          { src: art(p.kind, p.bg, col, "zoom"), alt: "Close-up of the finish" },
+        ],
+        name: p.name, subtitle: colourOf(p, colour)[1], price: price, compareAt: p.compareAt, rating: p.rating,
+        badges: p.badge && !p.soldOut ? e(NS.Badge, { tone: "success" }, p.badge) : undefined,
+        description: p.blurb, variants: variants,
+        quantity: qty, onQuantityChange: setQty, maxQuantity: 9,
+        soldOut: p.soldOut, canAddToCart: !needSize, addToCartNote: note,
+        onAddToCart: function () { props.add(p, colour, sizeRow, qty, price); setAdded(added + qty); },
+        details: [
+          { title: "Materials and care", content: "Made by hand in our studio. Dishwasher safe unless the label says otherwise; brass is best wiped with a dry cloth." },
+          { title: "Shipping", content: "Free on orders over $75, otherwise $6. Ships in 1–2 working days, packed without plastic." },
+          { title: "Returns", content: "Send it back unused within 30 days for a full refund. We pay return postage." },
+        ],
+      }),
+      e("div", { onClick: openOnClick(props.open) },
+        e(NS.ProductGridBlock, { tone: "subtle", spacing: "compact", title: "You may also like", products: cards(more, props.add) })));
+  }
+
+  function lineProps(l, cart) {
+    var p = byId(l.productId);
+    return { id: l.id, name: p.name, href: "#product-" + p.id, details: [colourOf(p, l.colour)[1]].concat(l.size ? [l.size] : []),
+      price: l.price, quantity: l.quantity, lineTotal: round(l.price * l.quantity), locale: LOCALE,
+      image: { src: thumb(p, l.colour), alt: "" },
+      onQuantityChange: cart ? function (n) { cart.setQty(l.id, n); } : undefined,
+      onRemove: cart ? function () { cart.remove(l.id); } : undefined, maxQuantity: 9 };
+  }
+
+  function Cart(props) {
+    var lines = props.lines;
+    var t = totals(lines, props.promo);
+    var c = React.useState(""), code = c[0], setCode = c[1];
+    var er = React.useState(""), error = er[0], setError = er[1];
+    var count = lines.reduce(function (s, l) { return s + l.quantity; }, 0);
+    return e("div", { onClick: openOnClick(props.open) },
+      e(NS.CartBlock, {
+        lead: count ? count + (count === 1 ? " item" : " items") : undefined,
+        action: e(NS.Link, { href: "#shop", underline: "hover", onClick: function (ev) { ev.preventDefault(); props.go("browse"); } }, "Continue shopping"),
+        lines: lines.map(function (l) { return lineProps(l, props); }),
+        summary: {
+          locale: LOCALE, lines: summaryLines(t, props.promo, t.shipping ? "Free over $75" : undefined), total: { amount: t.total },
+          freeShippingProgress: { current: t.subtotal - t.discount, threshold: FREE_SHIPPING },
+        },
+        promo: {
+          value: code, onChange: function (v) { setCode(v); setError(""); }, error: error || undefined,
+          applied: props.promo ? { code: props.promo, description: "10% off your order" } : undefined,
+          onApply: function (v) {
+            if (v.toUpperCase() === "HELLO10") { props.setPromo("HELLO10"); setError(""); }
+            else setError("That code isn’t valid. Try HELLO10.");
+          },
+          onRemove: function () { props.setPromo(null); setCode(""); },
+        },
+        checkoutAction: e(NS.Button, { size: "lg", fullWidth: true, onClick: function () { props.go("checkout"); } }, "Check out"),
+        emptyState: e(NS.EmptyState, { title: "Your cart is empty", description: "Mugs, bowls and lamps, made in small batches.",
+          action: e(NS.Button, { variant: "secondary", onClick: function () { props.go("browse"); } }, "Browse the shop") }),
+      }));
+  }
+
+  var DELIVERY = [
+    { id: "standard", label: "Standard", detail: "3–5 working days", eta: "Expected in 3–5 days" },
+    { id: "express", label: "Express", detail: "Next working day, order by 2pm", price: 15, eta: "Expected tomorrow" },
+    { id: "pickup", label: "Pick up in the studio", detail: "Ready tomorrow at 14 Harbour Street", price: 0, eta: "Tomorrow, 14 Harbour Street" },
+  ];
+
+  function Checkout(props) {
+    var lines = props.lines;
+    var em = React.useState("ana.ribeiro@example.com"), email = em[0], setEmail = em[1];
+    var ad = React.useState({ name: "Ana Ribeiro", line1: "221 Harbour Street", line2: "", city: "Portland", region: "Oregon", postalCode: "97204", country: "United States", phone: "" }), address = ad[0], setAddress = ad[1];
+    var dl = React.useState("standard"), delivery = dl[0], setDelivery = dl[1];
+    var pm = React.useState({ number: "4242 4242 4242 4242", expiry: "12 / 28", cvc: "123", name: "Ana Ribeiro" }), card = pm[0], setCard = pm[1];
+    var base = totals(lines, props.promo);
+    var options = DELIVERY.map(function (d) { return d.id === "standard" ? Object.assign({}, d, { price: base.shipping }) : d; });
+    var chosen = options.filter(function (d) { return d.id === delivery; })[0];
+    var t = totals(lines, props.promo, chosen.price);
+    if (!lines.length) {
+      return e(NS.CartBlock, { title: "Checkout", lines: [], summary: { lines: [], total: { amount: 0 } },
+        emptyState: e(NS.EmptyState, { title: "Nothing to check out", description: "Add something to your cart first.",
+          action: e(NS.Button, { variant: "secondary", onClick: function () { props.go("browse"); } }, "Browse the shop") }) });
+    }
+    return e(NS.CheckoutBlock, {
+      lead: "Prefilled with sample details, so you can place the order straight away.",
+      locale: LOCALE,
+      email: email, onEmailChange: setEmail, emailHint: "For your receipt and delivery updates.",
+      address: { value: address, onChange: setAddress, fields: { line2: false } },
+      deliveryOptions: options, delivery: delivery, onDeliveryChange: setDelivery,
+      payment: { value: card, onChange: setCard },
+      lines: lines.map(function (l) { var x = lineProps(l); delete x.onQuantityChange; delete x.onRemove; delete x.maxQuantity; delete x.href; return x; }),
+      summary: { lines: summaryLines(t, props.promo, chosen.label), total: { amount: t.total } },
+      onSubmit: function (ev) {
+        ev.preventDefault();
+        props.place({ lines: lines, totals: t, promo: props.promo, email: email, name: address.name, delivery: chosen });
+      },
+      submitAction: e(F, null,
+        e(NS.Button, { type: "submit", size: "lg", fullWidth: true }, "Place order"),
+        e(NS.Text, { variant: "fine", align: "center" }, "This is a prototype: nothing is charged or sent.")),
+    });
+  }
+
+  function Placed(props) {
+    var o = props.order;
+    if (!o) {
+      return e(NS.Section, { spacing: "compact" },
+        e(NS.EmptyState, { title: "No order yet", description: "Place an order from the checkout to see its confirmation here.",
+          action: e(NS.Button, { variant: "secondary", onClick: function () { props.go("checkout"); } }, "Go to checkout") }));
+    }
+    var first = (o.name || "").split(" ")[0];
+    return e(NS.Section, { spacing: "compact", width: "narrow" },
+      e(NS.Stack, { layer: "block" },
+        e(NS.BlockHeader, { eyebrow: "Order " + o.number, title: "Thank you" + (first ? ", " + first : ""), level: 1,
+          lead: "We’ve emailed a receipt to " + o.email + ". We’ll write again when it ships." }),
+        e(NS.OrderStatus, { label: "Order " + o.number + " progress", orientation: "horizontal", current: "placed", steps: o.delivery.id === "pickup" ? [
+          { id: "placed", label: "Placed", time: "Just now" },
+          { id: "packed", label: "Packed", time: "Today" },
+          { id: "ready", label: "Ready to collect", time: o.delivery.eta },
+        ] : [
+          { id: "placed", label: "Placed", time: "Just now" },
+          { id: "packed", label: "Packed", time: "Today" },
+          { id: "shipped", label: "Shipped", time: "Within a working day" },
+          { id: "delivered", label: "Delivered", time: o.delivery.eta },
+        ] }),
+        e(NS.Stack, { layer: "group" },
+          e(NS.Heading, { level: 2, size: "heading-xs" }, "What you ordered"),
+          o.lines.map(function (l) { var x = lineProps(l); delete x.onQuantityChange; delete x.onRemove; delete x.maxQuantity; delete x.id; delete x.href; return e(NS.CartLine, Object.assign({ key: l.id, readOnly: true, size: "sm", divider: true }, x)); }),
+          e(NS.OrderSummary, { title: "Payment", locale: LOCALE, lines: summaryLines(o.totals, o.promo, o.delivery.label), total: { label: "Paid", amount: o.totals.total } })),
+        e("div", null, e(NS.Button, { variant: "secondary", onClick: function () { props.go("browse"); } }, "Continue shopping"))));
+  }
+
+  /* ---------------------------------------------------------------- app */
+
+  function Store() {
+    var sc = React.useState("browse"), screen = sc[0], setScreen = sc[1];
+    var pr = React.useState("mug"), productId = pr[0], setProductId = pr[1];
+    var ln = React.useState([{ id: "tote-terracotta", productId: "tote", colour: "terracotta", size: null, price: 32, quantity: 1 }]), lines = ln[0], setLines = ln[1];
+    var po = React.useState(null), promo = po[0], setPromo = po[1];
+    var od = React.useState(null), order = od[0], setOrder = od[1];
+    var first = React.useRef(true);
+
+    React.useEffect(function () {
+      if (first.current) { first.current = false; return; }
+      window.scrollTo(0, 0);
+    }, [screen, productId]);
+
+    function go(id) { setScreen(id); }
+    function open(id) { setProductId(id); setScreen("product"); }
+    function add(p, colour, sizeRow, qty, price) {
+      var id = p.id + "-" + colour + (sizeRow ? "-" + sizeRow[0] : "");
+      setLines(function (ls) {
+        var hit = ls.filter(function (l) { return l.id === id; })[0];
+        if (hit) return ls.map(function (l) { return l.id === id ? Object.assign({}, l, { quantity: Math.min(9, l.quantity + qty) }) : l; });
+        return ls.concat([{ id: id, productId: p.id, colour: colour, size: sizeRow ? sizeRow[1] : null, price: price != null ? price : p.price, quantity: qty }]);
+      });
+    }
+    var cart = {
+      lines: lines, promo: promo, setPromo: setPromo, go: go, open: open,
+      setQty: function (id, n) { setLines(function (ls) { return ls.map(function (l) { return l.id === id ? Object.assign({}, l, { quantity: n }) : l; }); }); },
+      remove: function (id) { setLines(function (ls) { return ls.filter(function (l) { return l.id !== id; }); }); },
+    };
+    function place(o) {
+      setOrder(Object.assign({ number: "#" + (1040 + Math.floor(Math.random() * 50)) }, o));
+      setLines([]); setPromo(null); setScreen("placed");
+    }
+    var count = lines.reduce(function (s, l) { return s + l.quantity; }, 0);
+    var nav = screen === "browse" || screen === "product" ? "shop" : null;
+
+    return e(F, null,
+      e(ScreenBar, { value: screen, onChange: go }),
+      e(NS.Navbar, {
+        brand: e("a", { href: "#shop", onClick: function (ev) { ev.preventDefault(); go("browse"); }, style: { textDecoration: "none" } }, e(Wordmark)),
+        label: "Store", collapseBelow: 0, current: nav,
+        links: [{ id: "shop", label: "Shop", href: "#shop" }, { id: "journal", label: "Journal", href: "#journal" }],
+        onNavigate: function () { go("browse"); },
+        actions: e(CartButton, { count: count, onClick: function () { go("cart"); } }),
+      }),
+      e(NS.TabPanel, { id: screen, value: screen, style: { outline: "none" } },
+        e("main", null,
+          screen === "browse" && e(Browse, { open: open, add: add }),
+          screen === "product" && e(Product, { key: productId, id: productId, open: open, add: add, go: go }),
+          screen === "cart" && e(Cart, cart),
+          screen === "checkout" && e(Checkout, { lines: lines, promo: promo, go: go, place: place }),
+          screen === "placed" && e(Placed, { order: order, go: go }))));
+  }
+
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.CheckoutBlock || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Store));
+  }
+  start();
+})();
+</script>
+</body></html>

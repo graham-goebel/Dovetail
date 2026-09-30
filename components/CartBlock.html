@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CartBlock · Dovetail</title>
+<meta name="description" content="The cart page: the cart&#39;s lines on the left and an OrderSummary on the right with a promo field and the checkout action, sticky while a long cart scrolls. On a narrow screen the summary wraps below the lines. With no lines it shows an empty state.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">CartBlock</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html" aria-current="page">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">CartBlock</li></ol></nav>
+<h1>CartBlock</h1>
+<p class="lede">The cart page: the cart's lines on the left and an <code>OrderSummary</code> on the right with a promo field and the checkout action, sticky while a long cart scrolls. On a narrow screen the summary wraps below the lines. With no lines it shows an empty state.</p>
+<p class="meta">
+  <span class="pill">Blocks</span>
+  
+  <a href="../system/components/blocks/CartBlock.jsx">CartBlock.jsx</a>
+  <a href="../system/components/blocks/CartBlock.d.ts">CartBlock.d.ts</a>
+  <a href="../system/components/blocks/CartBlock.md">CartBlock.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="CartBlock" data-props="[{&quot;name&quot;:&quot;eyebrow&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A few words above the title.&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Your cart&quot;,&quot;note&quot;:&quot;The block&#39;s heading.&quot;},{&quot;name&quot;:&quot;lead&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A line under the title, e.g&quot;},{&quot;name&quot;:&quot;action&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Beside the header, at its end: a \&quot;Continue shopping\&quot; Link.&quot;},{&quot;name&quot;:&quot;checkoutAction&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The checkout Button or link, in the summary&#39;s footer.&quot;},{&quot;name&quot;:&quot;emptyState&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;an EmptyState, \&quot;Your cart is empty&quot;,&quot;note&quot;:&quot;Shown instead of the lines and summary when lines is empty.&quot;},{&quot;name&quot;:&quot;tone&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;base&quot;,&quot;subtle&quot;,&quot;brand&quot;,&quot;brand-muted&quot;,&quot;secondary&quot;,&quot;secondary-muted&quot;],&quot;default&quot;:&quot;base&quot;,&quot;note&quot;:&quot;The band&#39;s surface, passed to Section.&quot;},{&quot;name&quot;:&quot;dark&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Scopes dark mode to this block, so everything inside reads light on dark.&quot;},{&quot;name&quot;:&quot;texture&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Layers the texture token over the tone.&quot;},{&quot;name&quot;:&quot;spacing&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;compact&quot;,&quot;none&quot;],&quot;default&quot;:&quot;default&quot;,&quot;note&quot;:&quot;Vertical padding: the section rhythm, the compact one, or none.&quot;},{&quot;name&quot;:&quot;width&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;narrow&quot;,&quot;default&quot;,&quot;wide&quot;,&quot;full&quot;],&quot;default&quot;:&quot;default&quot;,&quot;note&quot;:&quot;The inner column&#39;s width.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="CartBlock props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/CartBlock.html?v=2e58e0cfb2&amp;b=01953f82ec" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/CartBlock.html?v=2e58e0cfb2&amp;b=01953f82ec" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>CartBlock is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { CartBlock } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>The cart page: the cart's lines on the left and an <code>OrderSummary</code> on the right with a promo field and the checkout action, sticky while a long cart scrolls. On a narrow screen the summary wraps below the lines. With no lines it shows an empty state.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A full cart or bag page, before checkout.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>A mini cart in a <code>Drawer</code> or <code>Sheet</code>: compose <code>CartLine size=&quot;sm&quot;</code> and <code>OrderSummary</code> there directly.</li><li>The order has been placed. Use read-only <code>CartLine</code>s, <code>OrderSummary</code> and <code>OrderStatus</code>.</li><li>The checkout itself. Use <code>CheckoutBlock</code>.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>const subtotal = lines.reduce((s, l) =&gt; s + l.price * l.quantity, 0);
+
+&lt;CartBlock
+  lead={`${count} items`}
+  action={&lt;Link href=&quot;/shop&quot; underline=&quot;hover&quot;&gt;Continue shopping&lt;/Link&gt;}
+  lines={lines.map((l) =&gt; ({
+    id: l.id,
+    name: l.name,
+    details: [l.colour, l.size],
+    price: l.price,
+    quantity: l.quantity,
+    lineTotal: l.price * l.quantity,
+    image: { src: l.image, alt: &quot;&quot; },
+    onQuantityChange: (n) =&gt; setQuantity(l.id, n),
+    onRemove: () =&gt; remove(l.id),
+  }))}
+  summary={{
+    lines: [{ label: &quot;Subtotal&quot;, amount: subtotal }, { label: &quot;Shipping&quot;, amount: 0 }],
+    total: { amount: subtotal },
+    freeShippingProgress: { current: subtotal, threshold: 75 },
+  }}
+  promo={{ value: code, onChange: setCode, onApply: applyCode }}
+  checkoutAction={&lt;Button size=&quot;lg&quot; fullWidth onClick={toCheckout}&gt;Check out&lt;/Button&gt;}
+/&gt;</code></pre>
+<h3 id="variants">Variants</h3>
+<div class="table-wrap"><table><thead><tr><th>Prop</th><th>What it is for</th></tr></thead><tbody><tr><td><code>promo</code></td><td>Adds a <code>PromoCode</code> to the summary's footer, above the checkout action.</td></tr><tr><td><code>summary.footer</code></td><td>Goes after the checkout action: trust copy, payment marks.</td></tr><tr><td><code>emptyState</code></td><td>When <code>lines</code> is empty. Defaults to an <code>EmptyState</code>, &quot;Your cart is empty&quot;. Give yours a way back to the shop.</td></tr><tr><td><code>action</code></td><td>Beside the header: &quot;Continue shopping&quot;.</td></tr></tbody></table></div>
+<h3 id="composition">Composition</h3>
+<p>A <code>Section</code> with a <code>BlockHeader</code>, then a <code>&lt;ul&gt;</code> of <code>CartLine</code>s (each with <code>divider</code>, spread from <code>lines</code>, so every <code>CartLine</code> prop is available; <code>id</code> is the key) beside an <code>OrderSummary</code> spread from <code>summary</code>. The block adds nothing up: every <code>lineTotal</code>, the subtotal, discounts, shipping, tax and total are your cart's.</p>
+<h3 id="tokens">Tokens</h3>
+<p>Has none of its own. The header gap is <code>--dt-layout-module-gap</code> and the column gap <code>--dt-layout-inline-section</code> (at <code>--dt-layout-scale</code>), so the Configure sheet's layout reaches it. The list's top rule is <code>--dt-cart-line-divider</code>, matching the lines' own dividers; the rest comes from <code>CartLine</code>, <code>OrderSummary</code> and <code>PromoCode</code>.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>The title is the page's <code>h1</code> by default (<code>level</code>); the summary's heading is one level below.</li><li>The lines are a list, so the item count is announced.</li><li>Each line's stepper and remove button are named after the item (&quot;Remove Canvas tote&quot;).</li><li>When a line is removed, focus is the page's to place: move it to the next line or the heading.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li>Title: &quot;Your cart&quot; (or &quot;Your bag&quot;). Lead: the item count.</li><li>Checkout button: &quot;Check out&quot;. Mark estimates as estimates: <code>kind: &quot;muted&quot;</code> with a hint.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>CartBlock.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+import type { CartLineProps } from &quot;../commerce/CartLine&quot;;
+import type { OrderSummaryProps } from &quot;../commerce/OrderSummary&quot;;
+import type { PromoCodeProps } from &quot;../commerce/PromoCode&quot;;
+
+/** One line in a CartBlock: CartLine's props, plus a stable id. */
+export interface CartBlockLine extends CartLineProps {
+  /** A stable, unique id, such as the cart line's id. It is the React key and is not rendered. */
+  id: string;
+}
+
+/** The cart page: the lines beside an order summary with the checkout action, or an empty state. */
+export interface CartBlockProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;title&quot;&gt; {
+  /** A few words above the title. */
+  eyebrow?: React.ReactNode;
+  /** The block's heading. @default &quot;Your cart&quot; */
+  title?: React.ReactNode;
+  /** A line under the title, e.g. &quot;3 items&quot;. */
+  lead?: React.ReactNode;
+  /** Beside the header, at its end: a &quot;Continue shopping&quot; Link. */
+  action?: React.ReactNode;
+  /** The lines, each spread into a CartLine with a divider. Pass lineTotal, onQuantityChange and onRemove from your cart. */
+  lines: CartBlockLine[];
+  /**
+   * The money breakdown, spread into an OrderSummary to the right of the lines on a wide screen
+   * (sticky) and under them on a narrow one. Pass the figures your cart computed: nothing is added
+   * up here. Its footer goes after the promo field and the checkout action.
+   */
+  summary: OrderSummaryProps;
+  /** The checkout Button or link, in the summary's footer. */
+  checkoutAction?: React.ReactNode;
+  /** Adds a PromoCode to the summary's footer, above the checkout action. */
+  promo?: PromoCodeProps;
+  /** Shown instead of the lines and summary when lines is empty. @default an EmptyState, &quot;Your cart is empty&quot; */
+  emptyState?: React.ReactNode;
+  /** The title's heading level; the summary's heading is one below. @default 1 */
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  /** The band's surface, passed to Section. @default &quot;base&quot; */
+  tone?: &quot;base&quot; | &quot;subtle&quot; | &quot;brand&quot; | &quot;brand-muted&quot; | &quot;secondary&quot; | &quot;secondary-muted&quot;;
+  /** Scopes dark mode to this block, so everything inside reads light on dark. */
+  dark?: boolean;
+  /** Layers the texture token over the tone. */
+  texture?: boolean;
+  /** Vertical padding: the section rhythm, the compact one, or none. @default &quot;default&quot; */
+  spacing?: &quot;default&quot; | &quot;compact&quot; | &quot;none&quot;;
+  /** The inner column's width. @default &quot;default&quot; */
+  width?: &quot;narrow&quot; | &quot;default&quot; | &quot;wide&quot; | &quot;full&quot;;
+}
+
+export declare function CartBlock(props: CartBlockProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>CartBlock.jsx</code> resolves, read from the source: 1 component, 9 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:CartBlock">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-cart-line-divider"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-cart-line-divider"><code>--dt-cart-line-divider</code></a><button type="button" class="graph-btn" data-graph="--dt-cart-line-divider" title="Show what --dt-cart-line-divider connects to" aria-label="Graph for --dt-cart-line-divider"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-layout-inline-section"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-layout-inline-section"><code>--dt-layout-inline-section</code></a><button type="button" class="graph-btn" data-graph="--dt-layout-inline-section" title="Show what --dt-layout-inline-section connects to" aria-label="Graph for --dt-layout-inline-section"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-layout-module-gap"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-layout-module-gap"><code>--dt-layout-module-gap</code></a><button type="button" class="graph-btn" data-graph="--dt-layout-module-gap" title="Show what --dt-layout-module-gap connects to" aria-label="Graph for --dt-layout-module-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-space-stack-xl)</code></td></tr><tr id="uses-dt-layout-scale"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-layout-scale"><code>--dt-layout-scale</code></a><button type="button" class="graph-btn" data-graph="--dt-layout-scale" title="Show what --dt-layout-scale connects to" aria-label="Graph for --dt-layout-scale"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>1</code></td></tr><tr id="uses-dt-size-media-min"><th scope="row"><span class="token-cell"><code>--dt-size-media-min</code><button type="button" class="graph-btn" data-graph="--dt-size-media-min" title="Show what --dt-size-media-min connects to" aria-label="Graph for --dt-size-media-min"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-64)</code></td></tr><tr id="uses-dt-space-inline-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-lg"><code>--dt-space-inline-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-lg" title="Show what --dt-space-inline-lg connects to" aria-label="Graph for --dt-space-inline-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-stack-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-lg"><code>--dt-space-stack-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-lg" title="Show what --dt-space-stack-lg connects to" aria-label="Graph for --dt-space-stack-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-stack-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-sm"><code>--dt-space-stack-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-sm" title="Show what --dt-space-stack-sm connects to" aria-label="Graph for --dt-space-stack-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Section } from &quot;../primitives/Section.jsx&quot;;
+import { EmptyState } from &quot;../display/EmptyState.jsx&quot;;
+import { CartLine } from &quot;../commerce/CartLine.jsx&quot;;
+import { OrderSummary } from &quot;../commerce/OrderSummary.jsx&quot;;
+import { PromoCode } from &quot;../commerce/PromoCode.jsx&quot;;
+import { BlockHeader } from &quot;./BlockHeader.jsx&quot;;
+
+/* The summary column's width. The lines take the rest, and when they would
+   get narrower than they are wide enough for, the summary wraps below them. */
+const SUMMARY = &quot;calc(var(--dt-size-media-min) * 1.375)&quot;;
+const scaled = (token) =&gt; `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+
+/* The cart page: the lines on the left, the summary on the right (sticky, so
+   the checkout button stays in reach down a long cart), wrapping below the
+   lines on a narrow screen. The block adds nothing up: lines, their totals
+   and the summary's figures are the cart's, passed in as they are. */
+export function CartBlock({
+  eyebrow,
+  title = &quot;Your cart&quot;,
+  lead,
+  action,
+  lines = [],
+  summary,
+  checkoutAction,
+  promo,
+  emptyState,
+  level = 1,
+  tone = &quot;base&quot;,
+  dark,
+  texture,
+  spacing = &quot;default&quot;,
+  width = &quot;default&quot;,
+  ...rest
+}) {
+  const empty = lines.length === 0;
+  const s = summary || { lines: [], total: { amount: 0 } };
+  const footer = (checkoutAction || promo || s.footer) ? (
+    &lt;&gt;
+      {promo &amp;&amp; &lt;PromoCode {...promo} /&gt;}
+      {checkoutAction}
+      {s.footer}
+    &lt;/&gt;
+  ) : undefined;
+
+  return (
+    &lt;Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}&gt;
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-layout-module-gap)&quot; }}&gt;
+        {(eyebrow || title || lead || action) &amp;&amp; (
+          &lt;div style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, alignItems: &quot;flex-end&quot;, justifyContent: &quot;space-between&quot;, columnGap: &quot;var(--dt-space-inline-lg)&quot;, rowGap: &quot;var(--dt-space-stack-sm)&quot; }}&gt;
+            {(eyebrow || title || lead) &amp;&amp; &lt;BlockHeader eyebrow={eyebrow} title={title} lead={lead} level={level} style={{ flex: &quot;1 1 auto&quot;, minWidth: 0 }} /&gt;}
+            {action &amp;&amp; &lt;div style={{ flex: &quot;none&quot;, display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot; }}&gt;{action}&lt;/div&gt;}
+          &lt;/div&gt;
+        )}
+
+        {empty ? (
+          emptyState || &lt;EmptyState title=&quot;Your cart is empty&quot; description=&quot;Items you add will show here.&quot; /&gt;
+        ) : (
+          &lt;div style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, alignItems: &quot;flex-start&quot;, gap: scaled(&quot;--dt-layout-inline-section&quot;) }}&gt;
+            &lt;ul
+              role=&quot;list&quot;
+              style={{
+                listStyle: &quot;none&quot;, margin: 0, padding: 0,
+                flex: `999 1 0`, minWidth: `min(100%, calc(${SUMMARY} * 1.25))`,
+                borderBlockStart: &quot;var(--dt-border-width-default) solid var(--dt-cart-line-divider)&quot;,
+              }}
+            &gt;
+              {lines.map(({ id, ...line }, i) =&gt; (
+                &lt;li key={id != null ? id : i}&gt;
+                  &lt;CartLine divider {...line} /&gt;
+                &lt;/li&gt;
+              ))}
+            &lt;/ul&gt;
+            &lt;div
+              style={{
+                flex: `1 1 ${SUMMARY}`, minWidth: 0,
+                position: &quot;sticky&quot;, insetBlockStart: &quot;var(--dt-space-stack-lg)&quot;,
+              }}
+            &gt;
+              &lt;OrderSummary headingLevel={level + 1 &gt; 6 ? 6 : level + 1} {...s} footer={footer} /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/Section&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#variants">Variants</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">CartBlock</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="CartBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="CartBlock.md" download="CartBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="CartBlock.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { CartBlock } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/blocks/CartBlock.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy CartBlock.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/blocks/CartBlock.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View CartBlock.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/blocks/CartBlock.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy CartBlock.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/blocks/CartBlock.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View CartBlock.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FCartBlock.md%3A%20the%20%22CartBlock%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="CartBlock" data-md="CartBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=01953f82ec" defer></script>
+<script src="../assets/specimens.js?v=6cc848c41d" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=b4fcd21e42" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/site.js?v=544ba24909" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!-- @dsCard group="Blocks" height=3590 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-product"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var Icon = function (p) { return window.DovetailTemplateIcons.Icon(p); };
+  var noop = function () {};
+
+  /* Flat product shots as inline SVG, so no photo is fetched. */
+  function art(bg, glaze) {
+    return "data:image/svg+xml," + encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" +
+      "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/>" +
+      "<path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='" + glaze + "' stroke-width='5'/>" +
+      "<rect x='30' y='34' width='36' height='43' rx='5' fill='" + glaze + "'/></svg>");
+  }
+  var STEPS = [
+    { id: "ordered", label: "Ordered", time: "Sep 28" },
+    { id: "shipped", label: "Shipped", time: "Sep 29", description: "Left the Leeds depot" },
+    { id: "delivered", label: "Delivered", time: "Expected Oct 2" },
+  ];
+
+  /* Two panels side by side on a wide card, stacked on a phone. */
+  function pair() {
+    return e.apply(null, ["div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: "var(--dt-space-inline-lg)", alignItems: "start" } }].concat([].slice.call(arguments)));
+  }
+  function caption(text) {
+    return e("p", { style: { margin: "var(--dt-space-stack-xs) 0 0", fontFamily: "var(--dt-text-body-xs-family)", fontSize: "var(--dt-text-body-xs-size)", lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)" } }, text);
+  }
+
+  var seq = 100;
+  /* A conversation that holds its own state: the composer and the quick
+     replies append a sent message, and Retry moves a failed one back through
+     sending to sent. The block only draws what it is given. */
+  function Live(props) {
+    var msgs = React.useState(props.messages);
+    var draft = React.useState("");
+    var replies = React.useState(props.quickReplies || null);
+    function add(text) {
+      msgs[1](function (xs) { return xs.concat({ id: "n" + (seq++), from: "me", text: text, time: "9:44", status: "sent" }); });
+      draft[1]("");
+      replies[1](null);
+    }
+    function retry(id) {
+      var to = function (status) {
+        msgs[1](function (xs) { return xs.map(function (m) { return m.id === id ? Object.assign({}, m, { status: status }) : m; }); });
+      };
+      to("sending");
+      setTimeout(function () { to("sent"); }, 700);
+    }
+    return e(NS.ChatBlock, Object.assign({}, props, {
+      messages: msgs[0],
+      onRetry: retry,
+      quickReplies: replies[0] ? { options: replies[0], onSelect: function (id) { add(replies[0].filter(function (o) { return o.id === id; })[0].label); } } : undefined,
+      composer: { value: draft[0], onChange: draft[1], onSend: add, placeholder: props.placeholder || "Write a message" },
+    }));
+  }
+
+  var SUPPORT = [
+    { id: "s1", from: "them", day: "Yesterday", text: "Hi Sam, thanks for getting in touch. I can see order 4821 shipped on Monday." },
+    { id: "s2", from: "them", text: "Is anything wrong with it?", time: "16:02" },
+    { id: "s3", from: "me", text: "It arrived, but the box was crushed and one mug is chipped.", time: "16:05", status: "read" },
+    { id: "s4", kind: "event", text: "Maya joined the conversation" },
+    { id: "s5", from: "them", day: "Today", text: "Sorry about that. I've started a replacement." },
+    { id: "s6", from: "them", text: "It goes out today and should be with you by Thursday." },
+    { id: "s7", from: "them", text: "Anything else I can help with?", time: "9:39" },
+  ];
+  var GROUP = [
+    { id: "g1", from: "them", day: "Today", author: { name: "Priya Shah" }, text: "Draft of the launch email is in the folder." },
+    { id: "g2", from: "them", author: { name: "Priya Shah" }, text: "Comments by Thursday, please.", time: "10:02" },
+    { id: "g3", from: "them", author: { name: "Tom Okafor" }, text: "Reading it now. The subject line is great.", time: "10:10" },
+    { id: "g4", from: "me", text: "I'll do a pass after lunch.", time: "10:12", status: "delivered" },
+    { id: "g5", from: "them", author: { name: "Priya Shah" }, text: "Thanks both.", time: "10:13" },
+  ];
+  var FAILED = [
+    { id: "f1", from: "them", day: "Today", text: "Would you like the replacement sent to the same address?", time: "9:40" },
+    { id: "f2", from: "me", text: "Yes please, same address." },
+    { id: "f3", from: "me", text: "And could the courier leave it with a neighbour?", time: "9:42", status: "failed" },
+  ];
+  var TYPING = [
+    { id: "t1", from: "me", day: "Today", text: "Is the green glaze back in stock?", time: "11:20", status: "read" },
+  ];
+  var QUICK = [
+    { id: "q1", from: "them", day: "Today", text: "Hi, I'm the Northwind support bot. What can I help with?", time: "8:15" },
+  ];
+  var RICH = [
+    { id: "r1", from: "me", day: "Today", text: "Do you still have this one?", time: "14:02", status: "read",
+      content: e(NS.ProductCard || "span", { name: "Stoneware mug", subtitle: "Forest glaze", price: 24, locale: "en-US", layout: "horizontal", image: { src: art("#e7ece5", "#3f6b4f"), alt: "" } }) },
+    { id: "r2", from: "them", text: "Yes, six left. And here's where your last order is:", time: "14:04",
+      content: e(NS.OrderStatus || "span", { label: "Order 4821 progress", current: "shipped", steps: STEPS }) },
+    { id: "r3", from: "them", time: "14:04",
+      content: e(NS.CartLine || "span", { name: "Stoneware mug", details: ["Colour Sand"], price: 24, quantity: 2, readOnly: true, size: "sm", locale: "en-US", image: { src: art("#efe9e0", "#c8b79a"), alt: "" } }) },
+  ];
+  var ASSISTANT = [
+    { id: "a1", from: "them", text: "Hi, I'm the Northwind assistant. I can find orders, explain charges and change delivery details.", time: "9:30" },
+    { id: "a2", from: "me", text: "Why was I charged twice this month?", time: "9:31", status: "read" },
+  ];
+
+  function Page() {
+    return e(Shelf, { name: "ChatBlock", summary: "A whole conversation from data: pass the messages and it draws the header, day dividers, events, runs, typing, quick replies and the composer in one fixed-height panel.", props: [
+        { name: "title", type: "string", required: true, notes: "Who the conversation is with. The header's heading; names the log and the composer." },
+        { name: "messages", type: "(ChatBlockMessage | ChatBlockEvent)[]", required: true, notes: "Oldest first. A message: { id, from, author?, text?, content?, time?, status?, day? }. An event: { id, kind: \"event\", text }." },
+        { name: "composer", type: "{ value, onChange, onSend, placeholder?, onAttach?, label?, disabled? }", required: true, notes: "Controlled. onSend gets the trimmed text." },
+        { name: "subtitle, avatar, presence, onBack, actions, headingLevel", type: "ChatHeaderProps", notes: "Passed to ChatHeader. presence is dropped for the assistant." },
+        { name: "typing", type: "string | boolean", default: "false", notes: "support: TypingIndicator with the name. assistant: Thinking with the label." },
+        { name: "quickReplies", type: "{ options, onSelect, label?, align? }", notes: "Chips under the last message." },
+        { name: "onRetry", type: "(id: string) => void", notes: "Retry on a message with status \"failed\"." },
+        { name: "variant", type: '"support" | "assistant"', default: '"support"' },
+        { name: "height", type: "number | string", default: "min(calc(var(--dt-size-container-narrow) * 0.8), 80dvh)", notes: "The panel's height; the log fills and scrolls." },
+        { name: "label", type: "string", default: "Conversation with {title}", notes: "Accessible name of the log." },
+      ], guidance: [
+        "Pass the conversation as data, oldest first. Runs (first, middle, last), day dividers and group names are worked out; a day divider or an event ends a run.",
+        "Set day on messages; a divider appears only where it changes. Events are items with kind: \"event\" in the same array.",
+        "Keep sending, statuses, timers and replies in your app. The block draws the state it is given.",
+        "It is a panel, not a page band. Put it in a Section to place it on a page; in a dark Section its colours follow the band.",
+        "Use variant=\"assistant\" for an AI assistant: no presence, and a Thinking indicator while it works.",
+        "Remove quickReplies once one is chosen or the person types.",
+      ] },
+      e(Specimen, { label: "Support: day dividers, an event and runs", bg: "var(--dt-surface-subtle)" },
+        e(Live, { title: "Maya Chen", subtitle: "Northwind support", avatar: { name: "Maya Chen" }, presence: "online", onBack: noop, height: 520, messages: SUPPORT,
+          actions: e(NS.IconButton, { label: "Search conversation" }, e(Icon, { name: "search" })), style: { maxWidth: 560, marginInline: "auto" } })),
+      e(Specimen, { label: "Group chat and a failed message", bg: "var(--dt-surface-subtle)" },
+        pair(
+          e("div", null, e(Live, { title: "Launch team", subtitle: "Priya, Tom and you", avatar: { name: "Launch team" }, height: 440, messages: GROUP }), caption("Several authors: names and avatars show on each run.")),
+          e("div", null, e(Live, { title: "Maya Chen", avatar: { name: "Maya Chen" }, presence: "online", height: 440, messages: FAILED }), caption("Retry calls onRetry(id); this card moves it through sending to sent.")))),
+      e(Specimen, { label: "Typing and quick replies", bg: "var(--dt-surface-subtle)" },
+        pair(
+          e(Live, { title: "Maya Chen", avatar: { name: "Maya Chen" }, presence: "away", subtitle: "Typically replies in 5 min", height: 360, messages: TYPING, typing: "Maya" }),
+          e(Live, { title: "Northwind support", avatar: { name: "Northwind" }, presence: "online", height: 360, messages: QUICK,
+            quickReplies: [{ id: "track", label: "Track my order" }, { id: "return", label: "Start a return" }, { id: "person", label: "Talk to a person" }] }))),
+      e(Specimen, { label: "Rich content: a product, an order and a cart line", bg: "var(--dt-surface-subtle)" },
+        e(Live, { title: "Maya Chen", avatar: { name: "Maya Chen" }, presence: "online", height: 640, messages: RICH, style: { maxWidth: 560, marginInline: "auto" } })),
+      e(Specimen, { label: "Assistant variant", bg: "var(--dt-surface-subtle)" },
+        e(Live, { variant: "assistant", title: "Assistant", subtitle: "Answers from your account and the help centre", avatar: { name: "Assistant" }, height: 420, messages: ASSISTANT, typing: "Checking your charges",
+          placeholder: "Ask about an order or a charge", style: { maxWidth: 560, marginInline: "auto" } })),
+      e(Specimen, { label: "Inside a dark Section", bg: "var(--dt-surface-subtle)" },
+        e(NS.Section, { dark: true, spacing: "none", width: "full", style: { padding: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } },
+          pair(
+            e(Live, { title: "Maya Chen", subtitle: "Northwind support", avatar: { name: "Maya Chen" }, presence: "online", height: 480, messages: SUPPORT.slice(3).concat(FAILED.slice(2)), typing: "Maya",
+              quickReplies: [{ id: "track", label: "Track my order" }, { id: "person", label: "Talk to a person" }] }),
+            e(Live, { variant: "assistant", title: "Assistant", avatar: { name: "Assistant" }, height: 480, messages: ASSISTANT, typing: true })))));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.ChatBlock || !window.Shelf || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

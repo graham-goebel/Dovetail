@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChatBlock · Dovetail</title>
+<meta name="description" content="A whole conversation from data. Pass the messages as an array and the block draws the header, a scrolling log with day dividers, events and runs worked out for you, typing, quick replies and the composer, in one fixed-height panel.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">ChatBlock</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html" aria-current="page">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">ChatBlock</li></ol></nav>
+<h1>ChatBlock</h1>
+<p class="lede">A whole conversation from data. Pass the messages as an array and the block draws the header, a scrolling log with day dividers, events and runs worked out for you, typing, quick replies and the composer, in one fixed-height panel.</p>
+<p class="meta">
+  <span class="pill">Blocks</span>
+  
+  <a href="../system/components/blocks/ChatBlock.jsx">ChatBlock.jsx</a>
+  <a href="../system/components/blocks/ChatBlock.d.ts">ChatBlock.d.ts</a>
+  <a href="../system/components/blocks/ChatBlock.md">ChatBlock.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="ChatBlock" data-props="[{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Who the conversation is with&quot;},{&quot;name&quot;:&quot;variant&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;support&quot;,&quot;assistant&quot;],&quot;default&quot;:&quot;support&quot;,&quot;note&quot;:&quot;support: a person or team, with presence and typing dots&quot;},{&quot;name&quot;:&quot;height&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;min(calc(var(--dt-size-container-narrow)&quot;,&quot;note&quot;:&quot;The panel&#39;s height; the log fills what the header and composer leave, and scrolls&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;`Conversation with ${title}`&quot;,&quot;note&quot;:&quot;Accessible name of the log.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="ChatBlock props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/ChatBlock.html?v=95e3057569&amp;b=01953f82ec" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/ChatBlock.html?v=95e3057569&amp;b=01953f82ec" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>ChatBlock is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { ChatBlock } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A whole conversation from data. Pass the messages as an array and the block draws the header, a scrolling log with day dividers, events and runs worked out for you, typing, quick replies and the composer, in one fixed-height panel.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A screen or a panel is one conversation: customer support, a team thread, an in-app assistant.</li><li>You have the conversation as data and don't want to work out runs, dividers and group names by hand.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>You need something the block doesn't draw, such as reactions or a thread per message. Compose <code>ChatHeader</code>, <code>MessageList</code>, <code>MessageBubble</code> and <code>Composer</code> yourself.</li><li>It is one message or a quote on a marketing page. Use <code>MessageBubble</code> or <code>Quote</code>.</li><li>It is a feed of notifications. Use <code>List</code>.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>const [messages, setMessages] = useState(initial);
+const [draft, setDraft] = useState(&quot;&quot;);
+
+&lt;ChatBlock
+  title=&quot;Maya Chen&quot;
+  subtitle=&quot;Customer support&quot;
+  avatar={{ name: &quot;Maya Chen&quot; }}
+  presence=&quot;online&quot;
+  messages={[
+    { id: &quot;d1&quot;, from: &quot;them&quot;, day: &quot;Yesterday&quot;, text: &quot;Hi, how can I help?&quot;, time: &quot;16:02&quot; },
+    { id: &quot;e1&quot;, kind: &quot;event&quot;, text: &quot;Maya joined the conversation&quot; },
+    { id: &quot;m2&quot;, from: &quot;me&quot;, day: &quot;Today&quot;, text: &quot;Where is my order?&quot;, time: &quot;9:40&quot;, status: &quot;read&quot; },
+    { id: &quot;m3&quot;, from: &quot;them&quot;, content: &lt;OrderStatus label=&quot;Order 4821 progress&quot; current=&quot;shipped&quot; steps={steps} /&gt;, time: &quot;9:41&quot; },
+  ]}
+  typing=&quot;Maya&quot;
+  quickReplies={{ options: [{ id: &quot;track&quot;, label: &quot;Track my order&quot; }], onSelect: pick }}
+  composer={{ value: draft, onChange: setDraft, onSend: send, placeholder: &quot;Write a message&quot; }}
+  onRetry={resend}
+/&gt;</code></pre>
+<h3 id="what-it-works-out">What it works out</h3>
+<ul><li><strong>Runs.</strong> Consecutive messages from the same side (and, for <code>them</code>, the same <code>author</code>) form a run and get <code>grouped</code> first, middle and last, so the corners tighten where they meet. A day divider or an event ends a run. The value is also on each bubble as <code>data-grouped</code>.</li><li><strong>Days.</strong> <code>day</code> on an item inserts a <code>MessageDivider</code> before it when it differs from the last <code>day</code> given. Set it on every message or only on the first of each day; the result is one divider per change.</li><li><strong>Events.</strong> An item <code>{ id, kind: &quot;event&quot;, text }</code> in <code>messages</code> is a divider across the log (&quot;Maya joined the conversation&quot;). Events live in the same array as messages so their order is never in doubt.</li><li><strong>Group chats.</strong> When more than one <code>author</code> answers on the <code>them</code> side, names and avatars show on each run. With one, they don't: the header already says who it is.</li><li><strong>Times and statuses</strong> show on every bubble that has them, as given. Put <code>time</code> (and <code>status</code>) on the last message of a run rather than on each, the way messengers do; the block doesn't hide or format them.</li><li><strong>Failed messages.</strong> A sent message with <code>status: &quot;failed&quot;</code> shows &quot;Not sent&quot; and, with <code>onRetry</code>, a Retry button that calls <code>onRetry(id)</code>. Retrying, resending and moving the status on are the app's job.</li><li><strong>Rich content.</strong> <code>content</code> puts any node in the bubble, under <code>text</code> if there is some: a <code>ProductCard</code> (horizontal suits the width), an <code>OrderStatus</code>, a <code>CartLine</code> with <code>readOnly</code>.</li></ul>
+<h3 id="variants">Variants</h3>
+<div class="table-wrap"><table><thead><tr><th><code>variant</code></th><th>for</th><th>differences</th></tr></thead><tbody><tr><td><code>support</code> (default)</td><td>a person or team</td><td>Presence on the header avatar; <code>typing</code> shows a <code>TypingIndicator</code>, with a string as the typist's name.</td></tr><tr><td><code>assistant</code></td><td>an in-app AI assistant</td><td>No presence; <code>typing</code> shows an inline <code>Thinking</code> indicator where the reply will appear, with a string as its label (&quot;Checking your order&quot;). The composer is named &quot;Ask {title}&quot;.</td></tr></tbody></table></div>
+<h3 id="layout">Layout</h3>
+<ul><li>A column of fixed <code>height</code>: <code>ChatHeader</code> at the top, <code>MessageList</code> filling the middle and scrolling, <code>Composer</code> at the bottom. The default is <code>min(calc(var(--dt-size-container-narrow) * 0.8), 80dvh)</code>, tall enough for a real exchange and never most of a phone screen. Pass a number (pixels) or any CSS length, such as <code>100dvh</code> for a full-screen chat on a phone.</li><li>The log stays pinned to the newest message unless the reader has scrolled up (<code>MessageList</code> behaviour). Streaming a reply by appending to a message's <code>text</code> keeps it pinned too.</li><li><strong>No Section of its own.</strong> A chat is usually a panel in a page or a side sheet, not a band. To place it on a page, put it inside a <code>Section</code>; inside <code>&lt;Section dark&gt;</code> its colours follow the band, because the <code>--dt-chat-*</code> and <code>--dt-bubble-*</code> colour aliases are repeated under <code>.dark</code>.</li><li>Works at 390px: bubbles keep to three quarters of the log, quick replies wrap, and the header truncates.</li></ul>
+<h3 id="composition">Composition</h3>
+<p>Renders <code>ChatHeader</code>, <code>MessageList</code> with <code>MessageDivider</code>, <code>MessageBubble</code>, <code>TypingIndicator</code> or <code>Thinking</code>, <code>QuickReplies</code> and <code>Composer</code>. Remove <code>quickReplies</code> once one is chosen or the person types. Keep delivery (sending, sent, delivered, read), timers and replies in your app; the block only draws the state it is given.</p>
+<h3 id="tokens">Tokens</h3>
+<p>Adds none. The panel reads <code>--dt-chat-surface</code>, <code>--dt-chat-border</code>, <code>--dt-border-width-default</code> and <code>--dt-radius-container</code>, the spacing reads <code>--dt-bubble-run-gap</code> and <code>--dt-space-stack-xs</code>, and the default height reads <code>--dt-size-container-narrow</code>. Everything inside reads its own component's tokens.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>The log is <code>role=&quot;log&quot;</code>, polite, named by <code>label</code> (default &quot;Conversation with {title}&quot;). Messages are announced as they are added.</li><li>The header's title is a real heading (<code>headingLevel</code>, default 2). The root is a <code>&lt;section&gt;</code> without a name, so it adds no extra landmark.</li><li>The composer is named by <code>composer.label</code> (default &quot;Message {title}&quot;, or &quot;Ask {title}&quot; for the assistant).</li><li>Status is never an icon alone, and a failed message says &quot;Not sent&quot; in text. Retry, quick replies, attach and send are real buttons.</li><li>Typing and thinking announce themselves once. Motion in the dots and the Thinking figure stops under <code>prefers-reduced-motion</code>.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li><code>title</code>: the name as the person would recognise it: &quot;Maya Chen&quot;, &quot;Northwind support&quot;, &quot;Assistant&quot;.</li><li>Days: &quot;Today&quot;, &quot;Yesterday&quot;, then a date. Events: sentence case, no full stop, past tense or a state.</li><li>Replies and suggestions: sentence case, in the person's voice (&quot;Track my order&quot;).</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>ChatBlock.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+import type { ChatHeaderProps } from &quot;../chat/ChatHeader.js&quot;;
+import type { MessageAuthor, MessageBubbleProps } from &quot;../chat/MessageBubble.js&quot;;
+import type { QuickRepliesProps, QuickReplyOption } from &quot;../chat/QuickReplies.js&quot;;
+import type { ComposerProps } from &quot;../chat/Composer.js&quot;;
+
+/** One message in a ChatBlock conversation. */
+export interface ChatBlockMessage {
+  /** Unique and stable: the React key, and what onRetry is called with. */
+  id: string;
+  /** Always a message; only events set kind. */
+  kind?: &quot;message&quot;;
+  /** Whose message it is: the person using the app (&quot;me&quot;) or the other side (&quot;them&quot;). */
+  from: &quot;me&quot; | &quot;them&quot;;
+  /** Who wrote a received message. Names and avatars show on each run once more than one author answers (a group chat). */
+  author?: MessageAuthor;
+  /** The message text. Newlines are kept. */
+  text?: string;
+  /** Rich content shown in the bubble, under the text if there is some: a ProductCard, an OrderStatus, a CartLine. */
+  content?: React.ReactNode;
+  /** Preformatted time, e.g. &quot;9:41&quot;. Shown under the bubble. */
+  time?: string;
+  /** Delivery state of a sent message; ignored for &quot;them&quot;. &quot;failed&quot; shows Retry when onRetry is set. */
+  status?: MessageBubbleProps[&quot;status&quot;];
+  /** The day this message belongs to, e.g. &quot;Today&quot;. A divider is inserted before it when it differs from the last day given. */
+  day?: string;
+}
+
+/** A system event shown across the log as a divider, e.g. &quot;Maya joined the conversation&quot;. It ends a run of bubbles. */
+export interface ChatBlockEvent {
+  /** Unique and stable: the React key. */
+  id: string;
+  /** Marks the item as an event rather than a message. */
+  kind: &quot;event&quot;;
+  /** The event, sentence case, past tense or a state: &quot;Maya joined the conversation&quot;. */
+  text: string;
+  /** The day the event happened. Like a message's day, it inserts a divider when it changes. */
+  day?: string;
+}
+
+/** An item of ChatBlock's messages: a message or an event. */
+export type ChatBlockItem = ChatBlockMessage | ChatBlockEvent;
+
+/** Suggested replies shown under the last message. */
+export interface ChatBlockQuickReplies {
+  /** The suggestions, in reading and Tab order. */
+  options: QuickReplyOption[];
+  /** Called with the chosen option's id. Usually sends its label and clears the suggestions. */
+  onSelect: (id: string) =&gt; void;
+  /** Accessible name of the group. @default &quot;Suggested replies&quot; */
+  label?: string;
+  /** Which side the chips gather on. @default &quot;end&quot; */
+  align?: QuickRepliesProps[&quot;align&quot;];
+}
+
+/** The composer under the conversation. Controlled: the app owns the draft. */
+export interface ChatBlockComposer {
+  /** The draft. */
+  value: string;
+  /** Called with the new draft on every edit. */
+  onChange: (next: string) =&gt; void;
+  /** Called with the trimmed text on Enter or Send. Append the message and clear value here. */
+  onSend: (text: string) =&gt; void;
+  /** Hint shown while the field is empty, e.g. &quot;Write a message&quot;. */
+  placeholder?: string;
+  /** Shows an attach button. */
+  onAttach?: () =&gt; void;
+  /** Accessible name of the field. @default `Message ${title}`, or `Ask ${title}` for the assistant */
+  label?: string;
+  /** Disables the field and its buttons; say why in the placeholder. */
+  disabled?: ComposerProps[&quot;disabled&quot;];
+}
+
+/**
+ * A whole conversation from data: header, a scrolling log with computed runs,
+ * day dividers and events, typing, quick replies and a composer, in one
+ * fixed-height panel.
+ */
+export interface ChatBlockProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;title&quot;&gt; {
+  /** Who the conversation is with. The header's heading, and the default names of the log and the composer. */
+  title: string;
+  /** The header's second line, e.g. &quot;Typically replies in 5 min&quot;. */
+  subtitle?: ChatHeaderProps[&quot;subtitle&quot;];
+  /** The header's avatar. */
+  avatar?: ChatHeaderProps[&quot;avatar&quot;];
+  /** The dot on the header's avatar, with the state in text. Not shown for the assistant variant. */
+  presence?: ChatHeaderProps[&quot;presence&quot;];
+  /** Shows a back button in the header. */
+  onBack?: ChatHeaderProps[&quot;onBack&quot;];
+  /** The header's right-hand slot: a few IconButtons. */
+  actions?: ChatHeaderProps[&quot;actions&quot;];
+  /** Level of the header's heading element. @default 2 */
+  headingLevel?: ChatHeaderProps[&quot;headingLevel&quot;];
+  /** The conversation, oldest first: messages, and events as `{ id, kind: &quot;event&quot;, text }`. Runs, dividers and group names are computed from it. */
+  messages: ChatBlockItem[];
+  /** The other side is replying. support: a TypingIndicator, with the string as the typist's name. assistant: a Thinking indicator, with the string as its label. @default false */
+  typing?: string | boolean;
+  /** Suggested replies under the last message. Omit, or pass no options, to hide them. */
+  quickReplies?: ChatBlockQuickReplies;
+  /** The composer at the bottom. */
+  composer: ChatBlockComposer;
+  /** Called with a failed message's id when its Retry is pressed. */
+  onRetry?: (id: string) =&gt; void;
+  /** support: a person or team, with presence and typing dots. assistant: an AI assistant, with no presence and a Thinking indicator while it works. @default &quot;support&quot; */
+  variant?: &quot;support&quot; | &quot;assistant&quot;;
+  /** The panel's height; the log fills what the header and composer leave, and scrolls. A number is pixels. @default &quot;min(calc(var(--dt-size-container-narrow) * 0.8), 80dvh)&quot; */
+  height?: number | string;
+  /** Accessible name of the log. @default `Conversation with ${title}` */
+  label?: string;
+}
+
+export declare function ChatBlock(props: ChatBlockProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>ChatBlock.jsx</code> resolves, read from the source: 3 component, 5 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:ChatBlock">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-bubble-run-gap"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-bubble-run-gap"><code>--dt-bubble-run-gap</code></a><button type="button" class="graph-btn" data-graph="--dt-bubble-run-gap" title="Show what --dt-bubble-run-gap connects to" aria-label="Graph for --dt-bubble-run-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-stack-sm)</code></td></tr><tr id="uses-dt-chat-border"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-chat-border"><code>--dt-chat-border</code></a><button type="button" class="graph-btn" data-graph="--dt-chat-border" title="Show what --dt-chat-border connects to" aria-label="Graph for --dt-chat-border"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-chat-surface"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-chat-surface"><code>--dt-chat-surface</code></a><button type="button" class="graph-btn" data-graph="--dt-chat-surface" title="Show what --dt-chat-surface connects to" aria-label="Graph for --dt-chat-surface"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-base)</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-16)</code></td></tr><tr id="uses-dt-size-container-narrow"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-size-container-narrow"><code>--dt-size-container-narrow</code></a><button type="button" class="graph-btn" data-graph="--dt-size-container-narrow" title="Show what --dt-size-container-narrow connects to" aria-label="Graph for --dt-size-container-narrow"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-container-md)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-primary" title="Show what --dt-text-primary connects to" aria-label="Graph for --dt-text-primary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { ChatHeader } from &quot;../chat/ChatHeader.jsx&quot;;
+import { MessageList, MessageDivider } from &quot;../chat/MessageList.jsx&quot;;
+import { MessageBubble } from &quot;../chat/MessageBubble.jsx&quot;;
+import { Composer } from &quot;../chat/Composer.jsx&quot;;
+import { TypingIndicator } from &quot;../chat/TypingIndicator.jsx&quot;;
+import { QuickReplies } from &quot;../chat/QuickReplies.jsx&quot;;
+import { Thinking } from &quot;../feedback/Thinking.jsx&quot;;
+
+/* A whole conversation from data. The app passes the messages as an array,
+   oldest first, and the block works out what every messenger shows: a day
+   divider where the day changes, runs of consecutive messages from one
+   author with their corners tightened, names and avatars when several
+   people answer, and a Retry on a message that failed. Sending, timers and
+   replies stay in the app; the block only draws what it is given.
+
+   It is a panel, not a page band: a fixed-height column with the header at
+   the top, the log filling the middle and scrolling, and the composer at
+   the bottom. Put it inside a Section (dark or not) to place it on a page. */
+
+/* Tall enough for a real exchange on a desktop, never taller than most of
+   the screen on a phone. A proportion of the narrow container, not a size. */
+const DEFAULT_HEIGHT = &quot;min(calc(var(--dt-size-container-narrow) * 0.8), 80dvh)&quot;;
+
+/* Turns the messages into rows: dividers where the day changes, events as
+   dividers, and every message with its place in a run. */
+function layout(messages) {
+  const rows = [];
+  let day;
+  let run = [];
+  const close = () =&gt; {
+    run.forEach((row, i) =&gt; {
+      row.grouped = run.length === 1 ? &quot;single&quot; : i === 0 ? &quot;first&quot; : i === run.length - 1 ? &quot;last&quot; : &quot;middle&quot;;
+    });
+    run = [];
+  };
+  for (const m of messages || []) {
+    if (!m) continue;
+    if (m.day &amp;&amp; m.day !== day) {
+      close();
+      day = m.day;
+      rows.push({ kind: &quot;day&quot;, key: `day-${m.id}`, text: m.day });
+    }
+    if (m.kind === &quot;event&quot;) {
+      close();
+      rows.push({ kind: &quot;event&quot;, key: `event-${m.id}`, text: m.text });
+      continue;
+    }
+    const who = m.from === &quot;me&quot; ? &quot;me&quot; : `them:${m.author ? m.author.name : &quot;&quot;}`;
+    if (run.length &amp;&amp; run[run.length - 1].who !== who) close();
+    const row = { kind: &quot;message&quot;, key: m.id, message: m, who, grouped: &quot;single&quot; };
+    run.push(row);
+    rows.push(row);
+  }
+  close();
+  return rows;
+}
+
+export function ChatBlock({
+  title,
+  subtitle,
+  avatar,
+  presence,
+  onBack,
+  actions,
+  headingLevel,
+  messages = [],
+  typing,
+  quickReplies,
+  composer,
+  onRetry,
+  variant = &quot;support&quot;,
+  height = DEFAULT_HEIGHT,
+  label,
+  style,
+  ...rest
+}) {
+  const assistant = variant === &quot;assistant&quot;;
+  const rows = React.useMemo(() =&gt; layout(messages), [messages]);
+
+  /* Names and avatars only earn their space when more than one person
+     answers; with one, the header already says who it is. */
+  const group = React.useMemo(() =&gt; {
+    const names = new Set();
+    for (const m of messages || []) if (m &amp;&amp; m.kind !== &quot;event&quot; &amp;&amp; m.from !== &quot;me&quot; &amp;&amp; m.author) names.add(m.author.name);
+    return names.size &gt; 1;
+  }, [messages]);
+
+  const logLabel = label || `Conversation with ${title}`;
+  const typingText = typeof typing === &quot;string&quot; ? typing : undefined;
+
+  return (
+    &lt;section
+      {...rest}
+      style={{
+        display: &quot;flex&quot;, flexDirection: &quot;column&quot;,
+        height, minHeight: 0, minWidth: 0, overflow: &quot;hidden&quot;,
+        background: &quot;var(--dt-chat-surface)&quot;, color: &quot;var(--dt-text-primary)&quot;,
+        border: &quot;var(--dt-border-width-default) solid var(--dt-chat-border)&quot;,
+        borderRadius: &quot;var(--dt-radius-container)&quot;,
+        boxSizing: &quot;border-box&quot;,
+        ...style,
+      }}
+    &gt;
+      &lt;ChatHeader
+        title={title}
+        subtitle={subtitle}
+        avatar={avatar}
+        presence={assistant ? undefined : presence}
+        onBack={onBack}
+        actions={actions}
+        headingLevel={headingLevel}
+        style={{ flex: &quot;none&quot; }}
+      /&gt;
+      &lt;MessageList label={logLabel} style={{ flex: &quot;1 1 auto&quot; }}&gt;
+        {rows.map((row) =&gt; {
+          if (row.kind !== &quot;message&quot;) return &lt;MessageDivider key={row.key} data-divider={row.kind}&gt;{row.text}&lt;/MessageDivider&gt;;
+          const m = row.message;
+          const mine = m.from === &quot;me&quot;;
+          return (
+            &lt;MessageBubble
+              key={row.key}
+              from={mine ? &quot;me&quot; : &quot;them&quot;}
+              time={m.time}
+              status={mine ? m.status : undefined}
+              onRetry={mine &amp;&amp; m.status === &quot;failed&quot; &amp;&amp; onRetry ? () =&gt; onRetry(m.id) : undefined}
+              author={!mine &amp;&amp; group ? m.author : undefined}
+              grouped={row.grouped}
+              data-grouped={row.grouped}
+              data-message-id={m.id}
+            &gt;
+              {m.text}
+              {m.content != null &amp;&amp; (
+                &lt;div style={{ marginTop: m.text ? &quot;var(--dt-space-stack-xs)&quot; : undefined, whiteSpace: &quot;normal&quot;, minWidth: 0 }}&gt;
+                  {m.content}
+                &lt;/div&gt;
+              )}
+            &lt;/MessageBubble&gt;
+          );
+        })}
+        {typing &amp;&amp; !assistant &amp;&amp; &lt;TypingIndicator name={typingText} /&gt;}
+        {typing &amp;&amp; assistant &amp;&amp; (
+          &lt;div style={{ display: &quot;flex&quot;, justifyContent: &quot;flex-start&quot;, marginTop: &quot;var(--dt-bubble-run-gap)&quot;, minWidth: 0 }}&gt;
+            &lt;Thinking state=&quot;thinking&quot; size=&quot;sm&quot; label={typingText || &quot;Thinking&quot;} /&gt;
+          &lt;/div&gt;
+        )}
+        {quickReplies &amp;&amp; quickReplies.options &amp;&amp; quickReplies.options.length &gt; 0 &amp;&amp; (
+          &lt;QuickReplies
+            label={quickReplies.label || &quot;Suggested replies&quot;}
+            options={quickReplies.options}
+            onSelect={quickReplies.onSelect}
+            align={quickReplies.align}
+          /&gt;
+        )}
+      &lt;/MessageList&gt;
+      {composer &amp;&amp; (
+        &lt;Composer
+          label={composer.label || (assistant ? `Ask ${title}` : `Message ${title}`)}
+          placeholder={composer.placeholder}
+          value={composer.value}
+          onChange={composer.onChange}
+          onSend={composer.onSend}
+          onAttach={composer.onAttach}
+          disabled={composer.disabled}
+          style={{ flex: &quot;none&quot; }}
+        /&gt;
+      )}
+    &lt;/section&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#what-it-works-out">What it works out</a></li>
+    <li class="nested"><a href="#variants">Variants</a></li>
+    <li class="nested"><a href="#layout">Layout</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">ChatBlock</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="ChatBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="ChatBlock.md" download="ChatBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="ChatBlock.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { ChatBlock } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/blocks/ChatBlock.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy ChatBlock.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/blocks/ChatBlock.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View ChatBlock.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/blocks/ChatBlock.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy ChatBlock.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/blocks/ChatBlock.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View ChatBlock.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FChatBlock.md%3A%20the%20%22ChatBlock%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="ChatBlock" data-md="ChatBlock.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=01953f82ec" defer></script>
+<script src="../assets/specimens.js?v=6cc848c41d" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=b4fcd21e42" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/site.js?v=544ba24909" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>
