@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"4d1bd3ac22ef","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"4fea0e4f50f0","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"74adb62db237","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"4d1bd3ac22ef","components/forms/Field.jsx":"d68c912a1acb","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"4fea0e4f50f0","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"21c9464da788","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"a0f22b401b3a","components/commerce/BasketBar.jsx":"8f8b5b631062"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -12649,6 +12649,1603 @@ function PromoCode({
 }
 Object.assign(__ds_scope, { PromoCode });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/PromoCode.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/CartBlock.jsx
+try { (() => {
+/* The summary column's width. The lines take the rest, and when they would
+   get narrower than they are wide enough for, the summary wraps below them. */
+const SUMMARY = "calc(var(--dt-size-media-min) * 1.375)";
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+
+/* The cart page: the lines on the left, the summary on the right (sticky, so
+   the checkout button stays in reach down a long cart), wrapping below the
+   lines on a narrow screen. The block adds nothing up: lines, their totals
+   and the summary's figures are the cart's, passed in as they are. */
+function CartBlock({
+  eyebrow,
+  title = "Your cart",
+  lead,
+  action,
+  lines = [],
+  summary,
+  checkoutAction,
+  promo,
+  emptyState,
+  level = 1,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const empty = lines.length === 0;
+  const s = summary || {
+    lines: [],
+    total: {
+      amount: 0
+    }
+  };
+  const footer = checkoutAction || promo || s.footer ? /*#__PURE__*/React.createElement(React.Fragment, null, promo && /*#__PURE__*/React.createElement(__ds_scope.PromoCode, promo), checkoutAction, s.footer) : undefined;
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-layout-module-gap)"
+    }
+  }, (eyebrow || title || lead || action) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      columnGap: "var(--dt-space-inline-lg)",
+      rowGap: "var(--dt-space-stack-sm)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    level: level,
+    style: {
+      flex: "1 1 auto",
+      minWidth: 0
+    }
+  }), action && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)"
+    }
+  }, action)), empty ? emptyState || /*#__PURE__*/React.createElement(__ds_scope.EmptyState, {
+    title: "Your cart is empty",
+    description: "Items you add will show here."
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      gap: scaled("--dt-layout-inline-section")
+    }
+  }, /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      flex: `999 1 0`,
+      minWidth: `min(100%, calc(${SUMMARY} * 1.25))`,
+      borderBlockStart: "var(--dt-border-width-default) solid var(--dt-cart-line-divider)"
+    }
+  }, lines.map(({
+    id,
+    ...line
+  }, i) => /*#__PURE__*/React.createElement("li", {
+    key: id != null ? id : i
+  }, /*#__PURE__*/React.createElement(__ds_scope.CartLine, {
+    divider: true,
+    ...line
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: `1 1 ${SUMMARY}`,
+      minWidth: 0,
+      position: "sticky",
+      insetBlockStart: "var(--dt-space-stack-lg)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.OrderSummary, {
+    headingLevel: level + 1 > 6 ? 6 : level + 1,
+    ...s,
+    footer: footer
+  })))));
+}
+Object.assign(__ds_scope, { CartBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/CartBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/ChatBlock.jsx
+try { (() => {
+/* A whole conversation from data. The app passes the messages as an array,
+   oldest first, and the block works out what every messenger shows: a day
+   divider where the day changes, runs of consecutive messages from one
+   author with their corners tightened, names and avatars when several
+   people answer, and a Retry on a message that failed. Sending, timers and
+   replies stay in the app; the block only draws what it is given.
+
+   It is a panel, not a page band: a fixed-height column with the header at
+   the top, the log filling the middle and scrolling, and the composer at
+   the bottom. Put it inside a Section (dark or not) to place it on a page. */
+
+/* Tall enough for a real exchange on a desktop, never taller than most of
+   the screen on a phone. A proportion of the narrow container, not a size. */
+const DEFAULT_HEIGHT = "min(calc(var(--dt-size-container-narrow) * 0.8), 80dvh)";
+
+/* Turns the messages into rows: dividers where the day changes, events as
+   dividers, and every message with its place in a run. */
+function layout(messages) {
+  const rows = [];
+  let day;
+  let run = [];
+  const close = () => {
+    run.forEach((row, i) => {
+      row.grouped = run.length === 1 ? "single" : i === 0 ? "first" : i === run.length - 1 ? "last" : "middle";
+    });
+    run = [];
+  };
+  for (const m of messages || []) {
+    if (!m) continue;
+    if (m.day && m.day !== day) {
+      close();
+      day = m.day;
+      rows.push({
+        kind: "day",
+        key: `day-${m.id}`,
+        text: m.day
+      });
+    }
+    if (m.kind === "event") {
+      close();
+      rows.push({
+        kind: "event",
+        key: `event-${m.id}`,
+        text: m.text
+      });
+      continue;
+    }
+    const who = m.from === "me" ? "me" : `them:${m.author ? m.author.name : ""}`;
+    if (run.length && run[run.length - 1].who !== who) close();
+    const row = {
+      kind: "message",
+      key: m.id,
+      message: m,
+      who,
+      grouped: "single"
+    };
+    run.push(row);
+    rows.push(row);
+  }
+  close();
+  return rows;
+}
+function ChatBlock({
+  title,
+  subtitle,
+  avatar,
+  presence,
+  onBack,
+  actions,
+  headingLevel,
+  messages = [],
+  typing,
+  quickReplies,
+  composer,
+  onRetry,
+  variant = "support",
+  height = DEFAULT_HEIGHT,
+  label,
+  style,
+  ...rest
+}) {
+  const assistant = variant === "assistant";
+  const rows = React.useMemo(() => layout(messages), [messages]);
+
+  /* Names and avatars only earn their space when more than one person
+     answers; with one, the header already says who it is. */
+  const group = React.useMemo(() => {
+    const names = new Set();
+    for (const m of messages || []) if (m && m.kind !== "event" && m.from !== "me" && m.author) names.add(m.author.name);
+    return names.size > 1;
+  }, [messages]);
+  const logLabel = label || `Conversation with ${title}`;
+  const typingText = typeof typing === "string" ? typing : undefined;
+  return /*#__PURE__*/React.createElement("section", {
+    ...rest,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      height,
+      minHeight: 0,
+      minWidth: 0,
+      overflow: "hidden",
+      background: "var(--dt-chat-surface)",
+      color: "var(--dt-text-primary)",
+      border: "var(--dt-border-width-default) solid var(--dt-chat-border)",
+      borderRadius: "var(--dt-radius-container)",
+      boxSizing: "border-box",
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.ChatHeader, {
+    title: title,
+    subtitle: subtitle,
+    avatar: avatar,
+    presence: assistant ? undefined : presence,
+    onBack: onBack,
+    actions: actions,
+    headingLevel: headingLevel,
+    style: {
+      flex: "none"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.MessageList, {
+    label: logLabel,
+    style: {
+      flex: "1 1 auto"
+    }
+  }, rows.map(row => {
+    if (row.kind !== "message") return /*#__PURE__*/React.createElement(__ds_scope.MessageDivider, {
+      key: row.key,
+      "data-divider": row.kind
+    }, row.text);
+    const m = row.message;
+    const mine = m.from === "me";
+    return /*#__PURE__*/React.createElement(__ds_scope.MessageBubble, {
+      key: row.key,
+      from: mine ? "me" : "them",
+      time: m.time,
+      status: mine ? m.status : undefined,
+      onRetry: mine && m.status === "failed" && onRetry ? () => onRetry(m.id) : undefined,
+      author: !mine && group ? m.author : undefined,
+      grouped: row.grouped,
+      "data-grouped": row.grouped,
+      "data-message-id": m.id
+    }, m.text, m.content != null && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: m.text ? "var(--dt-space-stack-xs)" : undefined,
+        whiteSpace: "normal",
+        minWidth: 0
+      }
+    }, m.content));
+  }), typing && !assistant && /*#__PURE__*/React.createElement(__ds_scope.TypingIndicator, {
+    name: typingText
+  }), typing && assistant && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "flex-start",
+      marginTop: "var(--dt-bubble-run-gap)",
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Thinking, {
+    state: "thinking",
+    size: "sm",
+    label: typingText || "Thinking"
+  })), quickReplies && quickReplies.options && quickReplies.options.length > 0 && /*#__PURE__*/React.createElement(__ds_scope.QuickReplies, {
+    label: quickReplies.label || "Suggested replies",
+    options: quickReplies.options,
+    onSelect: quickReplies.onSelect,
+    align: quickReplies.align
+  })), composer && /*#__PURE__*/React.createElement(__ds_scope.Composer, {
+    label: composer.label || (assistant ? `Ask ${title}` : `Message ${title}`),
+    placeholder: composer.placeholder,
+    value: composer.value,
+    onChange: composer.onChange,
+    onSend: composer.onSend,
+    onAttach: composer.onAttach,
+    disabled: composer.disabled,
+    style: {
+      flex: "none"
+    }
+  }));
+}
+Object.assign(__ds_scope, { ChatBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/ChatBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/CheckoutBlock.jsx
+try { (() => {
+const SUMMARY = "calc(var(--dt-size-media-min) * 1.5)";
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+
+/* A fieldset whose legend is set like AddressFields' and PaymentFields', so
+   the four steps of the form read as one list of headings. */
+const fieldset = {
+  border: 0,
+  margin: 0,
+  padding: 0,
+  minWidth: 0
+};
+const legend = {
+  ...role("heading-xs"),
+  padding: 0,
+  marginBlockEnd: "var(--dt-space-stack-md)",
+  color: "var(--dt-text-primary)"
+};
+
+/* The block's own width, not the viewport's, so it acts as a container
+   query. False while server rendering and until the first measurement, so
+   the server's markup and the first client render match. */
+function useNarrow(ref, below) {
+  const [narrow, setNarrow] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => setNarrow(el.getBoundingClientRect().width < below);
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, below]);
+  return narrow;
+}
+function Chevron({
+  open
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      flex: "none",
+      width: "var(--dt-size-icon-sm)",
+      height: "var(--dt-size-icon-sm)",
+      transform: open ? "rotate(180deg)" : "none",
+      transition: "transform var(--dt-motion-micro)"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m6 9 6 6 6-6"
+  }));
+}
+
+/* One-page checkout. The form (contact, address, delivery, payment and the
+   place-order action) on the left; the order on the right, sticky. When the
+   block is narrower than collapseBelow the order moves to the top, folded
+   into a "Show order summary · total" disclosure, the usual phone pattern.
+   The block validates and adds up nothing: every value and figure is the
+   consumer's. */
+function CheckoutBlock({
+  eyebrow,
+  title = "Checkout",
+  lead,
+  email = "",
+  onEmailChange,
+  emailLabel = "Email",
+  emailHint,
+  contactLegend = "Contact",
+  address,
+  deliveryOptions = [],
+  delivery,
+  onDeliveryChange,
+  deliveryLegend = "Delivery",
+  payment,
+  submitAction,
+  onSubmit,
+  summary,
+  lines = [],
+  currency,
+  locale,
+  collapseBelow = 768,
+  showSummaryLabel = "Show order summary",
+  hideSummaryLabel = "Hide order summary",
+  level = 1,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const uid = React.useId();
+  const panelId = `${uid}-summary`;
+  const box = React.useRef(null);
+  const narrow = useNarrow(box, collapseBelow);
+  const [open, setOpen] = React.useState(false);
+  const money = {
+    currency: currency || summary && summary.currency,
+    locale: locale || summary && summary.locale
+  };
+  const s = summary || {
+    lines: [],
+    total: {
+      amount: 0
+    }
+  };
+  const items = lines.length > 0 && /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-sm)"
+    }
+  }, lines.map(({
+    id,
+    ...line
+  }, i) => /*#__PURE__*/React.createElement("li", {
+    key: id != null ? id : i
+  }, /*#__PURE__*/React.createElement(__ds_scope.CartLine, {
+    readOnly: true,
+    size: "sm",
+    ...money,
+    ...line
+  }))));
+  /* The read-only lines, then the figures. The panel around them is the
+     column's (or the disclosure's), so the summary drops its own frame. */
+  const panel = /*#__PURE__*/React.createElement(React.Fragment, null, items, /*#__PURE__*/React.createElement(__ds_scope.OrderSummary, {
+    headingLevel: level + 1 > 6 ? 6 : level + 1,
+    ...money,
+    ...s,
+    style: {
+      padding: 0,
+      border: 0,
+      borderRadius: 0,
+      background: "transparent",
+      paddingBlockStart: items ? "var(--dt-space-stack-md)" : 0,
+      borderBlockStart: items ? "var(--dt-border-width-default) solid var(--dt-border-subtle)" : 0,
+      ...(s.style || {})
+    }
+  }));
+  const form = /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "block",
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("fieldset", {
+    style: fieldset
+  }, /*#__PURE__*/React.createElement("legend", {
+    style: legend
+  }, contactLegend), /*#__PURE__*/React.createElement(__ds_scope.Input, {
+    type: "email",
+    label: emailLabel,
+    hint: emailHint,
+    autoComplete: "email",
+    inputMode: "email",
+    spellCheck: false,
+    required: true,
+    value: email,
+    onChange: ev => {
+      if (onEmailChange) onEmailChange(ev.target.value);
+    }
+  })), address && /*#__PURE__*/React.createElement(__ds_scope.AddressFields, address), deliveryOptions.length > 0 && /*#__PURE__*/React.createElement("fieldset", {
+    style: fieldset
+  }, /*#__PURE__*/React.createElement("legend", {
+    style: legend
+  }, deliveryLegend), /*#__PURE__*/React.createElement(__ds_scope.RadioGroup, {
+    name: `${uid}-delivery`,
+    value: delivery,
+    onChange: onDeliveryChange,
+    options: deliveryOptions.map(o => ({
+      value: o.id,
+      hint: o.detail,
+      label: /*#__PURE__*/React.createElement("span", {
+        style: {
+          display: "inline-flex",
+          flexWrap: "wrap",
+          alignItems: "baseline",
+          columnGap: "var(--dt-space-inline-xs)"
+        }
+      }, /*#__PURE__*/React.createElement("span", null, o.label), typeof o.price === "number" && /*#__PURE__*/React.createElement(__ds_scope.Price, {
+        amount: o.price,
+        size: "sm",
+        ...money
+      }))
+    }))
+  })), payment && /*#__PURE__*/React.createElement(__ds_scope.PaymentFields, payment), submitAction && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-sm)"
+    }
+  }, submitAction));
+  const Tag = onSubmit ? "form" : "div";
+  const formProps = onSubmit ? {
+    onSubmit
+  } : {};
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: box,
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-layout-module-gap)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    level: level
+  }), narrow && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderRadius: "var(--dt-radius-container)",
+      background: "var(--dt-surface-subtle)",
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "aria-expanded": open,
+    "aria-controls": panelId,
+    onClick: () => setOpen(v => !v),
+    style: {
+      width: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "var(--dt-space-inline-sm)",
+      padding: "var(--dt-space-inset-md)",
+      minHeight: "var(--dt-size-touch-target)",
+      boxSizing: "border-box",
+      appearance: "none",
+      border: 0,
+      background: "transparent",
+      cursor: "pointer",
+      textAlign: "start",
+      color: "var(--dt-text-link)",
+      ...role("label-md")
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-xs)"
+    }
+  }, open ? hideSummaryLabel : showSummaryLabel, /*#__PURE__*/React.createElement(Chevron, {
+    open: open
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--dt-text-primary)",
+      flex: "none"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Price, {
+    amount: s.total ? s.total.amount : 0,
+    size: "md",
+    ...money
+  }))), /*#__PURE__*/React.createElement("div", {
+    id: panelId,
+    hidden: !open,
+    style: {
+      display: open ? "flex" : "none",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-md)",
+      padding: "0 var(--dt-space-inset-md) var(--dt-space-inset-md)"
+    }
+  }, panel)), /*#__PURE__*/React.createElement(Tag, {
+    ...formProps,
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      gap: scaled("--dt-layout-inline-section")
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "999 1 0",
+      minWidth: `min(100%, calc(${SUMMARY} * 1.25))`
+    }
+  }, form), !narrow && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: `1 1 ${SUMMARY}`,
+      minWidth: 0,
+      position: "sticky",
+      insetBlockStart: "var(--dt-space-stack-lg)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-md)",
+      padding: "var(--dt-space-inset-md)",
+      boxSizing: "border-box",
+      background: "var(--dt-surface-subtle)",
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderRadius: "var(--dt-radius-container)"
+    }
+  }, panel)))));
+}
+Object.assign(__ds_scope, { CheckoutBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/CheckoutBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/MenuBlock.jsx
+try { (() => {
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+const GLASS = "var(--dt-backdrop-glass)";
+
+/* The nearest ancestor that scrolls vertically: the AppShell in a device
+   frame, a dialog, or none (the document). Read in effects and handlers only. */
+function scrollParent(el) {
+  for (let node = el && el.parentElement; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
+    const oy = getComputedStyle(node).overflowY;
+    if ((oy === "auto" || oy === "scroll" || oy === "overlay") && node.scrollHeight > node.clientHeight) return node;
+  }
+  return null;
+}
+function reducedMotion() {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch (err) {
+    return false;
+  }
+}
+
+/* A restaurant's ordering page: the store's header, delivery or pickup, a
+   sticky row of categories that follows the reader down the menu, and the
+   menu itself. Everything is data and callbacks; the basket lives in the app. */
+function MenuBlock({
+  store,
+  fulfilment,
+  sections = [],
+  onItemSelect,
+  onItemAdd,
+  quantities,
+  onQuantityChange,
+  layout = "list",
+  currency,
+  locale,
+  navLabel = "Menu categories",
+  stickyTop = "0px",
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const anchor = id => `${uid}-${id}`;
+  const navRef = React.useRef(null);
+  const listRef = React.useRef(null);
+  const pending = React.useRef(null);
+  const ids = sections.map(s => s.id);
+  const key = ids.join("|");
+  const [active, setActive] = React.useState(ids[0]);
+  const current = ids.includes(active) ? active : ids[0];
+
+  /* The section in view: the first one crossing the band just under the
+     sticky nav. Created in an effect, so a server render never touches it. */
+  React.useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || typeof IntersectionObserver === "undefined") return undefined;
+    const root = scrollParent(nav);
+    const top = parseFloat(getComputedStyle(nav).top) || 0;
+    const offset = Math.round(top + nav.offsetHeight);
+    const visible = new Set();
+    const els = ids.map(id => document.getElementById(anchor(id))).filter(Boolean);
+    const io = new IntersectionObserver(entries => {
+      for (const en of entries) {
+        if (en.isIntersecting) visible.add(en.target.id);else visible.delete(en.target.id);
+      }
+      const first = els.find(el => visible.has(el.id));
+      if (!first) return;
+      const id = ids[els.indexOf(first)];
+      if (pending.current) {
+        if (pending.current === id) pending.current = null;
+        return;
+      }
+      setActive(id);
+    }, {
+      root,
+      rootMargin: `-${offset}px 0px -55% 0px`,
+      threshold: 0
+    });
+    els.forEach(el => io.observe(el));
+    /* A reader who scrolls by hand takes over from a jump still in flight. */
+    const release = () => {
+      pending.current = null;
+    };
+    const target = root || window;
+    target.addEventListener("wheel", release, {
+      passive: true
+    });
+    target.addEventListener("touchstart", release, {
+      passive: true
+    });
+    target.addEventListener("keydown", release);
+    return () => {
+      io.disconnect();
+      target.removeEventListener("wheel", release);
+      target.removeEventListener("touchstart", release);
+      target.removeEventListener("keydown", release);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, stickyTop, uid]);
+
+  /* Keep the current pill in view inside the row, sideways only. */
+  React.useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const link = list.querySelector('[aria-current="true"]');
+    if (!link) return;
+    const l = link.offsetLeft,
+      r = l + link.offsetWidth;
+    if (l < list.scrollLeft || r > list.scrollLeft + list.clientWidth) {
+      list.scrollTo({
+        left: Math.max(0, l - (list.clientWidth - link.offsetWidth) / 2),
+        behavior: reducedMotion() ? "auto" : "smooth"
+      });
+    }
+  }, [current]);
+  const jump = (e, id) => {
+    const el = document.getElementById(anchor(id));
+    const nav = navRef.current;
+    if (!el || !nav) return;
+    e.preventDefault();
+    pending.current = id;
+    setActive(id);
+    const root = scrollParent(nav);
+    const rootTop = root ? root.getBoundingClientRect().top : 0;
+    const stuck = rootTop + (parseFloat(getComputedStyle(nav).top) || 0) + nav.offsetHeight;
+    /* A little air between the nav and the heading: the row's own inset. */
+    const gap = listRef.current ? parseFloat(getComputedStyle(listRef.current).paddingTop) || 0 : 0;
+    const delta = el.getBoundingClientRect().top - stuck - gap;
+    const behavior = reducedMotion() ? "auto" : "smooth";
+    (root || window).scrollBy({
+      top: delta,
+      behavior
+    });
+    try {
+      el.focus({
+        preventScroll: true
+      });
+    } catch (err) {
+      el.focus();
+    }
+  };
+  const pill = on => ({
+    ...role("label-md"),
+    display: "inline-flex",
+    alignItems: "center",
+    boxSizing: "border-box",
+    whiteSpace: "nowrap",
+    minHeight: "var(--dt-size-control-sm)",
+    padding: "0 var(--dt-space-inset-sm)",
+    borderRadius: "var(--dt-radius-pill)",
+    border: `var(--dt-border-width-default) solid ${on ? "var(--dt-surface-inverse)" : "var(--dt-border-subtle)"}`,
+    background: on ? "var(--dt-surface-inverse)" : "transparent",
+    color: on ? "var(--dt-text-inverse)" : "var(--dt-text-secondary)",
+    fontWeight: on ? "var(--dt-font-weight-semibold)" : "var(--dt-font-weight-medium)",
+    textDecoration: "none",
+    transition: "background var(--dt-motion-micro), color var(--dt-motion-micro), border-color var(--dt-motion-micro)"
+  });
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-lg)",
+      minWidth: 0
+    }
+  }, store && /*#__PURE__*/React.createElement(__ds_scope.StoreHeader, {
+    locale: locale,
+    currency: currency,
+    ...store
+  }), fulfilment && /*#__PURE__*/React.createElement(__ds_scope.FulfilmentToggle, {
+    label: fulfilment.label || "How to get your order",
+    value: fulfilment.value,
+    onChange: fulfilment.onChange,
+    options: fulfilment.options
+  }), sections.length > 1 && /*#__PURE__*/React.createElement("nav", {
+    ref: navRef,
+    "aria-label": navLabel,
+    style: {
+      position: "sticky",
+      top: stickyTop,
+      zIndex: "var(--dt-z-sticky)",
+      marginInline: "calc(-1 * var(--dt-space-gutter))",
+      background: "var(--dt-surface-glass)",
+      backdropFilter: GLASS,
+      WebkitBackdropFilter: GLASS,
+      borderBottom: "var(--dt-border-width-default) solid var(--dt-border-glass)"
+    }
+  }, /*#__PURE__*/React.createElement("ul", {
+    ref: listRef,
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      display: "flex",
+      gap: "var(--dt-space-inline-xs)",
+      overflowX: "auto",
+      scrollbarWidth: "none",
+      overscrollBehaviorX: "contain",
+      padding: "var(--dt-space-inset-xs) var(--dt-space-gutter)"
+    }
+  }, sections.map(s => {
+    const on = s.id === current;
+    return /*#__PURE__*/React.createElement("li", {
+      key: s.id,
+      style: {
+        flex: "none",
+        display: "flex"
+      }
+    }, /*#__PURE__*/React.createElement("a", {
+      href: `#${anchor(s.id)}`,
+      "aria-current": on ? "true" : undefined,
+      onClick: e => jump(e, s.id),
+      style: pill(on)
+    }, s.title));
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xl)",
+      minWidth: 0
+    }
+  }, sections.map(s => /*#__PURE__*/React.createElement(__ds_scope.MenuSection, {
+    key: s.id,
+    id: anchor(s.id),
+    tabIndex: -1,
+    title: s.title,
+    description: s.description,
+    layout: layout,
+    style: {
+      outline: "none"
+    }
+  }, (s.items || []).map(({
+    id,
+    ...item
+  }) => /*#__PURE__*/React.createElement(__ds_scope.MenuItem, {
+    key: id,
+    currency: currency,
+    locale: locale,
+    ...item,
+    quantity: quantities && quantities[id] != null ? quantities[id] : item.quantity,
+    onSelect: onItemSelect ? () => onItemSelect(id, s.id) : item.onSelect,
+    onAdd: onItemAdd ? () => onItemAdd(id, s.id) : item.onAdd,
+    onQuantityChange: onQuantityChange ? n => onQuantityChange(id, n) : item.onQuantityChange
+  })))))));
+}
+Object.assign(__ds_scope, { MenuBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/MenuBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/OrderTrackingBlock.jsx
+try { (() => {
+const ICONS = {
+  phone: ["M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"],
+  message: ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z"]
+};
+function Icon({
+  name
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+    focusable: "false",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      display: "block",
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)"
+    }
+  }, ICONS[name].map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+
+/* The route on the placeholder map, store to door, and a point along it. */
+const ROUTE = [[44, 164], [44, 116], [132, 116], [132, 68], [236, 68], [236, 40], [276, 40]];
+function along(p) {
+  const segs = ROUTE.slice(1).map((pt, i) => [ROUTE[i], pt, Math.hypot(pt[0] - ROUTE[i][0], pt[1] - ROUTE[i][1])]);
+  let left = Math.max(0, Math.min(1, p)) * segs.reduce((s, x) => s + x[2], 0);
+  for (const [a, b, len] of segs) {
+    if (left <= len) return [a[0] + (b[0] - a[0]) * left / len, a[1] + (b[1] - a[1]) * left / len];
+    left -= len;
+  }
+  return ROUTE[ROUTE.length - 1];
+}
+
+/* A drawn street map in the system's colours, standing in for a live map.
+   It says nothing a sighted reader needs, so it is hidden from assistive
+   technology; the status and the ETA carry the information. */
+function MapPlaceholder({
+  progress
+}) {
+  const [cx, cy] = along(progress);
+  const pts = ROUTE.map(p => p.join(",")).join(" ");
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 320 200",
+    preserveAspectRatio: "xMidYMid slice",
+    "aria-hidden": "true",
+    focusable: "false",
+    style: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      display: "block"
+    }
+  }, /*#__PURE__*/React.createElement("rect", {
+    width: "320",
+    height: "200",
+    style: {
+      fill: "var(--dt-surface-sunken)"
+    }
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "160",
+    y: "96",
+    width: "96",
+    height: "64",
+    rx: "8",
+    style: {
+      fill: "var(--dt-surface-success-subtle)"
+    }
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M0 184 C 80 176, 120 196, 200 188 S 300 176, 320 182 L 320 200 L 0 200 Z",
+    style: {
+      fill: "var(--dt-surface-info-subtle)"
+    }
+  }), /*#__PURE__*/React.createElement("g", {
+    style: {
+      stroke: "var(--dt-surface-base)",
+      fill: "none",
+      strokeLinecap: "round"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M0 116 H320 M0 68 H320 M44 0 V200 M132 0 V200 M236 0 V200",
+    strokeWidth: "12"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M0 24 H320 M0 150 H320 M88 0 V200 M184 0 V200 M284 0 V200",
+    strokeWidth: "5"
+  })), /*#__PURE__*/React.createElement("polyline", {
+    points: pts,
+    fill: "none",
+    strokeWidth: "5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      stroke: "var(--dt-surface-action)"
+    }
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "44",
+    cy: "164",
+    r: "9",
+    style: {
+      fill: "var(--dt-surface-inverse)"
+    }
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "44",
+    cy: "164",
+    r: "3.5",
+    style: {
+      fill: "var(--dt-surface-base)"
+    }
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M276 22 a12 12 0 0 1 12 12 c0 9 -12 20 -12 20 s-12 -11 -12 -20 a12 12 0 0 1 12 -12 z",
+    style: {
+      fill: "var(--dt-surface-action)"
+    }
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "276",
+    cy: "34",
+    r: "4.5",
+    style: {
+      fill: "var(--dt-surface-base)"
+    }
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: cx,
+    cy: cy,
+    r: "11",
+    style: {
+      fill: "var(--dt-surface-base)",
+      stroke: "var(--dt-surface-action)"
+    },
+    strokeWidth: "3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: cx,
+    cy: cy,
+    r: "4.5",
+    style: {
+      fill: "var(--dt-surface-action)"
+    }
+  }));
+}
+
+/* After checkout: when it arrives, where it has got to, who is bringing it,
+   and what was ordered. Two columns when there is room (progress on the
+   left, the order on the right), one on a phone. */
+function OrderTrackingBlock({
+  title,
+  eta,
+  status,
+  courier,
+  map,
+  lines = [],
+  summary,
+  help,
+  orderTitle = "Your order",
+  courierLabel = "Your courier",
+  headingLevel = 1,
+  currency,
+  locale,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const level = Math.min(Math.max(Math.round(headingLevel) || 1, 1), 5);
+  const steps = status && status.steps || [];
+  const at = Math.max(0, steps.findIndex(s => s.id === (status && status.current)));
+  const progress = steps.length > 1 ? at / (steps.length - 1) : 0;
+  const card = {
+    boxSizing: "border-box",
+    minWidth: 0,
+    padding: "var(--dt-space-inset-md)",
+    background: "var(--dt-card-bg)",
+    color: "var(--dt-card-fg)",
+    border: "var(--dt-card-border-width) solid var(--dt-card-border-color)",
+    borderRadius: "var(--dt-card-radius)"
+  };
+  const round = {
+    boxShadow: "inset 0 0 0 var(--dt-border-width-default) var(--dt-border-default)"
+  };
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
+      gap: "var(--dt-layout-module-gap) var(--dt-space-inline-2xl)",
+      alignItems: "start"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-lg)",
+      minWidth: 0
+    }
+  }, (title || eta) && /*#__PURE__*/React.createElement("div", {
+    "aria-live": "polite",
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-2xs)"
+    }
+  }, title && /*#__PURE__*/React.createElement(__ds_scope.Heading, {
+    level: level,
+    size: "heading-lg",
+    balance: true
+  }, title), eta && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "lead",
+    tone: "secondary"
+  }, eta)), status && /*#__PURE__*/React.createElement(__ds_scope.OrderStatus, {
+    label: "Order progress",
+    ...status
+  }), /*#__PURE__*/React.createElement(__ds_scope.AspectRatio, {
+    ratio: 1.6,
+    style: {
+      borderRadius: "var(--dt-radius-container)",
+      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      background: "var(--dt-surface-sunken)"
+    }
+  }, map || /*#__PURE__*/React.createElement(MapPlaceholder, {
+    progress: progress
+  })), courier && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...card,
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Avatar, {
+    name: courier.avatar && courier.avatar.name || courier.name,
+    src: courier.avatar && courier.avatar.src,
+    size: "lg"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "1 1 calc(3 * var(--dt-size-control-lg))",
+      minWidth: 0,
+      display: "flex",
+      flexDirection: "column"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "small",
+    tone: "tertiary"
+  }, courierLabel), /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "label",
+    weight: "semibold",
+    style: {
+      overflowWrap: "anywhere"
+    }
+  }, courier.name), courier.vehicle && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    variant: "small",
+    tone: "secondary",
+    style: {
+      overflowWrap: "anywhere"
+    }
+  }, courier.vehicle)), (courier.onCall || courier.onMessage) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "none",
+      display: "flex",
+      gap: "var(--dt-space-inline-xs)",
+      marginInlineStart: "auto"
+    }
+  }, courier.onMessage && /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: courier.messageLabel || `Message ${courier.name}`,
+    onClick: courier.onMessage,
+    style: round
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "message"
+  })), courier.onCall && /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: courier.callLabel || `Call ${courier.name}`,
+    onClick: courier.onCall,
+    style: round
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "phone"
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-md)",
+      minWidth: 0
+    }
+  }, lines.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-space-stack-xs)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Heading, {
+    level: level + 1,
+    size: "heading-sm"
+  }, orderTitle), /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      minWidth: 0
+    }
+  }, lines.map((line, i) => /*#__PURE__*/React.createElement("li", {
+    key: line.name + i,
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.CartLine, {
+    currency: currency,
+    locale: locale,
+    size: "sm",
+    ...line,
+    readOnly: true,
+    divider: i < lines.length - 1
+  }))))), summary && /*#__PURE__*/React.createElement(__ds_scope.OrderSummary, {
+    currency: currency,
+    locale: locale,
+    headingLevel: level + 1,
+    ...summary
+  }), help && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-sm)",
+      alignItems: "center"
+    }
+  }, help))));
+}
+Object.assign(__ds_scope, { OrderTrackingBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/OrderTrackingBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/ProductDetailBlock.jsx
+try { (() => {
+/* A column is at least this wide before the two stack: a gallery any
+   narrower loses its thumbnails, and a buy box its one-line price. */
+const MIN_COLUMN = "calc(var(--dt-size-media-min) * 1.25)";
+const scaled = token => `calc(var(${token}) * var(--dt-layout-scale, 1))`;
+
+/* The top of a product page: the gallery on the left, the buy box on the
+   right, stacked gallery first on a narrow screen. The block holds no state;
+   the variants, the quantity and whether the product can be added are the
+   consumer's, passed in as props. */
+function ProductDetailBlock({
+  images = [],
+  galleryLabel,
+  ratio = "1:1",
+  name,
+  subtitle,
+  price,
+  compareAt,
+  currency,
+  locale,
+  rating,
+  description,
+  variants = [],
+  quantity,
+  onQuantityChange,
+  maxQuantity,
+  onAddToCart,
+  addToCartLabel = "Add to cart",
+  canAddToCart = true,
+  addToCartNote,
+  soldOut = false,
+  soldOutLabel = "Sold out",
+  details = [],
+  badges,
+  level = 1,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const uid = React.useId();
+  const noteId = `${uid}-note`;
+  const disabled = soldOut || !canAddToCart;
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      alignItems: "start",
+      gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN_COLUMN}), 1fr))`,
+      columnGap: scaled("--dt-layout-inline-section"),
+      rowGap: "var(--dt-layout-module-gap)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.ProductGallery, {
+    images: images,
+    label: galleryLabel || `Images of ${name}`,
+    ratio: ratio
+  })), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "group",
+    style: {
+      minWidth: 0
+    }
+  }, badges && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "var(--dt-space-inline-xs)"
+    }
+  }, badges), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "eyebrow"
+  }, /*#__PURE__*/React.createElement(__ds_scope.Heading, {
+    level: level,
+    size: "heading-lg",
+    measure: "wide",
+    style: {
+      overflowWrap: "break-word"
+    }
+  }, name), subtitle && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    tone: "secondary"
+  }, subtitle)), rating && /*#__PURE__*/React.createElement(__ds_scope.Rating, {
+    value: rating.value,
+    count: rating.count,
+    locale: locale,
+    size: "sm",
+    style: {
+      alignSelf: "flex-start"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.Price, {
+    amount: price,
+    compareAt: compareAt,
+    currency: currency,
+    locale: locale,
+    size: "lg"
+  }), description && (typeof description === "string" ? /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    tone: "secondary"
+  }, description) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "var(--dt-text-secondary)"
+    }
+  }, description)), variants.length > 0 && /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "group"
+  }, variants.map((v, i) => /*#__PURE__*/React.createElement(__ds_scope.VariantPicker, {
+    key: v.label || i,
+    ...v
+  }))), /*#__PURE__*/React.createElement(__ds_scope.Stack, {
+    layer: "related",
+    style: {
+      marginBlockStart: "var(--dt-space-stack-xs)"
+    }
+  }, onQuantityChange && /*#__PURE__*/React.createElement(__ds_scope.QuantityStepper, {
+    label: `Quantity, ${name}`,
+    value: quantity == null ? 1 : quantity,
+    onChange: onQuantityChange,
+    max: maxQuantity,
+    disabled: soldOut,
+    style: {
+      alignSelf: "flex-start"
+    }
+  }), /*#__PURE__*/React.createElement(__ds_scope.Button, {
+    size: "lg",
+    fullWidth: true,
+    disabled: disabled,
+    onClick: disabled ? undefined : onAddToCart,
+    "aria-describedby": addToCartNote ? noteId : undefined
+  }, soldOut ? soldOutLabel : addToCartLabel), addToCartNote && /*#__PURE__*/React.createElement(__ds_scope.Text, {
+    id: noteId,
+    variant: "small",
+    tone: "secondary"
+  }, addToCartNote)), details.length > 0 && /*#__PURE__*/React.createElement(__ds_scope.Accordion, {
+    label: `About ${name}`,
+    allowMultiple: true,
+    items: details.map((d, i) => ({
+      id: `${uid}-detail-${i}`,
+      title: d.title,
+      content: d.content
+    })),
+    style: {
+      marginBlockStart: "var(--dt-space-stack-sm)"
+    }
+  }))));
+}
+Object.assign(__ds_scope, { ProductDetailBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/ProductDetailBlock.jsx", error: String((e && e.message) || e) }); }
+// components/blocks/ProductGridBlock.jsx
+try { (() => {
+/* The least width a card may take before the grid drops a column: three
+   large controls, so a 390px phone still fits two cards side by side and a
+   card never gets too thin for its name and price. */
+const MIN_CARD = "calc(var(--dt-size-control-lg) * 3)";
+const GAP = "var(--dt-space-inline-md)";
+
+/* A header over a grid of ProductCards. columns is the count on a wide
+   screen; each track is at least a share of the row and at least MIN_CARD,
+   so the grid gives up columns as the width runs out and lands on two on a
+   phone. */
+function ProductGridBlock({
+  eyebrow,
+  title,
+  lead,
+  products = [],
+  columns = 4,
+  action,
+  emptyState,
+  level = 2,
+  tone = "base",
+  dark,
+  texture,
+  spacing = "default",
+  width = "default",
+  ...rest
+}) {
+  const n = [2, 3, 4].includes(columns) ? columns : 4;
+  const hasHeader = !!(eyebrow || title || lead || action);
+  return /*#__PURE__*/React.createElement(__ds_scope.Section, {
+    tone: tone,
+    dark: dark,
+    texture: texture,
+    spacing: spacing,
+    width: width,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--dt-layout-module-gap)"
+    }
+  }, hasHeader && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      columnGap: "var(--dt-space-inline-lg)",
+      rowGap: "var(--dt-space-stack-sm)"
+    }
+  }, (eyebrow || title || lead) && /*#__PURE__*/React.createElement(__ds_scope.BlockHeader, {
+    eyebrow: eyebrow,
+    title: title,
+    lead: lead,
+    level: level,
+    style: {
+      flex: "1 1 auto",
+      minWidth: 0
+    }
+  }), action && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)"
+    }
+  }, action)), products.length === 0 ? emptyState || /*#__PURE__*/React.createElement(__ds_scope.EmptyState, {
+    title: "No products to show",
+    description: "Try another filter, or check back soon."
+  }) : /*#__PURE__*/React.createElement("ul", {
+    role: "list",
+    style: {
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "grid",
+      alignItems: "stretch",
+      gap: `var(--dt-space-stack-lg) ${GAP}`,
+      gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, max(${MIN_CARD}, calc((100% - ${n - 1} * ${GAP}) / ${n}))), 1fr))`
+    }
+  }, products.map(({
+    id,
+    ...card
+  }, i) => /*#__PURE__*/React.createElement(__ds_scope.ProductCard, {
+    key: id != null ? id : i,
+    as: "li",
+    ...card
+  })))));
+}
+Object.assign(__ds_scope, { ProductGridBlock });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/blocks/ProductGridBlock.jsx", error: String((e && e.message) || e) }); }
+// components/commerce/BasketBar.jsx
+try { (() => {
+const role = name => ({
+  fontFamily: `var(--dt-text-${name}-family)`,
+  fontSize: `var(--dt-text-${name}-size)`,
+  lineHeight: `var(--dt-text-${name}-line)`,
+  fontWeight: `var(--dt-text-${name}-weight)`,
+  letterSpacing: `var(--dt-text-${name}-tracking)`
+});
+const defaultItemsLabel = n => n === 1 ? "1 item" : `${n} items`;
+function format(amount, currency, locale) {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency
+    }).format(amount);
+  } catch (err) {
+    return String(amount);
+  }
+}
+
+/* The bar at the foot of a phone ordering screen: how many things are in the
+   basket, what they come to, and the way in. It renders nothing while the
+   basket is empty. Where it sits (sticky, fixed, in a footer) is the page's
+   choice, through style. */
+function BasketBar({
+  count,
+  total,
+  currency = "USD",
+  locale,
+  onClick,
+  label = "View basket",
+  itemsLabel = defaultItemsLabel,
+  disabled = false,
+  style,
+  ...rest
+}) {
+  const [hover, setHover] = React.useState(false);
+  const [down, setDown] = React.useState(false);
+  if (!(count > 0)) return null;
+  const bg = disabled ? "var(--dt-button-disabled-bg)" : down ? "var(--dt-button-primary-bg-active)" : hover ? "var(--dt-button-primary-bg-hover)" : "var(--dt-button-primary-bg)";
+  const fg = disabled ? "var(--dt-button-disabled-fg)" : "var(--dt-button-primary-fg)";
+  return /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onClick,
+    disabled: disabled,
+    "aria-label": `${label}, ${itemsLabel(count)}, ${format(total, currency, locale)}`,
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => {
+      setHover(false);
+      setDown(false);
+    },
+    onPointerDown: () => setDown(true),
+    onPointerUp: () => setDown(false),
+    style: {
+      appearance: "none",
+      boxSizing: "border-box",
+      margin: 0,
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-space-inline-sm)",
+      width: "100%",
+      minHeight: "max(var(--dt-size-control-lg), var(--dt-size-touch-target))",
+      paddingBlock: 0,
+      paddingInlineStart: "var(--dt-space-inset-xs)",
+      paddingInlineEnd: "var(--dt-space-inset-md)",
+      border: "var(--dt-border-width-default) solid var(--dt-button-primary-border)",
+      borderRadius: "var(--dt-button-radius)",
+      background: bg,
+      color: fg,
+      boxShadow: "var(--dt-elevation-3)",
+      cursor: disabled ? "not-allowed" : "pointer",
+      textAlign: "start",
+      transition: "background var(--dt-button-transition)",
+      "--dt-price-color": "currentColor",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      ...role("label-md"),
+      flex: "none",
+      boxSizing: "border-box",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: "var(--dt-size-control-sm)",
+      height: "var(--dt-size-control-sm)",
+      padding: "0 var(--dt-space-inset-xs)",
+      borderRadius: "var(--dt-radius-pill)",
+      background: "color-mix(in oklab, currentColor 18%, transparent)",
+      fontWeight: "var(--dt-font-weight-semibold)",
+      fontVariantNumeric: "tabular-nums"
+    }
+  }, count), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      ...role("label-lg"),
+      flex: "1 1 auto",
+      minWidth: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      fontWeight: "var(--dt-font-weight-semibold)"
+    }
+  }, label), /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      flex: "none",
+      fontWeight: "var(--dt-font-weight-semibold)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.Price, {
+    amount: total,
+    currency: currency,
+    locale: locale,
+    size: "md"
+  })));
+}
+Object.assign(__ds_scope, { BasketBar });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/commerce/BasketBar.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -12848,5 +14445,21 @@ __ds_ns.OrderSummary = __ds_scope.OrderSummary;
 __ds_ns.PaymentFields = __ds_scope.PaymentFields;
 
 __ds_ns.PromoCode = __ds_scope.PromoCode;
+
+__ds_ns.CartBlock = __ds_scope.CartBlock;
+
+__ds_ns.ChatBlock = __ds_scope.ChatBlock;
+
+__ds_ns.CheckoutBlock = __ds_scope.CheckoutBlock;
+
+__ds_ns.MenuBlock = __ds_scope.MenuBlock;
+
+__ds_ns.OrderTrackingBlock = __ds_scope.OrderTrackingBlock;
+
+__ds_ns.ProductDetailBlock = __ds_scope.ProductDetailBlock;
+
+__ds_ns.ProductGridBlock = __ds_scope.ProductGridBlock;
+
+__ds_ns.BasketBar = __ds_scope.BasketBar;
 
 })();

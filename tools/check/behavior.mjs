@@ -64,6 +64,19 @@
       - CheckboxGroup and RadioGroup with labelPosition="start": each label
         lines up with the group's question and the control sits at the
         row's right edge; clicking the label text still toggles or picks.
+      - ChatBlock: a run of three from one author is first/middle/last
+        (data-grouped); exactly one day divider per day change, and an event
+        breaks a run; sending through its composer calls onSend. Mounted on
+        demand and unmounted after, so its Send button and log never meet
+        the Composer and MessageList checks above.
+      - Food kit blocks: MenuBlock's category nav scrolls to a section,
+        focuses it and marks its link aria-current; BasketBar renders
+        nothing at count 0, then is named by label, count and total and
+        calls onClick; OrderTrackingBlock's courier buttons are named.
+      - CheckoutBlock: in a narrow box the order summary is a disclosure
+        whose button toggles aria-expanded and shows its panel; the email
+        field has autocomplete="email"; choosing a delivery option calls
+        onDeliveryChange with its id.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -116,6 +129,9 @@ const PAGE = `<!doctype html>
 <div id="food-root"></div>
 <div id="checkout-root"></div>
 <div id="forms-root" style="width:360px"></div>
+<div id="chat-kit-root"></div>
+<div id="foodkit-root"></div>
+<div id="store-checkout-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -303,6 +319,84 @@ createRoot(document.getElementById("forms-root")).render(h("div", null,
     onChange: (v) => window.__forms.radio.push(v),
     options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta" }] })));
 window.__formsReady = true;
+</script>
+<script type="module">
+/* ChatBlock, on its own root, mounted only by its own step. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ChatBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__chatKit = { sent: [], retried: [] };
+const CHAT_KIT_MESSAGES = [
+  { id: "ck1", from: "them", day: "Chat kit day one", text: "Chat kit first" },
+  { id: "ck2", from: "them", day: "Chat kit day one", text: "Chat kit middle" },
+  { id: "ck3", from: "them", text: "Chat kit last" },
+  { id: "ck4", from: "me", text: "Chat kit reply", status: "failed" },
+  { id: "ck5", kind: "event", text: "Chat kit tester joined" },
+  { id: "ck6", from: "them", day: "Chat kit day one", text: "Chat kit after event" },
+  { id: "ck7", from: "them", day: "Chat kit day two", text: "Chat kit next day" },
+  { id: "ck8", from: "them", day: "Chat kit day two", text: "Chat kit same day" },
+];
+function ChatKit() {
+  const [draft, setDraft] = React.useState("");
+  return h(ChatBlock, { title: "Chat kit tester", height: 480, messages: CHAT_KIT_MESSAGES,
+    onRetry: (id) => window.__chatKit.retried.push(id),
+    composer: { value: draft, onChange: setDraft, onSend: (t) => { window.__chatKit.sent.push(t); setDraft(""); } } });
+}
+let chatKitRoot = null;
+window.__chatKitMount = () => { chatKitRoot = createRoot(document.getElementById("chat-kit-root")); chatKitRoot.render(h(ChatKit)); };
+window.__chatKitUnmount = () => { if (chatKitRoot) chatKitRoot.unmount(); chatKitRoot = null; };
+window.__chatKitReady = true;
+</script>
+<script type="module">
+/* Food kit blocks: MenuBlock, BasketBar and OrderTrackingBlock, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BasketBar, MenuBlock, OrderTrackingBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__foodkit = { opened: 0, calls: [] };
+const dishes = (prefix) => Array.from({ length: 4 }, (_, i) => ({ id: prefix + i, name: "Food kit " + prefix + " " + (i + 1), description: "A dish for the behaviour check.", price: 10 + i }));
+function FoodKit() {
+  const [count, setCount] = React.useState(0);
+  return h("div", null,
+    h(MenuBlock, { spacing: "none", locale: "en-US", navLabel: "Food kit categories",
+      store: { name: "Food kit store", headingLevel: 2 },
+      sections: [
+        { id: "mains", title: "Food kit mains", items: dishes("main") },
+        { id: "sides", title: "Food kit sides", items: dishes("side") },
+        { id: "desserts", title: "Food kit desserts", items: dishes("dessert") },
+      ] }),
+    h("button", { type: "button", onClick: () => setCount((n) => n + 1) }, "Food kit add"),
+    h(BasketBar, { count, total: count * 12.5, locale: "en-US", label: "Food kit basket", onClick: () => { window.__foodkit.opened++; } }),
+    h(OrderTrackingBlock, { spacing: "none", locale: "en-US", headingLevel: 2, title: "Food kit order", eta: "Arriving soon",
+      status: { current: "b", steps: [{ id: "a", label: "Placed" }, { id: "b", label: "On the way" }, { id: "c", label: "Delivered" }] },
+      courier: { name: "Food kit courier", vehicle: "Bike", onCall: () => window.__foodkit.calls.push("call"), onMessage: () => window.__foodkit.calls.push("message") },
+      lines: [{ name: "Food kit noodles", price: 12.5, quantity: 1 }],
+      summary: { lines: [{ label: "Subtotal", amount: 12.5 }], total: { amount: 12.5 } } }));
+}
+createRoot(document.getElementById("foodkit-root")).render(h(FoodKit));
+window.__foodkitReady = true;
+</script>
+<script type="module">
+/* Store blocks: CheckoutBlock in a phone-width box, on its own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { CheckoutBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__store = { delivery: [], emails: [] };
+function StoreCheckout() {
+  const [email, setEmail] = React.useState("");
+  const [delivery, setDelivery] = React.useState("store-standard");
+  return h("div", { style: { width: "360px" } },
+    h(CheckoutBlock, { title: "Store test checkout", locale: "en-US", collapseBelow: 600,
+      email, onEmailChange: (v) => { window.__store.emails.push(v); setEmail(v); }, emailLabel: "Store email",
+      deliveryLegend: "Store delivery", delivery, onDeliveryChange: (id) => { window.__store.delivery.push(id); setDelivery(id); },
+      deliveryOptions: [{ id: "store-standard", label: "Store standard", price: 0 }, { id: "store-express", label: "Store express", price: 12 }],
+      lines: [{ id: "store-mug", name: "Store test mug", price: 24, quantity: 2, lineTotal: 48 }],
+      summary: { title: "Store test summary", lines: [{ label: "Subtotal", amount: 48 }], total: { amount: 48 } } }));
+}
+createRoot(document.getElementById("store-checkout-root")).render(h(StoreCheckout));
+window.__storeReady = true;
 </script>
 </body></html>
 `;
@@ -890,6 +984,110 @@ try {
     const calls = await page.evaluate(() => window.__forms);
     expect(calls.checks.join("|") === "a,b" && calls.radio.join("|") === "b", `onChange should report a,b and b, got ${JSON.stringify(calls)}`);
     ok("clicking the label text toggles and picks, and onChange reports it");
+  });
+
+  await step("Chat kit ChatBlock: computed runs, one divider per day change, composer sends", async () => {
+    await page.waitForFunction(() => window.__chatKitReady === true);
+    await page.evaluate(() => window.__chatKitMount());
+    try {
+      const log = page.getByRole("log", { name: "Conversation with Chat kit tester", exact: true });
+      await log.waitFor();
+      const grouped = await log.evaluate((el) => Object.fromEntries([...el.querySelectorAll("[data-message-id]")].map((n) => [n.dataset.messageId, n.dataset.grouped])));
+      const want = { ck1: "first", ck2: "middle", ck3: "last", ck4: "single", ck6: "single", ck7: "first", ck8: "last" };
+      expect(JSON.stringify(grouped) === JSON.stringify(want), `data-grouped should be ${JSON.stringify(want)}, got ${JSON.stringify(grouped)}`);
+      ok("a run of three is first/middle/last; an event and a day change end a run");
+      const seps = await log.evaluate((el) => [...el.querySelectorAll('[role="separator"]')].map((n) => n.getAttribute("aria-label")));
+      expect(JSON.stringify(seps) === JSON.stringify(["Chat kit day one", "Chat kit tester joined", "Chat kit day two"]),
+        `expected one divider per day change plus the event, got ${JSON.stringify(seps)}`);
+      ok("exactly one day divider per day change, and the event as a separator");
+      await log.getByRole("button", { name: "Retry", exact: true }).click();
+      expect(JSON.stringify(await page.evaluate(() => window.__chatKit.retried)) === '["ck4"]', "Retry should call onRetry with the failed message's id");
+      ok("Retry calls onRetry(id)");
+      const field = page.getByRole("textbox", { name: "Message Chat kit tester", exact: true });
+      await field.fill("Chat kit hello");
+      await field.press("Enter");
+      const sentNow = await page.evaluate(() => window.__chatKit.sent.slice());
+      expect(sentNow.length === 1 && sentNow[0] === "Chat kit hello", `the composer should call onSend("Chat kit hello"), got ${JSON.stringify(sentNow)}`);
+      expect((await field.inputValue()) === "", "the consumer cleared the draft, so the field should be empty");
+      ok("sending through its composer calls onSend with the text");
+    } finally {
+      await page.evaluate(() => window.__chatKitUnmount());
+    }
+  });
+
+  await step("Food kit blocks: category nav, basket bar, courier buttons", async () => {
+    await page.waitForFunction(() => window.__foodkitReady === true);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const nav = page.getByRole("navigation", { name: "Food kit categories", exact: true });
+    expect((await nav.getByRole("link").count()) === 3, "the category nav should hold one link per section");
+    const link = nav.getByRole("link", { name: "Food kit desserts", exact: true });
+    await link.click();
+    await page.waitForFunction(() => {
+      const a = document.activeElement;
+      return a && a.tagName === "SECTION" && /Food kit desserts/.test(a.querySelector("h1,h2,h3,h4,h5,h6").textContent);
+    });
+    ok("pressing a pill moves focus to its section");
+    expect((await link.getAttribute("aria-current")) === "true", "the pressed pill should carry aria-current=\"true\"");
+    const others = await nav.locator('[aria-current="true"]').count();
+    expect(others === 1, `exactly one pill should be current, got ${others}`);
+    ok('its link is the one aria-current="true"');
+    const gap = await page.evaluate(() => {
+      const n = document.querySelector('nav[aria-label="Food kit categories"]').getBoundingClientRect();
+      const sec = document.activeElement.getBoundingClientRect();
+      return Math.round(sec.top - n.bottom);
+    });
+    expect(gap >= -2 && gap <= 40, `the section should land just under the sticky nav, it is ${gap}px away`);
+    ok(`the section scrolled to just under the sticky nav (${gap}px)`);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+
+    const bar = () => page.getByRole("button", { name: /^Food kit basket/ });
+    expect((await bar().count()) === 0, "BasketBar should render nothing at count 0");
+    ok("BasketBar renders nothing at count 0");
+    await page.getByRole("button", { name: "Food kit add", exact: true }).click();
+    const name = await bar().getAttribute("aria-label");
+    expect(name === "Food kit basket, 1 item, $12.50", `BasketBar should be named by label, count and total, got ${JSON.stringify(name)}`);
+    await bar().click();
+    expect((await page.evaluate(() => window.__foodkit.opened)) === 1, "clicking BasketBar should call onClick once");
+    ok(`"${name}" calls onClick`);
+
+    await page.getByRole("button", { name: "Call Food kit courier", exact: true }).click();
+    await page.getByRole("button", { name: "Message Food kit courier", exact: true }).click();
+    const calls = await page.evaluate(() => window.__foodkit.calls.join(","));
+    expect(calls === "call,message", `the courier buttons should call onCall and onMessage, got ${calls}`);
+    ok('courier buttons are named "Call Food kit courier" and "Message Food kit courier" and call back');
+  });
+
+  await step("CheckoutBlock: summary disclosure, email autocomplete, delivery callback", async () => {
+    await page.waitForFunction(() => window.__storeReady === true);
+    const toggle = page.getByRole("button", { name: /^Show order summary/ });
+    await toggle.waitFor();
+    expect((await toggle.getAttribute("aria-expanded")) === "false", "in a narrow box the summary disclosure should start collapsed");
+    const panel = page.locator("#" + (await toggle.getAttribute("aria-controls")).replace(/:/g, "\\:"));
+    expect(!(await panel.isVisible()), "the summary panel should be hidden while collapsed");
+    const name = await toggle.textContent();
+    expect(/\$48\.00/.test(name), `the disclosure should carry the total, got ${JSON.stringify(name)}`);
+    await toggle.click();
+    const open = page.getByRole("button", { name: /^Hide order summary/ });
+    expect((await open.getAttribute("aria-expanded")) === "true", "clicking should set aria-expanded to true");
+    expect(await panel.isVisible(), "the summary panel should show once expanded");
+    expect((await panel.getByRole("heading", { name: "Store test summary" }).count()) === 1, "the panel should hold the order summary");
+    await open.click();
+    expect((await page.getByRole("button", { name: /^Show order summary/ }).getAttribute("aria-expanded")) === "false", "a second click should collapse it");
+    ok(`the disclosure "${name.trim()}" toggles aria-expanded and its panel`);
+    const email = page.getByRole("textbox", { name: "Store email" });
+    const attrs = await email.evaluate((el) => `${el.type}:${el.getAttribute("autocomplete")}`);
+    expect(attrs === "email:email", `the email field should be type email with autocomplete email, got ${attrs}`);
+    await email.fill("ana@example.com");
+    expect((await page.evaluate(() => window.__store.emails.pop())) === "ana@example.com", "typing should call onEmailChange with the text");
+    ok('the email field is type="email" autocomplete="email" and calls onEmailChange');
+    const express = page.getByRole("radio", { name: /^Store express/ });
+    await page.getByText("Store express", { exact: true }).click();
+    const seen = await page.evaluate(() => window.__store.delivery);
+    expect(seen.length === 1 && seen[0] === "store-express", `choosing Store express should call onDeliveryChange("store-express"), got ${JSON.stringify(seen)}`);
+    expect(await express.isChecked(), "Store express should be checked after choosing it");
+    const group = await page.getByRole("group", { name: "Store delivery", exact: true }).count();
+    expect(group === 1, "the delivery options should be a group named by its legend");
+    ok('choosing a delivery option calls onDeliveryChange("store-express"); the options are grouped by their legend');
   });
 
   await step("page errors", () => {

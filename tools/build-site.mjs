@@ -1163,6 +1163,9 @@ const CARD_TITLE = {
   BlocksKit: "Landing page from blocks",
   SettingsPageTemplate: "Settings page",
   SocialKit: "Social templates",
+  StoreKit: "Store",
+  FoodKit: "Food ordering",
+  ChatKit: "Chat",
 };
 
 /* Most cards open their subtitle with the name a reader wants: ColorCyan is
@@ -1244,7 +1247,7 @@ const NAV_BLURB = {
   Prose: "Long-form text", Quote: "A pull quote", BlockRenderer: "Blocks from content", SocialPost: "Stories and grid posts",
   HeroBlock: "The top of a page", FeatureGridBlock: "Features in a grid", SplitBlock: "Copy beside media",
   StatsBlock: "Numbers that matter", TestimonialBlock: "What customers say", FaqBlock: "Common questions",
-  CtaBlock: "The closing ask", BlockHeader: "Every block's heading",
+  CtaBlock: "The closing ask", BlockHeader: "Every block's heading", ChatBlock: "A whole conversation",
   Price: "Money, formatted", Rating: "Stars, shown or chosen", QuantityStepper: "How many",
   ProductCard: "A product in a grid", ProductGallery: "Product photos", VariantPicker: "Size, colour, material",
   CartLine: "A line in the cart", OrderSummary: "What it all costs", PromoCode: "Apply a code",
@@ -1268,8 +1271,8 @@ const TEMPLATE_KINDS = [
   ["marketing", "Marketing", "Pages and landing pages", "layout"],
   ["social", "Social", "Stories and posts", "image"],
 ];
-const TEMPLATE_KIND = { DashboardKit: "product", SettingsPageTemplate: "product", MarketingKit: "marketing", BlocksKit: "marketing", SocialKit: "social" };
-const TEMPLATE_BLURB = { DashboardKit: "Metrics and tables", SettingsPageTemplate: "Forms and switches", MarketingKit: "A full marketing page", BlocksKit: "Stacked blocks", SocialKit: "Ten layouts" };
+const TEMPLATE_KIND = { DashboardKit: "product", SettingsPageTemplate: "product", MarketingKit: "marketing", BlocksKit: "marketing", SocialKit: "social", StoreKit: "product", FoodKit: "product", ChatKit: "product" };
+const TEMPLATE_BLURB = { DashboardKit: "Metrics and tables", SettingsPageTemplate: "Forms and switches", MarketingKit: "A full marketing page", BlocksKit: "Stacked blocks", SocialKit: "Ten layouts", StoreKit: "Browse to checkout", FoodKit: "Menu to delivery", ChatKit: "Support and assistant" };
 
 /* --------------------------------------------------------------- home page */
 

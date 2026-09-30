@@ -1,0 +1,112 @@
+<!-- @dsCard group="Blocks" height=1700 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-marketing"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  /* Flat product shots as inline SVG, drawn the way the ProductCard card
+     draws them. */
+  var SHAPES = {
+    mug: "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/><path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='F' stroke-width='5'/><rect x='30' y='34' width='36' height='43' rx='5' fill='F'/>",
+    tote: "<ellipse cx='50' cy='84' rx='28' ry='3' fill='#000' opacity='.08'/><path d='M38 38V30a12 12 0 0 1 24 0v8' fill='none' stroke='F' stroke-width='4'/><path d='M26 38h48l-4 44H30z' fill='F'/>",
+    lamp: "<ellipse cx='50' cy='85' rx='18' ry='3' fill='#000' opacity='.08'/><path d='M34 18h32l8 26H26z' fill='F'/><rect x='48' y='44' width='4' height='35' fill='F'/><rect x='36' y='79' width='28' height='5' rx='2' fill='F'/>",
+  };
+  function art(kind, bg, fg) {
+    return "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" + SHAPES[kind].replace(/F/g, fg) + "</svg>");
+  }
+  var START = [
+    { id: "mug", name: "Stoneware mug", details: ["Fern", "Regular"], price: 24, quantity: 2, image: { src: art("mug", "#e9e4dc", "#5b7a6a"), alt: "" } },
+    { id: "tote", name: "Canvas tote", details: ["Terracotta"], price: 32, quantity: 1, note: "Only 3 left", image: { src: art("tote", "#efe3dc", "#b5654a"), alt: "" } },
+    { id: "lamp", name: "Desk lamp", details: ["Brass"], price: 129, compareAt: 149, quantity: 1, image: { src: art("lamp", "#f1ece0", "#b08d3e"), alt: "" } },
+  ];
+  var FREE_SHIPPING = 75;
+
+  /* The cart and its arithmetic live here, as they would in a page: the
+     block only shows what it is given. */
+  function Demo(props) {
+    var l = React.useState(props.lines || START), lines = l[0], setLines = l[1];
+    var c = React.useState(""), code = c[0], setCode = c[1];
+    var a = React.useState(null), applied = a[0], setApplied = a[1];
+    var err = React.useState(""), error = err[0], setError = err[1];
+    var subtotal = lines.reduce(function (s, x) { return s + x.price * x.quantity; }, 0);
+    var discount = applied ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
+    var shipping = subtotal - discount >= FREE_SHIPPING ? 0 : 6;
+    var tax = Math.round((subtotal - discount) * 0.08 * 100) / 100;
+    var total = subtotal - discount + shipping + tax;
+    var count = lines.reduce(function (s, x) { return s + x.quantity; }, 0);
+    function update(id, q) { setLines(lines.map(function (x) { return x.id === id ? Object.assign({}, x, { quantity: q }) : x; })); }
+    function remove(id) { setLines(lines.filter(function (x) { return x.id !== id; })); }
+    return e(NS.CartBlock, Object.assign({
+      spacing: "compact",
+      lead: count ? count + (count === 1 ? " item" : " items") : undefined,
+      action: e(NS.Link, { href: "#shop", underline: "hover" }, "Continue shopping"),
+      lines: lines.map(function (x) {
+        return Object.assign({}, x, { locale: "en-US", href: "#" + x.id, lineTotal: x.price * x.quantity, maxQuantity: 9,
+          onQuantityChange: function (q) { update(x.id, q); }, onRemove: function () { remove(x.id); } });
+      }),
+      summary: {
+        locale: "en-US",
+        freeShippingProgress: { current: subtotal - discount, threshold: FREE_SHIPPING },
+        lines: [{ label: "Subtotal", amount: subtotal }]
+          .concat(applied ? [{ label: "Discount (" + applied + ")", amount: discount, kind: "discount" }] : [])
+          .concat([{ label: "Shipping", amount: shipping, hint: shipping ? "Standard, 3–5 days" : undefined }, { label: "Estimated tax", amount: tax, kind: "muted", hint: "Confirmed at checkout" }]),
+        total: { amount: total },
+      },
+      promo: {
+        value: code, onChange: function (v) { setCode(v); setError(""); }, error: error || undefined,
+        applied: applied ? { code: applied, description: "10% off" } : undefined,
+        onApply: function (v) { if (v.toUpperCase() === "HELLO10") { setApplied("HELLO10"); setError(""); } else setError("That code isn’t valid. Try HELLO10."); },
+        onRemove: function () { setApplied(null); setCode(""); },
+      },
+      checkoutAction: e(NS.Button, { size: "lg", fullWidth: true }, "Check out"),
+      emptyState: e(NS.EmptyState, { title: "Your cart is empty", description: "Mugs, bowls and lamps, made in small batches.", action: e(NS.Button, { variant: "secondary", size: "sm", onClick: function () { setLines(START); } }, "Browse the shop") }),
+    }, props.extra || {}));
+  }
+
+  function Page() {
+    return e(Shelf, { name: "CartBlock", summary: "The cart page: the lines beside an order summary with the checkout action, or an empty state.", props: [
+        { name: "lines", type: "(CartLineProps & { id })[]", required: true, notes: "Each a CartLine with a divider. Pass lineTotal and the callbacks from your cart." },
+        { name: "summary", type: "OrderSummaryProps", required: true, notes: "Right of the lines and sticky on a wide screen; under them on a narrow one." },
+        { name: "checkoutAction", type: "ReactNode", notes: "Your Button or link, in the summary's footer." },
+        { name: "promo", type: "PromoCodeProps", notes: "A PromoCode above the checkout action." },
+        { name: "title / eyebrow / lead", type: "ReactNode", default: '"Your cart"' },
+        { name: "action", type: "ReactNode", notes: "Beside the header: Continue shopping." },
+        { name: "emptyState", type: "ReactNode", notes: "When lines is empty. Defaults to an EmptyState, “Your cart is empty”." },
+        { name: "level", type: "1–6", default: "1", notes: "The title's level; the summary's is one below." },
+      ], guidance: [
+        "The block adds nothing up. Compute each lineTotal, the subtotal, discounts, shipping, tax and the total in your cart, and pass them in.",
+        "Remove really removes: when lines runs out the empty state shows. Give it a way back to the shop.",
+        "One checkout action, full width, primary. Put trust copy or payment marks in summary.footer after it.",
+        "Say what is estimated: mark tax and shipping muted with a hint until the address is known.",
+      ] },
+      e(Specimen, { label: "Live: change quantities, remove, try the code HELLO10", bg: "var(--dt-surface-base)" }, e(Demo)),
+      e(Specimen, { label: "Empty", bg: "var(--dt-surface-base)" }, e(Demo, { lines: [] })),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        e(Demo, { lines: START.slice(0, 2), extra: { dark: true, level: 2, style: { borderRadius: "var(--dt-radius-container)" } } })));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.CartBlock || !window.Shelf || !window.ReactDOM || !window.DovetailTemplateIcons) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>
