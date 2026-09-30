@@ -17,7 +17,8 @@
       because the registry is not reachable; their real paths are the same
       files the package's own imports resolve, so there is still one React.
    4. From the consumer, imports the package by name, renders Button, Section
-      and Stack with react-dom/server and asserts on the HTML, and resolves
+      and Stack with react-dom/server and asserts on the HTML, require()s it
+      (Node 22.12+ loads the ES module through the "default" condition), and resolves
       <name>/styles.css and <name>/fonts.css through the exports map:
       styles.css must hold no @import at all, fonts.css only https ones. It
       also asserts that hook-using modules start with "use client" and pure
@@ -209,6 +210,17 @@ say("Section dark renders <section class=\\"dark\\"> around Stack and Button");
 const plain = renderToStaticMarkup(h(Section, null, "x"));
 assert.ok(!/class="[^"]*dark/.test(plain), plain);
 say("Section without dark carries no dark class");
+
+/* The "default" export condition: require() loads the ES module on a Node
+   with require(esm) (22.12+), so CommonJS tooling needs no separate build. */
+if (process.features.require_module) {
+  const { createRequire } = await import("node:module");
+  const cjs = createRequire(import.meta.url)(NAME);
+  assert.equal(typeof cjs.Button, "function", "require() gives Button");
+  say('require("' + NAME + '") loads the package (Node ' + process.version + ')');
+} else {
+  say("require(): this Node cannot require an ES module, so not checked");
+}
 
 const cssUrl = import.meta.resolve(NAME + "/styles.css");
 const cssPath = fileURLToPath(cssUrl);

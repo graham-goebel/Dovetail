@@ -11,8 +11,9 @@ a Popover and less interruption than a full page.
 
 ### Rules
 
-- Escape closes, the scrim closes, and focus returns to the trigger. That is built in;
-  do not add a second close path that skips focus restoration.
+- Focus moves into the panel on open and Tab stays inside it. Escape closes, the scrim
+  closes, and focus returns to the trigger. That is built in; do not add a second close
+  path that skips focus restoration.
 - Use `right` for detail and editing, `left` for navigation on narrow screens, and
   `bottom` for mobile sheets.
 - Actions go in `footer`, not loose at the end of the body. The footer stays visible
@@ -36,7 +37,7 @@ import * as React from "react";
 export interface DrawerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   open: boolean;
   onClose?: () => void;
-  /** Header text. Also the accessible name when it is a string. */
+  /** Header, and the accessible name unless `label` is given. */
   title?: React.ReactNode;
   children?: React.ReactNode;
   /** Footer slot, usually the action buttons. */
@@ -45,7 +46,7 @@ export interface DrawerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   side?: "right" | "left" | "bottom";
   /** Applies to left and right drawers. @default 380 */
   width?: number | string;
-  /** Accessible name when title is not a string. */
+  /** Accessible name instead of the title, or for a drawer with no title. */
   label?: string;
 }
 
@@ -81,17 +82,12 @@ export declare function Drawer(props: DrawerProps): React.JSX.Element | null;
 
 ```jsx
 import React from "react";
+import { useModalFocus } from "./Dialog.jsx";
 
 export function Drawer({ open, onClose, title, children, footer, side = "right", width = 380, label, style, ...rest }) {
   const panel = React.useRef(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const onKey = e => e.key === "Escape" && onClose && onClose();
-    document.addEventListener("keydown", onKey);
-    const prev = document.activeElement;
-    panel.current && panel.current.focus();
-    return () => { document.removeEventListener("keydown", onKey); prev && prev.focus && prev.focus(); };
-  }, [open, onClose]);
+  const titleId = React.useId();
+  useModalFocus(open, panel, onClose);
   if (!open) return null;
   const horizontal = side === "left" || side === "right";
   return (
@@ -101,7 +97,8 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label={label || (typeof title === "string" ? title : undefined)}
+        aria-label={label || undefined}
+        aria-labelledby={!label && title ? titleId : undefined}
         tabIndex={-1}
         style={{
           position: "relative", display: "flex", flexDirection: "column",
@@ -122,7 +119,7 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--dt-space-inline-sm)",
             padding: "var(--dt-space-inset-md)", borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)", flex: "none",
           }}>
-            <span style={{ fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)", fontWeight: "var(--dt-font-weight-semibold)" }}>{title}</span>
+            <span id={titleId} style={{ fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)", fontWeight: "var(--dt-font-weight-semibold)" }}>{title}</span>
             <button type="button" onClick={onClose} aria-label="Close" style={{
               appearance: "none", background: "transparent", border: "none", cursor: "pointer",
               color: "var(--dt-text-secondary)", fontSize: "var(--dt-text-body-lg-size)", lineHeight: 1,

@@ -1,15 +1,10 @@
 import React from "react";
+import { useModalFocus } from "./Dialog.jsx";
 
 export function Drawer({ open, onClose, title, children, footer, side = "right", width = 380, label, style, ...rest }) {
   const panel = React.useRef(null);
-  React.useEffect(() => {
-    if (!open) return;
-    const onKey = e => e.key === "Escape" && onClose && onClose();
-    document.addEventListener("keydown", onKey);
-    const prev = document.activeElement;
-    panel.current && panel.current.focus();
-    return () => { document.removeEventListener("keydown", onKey); prev && prev.focus && prev.focus(); };
-  }, [open, onClose]);
+  const titleId = React.useId();
+  useModalFocus(open, panel, onClose);
   if (!open) return null;
   const horizontal = side === "left" || side === "right";
   return (
@@ -19,7 +14,8 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label={label || (typeof title === "string" ? title : undefined)}
+        aria-label={label || undefined}
+        aria-labelledby={!label && title ? titleId : undefined}
         tabIndex={-1}
         style={{
           position: "relative", display: "flex", flexDirection: "column",
@@ -40,7 +36,7 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--dt-space-inline-sm)",
             padding: "var(--dt-space-inset-md)", borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)", flex: "none",
           }}>
-            <span style={{ fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)", fontWeight: "var(--dt-font-weight-semibold)" }}>{title}</span>
+            <span id={titleId} style={{ fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)", fontWeight: "var(--dt-font-weight-semibold)" }}>{title}</span>
             <button type="button" onClick={onClose} aria-label="Close" style={{
               appearance: "none", background: "transparent", border: "none", cursor: "pointer",
               color: "var(--dt-text-secondary)", fontSize: "var(--dt-text-body-lg-size)", lineHeight: 1,

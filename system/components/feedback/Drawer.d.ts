@@ -4,7 +4,7 @@ import * as React from "react";
 export interface DrawerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   open: boolean;
   onClose?: () => void;
-  /** Header text. Also the accessible name when it is a string. */
+  /** Header, and the accessible name unless `label` is given. */
   title?: React.ReactNode;
   children?: React.ReactNode;
   /** Footer slot, usually the action buttons. */
@@ -13,7 +13,7 @@ export interface DrawerProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   side?: "right" | "left" | "bottom";
   /** Applies to left and right drawers. @default 380 */
   width?: number | string;
-  /** Accessible name when title is not a string. */
+  /** Accessible name instead of the title, or for a drawer with no title. */
   label?: string;
 }
 

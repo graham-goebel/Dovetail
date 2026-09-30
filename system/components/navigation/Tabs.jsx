@@ -2,13 +2,17 @@ import React from "react";
 
 export function Tabs({ tabs = [], value, onChange, label, variant = "underline", style, ...rest }) {
   const refs = React.useRef([]);
+  /* Keys move only among enabled tabs, wrapping at the ends, so a disabled
+     tab is never selected or focused from the keyboard. */
   function onKeyDown(e) {
-    const i = tabs.findIndex(t => t.id === value);
+    const enabled = tabs.map((t, i) => i).filter(i => !tabs[i].disabled);
+    if (!enabled.length) return;
+    const at = enabled.indexOf(tabs.findIndex(t => t.id === value));
     let next = null;
-    if (e.key === "ArrowRight") next = (i + 1) % tabs.length;
-    if (e.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
-    if (e.key === "Home") next = 0;
-    if (e.key === "End") next = tabs.length - 1;
+    if (e.key === "ArrowRight") next = enabled[(at + 1) % enabled.length];
+    if (e.key === "ArrowLeft") next = enabled[(at - 1 + enabled.length) % enabled.length];
+    if (e.key === "Home") next = enabled[0];
+    if (e.key === "End") next = enabled[enabled.length - 1];
     if (next === null) return;
     e.preventDefault();
     onChange && onChange(tabs[next].id);

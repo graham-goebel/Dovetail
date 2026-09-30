@@ -251,9 +251,10 @@ function copyDeclaration(rel) {
 
 /* Exports that exist so one component file can share a piece with another,
    not for consumers. They stay in their own module (Cover and Video import
-   UploadFrame from Image) but are left out of index.js, so they are not public
-   API that a later refactor would break. */
-const INTERNAL = new Set(["UploadFrame"]);
+   UploadFrame from Image; Drawer imports useModalFocus from Dialog) but are
+   left out of index.js, so they are not public API that a later refactor
+   would break. */
+const INTERNAL = new Set(["UploadFrame", "useModalFocus"]);
 
 /* Inlines every local @import of a stylesheet, depth first, in source order,
    which is the order the browser would apply them. External URLs are collected

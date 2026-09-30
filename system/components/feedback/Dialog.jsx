@@ -1,12 +1,49 @@
 import React from "react";
 
-export function Dialog({ open, onClose, title, description, footer, size = "md", children }) {
+const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/* What a modal surface does while it is open: focus moves into the panel,
+   Tab and Shift+Tab cycle inside it, Escape closes it, the page behind stops
+   scrolling, and focus goes back where it came from on close. Drawer shares
+   it; Sheet keeps its own copy, tied to its entry and exit animation. The
+   panel needs tabIndex={-1} so it can take focus itself when it has no
+   tabbable child. onClose is read through a ref, so a new inline callback on
+   every render does not re-run the effect and bounce focus. */
+export function useModalFocus(open, panel, onClose) {
+  const close = React.useRef(onClose);
+  React.useEffect(() => { close.current = onClose; });
   React.useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => { if (e.key === "Escape") onClose && onClose(); };
+    if (!open) return undefined;
+    const el = panel.current;
+    const prev = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (el) el.focus({ preventScroll: true });
+    const onKey = (e) => {
+      if (e.key === "Escape") { close.current && close.current(); return; }
+      if (e.key !== "Tab" || !el) return;
+      const items = Array.prototype.filter.call(el.querySelectorAll(TABBABLE), (n) => n.offsetParent !== null);
+      if (!items.length) { e.preventDefault(); el.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const inside = el.contains(document.activeElement);
+      if (e.shiftKey && (!inside || document.activeElement === first)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (!inside || document.activeElement === last)) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      if (prev && prev.focus) prev.focus();
+    };
+  }, [open, panel]);
+}
+
+export function Dialog({ open, onClose, title, description, footer, size = "md", label, style, children, ...rest }) {
+  const panel = React.useRef(null);
+  const titleId = React.useId();
+  const descriptionId = React.useId();
+  useModalFocus(open, panel, onClose);
 
   if (!open) return null;
 
@@ -21,8 +58,13 @@ export function Dialog({ open, onClose, title, description, footer, size = "md",
       }}
     >
       <div
-        role="dialog" aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
+        {...rest}
+        ref={panel}
+        role="dialog" aria-modal="true" tabIndex={-1}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={!title ? label : undefined}
+        aria-describedby={description ? descriptionId : undefined}
+        onClick={(e) => { e.stopPropagation(); rest.onClick && rest.onClick(e); }}
         style={{
           position: "relative",
           display: "flex", flexDirection: "column", gap: "var(--dt-dialog-gap)",
@@ -33,6 +75,7 @@ export function Dialog({ open, onClose, title, description, footer, size = "md",
           borderRadius: "var(--dt-dialog-radius)",
           padding: "var(--dt-dialog-padding)",
           boxShadow: "var(--dt-dialog-elevation)",
+          ...style,
         }}
       >
         <button
@@ -48,7 +91,7 @@ export function Dialog({ open, onClose, title, description, footer, size = "md",
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
         </button>
         {title && (
-          <h2 style={{
+          <h2 id={titleId} style={{
             margin: 0, paddingRight: "var(--dt-space-inset-xl)",
             fontFamily: "var(--dt-text-heading-md-family)", fontSize: "var(--dt-text-heading-md-size)",
             lineHeight: "var(--dt-text-heading-md-line)", fontWeight: "var(--dt-text-heading-md-weight)",
@@ -56,7 +99,7 @@ export function Dialog({ open, onClose, title, description, footer, size = "md",
           }}>{title}</h2>
         )}
         {description && (
-          <p style={{ margin: 0, fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)", lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)" }}>{description}</p>
+          <p id={descriptionId} style={{ margin: 0, fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)", lineHeight: "var(--dt-text-body-sm-line)", color: "var(--dt-text-secondary)" }}>{description}</p>
         )}
         {children}
         {footer && <div style={{ display: "flex", gap: "var(--dt-space-inline-xs)", justifyContent: "flex-end", marginTop: "var(--dt-space-stack-xs)" }}>{footer}</div>}
