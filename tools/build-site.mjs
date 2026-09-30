@@ -1661,18 +1661,34 @@ ${
    field, and strings or ReactNode a text field. Functions, arrays, objects,
    style and as are left to the code, since there is no honest control for
    them. */
-function playgroundProps(c) {
-  if (!c.types) return [];
-  const src = read(path.join(ROOT, c.types));
-  const start = src.search(new RegExp(`export interface ${c.sourceName === c.name ? c.name : c.name}Props\\b`));
-  if (start < 0) return [];
+/* An interface's members, with those of any interface it extends that is
+   declared in the same file (a shared base), base first. Library bases such
+   as React.HTMLAttributes are left out: they are not the component's props. */
+function interfaceBody(src, name, seen = new Set()) {
+  if (seen.has(name)) return null;
+  seen.add(name);
+  const start = src.search(new RegExp(`(?:export\\s+)?interface ${name}\\b`));
+  if (start < 0) return null;
   const open = src.indexOf("{", start);
   let depth = 0, end = open;
   for (let i = open; i < src.length; i++) {
     if (src[i] === "{") depth++;
     else if (src[i] === "}" && --depth === 0) { end = i; break; }
   }
-  const body = src.slice(open + 1, end);
+  const ext = (src.slice(start, open).match(/extends\s+([\s\S]+)$/) || [])[1] || "";
+  const bases = ext.split(",").map((b) => b.trim()).filter((b) => /^\w+$/.test(b));
+  return bases.map((b) => interfaceBody(src, b, seen) || "").join("\n") + "\n" + src.slice(open + 1, end);
+}
+
+function playgroundProps(c) {
+  if (!c.types) return [];
+  const src = read(path.join(ROOT, c.types));
+  /* Props are an interface, or a union of interfaces split on a discriminant
+     (Rating: display or input). A playground shows the first member, the one
+     that renders without callbacks. */
+  const union = src.match(new RegExp(`export type ${c.name}Props\\s*=\\s*(\\w+)\\s*\\|`));
+  const body = interfaceBody(src, union ? union[1] : `${c.name}Props`);
+  if (body == null) return [];
   const out = [];
   const re = /(?:\/\*\*([\s\S]*?)\*\/\s*)?\n\s*([a-zA-Z]\w*)(\?)?:\s*([^;]+);/g;
   let m;
