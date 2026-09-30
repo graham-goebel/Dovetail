@@ -342,6 +342,10 @@
     QuantityStepper: function () {
       return e(LiveQuantity, null, e(NS.QuantityStepper, { label: "Quantity", value: 2, max: 9, size: "sm", onChange: function () {} }));
     },
+    BasketBar: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280 } },
+        e(NS.BasketBar, { count: 3, total: 42.5, locale: "en-US", onClick: function () {} }));
+    },
     /* Chat */
     ChatHeader: function () {
       return e("div", { style: { width: "100%", maxWidth: 280, borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
@@ -486,6 +490,28 @@
         steps: [{ id: "ordered", label: "Ordered", time: "Sep 28" }, { id: "shipped", label: "Shipped", time: "Sep 29" }, { id: "delivered", label: "Delivered", time: "Expected Oct 2" }],
       });
     },
+    /* Food blocks. Their cards say why they have no tile (NOTES); these are
+       what the server-render check draws them from. */
+    MenuBlock: function () {
+      return e(NS.MenuBlock, {
+        spacing: "none", locale: "en-US",
+        store: { name: "Bangkok Kitchen", headingLevel: 3, meta: ["Thai", "$$"], deliveryTime: "25–35 min", status: { open: true, label: "Open until 10pm" } },
+        sections: [
+          { id: "popular", title: "Popular", items: [{ id: "pad-thai", name: "Pad thai", price: 12.5 }] },
+          { id: "noodles", title: "Noodles", items: [{ id: "see-ew", name: "Pad see ew", price: 12 }] },
+        ],
+        onItemAdd: function () {},
+      });
+    },
+    OrderTrackingBlock: function () {
+      return e(NS.OrderTrackingBlock, {
+        spacing: "none", locale: "en-US", headingLevel: 3, title: "Your order is on its way", eta: "Arriving 7:45–7:55 pm",
+        status: { current: "on-the-way", steps: [{ id: "placed", label: "Order placed" }, { id: "on-the-way", label: "On the way" }, { id: "delivered", label: "Delivered" }] },
+        courier: { name: "Sam", vehicle: "Blue e-bike", onCall: function () {}, onMessage: function () {} },
+        lines: [{ name: "Pad thai", price: 12.5, quantity: 1 }],
+        summary: { lines: [{ label: "Subtotal", amount: 12.5 }, { label: "Delivery", amount: 2.99 }], total: { amount: 15.49 } },
+      });
+    },
   };
 
   /* A flat product shot for the commerce specimens: a mug in a glaze colour
@@ -520,6 +546,8 @@
     FaqBlock: "A full-width page section, so it is shown on its own card.",
     CtaBlock: "A full-width page section, so it is shown on its own card.",
     ChatBlock: "A whole conversation panel with its own header and composer, so it is shown on its own card.",
+    MenuBlock: "A full-width page section, so it is shown on its own card.",
+    OrderTrackingBlock: "A full-width page section, so it is shown on its own card.",
     ToastRegion: "Fixed to a corner of the viewport, so it is shown on its own card.",
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };

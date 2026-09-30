@@ -1,0 +1,153 @@
+<!-- @dsCard group="Blocks" height=3300 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<script src="../system/templates/_support/template-icons.js"></script>
+</head><body class="dt-context-product"><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = window.BeamMobileDesignSystem_e33121 || {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* Pictures are small inline SVGs, so the card needs no network. */
+  function svg(w, h, body) {
+    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + " " + h + '">' + body + "</svg>");
+  }
+  function dish(bg, food, bits) {
+    return svg(96, 96, '<rect width="96" height="96" fill="' + bg + '"/><circle cx="48" cy="52" r="34" fill="#fbf8f2"/>' +
+      '<circle cx="48" cy="52" r="25" fill="' + food + '"/><circle cx="40" cy="46" r="4.5" fill="' + bits + '"/>' +
+      '<circle cx="57" cy="56" r="4" fill="' + bits + '"/><circle cx="51" cy="41" r="3" fill="' + bits + '"/><circle cx="42" cy="61" r="3" fill="' + bits + '"/>');
+  }
+  var COVER = svg(900, 300,
+    '<rect width="900" height="300" fill="#35503f"/>' +
+    '<circle cx="190" cy="250" r="150" fill="#f4efe6"/><circle cx="190" cy="250" r="112" fill="#e4a046"/>' +
+    '<circle cx="160" cy="215" r="14" fill="#5d8f45"/><circle cx="228" cy="258" r="11" fill="#c8553d"/>' +
+    '<circle cx="560" cy="80" r="112" fill="#f4efe6"/><circle cx="560" cy="80" r="82" fill="#c8553d"/>' +
+    '<rect x="690" y="190" width="170" height="22" rx="11" fill="#caa56b" transform="rotate(-20 775 201)"/>');
+  var LOGO = { src: svg(64, 64, '<rect width="64" height="64" fill="#c8553d"/><text x="32" y="42" font-family="Georgia, serif" font-size="26" font-weight="700" text-anchor="middle" fill="#fff">BK</text>'), alt: "" };
+  var STORE = {
+    name: "Bangkok Kitchen", image: { src: COVER, alt: "" }, logo: LOGO,
+    rating: { value: 4.6, count: 1284 }, meta: ["Thai", "$$", "1.2 mi"],
+    deliveryTime: "25–35 min", deliveryFee: 2.99, status: { open: true, label: "Open until 10pm" },
+  };
+  var SECTIONS = [
+    { id: "popular", title: "Popular", description: "What people order most this month.", items: [
+      { id: "pad-thai", name: "Pad thai", description: "Rice noodles wok-fried with tamarind, egg, tofu, bean sprouts and crushed peanuts.", price: 12.5, image: { src: dish("#f1dcb8", "#e4a046", "#5d8f45"), alt: "Pad thai on a white plate" }, tags: [{ label: "Popular", kind: "popular" }] },
+      { id: "green-curry", name: "Green curry", description: "Coconut green curry with Thai aubergine, bamboo shoots and holy basil.", price: 13.5, image: { src: dish("#dde8d3", "#d9822b", "#3f7f3a"), alt: "Green curry in a bowl" }, tags: [{ label: "Spicy", kind: "spicy" }, { label: "Gluten free", kind: "gluten-free" }] },
+    ] },
+    { id: "noodles", title: "Noodles", items: [
+      { id: "see-ew", name: "Pad see ew", description: "Wide rice noodles with Chinese broccoli, egg and sweet soy.", price: 12, image: { src: dish("#e8e2f0", "#c9a36a", "#4f7f3a"), alt: "Pad see ew with greens" }, tags: [{ label: "Vegetarian", kind: "vegetarian" }] },
+      { id: "khao-soi", name: "Khao soi", description: "Northern curry noodle soup with crispy noodles and pickled mustard greens.", price: 14, image: { src: dish("#f5d5cc", "#c8553d", "#f1dcb8"), alt: "Khao soi noodle soup" }, soldOut: true },
+    ] },
+    { id: "small-plates", title: "Small plates", items: [
+      { id: "rolls", name: "Fresh spring rolls", description: "Rice paper, herbs, vermicelli and peanut sauce.", price: 7.5, image: { src: dish("#d7e6ea", "#e9c46a", "#5d8f45"), alt: "Fresh spring rolls" }, tags: [{ label: "Vegan", kind: "vegan" }] },
+      { id: "satay", name: "Chicken satay", description: "Grilled skewers with peanut sauce and cucumber relish.", price: 8.5, image: { src: dish("#f3e3c9", "#b5703a", "#5d8f45"), alt: "Chicken satay skewers" } },
+    ] },
+    { id: "drinks", title: "Drinks", items: [
+      { id: "tea", name: "Iced Thai tea", description: "Strong black tea with condensed milk over ice.", price: 4.5, image: { src: dish("#f3e3c9", "#d08c3a", "#fbf8f2"), alt: "Iced Thai tea" }, tags: [{ label: "New", kind: "new" }] },
+      { id: "lime", name: "Lime soda", price: 3.5 },
+    ] },
+  ];
+  function icon(paths) {
+    return e("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+      style: { display: "block", width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)" } },
+      paths.map(function (d) { return e("path", { key: d, d: d }); }));
+  }
+  var BACK = ["M19 12H5", "m12 19-7-7 7-7"];
+  function note(text) {
+    return e("p", { "aria-live": "polite", style: Object.assign({ margin: "var(--dt-space-stack-2xs) 0 0" }, cap) }, text);
+  }
+
+  /* Live state for an example: the fulfilment choice and a basket of counts. */
+  function useMenu(initial) {
+    var how = React.useState("delivery");
+    var basket = React.useState(initial || {});
+    var last = React.useState("Press a pill, a dish or an add button.");
+    return {
+      fulfilment: { value: how[0], onChange: how[1], options: [{ value: "delivery", label: "Delivery", detail: "25–35 min" }, { value: "pickup", label: "Pickup", detail: "Ready in 15" }] },
+      quantities: basket[0],
+      onItemSelect: function (id, sec) { last[1]("onItemSelect(" + id + ", " + sec + ")"); },
+      onItemAdd: function (id) { var n = Object.assign({}, basket[0]); n[id] = (n[id] || 0) + 1; basket[1](n); last[1]("onItemAdd(" + id + ")"); },
+      onQuantityChange: function (id, q) { var n = Object.assign({}, basket[0]); if (q > 0) n[id] = q; else delete n[id]; basket[1](n); last[1]("onQuantityChange(" + id + ", " + q + ")"); },
+      last: last[0],
+    };
+  }
+
+  function Phone() {
+    var m = useMenu({ "pad-thai": 1 });
+    return e("div", null,
+      e("div", { style: {
+          position: "relative", transform: "translateZ(0)", overflow: "hidden",
+          width: "100%", maxWidth: "390px", height: "720px", margin: "0 auto",
+          borderRadius: "var(--dt-radius-overlay)", border: "var(--dt-border-width-default) solid var(--dt-border-default)",
+          background: "var(--dt-surface-base)",
+        } },
+        e(NS.AppShell, { scroll: "contained", title: "Bangkok Kitchen", leading: e(NS.IconButton, { label: "Back" }, icon(BACK)) },
+          e(NS.MenuBlock, { spacing: "compact", stickyTop: "var(--dt-appshell-bar-height)", locale: "en-US", store: Object.assign({}, STORE, { headingLevel: 3 }),
+            fulfilment: m.fulfilment, sections: SECTIONS, quantities: m.quantities,
+            onItemSelect: m.onItemSelect, onItemAdd: m.onItemAdd, onQuantityChange: m.onQuantityChange }))),
+      note(m.last));
+  }
+
+  function Wide() {
+    var m = useMenu({});
+    return e("div", { style: { borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+      e(NS.MenuBlock, { spacing: "compact", layout: "grid", locale: "en-US",
+        store: { name: "Corner Bakery", headingLevel: 3, meta: ["Bakery", "$", "0.4 mi"], rating: { value: 4.8, count: 212 }, deliveryTime: "Ready in 10 min", status: { open: true, label: "Open until 6pm" } },
+        sections: SECTIONS.slice(0, 2), quantities: m.quantities, onItemAdd: m.onItemAdd, onQuantityChange: m.onQuantityChange }));
+  }
+
+  function Page() {
+    return e(Shelf, { name: "MenuBlock", summary: "A restaurant's ordering page body: the store's header, delivery or pickup, a sticky category nav and the menu.", props: [
+        { name: "store", type: "StoreHeaderProps", notes: "Rendered as a StoreHeader at the top." },
+        { name: "fulfilment", type: "{ value, onChange, options?, label? }", notes: "A FulfilmentToggle under the header." },
+        { name: "sections", type: "{ id, title, description?, items }[]", required: true, notes: "Each item is MenuItem's props plus an id." },
+        { name: "onItemSelect / onItemAdd", type: "(itemId, sectionId) => void", notes: "Make the rows buttons / show the add buttons." },
+        { name: "quantities", type: "Record<string, number>", notes: "Basket counts by dish id." },
+        { name: "onQuantityChange", type: "(itemId, next) => void", notes: "Shows the in-basket stepper; 0 removes." },
+        { name: "layout", type: '"list" | "grid"', default: '"list"' },
+        { name: "stickyTop", type: "string", default: '"0px"', notes: "Where the category nav sticks: var(--dt-appshell-bar-height) inside an AppShell." },
+        { name: "navLabel", type: "string", default: '"Menu categories"' },
+        { name: "currency / locale", type: "string", notes: "Defaults for the store and every dish." },
+        { name: "tone / dark / spacing / width", type: "Section props", notes: "Like every block." },
+      ], guidance: [
+        "One per store page. The store's name is the page heading; sections are h2.",
+        "A pill scrolls its section under the nav (instantly under reduced motion), focuses it, and is marked aria-current.",
+        "The basket lives in your app: pass quantities and do the sums there.",
+        "Inside an AppShell, pass spacing=\"compact\" and stickyTop so the nav sits under the bar.",
+      ] },
+      e(Specimen, { label: "List, in a contained AppShell at 390px. Press a pill, then scroll: the pill follows", bg: "var(--dt-surface-subtle)" },
+        e(Phone)),
+      e(Specimen, { label: "Grid, no cover, no fulfilment", bg: "var(--dt-surface-base)" },
+        e(Wide)),
+      e(Specimen, { label: "In a dark band: dark, with a closed store", bg: "var(--dt-surface-base)" },
+        e("div", { style: { borderRadius: "var(--dt-radius-container)", overflow: "hidden" } },
+          e(NS.MenuBlock, { dark: true, spacing: "compact", locale: "en-US",
+            store: Object.assign({}, STORE, { headingLevel: 3, status: { open: false, label: "Closed · opens 11am" } }),
+            sections: SECTIONS.slice(0, 2), quantities: { "see-ew": 2 }, onItemAdd: function () {}, onQuantityChange: function () {} }))));
+  }
+  function start() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    if (!NS.MenuBlock || !NS.AppShell || !window.Shelf || !window.ReactDOM) return setTimeout(start, 40);
+    ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+  }
+  start();
+})();
+</script>
+</body></html>

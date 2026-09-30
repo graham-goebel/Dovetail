@@ -66,6 +66,10 @@
         breaks a run; sending through its composer calls onSend. Mounted on
         demand and unmounted after, so its Send button and log never meet
         the Composer and MessageList checks above.
+      - Food kit blocks: MenuBlock's category nav scrolls to a section,
+        focuses it and marks its link aria-current; BasketBar renders
+        nothing at count 0, then is named by label, count and total and
+        calls onClick; OrderTrackingBlock's courier buttons are named.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -118,6 +122,7 @@ const PAGE = `<!doctype html>
 <div id="food-root"></div>
 <div id="checkout-root"></div>
 <div id="chat-kit-root"></div>
+<div id="foodkit-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -317,6 +322,35 @@ let chatKitRoot = null;
 window.__chatKitMount = () => { chatKitRoot = createRoot(document.getElementById("chat-kit-root")); chatKitRoot.render(h(ChatKit)); };
 window.__chatKitUnmount = () => { if (chatKitRoot) chatKitRoot.unmount(); chatKitRoot = null; };
 window.__chatKitReady = true;
+</script>
+<script type="module">
+/* Food kit blocks: MenuBlock, BasketBar and OrderTrackingBlock, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BasketBar, MenuBlock, OrderTrackingBlock } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__foodkit = { opened: 0, calls: [] };
+const dishes = (prefix) => Array.from({ length: 4 }, (_, i) => ({ id: prefix + i, name: "Food kit " + prefix + " " + (i + 1), description: "A dish for the behaviour check.", price: 10 + i }));
+function FoodKit() {
+  const [count, setCount] = React.useState(0);
+  return h("div", null,
+    h(MenuBlock, { spacing: "none", locale: "en-US", navLabel: "Food kit categories",
+      store: { name: "Food kit store", headingLevel: 2 },
+      sections: [
+        { id: "mains", title: "Food kit mains", items: dishes("main") },
+        { id: "sides", title: "Food kit sides", items: dishes("side") },
+        { id: "desserts", title: "Food kit desserts", items: dishes("dessert") },
+      ] }),
+    h("button", { type: "button", onClick: () => setCount((n) => n + 1) }, "Food kit add"),
+    h(BasketBar, { count, total: count * 12.5, locale: "en-US", label: "Food kit basket", onClick: () => { window.__foodkit.opened++; } }),
+    h(OrderTrackingBlock, { spacing: "none", locale: "en-US", headingLevel: 2, title: "Food kit order", eta: "Arriving soon",
+      status: { current: "b", steps: [{ id: "a", label: "Placed" }, { id: "b", label: "On the way" }, { id: "c", label: "Delivered" }] },
+      courier: { name: "Food kit courier", vehicle: "Bike", onCall: () => window.__foodkit.calls.push("call"), onMessage: () => window.__foodkit.calls.push("message") },
+      lines: [{ name: "Food kit noodles", price: 12.5, quantity: 1 }],
+      summary: { lines: [{ label: "Subtotal", amount: 12.5 }], total: { amount: 12.5 } } }));
+}
+createRoot(document.getElementById("foodkit-root")).render(h(FoodKit));
+window.__foodkitReady = true;
 </script>
 </body></html>
 `;
@@ -904,6 +938,48 @@ try {
     } finally {
       await page.evaluate(() => window.__chatKitUnmount());
     }
+  });
+
+  await step("Food kit blocks: category nav, basket bar, courier buttons", async () => {
+    await page.waitForFunction(() => window.__foodkitReady === true);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const nav = page.getByRole("navigation", { name: "Food kit categories", exact: true });
+    expect((await nav.getByRole("link").count()) === 3, "the category nav should hold one link per section");
+    const link = nav.getByRole("link", { name: "Food kit desserts", exact: true });
+    await link.click();
+    await page.waitForFunction(() => {
+      const a = document.activeElement;
+      return a && a.tagName === "SECTION" && /Food kit desserts/.test(a.querySelector("h1,h2,h3,h4,h5,h6").textContent);
+    });
+    ok("pressing a pill moves focus to its section");
+    expect((await link.getAttribute("aria-current")) === "true", "the pressed pill should carry aria-current=\"true\"");
+    const others = await nav.locator('[aria-current="true"]').count();
+    expect(others === 1, `exactly one pill should be current, got ${others}`);
+    ok('its link is the one aria-current="true"');
+    const gap = await page.evaluate(() => {
+      const n = document.querySelector('nav[aria-label="Food kit categories"]').getBoundingClientRect();
+      const sec = document.activeElement.getBoundingClientRect();
+      return Math.round(sec.top - n.bottom);
+    });
+    expect(gap >= -2 && gap <= 40, `the section should land just under the sticky nav, it is ${gap}px away`);
+    ok(`the section scrolled to just under the sticky nav (${gap}px)`);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+
+    const bar = () => page.getByRole("button", { name: /^Food kit basket/ });
+    expect((await bar().count()) === 0, "BasketBar should render nothing at count 0");
+    ok("BasketBar renders nothing at count 0");
+    await page.getByRole("button", { name: "Food kit add", exact: true }).click();
+    const name = await bar().getAttribute("aria-label");
+    expect(name === "Food kit basket, 1 item, $12.50", `BasketBar should be named by label, count and total, got ${JSON.stringify(name)}`);
+    await bar().click();
+    expect((await page.evaluate(() => window.__foodkit.opened)) === 1, "clicking BasketBar should call onClick once");
+    ok(`"${name}" calls onClick`);
+
+    await page.getByRole("button", { name: "Call Food kit courier", exact: true }).click();
+    await page.getByRole("button", { name: "Message Food kit courier", exact: true }).click();
+    const calls = await page.evaluate(() => window.__foodkit.calls.join(","));
+    expect(calls === "call,message", `the courier buttons should call onCall and onMessage, got ${calls}`);
+    ok('courier buttons are named "Call Food kit courier" and "Message Food kit courier" and call back');
   });
 
   await step("page errors", () => {

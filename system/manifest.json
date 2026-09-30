@@ -422,7 +422,16 @@
     "components/commerce/OrderStatus.md",
     "components/blocks/ChatBlock.d.ts",
     "components/blocks/ChatBlock.jsx",
-    "components/blocks/ChatBlock.md"
+    "components/blocks/ChatBlock.md",
+    "components/blocks/MenuBlock.d.ts",
+    "components/blocks/MenuBlock.jsx",
+    "components/blocks/MenuBlock.md",
+    "components/commerce/BasketBar.d.ts",
+    "components/commerce/BasketBar.jsx",
+    "components/commerce/BasketBar.md",
+    "components/blocks/OrderTrackingBlock.d.ts",
+    "components/blocks/OrderTrackingBlock.jsx",
+    "components/blocks/OrderTrackingBlock.md"
   ],
   "libraries": [
     {
@@ -742,6 +751,15 @@
     },
     {
       "name": "ChatBlock"
+    },
+    {
+      "name": "MenuBlock"
+    },
+    {
+      "name": "BasketBar"
+    },
+    {
+      "name": "OrderTrackingBlock"
     }
   ],
   "lastChange": {
