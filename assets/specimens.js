@@ -548,6 +548,10 @@
     ChatBlock: "A whole conversation panel with its own header and composer, so it is shown on its own card.",
     MenuBlock: "A full-width page section, so it is shown on its own card.",
     OrderTrackingBlock: "A full-width page section, so it is shown on its own card.",
+    ProductGridBlock: "A full-width page section, so it is shown on its own card.",
+    ProductDetailBlock: "A full-width page section, so it is shown on its own card.",
+    CartBlock: "A full-width page section, so it is shown on its own card.",
+    CheckoutBlock: "A full-width page section, so it is shown on its own card.",
     ToastRegion: "Fixed to a corner of the viewport, so it is shown on its own card.",
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };

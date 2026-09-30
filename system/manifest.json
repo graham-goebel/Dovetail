@@ -431,7 +431,19 @@
     "components/commerce/BasketBar.md",
     "components/blocks/OrderTrackingBlock.d.ts",
     "components/blocks/OrderTrackingBlock.jsx",
-    "components/blocks/OrderTrackingBlock.md"
+    "components/blocks/OrderTrackingBlock.md",
+    "components/blocks/ProductGridBlock.d.ts",
+    "components/blocks/ProductGridBlock.jsx",
+    "components/blocks/ProductGridBlock.md",
+    "components/blocks/ProductDetailBlock.d.ts",
+    "components/blocks/ProductDetailBlock.jsx",
+    "components/blocks/ProductDetailBlock.md",
+    "components/blocks/CartBlock.d.ts",
+    "components/blocks/CartBlock.jsx",
+    "components/blocks/CartBlock.md",
+    "components/blocks/CheckoutBlock.d.ts",
+    "components/blocks/CheckoutBlock.jsx",
+    "components/blocks/CheckoutBlock.md"
   ],
   "libraries": [
     {
@@ -760,6 +772,18 @@
     },
     {
       "name": "OrderTrackingBlock"
+    },
+    {
+      "name": "ProductGridBlock"
+    },
+    {
+      "name": "ProductDetailBlock"
+    },
+    {
+      "name": "CartBlock"
+    },
+    {
+      "name": "CheckoutBlock"
     }
   ],
   "lastChange": {

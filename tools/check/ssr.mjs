@@ -86,6 +86,16 @@ const FALLBACKS = {
   ChatBlock: () => e(NS.ChatBlock, { title: "Maya Chen", presence: "online", typing: "Maya", onRetry: noop,
     messages: [{ id: "a", from: "them", day: "Today", text: "How can I help?" }, { id: "e", kind: "event", text: "Maya joined the conversation" }, { id: "b", from: "me", text: "Where is my order?", status: "failed" }],
     quickReplies: { options: [{ id: "track", label: "Track my order" }], onSelect: noop }, composer: { value: "", onChange: noop, onSend: noop } }),
+  /* Store blocks. */
+  ProductGridBlock: () => e(NS.ProductGridBlock, { title: "New in", products: [{ id: "mug", name: "Stoneware mug", price: 24, href: "#mug", locale: "en-US" }, { id: "tote", name: "Canvas tote", price: 32, href: "#tote", locale: "en-US" }] }),
+  ProductDetailBlock: () => e(NS.ProductDetailBlock, { name: "Stoneware mug", price: 24, locale: "en-US", images: [{ src: "mug.png", alt: "Front" }, { src: "mug-side.png", alt: "Side" }], quantity: 1, onQuantityChange: noop, onAddToCart: noop,
+    variants: [{ label: "Glaze", value: "fern", onChange: noop, options: [{ value: "fern", label: "Fern" }, { value: "chalk", label: "Chalk" }] }], details: [{ title: "Care", content: "Dishwasher safe." }] }),
+  CartBlock: () => e(NS.CartBlock, { lines: [{ id: "mug", name: "Stoneware mug", price: 24, quantity: 2, lineTotal: 48, locale: "en-US", onQuantityChange: noop, onRemove: noop }],
+    summary: { locale: "en-US", lines: [{ label: "Subtotal", amount: 48 }], total: { amount: 48 } }, checkoutAction: e(NS.Button, { fullWidth: true }, "Check out") }),
+  CheckoutBlock: () => e(NS.CheckoutBlock, { email: "", onEmailChange: noop, locale: "en-US", delivery: "standard", onDeliveryChange: noop,
+    deliveryOptions: [{ id: "standard", label: "Standard", detail: "3–5 days", price: 0 }, { id: "express", label: "Express", price: 12 }],
+    lines: [{ id: "mug", name: "Stoneware mug", price: 24, quantity: 2 }],
+    summary: { locale: "en-US", lines: [{ label: "Subtotal", amount: 48 }], total: { amount: 48 } }, submitAction: e(NS.Button, { fullWidth: true }, "Place order") }),
 };
 
 function render(name) {
