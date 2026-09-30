@@ -331,7 +331,181 @@
         body: "Five nights and 62km, with the huts that take card payments.",
       });
     },
+
+    /* Commerce */
+    Price: function () {
+      return e(NS.Price, { amount: 24.5, compareAt: 30, locale: "en-US" });
+    },
+    Rating: function () {
+      return e(NS.Rating, { value: 4.5, count: 128, locale: "en-US" });
+    },
+    QuantityStepper: function () {
+      return e(LiveQuantity, null, e(NS.QuantityStepper, { label: "Quantity", value: 2, max: 9, size: "sm", onChange: function () {} }));
+    },
+    /* Chat */
+    ChatHeader: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280, borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+        e(NS.ChatHeader, { title: "Maya Chen", subtitle: "Typically replies in 5 min", presence: "online", avatar: { name: "Maya Chen" } }));
+    },
+    MessageList: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280, height: 150, display: "flex", flexDirection: "column", borderRadius: "var(--dt-radius-container)", overflow: "hidden", background: "var(--dt-surface-base)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+        e(NS.MessageList, { label: "Conversation with Maya Chen", style: { flex: "1 1 auto" } },
+          e(NS.MessageBubble, { from: "them" }, "Your replacement ships today."),
+          e(NS.MessageBubble, { from: "me", time: "9:41", status: "read" }, "Thank you!")));
+    },
+    MessageDivider: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280 } }, e(NS.MessageDivider, null, "Today"));
+    },
+    MessageBubble: function () {
+      return e("div", { style: { width: "100%", maxWidth: 280, display: "flex", flexDirection: "column" } },
+        e(NS.MessageBubble, { from: "them", grouped: "first", style: { marginTop: 0 } }, "Still on for 11?"),
+        e(NS.MessageBubble, { from: "me", time: "9:39", status: "read" }, "Yes, see you there."));
+    },
+    /* Controlled, so it holds its own draft; sending clears it. */
+    Composer: (function () {
+      function ComposerSpecimen() {
+        var draft = React.useState("");
+        return e("div", { style: { width: "100%", maxWidth: 280, borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+          e(NS.Composer, { label: "Message", placeholder: "Write a message", value: draft[0], onChange: draft[1], onSend: function () { draft[1](""); } }));
+      }
+      return function () {
+        return e(ComposerSpecimen);
+      };
+    })(),
+    TypingIndicator: function () {
+      return e(NS.TypingIndicator, { name: "Maya", style: { marginTop: 0 } });
+    },
+    QuickReplies: function () {
+      return e(NS.QuickReplies, {
+        label: "Suggested replies",
+        align: "start",
+        style: { marginTop: 0 },
+        options: [{ id: "track", label: "Track my order" }, { id: "human", label: "Talk to a person" }],
+        onSelect: function () {},
+      });
+    },
+    ProductCard: function () {
+      return e("div", { style: { width: "100%", maxWidth: 200 } }, e(NS.ProductCard, {
+        name: "Stoneware mug", subtitle: "Fern glaze", price: 24, compareAt: 30, locale: "en-US", badge: "-20%",
+        image: { src: productArt("#e9e4dc", "#5b7a6a"), alt: "" },
+      }));
+    },
+    ProductGallery: function () {
+      return e("div", { style: { width: "100%", maxWidth: 220 } }, e(NS.ProductGallery, {
+        label: "Images of the stoneware mug", thumbnails: "none",
+        images: [
+          { src: productArt("#e9e4dc", "#5b7a6a"), alt: "Mug in fern glaze" },
+          { src: productArt("#e4e7ee", "#3d5a80"), alt: "Mug in harbour blue" },
+          { src: productArt("#efe3dc", "#b5654a"), alt: "Mug in terracotta" },
+        ],
+      }));
+    },
+    VariantPicker: function () {
+      return e(LiveQuantity, null, e(NS.VariantPicker, { label: "Size", value: "m", onChange: function () {}, options: [
+        { value: "s", label: "S" }, { value: "m", label: "M" }, { value: "l", label: "L" }, { value: "xl", label: "XL", disabled: true },
+      ] }));
+    },
+    StoreHeader: function () {
+      return e(NS.StoreHeader, {
+        name: "Bangkok Kitchen",
+        headingLevel: 3,
+        rating: { value: 4.6, count: 1284 },
+        meta: ["Thai", "$$"],
+        deliveryTime: "25–35 min",
+        deliveryFee: 0,
+        status: { open: true, label: "Open until 10pm" },
+        locale: "en-US",
+      });
+    },
+    FulfilmentToggle: function () {
+      return e(LiveQuantity, null, e(NS.FulfilmentToggle, { label: "How to get your order", value: "delivery", onChange: function () {} }));
+    },
+    MenuSection: function () {
+      return e(
+        NS.MenuSection,
+        { title: "Noodles", headingLevel: 3 },
+        e(NS.MenuItem, { name: "Pad thai", price: 12.5, locale: "en-US" }),
+        e(NS.MenuItem, { name: "Pad see ew", price: 12, locale: "en-US" })
+      );
+    },
+    MenuItem: function () {
+      return e(NS.MenuItem, {
+        name: "Pad thai",
+        description: "Rice noodles, tamarind, egg and peanuts.",
+        price: 12.5,
+        tags: [{ label: "Popular", kind: "popular" }],
+        locale: "en-US",
+        onAdd: function () {},
+      });
+    },
+    ModifierGroup: function () {
+      return e(LiveQuantity, null, e(NS.ModifierGroup, {
+        title: "Choose a size",
+        mode: "single",
+        required: true,
+        options: [{ id: "regular", label: "Regular" }, { id: "large", label: "Large", price: 2 }],
+        value: ["regular"],
+        locale: "en-US",
+        onChange: function () {},
+      }));
+    },
+    CartLine: function () {
+      /* Holds the line's quantity; the CartLine element stays the child. */
+      function LiveLine(props) {
+        var child = props.children;
+        var state = React.useState(child.props.quantity);
+        return React.cloneElement(child, { quantity: state[0], onQuantityChange: state[1] });
+      }
+      return e(LiveLine, null, e(NS.CartLine, {
+        name: "Linen shirt", details: ["Size M", "Colour Sand"], price: 48, quantity: 1, size: "sm",
+        image: { alt: "Linen shirt" }, locale: "en-US", onQuantityChange: function () {}, onRemove: function () {},
+      }));
+    },
+    OrderSummary: function () {
+      return e(NS.OrderSummary, {
+        locale: "en-US", headingLevel: 3,
+        lines: [{ label: "Subtotal", amount: 96 }, { label: "Shipping", amount: 0 }, { label: "Discount (SUMMER10)", amount: 9.6, kind: "discount" }],
+        total: { amount: 86.4 },
+      });
+    },
+    PromoCode: function () {
+      return e(LiveQuantity, null, e(NS.PromoCode, { value: "", onChange: function () {}, onApply: function () {} }));
+    },
+    AddressFields: function () {
+      return e(LiveQuantity, null, e(NS.AddressFields, {
+        value: { name: "Ana Ribeiro", line1: "221 Harbour Street", line2: "", city: "Portland", region: "Oregon", postalCode: "97204", country: "United States" },
+        fields: { line2: false, phone: false }, onChange: function () {},
+      }));
+    },
+    PaymentFields: function () {
+      return e(LiveQuantity, null, e(NS.PaymentFields, { value: { number: "4242 4242 4242 4242", expiry: "12 / 28", cvc: "" }, fields: { name: false }, onChange: function () {} }));
+    },
+    OrderStatus: function () {
+      return e(NS.OrderStatus, {
+        label: "Order progress", current: "shipped",
+        steps: [{ id: "ordered", label: "Ordered", time: "Sep 28" }, { id: "shipped", label: "Shipped", time: "Sep 29" }, { id: "delivered", label: "Delivered", time: "Expected Oct 2" }],
+      });
+    },
   };
+
+  /* A flat product shot for the commerce specimens: a mug in a glaze colour
+     on a backdrop, as an inline SVG so no photo is fetched. */
+  function productArt(bg, glaze) {
+    return "data:image/svg+xml," + encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='" + bg + "'/>" +
+      "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/>" +
+      "<path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='" + glaze + "' stroke-width='5'/>" +
+      "<rect x='30' y='34' width='36' height='43' rx='5' fill='" + glaze + "'/></svg>");
+  }
+
+  /* Holds the value of a controlled specimen, so it can be used on the card.
+     The component's own element stays the child, where the playground finds
+     its starting props. */
+  function LiveQuantity(props) {
+    var child = props.children;
+    var state = React.useState(child.props.value);
+    return React.cloneElement(child, { value: state[0], onChange: state[1] });
+  }
 
   /* Why a card has no specimen, in the card. */
   var NOTES = {

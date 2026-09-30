@@ -1,0 +1,119 @@
+<!-- @dsCard group="Chat" height=1140 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+<script>
+const h = React.createElement;
+let DS = {};
+function glyph(paths, weight) {
+  return h("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: weight || 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+    style: { width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)", display: "block" } },
+    paths.map(function (d) { return h("path", { key: d, d: d }); }));
+}
+const PHONE = ["M21 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.1 4.2 2 2 0 0 1 3.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"];
+const MORE = ["M5 12h.01", "M12 12h.01", "M19 12h.01"];
+/* A column the width of a conversation, for bubbles shown outside a list. */
+function Thread(props) {
+  return h("div", { style: Object.assign({ display: "flex", flexDirection: "column", maxWidth: 560, marginTop: "calc(var(--dt-bubble-run-gap) * -1)" }, props.style) }, props.children);
+}
+/* The same content again inside a scoped-dark band: a Section with dark, so
+   every colour alias re-resolves inside it, not only the page's. */
+function DarkBand(props) {
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+    h("span", { style: { fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-eyebrow-size)", textTransform: "uppercase", letterSpacing: "var(--dt-text-eyebrow-tracking)", color: "var(--dt-text-tertiary)" } }, props.label || "Dark band"),
+    h(DS.Section, { dark: true, spacing: "none", width: "full", style: { paddingBlock: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } }, props.children));
+}
+
+function Controlled(props) {
+  const [value, setValue] = React.useState(props.initial || "");
+  const [sent, setSent] = React.useState([]);
+  return h(DS.Stack, { gap: "xs" },
+    h("div", { style: { borderRadius: "var(--dt-radius-container)", overflow: "hidden", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } },
+      h(DS.Composer, Object.assign({ label: "Message", placeholder: "Write a message", value: value, onChange: setValue, onSend: (t) => { setSent(sent.concat(t)); setValue(""); } }, props.extra))),
+    props.log !== false && h("p", { "aria-live": "polite", style: { margin: 0, fontSize: "var(--dt-text-body-xs-size)", color: "var(--dt-text-tertiary)", overflowWrap: "anywhere" } },
+      sent.length ? "onSend received: " + JSON.stringify(sent[sent.length - 1]) : "Enter sends; Shift+Enter adds a line."));
+}
+function Page() {
+  return h(Shelf, { name: "Composer", summary: "Where a message is written. Controlled: the app owns the text and clears it on send. Enter sends, Shift+Enter breaks the line, and the field grows to maxRows before it scrolls.", props: [
+      { name: "value", type: "string", required: true, notes: "The text. Controlled." },
+      { name: "onChange", type: "(next: string) => void", required: true },
+      { name: "onSend", type: "(text: string) => void", required: true, notes: "Gets the trimmed text. Clear value here. Never called for empty or whitespace-only text." },
+      { name: "label", type: "string", required: true, notes: "Accessible name of the field. The placeholder is not a label." },
+      { name: "placeholder", type: "string" },
+      { name: "disabled", type: "boolean", default: "false", notes: "Disables the field and both buttons." },
+      { name: "onAttach", type: "() => void", notes: "Shows an attach IconButton labelled Attach a file." },
+      { name: "maxRows", type: "number", default: "6", notes: "Lines the field grows to before it scrolls." },
+    ], guidance: [
+      "Keeping it at the bottom is the layout's job: make it the last child of a flex column whose list is flex: 1, or position: sticky; bottom: 0 in a scrolling page.",
+      "Clear value in onSend. The composer never clears itself, so a failed send can keep the draft.",
+      "Enter while an IME is composing (Japanese, Chinese, Korean) confirms the composition; it never sends half a word.",
+      "Use disabled when the conversation cannot take a message, and say why in the placeholder.",
+      "The label names who or what the message goes to: Message Maya, Ask the assistant.",
+    ] },
+    h(Specimen, { label: "Empty: send is disabled", bg: "var(--dt-surface-base)" }, h(Controlled, null)),
+    h(Specimen, { label: "Filled: the field grows with the text", bg: "var(--dt-surface-base)" }, h(Controlled, { initial: "Thanks for sorting this so quickly.\nCould the replacement come before Friday?\nI'm away from Saturday." })),
+    h(Specimen, { label: "With attach, maxRows 3: scrolls past three lines", bg: "var(--dt-surface-base)" }, h(Controlled, { extra: { onAttach: () => {}, maxRows: 3 }, initial: "One\nTwo\nThree\nFour: this line is past maxRows, so the field scrolls instead of growing." })),
+    h(Specimen, { label: "Disabled", bg: "var(--dt-surface-base)" }, h(Controlled, { log: false, extra: { disabled: true, onAttach: () => {}, placeholder: "This conversation has ended" } })),
+    h(DarkBand, null, h(Controlled, { extra: { onAttach: () => {} }, initial: "Sounds good, see you at 11." })));
+}
+
+/* Self-contained bootstrap: render once the bundle and the card kit are
+   loaded, or say on screen why not. */
+(function () {
+  var NEED = ["Section","Stack","Inline","IconButton","Avatar","Button","Composer"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  function missing() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.Specimen); }
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    var why = !window[NS_KEY] ? "<code>bundle.js</code> did not load." : !kitReady() ? "<code>card-kit.js</code> did not load." : "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy.";
+    el.innerHTML = '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' + why + "</div>";
+  }
+  (function poll() {
+    var gaps = missing();
+    if (gaps.length === 0 && kitReady()) {
+      DS = window[NS_KEY];
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Page, null));
+      return;
+    }
+    if (Date.now() - startedAt > REFETCH_AT && !refetched && gaps.length) {
+      refetched = true;
+      var base = document.querySelector('script[src*="components/bundle.js"]');
+      if (base) { var s = document.createElement("script"); s.src = base.getAttribute("src").split("?")[0] + "?cb=" + Date.now(); document.head.appendChild(s); }
+    }
+    if (Date.now() - startedAt > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

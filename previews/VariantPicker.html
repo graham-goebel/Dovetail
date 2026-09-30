@@ -1,0 +1,142 @@
+<!-- @dsCard group="Commerce" height=1550 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", alignItems: "flex-start", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function row() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 168px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "end",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      row.apply(null, arguments));
+  }
+  var NEED = ["VariantPicker", "Section"];
+  /* A controlled picker with its own value, as an app would hold it. */
+  function Live(props) {
+    var s = React.useState(props.start);
+    return e(NS.VariantPicker, Object.assign({}, props, { start: undefined, value: s[0], onChange: s[1] }));
+  }
+  var SIZES = [
+    { value: "xs", label: "XS", disabled: true }, { value: "s", label: "S" }, { value: "m", label: "M" },
+    { value: "l", label: "L", note: "Low stock" }, { value: "xl", label: "XL" }, { value: "xxl", label: "XXL", disabled: true },
+  ];
+  var COLOURS = [
+    { value: "fern", label: "Fern", color: "#5b7a6a" }, { value: "harbour", label: "Harbour", color: "#3d5a80" },
+    { value: "terracotta", label: "Terracotta", color: "#b5654a" }, { value: "chalk", label: "Chalk", color: "#ffffff" },
+    { value: "charcoal", label: "Charcoal", color: "#2b2b2b" }, { value: "mustard", label: "Mustard", color: "#d9a441", disabled: true },
+  ];
+  var MATERIALS = [
+    { value: "stoneware", label: "Stoneware" }, { value: "porcelain", label: "Porcelain", note: "+$8" }, { value: "enamel", label: "Enamel", disabled: true },
+  ];
+  var FITS = ["26", "27", "28", "29", "30", "31", "32", "33", "34", "36", "38", "40"].map(function (w) {
+    return { value: w, label: "W" + w, disabled: w === "27" || w === "36" };
+  });
+  /* The stacked examples: one per row, with room for a picker's full width. */
+  function stack() {
+    return e.apply(null, ["div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-lg)", maxWidth: "var(--dt-size-container-narrow)" } }].concat([].slice.call(arguments)));
+  }
+  function Page() {
+    return e(Shelf, { name: "VariantPicker", summary: "Choose one variant of a product: a size, a colour, a material. A radio group of chips or swatches, or the system Select for a long list.", props: [
+        { name: "label", type: "string", required: true, notes: "Names the radio group, or labels the select." },
+        { name: "options", type: "{ value, label, color?, image?, disabled?, note? }[]", required: true },
+        { name: "value", type: "string", notes: "Controlled. Undefined for nothing chosen yet." },
+        { name: "onChange", type: "(value: string) => void", required: true, notes: "Never called with a disabled option." },
+        { name: "variant", type: '"chips" | "swatches" | "select"', default: '"chips"' },
+        { name: "showSelected", type: "boolean", default: "true", notes: "Size: M in the legend. Chips and swatches." },
+        { name: "placeholder", type: "string", default: '"Choose {label}"', notes: "The select's empty option." },
+        { name: "unavailableLabel", type: "string", default: '"unavailable"', notes: "Added to a disabled option's name." },
+      ], guidance: [
+        "One tab stop for the group: the chosen option, or the first available one. Arrow keys move and choose at once, skipping unavailable options, and wrap.",
+        "Keep an unavailable option visible, struck through or crossed. It is named \"XL, unavailable\" and can't be chosen, so people learn it exists without a dead end.",
+        "Swatches have no visible label, so keep showSelected on: the legend says Colour: Chalk. Every swatch is named by its label and has a tooltip.",
+        "Every chip and swatch is at least 44px square, the touch target size.",
+        "Use select past about a dozen options, or when the labels are long. Select can't disable an option, so an unavailable one reads (unavailable) and is ignored if picked.",
+        "Labels are short and sentence case: Size, Colour, Material. A note is shorter still: Low stock, +$8.",
+      ] },
+      e(Specimen, { label: "Chips", bg: "var(--dt-surface-base)" },
+        stack(
+          cell("value m · XS and XXL unavailable · L has a note", e(Live, { label: "Size", options: SIZES, start: "m" })),
+          cell("nothing chosen yet: S, the first available, is the tab stop", e(Live, { label: "Size", options: SIZES, start: undefined })),
+          cell("showSelected false", e(Live, { label: "Material", options: MATERIALS, start: "stoneware", showSelected: false })))),
+      e(Specimen, { label: "Swatches: a white one and an unavailable one", bg: "var(--dt-surface-base)" },
+        stack(
+          cell("value chalk (white) · mustard unavailable", e(Live, { label: "Colour", variant: "swatches", options: COLOURS, start: "chalk" })),
+          cell("nothing chosen yet", e(Live, { label: "Colour", variant: "swatches", options: COLOURS, start: undefined })))),
+      e(Specimen, { label: "Select, for a long list", bg: "var(--dt-surface-base)" },
+        e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 14rem), 1fr))", gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", maxWidth: "var(--dt-size-container-narrow)" } },
+          cell("value 30", e(Live, { label: "Waist", variant: "select", options: FITS, start: "30" })),
+          cell("nothing chosen · placeholder", e(Live, { label: "Waist", variant: "select", options: FITS, start: undefined, placeholder: "Choose a waist size" })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+          stack(
+            e(Live, { label: "Size", options: SIZES, start: "l" }),
+            e(Live, { label: "Colour", variant: "swatches", options: COLOURS, start: "charcoal" }),
+            e(Live, { label: "Waist", variant: "select", options: FITS, start: "32" })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

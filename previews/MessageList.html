@@ -1,0 +1,159 @@
+<!-- @dsCard group="Chat" height=2110 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+<script>
+const h = React.createElement;
+let DS = {};
+function glyph(paths, weight) {
+  return h("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: weight || 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+    style: { width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)", display: "block" } },
+    paths.map(function (d) { return h("path", { key: d, d: d }); }));
+}
+const PHONE = ["M21 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.1 4.2 2 2 0 0 1 3.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"];
+const MORE = ["M5 12h.01", "M12 12h.01", "M19 12h.01"];
+/* A column the width of a conversation, for bubbles shown outside a list. */
+function Thread(props) {
+  return h("div", { style: Object.assign({ display: "flex", flexDirection: "column", maxWidth: 560, marginTop: "calc(var(--dt-bubble-run-gap) * -1)" }, props.style) }, props.children);
+}
+/* The same content again inside a scoped-dark band: a Section with dark, so
+   every colour alias re-resolves inside it, not only the page's. */
+function DarkBand(props) {
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+    h("span", { style: { fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-eyebrow-size)", textTransform: "uppercase", letterSpacing: "var(--dt-text-eyebrow-tracking)", color: "var(--dt-text-tertiary)" } }, props.label || "Dark band"),
+    h(DS.Section, { dark: true, spacing: "none", width: "full", style: { paddingBlock: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } }, props.children));
+}
+
+const SEED = [
+  { id: 1, divider: "Yesterday" },
+  { id: 2, from: "them", text: "Hi! I can see your order #4821 shipped on Monday.", time: "16:02", grouped: "first" },
+  { id: 3, from: "them", text: "Is anything wrong with it?", time: "16:02", grouped: "last" },
+  { id: 4, from: "me", text: "It arrived, but the box was crushed and one mug is chipped.", time: "16:05", status: "read", grouped: "single" },
+  { id: 5, divider: "Conversation assigned to Maya" },
+  { id: 6, divider: "Today" },
+  { id: 7, from: "them", text: "Sorry about that. I've started a replacement. Would you like it sent to the same address?", time: "9:40", grouped: "single" },
+];
+let nextId = 100;
+function renderItem(m) {
+  if (m.divider) return h(DS.MessageDivider, { key: m.id }, m.divider);
+  return h(DS.MessageBubble, { key: m.id, from: m.from, time: m.time, status: m.status, grouped: m.grouped }, m.text);
+}
+function Conversation(props) {
+  const [items, setItems] = React.useState(SEED);
+  const [draft, setDraft] = React.useState("");
+  const [typing, setTyping] = React.useState(true);
+  const [replies, setReplies] = React.useState(true);
+  const send = (text) => {
+    setItems(items.concat({ id: nextId++, from: "me", text: text, time: "9:41", status: "sent", grouped: "single" }));
+    setDraft("");
+    setReplies(false);
+  };
+  return h("div", { style: { display: "flex", flexDirection: "column", height: 560, maxWidth: 480, margin: "0 auto", overflow: "hidden", borderRadius: "var(--dt-radius-container)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)", background: "var(--dt-surface-base)" } },
+    h(DS.ChatHeader, { title: "Maya Chen", subtitle: "Typically replies in 5 min", presence: "online", avatar: { name: "Maya Chen" }, onBack: () => {},
+      actions: h(DS.IconButton, { label: "More options" }, glyph(MORE, 3)) }),
+    h(DS.MessageList, { label: "Conversation with Maya Chen", style: { flex: "1 1 auto" } },
+      items.map(renderItem),
+      typing && h(DS.TypingIndicator, { name: "Maya" }),
+      replies && h(DS.QuickReplies, { label: "Suggested replies", onSelect: (id) => send(id === "yes" ? "Yes, same address please" : "No, I've moved"), options: [{ id: "yes", label: "Yes, same address please" }, { id: "no", label: "No, I've moved" }] })),
+    h(DS.Composer, { label: "Message Maya Chen", placeholder: "Write a message", value: draft, onChange: setDraft, onSend: send, onAttach: () => {} }),
+    props.controls && h("div", { style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-xs)", padding: "var(--dt-space-inset-xs)", borderTop: "var(--dt-border-width-default) solid var(--dt-border-subtle)", background: "var(--dt-surface-subtle)" } },
+      h(DS.Button, { size: "sm", variant: "secondary", onClick: () => setTyping(!typing) }, typing ? "Hide typing" : "Show typing"),
+      h(DS.Button, { size: "sm", variant: "secondary", onClick: () => { setTyping(false); setItems(items.concat({ id: nextId++, from: "them", text: "Done. Your replacement ships tomorrow.", time: "9:42", grouped: "single" })); } }, "Receive a reply")));
+}
+function Pinned() {
+  const [items, setItems] = React.useState(function () {
+    const out = [];
+    for (let i = 1; i <= 12; i++) out.push({ id: i, from: i % 3 ? "them" : "me", text: "Message " + i + (i % 4 ? "" : ": a longer one, so the rows are not all the same height."), time: "9:" + String(10 + i), grouped: "single", status: i % 3 ? undefined : "read" });
+    return out;
+  });
+  const add = () => setItems(items.concat({ id: nextId++, from: "them", text: "New message " + (items.length + 1), time: "9:" + String(10 + items.length + 1), grouped: "single" }));
+  return h(DS.Stack, { gap: "sm" },
+    h("div", { style: { height: 280, display: "flex", flexDirection: "column", borderRadius: "var(--dt-radius-container)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)", background: "var(--dt-surface-base)", overflow: "hidden" } },
+      h(DS.MessageList, { label: "Pinned list demo", style: { flex: "1 1 auto" } }, items.map(renderItem))),
+    h(DS.Inline, { gap: "sm", align: "center" },
+      h(DS.Button, { size: "sm", variant: "secondary", onClick: add }, "Add a message"),
+      h("span", { style: { fontSize: "var(--dt-text-body-xs-size)", color: "var(--dt-text-tertiary)" } }, "At the bottom it follows; scroll up first and a jump button appears instead.")));
+}
+function Page() {
+  return h(Shelf, { name: "MessageList", summary: "The scrolling log of a conversation, with MessageDivider for days and events. Pinned to the newest message as children arrive, unless the reader has scrolled up; then it offers a jump back down.", props: [
+      { name: "label", type: "string", required: true, notes: "MessageList. Accessible name of the log." },
+      { name: "children", type: "ReactNode", notes: "MessageList. Bubbles, dividers, typing and quick replies, oldest first." },
+      { name: "children", type: "ReactNode", required: true, notes: "MessageDivider. The label, e.g. Today." },
+      { name: "label", type: "string", notes: "MessageDivider. Accessible name when children is not a plain string." },
+    ], guidance: [
+      "Give the list a height: it is the flex: 1 child of a column with ChatHeader above and Composer below, or a fixed-height box. A list with no bound never scrolls.",
+      "Pass the whole conversation, oldest first. The list does not fetch, page or reorder; load older history in your app and prepend it.",
+      "It follows new messages only while the reader is at the bottom. Scrolled up, it leaves them reading and shows New messages instead.",
+      "role=\"log\" announces added messages politely. Don't add another live region around it.",
+      "Use MessageDivider for days and for events that change the conversation (assigned, transferred, ended), not for every timestamp.",
+    ] },
+    h(Specimen, { label: "Composed: header, list, typing, quick replies, composer", bg: "var(--dt-surface-subtle)" }, h(Conversation, { controls: true })),
+    h(Specimen, { label: "Pinned to the bottom, with a jump", bg: "var(--dt-surface-subtle)" }, h(Pinned)),
+    h(Specimen, { label: "MessageDivider", bg: "var(--dt-surface-base)" },
+      h("div", { style: { maxWidth: 560 } },
+        h(DS.MessageDivider, null, "Today"),
+        h(DS.MessageDivider, null, "Conversation assigned to Maya"),
+        h(DS.MessageDivider, null, "Maya transferred this conversation to the billing team, who will reply within one working day"))),
+    h(DarkBand, { label: "Dark band" }, h(Conversation, { controls: false })));
+}
+
+/* Self-contained bootstrap: render once the bundle and the card kit are
+   loaded, or say on screen why not. */
+(function () {
+  var NEED = ["Section","Stack","Inline","IconButton","Avatar","Button","ChatHeader","MessageList","MessageDivider","MessageBubble","TypingIndicator","QuickReplies","Composer"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  function missing() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.Specimen); }
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    var why = !window[NS_KEY] ? "<code>bundle.js</code> did not load." : !kitReady() ? "<code>card-kit.js</code> did not load." : "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy.";
+    el.innerHTML = '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' + why + "</div>";
+  }
+  (function poll() {
+    var gaps = missing();
+    if (gaps.length === 0 && kitReady()) {
+      DS = window[NS_KEY];
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Page, null));
+      return;
+    }
+    if (Date.now() - startedAt > REFETCH_AT && !refetched && gaps.length) {
+      refetched = true;
+      var base = document.querySelector('script[src*="components/bundle.js"]');
+      if (base) { var s = document.createElement("script"); s.src = base.getAttribute("src").split("?")[0] + "?cb=" + Date.now(); document.head.appendChild(s); }
+    }
+    if (Date.now() - startedAt > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

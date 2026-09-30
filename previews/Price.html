@@ -1,0 +1,125 @@
+<!-- @dsCard group="Commerce" height=1040 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", alignItems: "flex-start", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function row() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 168px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "end",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      row.apply(null, arguments));
+  }
+  var NEED = ["Price", "Section"];
+  function P(props) { return e(NS.Price, Object.assign({ locale: "en-US" }, props)); }
+  function Page() {
+    return e(Shelf, { name: "Price", summary: "An amount of money, formatted for its currency and locale, with an optional compare-at price and unit.", props: [
+        { name: "amount", type: "number", required: true, notes: "Major units: 24.5 for $24.50. Convert from minor units (cents) first; JPY needs no conversion." },
+        { name: "currency", type: "string", default: '"USD"', notes: "ISO 4217 code, passed to Intl.NumberFormat." },
+        { name: "locale", type: "string", notes: "BCP 47, e.g. de-DE. Defaults to the runtime's; set it when server rendering." },
+        { name: "compareAt", type: "number", notes: "Original price. When greater than amount it is struck through and amount takes the sale colour." },
+        { name: "unit", type: "string", notes: "Shown after, smaller and secondary: / month, each, / kg." },
+        { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+        { name: "freeLabel", type: "string", default: '"Free"', notes: "Shown instead of a formatted zero." },
+      ], guidance: [
+        "Pass amount in major units. A price stored in cents is divided by 100 before it reaches Price; a zero-decimal currency such as JPY is passed as it is.",
+        "Let Intl place the symbol. 12,90 € in German and €12.90 in Irish English are both right, and neither is written by hand.",
+        "A sale reads Was $30.00, now $24.50 to a screen reader. The strikethrough alone is not announced, so never fake one with CSS.",
+        "Set locale when the page is server rendered, or the server and the browser can print different strings.",
+        "Use size lg once per screen, for the price the page is about. Cart lines and menus take sm.",
+      ] },
+      e(Specimen, { label: "Sizes", bg: "var(--dt-surface-base)" },
+        row(cell("sm", P({ amount: 24.5, size: "sm" })), cell("md", P({ amount: 24.5 })), cell("lg", P({ amount: 24.5, size: "lg" })))),
+      e(Specimen, { label: "Sale, with compareAt", bg: "var(--dt-surface-base)" },
+        row(
+          cell("sm · compareAt 30", P({ amount: 24.5, compareAt: 30, size: "sm" })),
+          cell("md · compareAt 30", P({ amount: 24.5, compareAt: 30 })),
+          cell("lg · compareAt 1,499", P({ amount: 1199, compareAt: 1499, size: "lg" })),
+          cell("compareAt ≤ amount is ignored", P({ amount: 24.5, compareAt: 24.5 })))),
+      e(Specimen, { label: "Unit pricing and free", bg: "var(--dt-surface-base)" },
+        row(
+          cell('unit "/ month"', P({ amount: 12, unit: "/ month", size: "lg" })),
+          cell('unit "/ kg"', P({ amount: 3.2, unit: "/ kg" })),
+          cell('unit "each", on sale', P({ amount: 4.5, compareAt: 6, unit: "each" })),
+          cell("amount 0", P({ amount: 0 })),
+          cell('freeLabel "Free delivery"', P({ amount: 0, compareAt: 4.99, freeLabel: "Free delivery", size: "sm" })))),
+      e(Specimen, { label: "Currencies and locales", bg: "var(--dt-surface-base)" },
+        row(
+          cell("EUR · de-DE", P({ amount: 1290, compareAt: 1490, currency: "EUR", locale: "de-DE" })),
+          cell("JPY · ja-JP", P({ amount: 1200, currency: "JPY", locale: "ja-JP" })),
+          cell("GBP · en-GB", P({ amount: 18, unit: "each", currency: "GBP", locale: "en-GB" })),
+          cell("INR · en-IN", P({ amount: 124999, currency: "INR", locale: "en-IN" })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        band(
+          cell("md", P({ amount: 24.5 })),
+          cell("sale", P({ amount: 24.5, compareAt: 30 })),
+          cell("unit", P({ amount: 12, unit: "/ month", size: "lg" })),
+          cell("free", P({ amount: 0, size: "sm" })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

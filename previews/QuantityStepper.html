@@ -1,0 +1,140 @@
+<!-- @dsCard group="Commerce" height=890 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", alignItems: "flex-start", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function row() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 168px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "end",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      row.apply(null, arguments));
+  }
+  var NEED = ["QuantityStepper", "Section", "Price"];
+  /* A controlled stepper with its own value, as an app would hold it. */
+  function Live(props) {
+    var s = React.useState(props.start);
+    var removed = React.useState(false);
+    if (removed[0]) {
+      return e("button", { type: "button", onClick: function () { removed[1](false); s[1](props.min || 1); },
+        style: { font: "inherit", fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-link)", background: "none", border: 0, padding: 0, cursor: "pointer", textDecoration: "underline" } }, "Removed. Undo");
+    }
+    var p = Object.assign({}, props, { start: undefined, value: s[0], onChange: s[1] });
+    if (props.onRemove) p.onRemove = function () { removed[1](true); };
+    return e(NS.QuantityStepper, p);
+  }
+  var noop = function () {};
+  function Line(props) {
+    return e("div", { style: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--dt-space-inline-sm)", justifyContent: "space-between" } },
+      e("span", { style: { display: "flex", flexDirection: "column", minWidth: 0 } },
+        e("span", { style: { fontFamily: "var(--dt-text-label-md-family)", fontSize: "var(--dt-text-label-md-size)", fontWeight: "var(--dt-text-label-md-weight)", color: "var(--dt-text-primary)" } }, props.name),
+        e(NS.Price, { amount: props.price, size: "sm", locale: "en-US" })),
+      e(Live, { label: "Quantity, " + props.name.toLowerCase(), removeLabel: "Remove " + props.name.toLowerCase(), start: props.start, max: 9, size: "sm", onRemove: noop }));
+  }
+  function Page() {
+    return e(Shelf, { name: "QuantityStepper", summary: "A − value + control for cart lines and menus. The value can be typed, and at the minimum the minus can become remove.", props: [
+        { name: "value", type: "number", required: true, notes: "Controlled." },
+        { name: "onChange", type: "(next: number) => void", required: true, notes: "Gets a value already clamped to min and max and snapped to step." },
+        { name: "label", type: "string", required: true, notes: "Accessible name of the group and the spinbutton field." },
+        { name: "min", type: "number", default: "1" },
+        { name: "max", type: "number", notes: "No upper limit when omitted." },
+        { name: "step", type: "number", default: "1", notes: "PageUp and PageDown move ten steps." },
+        { name: "size", type: '"sm" | "md"', default: '"md"' },
+        { name: "disabled", type: "boolean" },
+        { name: "onRemove", type: "() => void", notes: "At min, the minus becomes a remove button with a trash icon." },
+        { name: "decreaseLabel / increaseLabel", type: "string", default: '"Decrease quantity" / "Increase quantity"' },
+        { name: "removeLabel", type: "string", default: '"Remove"' },
+      ], guidance: [
+        "In a list of lines, name each one: label Quantity, oat latte and removeLabel Remove oat latte, so buttons are not a column of identical names.",
+        "ArrowUp and ArrowDown step, PageUp and PageDown step by ten, Home and End jump to the limits. Typing commits on Enter or blur, clamped.",
+        "At a limit the button is aria-disabled, not disabled, so focus stays put when a click reaches the limit.",
+        "ArrowDown never removes a line. Removing takes a press of the remove button.",
+        "Use sm in cart lines and md, which is 40px, on touch-first menus and product pages.",
+      ] },
+      e(Specimen, { label: "States", bg: "var(--dt-surface-base)" },
+        row(
+          cell("md · value 2", e(Live, { label: "Quantity", start: 2, max: 10 })),
+          cell("sm · value 2", e(Live, { label: "Quantity (small)", start: 2, max: 10, size: "sm" })),
+          cell("at min · minus off", e(Live, { label: "Quantity (at min)", start: 1, max: 10 })),
+          cell("at max 10 · plus off", e(Live, { label: "Quantity (at max)", start: 10, max: 10 })),
+          cell("onRemove · at min", e(Live, { label: "Quantity (removable)", start: 1, max: 10, onRemove: noop })),
+          cell("disabled", e(NS.QuantityStepper, { label: "Quantity (disabled)", value: 3, onChange: noop, disabled: true })),
+          cell("step 6 · min 6", e(Live, { label: "Bottles", start: 12, min: 6, step: 6, max: 48 })))),
+      e(Specimen, { label: "Cart lines", bg: "var(--dt-surface-base)" },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-md)", maxWidth: "var(--dt-size-container-narrow)" } },
+          e(Line, { name: "Oat latte", price: 4.5, start: 1 }),
+          e(Line, { name: "Almond croissant", price: 3.75, start: 2 }))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        band(
+          cell("md", e(Live, { label: "Quantity (dark)", start: 3, max: 10 })),
+          cell("onRemove · at min", e(Live, { label: "Quantity (dark, removable)", start: 1, onRemove: noop, size: "sm" })),
+          cell("at max", e(Live, { label: "Quantity (dark, at max)", start: 5, max: 5, size: "sm" })),
+          cell("disabled", e(NS.QuantityStepper, { label: "Quantity (dark, disabled)", value: 3, onChange: noop, disabled: true })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

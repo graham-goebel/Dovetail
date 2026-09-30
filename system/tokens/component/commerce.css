@@ -1,0 +1,313 @@
+/* COMMERCE COMPONENT TOKENS
+   Tier 3 for the commerce family: prices, ratings, quantity, products, cart,
+   checkout and food ordering. Every value aliases a semantic role; none reads
+   a primitive. A colour alias that must follow a dark band is repeated under
+   .dark below, because custom properties resolve where they are declared. */
+
+:root {
+  /* Price: the amount, the sale amount beside a compare-at price, the struck
+     compare-at price itself, and the unit ("/ month", "each"). */
+  --dt-price-color: var(--dt-text-primary);
+  --dt-price-sale-color: var(--dt-text-danger);
+  --dt-price-compare-color: var(--dt-text-tertiary);
+  --dt-price-unit-color: var(--dt-text-secondary);
+
+  /* Rating: the star fill, the unfilled part of the scale, and the review
+     count beside it. The empty star reads the strong border so the scale is
+     still visible at a glance on every surface. */
+  --dt-rating-color: var(--dt-surface-warning);
+  --dt-rating-empty-color: var(--dt-border-strong);
+  --dt-rating-count-color: var(--dt-text-secondary);
+
+  /* QuantityStepper has no tokens of its own: it is a field, so it reads the
+     --dt-input-* geometry and colours, and its buttons the ghost button's. */
+
+  /* Product: ProductCard, ProductGallery and VariantPicker.
+     ProductCard's subtitle, and the wash over a sold-out product's picture:
+     the translucent glass surface, so the photo reads as dimmed in both
+     modes without an opacity token. */
+  --dt-product-subtitle-color: var(--dt-text-secondary);
+  --dt-product-soldout-overlay: var(--dt-surface-glass);
+
+  /* Colour swatches, on a card and in a picker. The hairline sits around
+     every swatch so a white one shows on a white surface; the ring marks the
+     chosen one. */
+  --dt-swatch-border: var(--dt-border-strong);
+  --dt-swatch-ring: var(--dt-border-selected);
+
+  /* VariantPicker chips: resting, chosen and unavailable. */
+  --dt-variant-bg: var(--dt-surface-base);
+  --dt-variant-bg-hover: var(--dt-surface-subtle);
+  --dt-variant-fg: var(--dt-text-primary);
+  --dt-variant-border: var(--dt-border-default);
+  --dt-variant-selected-bg: var(--dt-surface-selected);
+  --dt-variant-selected-fg: var(--dt-text-on-selected);
+  --dt-variant-selected-border: var(--dt-border-selected);
+  --dt-variant-unavailable-fg: var(--dt-text-disabled);
+  --dt-variant-unavailable-border: var(--dt-border-disabled);
+  --dt-variant-note-color: var(--dt-text-secondary);
+
+  /* ProductGallery: the previous and next buttons and the counter sit on
+     the photo in glass; the thumbnails take the selected border. */
+  --dt-gallery-control-bg: var(--dt-surface-glass-strong);
+  --dt-gallery-control-bg-hover: var(--dt-surface-overlay);
+  --dt-gallery-control-fg: var(--dt-text-primary);
+  --dt-gallery-thumb-border: var(--dt-border-subtle);
+  --dt-gallery-thumb-selected-border: var(--dt-border-selected);
+
+  /* Food ordering */
+
+  /* StoreHeader: the space reserved for the cover before it loads, the logo
+     tile and the ring that lifts it off the cover, the meta line, and the
+     open and closed status. A closed store's cover is greyed and laid under
+     the scrim, and its status reads in the danger colour. */
+  --dt-store-cover-bg: var(--dt-surface-sunken);
+  --dt-store-cover-radius: var(--dt-radius-media);
+  --dt-store-cover-max-height: var(--dt-size-media-min);
+  --dt-store-logo-size: var(--dt-size-avatar-xl);
+  --dt-store-logo-radius: var(--dt-radius-media);
+  --dt-store-logo-bg: var(--dt-surface-raised);
+  --dt-store-logo-ring: var(--dt-surface-base);
+  --dt-store-meta-color: var(--dt-text-secondary);
+  --dt-store-open-color: var(--dt-text-success);
+  --dt-store-closed-color: var(--dt-text-danger);
+  --dt-store-closed-scrim: var(--dt-surface-scrim);
+
+  /* FulfilmentToggle: a sunken track with the chosen segment raised on it.
+     The thumb's radius is the track's less the inset, so the corners nest. */
+  --dt-fulfilment-track-bg: var(--dt-surface-sunken);
+  --dt-fulfilment-thumb-bg: var(--dt-surface-raised);
+  --dt-fulfilment-thumb-shadow: var(--dt-elevation-1);
+  --dt-fulfilment-fg: var(--dt-text-secondary);
+  --dt-fulfilment-fg-selected: var(--dt-text-primary);
+  --dt-fulfilment-detail-color: var(--dt-text-tertiary);
+  --dt-fulfilment-detail-color-selected: var(--dt-text-secondary);
+  --dt-fulfilment-inset: var(--dt-space-inset-2xs);
+  --dt-fulfilment-radius: var(--dt-radius-container);
+  --dt-fulfilment-thumb-radius: var(--dt-radius-media);
+
+  /* MenuSection and MenuItem: the gap between a dish's text and its
+     thumbnail, the thumbnail itself, the dividers of a list and the cards of
+     a grid, and the dimmed text of a dish that is sold out. A grid column is
+     never narrower than --dt-menu-grid-min, so it is two up at most. */
+  --dt-menu-item-gap: var(--dt-space-inline-md);
+  --dt-menu-item-padding: var(--dt-space-inset-md);
+  --dt-menu-item-divider: var(--dt-border-subtle);
+  --dt-menu-item-bg-hover: var(--dt-surface-subtle);
+  --dt-menu-item-card-bg: var(--dt-surface-base);
+  --dt-menu-item-card-border: var(--dt-border-subtle);
+  --dt-menu-item-description-color: var(--dt-text-secondary);
+  --dt-menu-item-soldout-color: var(--dt-text-disabled);
+  --dt-menu-thumb-size: calc(2 * var(--dt-size-control-lg));
+  --dt-menu-thumb-radius: var(--dt-radius-media);
+  --dt-menu-thumb-bg: var(--dt-surface-sunken);
+  --dt-menu-grid-min: calc(0.4 * var(--dt-size-container-narrow));
+  --dt-menu-section-gap: var(--dt-space-stack-sm);
+
+  /* ModifierGroup: full-width rows at least a touch target tall, the drawn
+     radio or checkbox, the price delta, the hint, the Required pill, and the
+     error, which also turns the pill. */
+  --dt-modifier-row-min-height: var(--dt-size-touch-target);
+  --dt-modifier-divider: var(--dt-border-subtle);
+  --dt-modifier-control-size: var(--dt-size-icon-md);
+  --dt-modifier-control-border: var(--dt-border-strong);
+  --dt-modifier-control-bg: var(--dt-input-bg);
+  --dt-modifier-control-accent: var(--dt-surface-action);
+  --dt-modifier-control-mark: var(--dt-text-on-action);
+  --dt-modifier-delta-color: var(--dt-text-secondary);
+  --dt-modifier-hint-color: var(--dt-text-secondary);
+  --dt-modifier-pill-bg: var(--dt-surface-sunken);
+  --dt-modifier-pill-fg: var(--dt-text-secondary);
+  --dt-modifier-error-color: var(--dt-text-danger);
+  --dt-modifier-error-pill-bg: var(--dt-surface-danger-subtle);
+
+  /* Dietary and highlight tags on a dish. Each kind is a subtle status
+     surface and its text role; the label is always shown, so colour is
+     never the only signal. */
+  --dt-dietary-vegetarian-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegetarian-fg: var(--dt-text-success);
+  --dt-dietary-vegan-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegan-fg: var(--dt-text-success);
+  --dt-dietary-spicy-bg: var(--dt-surface-danger-subtle);
+  --dt-dietary-spicy-fg: var(--dt-text-danger);
+  --dt-dietary-gluten-free-bg: var(--dt-surface-info-subtle);
+  --dt-dietary-gluten-free-fg: var(--dt-text-info);
+  --dt-dietary-popular-bg: var(--dt-surface-warning-subtle);
+  --dt-dietary-popular-fg: var(--dt-text-warning);
+  --dt-dietary-new-bg: var(--dt-surface-brand-muted);
+  --dt-dietary-new-fg: var(--dt-text-brand);
+  --dt-dietary-default-bg: var(--dt-surface-sunken);
+  --dt-dietary-default-fg: var(--dt-text-secondary);
+
+  /* Cart and checkout */
+  /* CartLine, OrderSummary, PromoCode, AddressFields,
+     PaymentFields and OrderStatus. AddressFields and PaymentFields are
+     fields, so they read the --dt-input-* tokens and add none here. */
+
+  /* CartLine: the divider between lines (when divider is set), the
+     thumbnail's frame and size, and the secondary text under the name. */
+  --dt-cart-line-divider: var(--dt-border-subtle);
+  --dt-cart-thumb-bg: var(--dt-surface-sunken);
+  --dt-cart-thumb-border: var(--dt-border-subtle);
+  --dt-cart-thumb-fg: var(--dt-text-tertiary);
+  --dt-cart-detail-color: var(--dt-text-secondary);
+  --dt-cart-note-color: var(--dt-text-secondary);
+  --dt-cart-thumb-radius: var(--dt-radius-media);
+  --dt-cart-thumb-size-sm: var(--dt-size-control-lg);
+  --dt-cart-thumb-size-md: var(--dt-size-avatar-xl);
+
+  /* OrderSummary: the panel, its rules, the label and figure colours, and
+     the total. A discount reads the success text role, not the sale red of
+     --dt-price-sale-color: in a summary it is money saved, and red beside a
+     promo field reads as an error. The minus sign carries the meaning, so
+     the colour is never the only signal. */
+  --dt-summary-bg: var(--dt-surface-base);
+  --dt-summary-border: var(--dt-border-subtle);
+  --dt-summary-divider: var(--dt-border-subtle);
+  --dt-summary-label-color: var(--dt-text-secondary);
+  --dt-summary-value-color: var(--dt-text-primary);
+  --dt-summary-muted-color: var(--dt-text-tertiary);
+  --dt-summary-hint-color: var(--dt-text-tertiary);
+  --dt-summary-discount-color: var(--dt-text-success);
+  --dt-summary-total-color: var(--dt-text-primary);
+  --dt-summary-radius: var(--dt-radius-container);
+  --dt-summary-padding: var(--dt-space-inset-lg);
+
+  /* PromoCode: the chip of an applied code. */
+  --dt-promo-chip-bg: var(--dt-surface-success-subtle);
+  --dt-promo-chip-fg: var(--dt-text-primary);
+  --dt-promo-chip-border: var(--dt-border-success);
+  --dt-promo-chip-icon: var(--dt-text-success);
+  --dt-promo-chip-description: var(--dt-text-secondary);
+
+  /* OrderStatus: marker fills and the icon colour on each, the connecting
+     line, and the words for a delayed or cancelled order. */
+  --dt-order-status-complete: var(--dt-surface-action);
+  --dt-order-status-on-complete: var(--dt-text-on-action);
+  --dt-order-status-current: var(--dt-surface-action);
+  --dt-order-status-upcoming: var(--dt-border-strong);
+  --dt-order-status-line: var(--dt-border-default);
+  --dt-order-status-delayed: var(--dt-surface-warning);
+  --dt-order-status-on-delayed: var(--dt-text-on-warning);
+  --dt-order-status-delayed-text: var(--dt-text-warning);
+  --dt-order-status-cancelled: var(--dt-surface-danger);
+  --dt-order-status-on-cancelled: var(--dt-text-on-danger);
+  --dt-order-status-cancelled-text: var(--dt-text-danger);
+  --dt-order-status-marker-size: var(--dt-size-icon-lg);
+  --dt-order-status-line-width: var(--dt-border-width-strong);
+  /* The least width a step takes in a horizontal timeline. Below the steps'
+     total the timeline turns vertical. */
+  --dt-order-status-step-min-width: calc(var(--dt-size-control-lg) * 3);
+}
+
+.dark {
+  --dt-price-color: var(--dt-text-primary);
+  --dt-price-sale-color: var(--dt-text-danger);
+  --dt-price-compare-color: var(--dt-text-tertiary);
+  --dt-price-unit-color: var(--dt-text-secondary);
+  --dt-rating-color: var(--dt-surface-warning);
+  --dt-rating-empty-color: var(--dt-border-strong);
+  --dt-rating-count-color: var(--dt-text-secondary);
+
+  /* Product */
+  --dt-product-subtitle-color: var(--dt-text-secondary);
+  --dt-product-soldout-overlay: var(--dt-surface-glass);
+  --dt-swatch-border: var(--dt-border-strong);
+  --dt-swatch-ring: var(--dt-border-selected);
+  --dt-variant-bg: var(--dt-surface-base);
+  --dt-variant-bg-hover: var(--dt-surface-subtle);
+  --dt-variant-fg: var(--dt-text-primary);
+  --dt-variant-border: var(--dt-border-default);
+  --dt-variant-selected-bg: var(--dt-surface-selected);
+  --dt-variant-selected-fg: var(--dt-text-on-selected);
+  --dt-variant-selected-border: var(--dt-border-selected);
+  --dt-variant-unavailable-fg: var(--dt-text-disabled);
+  --dt-variant-unavailable-border: var(--dt-border-disabled);
+  --dt-variant-note-color: var(--dt-text-secondary);
+  --dt-gallery-control-bg: var(--dt-surface-glass-strong);
+  --dt-gallery-control-bg-hover: var(--dt-surface-overlay);
+  --dt-gallery-control-fg: var(--dt-text-primary);
+  --dt-gallery-thumb-border: var(--dt-border-subtle);
+  --dt-gallery-thumb-selected-border: var(--dt-border-selected);
+
+  /* Food ordering */
+  --dt-store-cover-bg: var(--dt-surface-sunken);
+  --dt-store-logo-bg: var(--dt-surface-raised);
+  --dt-store-logo-ring: var(--dt-surface-base);
+  --dt-store-meta-color: var(--dt-text-secondary);
+  --dt-store-open-color: var(--dt-text-success);
+  --dt-store-closed-color: var(--dt-text-danger);
+  --dt-store-closed-scrim: var(--dt-surface-scrim);
+  --dt-fulfilment-track-bg: var(--dt-surface-sunken);
+  --dt-fulfilment-thumb-bg: var(--dt-surface-raised);
+  --dt-fulfilment-thumb-shadow: var(--dt-elevation-1);
+  --dt-fulfilment-fg: var(--dt-text-secondary);
+  --dt-fulfilment-fg-selected: var(--dt-text-primary);
+  --dt-fulfilment-detail-color: var(--dt-text-tertiary);
+  --dt-fulfilment-detail-color-selected: var(--dt-text-secondary);
+  --dt-menu-item-divider: var(--dt-border-subtle);
+  --dt-menu-item-bg-hover: var(--dt-surface-subtle);
+  --dt-menu-item-card-bg: var(--dt-surface-base);
+  --dt-menu-item-card-border: var(--dt-border-subtle);
+  --dt-menu-item-description-color: var(--dt-text-secondary);
+  --dt-menu-item-soldout-color: var(--dt-text-disabled);
+  --dt-menu-thumb-bg: var(--dt-surface-sunken);
+  --dt-modifier-divider: var(--dt-border-subtle);
+  --dt-modifier-control-border: var(--dt-border-strong);
+  --dt-modifier-control-bg: var(--dt-input-bg);
+  --dt-modifier-control-accent: var(--dt-surface-action);
+  --dt-modifier-control-mark: var(--dt-text-on-action);
+  --dt-modifier-delta-color: var(--dt-text-secondary);
+  --dt-modifier-hint-color: var(--dt-text-secondary);
+  --dt-modifier-pill-bg: var(--dt-surface-sunken);
+  --dt-modifier-pill-fg: var(--dt-text-secondary);
+  --dt-modifier-error-color: var(--dt-text-danger);
+  --dt-modifier-error-pill-bg: var(--dt-surface-danger-subtle);
+  --dt-dietary-vegetarian-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegetarian-fg: var(--dt-text-success);
+  --dt-dietary-vegan-bg: var(--dt-surface-success-subtle);
+  --dt-dietary-vegan-fg: var(--dt-text-success);
+  --dt-dietary-spicy-bg: var(--dt-surface-danger-subtle);
+  --dt-dietary-spicy-fg: var(--dt-text-danger);
+  --dt-dietary-gluten-free-bg: var(--dt-surface-info-subtle);
+  --dt-dietary-gluten-free-fg: var(--dt-text-info);
+  --dt-dietary-popular-bg: var(--dt-surface-warning-subtle);
+  --dt-dietary-popular-fg: var(--dt-text-warning);
+  --dt-dietary-new-bg: var(--dt-surface-brand-muted);
+  --dt-dietary-new-fg: var(--dt-text-brand);
+  --dt-dietary-default-bg: var(--dt-surface-sunken);
+  --dt-dietary-default-fg: var(--dt-text-secondary);
+
+  /* Cart and checkout */
+  --dt-cart-line-divider: var(--dt-border-subtle);
+  --dt-cart-thumb-bg: var(--dt-surface-sunken);
+  --dt-cart-thumb-border: var(--dt-border-subtle);
+  --dt-cart-thumb-fg: var(--dt-text-tertiary);
+  --dt-cart-detail-color: var(--dt-text-secondary);
+  --dt-cart-note-color: var(--dt-text-secondary);
+  --dt-summary-bg: var(--dt-surface-base);
+  --dt-summary-border: var(--dt-border-subtle);
+  --dt-summary-divider: var(--dt-border-subtle);
+  --dt-summary-label-color: var(--dt-text-secondary);
+  --dt-summary-value-color: var(--dt-text-primary);
+  --dt-summary-muted-color: var(--dt-text-tertiary);
+  --dt-summary-hint-color: var(--dt-text-tertiary);
+  --dt-summary-discount-color: var(--dt-text-success);
+  --dt-summary-total-color: var(--dt-text-primary);
+  --dt-promo-chip-bg: var(--dt-surface-success-subtle);
+  --dt-promo-chip-fg: var(--dt-text-primary);
+  --dt-promo-chip-border: var(--dt-border-success);
+  --dt-promo-chip-icon: var(--dt-text-success);
+  --dt-promo-chip-description: var(--dt-text-secondary);
+  --dt-order-status-complete: var(--dt-surface-action);
+  --dt-order-status-on-complete: var(--dt-text-on-action);
+  --dt-order-status-current: var(--dt-surface-action);
+  --dt-order-status-upcoming: var(--dt-border-strong);
+  --dt-order-status-line: var(--dt-border-default);
+  --dt-order-status-delayed: var(--dt-surface-warning);
+  --dt-order-status-on-delayed: var(--dt-text-on-warning);
+  --dt-order-status-delayed-text: var(--dt-text-warning);
+  --dt-order-status-cancelled: var(--dt-surface-danger);
+  --dt-order-status-on-cancelled: var(--dt-text-on-danger);
+  --dt-order-status-cancelled-text: var(--dt-text-danger);
+}

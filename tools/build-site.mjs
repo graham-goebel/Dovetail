@@ -487,7 +487,7 @@ const manifest = JSON.parse(read(path.join(SYS, "manifest.json")));
 const tokens = JSON.parse(read(path.join(SYS, "tokens.json")));
 const readme = read(path.join(SYS, "README.md"));
 
-const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content", "blocks"];
+const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content", "commerce", "chat", "blocks"];
 const FAMILIES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"][GROUP_ORDER.length] || String(GROUP_ORDER.length);
 const GROUP_LABEL = {
   primitives: "Primitives",
@@ -498,6 +498,8 @@ const GROUP_LABEL = {
   navigation: "Navigation",
   feedback: "Feedback",
   content: "Content",
+  commerce: "Commerce",
+  chat: "Chat",
   blocks: "Blocks",
 };
 /* One sentence per family, so the heading says what the group is for rather
@@ -512,6 +514,8 @@ const GROUP_BLURB = {
   navigation: "Moving between places, and showing where you are. Each one takes the current location as a prop rather than reading the URL, so they suit any router.",
   feedback: "Telling someone what happened, or asking before it does. Severity is a prop, and the overlays share one layer, focus trap and dismissal behaviour.",
   content: "Long-form and editorial shapes, including the pieces a CMS drives. Media reserves its space before it loads, so a page never jumps.",
+  commerce: "Buying things: prices, products, carts, checkout and food ordering. Each renders what it is given and calls back on change, so the cart, the payment and the order stay in your app.",
+  chat: "Conversations, with a person or an assistant. Messages, presence and status are props; sending, storing and streaming stay in your app.",
   blocks: "Page sections that stack into a landing page. Each is a Section with its layout decided and its content as props, so a page is a list of blocks.",
 };
 
@@ -525,7 +529,8 @@ const GROUP_DETAIL = {
   primitives: ["PrimitivesDetail"],
 };
 /* Two components are exported from a sibling's source file. */
-const EXPORTED_FROM = { ToastRegion: ["feedback", "Toast"], TabPanel: ["navigation", "Tabs"] };
+const EXPORTED_FROM = { ToastRegion: ["feedback", "Toast"], TabPanel: ["navigation", "Tabs"],
+  MessageDivider: ["chat", "MessageList"] };
 
 const GROUP_ALIAS = { "UI kits": "Templates" };
 
@@ -1240,6 +1245,14 @@ const NAV_BLURB = {
   HeroBlock: "The top of a page", FeatureGridBlock: "Features in a grid", SplitBlock: "Copy beside media",
   StatsBlock: "Numbers that matter", TestimonialBlock: "What customers say", FaqBlock: "Common questions",
   CtaBlock: "The closing ask", BlockHeader: "Every block's heading",
+  Price: "Money, formatted", Rating: "Stars, shown or chosen", QuantityStepper: "How many",
+  ProductCard: "A product in a grid", ProductGallery: "Product photos", VariantPicker: "Size, colour, material",
+  CartLine: "A line in the cart", OrderSummary: "What it all costs", PromoCode: "Apply a code",
+  AddressFields: "Where it's going", PaymentFields: "Card details", OrderStatus: "Where the order is",
+  StoreHeader: "The top of a store", FulfilmentToggle: "Delivery or pickup", MenuSection: "A course of the menu",
+  MenuItem: "One dish", ModifierGroup: "Sizes and extras",
+  ChatHeader: "Who you're talking to", MessageList: "The conversation", MessageDivider: "Today, and events",
+  MessageBubble: "One message", Composer: "Write and send", TypingIndicator: "They're typing", QuickReplies: "Suggested answers",
   README: "Start here", "Token reference": "Tier by tier", Theming: "Make it your brand", Accessibility: "What's guaranteed",
   "Headless integration": "Content sources", Contributing: "Add a component", "Working together": "Branches and reviews",
   Changelog: "What's new", "Changelog strategy": "How changes ship", "Token pipeline": "DTCG to CSS",
@@ -1679,18 +1692,34 @@ ${
    field, and strings or ReactNode a text field. Functions, arrays, objects,
    style and as are left to the code, since there is no honest control for
    them. */
-function playgroundProps(c) {
-  if (!c.types) return [];
-  const src = read(path.join(ROOT, c.types));
-  const start = src.search(new RegExp(`export interface ${c.sourceName === c.name ? c.name : c.name}Props\\b`));
-  if (start < 0) return [];
+/* An interface's members, with those of any interface it extends that is
+   declared in the same file (a shared base), base first. Library bases such
+   as React.HTMLAttributes are left out: they are not the component's props. */
+function interfaceBody(src, name, seen = new Set()) {
+  if (seen.has(name)) return null;
+  seen.add(name);
+  const start = src.search(new RegExp(`(?:export\\s+)?interface ${name}\\b`));
+  if (start < 0) return null;
   const open = src.indexOf("{", start);
   let depth = 0, end = open;
   for (let i = open; i < src.length; i++) {
     if (src[i] === "{") depth++;
     else if (src[i] === "}" && --depth === 0) { end = i; break; }
   }
-  const body = src.slice(open + 1, end);
+  const ext = (src.slice(start, open).match(/extends\s+([\s\S]+)$/) || [])[1] || "";
+  const bases = ext.split(",").map((b) => b.trim()).filter((b) => /^\w+$/.test(b));
+  return bases.map((b) => interfaceBody(src, b, seen) || "").join("\n") + "\n" + src.slice(open + 1, end);
+}
+
+function playgroundProps(c) {
+  if (!c.types) return [];
+  const src = read(path.join(ROOT, c.types));
+  /* Props are an interface, or a union of interfaces split on a discriminant
+     (Rating: display or input). A playground shows the first member, the one
+     that renders without callbacks. */
+  const union = src.match(new RegExp(`export type ${c.name}Props\\s*=\\s*(\\w+)\\s*\\|`));
+  const body = interfaceBody(src, union ? union[1] : `${c.name}Props`);
+  if (body == null) return [];
   const out = [];
   const re = /(?:\/\*\*([\s\S]*?)\*\/\s*)?\n\s*([a-zA-Z]\w*)(\?)?:\s*([^;]+);/g;
   let m;
