@@ -487,7 +487,7 @@ const manifest = JSON.parse(read(path.join(SYS, "manifest.json")));
 const tokens = JSON.parse(read(path.join(SYS, "tokens.json")));
 const readme = read(path.join(SYS, "README.md"));
 
-const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content", "blocks"];
+const GROUP_ORDER = ["primitives", "typography", "actions", "forms", "display", "navigation", "feedback", "content", "commerce", "chat", "blocks"];
 const FAMILIES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"][GROUP_ORDER.length] || String(GROUP_ORDER.length);
 const GROUP_LABEL = {
   primitives: "Primitives",
@@ -498,6 +498,8 @@ const GROUP_LABEL = {
   navigation: "Navigation",
   feedback: "Feedback",
   content: "Content",
+  commerce: "Commerce",
+  chat: "Chat",
   blocks: "Blocks",
 };
 /* One sentence per family, so the heading says what the group is for rather
@@ -512,6 +514,8 @@ const GROUP_BLURB = {
   navigation: "Moving between places, and showing where you are. Each one takes the current location as a prop rather than reading the URL, so they suit any router.",
   feedback: "Telling someone what happened, or asking before it does. Severity is a prop, and the overlays share one layer, focus trap and dismissal behaviour.",
   content: "Long-form and editorial shapes, including the pieces a CMS drives. Media reserves its space before it loads, so a page never jumps.",
+  commerce: "Buying things: prices, products, carts, checkout and food ordering. Each renders what it is given and calls back on change, so the cart, the payment and the order stay in your app.",
+  chat: "Conversations, with a person or an assistant. Messages, presence and status are props; sending, storing and streaming stay in your app.",
   blocks: "Page sections that stack into a landing page. Each is a Section with its layout decided and its content as props, so a page is a list of blocks.",
 };
 

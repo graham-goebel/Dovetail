@@ -1,0 +1,11 @@
+/* CHAT COMPONENT TOKENS
+   Tier 3 for the chat family: headers, message bubbles, the composer, typing
+   and quick replies. Every value aliases a semantic role; none reads a
+   primitive. A colour alias that must follow a dark band is repeated under
+   .dark below, because custom properties resolve where they are declared. */
+
+:root {
+}
+
+.dark {
+}
