@@ -60,6 +60,19 @@
 <h1 id="changelog">Changelog</h1>
 <p>Everything notable that changes in the Dovetail design system (<code>system/</code>), newest first. Versions follow <a href="https://semver.org">Semantic Versioning</a> as applied to a design system in <a href="changelog-strategy.html">docs/changelog.md</a>: a renamed or removed token, component, prop or default is a breaking change.</p>
 <p>&lt;!-- Contributors: don't edit this file directly. Add an entry to <code>changes/</code> with your pull request (<code>npm run change -- &lt;slug&gt;</code>); releases compile the entries into a new section here. Unreleased entries can be previewed with <code>npm run changelog</code>. --&gt;</p>
+<h2 id="0-3-0-2026-09-30">0.3.0 - 2026-09-30</h2>
+<h3 id="breaking-changes">Breaking changes</h3>
+<ul><li><code>@dovetail-ds/react/styles.css</code> no longer loads Geist from Google Fonts. The font <code>@import</code> moves to a new opt-in <code>@dovetail-ds/react/fonts.css</code>, so the stylesheet makes no third-party request, works offline and under a strict CSP, and leaves self-hosting up to you. <em>(visual)</em> <code>--dt-font-family-sans</code> <code>--dt-font-family-mono</code></li></ul>
+<p>  Without <code>fonts.css</code> or your own <code>@font-face</code> for &quot;Geist&quot; and &quot;Geist Mono&quot;, text falls back to the system font. The docs site is unchanged.</p>
+<p>  <strong>Migration</strong></p>
+<p>  To keep Geist from Google Fonts, import <code>fonts.css</code> before <code>styles.css</code>:</p>
+<p>  ``<code>js   import &quot;@dovetail-ds/react/fonts.css&quot;;   import &quot;@dovetail-ds/react/styles.css&quot;;   </code>``</p>
+<p>  To self-host, leave <code>fonts.css</code> out and serve the fonts under the same family names (for example with <code>next/font/local</code> or <code>@font-face</code>), or point <code>--dt-font-family-sans</code> and <code>--dt-font-family-mono</code> at your own families. Afterwards, check that headings and body text render in Geist rather than the system font.</p>
+<h3 id="changed">Changed</h3>
+<ul><li><code>react</code> is the package's only peer dependency: <code>react-dom</code> is no longer required (nothing in the package imports it), and the published manifest has no <code>engines</code> field, so installs on any Node version stop warning. The npm description now describes the package rather than the repository.</li></ul>
+<h3 id="fixed">Fixed</h3>
+<ul><li>The type declarations work with React 19: every <code>.d.ts</code> uses <code>React.JSX</code> instead of the global <code>JSX</code> namespace, which <code>@types/react</code> 19 removed. With React 19 types, every component's declaration previously failed with &quot;Cannot find namespace 'JSX'&quot;. The package check now type-checks against <code>@types/react</code> 18 and 19.</li><li>The package works in React Server Components and the Next.js App Router: interactive components start with <code>&quot;use client&quot;</code>, while layout and type components (<code>Section</code>, <code>Stack</code>, <code>Heading</code>, <code>Text</code> and others) stay server components. <code>Navbar</code> no longer crashes when it collapses on a narrow screen, and <code>Navbar</code> and <code>Sheet</code> render the same markup on the server and on the first client pass, so hydration matches. <code>Navbar</code> <code>Sheet</code></li></ul>
+<p>  <code>Navbar</code> rendered its mobile menu with <code>Drawer</code> without importing it, which only worked on the docs site, where every component shares one scope. Both components now read <code>matchMedia</code> through <code>useSyncExternalStore</code>, with a server snapshot of <code>false</code>, instead of in their initial state. The package build now fails on any component that renders another one without importing it.</p>
 <h2 id="0-2-0-2026-09-29">0.2.0 - 2026-09-29</h2>
 <h3 id="breaking-changes">Breaking changes</h3>
 <ul><li>Dovetail's default look is monochrome and round: buttons, links, selection and focus are ink instead of the primary colour, secondary buttons are soft grey fills, buttons are pills, cards are bordered and flat, the greys have no hue, and the default primary is a warm orange used for accents. <em>(visual)</em> <code>Button</code> <code>IconButton</code> <code>Card</code> <code>Tabs</code> <code>Link</code> <code>--dt-surface-action</code> <code>--dt-text-link</code> <code>--dt-surface-selected</code> <code>--dt-border-selected</code> <code>--dt-focus-ring-color</code> <code>--dt-surface-action-secondary</code> <code>--dt-color-neutral-*</code> <code>--dt-color-primary-*</code> <code>--dt-radius-control</code> <code>--dt-radius-container</code> <code>--dt-radius-overlay</code> <code>--dt-button-radius</code> <code>--dt-card-elevation</code></li></ul>
@@ -109,6 +122,10 @@
 <aside class="page-toc" aria-labelledby="page-toc-title">
   <p class="page-toc-title" id="page-toc-title">On this page</p>
   <ol>
+    <li><a href="#0-3-0-2026-09-30">0.3.0 - 2026-09-30</a></li>
+    <li class="nested"><a href="#breaking-changes">Breaking changes</a></li>
+    <li class="nested"><a href="#changed">Changed</a></li>
+    <li class="nested"><a href="#fixed">Fixed</a></li>
     <li><a href="#0-2-0-2026-09-29">0.2.0 - 2026-09-29</a></li>
     <li class="nested"><a href="#breaking-changes">Breaking changes</a></li>
     <li class="nested"><a href="#added">Added</a></li>
