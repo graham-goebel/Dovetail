@@ -5,8 +5,9 @@ a Popover and less interruption than a full page.
 
 ## Rules
 
-- Escape closes, the scrim closes, and focus returns to the trigger. That is built in;
-  do not add a second close path that skips focus restoration.
+- Focus moves into the panel on open and Tab stays inside it. Escape closes, the scrim
+  closes, and focus returns to the trigger. That is built in; do not add a second close
+  path that skips focus restoration.
 - Use `right` for detail and editing, `left` for navigation on narrow screens, and
   `bottom` for mobile sheets.
 - Actions go in `footer`, not loose at the end of the body. The footer stays visible

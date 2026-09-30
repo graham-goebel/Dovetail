@@ -7,8 +7,9 @@ alternates between panels, not to sequence a task.
 
 - `label` is required. A tablist with no name gives a screen reader nothing to announce
   before the tab count.
-- Arrow keys move between tabs and Home/End jump to the ends. That behaviour is built in;
-  do not intercept keydown on the tablist.
+- Arrow keys move between tabs, wrapping at the ends, and Home/End jump to the first and
+  last. Disabled tabs are skipped, never selected. That behaviour is built in; do not
+  intercept keydown on the tablist.
 - Pair every `Tabs` with `TabPanel`. The panel wires `aria-controls` and
   `aria-labelledby`; a bare div loses the relationship.
 - Three to six tabs. Beyond that use a Sidebar; tabs that scroll horizontally hide options.

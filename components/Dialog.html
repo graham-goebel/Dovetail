@@ -69,7 +69,7 @@
 <section class="playground-wrap">
   <h2 id="playground">Playground</h2>
   <p class="muted">Change a prop and watch it. The code below follows along.</p>
-  <div class="playground" data-playground="Dialog" data-props="[{&quot;name&quot;:&quot;open&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;description&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Supporting line below the title.&quot;},{&quot;name&quot;:&quot;footer&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Right-aligned action row&quot;},{&quot;name&quot;:&quot;size&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
+  <div class="playground" data-playground="Dialog" data-props="[{&quot;name&quot;:&quot;open&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Heading, and the dialog&#39;s accessible name.&quot;},{&quot;name&quot;:&quot;description&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Supporting line below the title, and the dialog&#39;s accessible description.&quot;},{&quot;name&quot;:&quot;footer&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Right-aligned action row&quot;},{&quot;name&quot;:&quot;size&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Accessible name for a dialog with no visible title.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
     <div class="pg-stage" aria-live="polite"></div>
     <div class="pg-controls" role="group" aria-label="Dialog props"></div>
     <pre class="pg-code"><code></code></pre>
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Dialog.html?v=4c561da793&amp;b=e5be6854b7" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Dialog.html?v=4c561da793&amp;b=4a05c2831d" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Dialog.html?v=4c561da793&amp;b=e5be6854b7" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Dialog.html?v=4c561da793&amp;b=4a05c2831d" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -106,7 +106,7 @@
   &lt;/&gt;}
 /&gt;</code></pre>
 <h3 id="accessibility">Accessibility</h3>
-<p><code>role=&quot;dialog&quot;</code> with <code>aria-modal</code>. Escape and the scrim both close it. Focus trapping and return-focus are not yet implemented, so track that before production use.</p>
+<p><code>role=&quot;dialog&quot;</code> with <code>aria-modal</code>, named by <code>title</code> (<code>aria-labelledby</code>) and described by <code>description</code>. A dialog with no visible title needs <code>label</code>. When it opens, focus moves into the panel; Tab and Shift+Tab stay inside it; the page behind stops scrolling. Escape, the scrim and the close button close it, and focus returns to whatever opened it.</p>
 <h3 id="tokens">Tokens</h3>
 <p><code>--dt-dialog-*</code>, shared with Drawer and Popover so every overlay reads as one system.</p>
 <h3 id="content">Content</h3>
@@ -119,17 +119,20 @@
   <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
 
 /** Modal dialog. Interrupts the user, so reserve it for decisions that must be made now. */
-export interface DialogProps {
+export interface DialogProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElement&gt;, &quot;title&quot;&gt; {
   open: boolean;
   /** Called by the close button, the scrim, and Escape. */
   onClose?: () =&gt; void;
+  /** Heading, and the dialog's accessible name. */
   title?: React.ReactNode;
-  /** Supporting line below the title. */
+  /** Supporting line below the title, and the dialog's accessible description. */
   description?: React.ReactNode;
   /** Right-aligned action row. Put the confirming action last. */
   footer?: React.ReactNode;
   /** @default &quot;md&quot; */
   size?: &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot;;
+  /** Accessible name for a dialog with no visible title. */
+  label?: string;
   children?: React.ReactNode;
 }
 
@@ -149,13 +152,50 @@ export declare function Dialog(props: DialogProps): React.JSX.Element | null;</c
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
 
-export function Dialog({ open, onClose, title, description, footer, size = &quot;md&quot;, children }) {
+const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=&quot;-1&quot;])';
+
+/* What a modal surface does while it is open: focus moves into the panel,
+   Tab and Shift+Tab cycle inside it, Escape closes it, the page behind stops
+   scrolling, and focus goes back where it came from on close. Drawer shares
+   it; Sheet keeps its own copy, tied to its entry and exit animation. The
+   panel needs tabIndex={-1} so it can take focus itself when it has no
+   tabbable child. onClose is read through a ref, so a new inline callback on
+   every render does not re-run the effect and bounce focus. */
+export function useModalFocus(open, panel, onClose) {
+  const close = React.useRef(onClose);
+  React.useEffect(() =&gt; { close.current = onClose; });
   React.useEffect(() =&gt; {
-    if (!open) return;
-    const onKey = (e) =&gt; { if (e.key === &quot;Escape&quot;) onClose &amp;&amp; onClose(); };
+    if (!open) return undefined;
+    const el = panel.current;
+    const prev = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = &quot;hidden&quot;;
+    if (el) el.focus({ preventScroll: true });
+    const onKey = (e) =&gt; {
+      if (e.key === &quot;Escape&quot;) { close.current &amp;&amp; close.current(); return; }
+      if (e.key !== &quot;Tab&quot; || !el) return;
+      const items = Array.prototype.filter.call(el.querySelectorAll(TABBABLE), (n) =&gt; n.offsetParent !== null);
+      if (!items.length) { e.preventDefault(); el.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const inside = el.contains(document.activeElement);
+      if (e.shiftKey &amp;&amp; (!inside || document.activeElement === first)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey &amp;&amp; (!inside || document.activeElement === last)) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener(&quot;keydown&quot;, onKey);
-    return () =&gt; document.removeEventListener(&quot;keydown&quot;, onKey);
-  }, [open, onClose]);
+    return () =&gt; {
+      document.removeEventListener(&quot;keydown&quot;, onKey);
+      document.body.style.overflow = overflow;
+      if (prev &amp;&amp; prev.focus) prev.focus();
+    };
+  }, [open, panel]);
+}
+
+export function Dialog({ open, onClose, title, description, footer, size = &quot;md&quot;, label, style, children, ...rest }) {
+  const panel = React.useRef(null);
+  const titleId = React.useId();
+  const descriptionId = React.useId();
+  useModalFocus(open, panel, onClose);
 
   if (!open) return null;
 
@@ -170,8 +210,13 @@ export function Dialog({ open, onClose, title, description, footer, size = &quot
       }}
     &gt;
       &lt;div
-        role=&quot;dialog&quot; aria-modal=&quot;true&quot;
-        onClick={(e) =&gt; e.stopPropagation()}
+        {...rest}
+        ref={panel}
+        role=&quot;dialog&quot; aria-modal=&quot;true&quot; tabIndex={-1}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={!title ? label : undefined}
+        aria-describedby={description ? descriptionId : undefined}
+        onClick={(e) =&gt; { e.stopPropagation(); rest.onClick &amp;&amp; rest.onClick(e); }}
         style={{
           position: &quot;relative&quot;,
           display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-dialog-gap)&quot;,
@@ -182,6 +227,7 @@ export function Dialog({ open, onClose, title, description, footer, size = &quot
           borderRadius: &quot;var(--dt-dialog-radius)&quot;,
           padding: &quot;var(--dt-dialog-padding)&quot;,
           boxShadow: &quot;var(--dt-dialog-elevation)&quot;,
+          ...style,
         }}
       &gt;
         &lt;button
@@ -197,7 +243,7 @@ export function Dialog({ open, onClose, title, description, footer, size = &quot
           &lt;svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot;&gt;&lt;path d=&quot;M18 6 6 18&quot; /&gt;&lt;path d=&quot;m6 6 12 12&quot; /&gt;&lt;/svg&gt;
         &lt;/button&gt;
         {title &amp;&amp; (
-          &lt;h2 style={{
+          &lt;h2 id={titleId} style={{
             margin: 0, paddingRight: &quot;var(--dt-space-inset-xl)&quot;,
             fontFamily: &quot;var(--dt-text-heading-md-family)&quot;, fontSize: &quot;var(--dt-text-heading-md-size)&quot;,
             lineHeight: &quot;var(--dt-text-heading-md-line)&quot;, fontWeight: &quot;var(--dt-text-heading-md-weight)&quot;,
@@ -205,7 +251,7 @@ export function Dialog({ open, onClose, title, description, footer, size = &quot
           }}&gt;{title}&lt;/h2&gt;
         )}
         {description &amp;&amp; (
-          &lt;p style={{ margin: 0, fontFamily: &quot;var(--dt-text-body-sm-family)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-text-secondary)&quot; }}&gt;{description}&lt;/p&gt;
+          &lt;p id={descriptionId} style={{ margin: 0, fontFamily: &quot;var(--dt-text-body-sm-family)&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-text-secondary)&quot; }}&gt;{description}&lt;/p&gt;
         )}
         {children}
         {footer &amp;&amp; &lt;div style={{ display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, justifyContent: &quot;flex-end&quot;, marginTop: &quot;var(--dt-space-stack-xs)&quot; }}&gt;{footer}&lt;/div&gt;}
@@ -271,7 +317,7 @@ export function Dialog({ open, onClose, title, description, footer, size = &quot
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e5be6854b7" defer></script>
+<script src="../system/components/bundle.js?v=4a05c2831d" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

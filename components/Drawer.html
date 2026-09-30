@@ -69,7 +69,7 @@
 <section class="playground-wrap">
   <h2 id="playground">Playground</h2>
   <p class="muted">Change a prop and watch it. The code below follows along.</p>
-  <div class="playground" data-playground="Drawer" data-props="[{&quot;name&quot;:&quot;open&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Header text&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;footer&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Footer slot, usually the action buttons.&quot;},{&quot;name&quot;:&quot;side&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;right&quot;,&quot;left&quot;,&quot;bottom&quot;],&quot;default&quot;:&quot;right&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;width&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;380&quot;,&quot;note&quot;:&quot;Applies to left and right drawers.&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Accessible name when title is not a string.&quot;}]">
+  <div class="playground" data-playground="Drawer" data-props="[{&quot;name&quot;:&quot;open&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;title&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Header, and the accessible name unless `label` is given.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;footer&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Footer slot, usually the action buttons.&quot;},{&quot;name&quot;:&quot;side&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;right&quot;,&quot;left&quot;,&quot;bottom&quot;],&quot;default&quot;:&quot;right&quot;,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;width&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;380&quot;,&quot;note&quot;:&quot;Applies to left and right drawers.&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Accessible name instead of the title, or for a drawer with no title.&quot;}]">
     <div class="pg-stage" aria-live="polite"></div>
     <div class="pg-controls" role="group" aria-label="Drawer props"></div>
     <pre class="pg-code"><code></code></pre>
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Drawer.html?v=76f1c871a6&amp;b=e5be6854b7" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Drawer.html?v=76f1c871a6&amp;b=4a05c2831d" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Drawer.html?v=76f1c871a6&amp;b=e5be6854b7" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Drawer.html?v=76f1c871a6&amp;b=4a05c2831d" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -91,7 +91,7 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>Modal side panel for detail views, filters, and secondary forms that need more room than a Popover and less interruption than a full page.</p>
 <h3 id="rules">Rules</h3>
-<ul><li>Escape closes, the scrim closes, and focus returns to the trigger. That is built in; do not add a second close path that skips focus restoration.</li><li>Use <code>right</code> for detail and editing, <code>left</code> for navigation on narrow screens, and <code>bottom</code> for mobile sheets.</li><li>Actions go in <code>footer</code>, not loose at the end of the body. The footer stays visible while the body scrolls.</li><li>A drawer is modal. If the user needs to reference the page behind it while working, use an inline panel instead.</li><li>It sits at <code>--dt-z-overlay</code>, above every sticky role, so a fixed page header never floats over the drawer's own scrim. Do not lower a header's z-index to make room.</li></ul>
+<ul><li>Focus moves into the panel on open and Tab stays inside it. Escape closes, the scrim closes, and focus returns to the trigger. That is built in; do not add a second close path that skips focus restoration.</li><li>Use <code>right</code> for detail and editing, <code>left</code> for navigation on narrow screens, and <code>bottom</code> for mobile sheets.</li><li>Actions go in <code>footer</code>, not loose at the end of the body. The footer stays visible while the body scrolls.</li><li>A drawer is modal. If the user needs to reference the page behind it while working, use an inline panel instead.</li><li>It sits at <code>--dt-z-overlay</code>, above every sticky role, so a fixed page header never floats over the drawer's own scrim. Do not lower a header's z-index to make room.</li></ul>
 <h3 id="tradeoffs">Tradeoffs</h3>
 <p>Drawers preserve page context but cover a third of the screen and trap focus. For tasks longer than a couple of fields, a dedicated page respects the browser's back button.</p>
 </section>
@@ -105,7 +105,7 @@
 export interface DrawerProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElement&gt;, &quot;title&quot;&gt; {
   open: boolean;
   onClose?: () =&gt; void;
-  /** Header text. Also the accessible name when it is a string. */
+  /** Header, and the accessible name unless `label` is given. */
   title?: React.ReactNode;
   children?: React.ReactNode;
   /** Footer slot, usually the action buttons. */
@@ -114,7 +114,7 @@ export interface DrawerProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElem
   side?: &quot;right&quot; | &quot;left&quot; | &quot;bottom&quot;;
   /** Applies to left and right drawers. @default 380 */
   width?: number | string;
-  /** Accessible name when title is not a string. */
+  /** Accessible name instead of the title, or for a drawer with no title. */
   label?: string;
 }
 
@@ -133,17 +133,12 @@ export declare function Drawer(props: DrawerProps): React.JSX.Element | null;</c
   <h2 id="source">Source</h2>
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { useModalFocus } from &quot;./Dialog.jsx&quot;;
 
 export function Drawer({ open, onClose, title, children, footer, side = &quot;right&quot;, width = 380, label, style, ...rest }) {
   const panel = React.useRef(null);
-  React.useEffect(() =&gt; {
-    if (!open) return;
-    const onKey = e =&gt; e.key === &quot;Escape&quot; &amp;&amp; onClose &amp;&amp; onClose();
-    document.addEventListener(&quot;keydown&quot;, onKey);
-    const prev = document.activeElement;
-    panel.current &amp;&amp; panel.current.focus();
-    return () =&gt; { document.removeEventListener(&quot;keydown&quot;, onKey); prev &amp;&amp; prev.focus &amp;&amp; prev.focus(); };
-  }, [open, onClose]);
+  const titleId = React.useId();
+  useModalFocus(open, panel, onClose);
   if (!open) return null;
   const horizontal = side === &quot;left&quot; || side === &quot;right&quot;;
   return (
@@ -153,7 +148,8 @@ export function Drawer({ open, onClose, title, children, footer, side = &quot;ri
         ref={panel}
         role=&quot;dialog&quot;
         aria-modal=&quot;true&quot;
-        aria-label={label || (typeof title === &quot;string&quot; ? title : undefined)}
+        aria-label={label || undefined}
+        aria-labelledby={!label &amp;&amp; title ? titleId : undefined}
         tabIndex={-1}
         style={{
           position: &quot;relative&quot;, display: &quot;flex&quot;, flexDirection: &quot;column&quot;,
@@ -174,7 +170,7 @@ export function Drawer({ open, onClose, title, children, footer, side = &quot;ri
             display: &quot;flex&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;space-between&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;,
             padding: &quot;var(--dt-space-inset-md)&quot;, borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-border-subtle)&quot;, flex: &quot;none&quot;,
           }}&gt;
-            &lt;span style={{ fontFamily: &quot;var(--dt-text-heading-xs-family)&quot;, fontSize: &quot;var(--dt-text-heading-xs-size)&quot;, fontWeight: &quot;var(--dt-font-weight-semibold)&quot; }}&gt;{title}&lt;/span&gt;
+            &lt;span id={titleId} style={{ fontFamily: &quot;var(--dt-text-heading-xs-family)&quot;, fontSize: &quot;var(--dt-text-heading-xs-size)&quot;, fontWeight: &quot;var(--dt-font-weight-semibold)&quot; }}&gt;{title}&lt;/span&gt;
             &lt;button type=&quot;button&quot; onClick={onClose} aria-label=&quot;Close&quot; style={{
               appearance: &quot;none&quot;, background: &quot;transparent&quot;, border: &quot;none&quot;, cursor: &quot;pointer&quot;,
               color: &quot;var(--dt-text-secondary)&quot;, fontSize: &quot;var(--dt-text-body-lg-size)&quot;, lineHeight: 1,
@@ -244,7 +240,7 @@ export function Drawer({ open, onClose, title, children, footer, side = &quot;ri
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e5be6854b7" defer></script>
+<script src="../system/components/bundle.js?v=4a05c2831d" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

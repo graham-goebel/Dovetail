@@ -29,7 +29,7 @@
   "exports": {
     ".": {
       "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/index.js"
+      "default": "./dist/react/index.js"
     },
     "./styles.css": "./dist/styles.css",
     "./fonts.css": "./dist/fonts.css",
@@ -65,7 +65,7 @@
     "build:bundle": "node tools/build-bundle.mjs",
     "build:site": "node tools/build-site.mjs",
     "build:package": "node tools/build-package.mjs",
-    "check": "npm run check:build && npm run check:changes && npm run check:ssr && npm run check:package && npm run check:consumer && npm run check:browser",
+    "check": "npm run check:build && npm run check:changes && npm run check:ssr && npm run check:package && npm run check:consumer && npm run check:browser && npm run check:behavior",
     "check:build": "node tools/build-bundle.mjs --check && node tools/check/site-current.mjs",
     "check:changes": "node tools/changelog.mjs --check",
     "check:ssr": "node tools/check/ssr.mjs",
@@ -73,6 +73,7 @@
     "check:consumer": "node tools/check/consumer.mjs",
     "check:tokens": "node tools/check/tokens-parity.mjs",
     "check:browser": "node tools/check/browser.mjs",
+    "check:behavior": "node tools/check/behavior.mjs",
     "serve": "node tools/check/serve.mjs",
     "changelog": "node tools/changelog.mjs",
     "change": "node tools/changelog.mjs --new"

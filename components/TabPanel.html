@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/TabPanel.html?v=25b36e43d8&amp;b=e5be6854b7" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/TabPanel.html?v=25b36e43d8&amp;b=4a05c2831d" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/TabPanel.html?v=25b36e43d8&amp;b=e5be6854b7" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/TabPanel.html?v=25b36e43d8&amp;b=4a05c2831d" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -91,7 +91,7 @@
   <h2 id="guidelines">Guidelines</h2>
   <p>Switches between sibling views that share a purpose. Use tabs when the user compares or alternates between panels, not to sequence a task.</p>
 <h3 id="rules">Rules</h3>
-<ul><li><code>label</code> is required. A tablist with no name gives a screen reader nothing to announce before the tab count.</li><li>Arrow keys move between tabs and Home/End jump to the ends. That behaviour is built in; do not intercept keydown on the tablist.</li><li>Pair every <code>Tabs</code> with <code>TabPanel</code>. The panel wires <code>aria-controls</code> and <code>aria-labelledby</code>; a bare div loses the relationship.</li><li>Three to six tabs. Beyond that use a Sidebar; tabs that scroll horizontally hide options.</li><li>Use <code>underline</code> inside page content and <code>pill</code> for compact filter switches in toolbars.</li></ul>
+<ul><li><code>label</code> is required. A tablist with no name gives a screen reader nothing to announce before the tab count.</li><li>Arrow keys move between tabs, wrapping at the ends, and Home/End jump to the first and last. Disabled tabs are skipped, never selected. That behaviour is built in; do not intercept keydown on the tablist.</li><li>Pair every <code>Tabs</code> with <code>TabPanel</code>. The panel wires <code>aria-controls</code> and <code>aria-labelledby</code>; a bare div loses the relationship.</li><li>Three to six tabs. Beyond that use a Sidebar; tabs that scroll horizontally hide options.</li><li>Use <code>underline</code> inside page content and <code>pill</code> for compact filter switches in toolbars.</li></ul>
 <h3 id="tradeoffs">Tradeoffs</h3>
 <p>Tabs hide everything but one panel, so users miss content they did not think to look for. When the panels are short and related, stacking them with headings scans better.</p>
 </section>
@@ -150,13 +150,17 @@ export declare function TabPanel(props: TabPanelProps): React.JSX.Element | null
 
 export function Tabs({ tabs = [], value, onChange, label, variant = &quot;underline&quot;, style, ...rest }) {
   const refs = React.useRef([]);
+  /* Keys move only among enabled tabs, wrapping at the ends, so a disabled
+     tab is never selected or focused from the keyboard. */
   function onKeyDown(e) {
-    const i = tabs.findIndex(t =&gt; t.id === value);
+    const enabled = tabs.map((t, i) =&gt; i).filter(i =&gt; !tabs[i].disabled);
+    if (!enabled.length) return;
+    const at = enabled.indexOf(tabs.findIndex(t =&gt; t.id === value));
     let next = null;
-    if (e.key === &quot;ArrowRight&quot;) next = (i + 1) % tabs.length;
-    if (e.key === &quot;ArrowLeft&quot;) next = (i - 1 + tabs.length) % tabs.length;
-    if (e.key === &quot;Home&quot;) next = 0;
-    if (e.key === &quot;End&quot;) next = tabs.length - 1;
+    if (e.key === &quot;ArrowRight&quot;) next = enabled[(at + 1) % enabled.length];
+    if (e.key === &quot;ArrowLeft&quot;) next = enabled[(at - 1 + enabled.length) % enabled.length];
+    if (e.key === &quot;Home&quot;) next = enabled[0];
+    if (e.key === &quot;End&quot;) next = enabled[enabled.length - 1];
     if (next === null) return;
     e.preventDefault();
     onChange &amp;&amp; onChange(tabs[next].id);
@@ -276,7 +280,7 @@ export function TabPanel({ id, value, children, style, ...rest }) {
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e5be6854b7" defer></script>
+<script src="../system/components/bundle.js?v=4a05c2831d" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
