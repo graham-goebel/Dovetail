@@ -1,0 +1,166 @@
+<!-- @dsCard group="Commerce" height=1880 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)", alignItems: "stretch", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function grid(min) {
+    return function () {
+      return e.apply(null, ["div", { style: {
+        display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, " + min + "), 1fr))",
+        gap: "var(--dt-space-stack-xl) var(--dt-space-inline-xl)", alignItems: "start",
+      } }].concat([].slice.call(arguments)));
+    };
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band(row) {
+    return function () {
+      return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+        row.apply(null, [].slice.call(arguments)));
+    };
+  }
+  var noop = function () {};
+  var NEED = ["CartLine", "Section", "Price", "QuantityStepper"];
+  var row = grid("340px");
+  /* Product pictures as small inline SVGs: no network, and they follow no
+     theme on purpose, like a photo would not. */
+  function art(bg, fg, shape) {
+    return "data:image/svg+xml," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="' + bg + '"/>' + shape.replace(/FG/g, fg) + "</svg>");
+  }
+  var SHIRT = art("#e9e2d6", "#b59f7e", '<path d="M22 14l-10 6 4 9 5-2v23h22V27l5 2 4-9-10-6c-2 4-6 6-10 6s-8-2-10-6z" fill="FG"/>');
+  var MUG = art("#dfe7ea", "#5f7f8c", '<rect x="16" y="20" width="26" height="28" rx="4" fill="FG"/><path d="M42 26h4a6 6 0 0 1 0 12h-4" fill="none" stroke="FG" stroke-width="4"/>');
+  var CAP = art("#e6e1ea", "#6f5f86", '<path d="M14 40c0-12 8-20 18-20s18 8 18 20z" fill="FG"/><rect x="10" y="39" width="46" height="5" rx="2" fill="FG"/>');
+
+  /* A cart line with its own quantity, as an app would hold it, and an undo
+     after remove so the card can be used more than once. */
+  function Live(props) {
+    var q = React.useState(props.quantity);
+    var gone = React.useState(false);
+    if (gone[0]) {
+      return e("p", { style: { margin: 0, fontSize: "var(--dt-text-body-sm-size)", color: "var(--dt-text-secondary)" } },
+        props.name + " removed. ",
+        e("button", { type: "button", onClick: function () { gone[1](false); q[1](1); },
+          style: { font: "inherit", color: "var(--dt-text-link)", background: "none", border: 0, padding: 0, cursor: "pointer", textDecoration: "underline" } }, "Undo"));
+    }
+    var p = Object.assign({ locale: "en-US" }, props, {
+      quantity: q[0], onQuantityChange: q[1],
+      lineTotal: props.lineTotal ? Math.round(props.price * q[0] * 100) / 100 : undefined,
+      onRemove: props.onRemove === false ? undefined : function () { gone[1](true); },
+    });
+    return e(NS.CartLine, p);
+  }
+  function list() {
+    return e.apply(null, ["div", { style: { display: "flex", flexDirection: "column", minWidth: 0 } }].concat([].slice.call(arguments)));
+  }
+  function Page() {
+    return e(Shelf, { name: "CartLine", summary: "One line in a cart, bag or order confirmation: thumbnail, name, variant details, quantity with remove, and price.", props: [
+        { name: "name", type: "string", required: true, notes: "Also names the stepper and remove: Quantity, Linen shirt / Remove Linen shirt." },
+        { name: "href", type: "string", notes: "The name becomes a link." },
+        { name: "image", type: "{ src?; alt }", notes: "Thumbnail. No src shows a placeholder frame." },
+        { name: "details", type: "string[]", notes: "Variant lines: Size M, Colour Sand." },
+        { name: "price", type: "number", required: true, notes: "Unit price, major units." },
+        { name: "compareAt", type: "number", notes: "Original unit price; a sale when greater." },
+        { name: "quantity", type: "number", required: true },
+        { name: "onQuantityChange", type: "(next: number) => void", notes: "From the stepper, clamped." },
+        { name: "onRemove", type: "() => void", notes: "Remove button, and remove on the stepper at 1." },
+        { name: "lineTotal", type: "number", notes: "Shown on the right when given; the unit price moves under the name." },
+        { name: "maxQuantity", type: "number" },
+        { name: "note", type: "ReactNode", notes: "Only 2 left, Ships in 3 days." },
+        { name: "readOnly", type: "boolean", default: "false", notes: "Qty 2 as text, no controls." },
+        { name: "size", type: '"sm" | "md"', default: '"md"', notes: "sm for drawers." },
+        { name: "divider", type: "boolean", default: "false", notes: "Rule and padding for stacked lines." },
+        { name: "currency / locale", type: "string", default: '"USD" / runtime' },
+      ], guidance: [
+        "Pass lineTotal from your cart. CartLine never multiplies price by quantity, so bundles, line discounts and tax rules stay yours.",
+        "Every control carries the item name, so a screen-reader user moving through the cart knows which line a button belongs to.",
+        "At quantity 1 the stepper's minus becomes remove; the Remove button beside it removes a line of any quantity.",
+        "Use size sm in drawers and mini carts, md on the cart page. Stack lines in a list with divider.",
+        "readOnly is for confirmations and receipts: the quantity reads Qty 2 and there is nothing to press.",
+      ] },
+      e(Specimen, { label: "Sizes", bg: "var(--dt-surface-base)" },
+        row(
+          cell("md · lineTotal, details, note", list(
+            e(Live, { name: "Linen shirt", href: "#linen-shirt", image: { src: SHIRT, alt: "" }, details: ["Size M", "Colour Sand"], price: 48, quantity: 2, lineTotal: true, maxQuantity: 5, note: "Only 5 left" }))),
+          cell("sm · for drawers", list(
+            e(Live, { name: "Linen shirt", image: { src: SHIRT, alt: "" }, details: ["Size M", "Colour Sand"], price: 48, quantity: 2, lineTotal: true, maxQuantity: 5, size: "sm" }))))),
+      e(Specimen, { label: "States", bg: "var(--dt-surface-base)" },
+        row(
+          cell("sale · compareAt 32", list(e(Live, { name: "Stoneware mug", image: { src: MUG, alt: "" }, details: ["Colour Slate"], price: 24, compareAt: 32, quantity: 2 }))),
+          cell("note", list(e(Live, { name: "Wool cap", image: { src: CAP, alt: "" }, details: ["One size"], price: 30, quantity: 1, note: "Ships in 3 days" }))),
+          cell("at min · minus becomes remove", list(e(Live, { name: "Canvas tote", image: { alt: "Canvas tote" }, price: 18, quantity: 1 }))),
+          cell("no onRemove · minus stops at 1", list(e(Live, { name: "Gift card", price: 50, quantity: 1, onRemove: false }))),
+          cell("readOnly · order confirmation", list(e(NS.CartLine, { name: "Linen shirt", image: { src: SHIRT, alt: "" }, details: ["Size M", "Colour Sand"], price: 48, quantity: 2, lineTotal: 96, readOnly: true, locale: "en-US" }))),
+          cell("image without src · placeholder", list(e(NS.CartLine, { name: "Canvas tote", image: { alt: "Canvas tote" }, details: ["Natural"], price: 18, quantity: 1, readOnly: true, size: "sm", locale: "en-US" }))))),
+      e(Specimen, { label: "A cart: stacked lines with divider", bg: "var(--dt-surface-base)" },
+        e("div", { style: { maxWidth: "var(--dt-size-container-narrow)" } }, list(
+          e(Live, { name: "Linen shirt", href: "#linen-shirt", image: { src: SHIRT, alt: "" }, details: ["Size M", "Colour Sand"], price: 48, quantity: 1, lineTotal: true, divider: true }),
+          e(Live, { name: "Stoneware mug", image: { src: MUG, alt: "" }, details: ["Colour Slate"], price: 24, compareAt: 32, quantity: 2, lineTotal: true, divider: true, note: "Only 2 left", maxQuantity: 2 }),
+          e(Live, { name: "Wool cap", image: { src: CAP, alt: "" }, details: ["One size"], price: 30, quantity: 1, lineTotal: true, divider: true })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        band(row)(
+          cell("md · sale", list(e(Live, { name: "Stoneware mug", image: { src: MUG, alt: "" }, details: ["Colour Slate"], price: 24, compareAt: 32, quantity: 2, divider: true, note: "Only 2 left" }))),
+          cell("sm · readOnly", list(e(NS.CartLine, { name: "Linen shirt", image: { alt: "Linen shirt" }, details: ["Size M"], price: 48, quantity: 2, lineTotal: 96, readOnly: true, size: "sm", locale: "en-US" }))))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

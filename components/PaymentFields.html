@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaymentFields · Dovetail</title>
+<meta name="description" content="Card entry fields (number, expiry, security code and name) that format as the user types and label the card brand. This is the UI only.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after. */
+  try {
+    var r = document.documentElement;
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">PaymentFields</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html" aria-current="page">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">PaymentFields</li></ol></nav>
+<h1>PaymentFields</h1>
+<p class="lede">Card entry fields (number, expiry, security code and name) that format as the user types and label the card brand. This is the UI only.</p>
+<p class="meta">
+  <span class="pill">Commerce</span>
+  
+  <a href="../system/components/commerce/PaymentFields.jsx">PaymentFields.jsx</a>
+  <a href="../system/components/commerce/PaymentFields.d.ts">PaymentFields.d.ts</a>
+  <a href="../system/components/commerce/PaymentFields.md">PaymentFields.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="PaymentFields" data-props="[{&quot;name&quot;:&quot;legend&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Card details&quot;,&quot;note&quot;:&quot;The fieldset&#39;s visible legend and accessible name.&quot;},{&quot;name&quot;:&quot;brand&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;visa&quot;,&quot;mastercard&quot;,&quot;amex&quot;,&quot;discover&quot;,&quot;unknown&quot;],&quot;default&quot;:null,&quot;note&quot;:&quot;The card brand, shown as a text badge beside the card number&#39;s label and used to group the digits (amex 4-6-5, others in&quot;},{&quot;name&quot;:&quot;disabled&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;false&quot;,&quot;note&quot;:&quot;Disables every field.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="PaymentFields props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/PaymentFields.html?v=7bc740f21a&amp;b=e356f00d72" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/PaymentFields.html?v=7bc740f21a&amp;b=e356f00d72" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>Card entry fields (number, expiry, security code and name) that format as the user types and label the card brand. This is the UI only.</p>
+<blockquote><p><strong>For real payments, use your payment provider's hosted fields</strong> (Stripe Elements, Adyen Web Components, Braintree Hosted Fields). Hosted fields keep card data out of your pages and servers, which keeps your PCI DSS scope at its smallest (SAQ A). Raw card fields put your page in scope. Use <code>PaymentFields</code> only for providers that accept raw fields and where you have accepted that scope, for prototypes and demos, or with test card numbers.</p></blockquote>
+<p>The component is presentational and controlled: it never stores, logs or sends the values. It holds no card data in state; it formats what it is given, reports each change through <code>onChange</code>, and what happens to the value is entirely your code's.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>Prototyping or demoing a checkout with test cards.</li><li>Your provider takes raw card fields and you have taken on the PCI scope that comes with them.</li><li>You want the house layout and labels around a provider that renders its own inputs: copy the layout, not the inputs.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>You take real card payments through Stripe, Adyen, Braintree or similar. Use their hosted fields.</li><li>You take wallets (Apple Pay, Google Pay) or bank payments. Use the provider's buttons.</li><li>You need to validate a card. It checks nothing: no Luhn check, no expiry check. The provider decides.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>const [card, setCard] = React.useState({ number: &quot;&quot;, expiry: &quot;&quot;, cvc: &quot;&quot;, name: &quot;&quot; });
+
+&lt;PaymentFields value={card} onChange={setCard} errors={errors} /&gt;
+
+// Before handing to a provider that accepts raw fields:
+const digits = card.number.replace(/\D/g, &quot;&quot;);
+const [mm, yy] = card.expiry.split(&quot; / &quot;);</code></pre>
+<h3 id="variants">Variants</h3>
+<div class="table-wrap"><table><thead><tr><th>Prop</th><th>What it is for</th></tr></thead><tbody><tr><td><code>brand</code></td><td>Force the brand: <code>&quot;visa&quot;</code>, <code>&quot;mastercard&quot;</code>, <code>&quot;amex&quot;</code>, <code>&quot;discover&quot;</code> or <code>&quot;unknown&quot;</code>, e.g. from your provider's BIN lookup. When omitted it is detected from the leading digits (below).</td></tr><tr><td><code>errors</code></td><td>A message per field (<code>number</code>, <code>expiry</code>, <code>cvc</code>, <code>name</code>), shown under it; the field turns <code>aria-invalid</code>.</td></tr><tr><td><code>fields</code></td><td><code>{ name: false }</code> hides &quot;Name on card&quot;.</td></tr><tr><td><code>legend</code></td><td>&quot;Card details&quot; by default.</td></tr><tr><td><code>disabled</code></td><td>Disables the whole fieldset, e.g. while paying.</td></tr></tbody></table></div>
+<p><strong>Formatting as the user types.</strong> The number keeps digits only and groups them in fours (up to 19 digits), or 4-6-5 for Amex (15 digits). Expiry becomes <code>MM / YY</code>: a first digit above 1, or 1 followed by 3–9, gets its leading zero (&quot;4&quot; becomes &quot;04&quot;), and the separator appears once the year starts, so Backspace never fights it. The security code keeps 3 digits, or 4 for Amex. The caret stays after the same digit when a reformat moves characters. <code>onChange</code> receives the formatted strings; strip non-digits before use.</p>
+<p><strong>Brand detection</strong> is a prefix check on the digits, documented here so no one mistakes it for validation:</p>
+<div class="table-wrap"><table><thead><tr><th>Brand</th><th>Leading digits</th></tr></thead><tbody><tr><td>Amex</td><td>34, 37</td></tr><tr><td>Visa</td><td>4</td></tr><tr><td>Mastercard</td><td>51–55, 22–27 (an approximation of 2221–2720)</td></tr><tr><td>Discover</td><td>6011, 65, 644–649</td></tr><tr><td>unknown</td><td>anything else; no badge shows</td></tr></tbody></table></div>
+<p>The brand shows as a neutral text <code>Badge</code> (&quot;Visa&quot;, &quot;Mastercard&quot;, &quot;Amex&quot;, &quot;Discover&quot;) at the end of the card number's label row, outside the field, so it never covers the digits. There are no card logos: they are trademarks with their own usage rules, and your provider supplies approved artwork if you need it.</p>
+<h3 id="composition">Composition</h3>
+<p>Inside a checkout <code>&lt;form&gt;</code>, after <code>AddressFields</code> or a &quot;Billing address is the same&quot; <code>Checkbox</code>, with the pay <code>Button</code> after it. Each field is an <code>Input</code> with a visible label styled like <code>Field</code>'s; expiry and security code share a row at every width.</p>
+<h3 id="tokens">Tokens</h3>
+<p>No Tier 3 tokens of its own: the fields read the <code>--dt-input-*</code> tokens through <code>Input</code>, and the brand badge the neutral <code>Badge</code> colours. The legend reads <code>--dt-text-heading-xs-*</code>; gaps read <code>--dt-space-stack-md</code> and <code>--dt-space-inline-md</code>.</p>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>A <code>&lt;fieldset&gt;</code> with a visible <code>&lt;legend&gt;</code>. Every input has a visible label.</li><li><code>autoComplete</code> tokens <code>cc-number</code>, <code>cc-exp</code>, <code>cc-csc</code> and <code>cc-name</code> let the browser fill a saved card; <code>inputMode=&quot;numeric&quot;</code> opens a number keypad on phones for the number, expiry and code.</li><li>The detected brand is visible text, and the number field is <code>aria-describedby</code> it, so a screen reader hears &quot;Visa&quot; with the field.</li><li>Errors show under their field with <code>role=&quot;alert&quot;</code>, and the field is <code>aria-invalid</code>.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li>Labels: &quot;Card number&quot;, &quot;Expiry date&quot;, &quot;Security code&quot;, &quot;Name on card&quot;. &quot;Security code&quot; is clearer than CVC or CVV to most people; the placeholder says how many digits.</li><li>Error messages say what to fix: &quot;Enter the expiry date as MM / YY&quot;, &quot;Your card number is incomplete&quot;.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>PaymentFields.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** Card details as PaymentFields shows them: formatted text, not raw digits. */
+export interface PaymentValue {
+  /** Card number with spaces between groups, e.g. &quot;4242 4242 4242 4242&quot;. Strip non-digits before use. */
+  number: string;
+  /** Expiry as &quot;MM / YY&quot;. */
+  expiry: string;
+  /** Security code, digits only. */
+  cvc: string;
+  /** Name on the card. */
+  name?: string;
+}
+
+/** Card entry fields that format as the user types. The UI only: for real payments use your provider's hosted fields. */
+export interface PaymentFieldsProps extends Omit&lt;React.FieldsetHTMLAttributes&lt;HTMLFieldSetElement&gt;, &quot;onChange&quot; | &quot;children&quot;&gt; {
+  /** The card details shown. Controlled; values passed unformatted are formatted for display. */
+  value: PaymentValue;
+  /** Called with the whole value, already formatted, after any field changes. */
+  onChange: (next: PaymentValue) =&gt; void;
+  /** Messages shown under the matching fields, which are marked aria-invalid. */
+  errors?: Partial&lt;Record&lt;keyof PaymentValue, string&gt;&gt;;
+  /** The fieldset's visible legend and accessible name. @default &quot;Card details&quot; */
+  legend?: string;
+  /**
+   * The card brand, shown as a text badge beside the card number's label and used to group the digits
+   * (amex 4-6-5, others in fours). Detected from the leading digits when omitted.
+   */
+  brand?: &quot;visa&quot; | &quot;mastercard&quot; | &quot;amex&quot; | &quot;discover&quot; | &quot;unknown&quot;;
+  /** Hide the name on card field: { name: false }. It shows by default. */
+  fields?: { name?: boolean };
+  /** Disables every field. @default false */
+  disabled?: boolean;
+}
+
+export declare function PaymentFields(props: PaymentFieldsProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>PaymentFields.jsx</code> resolves, read from the source: 1 component, 15 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:PaymentFields">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-input-label-gap"><th scope="row"><span class="token-cell"><code>--dt-input-label-gap</code><button type="button" class="graph-btn" data-graph="--dt-input-label-gap" title="Show what --dt-input-label-gap connects to" aria-label="Graph for --dt-input-label-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-stack-2xs)</code></td></tr><tr id="uses-dt-space-inline-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-2xs"><code>--dt-space-inline-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-2xs" title="Show what --dt-space-inline-2xs connects to" aria-label="Graph for --dt-space-inline-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inline-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-md"><code>--dt-space-inline-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-md" title="Show what --dt-space-inline-md connects to" aria-label="Graph for --dt-space-inline-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-stack-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-md"><code>--dt-space-stack-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-md" title="Show what --dt-space-stack-md connects to" aria-label="Graph for --dt-space-stack-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-text-danger"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-danger"><code>--dt-text-danger</code></a><button type="button" class="graph-btn" data-graph="--dt-text-danger" title="Show what --dt-text-danger connects to" aria-label="Graph for --dt-text-danger"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-red-800)</code></td></tr><tr id="uses-dt-text-heading-xs-family"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-family</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-family" title="Show what --dt-text-heading-xs-family connects to" aria-label="Graph for --dt-text-heading-xs-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-heading-xs-line"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-line</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-line" title="Show what --dt-text-heading-xs-line connects to" aria-label="Graph for --dt-text-heading-xs-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-lg)</code></td></tr><tr id="uses-dt-text-heading-xs-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-size" title="Show what --dt-text-heading-xs-size connects to" aria-label="Graph for --dt-text-heading-xs-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-lg)</code></td></tr><tr id="uses-dt-text-heading-xs-tracking"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-tracking</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-tracking" title="Show what --dt-text-heading-xs-tracking connects to" aria-label="Graph for --dt-text-heading-xs-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-tracking-normal)</code></td></tr><tr id="uses-dt-text-heading-xs-weight"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-weight" title="Show what --dt-text-heading-xs-weight connects to" aria-label="Graph for --dt-text-heading-xs-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-medium)</code></td></tr><tr id="uses-dt-text-label-md-family"><th scope="row"><span class="token-cell"><code>--dt-text-label-md-family</code><button type="button" class="graph-btn" data-graph="--dt-text-label-md-family" title="Show what --dt-text-label-md-family connects to" aria-label="Graph for --dt-text-label-md-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-secondary)</code></td></tr><tr id="uses-dt-text-label-md-line"><th scope="row"><span class="token-cell"><code>--dt-text-label-md-line</code><button type="button" class="graph-btn" data-graph="--dt-text-label-md-line" title="Show what --dt-text-label-md-line connects to" aria-label="Graph for --dt-text-label-md-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-label-md-size"><th scope="row"><span class="token-cell"><code>--dt-text-label-md-size</code><button type="button" class="graph-btn" data-graph="--dt-text-label-md-size" title="Show what --dt-text-label-md-size connects to" aria-label="Graph for --dt-text-label-md-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-label-md-weight"><th scope="row"><span class="token-cell"><code>--dt-text-label-md-weight</code><button type="button" class="graph-btn" data-graph="--dt-text-label-md-weight" title="Show what --dt-text-label-md-weight connects to" aria-label="Graph for --dt-text-label-md-weight"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-weight-medium)</code></td></tr><tr id="uses-dt-text-primary"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-text-primary"><code>--dt-text-primary</code></a><button type="button" class="graph-btn" data-graph="--dt-text-primary" title="Show what --dt-text-primary connects to" aria-label="Graph for --dt-text-primary"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-900)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Badge } from &quot;../display/Badge.jsx&quot;;
+import { Input } from &quot;../forms/Input.jsx&quot;;
+
+/* A layout effect puts the caret back after a reformat, before paint. On the
+   server there is no layout, and React warns about the layout hook there. */
+const useCaretEffect = typeof document !== &quot;undefined&quot; ? React.useLayoutEffect : React.useEffect;
+
+const BRAND_NAMES = { visa: &quot;Visa&quot;, mastercard: &quot;Mastercard&quot;, amex: &quot;Amex&quot;, discover: &quot;Discover&quot; };
+
+/* The leading digits only, enough to label the field and group the digits.
+   It is not validation: the provider decides whether a number is real. */
+function detectBrand(digits) {
+  if (/^3[47]/.test(digits)) return &quot;amex&quot;;
+  if (/^4/.test(digits)) return &quot;visa&quot;;
+  if (/^(5[1-5]|2[2-7])/.test(digits)) return &quot;mastercard&quot;;
+  if (/^(6011|65|64[4-9])/.test(digits)) return &quot;discover&quot;;
+  return &quot;unknown&quot;;
+}
+
+const onlyDigits = (s) =&gt; String(s || &quot;&quot;).replace(/\D/g, &quot;&quot;);
+
+/* Amex is 15 digits in 4-6-5; everything else up to 19 in fours. */
+function formatNumber(raw, brand) {
+  if (brand === &quot;amex&quot;) {
+    const d = onlyDigits(raw).slice(0, 15);
+    return [d.slice(0, 4), d.slice(4, 10), d.slice(10)].filter(Boolean).join(&quot; &quot;);
+  }
+  const d = onlyDigits(raw).slice(0, 19);
+  return (d.match(/.{1,4}/g) || []).join(&quot; &quot;);
+}
+
+/* MM / YY. A first digit above 1, or a 1 followed by a digit above 2, can
+   only be a one-digit month, so it gets its leading zero. The separator is
+   added once the year starts, so backspace never fights it. */
+function formatExpiry(raw) {
+  let d = onlyDigits(raw);
+  if ((d.length === 1 &amp;&amp; d &gt; &quot;1&quot;) || (d.length &gt; 1 &amp;&amp; d[0] === &quot;1&quot; &amp;&amp; d[1] &gt; &quot;2&quot;)) d = &quot;0&quot; + d;
+  d = d.slice(0, 4);
+  return d.length &gt; 2 ? `${d.slice(0, 2)} / ${d.slice(2)}` : d;
+}
+
+/* Where the caret goes in a reformatted value: after the same number of
+   digits it followed before. */
+function caretAfterDigits(formatted, count) {
+  if (count &lt;= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i &lt; formatted.length; i++) {
+    if (/\d/.test(formatted[i])) seen++;
+    if (seen === count) return i + 1;
+  }
+  return formatted.length;
+}
+
+export function PaymentFields({
+  value = {},
+  onChange,
+  errors = {},
+  legend = &quot;Card details&quot;,
+  brand,
+  fields = {},
+  disabled = false,
+  style,
+  ...rest
+}) {
+  const base = React.useId();
+  const ids = { number: `${base}-number`, expiry: `${base}-expiry`, cvc: `${base}-cvc`, name: `${base}-name`, brand: `${base}-brand` };
+  const detected = brand || detectBrand(onlyDigits(value.number));
+  const number = formatNumber(value.number, detected);
+  const expiry = formatExpiry(value.expiry);
+  const caret = React.useRef(null);
+
+  useCaretEffect(() =&gt; {
+    const c = caret.current;
+    if (!c) return;
+    caret.current = null;
+    const el = document.getElementById(c.id);
+    if (!el || el !== document.activeElement) return;
+    const at = caretAfterDigits(el.value, c.digits);
+    el.setSelectionRange(at, at);
+  });
+
+  /* Reformat what was typed, remember where the caret was among the digits,
+     and report the whole value. */
+  const edit = (key, format) =&gt; (e) =&gt; {
+    const raw = e.target.value;
+    const at = e.target.selectionStart == null ? raw.length : e.target.selectionStart;
+    caret.current = { id: ids[key], digits: onlyDigits(raw.slice(0, at)).length };
+    onChange({ ...value, [key]: format(raw) });
+  };
+
+  const brandName = BRAND_NAMES[detected];
+
+  return (
+    &lt;fieldset
+      disabled={disabled}
+      style={{
+        margin: 0, padding: 0, border: 0, minWidth: 0,
+        display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-space-stack-md)&quot;,
+        ...style,
+      }}
+      {...rest}
+    &gt;
+      &lt;legend
+        style={{
+          padding: 0, marginBlockEnd: &quot;var(--dt-space-stack-md)&quot;,
+          fontFamily: &quot;var(--dt-text-heading-xs-family)&quot;, fontSize: &quot;var(--dt-text-heading-xs-size)&quot;,
+          lineHeight: &quot;var(--dt-text-heading-xs-line)&quot;, fontWeight: &quot;var(--dt-text-heading-xs-weight)&quot;,
+          letterSpacing: &quot;var(--dt-text-heading-xs-tracking)&quot;,
+          color: &quot;var(--dt-text-primary)&quot;,
+        }}
+      &gt;
+        {legend}
+      &lt;/legend&gt;
+
+      {/* The label row carries the brand badge at its inline end, outside the
+          field, so it never covers the digits however narrow the field is.
+          The label is styled as Field's; the Input carries only the error. */}
+      &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-input-label-gap)&quot; }}&gt;
+        &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;space-between&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;, minHeight: &quot;var(--dt-text-label-md-line)&quot; }}&gt;
+          &lt;label
+            htmlFor={ids.number}
+            style={{
+              fontFamily: &quot;var(--dt-text-label-md-family)&quot;, fontSize: &quot;var(--dt-text-label-md-size)&quot;,
+              lineHeight: &quot;var(--dt-text-label-md-line)&quot;, fontWeight: &quot;var(--dt-text-label-md-weight)&quot;,
+              color: &quot;var(--dt-text-primary)&quot;,
+            }}
+          &gt;
+            Card number
+            &lt;span aria-hidden=&quot;true&quot; style={{ color: &quot;var(--dt-text-danger)&quot;, marginInlineStart: &quot;var(--dt-space-inline-2xs)&quot; }}&gt;*&lt;/span&gt;
+          &lt;/label&gt;
+          {brandName &amp;&amp; &lt;Badge id={ids.brand} tone=&quot;neutral&quot;&gt;{brandName}&lt;/Badge&gt;}
+        &lt;/div&gt;
+        &lt;Input
+          id={ids.number}
+          name=&quot;cardnumber&quot;
+          value={number}
+          onChange={edit(&quot;number&quot;, (raw) =&gt; formatNumber(raw, brand || detectBrand(onlyDigits(raw))))}
+          required
+          disabled={disabled}
+          autoComplete=&quot;cc-number&quot;
+          inputMode=&quot;numeric&quot;
+          placeholder=&quot;1234 1234 1234 1234&quot;
+          spellCheck={false}
+          error={errors.number}
+          aria-describedby={brandName ? ids.brand : undefined}
+        /&gt;
+      &lt;/div&gt;
+
+      &lt;div style={{ display: &quot;grid&quot;, gridTemplateColumns: &quot;repeat(2, minmax(0, 1fr))&quot;, gap: &quot;var(--dt-space-stack-md) var(--dt-space-inline-md)&quot;, alignItems: &quot;start&quot; }}&gt;
+        &lt;Input
+          id={ids.expiry}
+          name=&quot;cc-exp&quot;
+          label=&quot;Expiry date&quot;
+          value={expiry}
+          onChange={edit(&quot;expiry&quot;, formatExpiry)}
+          error={errors.expiry}
+          required
+          disabled={disabled}
+          autoComplete=&quot;cc-exp&quot;
+          inputMode=&quot;numeric&quot;
+          placeholder=&quot;MM / YY&quot;
+          spellCheck={false}
+        /&gt;
+        &lt;Input
+          id={ids.cvc}
+          name=&quot;cvc&quot;
+          label=&quot;Security code&quot;
+          value={onlyDigits(value.cvc).slice(0, 4)}
+          onChange={edit(&quot;cvc&quot;, (raw) =&gt; onlyDigits(raw).slice(0, detected === &quot;amex&quot; ? 4 : 3))}
+          error={errors.cvc}
+          required
+          disabled={disabled}
+          autoComplete=&quot;cc-csc&quot;
+          inputMode=&quot;numeric&quot;
+          placeholder={detected === &quot;amex&quot; ? &quot;4 digits&quot; : &quot;3 digits&quot;}
+          spellCheck={false}
+        /&gt;
+      &lt;/div&gt;
+
+      {fields.name !== false &amp;&amp; (
+        &lt;Input
+          id={ids.name}
+          name=&quot;ccname&quot;
+          label=&quot;Name on card&quot;
+          value={value.name == null ? &quot;&quot; : value.name}
+          onChange={(e) =&gt; onChange({ ...value, name: e.target.value })}
+          error={errors.name}
+          disabled={disabled}
+          autoComplete=&quot;cc-name&quot;
+          autoCapitalize=&quot;words&quot;
+          spellCheck={false}
+        /&gt;
+      )}
+    &lt;/fieldset&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#variants">Variants</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">PaymentFields</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="PaymentFields.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="PaymentFields.md" download="PaymentFields.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="PaymentFields.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/commerce/PaymentFields.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy PaymentFields.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/commerce/PaymentFields.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View PaymentFields.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/commerce/PaymentFields.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy PaymentFields.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/commerce/PaymentFields.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View PaymentFields.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FPaymentFields.md%3A%20the%20%22PaymentFields%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="PaymentFields" data-md="PaymentFields.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=e356f00d72" defer></script>
+<script src="../assets/specimens.js?v=b602d275ae" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=2b7e004942" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/site.js?v=f25b56a9e9" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

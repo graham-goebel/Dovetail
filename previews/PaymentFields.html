@@ -1,0 +1,122 @@
+<!-- @dsCard group="Commerce" height=1600 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)", alignItems: "stretch", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function grid(min) {
+    return function () {
+      return e.apply(null, ["div", { style: {
+        display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, " + min + "), 1fr))",
+        gap: "var(--dt-space-stack-xl) var(--dt-space-inline-xl)", alignItems: "start",
+      } }].concat([].slice.call(arguments)));
+    };
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band(row) {
+    return function () {
+      return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+        row.apply(null, [].slice.call(arguments)));
+    };
+  }
+  var noop = function () {};
+  var NEED = ["PaymentFields", "Section", "Input", "Badge", "Callout"];
+  var row = grid("320px");
+  /* Holds the card, as an app would. Nothing leaves the page. */
+  function Live(props) {
+    var v = React.useState(props.value);
+    return e(NS.PaymentFields, Object.assign({}, props, { value: v[0], onChange: v[1] }));
+  }
+  function Page() {
+    return e(Shelf, { name: "PaymentFields", summary: "Card number, expiry, security code and name, formatted as the user types. The UI only: real payments belong in your provider's hosted fields.", props: [
+        { name: "value", type: "{ number; expiry; cvc; name? }", required: true, notes: "Formatted strings: 4242 4242 4242 4242, 12 / 28." },
+        { name: "onChange", type: "(next) => void", required: true, notes: "The whole value, formatted." },
+        { name: "errors", type: "Partial<Record<field, string>>" },
+        { name: "legend", type: "string", default: '"Card details"' },
+        { name: "brand", type: '"visa" | "mastercard" | "amex" | "discover" | "unknown"', notes: "Detected from the leading digits when omitted." },
+        { name: "fields", type: "{ name? }", notes: "{ name: false } hides Name on card." },
+        { name: "disabled", type: "boolean", default: "false" },
+      ], guidance: [
+        "For real payments use your provider's hosted fields (Stripe Elements, Adyen, Braintree). They keep card data off your page and your PCI scope small.",
+        "Use PaymentFields for prototypes, test cards, or a provider that accepts raw fields when you have taken on that scope.",
+        "It never stores or sends anything: it formats what it is given and reports changes. Strip non-digits before use.",
+        "The brand is a prefix check for the badge and the grouping, not validation. There are no card logos, only text.",
+        "Card number, expiry and code open a number keypad and carry cc-number, cc-exp and cc-csc so saved cards fill.",
+      ] },
+      e(Specimen, { label: "Read this first", bg: "var(--dt-surface-base)" },
+        e(NS.Callout, { tone: "caution", title: "Use hosted fields for real card payments" },
+          "Stripe Elements, Adyen Web Components and Braintree Hosted Fields keep card numbers off your pages. These fields are for prototypes and providers that accept raw card data.")),
+      e(Specimen, { label: "States (type a card number)", bg: "var(--dt-surface-base)" },
+        row(
+          cell("empty", e(Live, { value: { number: "", expiry: "", cvc: "", name: "" } })),
+          cell("typing · formatted, brand detected", e(Live, { value: { number: "4242424242424242", expiry: "1228", cvc: "123", name: "Ana Ribeiro" } })),
+          cell("errors", e(Live, { value: { number: "4242 4242 42", expiry: "12 / 2", cvc: "", name: "" },
+            errors: { number: "Your card number is incomplete", expiry: "Enter the expiry date as MM / YY", cvc: "Enter the 3-digit security code" } })),
+          cell("amex · 4-6-5, 4-digit code", e(Live, { value: { number: "378282246310005", expiry: "0927", cvc: "1234", name: "" } })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        band(row)(
+          cell("mastercard · no name", e(Live, { value: { number: "5555555555554444", expiry: "", cvc: "" }, fields: { name: false } })),
+          cell("errors", e(Live, { value: { number: "6011", expiry: "", cvc: "" }, errors: { number: "Your card number is incomplete" }, fields: { name: false } })))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

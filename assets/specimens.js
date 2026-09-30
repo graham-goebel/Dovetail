@@ -449,6 +449,43 @@
         onChange: function () {},
       }));
     },
+    CartLine: function () {
+      /* Holds the line's quantity; the CartLine element stays the child. */
+      function LiveLine(props) {
+        var child = props.children;
+        var state = React.useState(child.props.quantity);
+        return React.cloneElement(child, { quantity: state[0], onQuantityChange: state[1] });
+      }
+      return e(LiveLine, null, e(NS.CartLine, {
+        name: "Linen shirt", details: ["Size M", "Colour Sand"], price: 48, quantity: 1, size: "sm",
+        image: { alt: "Linen shirt" }, locale: "en-US", onQuantityChange: function () {}, onRemove: function () {},
+      }));
+    },
+    OrderSummary: function () {
+      return e(NS.OrderSummary, {
+        locale: "en-US", headingLevel: 3,
+        lines: [{ label: "Subtotal", amount: 96 }, { label: "Shipping", amount: 0 }, { label: "Discount (SUMMER10)", amount: 9.6, kind: "discount" }],
+        total: { amount: 86.4 },
+      });
+    },
+    PromoCode: function () {
+      return e(LiveQuantity, null, e(NS.PromoCode, { value: "", onChange: function () {}, onApply: function () {} }));
+    },
+    AddressFields: function () {
+      return e(LiveQuantity, null, e(NS.AddressFields, {
+        value: { name: "Ana Ribeiro", line1: "221 Harbour Street", line2: "", city: "Portland", region: "Oregon", postalCode: "97204", country: "United States" },
+        fields: { line2: false, phone: false }, onChange: function () {},
+      }));
+    },
+    PaymentFields: function () {
+      return e(LiveQuantity, null, e(NS.PaymentFields, { value: { number: "4242 4242 4242 4242", expiry: "12 / 28", cvc: "" }, fields: { name: false }, onChange: function () {} }));
+    },
+    OrderStatus: function () {
+      return e(NS.OrderStatus, {
+        label: "Order progress", current: "shipped",
+        steps: [{ id: "ordered", label: "Ordered", time: "Sep 28" }, { id: "shipped", label: "Shipped", time: "Sep 29" }, { id: "delivered", label: "Delivered", time: "Expected Oct 2" }],
+      });
+    },
   };
 
   /* A flat product shot for the commerce specimens: a mug in a glaze colour

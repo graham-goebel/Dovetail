@@ -1,0 +1,129 @@
+<!-- @dsCard group="Commerce" height=2000 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)", alignItems: "stretch", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function grid(min) {
+    return function () {
+      return e.apply(null, ["div", { style: {
+        display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, " + min + "), 1fr))",
+        gap: "var(--dt-space-stack-xl) var(--dt-space-inline-xl)", alignItems: "start",
+      } }].concat([].slice.call(arguments)));
+    };
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band(row) {
+    return function () {
+      return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+        row.apply(null, [].slice.call(arguments)));
+    };
+  }
+  var noop = function () {};
+  var NEED = ["OrderStatus", "Section", "Badge"];
+  var row = grid("280px");
+  var STEPS = [
+    { id: "ordered", label: "Ordered", time: "Sep 28, 10:42" },
+    { id: "packed", label: "Packed", time: "Sep 28, 16:05" },
+    { id: "shipped", label: "Shipped", time: "Sep 29, 08:30", description: "Left the Leeds depot" },
+    { id: "out", label: "Out for delivery" },
+    { id: "delivered", label: "Delivered", time: "Expected Oct 2" },
+  ];
+  function O(props) { return e(NS.OrderStatus, Object.assign({ label: "Order 1042 progress", steps: STEPS, current: "shipped" }, props)); }
+  function Page() {
+    return e(Shelf, { name: "OrderStatus", summary: "A timeline of an order's progress: completed steps with checks, the current step, and the steps to come. It can say an order is delayed or cancelled.", props: [
+        { name: "steps", type: "{ id; label; time?; description? }[]", required: true },
+        { name: "current", type: "string", required: true, notes: "id of the current step." },
+        { name: "status", type: '"active" | "delayed" | "cancelled"', default: '"active"', notes: "Colour, icon and a badge change for delayed and cancelled." },
+        { name: "orientation", type: '"vertical" | "horizontal"', default: '"vertical"', notes: "Horizontal turns vertical when its box is too narrow." },
+        { name: "label", type: "string", required: true, notes: "Accessible name of the list." },
+        { name: "statusText", type: "string", notes: "Replaces Delayed or Cancelled in the badge." },
+      ], guidance: [
+        "OrderStatus shows the steps and current id you pass. It never tracks or polls; refresh it from your order data.",
+        "Exactly one step carries aria-current=step. Completed and upcoming steps say so to screen readers, not only with icons.",
+        "Delayed and cancelled say so in words, in a badge, as well as in colour.",
+        "Horizontal measures its own box, so it collapses in a narrow column as well as on a phone.",
+        "For steps the user moves through, such as a checkout, use Stepper instead.",
+      ] },
+      e(Specimen, { label: "Vertical: active, delayed, cancelled", bg: "var(--dt-surface-base)" },
+        row(
+          cell("active", O({})),
+          cell("delayed", O({ status: "delayed", current: "out", statusText: "Delayed by weather" })),
+          cell("cancelled", O({ status: "cancelled", current: "packed" })))),
+      e(Specimen, { label: "Horizontal (collapses to vertical when narrow)", bg: "var(--dt-surface-base)" },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)" } },
+          cell("active", O({ orientation: "horizontal" })),
+          cell("delayed", O({ orientation: "horizontal", status: "delayed", current: "out" })),
+          cell("cancelled · first step", O({ orientation: "horizontal", status: "cancelled", current: "ordered", steps: STEPS.slice(0, 4) })),
+          cell("delivered · all complete but the last", O({ orientation: "horizontal", current: "delivered", steps: STEPS.slice(0, 4).concat([{ id: "delivered", label: "Delivered", time: "Oct 2, 11:20" }]) })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        band(function () {
+          return e.apply(null, ["div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xl)" } }].concat([].slice.call(arguments)));
+        })(
+          cell("horizontal · active", O({ orientation: "horizontal" })),
+          grid("240px")(
+            cell("vertical · delayed", O({ status: "delayed", current: "out" })),
+            cell("vertical · cancelled", O({ status: "cancelled", current: "packed" }))))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>
