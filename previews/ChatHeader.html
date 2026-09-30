@@ -1,0 +1,119 @@
+<!-- @dsCard group="Chat" height=870 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+<script>
+const h = React.createElement;
+let DS = {};
+function glyph(paths, weight) {
+  return h("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: weight || 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+    style: { width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)", display: "block" } },
+    paths.map(function (d) { return h("path", { key: d, d: d }); }));
+}
+const PHONE = ["M21 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.1 4.2 2 2 0 0 1 3.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"];
+const MORE = ["M5 12h.01", "M12 12h.01", "M19 12h.01"];
+/* A column the width of a conversation, for bubbles shown outside a list. */
+function Thread(props) {
+  return h("div", { style: Object.assign({ display: "flex", flexDirection: "column", maxWidth: 560, marginTop: "calc(var(--dt-bubble-run-gap) * -1)" }, props.style) }, props.children);
+}
+/* The same content again inside a scoped-dark band: a Section with dark, so
+   every colour alias re-resolves inside it, not only the page's. */
+function DarkBand(props) {
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+    h("span", { style: { fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-eyebrow-size)", textTransform: "uppercase", letterSpacing: "var(--dt-text-eyebrow-tracking)", color: "var(--dt-text-tertiary)" } }, props.label || "Dark band"),
+    h(DS.Section, { dark: true, spacing: "none", width: "full", style: { paddingBlock: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } }, props.children));
+}
+
+function Page() {
+  const [backs, setBacks] = React.useState(0);
+  const actions = h(React.Fragment, null,
+    h(DS.IconButton, { label: "Call Maya" }, glyph(PHONE)),
+    h(DS.IconButton, { label: "More options" }, glyph(MORE, 3)));
+  const frame = { border: "var(--dt-border-width-default) solid var(--dt-border-subtle)", borderRadius: "var(--dt-radius-container)", overflow: "hidden" };
+  return h(Shelf, { name: "ChatHeader", summary: "The bar above a conversation: who it is with, whether they are there, a way back, and a slot for actions. A semantic header; presence is a prop.", props: [
+      { name: "title", type: "string", required: true, notes: "The person, team or assistant. Rendered as a heading; truncates on one line." },
+      { name: "subtitle", type: "ReactNode", notes: "Second line, e.g. Typically replies in 5 min." },
+      { name: "avatar", type: "{ src?: string; name: string }", notes: "Decorative here: the title already names them." },
+      { name: "presence", type: '"online" | "away" | "offline"', notes: "A dot on the avatar and the same word in text. Visible when there is no subtitle, read by screen readers always." },
+      { name: "onBack", type: "() => void", notes: "Shows a back IconButton labelled Back." },
+      { name: "actions", type: "ReactNode", notes: "Right slot. Two or three IconButtons at most." },
+      { name: "headingLevel", type: "1 – 6", default: "2", notes: "Level of the title's heading." },
+    ], guidance: [
+      "Presence is never colour alone: the dot always has the word beside it or behind it.",
+      "Keep actions to two or three icon buttons with real labels; put the rest behind a More button.",
+      "onBack is for a phone layout where the conversation replaced the list. On a wide screen with the list beside it, leave it out.",
+      "The header does not stick itself. Put it at the top of a flex column with the list and composer; see the composed example on MessageList.",
+    ] },
+    h(Specimen, { label: "Presence states", bg: "var(--dt-surface-base)" },
+      h(DS.Stack, { gap: "sm" },
+        h("div", { style: frame }, h(DS.ChatHeader, { title: "Maya Chen", subtitle: "Typically replies in 5 min", presence: "online", avatar: { name: "Maya Chen" }, onBack: () => setBacks(backs + 1), actions: actions })),
+        h("div", { style: frame }, h(DS.ChatHeader, { title: "Theo Okafor", presence: "away", avatar: { name: "Theo Okafor" }, onBack: () => setBacks(backs + 1) })),
+        h("div", { style: frame }, h(DS.ChatHeader, { title: "Priya Raman", presence: "offline", avatar: { name: "Priya Raman" } })),
+        h("div", { style: frame }, h(DS.ChatHeader, { title: "Support assistant", subtitle: "Answers from the help centre" })),
+        h("p", { "aria-live": "polite", style: { margin: 0, fontSize: "var(--dt-text-body-xs-size)", color: "var(--dt-text-tertiary)" } }, backs ? "Back pressed " + backs + (backs === 1 ? " time" : " times") : "Press Back to see onBack fire."))),
+    h(Specimen, { label: "A long title truncates", bg: "var(--dt-surface-base)" },
+      h("div", { style: frame }, h(DS.ChatHeader, { title: "Northwind customer success, Europe and the Middle East", subtitle: "Five people · usually within an hour", avatar: { name: "Northwind Success" }, onBack: () => {}, actions: actions }))),
+    h(DarkBand, null,
+      h("div", { style: frame }, h(DS.ChatHeader, { title: "Maya Chen", subtitle: "Typically replies in 5 min", presence: "online", avatar: { name: "Maya Chen" }, onBack: () => {}, actions: actions }))));
+}
+
+/* Self-contained bootstrap: render once the bundle and the card kit are
+   loaded, or say on screen why not. */
+(function () {
+  var NEED = ["Section","Stack","Inline","IconButton","Avatar","Button","ChatHeader"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  function missing() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.Specimen); }
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    var why = !window[NS_KEY] ? "<code>bundle.js</code> did not load." : !kitReady() ? "<code>card-kit.js</code> did not load." : "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy.";
+    el.innerHTML = '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' + why + "</div>";
+  }
+  (function poll() {
+    var gaps = missing();
+    if (gaps.length === 0 && kitReady()) {
+      DS = window[NS_KEY];
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Page, null));
+      return;
+    }
+    if (Date.now() - startedAt > REFETCH_AT && !refetched && gaps.length) {
+      refetched = true;
+      var base = document.querySelector('script[src*="components/bundle.js"]');
+      if (base) { var s = document.createElement("script"); s.src = base.getAttribute("src").split("?")[0] + "?cb=" + Date.now(); document.head.appendChild(s); }
+    }
+    if (Date.now() - startedAt > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>

@@ -20,6 +20,14 @@
         the opener. A dialog with no title is named by `label`.
       - Drawer: named by its title; focus moves inside; Tab stays inside;
         Escape returns focus to the opener.
+      - Composer: Enter sends the text and the consumer can clear it;
+        Shift+Enter inserts a newline; Enter during IME composition or with
+        only whitespace does not send; send is disabled while empty.
+      - MessageList: role="log" named by label; MessageDivider is a named
+        separator; pinned to the bottom, and scrolled up a new message shows
+        New messages, which jumps down and leaves focus on the log.
+      - QuickReplies: a named group; Tab reaches each chip in order; Enter
+        and Space select.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -72,6 +80,7 @@ const PAGE = `<!doctype html>
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Button, Dialog, Drawer, Input, Section, Stack, TabPanel, Tabs } from "@dovetail-ds/react";
+import { ChatHeader, Composer, MessageBubble, MessageDivider, MessageList, QuickReplies } from "@dovetail-ds/react";
 const h = React.createElement;
 window.__changes = [];
 function App() {
@@ -103,6 +112,27 @@ function App() {
   ));
 }
 createRoot(document.getElementById("root")).render(h(App));
+
+/* Chat family: its own root after the main one, so it stays out of the way
+   of the modal checks above. */
+window.__sent = [];
+window.__picked = [];
+function ChatApp() {
+  const [draft, setDraft] = React.useState("");
+  const [items, setItems] = React.useState(() => Array.from({ length: 30 }, (_, i) => "Seed message " + (i + 1)));
+  React.useEffect(() => { window.__addMessage = (t) => setItems((xs) => xs.concat(t)); }, []);
+  return h("div", { style: { display: "flex", flexDirection: "column", height: "400px" } },
+    h(ChatHeader, { title: "Maya Chen", presence: "online" }),
+    h(MessageList, { label: "Conversation with Maya", style: { flex: "1 1 auto" } },
+      h(MessageDivider, null, "Today"),
+      items.map((t, i) => h(MessageBubble, { key: i, from: i % 2 ? "me" : "them" }, t))),
+    h(QuickReplies, { label: "Suggested replies", onSelect: (id) => window.__picked.push(id),
+      options: [{ id: "track", label: "Track my order" }, { id: "person", label: "Talk to a person" }] }),
+    h(Composer, { label: "Message Maya", value: draft, onChange: setDraft, onSend: (t) => { window.__sent.push(t); setDraft(""); } }));
+}
+const chatHost = document.createElement("div");
+document.getElementById("root").after(chatHost);
+createRoot(chatHost).render(h(ChatApp));
 window.__ready = true;
 </script>
 </body></html>
@@ -218,6 +248,86 @@ try {
     expect((await page.getByRole("dialog").count()) === 0, "Escape should close the drawer");
     expect((await active()) === "Open drawer", `focus should return to the drawer's opener, got "${await active()}"`);
     ok("Escape closes the drawer and focus returns to the opener");
+  });
+
+  /* Chat family: Composer keys, the MessageList log and QuickReplies. */
+  const composer = () => page.getByRole("textbox", { name: "Message Maya" });
+  const sendButton = () => page.getByRole("button", { name: "Send", exact: true });
+  const sent = () => page.evaluate(() => window.__sent.slice());
+
+  await step("Composer: Enter sends, Shift+Enter breaks the line, whitespace and IME never send", async () => {
+    await composer().scrollIntoViewIfNeeded();
+    expect(await sendButton().isDisabled(), "the send button should be disabled while the field is empty");
+    ok("send is disabled while empty");
+    await composer().click();
+    await page.keyboard.type("Hello there");
+    expect(!(await sendButton().isDisabled()), "the send button should enable once there is text");
+    await page.keyboard.press("Enter");
+    let s = await sent();
+    expect(s.length === 1 && s[0] === "Hello there", `Enter should call onSend("Hello there"), got ${JSON.stringify(s)}`);
+    expect((await composer().inputValue()) === "", "the consumer's onSend cleared value, so the field should be empty");
+    expect(await sendButton().isDisabled(), "send should disable again once the consumer clears the text");
+    ok("typing then Enter calls onSend with the text, and the consumer can clear it");
+    await page.keyboard.type("Line one");
+    await page.keyboard.press("Shift+Enter");
+    await page.keyboard.type("Line two");
+    expect((await composer().inputValue()) === "Line one\nLine two", `Shift+Enter should insert a newline, got ${JSON.stringify(await composer().inputValue())}`);
+    expect((await sent()).length === 1, "Shift+Enter must not send");
+    ok("Shift+Enter inserts a newline and does not send");
+    await composer().evaluate((el) => el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", isComposing: true, bubbles: true, cancelable: true })));
+    expect((await sent()).length === 1, "Enter during IME composition must not send");
+    ok("Enter while composing (IME) does not send");
+    await page.keyboard.press("Enter");
+    s = await sent();
+    expect(s[1] === "Line one\nLine two", `Enter should send the multi-line text, got ${JSON.stringify(s)}`);
+    await page.keyboard.type("   ");
+    await page.keyboard.press("Enter");
+    expect((await sent()).length === 2, "Enter with only whitespace must not send");
+    expect((await composer().inputValue()) === "   ", "Enter with only whitespace must not insert a newline either");
+    expect(await sendButton().isDisabled(), "send should be disabled while the text is only whitespace");
+    ok("Enter with only whitespace does not send, and send stays disabled");
+    await composer().fill("");
+  });
+
+  await step("MessageList: a named log, pinned to the bottom, with a jump when scrolled up", async () => {
+    const log = page.getByRole("log", { name: "Conversation with Maya" });
+    expect((await log.count()) === 1, 'no role="log" named "Conversation with Maya"');
+    expect((await log.getAttribute("aria-live")) === "polite", 'the log should be aria-live="polite"');
+    ok('role="log" is named by label and polite');
+    expect((await page.getByRole("separator", { name: "Today" }).count()) === 1, 'MessageDivider should be role="separator" named by its text');
+    ok('MessageDivider is a separator named "Today"');
+    const gap = () => log.evaluate((el) => el.scrollHeight - el.scrollTop - el.clientHeight);
+    expect((await gap()) <= 8, `the log should start scrolled to the bottom, ${await gap()}px short`);
+    await page.evaluate(() => window.__addMessage("Pinned arrival"));
+    await page.waitForFunction(() => { const el = document.querySelector('[role="log"]'); return el.scrollHeight - el.scrollTop - el.clientHeight <= 8 && el.textContent.includes("Pinned arrival"); });
+    ok("at the bottom, a new message keeps it pinned");
+    await log.evaluate((el) => { el.scrollTop = 0; el.dispatchEvent(new Event("scroll")); });
+    await page.evaluate(() => window.__addMessage("Arrived while reading history"));
+    const jumpBtn = page.getByRole("button", { name: "New messages" });
+    await jumpBtn.waitFor({ state: "visible" });
+    expect((await log.evaluate((el) => el.scrollTop)) < 50, "scrolled up, a new message must not pull the reader down");
+    ok("scrolled up, a new message leaves the reader in place and shows New messages");
+    await jumpBtn.click();
+    await page.waitForFunction(() => { const el = document.querySelector('[role="log"]'); return el.scrollHeight - el.scrollTop - el.clientHeight <= 8; });
+    await jumpBtn.waitFor({ state: "detached" });
+    expect((await active()) === "Conversation with Maya", `after the jump, focus should be on the log, got "${await active()}"`);
+    ok("New messages scrolls to the bottom, goes away, and leaves focus on the log");
+  });
+
+  await step("QuickReplies: Tab reaches each chip in order, Enter and Space select", async () => {
+    expect((await page.getByRole("group", { name: "Suggested replies" }).count()) === 1, "QuickReplies should be a group named by label");
+    await page.getByRole("log", { name: "Conversation with Maya" }).focus();
+    await page.keyboard.press("Tab");
+    expect((await active()) === "Track my order", `Tab from the log should reach the first chip, got "${await active()}"`);
+    await page.keyboard.press("Tab");
+    expect((await active()) === "Talk to a person", `a second Tab should reach the second chip, got "${await active()}"`);
+    ok("Tab reaches each chip in order");
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Space");
+    const picked = await page.evaluate(() => window.__picked.slice());
+    expect(picked.join(",") === "person,track", `Enter and Space should select, onSelect saw ${JSON.stringify(picked)}`);
+    ok("Enter and Space call onSelect with the chip's id");
   });
 
   await step("page errors", () => {

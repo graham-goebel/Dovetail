@@ -348,7 +348,26 @@
     "components/navigation/BottomNav.d.ts",
     "components/navigation/BottomNav.jsx",
     "components/navigation/BottomNav.md",
-    "tokens/component/appshell.css"
+    "tokens/component/appshell.css",
+    "components/chat/ChatHeader.d.ts",
+    "components/chat/ChatHeader.jsx",
+    "components/chat/ChatHeader.md",
+    "components/chat/MessageList.d.ts",
+    "components/chat/MessageList.jsx",
+    "components/chat/MessageList.md",
+    "components/chat/MessageBubble.d.ts",
+    "components/chat/MessageBubble.jsx",
+    "components/chat/MessageBubble.md",
+    "components/chat/Composer.d.ts",
+    "components/chat/Composer.jsx",
+    "components/chat/Composer.md",
+    "components/chat/TypingIndicator.d.ts",
+    "components/chat/TypingIndicator.jsx",
+    "components/chat/TypingIndicator.md",
+    "components/chat/QuickReplies.d.ts",
+    "components/chat/QuickReplies.jsx",
+    "components/chat/QuickReplies.md",
+    "tokens/component/chat.css"
   ],
   "libraries": [
     {
@@ -592,6 +611,27 @@
     },
     {
       "name": "SocialPost"
+    },
+    {
+      "name": "ChatHeader"
+    },
+    {
+      "name": "MessageList"
+    },
+    {
+      "name": "MessageDivider"
+    },
+    {
+      "name": "MessageBubble"
+    },
+    {
+      "name": "Composer"
+    },
+    {
+      "name": "TypingIndicator"
+    },
+    {
+      "name": "QuickReplies"
     }
   ],
   "lastChange": {

@@ -529,7 +529,8 @@ const GROUP_DETAIL = {
   primitives: ["PrimitivesDetail"],
 };
 /* Two components are exported from a sibling's source file. */
-const EXPORTED_FROM = { ToastRegion: ["feedback", "Toast"], TabPanel: ["navigation", "Tabs"] };
+const EXPORTED_FROM = { ToastRegion: ["feedback", "Toast"], TabPanel: ["navigation", "Tabs"],
+  MessageDivider: ["chat", "MessageList"] };
 
 const GROUP_ALIAS = { "UI kits": "Templates" };
 

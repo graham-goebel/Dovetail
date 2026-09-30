@@ -1,0 +1,144 @@
+<!-- @dsCard group="Chat" height=2460 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+<script>
+const h = React.createElement;
+let DS = {};
+function glyph(paths, weight) {
+  return h("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: weight || 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+    style: { width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)", display: "block" } },
+    paths.map(function (d) { return h("path", { key: d, d: d }); }));
+}
+const PHONE = ["M21 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.1 4.2 2 2 0 0 1 3.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"];
+const MORE = ["M5 12h.01", "M12 12h.01", "M19 12h.01"];
+/* A column the width of a conversation, for bubbles shown outside a list. */
+function Thread(props) {
+  return h("div", { style: Object.assign({ display: "flex", flexDirection: "column", maxWidth: 560, marginTop: "calc(var(--dt-bubble-run-gap) * -1)" }, props.style) }, props.children);
+}
+/* The same content again inside a scoped-dark band: a Section with dark, so
+   every colour alias re-resolves inside it, not only the page's. */
+function DarkBand(props) {
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)" } },
+    h("span", { style: { fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-eyebrow-size)", textTransform: "uppercase", letterSpacing: "var(--dt-text-eyebrow-tracking)", color: "var(--dt-text-tertiary)" } }, props.label || "Dark band"),
+    h(DS.Section, { dark: true, spacing: "none", width: "full", style: { paddingBlock: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } }, props.children));
+}
+
+function Page() {
+  const [retries, setRetries] = React.useState(0);
+  const failedStatus = retries ? "sending" : "failed";
+  return h(Shelf, { name: "MessageBubble", summary: "One message. Sent sits right in the action colours, received left in a quiet surface; runs from one author tighten where they meet. Time, delivery status and group authors are props.", props: [
+      { name: "from", type: '"me" | "them"', required: true, notes: "Alignment and colours." },
+      { name: "children", type: "ReactNode", notes: "The message. Newlines are kept; long words and URLs wrap." },
+      { name: "time", type: "string", notes: "Preformatted, e.g. 9:41. Shown under the bubble." },
+      { name: "status", type: '"sending" | "sent" | "delivered" | "read" | "failed"', notes: "Sent messages only. Icon plus a text alternative; failed shows Not sent." },
+      { name: "onRetry", type: "() => void", notes: "With failed, shows a Retry button." },
+      { name: "author", type: "{ name: string; src?: string }", notes: "Received messages in a group: avatar beside the first bubble of a run, name above it." },
+      { name: "grouped", type: '"first" | "middle" | "last" | "single"', default: '"single"', notes: "Position in a run from one author." },
+    ], guidance: [
+      "Work out grouped in your app from consecutive messages by the same author, usually within a few minutes of each other.",
+      "Show time and status on the last bubble of a run, not on every one.",
+      "Status is only for your own messages. A received message has no delivery state to show.",
+      "Only pass author in group conversations. In a one-to-one chat the header already says who it is.",
+      "Failed messages must offer Retry, or say what happens next. Never drop a message silently.",
+    ] },
+    h(Specimen, { label: "Sent and received", bg: "var(--dt-surface-base)" },
+      h(Thread, null,
+        h(DS.MessageBubble, { from: "them", time: "9:38" }, "Morning! Are we still on for the site visit at 11?"),
+        h(DS.MessageBubble, { from: "me", time: "9:39", status: "read" }, "Yes, I'll meet you at the gate."))),
+    h(Specimen, { label: "Runs: first, middle, last", bg: "var(--dt-surface-base)" },
+      h(Thread, null,
+        h(DS.MessageBubble, { from: "them", grouped: "first" }, "Three things before Friday:"),
+        h(DS.MessageBubble, { from: "them", grouped: "middle" }, "the signed quote,"),
+        h(DS.MessageBubble, { from: "them", grouped: "middle" }, "the floor plan,"),
+        h(DS.MessageBubble, { from: "them", grouped: "last", time: "10:02" }, "and a date for the survey."),
+        h(DS.MessageBubble, { from: "me", grouped: "first" }, "Quote's attached."),
+        h(DS.MessageBubble, { from: "me", grouped: "middle" }, "Floor plan by tonight."),
+        h(DS.MessageBubble, { from: "me", grouped: "last", time: "10:04", status: "delivered" }, "Survey: any day next week?"))),
+    h(Specimen, { label: "Every status", bg: "var(--dt-surface-base)" },
+      h(Thread, null,
+        h(DS.MessageBubble, { from: "me", time: "10:10", status: "sending" }, "Sending"),
+        h(DS.MessageBubble, { from: "me", time: "10:10", status: "sent" }, "Sent"),
+        h(DS.MessageBubble, { from: "me", time: "10:10", status: "delivered" }, "Delivered"),
+        h(DS.MessageBubble, { from: "me", time: "10:11", status: "read" }, "Read"),
+        h(DS.MessageBubble, { from: "me", time: "10:12", status: failedStatus, onRetry: () => setRetries(retries + 1) }, retries ? "Retrying: the app set status back to sending" : "Failed, with Retry"))),
+    h(Specimen, { label: "Group chat authors", bg: "var(--dt-surface-base)" },
+      h(Thread, null,
+        h(DS.MessageBubble, { from: "them", author: { name: "Maya Chen" }, grouped: "first" }, "Draft's in the shared folder."),
+        h(DS.MessageBubble, { from: "them", author: { name: "Maya Chen" }, grouped: "last", time: "14:20" }, "Comments by Thursday, please."),
+        h(DS.MessageBubble, { from: "them", author: { name: "Theo Okafor" }, time: "14:22" }, "On it."),
+        h(DS.MessageBubble, { from: "me", time: "14:23", status: "read" }, "Same. Thanks, Maya."))),
+    h(Specimen, { label: "Long text, a long URL, line breaks", bg: "var(--dt-surface-base)" },
+      h(Thread, null,
+        h(DS.MessageBubble, { from: "them", time: "15:01" }, "The survey takes about two hours. The surveyor needs access to every room, the loft if there is one, and the meter cupboard, so please move anything that blocks them the evening before. They'll email the report within three working days."),
+        h(DS.MessageBubble, { from: "me", time: "15:03", status: "delivered" }, "Here's the listing: https://example.com/properties/northwind-house/floor-plans/ground-floor-revised-final-v3.pdf?utm_source=chat&utm_medium=message"),
+        h(DS.MessageBubble, { from: "them", time: "15:04" }, "Checklist:\n1. Keys\n2. Meter readings\n3. Parking permit"))),
+    h(DarkBand, null,
+      h(Thread, null,
+        h(DS.MessageBubble, { from: "them", author: { name: "Maya Chen" }, grouped: "first" }, "Draft's in the shared folder."),
+        h(DS.MessageBubble, { from: "them", author: { name: "Maya Chen" }, grouped: "last", time: "14:20" }, "Comments by Thursday, please."),
+        h(DS.MessageBubble, { from: "me", grouped: "first" }, "Will do."),
+        h(DS.MessageBubble, { from: "me", grouped: "last", time: "14:23", status: "read" }, "Reading it now."),
+        h(DS.MessageBubble, { from: "me", time: "14:24", status: "failed", onRetry: () => {} }, "This one didn't send."))));
+}
+
+/* Self-contained bootstrap: render once the bundle and the card kit are
+   loaded, or say on screen why not. */
+(function () {
+  var NEED = ["Section","Stack","Inline","IconButton","Avatar","Button","MessageBubble"];
+  var NS_KEY = "BeamMobileDesignSystem_e33121";
+  var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
+  var startedAt = Date.now(), refetched = false;
+  function missing() {
+    var ns = window[NS_KEY];
+    if (!ns) return NEED.slice();
+    return NEED.filter(function (n) { return !ns[n]; });
+  }
+  function kitReady() { return !!(window.Shelf && window.Specimen); }
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    var why = !window[NS_KEY] ? "<code>bundle.js</code> did not load." : !kitReady() ? "<code>card-kit.js</code> did not load." : "The loaded bundle is missing: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy.";
+    el.innerHTML = '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46"><strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' + why + "</div>";
+  }
+  (function poll() {
+    var gaps = missing();
+    if (gaps.length === 0 && kitReady()) {
+      DS = window[NS_KEY];
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(Page, null));
+      return;
+    }
+    if (Date.now() - startedAt > REFETCH_AT && !refetched && gaps.length) {
+      refetched = true;
+      var base = document.querySelector('script[src*="components/bundle.js"]');
+      if (base) { var s = document.createElement("script"); s.src = base.getAttribute("src").split("?")[0] + "?cb=" + Date.now(); document.head.appendChild(s); }
+    }
+    if (Date.now() - startedAt > DEADLINE) return explain(gaps);
+    setTimeout(poll, TICK);
+  })();
+})();
+</script>
+</body></html>
