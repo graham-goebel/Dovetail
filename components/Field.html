@@ -69,7 +69,7 @@
 <section class="playground-wrap">
   <h2 id="playground">Playground</h2>
   <p class="muted">Change a prop and watch it. The code below follows along.</p>
-  <div class="playground" data-playground="Field" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;hint&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Helper text shown below the control.&quot;},{&quot;name&quot;:&quot;error&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Replaces the hint and renders in an alert live region.&quot;},{&quot;name&quot;:&quot;required&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Adds a required marker to the label&quot;},{&quot;name&quot;:&quot;htmlFor&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;id of the control this labels.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
+  <div class="playground" data-playground="Field" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;},{&quot;name&quot;:&quot;hint&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Helper text shown below the control.&quot;},{&quot;name&quot;:&quot;error&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Replaces the hint and renders in an alert live region.&quot;},{&quot;name&quot;:&quot;required&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Adds a required marker to the label&quot;},{&quot;name&quot;:&quot;htmlFor&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;id of the control this labels.&quot;},{&quot;name&quot;:&quot;labelId&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;id for the label element, so a control that isn&#39;t a single input (a group) can point aria-labelledby at it.&quot;},{&quot;name&quot;:&quot;messageId&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;id for the hint or error line, so a control can point aria-describedby at it.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
     <div class="pg-stage" aria-live="polite"></div>
     <div class="pg-controls" role="group" aria-label="Field props"></div>
     <pre class="pg-code"><code></code></pre>
@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Field.html?v=4c0aea4cfc&amp;b=01953f82ec" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Field.html?v=4c0aea4cfc&amp;b=6f02c646fa" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Field.html?v=4c0aea4cfc&amp;b=01953f82ec" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Field.html?v=4c0aea4cfc&amp;b=6f02c646fa" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -106,6 +106,7 @@
 <p>``<code>jsx &lt;Field label=&quot;Timezone&quot; hint=&quot;Used for scheduling&quot; htmlFor=&quot;tz&quot;&gt;   &lt;MyCustomPicker id=&quot;tz&quot; /&gt; &lt;/Field&gt; </code>``</p>
 <h3 id="accessibility">Accessibility</h3>
 <p>htmlFor must point at the control's id. The error renders in role=&quot;alert&quot; so it is announced when it appears. The required asterisk is aria-hidden, so set required on the control so assistive tech hears it once, not twice.</p>
+<p>For a control that isn't a single input, such as a group of checkboxes, <code>htmlFor</code> has nothing to point at. Pass <code>labelId</code> and <code>messageId</code> instead, then point the group's <code>aria-labelledby</code> at the label and its <code>aria-describedby</code> at the hint or error. <code>CheckboxGroup</code> and <code>RadioGroup</code> do this for you.</p>
 <h3 id="content">Content</h3>
 <p>Labels are sentence case nouns without a colon. Hints explain the format or the consequence. Errors say what happened and what to do next: &quot;That email is already in use. Try signing in instead.&quot;</p>
 </section>
@@ -126,6 +127,10 @@ export interface FieldProps extends React.HTMLAttributes&lt;HTMLDivElement&gt; {
   required?: boolean;
   /** id of the control this labels. */
   htmlFor?: string;
+  /** id for the label element, so a control that isn't a single input (a group) can point aria-labelledby at it. */
+  labelId?: string;
+  /** id for the hint or error line, so a control can point aria-describedby at it. */
+  messageId?: string;
   children?: React.ReactNode;
 }
 
@@ -145,12 +150,13 @@ export declare function Field(props: FieldProps): React.JSX.Element;</code></pre
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
 
-export function Field({ label, hint, error, required = false, htmlFor, children, style, ...rest }) {
+export function Field({ label, hint, error, required = false, htmlFor, labelId, messageId, children, style, ...rest }) {
   return (
     &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-input-label-gap)&quot;, ...style }} {...rest}&gt;
       {label &amp;&amp; (
         &lt;label
           htmlFor={htmlFor}
+          id={labelId}
           style={{
             fontFamily: &quot;var(--dt-text-label-md-family)&quot;, fontSize: &quot;var(--dt-text-label-md-size)&quot;,
             lineHeight: &quot;var(--dt-text-label-md-line)&quot;, fontWeight: &quot;var(--dt-text-label-md-weight)&quot;,
@@ -164,6 +170,7 @@ export function Field({ label, hint, error, required = false, htmlFor, children,
       {children}
       {(error || hint) &amp;&amp; (
         &lt;div
+          id={messageId}
           role={error ? &quot;alert&quot; : undefined}
           style={{
             fontFamily: &quot;var(--dt-text-body-xs-family)&quot;, fontSize: &quot;var(--dt-text-body-xs-size)&quot;,
@@ -236,7 +243,7 @@ export function Field({ label, hint, error, required = false, htmlFor, children,
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=01953f82ec" defer></script>
+<script src="../system/components/bundle.js?v=6f02c646fa" defer></script>
 <script src="../assets/specimens.js?v=6cc848c41d" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/CheckboxGroup.html?v=e50abb0b3b&amp;b=01953f82ec" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/CheckboxGroup.html?v=e50abb0b3b&amp;b=6f02c646fa" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:945px">
-    <iframe src="../previews/CheckboxGroup.html?v=e50abb0b3b&amp;b=01953f82ec" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/CheckboxGroup.html?v=e50abb0b3b&amp;b=6f02c646fa" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -159,6 +159,7 @@ import { Field } from &quot;./Field.jsx&quot;;
 import { Checkbox } from &quot;./Checkbox.jsx&quot;;
 
 export function CheckboxGroup({ label, hint, error, required = false, options = [], value, defaultValue = [], onChange, disabled = false, orientation = &quot;vertical&quot;, labelPosition = &quot;end&quot;, name, style, ...rest }) {
+  const ids = React.useId();
   const [internal, setInternal] = React.useState(defaultValue);
   const selected = value !== undefined ? value : internal;
 
@@ -169,8 +170,13 @@ export function CheckboxGroup({ label, hint, error, required = false, options = 
   };
 
   return (
-    &lt;Field label={label} hint={hint} error={error} required={required} style={style} {...rest}&gt;
-      &lt;div role=&quot;group&quot; style={{ display: &quot;flex&quot;, flexDirection: orientation === &quot;horizontal&quot; ? &quot;row&quot; : &quot;column&quot;, flexWrap: &quot;wrap&quot;, gap: orientation === &quot;horizontal&quot; ? &quot;var(--dt-space-inline-lg)&quot; : &quot;var(--dt-space-stack-sm)&quot; }}&gt;
+    &lt;Field label={label} hint={hint} error={error} required={required} labelId={`${ids}-label`} messageId={`${ids}-message`} style={style} {...rest}&gt;
+      &lt;div
+        role=&quot;group&quot;
+        aria-labelledby={label ? `${ids}-label` : undefined}
+        aria-describedby={error || hint ? `${ids}-message` : undefined}
+        style={{ display: &quot;flex&quot;, flexDirection: orientation === &quot;horizontal&quot; ? &quot;row&quot; : &quot;column&quot;, flexWrap: &quot;wrap&quot;, gap: orientation === &quot;horizontal&quot; ? &quot;var(--dt-space-inline-lg)&quot; : &quot;var(--dt-space-stack-sm)&quot; }}
+      &gt;
         {options.map(opt =&gt; (
           &lt;Checkbox
             key={opt.value}
@@ -244,7 +250,7 @@ export function CheckboxGroup({ label, hint, error, required = false, options = 
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=01953f82ec" defer></script>
+<script src="../system/components/bundle.js?v=6f02c646fa" defer></script>
 <script src="../assets/specimens.js?v=6cc848c41d" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>
