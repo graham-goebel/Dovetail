@@ -25,4 +25,4 @@ export interface RadioGroupProps extends Omit<React.HTMLAttributes<HTMLElement>,
   name?: string;
 }
 
-export declare function RadioGroup(props: RadioGroupProps): JSX.Element;
+export declare function RadioGroup(props: RadioGroupProps): React.JSX.Element;

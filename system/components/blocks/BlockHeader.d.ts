@@ -18,4 +18,4 @@ export interface BlockHeaderProps extends Omit<React.HTMLAttributes<HTMLDivEleme
   size?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
 }
 
-export declare function BlockHeader(props: BlockHeaderProps): JSX.Element;
+export declare function BlockHeader(props: BlockHeaderProps): React.JSX.Element;

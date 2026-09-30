@@ -30,8 +30,8 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   /** With media: the band's minimum height. @default "min(70vh, 640px)" */
   minHeight?: string;
   /** @default "section" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Section(props: SectionProps): JSX.Element;
+export declare function Section(props: SectionProps): React.JSX.Element;

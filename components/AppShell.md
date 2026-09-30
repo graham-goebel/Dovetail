@@ -75,7 +75,7 @@ export interface AppShellProps extends Omit<React.HTMLAttributes<HTMLDivElement>
   children?: React.ReactNode;
 }
 
-export declare function AppShell(props: AppShellProps): JSX.Element;
+export declare function AppShell(props: AppShellProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

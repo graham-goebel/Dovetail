@@ -43,7 +43,7 @@ export interface QuoteProps extends Omit<React.HTMLAttributes<HTMLElement>, "rol
   size?: "md" | "lg";
 }
 
-export declare function Quote(props: QuoteProps): JSX.Element;
+export declare function Quote(props: QuoteProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

@@ -16,4 +16,4 @@ export interface BreadcrumbsProps extends React.HTMLAttributes<HTMLElement> {
   separator?: React.ReactNode;
 }
 
-export declare function Breadcrumbs(props: BreadcrumbsProps): JSX.Element;
+export declare function Breadcrumbs(props: BreadcrumbsProps): React.JSX.Element;

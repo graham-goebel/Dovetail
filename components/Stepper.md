@@ -46,7 +46,7 @@ export interface StepperProps extends React.HTMLAttributes<HTMLElement> {
   label?: string;
 }
 
-export declare function Stepper(props: StepperProps): JSX.Element;
+export declare function Stepper(props: StepperProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

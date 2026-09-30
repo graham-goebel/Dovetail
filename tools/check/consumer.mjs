@@ -12,18 +12,23 @@
    2. Fails if the tarball holds anything but dist/, package.json, README.md,
       LICENSE and CHANGELOG.md, or lacks the files the exports map points at.
    3. Creates a temp consumer project and installs the tarball into it with
-      `npm install --no-save --offline`. The peer dependencies (react,
-      react-dom and their types) are symlinked in from the repo's node_modules,
+      `npm install --no-save --offline`. React, react-dom and their types are
+      symlinked in from the repo's node_modules,
       because the registry is not reachable; their real paths are the same
       files the package's own imports resolve, so there is still one React.
    4. From the consumer, imports the package by name, renders Button, Section
       and Stack with react-dom/server and asserts on the HTML, and resolves
-      <name>/styles.css through the exports map: it must exist and hold no
-      @import of a local file.
+      <name>/styles.css and <name>/fonts.css through the exports map:
+      styles.css must hold no @import at all, fonts.css only https ones. It
+      also asserts that hook-using modules start with "use client" and pure
+      layout ones don't, and that Navbar and Sheet server-render the same
+      markup whatever matchMedia would say, so hydration matches.
    5. Type-checks a consumer .tsx that imports from the package name, with
-      `tsc --noEmit` (jsx react-jsx, moduleResolution bundler, strict). It also
-      asserts that a wrong prop is an error, so passing means the declarations
-      really resolved and are not silently `any`.
+      `tsc --noEmit` (jsx react-jsx, moduleResolution bundler, strict), once
+      against @types/react 18 and once against 19 (devDependency
+      @types/react-19). It also asserts that a wrong prop is an error, so
+      passing means the declarations really resolved and are not silently
+      `any`.
 
    --list prints every file in the tarball. The temp directories are removed on
    the way out; set KEEP_TMP=1 to keep them and print where they are. Exits 1
@@ -110,7 +115,7 @@ try {
     const stray = tarFiles.filter((f) => !f.startsWith("dist/") && !ALLOWED.has(f));
     if (stray.length) fail(`outside dist/, package.json, README.md, LICENSE, CHANGELOG.md: ${stray.join(", ")}`);
     else ok("only dist/, package.json, README.md, LICENSE and CHANGELOG.md");
-    const want = ["package.json", "README.md", "dist/react/index.js", "dist/react/index.d.ts", "dist/styles.css"];
+    const want = ["package.json", "README.md", "dist/react/index.js", "dist/react/index.d.ts", "dist/styles.css", "dist/fonts.css"];
     for (const f of ["LICENSE", "CHANGELOG.md"]) if (fs.existsSync(path.join(ROOT, f))) want.push(f);
     const missing = want.filter((f) => !tarFiles.includes(f));
     if (missing.length) fail(`missing from the tarball: ${missing.join(", ")}`);
@@ -154,11 +159,12 @@ try {
     }
     ok(`peers linked from the repo: ${peers.join(", ")}`);
     const declared = Object.keys(installed.peerDependencies || {});
-    for (const p of ["react", "react-dom"]) if (!declared.includes(p)) fail(`peerDependencies does not list ${p}`);
+    if (!declared.includes("react")) fail("peerDependencies does not list react");
+    if (installed.engines) fail(`the installed package.json has engines ${JSON.stringify(installed.engines)}; a browser library shouldn't warn about Node versions`);
     const ex = installed.exports || {};
     /* The token subpath is required once the token build puts dist/tokens in
        the package; until then an export pointing at nothing would be a lie. */
-    const wants = [".", "./styles.css"].concat(tarFiles.includes("dist/tokens/tokens.css") ? ["./tokens/*"] : []);
+    const wants = [".", "./styles.css", "./fonts.css"].concat(tarFiles.includes("dist/tokens/tokens.css") ? ["./tokens/*"] : []);
     for (const k of wants) if (!(k in ex)) fail(`the installed package.json has no exports["${k}"]`);
   });
 
@@ -210,15 +216,51 @@ assert.ok(fs.existsSync(cssPath), cssPath + " does not exist");
 assert.match(cssUrl, new RegExp("/node_modules/" + NAME + "/dist/styles\\\\.css$"));
 const css = fs.readFileSync(cssPath, "utf8");
 const bare = css.replace(/\\/\\*[\\s\\S]*?\\*\\//g, "");
-const imports = [...bare.matchAll(/@import\\s+(?:url\\(\\s*)?["']?([^"')\\s;]+)/g)].map((m) => m[1]);
-const local = imports.filter((s) => !/^(?:https?:)?\\/\\//i.test(s));
-assert.deepEqual(local, [], "local @import left in styles.css: " + local.join(", "));
-assert.ok(imports.length === 0 || imports.every((s) => /^https:\\/\\//.test(s)), "external @import must be https: " + imports.join(", "));
-assert.ok(bare.indexOf("@import") === -1 || bare.trimStart().startsWith("@import"), "an @import comes after a rule, where browsers ignore it");
+const IMPORT = /@import\\s+(?:url\\(\\s*)?["']?([^"')\\s;]+)/g;
+const imports = [...bare.matchAll(IMPORT)].map((m) => m[1]);
+assert.deepEqual(imports, [], "styles.css makes no request of its own, but it imports: " + imports.join(", "));
 assert.ok(bare.includes("--dt-button-primary-bg:") || bare.includes("--dt-button-primary-bg :"), "styles.css declares --dt-button-primary-bg");
 assert.ok(/\\.dark\\b/.test(bare), "styles.css has .dark rules");
 assert.ok(css.includes("/* from system/styles.css */"), "styles.css keeps its from-markers");
-say("styles.css resolves to " + cssPath.slice(cssPath.indexOf("node_modules")) + " (" + css.length + " bytes), " + imports.length + " external @import, no local @import");
+say("styles.css resolves to " + cssPath.slice(cssPath.indexOf("node_modules")) + " (" + css.length + " bytes), with no @import");
+
+const fontsPath = fileURLToPath(import.meta.resolve(NAME + "/fonts.css"));
+const fonts = fs.readFileSync(fontsPath, "utf8").replace(/\\/\\*[\\s\\S]*?\\*\\//g, "").trim();
+const fontImports = [...fonts.matchAll(IMPORT)].map((m) => m[1]);
+assert.ok(fontImports.length > 0, "fonts.css imports nothing");
+assert.ok(fontImports.every((s) => /^https:\\/\\//.test(s)), "fonts.css imports must be https: " + fontImports.join(", "));
+assert.ok(fonts.split("\\n").every((l) => l.startsWith("@import ")), "fonts.css holds only @import lines: " + fonts);
+say("fonts.css resolves and holds " + fontImports.length + " https @import");
+
+/* React Server Components: a module that calls hooks must be a client module,
+   and a pure layout one stays a server module. */
+const firstStatement = (name) => {
+  const file = fileURLToPath(new URL("./" + name + ".js", entry));
+  return fs.readFileSync(file, "utf8").replace(/^\\s*\\/\\*[\\s\\S]*?\\*\\/\\s*/, "").split("\\n")[0];
+};
+for (const m of ["actions/Button", "feedback/Dialog", "navigation/Tabs", "navigation/Navbar", "feedback/Sheet", "forms/Input"]) {
+  assert.equal(firstStatement(m), '"use client";', m + ".js does not start with \\"use client\\"");
+}
+for (const m of ["primitives/Stack", "primitives/Section", "typography/Heading", "typography/Text"]) {
+  assert.notEqual(firstStatement(m), '"use client";', m + ".js is marked \\"use client\\" but needs no browser");
+}
+say("hook-using modules start with \\"use client\\"; Stack, Section, Heading and Text stay server components");
+
+/* Hydration: the server has no matchMedia, so the first client render must
+   not read it either. Render with a narrow, reduced-motion matchMedia in
+   place and without one; the markup must be the same. */
+const { Navbar, Sheet } = await import(NAME);
+const views = () => [
+  renderToStaticMarkup(h(Navbar, { brand: "Acme", links: [{ id: "a", label: "Docs", href: "#a" }], collapseBelow: 10000 })),
+  renderToStaticMarkup(h(Sheet, { open: true, title: "Filters", onClose() {} }, "Body")),
+];
+const bareViews = views();
+globalThis.window = { matchMedia: () => ({ matches: true, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }) };
+const narrowViews = views();
+delete globalThis.window;
+assert.equal(narrowViews[0], bareViews[0], "Navbar renders differently when matchMedia matches, so hydration would not match");
+assert.equal(narrowViews[1], bareViews[1], "Sheet renders differently when matchMedia matches, so hydration would not match");
+say("Navbar and Sheet server-render the same markup whatever matchMedia says");
 
 ${
   hasTokens
@@ -279,7 +321,25 @@ export { wrong };
        the project file lives there. */
     const r = spawnSync("npx", ["--no-install", "tsc", "--noEmit", "-p", path.join(CONSUMER, "tsconfig.json")], { cwd: ROOT, encoding: "utf8", env });
     if (r.status !== 0) fail(`tsc reported errors:\n${indent(`${r.stdout}${r.stderr}`)}`);
-    else ok("consumer.tsx type-checks against the installed declarations (and a wrong prop is an error)");
+    else ok("consumer.tsx type-checks against the installed declarations with @types/react 18 (and a wrong prop is an error)");
+
+    /* Again with React 19's types, which dropped the global JSX namespace.
+       "types": [] keeps tsc from pulling in @types/react-dom 18 on its own. */
+    const types19 = path.join(ROOT, "node_modules", "@types", "react-19");
+    if (!fs.existsSync(types19)) {
+      skip("@types/react-19 is not installed (npm ci), so the React 19 types pass is skipped");
+      return;
+    }
+    const link = path.join(CONSUMER, "node_modules", "@types", "react");
+    fs.rmSync(link, { recursive: true, force: true });
+    fs.symlinkSync(fs.realpathSync(types19), link, "dir");
+    const conf = JSON.parse(fs.readFileSync(path.join(CONSUMER, "tsconfig.json"), "utf8"));
+    conf.compilerOptions.types = [];
+    fs.writeFileSync(path.join(CONSUMER, "tsconfig.19.json"), JSON.stringify(conf, null, 2));
+    const v = JSON.parse(fs.readFileSync(path.join(types19, "package.json"), "utf8")).version;
+    const r19 = spawnSync("npx", ["--no-install", "tsc", "--noEmit", "-p", path.join(CONSUMER, "tsconfig.19.json")], { cwd: ROOT, encoding: "utf8", env });
+    if (r19.status !== 0) fail(`tsc reported errors with @types/react ${v}:\n${indent(`${r19.stdout}${r19.stderr}`)}`);
+    else ok(`consumer.tsx type-checks against the installed declarations with @types/react ${v}`);
   });
 } finally {
   if (process.env.KEEP_TMP) console.log(`\nkept ${TMP}`);

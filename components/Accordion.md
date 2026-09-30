@@ -46,7 +46,7 @@ export interface AccordionProps extends React.HTMLAttributes<HTMLDivElement> {
   label: string;
 }
 
-export declare function Accordion(props: AccordionProps): JSX.Element;
+export declare function Accordion(props: AccordionProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

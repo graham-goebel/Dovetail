@@ -9,4 +9,4 @@ export interface CodeProps extends React.HTMLAttributes<HTMLElement> {
   label?: React.ReactNode;
 }
 
-export declare function Code(props: CodeProps): JSX.Element;
+export declare function Code(props: CodeProps): React.JSX.Element;

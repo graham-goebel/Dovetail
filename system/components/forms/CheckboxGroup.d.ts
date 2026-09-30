@@ -25,4 +25,4 @@ export interface CheckboxGroupProps extends Omit<React.HTMLAttributes<HTMLElemen
   name?: string;
 }
 
-export declare function CheckboxGroup(props: CheckboxGroupProps): JSX.Element;
+export declare function CheckboxGroup(props: CheckboxGroupProps): React.JSX.Element;

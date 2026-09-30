@@ -25,4 +25,4 @@ export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> 
   zebra?: boolean;
 }
 
-export declare function Table(props: TableProps): JSX.Element;
+export declare function Table(props: TableProps): React.JSX.Element;

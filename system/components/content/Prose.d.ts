@@ -9,4 +9,4 @@ export interface ProseProps extends React.HTMLAttributes<HTMLDivElement> {
   measure?: string;
 }
 
-export declare function Prose(props: ProseProps): JSX.Element;
+export declare function Prose(props: ProseProps): React.JSX.Element;

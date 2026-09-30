@@ -46,7 +46,7 @@ export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   children?: React.ReactNode;
 }
 
-export declare function Tag(props: TagProps): JSX.Element;
+export declare function Tag(props: TagProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

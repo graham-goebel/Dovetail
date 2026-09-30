@@ -41,7 +41,7 @@ export interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export declare function ButtonGroup(props: ButtonGroupProps): JSX.Element;
+export declare function ButtonGroup(props: ButtonGroupProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

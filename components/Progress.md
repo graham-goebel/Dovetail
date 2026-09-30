@@ -45,7 +45,7 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "md" | "lg";
 }
 
-export declare function Progress(props: ProgressProps): JSX.Element;
+export declare function Progress(props: ProgressProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

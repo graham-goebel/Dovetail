@@ -49,4 +49,4 @@ export interface CoverProps extends Omit<React.HTMLAttributes<HTMLElement>, "pla
   actions?: React.ReactNode;
 }
 
-export declare function Cover(props: CoverProps): JSX.Element;
+export declare function Cover(props: CoverProps): React.JSX.Element;

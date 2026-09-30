@@ -48,7 +48,7 @@ export interface StatProps extends React.HTMLAttributes<HTMLDivElement> {
   align?: "left" | "center" | "right";
 }
 
-export declare function Stat(props: StatProps): JSX.Element;
+export declare function Stat(props: StatProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

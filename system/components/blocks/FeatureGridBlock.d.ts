@@ -40,4 +40,4 @@ export interface FeatureGridBlockProps extends Omit<React.HTMLAttributes<HTMLEle
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function FeatureGridBlock(props: FeatureGridBlockProps): JSX.Element;
+export declare function FeatureGridBlock(props: FeatureGridBlockProps): React.JSX.Element;

@@ -30,4 +30,4 @@ export interface HeroBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function HeroBlock(props: HeroBlockProps): JSX.Element;
+export declare function HeroBlock(props: HeroBlockProps): React.JSX.Element;

@@ -85,7 +85,7 @@ export interface ComboboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   id?: string;
 }
 
-export declare function Combobox(props: ComboboxProps): JSX.Element;
+export declare function Combobox(props: ComboboxProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

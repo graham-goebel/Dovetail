@@ -2,7 +2,7 @@
 
 Everything notable that changes in the Dovetail design system (`system/`), newest first. Versions follow [Semantic Versioning](https://semver.org) as applied to a design system in [docs/changelog.md](docs/changelog.md): a renamed or removed token, component, prop or default is a breaking change.
 
-Don't edit this file directly. Add an entry to `changes/` with your pull request (`npm run change -- <slug>`); releases compile the entries into a new section here. Unreleased entries can be previewed with `npm run changelog`.
+<!-- Contributors: don't edit this file directly. Add an entry to `changes/` with your pull request (`npm run change -- <slug>`); releases compile the entries into a new section here. Unreleased entries can be previewed with `npm run changelog`. -->
 
 ## 0.2.0 - 2026-09-29
 

@@ -79,11 +79,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/Navbar.html?v=61cefcbf7e&amp;b=e65605a26b" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/Navbar.html?v=61cefcbf7e&amp;b=e5be6854b7" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:528px">
-    <iframe src="../previews/Navbar.html?v=61cefcbf7e&amp;b=e65605a26b" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/Navbar.html?v=61cefcbf7e&amp;b=e5be6854b7" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -130,7 +130,7 @@ export interface NavbarProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
   collapseBelow?: number;
 }
 
-export declare function Navbar(props: NavbarProps): JSX.Element;</code></pre>
+export declare function Navbar(props: NavbarProps): React.JSX.Element;</code></pre>
 </section>
 
 <section class="prose">
@@ -145,6 +145,7 @@ export declare function Navbar(props: NavbarProps): JSX.Element;</code></pre>
   <h2 id="source">Source</h2>
   <p class="muted">React only, no dependencies, every value a token.</p>
   <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { Drawer } from &quot;../feedback/Drawer.jsx&quot;;
 
 function MenuIcon() {
   return (
@@ -154,18 +155,22 @@ function MenuIcon() {
   );
 }
 
+/* False while server rendering and hydrating, so the markup matches what the
+   server sent; matchMedia is read after that, and at once in a client-only
+   render. */
 function useNarrow(below) {
   const query = below ? `(max-width: ${below - 1}px)` : null;
-  const [narrow, setNarrow] = React.useState(() =&gt; !!(query &amp;&amp; typeof window !== &quot;undefined&quot; &amp;&amp; window.matchMedia &amp;&amp; window.matchMedia(query).matches));
-  React.useEffect(() =&gt; {
-    if (!query || !window.matchMedia) return undefined;
+  const subscribe = React.useCallback((sync) =&gt; {
+    if (!query || !window.matchMedia) return () =&gt; {};
     const mq = window.matchMedia(query);
-    const sync = () =&gt; setNarrow(mq.matches);
-    sync();
     mq.addEventListener(&quot;change&quot;, sync);
     return () =&gt; mq.removeEventListener(&quot;change&quot;, sync);
   }, [query]);
-  return narrow;
+  return React.useSyncExternalStore(
+    subscribe,
+    () =&gt; !!(query &amp;&amp; window.matchMedia &amp;&amp; window.matchMedia(query).matches),
+    () =&gt; false,
+  );
 }
 
 export function Navbar({ brand, links = [], actions, current, onNavigate, label = &quot;Main&quot;, sticky = false, collapseBelow = 640, style, ...rest }) {
@@ -299,7 +304,7 @@ export function Navbar({ brand, links = [], actions, current, onNavigate, label 
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=e65605a26b" defer></script>
+<script src="../system/components/bundle.js?v=e5be6854b7" defer></script>
 <script src="../assets/specimens.js?v=b7427c19de" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

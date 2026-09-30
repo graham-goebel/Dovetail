@@ -14,8 +14,8 @@ export interface GridProps extends React.HTMLAttributes<HTMLElement> {
   track?: "fit" | "fill";
   align?: React.CSSProperties["alignItems"];
   /** @default "div" */
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   children?: React.ReactNode;
 }
 
-export declare function Grid(props: GridProps): JSX.Element;
+export declare function Grid(props: GridProps): React.JSX.Element;

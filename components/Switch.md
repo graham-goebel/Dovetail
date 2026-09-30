@@ -46,7 +46,7 @@ export interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   labelPosition?: "start" | "end";
 }
 
-export declare function Switch(props: SwitchProps): JSX.Element;
+export declare function Switch(props: SwitchProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

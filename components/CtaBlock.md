@@ -59,7 +59,7 @@ export interface CtaBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function CtaBlock(props: CtaBlockProps): JSX.Element;
+export declare function CtaBlock(props: CtaBlockProps): React.JSX.Element;
 ```
 
 ## Tokens it reads

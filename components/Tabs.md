@@ -60,8 +60,8 @@ export interface TabPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export declare function Tabs(props: TabsProps): JSX.Element;
-export declare function TabPanel(props: TabPanelProps): JSX.Element | null;
+export declare function Tabs(props: TabsProps): React.JSX.Element;
+export declare function TabPanel(props: TabPanelProps): React.JSX.Element | null;
 ```
 
 ## Tokens it reads

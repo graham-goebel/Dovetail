@@ -12,4 +12,4 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLSpanElement> {
   radius?: string;
 }
 
-export declare function Skeleton(props: SkeletonProps): JSX.Element;
+export declare function Skeleton(props: SkeletonProps): React.JSX.Element;

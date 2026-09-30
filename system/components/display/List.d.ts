@@ -25,4 +25,4 @@ export interface ListProps extends React.HTMLAttributes<HTMLUListElement> {
   label: string;
 }
 
-export declare function List(props: ListProps): JSX.Element;
+export declare function List(props: ListProps): React.JSX.Element;

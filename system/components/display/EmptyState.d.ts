@@ -16,4 +16,4 @@ export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   size?: "sm" | "md";
 }
 
-export declare function EmptyState(props: EmptyStateProps): JSX.Element;
+export declare function EmptyState(props: EmptyStateProps): React.JSX.Element;

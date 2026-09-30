@@ -13,4 +13,4 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   disabled?: boolean;
 }
 
-export declare function Checkbox(props: CheckboxProps): JSX.Element;
+export declare function Checkbox(props: CheckboxProps): React.JSX.Element;

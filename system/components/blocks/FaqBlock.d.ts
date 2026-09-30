@@ -33,4 +33,4 @@ export interface FaqBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   width?: "narrow" | "default" | "wide" | "full";
 }
 
-export declare function FaqBlock(props: FaqBlockProps): JSX.Element;
+export declare function FaqBlock(props: FaqBlockProps): React.JSX.Element;

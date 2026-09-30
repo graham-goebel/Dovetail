@@ -8,4 +8,4 @@ export interface SpacerProps extends React.HTMLAttributes<HTMLElement> {
   axis?: "vertical" | "horizontal";
 }
 
-export declare function Spacer(props: SpacerProps): JSX.Element;
+export declare function Spacer(props: SpacerProps): React.JSX.Element;
