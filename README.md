@@ -15,6 +15,17 @@ npm install @dovetail-ds/react react
 
 React 18 or newer is the only peer dependency (your app brings its own `react-dom`).
 
+## Set up with Claude Code
+
+The package ships a [Claude Code](https://claude.com/claude-code) skill that does the setup for you. It asks a few questions about your brand colour, buttons, type, corners and spacing, or takes the `theme-custom.css` you downloaded from Configure. Then it writes your theme, wires the stylesheets and fonts into your app's root, and checks contrast.
+
+```sh
+mkdir -p .claude/skills
+cp -r node_modules/@dovetail-ds/react/skills/dovetail-setup .claude/skills/
+```
+
+Then ask Claude to "set up Dovetail with our brand", or attach your downloaded theme. The theme it writes records your answers, so later you can ask for "rounder corners" or "buttons in our blue" and it rebuilds the file. It uses the same code as Configure, so the file matches what Configure's Download would give.
+
 ## Use
 
 ```jsx
