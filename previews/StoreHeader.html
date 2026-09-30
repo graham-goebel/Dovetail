@@ -1,0 +1,265 @@
+<!-- @dsCard group="Commerce" height=2440 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var cap = {
+    fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)",
+    lineHeight: "var(--dt-text-body-xs-line)", color: "var(--dt-text-tertiary)",
+  };
+  /* One example and what it shows. */
+  function cell(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", alignItems: "flex-start", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  /* Examples in a grid that drops to one column on a phone. */
+  function row() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 168px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "end",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band scoped to one Section, the test the scoped-dark rule asks for. */
+  function band() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      row.apply(null, arguments));
+  }
+  /* Two examples side by side, one up on a phone. */
+  function pair() {
+    return e.apply(null, ["div", { style: {
+      display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+      gap: "var(--dt-space-stack-lg) var(--dt-space-inline-lg)", alignItems: "start",
+    } }].concat([].slice.call(arguments)));
+  }
+  /* A dark band holding wider examples. */
+  function darkBand() {
+    return e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+      pair.apply(null, arguments));
+  }
+  /* Pictures are small inline SVGs, so the card needs no network. */
+  function svg(w, h, body) {
+    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + " " + h + '">' + body + "</svg>");
+  }
+  function dish(bg, food, bits) {
+    return svg(96, 96, '<rect width="96" height="96" fill="' + bg + '"/><circle cx="48" cy="52" r="34" fill="#fbf8f2"/>' +
+      '<circle cx="48" cy="52" r="25" fill="' + food + '"/><circle cx="40" cy="46" r="4.5" fill="' + bits + '"/>' +
+      '<circle cx="57" cy="56" r="4" fill="' + bits + '"/><circle cx="51" cy="41" r="3" fill="' + bits + '"/><circle cx="42" cy="61" r="3" fill="' + bits + '"/>');
+  }
+  var DISH = {
+    padThai: { src: dish("#f1dcb8", "#e4a046", "#5d8f45"), alt: "Pad thai on a white plate" },
+    curry: { src: dish("#dde8d3", "#d9822b", "#3f7f3a"), alt: "Green curry in a bowl" },
+    seeEw: { src: dish("#e8e2f0", "#c9a36a", "#4f7f3a"), alt: "Pad see ew with greens" },
+    soup: { src: dish("#f5d5cc", "#c8553d", "#f1dcb8"), alt: "Khao soi noodle soup" },
+    rolls: { src: dish("#d7e6ea", "#e9c46a", "#5d8f45"), alt: "Fresh spring rolls" },
+    tea: { src: dish("#f3e3c9", "#d08c3a", "#fbf8f2"), alt: "Iced Thai tea" },
+  };
+  var COVER = svg(900, 300,
+    '<rect width="900" height="300" fill="#35503f"/>' +
+    '<circle cx="190" cy="250" r="150" fill="#f4efe6"/><circle cx="190" cy="250" r="112" fill="#e4a046"/>' +
+    '<circle cx="160" cy="215" r="14" fill="#5d8f45"/><circle cx="228" cy="258" r="11" fill="#c8553d"/><circle cx="200" cy="200" r="8" fill="#5d8f45"/>' +
+    '<circle cx="560" cy="80" r="112" fill="#f4efe6"/><circle cx="560" cy="80" r="82" fill="#c8553d"/>' +
+    '<circle cx="538" cy="62" r="10" fill="#f4efe6"/><circle cx="588" cy="98" r="8" fill="#5d8f45"/>' +
+    '<rect x="690" y="190" width="170" height="22" rx="11" fill="#caa56b" transform="rotate(-20 775 201)"/>' +
+    '<rect x="700" y="225" width="170" height="22" rx="11" fill="#b58d52" transform="rotate(-20 785 236)"/>');
+  var LOGO = { src: svg(64, 64, '<rect width="64" height="64" fill="#c8553d"/><text x="32" y="42" font-family="Georgia, serif" font-size="26" font-weight="700" text-anchor="middle" fill="#fff">BK</text>'), alt: "" };
+  var noop = function () {};
+  /* A small live readout under an interactive example. */
+  function note(text) {
+    return e("p", { "aria-live": "polite", style: Object.assign({ margin: "var(--dt-space-stack-2xs) 0 0" }, cap) }, text);
+  }
+  /* One example, stretched to its column, and what it shows. */
+  function wide(caption, node) {
+    return e("figure", { style: { margin: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-2xs)", minWidth: 0 } },
+      node, e("figcaption", { style: cap }, caption));
+  }
+  var NEED = ["StoreHeader", "IconButton", "Section", "AppShell", "FulfilmentToggle", "MenuSection", "MenuItem", "ModifierGroup", "Sheet", "Button", "Price"];
+  function icon(paths) {
+    return e("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false",
+      style: { display: "block", width: "var(--dt-size-icon-md)", height: "var(--dt-size-icon-md)" } },
+      paths.map(function (d) { return e("path", { key: d, d: d }); }));
+  }
+  var HEART = ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"];
+  var SHARE = ["M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8", "M16 6l-4-4-4 4", "M12 2v13"];
+  var BACK = ["M19 12H5", "m12 19-7-7 7-7"];
+  var BAG = ["M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z", "M3 6h18", "M16 10a4 4 0 0 1-8 0"];
+  function actions() {
+    return e(React.Fragment, null,
+      e(NS.IconButton, { label: "Save to favourites" }, icon(HEART)),
+      e(NS.IconButton, { label: "Share" }, icon(SHARE)));
+  }
+  var BASE = {
+    name: "Bangkok Kitchen", image: { src: COVER, alt: "" }, logo: LOGO,
+    rating: { value: 4.6, count: 1284 }, meta: ["Thai", "$$", "1.2 mi"], locale: "en-US",
+  };
+  function SH(props) { return e(NS.StoreHeader, Object.assign({ headingLevel: 3 }, BASE, props)); }
+
+  /* The composed example: a store page on a phone, in an AppShell. The frame
+     is transformed, so the Sheet's fixed layer opens inside it rather than
+     over the whole card. */
+  var MENU = [
+    { id: "popular", title: "Popular", description: "What people order most this month.", items: [
+      { id: "pad-thai", name: "Pad thai", description: "Rice noodles wok-fried with tamarind, egg, tofu, bean sprouts and crushed peanuts.", price: 12.5, image: DISH.padThai, tags: [{ label: "Popular", kind: "popular" }] },
+      { id: "green-curry", name: "Green curry", description: "Coconut green curry with Thai aubergine, bamboo shoots and holy basil, with jasmine rice.", price: 13.5, image: DISH.curry, tags: [{ label: "Spicy", kind: "spicy" }, { label: "Gluten free", kind: "gluten-free" }] },
+    ] },
+    { id: "noodles", title: "Noodles", items: [
+      { id: "see-ew", name: "Pad see ew", description: "Wide rice noodles with Chinese broccoli, egg and sweet soy.", price: 12, image: DISH.seeEw, tags: [{ label: "Vegetarian", kind: "vegetarian" }] },
+      { id: "khao-soi", name: "Khao soi", description: "Northern curry noodle soup with crispy noodles, pickled mustard greens and lime.", price: 14, image: DISH.soup, soldOut: true },
+    ] },
+  ];
+  var SIZES = [{ id: "regular", label: "Regular" }, { id: "large", label: "Large", price: 2 }];
+  var EXTRAS = [
+    { id: "egg", label: "Fried egg", price: 2 },
+    { id: "tofu", label: "Extra tofu", price: 1.5 },
+    { id: "peanuts", label: "Crushed peanuts", price: 0.5 },
+    { id: "prawns", label: "Prawns", price: 3 },
+    { id: "chicken", label: "Chicken", price: 2.5, disabled: true, note: "Sold out today" },
+  ];
+  var usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+  function FoodApp() {
+    var how = React.useState("delivery");
+    var basket = React.useState({ "pad-thai": 1 });
+    var open = React.useState(null);
+    var size = React.useState(["regular"]);
+    var extras = React.useState(["egg"]);
+    var err = React.useState(null);
+    var item = open[0];
+    var setQty = function (id, n) {
+      var next = Object.assign({}, basket[0]);
+      if (n > 0) next[id] = n; else delete next[id];
+      basket[1](next);
+    };
+    var show = function (it) { open[1](it); size[1](["regular"]); extras[1](["egg"]); err[1](null); };
+    var total = item ? item.price
+      + SIZES.concat(EXTRAS).filter(function (o) { return size[0].concat(extras[0]).indexOf(o.id) >= 0; })
+        .reduce(function (sum, o) { return sum + (o.price || 0); }, 0) : 0;
+    var add = function () {
+      if (!size[0].length) { err[1]("Choose a size to continue."); return; }
+      setQty(item.id, (basket[0][item.id] || 0) + 1);
+      open[1](null);
+    };
+    var count = Object.keys(basket[0]).reduce(function (s, k) { return s + basket[0][k]; }, 0);
+    return e("div", { style: {
+        position: "relative", transform: "translateZ(0)", overflow: "hidden",
+        width: "100%", maxWidth: "390px", height: "780px", margin: "0 auto",
+        borderRadius: "var(--dt-radius-overlay)", border: "var(--dt-border-width-default) solid var(--dt-border-default)",
+        background: "var(--dt-surface-base)",
+      } },
+      e(NS.AppShell, { scroll: "contained",
+          leading: e(NS.IconButton, { label: "Back" }, icon(BACK)),
+          trailing: e(NS.IconButton, { label: "Basket, " + count + (count === 1 ? " item" : " items") }, icon(BAG)) },
+        e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-lg)", padding: "0 var(--dt-space-inset-md) var(--dt-space-inset-xl)" } },
+          e(NS.StoreHeader, Object.assign({}, BASE, { deliveryTime: how[0] === "delivery" ? "25–35 min" : "Ready in 15 min", deliveryFee: how[0] === "delivery" ? 2.99 : undefined,
+            status: { open: true, label: "Open until 10pm" }, actions: e(NS.IconButton, { label: "Save to favourites" }, icon(HEART)) })),
+          e(NS.FulfilmentToggle, { label: "How to get your order", value: how[0], onChange: how[1], options: [
+            { value: "delivery", label: "Delivery", detail: "25–35 min" },
+            { value: "pickup", label: "Pickup", detail: "Ready in 15" },
+          ] }),
+          MENU.map(function (sec) {
+            return e(NS.MenuSection, { key: sec.id, id: "app-" + sec.id, title: sec.title, description: sec.description },
+              sec.items.map(function (it) {
+                return e(NS.MenuItem, Object.assign({ key: it.id, locale: "en-US" }, it, {
+                  quantity: basket[0][it.id] || 0,
+                  onAdd: function () { show(it); },
+                  onSelect: function () { show(it); },
+                  onQuantityChange: function (n) { setQty(it.id, n); },
+                }));
+              }));
+          }))),
+      e(NS.Sheet, { open: !!item, onClose: function () { open[1](null); }, title: item ? item.name : "", description: item ? item.description : null,
+          footer: e(NS.Button, { fullWidth: true, onClick: add }, "Add to basket · " + usd.format(total)) },
+        item && e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-lg)" } },
+          e(NS.ModifierGroup, { title: "Choose a size", mode: "single", required: true, options: SIZES, value: size[0], error: err[0] || undefined, locale: "en-US",
+            onChange: function (v) { size[1](v); err[1](null); } }),
+          e(NS.ModifierGroup, { title: "Add extras", mode: "multiple", max: 3, options: EXTRAS, value: extras[0], onChange: extras[1], locale: "en-US" }))));
+  }
+
+  function Page() {
+    return e(Shelf, { name: "StoreHeader", summary: "The top of a restaurant or store page: cover, logo, name, rating, facts, delivery and whether it is open.", props: [
+        { name: "name", type: "string", required: true, notes: "The store's name, rendered as the heading." },
+        { name: "image", type: "{ src?, alt }", notes: "Cover, 3:1 and at most --dt-store-cover-max-height tall. Its space is reserved before it loads." },
+        { name: "logo", type: "{ src?, alt }", notes: "Square logo. Overlaps the cover's lower edge when there is one." },
+        { name: "rating", type: "{ value, count? }", notes: "Shown as a small Rating." },
+        { name: "meta", type: "string[]", notes: "Short facts after the rating, with middle dots: Thai, $$, 1.2 mi." },
+        { name: "deliveryTime", type: "string", notes: "Shown with a clock: 25–35 min." },
+        { name: "deliveryFee", type: "number", notes: "Via Price. 0 shows freeDeliveryLabel." },
+        { name: "currency / locale", type: "string", default: '"USD" / runtime', notes: "For the fee and the review count." },
+        { name: "status", type: "{ open, label }", notes: "Closed greys the cover and logo, lays a scrim on the cover and turns the label red." },
+        { name: "actions", type: "ReactNode", notes: "Favourite, share: IconButtons you supply, each labelled." },
+        { name: "headingLevel", type: "1–6", default: "1" },
+        { name: "freeDeliveryLabel", type: "string", default: '"Free delivery"' },
+        { name: "deliveryFeeLabel", type: "string", default: '"delivery"', notes: "The unit after a fee: $2.99 delivery." },
+      ], guidance: [
+        "Use it once, at the top of a store's page, with headingLevel 1. The name is the page's heading.",
+        "Status is words first: Open until 10pm, Closed · opens 11am. The colour and the greyed cover repeat what the label says.",
+        "Leave the cover's alt empty when it is decoration. A photo that shows something the name does not, say the dining room, gets a description.",
+        "Keep meta to three or four short facts. The cuisine, the price band and the distance are what people scan for.",
+        "Pass locale when server rendering, so the fee and the review count print the same on the server and in the browser.",
+      ] },
+      e(Specimen, { label: "Open with paid delivery · closed with free delivery", bg: "var(--dt-surface-base)" },
+        pair(
+          wide("open · deliveryFee 2.99", SH({ deliveryTime: "25–35 min", deliveryFee: 2.99, status: { open: true, label: "Open until 10pm" }, actions: actions() })),
+          wide("closed · deliveryFee 0", SH({ deliveryTime: "25–35 min", deliveryFee: 0, status: { open: false, label: "Closed · opens 11am" }, actions: actions() })))),
+      e(Specimen, { label: "Without a cover · cover still loading", bg: "var(--dt-surface-base)" },
+        pair(
+          wide("no image, no logo · pickup time only", e(NS.StoreHeader, { headingLevel: 3, name: "Corner Bakery", meta: ["Bakery", "$", "0.4 mi"], rating: { value: 4.8, count: 212 }, deliveryTime: "Ready in 10 min", status: { open: true, label: "Open until 6pm" }, locale: "en-US" })),
+          wide("image with no src · space reserved", SH({ image: { alt: "" }, logo: { alt: "" }, deliveryTime: "30–45 min", deliveryFee: 1.49, status: { open: true, label: "Open until 11pm" } })))),
+      e(Specimen, { label: "In a dark band", bg: "var(--dt-surface-base)" },
+        darkBand(
+          wide("open · paid", SH({ deliveryTime: "25–35 min", deliveryFee: 2.99, status: { open: true, label: "Open until 10pm" }, actions: actions() })),
+          wide("closed · free", SH({ deliveryTime: "25–35 min", deliveryFee: 0, status: { open: false, label: "Closed · opens 11am" } })))),
+      e(Specimen, { label: "Composed: a store page on a phone, 390px wide. Add or select a dish to open its options", bg: "var(--dt-surface-subtle)" },
+        e(FoodApp)));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

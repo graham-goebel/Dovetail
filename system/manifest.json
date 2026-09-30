@@ -386,7 +386,22 @@
     "components/commerce/ProductGallery.md",
     "components/commerce/VariantPicker.d.ts",
     "components/commerce/VariantPicker.jsx",
-    "components/commerce/VariantPicker.md"
+    "components/commerce/VariantPicker.md",
+    "components/commerce/StoreHeader.d.ts",
+    "components/commerce/StoreHeader.jsx",
+    "components/commerce/StoreHeader.md",
+    "components/commerce/FulfilmentToggle.d.ts",
+    "components/commerce/FulfilmentToggle.jsx",
+    "components/commerce/FulfilmentToggle.md",
+    "components/commerce/MenuSection.d.ts",
+    "components/commerce/MenuSection.jsx",
+    "components/commerce/MenuSection.md",
+    "components/commerce/MenuItem.d.ts",
+    "components/commerce/MenuItem.jsx",
+    "components/commerce/MenuItem.md",
+    "components/commerce/ModifierGroup.d.ts",
+    "components/commerce/ModifierGroup.jsx",
+    "components/commerce/ModifierGroup.md"
   ],
   "libraries": [
     {
@@ -669,6 +684,21 @@
     },
     {
       "name": "VariantPicker"
+    },
+    {
+      "name": "StoreHeader"
+    },
+    {
+      "name": "FulfilmentToggle"
+    },
+    {
+      "name": "MenuSection"
+    },
+    {
+      "name": "MenuItem"
+    },
+    {
+      "name": "ModifierGroup"
     }
   ],
   "lastChange": {

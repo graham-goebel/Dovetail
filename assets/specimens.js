@@ -405,6 +405,50 @@
         { value: "s", label: "S" }, { value: "m", label: "M" }, { value: "l", label: "L" }, { value: "xl", label: "XL", disabled: true },
       ] }));
     },
+    StoreHeader: function () {
+      return e(NS.StoreHeader, {
+        name: "Bangkok Kitchen",
+        headingLevel: 3,
+        rating: { value: 4.6, count: 1284 },
+        meta: ["Thai", "$$"],
+        deliveryTime: "25–35 min",
+        deliveryFee: 0,
+        status: { open: true, label: "Open until 10pm" },
+        locale: "en-US",
+      });
+    },
+    FulfilmentToggle: function () {
+      return e(LiveQuantity, null, e(NS.FulfilmentToggle, { label: "How to get your order", value: "delivery", onChange: function () {} }));
+    },
+    MenuSection: function () {
+      return e(
+        NS.MenuSection,
+        { title: "Noodles", headingLevel: 3 },
+        e(NS.MenuItem, { name: "Pad thai", price: 12.5, locale: "en-US" }),
+        e(NS.MenuItem, { name: "Pad see ew", price: 12, locale: "en-US" })
+      );
+    },
+    MenuItem: function () {
+      return e(NS.MenuItem, {
+        name: "Pad thai",
+        description: "Rice noodles, tamarind, egg and peanuts.",
+        price: 12.5,
+        tags: [{ label: "Popular", kind: "popular" }],
+        locale: "en-US",
+        onAdd: function () {},
+      });
+    },
+    ModifierGroup: function () {
+      return e(LiveQuantity, null, e(NS.ModifierGroup, {
+        title: "Choose a size",
+        mode: "single",
+        required: true,
+        options: [{ id: "regular", label: "Regular" }, { id: "large", label: "Large", price: 2 }],
+        value: ["regular"],
+        locale: "en-US",
+        onChange: function () {},
+      }));
+    },
   };
 
   /* A flat product shot for the commerce specimens: a mug in a glaze colour
