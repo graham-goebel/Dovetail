@@ -40,7 +40,7 @@
 
   /* Components whose children the reader arranges. Their specimen's own
      children are dropped; the tree supplies new ones. */
-  var CONTAINERS = { Root: true, Group: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true };
+  var CONTAINERS = { Root: true, Group: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true, Slot: true };
 
   var DATA = window.DovetailBuilderData || { tokens: {} };
   var STYLE_KEYS = Object.keys(DATA.tokens);
@@ -110,7 +110,7 @@
   /* Layout containers start clean: their specimens show off a variant (a
      photo band, a wide gap) that would be a surprising default for an empty
      box. Card keeps its specimen's title and copy. */
-  var CLEAN = { Group: true, Section: true, Stack: true, Inline: true, Grid: true };
+  var CLEAN = { Group: true, Section: true, Stack: true, Inline: true, Grid: true, Slot: true };
 
   var baseCache = {};
   function base(type) {
@@ -156,6 +156,51 @@
     }
   }
 
+  /* ------------------------------------------------------------ slots */
+
+  /* A component's element props (a hero's actions, its media) are slots: the
+     builder holds what's in them as nodes, so each part can be picked and
+     changed, and renders them back into the prop. They are found from the
+     types, never listed by hand: a React.ReactNode prop whose sample is an
+     element, or one with nothing in it yet. */
+  function slotsOf(node) { return (node.children || []).filter(function (c) { return c && c.type === "Slot"; }); }
+  /* A container's own children, without its slots. */
+  function flowOf(node) { return (node.children || []).filter(function (c) { return c && c.type !== "Slot"; }); }
+  function slotProps(type) {
+    var m = DATA.components && DATA.components[type];
+    /* A prop the component clones (a popover's trigger) has to stay one
+       element, so it isn't a slot; @slot none opts any other out. */
+    return m && !m.builder ? m.props.filter(function (p) { return p.kind === "node" && p.name !== "children" && p.name !== "trigger" && !(p.accepts && p.accepts[0] === "none"); }) : [];
+  }
+  var keepLayout = false;
+  var OPEN_SLOT = /^(actions|media|footer|aside|extra|start|end|leading|trailing)$/;
+  /* What starts in each slot: the sample's own elements, as nodes. A sample
+     that can't come apart cleanly (an icon, an SVG) stays as it is. */
+  function slotTemplate(type) {
+    var b = base(type), out = [];
+    slotProps(type).forEach(function (p) {
+      var v = b[p.name];
+      if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return;
+      if (v === null || v === undefined) { if (p.accepts || OPEN_SLOT.test(p.name)) out.push({ name: p.name, nodes: [] }); return; }
+      var parts = [];
+      (function flat(x) {
+        if (Array.isArray(x)) x.forEach(flat);
+        else if (isElement(x) && x.type === React.Fragment) flat(x.props.children);
+        else if (x !== null && x !== undefined && x !== false) parts.push(x);
+      })(v);
+      var nodes = [], whole = parts.length > 0;
+      keepLayout = true;
+      parts.forEach(function (x) {
+        var made = fromElement(x);
+        if (!made || (Array.isArray(made) && !made.length)) whole = false;
+        else nodes = nodes.concat(made);
+      });
+      keepLayout = false;
+      if (whole) out.push({ name: p.name, nodes: nodes });
+    });
+    return out;
+  }
+
   var stamp = 0;
   var index = {};
 
@@ -178,9 +223,18 @@
     var Comp = NS[node.type];
     if (!Comp) return e("div", { key: node.id, className: "bf-error", "data-bf-id": node.id }, "Unknown component " + node.type);
     var p = propsOf(node);
+    /* Its slots, rendered into the props they stand for. */
+    slotsOf(node).forEach(function (sl) {
+      index[sl.id] = { node: sl, parent: node.id };
+      /* An empty slot draws nothing, as the component would. */
+      p[sl.props.name] = sl.children.length
+        ? e("div", { key: sl.id, "data-bf-id": sl.id, "data-bf-type": "Slot", style: { display: "contents" } }, sl.children.map(function (c) { return renderNode(c, sl.id); }))
+        : null;
+    });
     var kids;
     if (CONTAINERS[node.type]) {
-      kids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
+      var own = flowOf(node);
+      kids = own.length ? own.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
     }
     var el = kids === undefined ? e(Comp, p) : e(Comp, p, kids);
     return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": node.type, "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
@@ -274,7 +328,8 @@
     if (!entry) return null;
     var w = wrapper(id);
     if (!w) return null;
-    var first = (entry.node.children || []).length ? wrapper(entry.node.children[0].id) : w.querySelector('[data-bf-slot="' + id + '"]');
+    var kids0 = entry.node.type === "Slot" ? entry.node.children || [] : flowOf(entry.node);
+    var first = kids0.length ? wrapper(kids0[0].id) : w.querySelector('[data-bf-slot="' + id + '"]');
     if (!first) return null;
     var box = first.parentElement;
     while (box && getComputedStyle(box).display === "contents") box = box.parentElement;
@@ -292,7 +347,7 @@
 
   function childRects(id, skip) {
     var entry = index[id];
-    return (entry.node.children || []).map(function (c, i) { return { id: c.id, i: i, r: c.id === skip ? null : rect(c.id) }; })
+    return (entry.node.children || []).map(function (c, i) { return { id: c.id, i: i, r: c.id === skip || (c.type === "Slot" && entry.node.type !== "Slot") ? null : rect(c.id) }; })
       .filter(function (c) { return c.r; });
   }
 
@@ -314,10 +369,12 @@
   /* The line that shows an insertion point, in frame coordinates. */
   function lineFor(id, at, axis, skip) {
     var node = index[id].node;
-    var kids = (node.children || []).filter(function (c) { return c.id !== skip; });
-    var before = node.children[at] && node.children[at].id !== skip ? node.children[at] : null;
+    /* A container's slots sit elsewhere in it, so they're not insertion points. */
+    var counts = function (c) { return c.id !== skip && (node.type === "Slot" || c.type !== "Slot"); };
+    var kids = (node.children || []).filter(counts);
+    var before = node.children[at] && counts(node.children[at]) ? node.children[at] : null;
     if (!before) {
-      for (var j = at; j < node.children.length; j++) if (node.children[j].id !== skip) { before = node.children[j]; break; }
+      for (var j = at; j < node.children.length; j++) if (counts(node.children[j])) { before = node.children[j]; break; }
     }
     if (!kids.length) {
       var slot = document.querySelector('[data-bf-slot="' + id + '"]');
@@ -588,11 +645,21 @@
     var tag = node.type;
     used.add(tag);
     var p = propsOf(node);
+    var slots = slotsOf(node);
+    slots.forEach(function (sl) { delete p[sl.props.name]; });
     var a = attrs(p, used);
+    /* A slot is written as the elements in it, so the export is the same
+       component with the same parts the canvas shows. */
+    slots.forEach(function (sl) {
+      if (!sl.children.length) return;
+      var inner = sl.children.map(function (c) { return block(c, used, pad + "    "); }).join("\n");
+      a.push(attrName(sl.props.name) + "={<>\n" + inner + "\n" + pad + "  </>}");
+    });
     var open = pad + "<" + tag + (a.length ? " " + a.join(" ") : "");
     if (CONTAINERS[node.type]) {
-      if (!(node.children || []).length) return open + " />";
-      return open + ">\n" + node.children.map(function (c) { return block(c, used, pad + "  "); }).join("\n") + "\n" + pad + "</" + tag + ">";
+      var flow = flowOf(node);
+      if (!flow.length) return open + " />";
+      return open + ">\n" + flow.map(function (c) { return block(c, used, pad + "  "); }).join("\n") + "\n" + pad + "</" + tag + ">";
     }
     var kids = childText(p.children, used);
     return kids ? open + ">" + kids + "</" + tag + ">" : open + " />";
@@ -639,16 +706,24 @@
   /* A React element from a specimen (a row of Buttons, an img) as nodes. */
   function fromElement(el) {
     if (el === null || el === undefined || el === false) return null;
+    if (el.__node) return (function bare(c) { var o = { type: c.type, props: Object.assign({}, c.props), style: Object.assign({}, c.style || {}) }; if (c.children) o.children = c.children.map(bare); return o; })(el.__node);
     if (typeof el === "string" || typeof el === "number") return text(el);
     if (Array.isArray(el)) return el.map(fromElement).filter(Boolean);
     if (!isElement(el)) return null;
     if (el.type === React.Fragment) return fromElement(el.props.children);
-    if (el.type === "img") return n("Image", { src: el.props.src, alt: el.props.alt || "" });
+    if (el.type === "img") {
+      /* A sample's own aspect ratio, where the Image has it as a named ratio. */
+      var ar = el.props.style && String(el.props.style.aspectRatio || "").replace(/\s+/g, "");
+      var named = ar ? (ar === "1/1" ? "square" : ar.replace("/", ":")) : null;
+      var ratios = ((DATA.components.Image || { props: [] }).props.filter(function (p) { return p.name === "ratio"; })[0] || {}).options || [];
+      return n("Image", Object.assign({ src: el.props.src, alt: el.props.alt || "" }, named && ratios.indexOf(named) >= 0 ? { ratio: named } : {}));
+    }
     if (typeof el.type === "string") return fromElement(el.props.children);
     var name = names.get(el.type);
     if (!name) return null;
     var kids = [].concat(fromElement(el.props.children) || []);
-    if (name === "Inline" || name === "Stack") return n("Group", { direction: name === "Inline" ? "row" : "column", gap: el.props.gap || "sm", align: el.props.align, justify: el.props.justify }, kids);
+    /* Detach takes layout apart into Groups; a slot keeps the component the sample used. */
+    if ((name === "Inline" || name === "Stack") && !keepLayout) return n("Group", { direction: name === "Inline" ? "row" : "column", gap: el.props.gap || "sm", align: el.props.align, justify: el.props.justify }, kids);
     var props = plain(el.props);
     if (typeof el.props.children === "string") props.children = el.props.children;
     return CONTAINERS[name] ? n(name, props, kids) : n(name, props);
@@ -703,7 +778,10 @@
   function detach(node) {
     var recipe = RECIPES[node.type];
     if (!recipe) return null;
-    try { return recipe(propsOf(node), node); } catch (err) { return null; }
+    var b = propsOf(node);
+    /* What's in its slots comes out as the nodes they hold. */
+    slotsOf(node).forEach(function (sl) { b[sl.props.name] = sl.children.map(function (c) { return { __node: c }; }); });
+    try { return recipe(b, Object.assign({}, node, { children: node.children ? flowOf(node) : node.children })); } catch (err) { return null; }
   }
 
   /* Where a node's text is drawn: the box of the element holding it, and the
@@ -732,6 +810,7 @@
     detach: detach,
     textRect: textRect,
     canDetach: function (type) { return !!RECIPES[type]; },
+    slots: slotTemplate,
     rect: rect,
     drop: drop,
     pick: pick,
