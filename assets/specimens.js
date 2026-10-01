@@ -556,8 +556,132 @@
     VisuallyHidden: "Renders nothing visible. That is the whole job.",
   };
 
+  /* Starting points for the builder (assets/builder-frame.js) for the
+     components the index shows as a note, not a specimen: the page-width
+     blocks, plus two that have no tile of their own. The index never renders
+     these; a block dropped onto the builder's canvas starts from them. */
+  var noop = function () {};
+  var art = function (bg, glaze) {
+    return e("img", { src: productArt(bg, glaze), alt: "", style: { display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "cover", borderRadius: "var(--dt-radius-media)" } });
+  };
+  var SAMPLES = {
+    BlockHeader: function () {
+      return e(NS.BlockHeader, { eyebrow: "Shop", title: "Everything in the studio", lead: "Eight things we make, in the glazes we fire this season." });
+    },
+    HeroBlock: function () {
+      return e(NS.HeroBlock, {
+        eyebrow: "The autumn collection", title: "Made slowly. Used every day.",
+        lead: "Stoneware, glass and brass from small workshops, made to be used, washed and used again.",
+        actions: e(NS.Inline, { gap: "sm" }, e(NS.Button, null, "Shop the collection"), e(NS.Button, { variant: "secondary" }, "Our story")),
+        media: art("#e8e2d8", "#5d7a6a"),
+      });
+    },
+    FeatureGridBlock: function () {
+      return e(NS.FeatureGridBlock, {
+        eyebrow: "Why it lasts", title: "Built for the everyday", columns: 3,
+        items: [
+          { title: "Fired twice", description: "A second firing makes the glaze hard enough for the dishwasher." },
+          { title: "Repairable", description: "Chips and cracks are mended free for the first five years." },
+          { title: "Made nearby", description: "Every piece comes from a workshop within a day's drive." },
+        ],
+      });
+    },
+    SplitBlock: function () {
+      return e(NS.SplitBlock, {
+        eyebrow: "The workshop", title: "Thrown by hand, one at a time",
+        body: "Each mug is shaped on the wheel, trimmed the next morning and glazed by the same person.",
+        points: ["Food-safe glazes", "Lead-free clay", "Seconds sold at half price"],
+        actions: e(NS.Button, { variant: "secondary" }, "Visit the studio"),
+        media: art("#dfe6e0", "#b5654a"),
+      });
+    },
+    StatsBlock: function () {
+      return e(NS.StatsBlock, {
+        title: "By the numbers",
+        stats: [{ value: "12", label: "Workshops" }, { value: "4,800", label: "Pieces this year" }, { value: "5 yrs", label: "Free repairs" }],
+      });
+    },
+    TestimonialBlock: function () {
+      return e(NS.TestimonialBlock, {
+        title: "Kind words",
+        quotes: [
+          { quote: "The only mug in the house everyone fights over.", name: "Ana Ruiz", role: "Customer since 2021" },
+          { quote: "Sent one back with a chip and it came home mended.", name: "Sam Okafor", role: "Customer since 2019" },
+        ],
+      });
+    },
+    FaqBlock: function () {
+      return e(NS.FaqBlock, {
+        title: "Questions",
+        items: [
+          { id: "dish", question: "Is it dishwasher safe?", answer: "Yes. The second firing makes the glaze hard enough." },
+          { id: "ship", question: "How long does shipping take?", answer: "Three to five working days, packed in paper." },
+        ],
+        defaultOpen: ["dish"],
+      });
+    },
+    CtaBlock: function () {
+      return e(NS.CtaBlock, { title: "Ready for a better mug?", lead: "Free shipping over $75, and free repairs for five years.", actions: e(NS.Button, null, "Shop now") });
+    },
+    Composer: function () {
+      return e(NS.Composer, { value: "", onChange: noop, onSend: noop, label: "Message", placeholder: "Write a message" });
+    },
+    ChatBlock: function () {
+      return e(NS.ChatBlock, {
+        title: "Maya Chen", subtitle: "Support · usually replies in 2 min", presence: "online", onRetry: noop,
+        messages: [
+          { id: "a", from: "them", day: "Today", text: "Hi! How can I help with your order?", time: "9:12" },
+          { id: "b", from: "me", text: "Where is my mug? It was due yesterday.", time: "9:13", status: "read" },
+          { id: "c", from: "them", text: "It shipped this morning. You'll have it tomorrow.", time: "9:14" },
+        ],
+        quickReplies: { options: [{ id: "track", label: "Track my order" }, { id: "person", label: "Talk to a person" }], onSelect: noop },
+        composer: { value: "", onChange: noop, onSend: noop },
+        height: 420,
+      });
+    },
+    ProductGridBlock: function () {
+      return e(NS.ProductGridBlock, {
+        eyebrow: "Shop", title: "New in", columns: 3,
+        products: [
+          { id: "mug", name: "Stoneware mug", price: 24, href: "#mug", locale: "en-US", image: { src: productArt("#e8e2d8", "#5d7a6a"), alt: "" } },
+          { id: "cup", name: "Espresso cup", price: 18, href: "#cup", locale: "en-US", image: { src: productArt("#efe6dc", "#b5654a"), alt: "" } },
+          { id: "jug", name: "Milk jug", price: 32, compareAt: 40, href: "#jug", locale: "en-US", image: { src: productArt("#e3e8ee", "#4a6a8a"), alt: "" } },
+        ],
+      });
+    },
+    ProductDetailBlock: function () {
+      return e(NS.ProductDetailBlock, {
+        name: "Stoneware mug", subtitle: "Fern glaze, 350 ml", price: 24, locale: "en-US", rating: { value: 4.6, count: 128 },
+        images: [{ src: productArt("#e8e2d8", "#5d7a6a"), alt: "The mug from the front" }, { src: productArt("#efe6dc", "#5d7a6a"), alt: "The mug from the side" }],
+        description: "Thrown by hand and fired twice, so it goes in the dishwasher.",
+        variants: [{ label: "Glaze", value: "fern", onChange: noop, options: [{ value: "fern", label: "Fern" }, { value: "clay", label: "Clay" }] }],
+        quantity: 1, onQuantityChange: noop, onAddToCart: noop,
+        details: [{ title: "Care", content: "Dishwasher and microwave safe." }, { title: "Shipping", content: "Free over $75." }],
+      });
+    },
+    CartBlock: function () {
+      return e(NS.CartBlock, {
+        lines: [
+          { id: "mug", name: "Stoneware mug", details: ["Fern"], price: 24, quantity: 2, locale: "en-US", image: { src: productArt("#e8e2d8", "#5d7a6a"), alt: "" }, onQuantityChange: noop, onRemove: noop },
+          { id: "jug", name: "Milk jug", price: 32, quantity: 1, locale: "en-US", image: { src: productArt("#e3e8ee", "#4a6a8a"), alt: "" }, onQuantityChange: noop, onRemove: noop },
+        ],
+        summary: { locale: "en-US", lines: [{ label: "Subtotal", amount: 80 }, { label: "Shipping", amount: 0 }], total: { amount: 80 } },
+        checkoutAction: e(NS.Button, { fullWidth: true }, "Check out"),
+      });
+    },
+    CheckoutBlock: function () {
+      return e(NS.CheckoutBlock, {
+        email: "", onEmailChange: noop, locale: "en-US", delivery: "standard", onDeliveryChange: noop,
+        deliveryOptions: [{ id: "standard", label: "Standard", detail: "3–5 days", price: 0 }, { id: "express", label: "Express", detail: "Next day", price: 12 }],
+        lines: [{ id: "mug", name: "Stoneware mug", price: 24, quantity: 2 }],
+        summary: { locale: "en-US", lines: [{ label: "Subtotal", amount: 48 }], total: { amount: 48 } },
+        submitAction: e(NS.Button, { fullWidth: true }, "Place order"),
+      });
+    },
+  };
+
   /* The component pages' playground starts from these same specimens. */
-  window.DovetailSpecimens = { build: SPECIMENS, notes: NOTES };
+  window.DovetailSpecimens = { build: SPECIMENS, notes: NOTES, samples: SAMPLES };
   if (!slots.length) return;
 
   Array.prototype.forEach.call(slots, function (slot) {

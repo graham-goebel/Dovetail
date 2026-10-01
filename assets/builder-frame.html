@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Builder canvas · Dovetail</title>
+<!-- The builder's canvas: a page of its own, so a phone frame really is 390px
+     wide and the components' own breakpoints see that width. The builder page
+     drives it through window.BuilderFrame (assets/builder-frame.js). It shares
+     the docs site's origin, so the Configure panel's theme reaches it the same
+     way it reaches a preview card. -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<link rel="stylesheet" href="../system/styles.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
+<script>
+  /* The saved Configure theme, before first paint. Dark mode and the context
+     are the builder's own settings, applied to the canvas root rather than to
+     <html>, so they are left out here. */
+  try {
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    if (cfg && cfg.vars) for (var k in cfg.vars) document.documentElement.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.fontHref) {
+      var font = document.createElement("link");
+      font.rel = "stylesheet";
+      font.href = cfg.fontHref;
+      document.head.appendChild(font);
+    }
+  } catch (e) {}
+</script>
+<style>
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--dt-surface-base); color: var(--dt-text-primary); font-family: var(--dt-font-family-sans); }
+  .bf-root { min-height: 100vh; display: flex; flex-direction: column; }
+  .bf-empty {
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    min-height: var(--dt-size-control-lg); min-width: calc(var(--dt-size-control-lg) * 3);
+    padding: var(--dt-space-inset-sm);
+    border: var(--dt-border-width-default) dashed var(--dt-border-strong);
+    border-radius: var(--dt-radius-control);
+    color: var(--dt-text-tertiary);
+    font-size: var(--dt-text-body-xs-size); line-height: var(--dt-text-body-xs-line);
+  }
+  .bf-root > [data-bf-slot="root"].bf-empty { margin: var(--dt-space-inset-lg); min-height: calc(var(--dt-size-control-lg) * 4); }
+  .bf-preview .bf-empty { display: none; }
+  .bf-error {
+    padding: var(--dt-space-inset-sm);
+    border: var(--dt-border-width-default) solid var(--dt-border-danger);
+    border-radius: var(--dt-radius-control);
+    background: var(--dt-surface-danger-subtle);
+    color: var(--dt-text-primary);
+    font-size: var(--dt-text-body-xs-size);
+  }
+  .bf-editing * { cursor: default; }
+</style>
+</head>
+<body>
+<div id="bf-mount"></div>
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>
+  /* The bundle, the specimens and the canvas script, each with the stamp the
+     builder page passed in (b, s, f), so a deploy never pairs this page with a
+     cached copy of an older one. async = false runs them in order. */
+  (function () {
+    var files = [["../system/components/bundle.js", "b"], ["specimens.js", "s"], ["builder-frame.js", "f"]];
+    files.forEach(function (f) {
+      var m = new RegExp("[?&]" + f[1] + "=(\\w+)").exec(location.search);
+      var tag = document.createElement("script");
+      tag.async = false;
+      tag.src = f[0] + (m ? "?v=" + m[1] : "");
+      document.body.appendChild(tag);
+    });
+  })();
+</script>
+</body>
+</html>
