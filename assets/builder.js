@@ -123,6 +123,76 @@
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 1500000;
 
+  /* The Content panel's library: images, illustrations and icons kept in this
+     browser, to drag onto the canvas or pick for an image. */
+  var LIB_KEY = "dovetail-builder-library";
+  var LIB_KINDS = ["images", "illustrations", "icons"];
+  function loadLibrary() {
+    var raw = storage(function (s) { return JSON.parse(s.getItem(LIB_KEY) || "null"); }) || {};
+    var out = {};
+    LIB_KINDS.forEach(function (k) {
+      out[k] = (Array.isArray(raw[k]) ? raw[k] : []).filter(function (it) {
+        return it && typeof it.id === "string" && typeof it.name === "string" && typeof it.src === "string" && /^data:image\//.test(it.src);
+      }).map(function (it) { return { id: it.id, name: it.name.slice(0, 80), src: it.src, original: typeof it.original === "string" && /^data:image\//.test(it.original) ? it.original : undefined }; });
+    });
+    return out;
+  }
+  /* A photo is scaled to fit 1600px and kept as JPEG unless it has
+     transparency; an illustration fits 1200px as PNG; an SVG stays as drawn. */
+  function readForLibrary(file, kind) {
+    return new Promise(function (resolve, reject) {
+      if (!/^image\//.test(file.type)) { reject(new Error(file.name + " isn't an image.")); return; }
+      if (kind === "icons" && file.type !== "image/svg+xml") { reject(new Error("Icons are SVG files.")); return; }
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("Couldn't read " + file.name + ".")); };
+      reader.onload = function () {
+        var url = String(reader.result);
+        if (file.type === "image/svg+xml") {
+          if (url.length > 400000) reject(new Error(file.name + " is too large for an icon or drawing."));
+          else resolve(url);
+          return;
+        }
+        var img = new Image();
+        img.onerror = function () { reject(new Error("Couldn't open " + file.name + ".")); };
+        img.onload = function () {
+          var max = kind === "images" ? 1600 : 1200;
+          var k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+          var c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(img.naturalWidth * k));
+          c.height = Math.max(1, Math.round(img.naturalHeight * k));
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          var png = kind !== "images" || file.type === "image/png" || file.type === "image/webp" || file.type === "image/gif";
+          resolve(png ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", 0.86));
+        };
+        img.src = url;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  /* The background remover loads the first time it's asked for. */
+  var BUILDER_SRC = (document.currentScript && document.currentScript.src) || "";
+  var removerLoading = null;
+  function remover() {
+    if (window.DovetailRemoveBackground) return Promise.resolve(window.DovetailRemoveBackground);
+    if (removerLoading) return removerLoading;
+    removerLoading = new Promise(function (resolve, reject) {
+      var tag = document.createElement("script");
+      tag.src = BUILDER_SRC ? BUILDER_SRC.replace(/builder\.js(\?.*)?$/, "remove-background.js") : "assets/remove-background.js";
+      tag.onload = function () { if (window.DovetailRemoveBackground) resolve(window.DovetailRemoveBackground); else reject(new Error("The background remover didn't load.")); };
+      tag.onerror = function () { removerLoading = null; reject(new Error("The background remover didn't load.")); };
+      document.head.appendChild(tag);
+    });
+    return removerLoading;
+  }
+
+  /* The left panel's rail: what it shows, its short name, its tip, its icon. */
+  var RAIL = [
+    ["assets", "Assets", "Components and blocks to add", "plus"],
+    ["layers", "Layers", "Everything in each frame", "blocks"],
+    ["content", "Content", "Images, illustrations and icons", "folder"],
+    ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
+  ];
+
   /* Each category's icon in the assets panel. */
   var GROUP_ICON = {
     layout: "layout", typography: "type", actions: "pointer", forms: "form", display: "image", navigation: "compass",
@@ -282,6 +352,13 @@
   /* Each clean step can say what it left out, for a pasted layout or a link:
      report is an array of lines, or nothing. */
   function note(report, line) { if (report && report.indexOf(line) < 0) report.push(line); }
+  /* A node placed freely on a frame's canvas: x and y in steps of the smallest
+     inset. Anything inside a container stays in its flow. */
+  var FREE_MAX = 1200;
+  function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
+  /* Bands run the width of the page, so they always join its flow. */
+  var BAND_ROOT = { Section: 1, AppShell: 1, Navbar: 1, Sidebar: 1, BottomNav: 1, Banner: 1, StoreHeader: 1 };
+  function joinsFlow(type) { return !type || !!BAND_ROOT[type] || !!(META[type] && META[type].group === "blocks"); }
   function cleanNode(n, report) {
     if (!n || typeof n !== "object") return null;
     if (!META[n.type]) { note(report, (n.type ? "\"" + String(n.type).slice(0, 40) + "\"" : "A node with no type") + " isn't something the builder places, so it and anything inside it were left out"); return null; }
@@ -308,7 +385,13 @@
     var st = Object.assign({}, n.style || {});
     if (st.marginY) { st.marginTop = st.marginTop || st.marginY; st.marginBottom = st.marginBottom || st.marginY; delete st.marginY; }
     if (st.marginX) { st.marginLeft = st.marginLeft || st.marginX; st.marginRight = st.marginRight || st.marginX; delete st.marginX; }
+    var freeOk = function (v) { return typeof v === "number" && v === Math.round(v) && v >= 0 && v <= FREE_MAX; };
+    if (st.x !== undefined || st.y !== undefined) {
+      if (freeOk(st.x) && freeOk(st.y)) { style.x = st.x; style.y = st.y; }
+      else note(report, n.type + ": x and y are whole steps of --dt-space-inset-2xs from 0 to " + FREE_MAX + ", not " + JSON.stringify([st.x, st.y]));
+    }
     Object.keys(st).forEach(function (k) {
+      if (k === "x" || k === "y") return;
       if (k === "dark") { if (st.dark === true) style.dark = true; return; }
       if (tokenOption(k, st[k])) style[k] = st[k];
       else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function (o) { return o.value; }).join(", ") + ")");
@@ -344,6 +427,9 @@
     base.dark = f.dark === true;
     base.surface = tokenOption("surface", f.surface) ? f.surface : "base";
     if (f.surface !== undefined && base.surface !== f.surface) note(report, base.name + ": surface " + JSON.stringify(f.surface) + " isn't a token option, so it's base");
+    /* The canvas may take one custom colour, as six-digit hex. */
+    if (typeof f.canvas === "string" && /^#[0-9a-f]{6}$/i.test(f.canvas)) base.canvas = f.canvas.toLowerCase();
+    else if (f.canvas !== undefined) note(report, base.name + ": canvas " + JSON.stringify(f.canvas) + " isn't a #rrggbb colour, so it was left out");
     base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
     base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
     /* A frame may give its nodes as root.children or straight as children. */
@@ -571,6 +657,10 @@
     squiggle: ["M3 17c2.5-6 5-9 7.5-9s2.5 6 5 6 3.5-3 5.5-5", "M4 6h.01"],
     fit: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5"],
     rotate: ["M4 12a8 8 0 0 1 14-5.3L20 9", "M20 4v5h-5", "M20 12a8 8 0 0 1-14 5.3L4 15", "M4 20v-5h5"],
+    sliders: ["M5 21v-6", "M5 11V3", "M12 21v-9", "M12 8V3", "M19 21v-4", "M19 13V3", "M2.5 15h5", "M9.5 8h5", "M16.5 17h5"],
+    folder: ["M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"],
+    play: ["M7 4.5v15l12-7.5z"],
+    wand: ["M4 20 15 9", "M14 4v3", "M19 9h-3", "M17.5 5.5l-2 2", "M19 14v2", "M20 15h-2", "M8 3v2", "M9 4H7"],
   };
   function Icon(props) {
     return e("svg", { className: cx("bd-ic", props.className), viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" },
@@ -776,11 +866,13 @@
   function Section(props) {
     var bodyId = "bd-sec-" + String(props.id || props.title).replace(/\W+/g, "-");
     var open = !props.closed;
-    return e("section", { className: cx("bd-sec", !open && "is-closed") },
+    /* A dot: something here is set on this item, not left to the default. */
+    var dot = props.changed ? e("span", { className: "bd-sec-dot", title: "Changed from the default" }, e("span", { className: "visually-hidden" }, ", changed from the default")) : null;
+    return e("section", { className: cx("bd-sec", !open && "is-closed"), "data-sec": props.id },
       e("div", { className: "bd-sec-head" },
         props.onToggle ? e("button", { type: "button", className: "bd-sec-h", "aria-expanded": String(open), "aria-controls": bodyId, onClick: props.onToggle },
-          props.title, e(Icon, { name: "down", className: "bd-sec-chev" }))
-          : e("h3", { className: "bd-sec-h" }, props.title),
+          props.title, dot, e(Icon, { name: "down", className: "bd-sec-chev" }))
+          : e("h3", { className: "bd-sec-h" }, props.title, dot),
         props.action || null),
       open ? e("div", { className: "bd-sec-body", id: bodyId }, props.children) : null);
   }
@@ -987,17 +1079,37 @@
 
   /* Where each frame sits on the canvas: side by side, tops aligned. A frame
      that hugs its content is as tall as the content last measured. */
-  function layoutOf(doc, heights) {
+  function layoutOf(doc, heights, resizing) {
     var x = 0, out = { boxes: {}, width: 0, height: 0 };
     doc.frames.forEach(function (f) {
-      var h = f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
-      out.boxes[f.id] = { x: x, y: 0, w: f.width, h: h };
+      var r = resizing && resizing.fid === f.id ? resizing : null;
+      var w = r ? r.w : f.width;
+      var h = r && r.h != null ? r.h : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
+      out.boxes[f.id] = { x: x, y: 0, w: w, h: h };
       out.height = Math.max(out.height, h);
-      x += f.width + FRAME_GAP;
+      x += w + FRAME_GAP;
     });
     out.width = Math.max(0, x - FRAME_GAP);
     return out;
   }
+
+  /* Standard viewport sizes an edge snaps to: a page always lands on one, a
+     frame when it comes close. */
+  var VIEW_W = [320, 360, 375, 390, 393, 414, 430, 768, 820, 834, 1024, 1280, 1366, 1440, 1536, 1920];
+  var VIEW_H = [568, 667, 740, 768, 800, 812, 844, 852, 896, 900, 932, 1024, 1080, 1112, 1180, 1366];
+  function snapSide(v, list, always, reach) {
+    var best = list.reduce(function (b, x) { return Math.abs(x - v) < Math.abs(b - v) ? x : b; }, list[0]);
+    if (always || Math.abs(best - v) <= reach) return best;
+    return Math.round(v / 10) * 10;
+  }
+
+  /* Play: the screen heights a frame of each width is seen through. */
+  function playHeights(w) {
+    if (w <= 500) return [[667, "Small phone"], [740, "Android"], [812, "Phone"], [844, "Phone"], [932, "Large phone"]];
+    if (w <= 1100) return [[1024, "Tablet, landscape"], [1180, "Tablet"], [1366, "Large tablet"]];
+    return [[768, "Small laptop"], [800, "Laptop"], [900, "Desktop"], [1080, "Full HD"]];
+  }
+  function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
   /* ------------------------------------------------------------ the app */
 
@@ -1010,7 +1122,7 @@
     var selection = selState[0], setSelection = selState[1];
     var hoverState = useState(null);
     var hover = hoverState[0], setHover = hoverState[1];
-    var leftState = useState("assets");
+    var leftState = useState(prefs.left === "layers" || prefs.left === "content" || prefs.left === "configure" ? prefs.left : "assets");
     var left = leftState[0], setLeft = leftState[1];
     var paneState = useState("canvas");
     var pane = paneState[0], setPane = paneState[1];
@@ -1045,6 +1157,7 @@
     var setTray = function (g) { setTrayOpen(g); if (g) setTrayShown(g); };
     var lastState = useState({});
     var lastTool = lastState[0], setLastTool = lastState[1];
+    var pickToolRef = useRef(null);
     /* Picking a tool closes its tray and makes it its group's face. */
     var setTool = function (id) {
       setToolState(id);
@@ -1052,8 +1165,6 @@
       var info = TOOL_INFO[id];
       if (info && info.group) setLastTool(function (l) { var n = Object.assign({}, l); n[info.group] = id; return n; });
     };
-    var sketchState = useState(null);
-    var sketch = sketchState[0], setSketch = sketchState[1];
     var collapsedState = useState({});
     var collapsed = collapsedState[0], setCollapsed = collapsedState[1];
     var readyState = useState({});
@@ -1101,7 +1212,20 @@
 
     var frame = active(doc);
     var sel = selection.length ? selection[selection.length - 1] : null;
-    var layout = layoutOf(doc, heights);
+    var resizeState = useState(null);
+    var resizing = resizeState[0], setResizing = resizeState[1];
+    var shiftState = useState(false);
+    var shiftHeld = shiftState[0], setShiftHeld = shiftState[1];
+    var spacingState = useState(null);
+    var spacing = spacingState[0], setSpacing = spacingState[1];
+    var focusSecState = useState(null);
+    var focusSec = focusSecState[0], setFocusSec = focusSecState[1];
+    var playState = useState(null);
+    var play = playState[0], setPlay = playState[1];
+    var playBoxState = useState({ w: 0, h: 0 });
+    var playBox = playBoxState[0], setPlayBox = playBoxState[1];
+    var playRef = useRef(null), playFrameRef = useRef(null), playStageRef = useRef(null);
+    var layout = layoutOf(doc, heights, resizing);
     var boxes = layout.boxes;
 
     var history = useRef({ past: [], future: [] });
@@ -1122,6 +1246,37 @@
     var dialogRef = useRef(null);
     var importRef = useRef(null);
     var rightRef = useRef(null);
+    var dockRef = useRef(null);
+
+    /* Configure lives in the left panel on this page, not over it. */
+    useEffect(function () {
+      document.documentElement.classList.add("bd-configure-docked");
+      return function () { document.documentElement.classList.remove("bd-configure-docked"); };
+    }, []);
+    var libState = useState(loadLibrary);
+    var library = libState[0], setLibrary = libState[1];
+    var libTabState = useState("images");
+    var libTab = libTabState[0], setLibTab = libTabState[1];
+    var libBusyState = useState(null);
+    var libBusy = libBusyState[0], setLibBusy = libBusyState[1];
+    var libFirst = useRef(true);
+    useEffect(function () {
+      if (libFirst.current) { libFirst.current = false; return; }
+      var ok = storage(function (s) { s.setItem(LIB_KEY, JSON.stringify(library)); return true; });
+      if (!ok) announce("This browser is out of room for content. Remove something, or use smaller files.");
+    }, [library]);
+    var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
+    useEffect(function () {
+      if (!docked) return undefined;
+      var tryDock = function () { var P = window.DovetailConfigurePanel; if (P && P.dock && dockRef.current) P.dock(dockRef.current); };
+      tryDock();
+      window.addEventListener("dovetail:configure-ready", tryDock);
+      return function () {
+        window.removeEventListener("dovetail:configure-ready", tryDock);
+        var P = window.DovetailConfigurePanel;
+        if (P && P.undock) P.undock();
+      };
+    }, [docked]);
     var layersRef = useRef(null);
     var dragRef = useRef(null);
     var justDragged = useRef(false);
@@ -1189,8 +1344,8 @@
       setSaved({ ok: !!ok, at: new Date() });
     }, [doc]);
     useEffect(function () {
-      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tabs: tabByType, closed: closedSecs })); });
-    }, [category, view, tabByType, closedSecs]);
+      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tabs: tabByType, closed: closedSecs, left: left })); });
+    }, [category, view, tabByType, closedSecs, left]);
     var firstDoc = useRef(doc);
     useEffect(function () {
       if (doc !== firstDoc.current && /^#b=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -1398,6 +1553,90 @@
       }
     }, [toStage]);
 
+    /* Shift and a hover: the space between the selection and what's under the
+       pointer, or the padding of a container around it, with the token that
+       makes it. A label opens that token in the inspector. */
+    var SIDES = [["Top", "top"], ["Right", "right"], ["Bottom", "bottom"], ["Left", "left"]];
+    var sideToken = function (node, base, side) {
+      var key = base + side, v = node.style[key] || node.style[base];
+      return v ? { key: v === node.style[key] ? key : base, value: v } : null;
+    };
+    var nearestSpace = function (px) {
+      var r = Math.round(px), hit = null;
+      DATA.tokens.margin.options.forEach(function (o) { var v = pxMap["margin|" + o.value]; if (!hit && v != null && Math.round(v) === r) hit = o.label || o.value; });
+      return hit;
+    };
+    var computeSpacing = function (h, selId) {
+      var d = docRef.current;
+      if (!h || h.f !== d.active) return null;
+      var f = api(h.f);
+      if (!f) return null;
+      var hr = f.rect(h.id);
+      var hat = h.id === "root" ? locate(d, "root") : locate(d, h.id);
+      if (!hr || !hat) return null;
+      var out = [];
+      var line = function (x1, y1, x2, y2, px, name, owner, sec) {
+        if (px < 0.5) return;
+        out.push({ x1: x1, y1: y1, x2: x2, y2: y2, label: Math.round(px) + (name ? " " + name : ""), owner: owner, sec: sec });
+      };
+      var sat = selId && selId !== h.id ? locate(d, selId) : null;
+      var sr = sat ? f.rect(selId) : null;
+      if (sat && sr) {
+        var inside = sat.path.some(function (n) { return n.id === h.id; });
+        if (inside) {
+          /* The container around the selection: its padding, side by side. */
+          var tok = function (side) { var t = sideToken(hat.node, "padding", side); return t ? t.value : null; };
+          var cx0 = sr.left + sr.width / 2, cy0 = sr.top + sr.height / 2;
+          line(cx0, hr.top, cx0, sr.top, sr.top - hr.top, tok("Top"), h.id, "spacing");
+          line(cx0, sr.bottom, cx0, hr.bottom, hr.bottom - sr.bottom, tok("Bottom"), h.id, "spacing");
+          line(hr.left, cy0, sr.left, cy0, sr.left - hr.left, tok("Left"), h.id, "spacing");
+          line(sr.right, cy0, hr.right, cy0, hr.right - sr.right, tok("Right"), h.id, "spacing");
+        } else {
+          /* Two items: the gap between them, which their parent's gap makes when
+             they share one. */
+          var shared = sat.parent && hat.parent && sat.parent.id === hat.parent.id ? sat.parent : null;
+          /* The parent's gap: its own, its specimen's, or the prop's default. */
+          var gapProp = shared && META[shared.type] ? META[shared.type].props.filter(function (p) { return p.name === "gap"; })[0] : null;
+          var gapVal = gapProp ? shared.props.gap || (scalars[shared.type] || {}).gap || gapProp.default : null;
+          var gapName = function (px) { return gapVal ? "gap " + gapVal : nearestSpace(px); };
+          var owner = gapProp ? shared.id : null;
+          var midY = (Math.max(sr.top, hr.top) + Math.min(sr.bottom, hr.bottom)) / 2;
+          var midX = (Math.max(sr.left, hr.left) + Math.min(sr.right, hr.right)) / 2;
+          var yOver = Math.min(sr.bottom, hr.bottom) > Math.max(sr.top, hr.top);
+          var xOver = Math.min(sr.right, hr.right) > Math.max(sr.left, hr.left);
+          var yAt = yOver ? midY : sr.top + sr.height / 2, xAt = xOver ? midX : sr.left + sr.width / 2;
+          if (sr.right <= hr.left) line(sr.right, yAt, hr.left, yAt, hr.left - sr.right, gapName(hr.left - sr.right), owner, "flex");
+          else if (hr.right <= sr.left) line(hr.right, yAt, sr.left, yAt, sr.left - hr.right, gapName(sr.left - hr.right), owner, "flex");
+          if (sr.bottom <= hr.top) line(xAt, sr.bottom, xAt, hr.top, hr.top - sr.bottom, gapName(hr.top - sr.bottom), owner, "flex");
+          else if (hr.bottom <= sr.top) line(xAt, hr.bottom, xAt, sr.top, sr.top - hr.bottom, gapName(sr.top - hr.bottom), owner, "flex");
+        }
+      } else if (h.id !== "root") {
+        /* One item: its own padding, inside its box. */
+        SIDES.forEach(function (sd) {
+          var t = sideToken(hat.node, "padding", sd[0]);
+          if (!t) return;
+          var px = pxMap[t.key + "|" + t.value];
+          if (px == null) return;
+          var cx1 = hr.left + hr.width / 2, cy1 = hr.top + hr.height / 2;
+          if (sd[1] === "top") line(cx1, hr.top, cx1, hr.top + px, px, t.value, h.id, "spacing");
+          if (sd[1] === "bottom") line(cx1, hr.bottom - px, cx1, hr.bottom, px, t.value, h.id, "spacing");
+          if (sd[1] === "left") line(hr.left, cy1, hr.left + px, cy1, px, t.value, h.id, "spacing");
+          if (sd[1] === "right") line(hr.right - px, cy1, hr.right, cy1, px, t.value, h.id, "spacing");
+        });
+      }
+      return out.length ? { fid: h.f, lines: out } : null;
+    };
+    /* Open a token where it lives: select its owner and bring its section in. */
+    var openToken = function (owner, sec) {
+      var d = docRef.current;
+      var at = owner && owner !== "root" ? locate(d, owner) : null;
+      var key = at ? at.node.type : "__frame";
+      select(at ? [owner] : []);
+      setTabByType(function (m) { var n = Object.assign({}, m); n[key] = "layout"; return n; });
+      setClosedSecs(function (c) { if (!c[sec]) return c; var n = Object.assign({}, c); delete n[sec]; return n; });
+      setFocusSec(sec);
+    };
+
     /* A frame that hugs its content follows the content's height. Something
        sized to the window keeps growing with the frame, so a frame stops
        after a few rounds of growth until its tree changes. */
@@ -1449,7 +1688,29 @@
       var own = at.fid === docRef.current.active;
       var hit = f.drop((x - at.r.left) / z, (y - at.r.top) / z, own ? payload.id || null : null, 12 / z);
       if (!hit) return null;
-      return { where: "canvas", frame: at.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
+      var out = { where: "canvas", frame: at.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
+      /* On the frame's own canvas, outside any stack, it lands where it's let go. */
+      var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
+      var type = moving ? moving.node.type : payload.kind === "new" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
+      if (hit.parent === "root" && type && !joinsFlow(type)) {
+        var unit = (f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0]) || 4;
+        var fx = (x - at.r.left) / z, fy = (y - at.r.top) / z;
+        var w = 120, h = 40;
+        var r0 = moving && own ? f.rect(payload.id) : null;
+        if (r0) {
+          w = r0.width; h = r0.height;
+          var sx = (dragRef.current.x - at.r.left) / z, sy = (dragRef.current.y - at.r.top) / z;
+          fx = r0.left + (fx - sx);
+          fy = r0.top + (fy - sy);
+        }
+        fx = Math.max(0, fx); fy = Math.max(0, fy);
+        var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
+        out.free = { x: gx, y: gy };
+        out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at.fid) || frame).root.children.length;
+        out.line = null;
+        out.box = { left: gx * unit, top: gy * unit, width: w, height: h };
+      }
+      return out;
     };
 
     /* A row's top third drops before it, the bottom third after it, and the
@@ -1516,6 +1777,8 @@
     var dragMove = function (x, y) {
       var dr = dragRef.current;
       if (!dr) return;
+      /* A drag the frame started knows where it began from its first move. */
+      if (dr.x === undefined) { dr.x = x; dr.y = y; }
       dr.lastX = x;
       dr.lastY = y;
       setDrag({ label: dr.payload.label, x: x, y: y });
@@ -1543,7 +1806,50 @@
       if (!commitIt || !hit) return;
       var fid = hit.frame || docRef.current.active;
       if (dr.payload.kind === "tool") { placeTool(dr.payload.tool, hit); return; }
-      if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid }); return; }
+      if (dr.payload.kind === "asset") { add("Image", { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }, { src: dr.payload.src, alt: dr.payload.label }); return; }
+      if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
+      /* Moved on its frame's canvas: it keeps its place in the list and takes
+         the new position; from inside a stack, it comes out onto the canvas. */
+      if (hit.free) {
+        var mid = dr.payload.id, pos = hit.free;
+        change(function (d) {
+          var from = locate(d, mid);
+          var dest = frameById(d, fid);
+          if (!from || !dest) return null;
+          var stays = fid === d.active && from.parent && from.parent.id === "root";
+          if (!stays) {
+            from.parent.children.splice(from.index, 1);
+            dest.root.children.push(from.node);
+          }
+          from.node.style.x = pos.x;
+          from.node.style.y = pos.y;
+          delete from.node.style.position;
+          delete from.node.style.anchor;
+          delete from.node.style.offset;
+          d.active = fid;
+          return mid;
+        }, "Placed " + dr.payload.label + " on the canvas");
+        return;
+      }
+      /* Into a stack, it joins the flow again. */
+      var into = locate(docRef.current, dr.payload.id);
+      if (into && isFree(into.node.style)) {
+        var lid = dr.payload.id;
+        change(function (d) {
+          var from = locate(d, lid);
+          var to = locate(d, hit.parent, fid);
+          if (!from || !to || !to.node.children) return null;
+          delete from.node.style.x;
+          delete from.node.style.y;
+          from.parent.children.splice(from.index, 1);
+          var idx = hit.index;
+          if (to.node === from.parent && from.index < idx) idx--;
+          to.node.children.splice(Math.min(idx, to.node.children.length), 0, from.node);
+          d.active = fid;
+          return lid;
+        }, "Moved " + dr.payload.label + " into the flow");
+        return;
+      }
       if (fid !== docRef.current.active) {
         var moving = dr.payload.id;
         var dest = frameById(docRef.current, fid);
@@ -1672,7 +1978,7 @@
         if (rendered.current[f.id] === key) return;
         rendered.current[f.id] = key;
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, spacing: f.spacing, gap: f.gap }, root: f.root }, { preview: preview, hug: f.hug });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap }, root: f.root }, { preview: preview, hug: f.hug });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -1712,6 +2018,36 @@
     }, []);
 
     useEffect(function () { remeasure(); }, [selection, hover, cam, layout.width, layout.height, doc.active, edit && edit.id]);
+    useEffect(function () {
+      if (!play) return undefined;
+      if (playRef.current && !playRef.current.open) playRef.current.showModal();
+      var size = function () { var el = playStageRef.current; if (el) setPlayBox({ w: el.clientWidth, h: el.clientHeight }); };
+      size();
+      window.addEventListener("resize", size);
+      return function () { window.removeEventListener("resize", size); };
+    }, [play && play.fid]);
+
+    /* The spacing stays up while Shift is held, so its labels can be pressed. */
+    useEffect(function () {
+      if (!shiftHeld || drag || preview) { setSpacing(null); return; }
+      if (!hover) return;
+      setSpacing(computeSpacing(hover, sel));
+    }, [shiftHeld, hover && hover.f, hover && hover.id, sel, cam, doc, drag, preview, pxMap]);
+    useEffect(function () {
+      if (!focusSec) return undefined;
+      var t = setTimeout(function () {
+        var el = rightRef.current && rightRef.current.querySelector('[data-sec="' + focusSec + '"]');
+        if (el) {
+          el.scrollIntoView({ block: "nearest" });
+          el.classList.add("is-flash");
+          setTimeout(function () { el.classList.remove("is-flash"); }, 1200);
+          var first = el.querySelector("button, input, [tabindex]");
+          if (first && first.focus) first.focus({ preventScroll: true });
+        }
+        setFocusSec(null);
+      }, 60);
+      return function () { clearTimeout(t); };
+    }, [focusSec]);
     useEffect(function () { if (rightRef.current) rightRef.current.scrollTop = 0; }, [sel, doc.active]);
 
     /* ------------------------------------------------- selecting */
@@ -1808,10 +2144,12 @@
       return { parent: at.parent.id, index: at.index + 1 };
     };
 
-    var add = function (type, where) {
+    var add = function (type, where, props) {
       var t = where || target();
       var fid = t.frame || docRef.current.active;
       var n = make(type);
+      if (props) Object.assign(n.props, props);
+      if (t.free) { n.style.x = t.free.x; n.style.y = t.free.y; }
       /* A row added here stays on one line until it's told to wrap. */
       if (type === "Inline") n.props.wrap = false;
       var parentAt = t.parent === "root" ? null : locate(docRef.current, t.parent, fid);
@@ -1900,9 +2238,10 @@
        only while nothing else has focus. */
     var keyRef = useRef(function () { return false; });
     keyRef.current = function (ev) {
-      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open)) return false;
+      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open)) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+      if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
       if (typing || (t && t.closest && t.closest(".bd-dd-list"))) return false;
       var free = !t || t === document.body || t === document.documentElement || t.ownerDocument !== document || (t.classList && t.classList.contains("bd-stage"));
       var mod = ev.metaKey || ev.ctrlKey;
@@ -1913,8 +2252,8 @@
       if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
       if (previewRef.current) return false;
       if (ev.key === "Escape" && tray) { setTray(null); return true; }
-      if (ev.key === "Escape" && tool !== "select") { setTool("select"); setSketch(null); return true; }
-      if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { setTool(TOOL_KEY[key]); return true; }
+      if (ev.key === "Escape" && tool !== "select") { setTool("select"); return true; }
+      if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { pickToolRef.current(TOOL_INFO[TOOL_KEY[key]]); return true; }
       if (mod && key === "z") { (ev.shiftKey ? redo : undo)(); return true; }
       if (mod && key === "y") { redo(); return true; }
       if (mod && (ev.key === "=" || ev.key === "+")) { zoomStep(1); return true; }
@@ -1935,7 +2274,10 @@
       return false;
     };
     var keyUpRef = useRef(function () {});
-    keyUpRef.current = function (ev) { if (ev.key === " " && spaceRef.current) { spaceRef.current = false; setSpace(false); } };
+    keyUpRef.current = function (ev) {
+      if (ev.key === " " && spaceRef.current) { spaceRef.current = false; setSpace(false); }
+      if (ev.key === "Shift") setShiftHeld(false);
+    };
     useEffect(function () {
       var onKey = function (ev) {
         /* The toolbar renders into the site header, outside the builder's box. */
@@ -1944,7 +2286,7 @@
         if (keyRef.current(ev)) ev.preventDefault();
       };
       var onUp = function (ev) { keyUpRef.current(ev); };
-      var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } };
+      var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } setShiftHeld(false); };
       document.addEventListener("keydown", onKey);
       document.addEventListener("keyup", onUp);
       window.addEventListener("blur", onBlur);
@@ -2336,6 +2678,8 @@
       ].concat(rest);
     };
 
+    var libPicks = library.images.map(function (it) { return Object.assign({ kind: "Image" }, it); })
+      .concat(library.illustrations.map(function (it) { return Object.assign({ kind: "Illustration" }, it); }));
     var propControl = function (p, nodes) {
       var first = nodes[0];
       var id = "bd-p-" + first.id + "-" + p.name;
@@ -2366,7 +2710,12 @@
                 reader.onload = function () { set(String(reader.result)); announce("Uploaded " + file.name + ". It stays in this browser and isn't in share links."); };
                 reader.readAsDataURL(file);
               } }),
-            src ? e("button", { type: "button", className: "bd-btn", onClick: function () { set(undefined); } }, e(Icon, { name: "close" }), "Clear") : null),
+            src ? e("button", { type: "button", className: "bd-btn", onClick: function () { set(undefined); } }, e(Icon, { name: "close" }), "Clear") : null,
+            libPicks.length && !(first.type === "Video" && p.name === "src") ? e(Dropdown, { menu: true, label: "Pick from Content", placeholder: "From Content", compact: true, className: "bd-media-pick",
+              options: libPicks.map(function (it) { return { value: it.id, label: it.name, hint: it.kind }; }),
+              onChange: function (v) { var it = libPicks.filter(function (x) { return x.id === v; })[0]; if (it) { set(it.src); announce("Picked " + it.name); } } }) : null,
+            src && !isVideo && !mixed ? e("button", { type: "button", className: "bd-btn", disabled: !!libBusy, title: "Cut a plain backdrop out of this picture",
+              onClick: function () { cutBackground(src).then(function (url) { if (url) set(url); }); } }, e(Icon, { name: "wand" }), "Remove background") : null),
           e("input", { className: "bd-input", type: "url", "aria-label": label + " URL", placeholder: mixed ? "Mixed" : "or paste a URL", value: /^data:/.test(src) ? "" : src,
             onChange: function (ev) { var v = ev.target.value.trim(); set(v && MEDIA_URL.test(v) ? v : undefined); } }));
         return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control);
@@ -2395,6 +2744,104 @@
 
 
     /* ------------------------------------------------- the panels */
+
+    /* Content: images, illustrations and icons to reuse, and the icon library
+       the system draws with. Video comes later. */
+    var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
+    var addToLibrary = function (kind, files) {
+      var list = Array.prototype.slice.call(files || []);
+      if (!list.length) return;
+      setLibBusy("Adding " + (list.length > 1 ? list.length + " files" : list[0].name) + "…");
+      Promise.all(list.map(function (f) {
+        return readForLibrary(f, kind).then(function (src) { return { id: uid(), name: f.name.replace(/\.[a-z0-9]+$/i, ""), src: src }; }, function (err) { announce(err.message); return null; });
+      })).then(function (made) {
+        made = made.filter(Boolean);
+        setLibBusy(null);
+        if (!made.length) return;
+        setLibrary(function (l) { var n = Object.assign({}, l); n[kind] = made.concat(l[kind]); return n; });
+        announce("Added " + made.length + " to " + kind + ". They stay in this browser.");
+      });
+    };
+    var libUpdate = function (kind, id, patch) {
+      setLibrary(function (l) {
+        var n = Object.assign({}, l);
+        n[kind] = l[kind].map(function (it) { return it.id === id ? Object.assign({}, it, patch) : it; }).filter(function (it) { return !it.removed; });
+        return n;
+      });
+    };
+    /* Cuts a plain backdrop out of an image, in place; the original is kept to
+       put back. */
+    var cutBackground = function (src) {
+      setLibBusy("Removing the background…");
+      return remover().then(function (R) { return R.remove(src, {}); }).then(function (res) {
+        setLibBusy(null);
+        announce("Background removed: " + Math.round(res.removed * 100) + "% of the picture is now see-through.");
+        return res.dataUrl;
+      }, function (err) {
+        setLibBusy(null);
+        announce(err.message || "Couldn't remove the background.");
+        return null;
+      });
+    };
+    var insertAsset = function (it) {
+      add("Image", null, { src: it.src, alt: it.name });
+      announce("Added " + it.name + " to " + frame.name);
+    };
+    var contentPanel = function () {
+      var kind = libTab;
+      var items = kind === "video" ? [] : library[kind];
+      var fileId = "bd-lib-file";
+      var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
+      var icons = (window.DovetailConfigure && window.DovetailConfigure.icons) || {};
+      return e("div", { className: "bd-content",
+        onDragOver: function (ev) { if (kind !== "video") { ev.preventDefault(); ev.currentTarget.classList.add("is-drop"); } },
+        onDragLeave: function (ev) { ev.currentTarget.classList.remove("is-drop"); },
+        onDrop: function (ev) { ev.preventDefault(); ev.currentTarget.classList.remove("is-drop"); if (kind !== "video") addToLibrary(kind, ev.dataTransfer.files); } },
+        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+        e("div", { className: "bd-content-tabs" },
+          e(Segmented, { label: "Kind of content", wide: true, value: kind, onChange: function (v) { if (v) setLibTab(v); },
+            options: LIB_TABS.map(function (t) { return { value: t[0], label: t[1], title: t[0] === "video" ? "Video: coming soon" : t[1] }; }) })),
+        kind === "icons" ? e("section", { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
+          e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
+          e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
+          e("div", { className: "bd-iconlibs", role: "radiogroup", "aria-labelledby": "bd-iconlib" },
+            Object.keys(icons).concat(["custom"]).map(function (k) {
+              var info = icons[k] || { label: "Custom", note: "Your own set, named in Configure's Media group." };
+              return e("button", { key: k, type: "button", role: "radio", className: "bd-iconlib", "aria-checked": String(lib === k),
+                onClick: function () { if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) { window.DovetailConfigurePanel.setIconLib(k); setThemeStamp(function (n) { return n + 1; }); } } },
+                e("span", { className: "bd-iconlib-name" }, info.label), e("span", { className: "bd-iconlib-note" }, info.note));
+            }))) : null,
+        kind === "video"
+          ? e("div", { className: "bd-empty" }, e(Icon, { name: "video" }), e("p", null, "Video is coming soon. For now, add a Video component from Assets and give it a file or a URL."))
+          : e("section", { className: "bd-content-sec", "aria-label": "Your " + kind },
+              kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
+              e("div", { className: "bd-content-add" },
+                e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind)),
+                e("input", { id: fileId, type: "file", multiple: true, className: "visually-hidden", accept: kind === "icons" ? "image/svg+xml,.svg" : "image/*",
+                  onChange: function (ev) { var f = ev.target.files; addToLibrary(kind, f); ev.target.value = ""; } }),
+                e("span", { className: "bd-content-note" }, "or drop files here")),
+              libBusy ? e("p", { className: "bd-content-busy", role: "status" }, libBusy) : null,
+              items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function (it) {
+                return e("li", { key: it.id, className: "bd-lib-item" },
+                  e("button", { type: "button", className: "bd-lib-thumb", title: it.name + ": drag onto a frame, or press to add",
+                    onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name }); },
+                    onClick: function () { if (!justDragged.current) insertAsset(it); } },
+                    e("img", { src: it.src, alt: "", draggable: false })),
+                  e("span", { className: "bd-lib-name" }, it.name),
+                  e(Dropdown, { menu: true, label: "Actions for " + it.name, icon: "more", compact: true, narrow: true, className: "bd-dd-icon bd-lib-menu",
+                    options: [{ value: "insert", label: "Add to " + frame.name, icon: "plus" }]
+                      .concat(kind !== "icons" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : [])
+                      .concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : [])
+                      .concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
+                    onChange: function (v) {
+                      if (v === "insert") insertAsset(it);
+                      else if (v === "cut") cutBackground(it.src).then(function (url) { if (url) libUpdate(kind, it.id, { src: url, original: it.original || it.src }); });
+                      else if (v === "restore") libUpdate(kind, it.id, { src: it.original, original: undefined });
+                      else if (v === "delete") libUpdate(kind, it.id, { removed: true });
+                    } }));
+              })) : e("div", { className: "bd-empty" }, e(Icon, { name: LIB_TABS.filter(function (t) { return t[0] === kind; })[0][2] }),
+                e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : "Upload " + kind + " to reuse them: drag one onto a frame, or pick it for an Image."))));
+    };
 
     var assetsPanel = function () {
       var q = query.trim().toLowerCase();
@@ -2563,9 +3010,18 @@
     };
 
     /* A section that remembers whether it's folded, per title. */
-    var sec = function (key, title, children, action) {
-      return e(Section, { key: key, id: key, title: title, action: action, closed: !!closedSecs[key],
+    var sec = function (key, title, children, action, changed) {
+      return e(Section, { key: key, id: key, title: title, action: action, changed: changed, closed: !!closedSecs[key],
         onToggle: function () { setClosedSecs(function (c) { var n = Object.assign({}, c); if (n[key]) delete n[key]; else n[key] = true; return n; }); } }, children);
+    };
+    /* Whether a section holds anything set on these items, for its dot. */
+    var SPACING_KEYS = Object.keys(DATA.tokens).filter(function (k) { return DATA.tokens[k].section === "spacing"; });
+    var styled = function (nodes, keys) { return nodes.some(function (n) { return keys.some(function (k) { return n.style[k] !== undefined; }); }); };
+    var propsSet = function (nodes, names) {
+      return nodes.some(function (n) {
+        var base = scalars[n.type] || {};
+        return names.some(function (k) { var v = n.props[k]; return v !== undefined && v !== base[k]; });
+      });
     };
     var headAction = function (icon, label, onClick, pressed) {
       return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label, "aria-label": label, "aria-pressed": pressed === undefined ? undefined : String(pressed), onClick: onClick }, e(Icon, { name: icon }));
@@ -2582,10 +3038,10 @@
       var darkValues = nodes.map(function (n) { return !!n.style.dark; });
       var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
       return [
-        sec("fill", "Fill", [extra || null, tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" })]),
+        sec("fill", "Fill", [extra || null, tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" })], null, styled(nodes, ["surface"])),
         sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
           hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
-            : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); })),
+            : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),
         sec("corners", "Corners and shadow", [
           e(Field, { key: "radius", id: rid, label: "Radius" },
             e(Segmented, { labelledBy: rid, wide: true, clearable: true, className: "bd-seg-pics", value: same(radiusValues) ? radiusValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "radius", v); },
@@ -2593,10 +3049,10 @@
           e(Field, { key: "shadow", id: sid, label: "Shadow" },
             e(Segmented, { labelledBy: sid, wide: true, clearable: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "elevation", v); },
               options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) })),
-        ]),
+        ], null, styled(nodes, ["radius", "elevation"])),
         sec("mode", "Mode", e(Field, { id: mid, label: "Colour mode", hint: darkValues[0] && same(darkValues) ? "Adds the dark class: everything inside resolves dark." : null },
           e(Segmented, { labelledBy: mid, wide: true, value: same(darkValues) ? (darkValues[0] ? "dark" : "inherit") : null, onChange: function (v) { setStyle(ids, "dark", v === "dark" ? true : undefined); },
-            options: [{ value: "inherit", label: "Inherit" }, { value: "dark", label: "Dark band" }] }))),
+            options: [{ value: "inherit", label: "Inherit" }, { value: "dark", label: "Dark band" }] })), null, styled(nodes, ["dark"])),
       ];
     };
 
@@ -2605,6 +3061,19 @@
     var POSITION_DEFAULT_ANCHOR = { sticky: "", pinned: "bottom-right", floating: "top-right" };
     var positionRows = function (nodes) {
       var ids = nodes.map(function (n) { return n.id; });
+      /* Placed freely on the frame: where, in pixels of the smallest inset step. */
+      if (nodes.every(function (n) { return isFree(n.style); })) {
+        var unit = pxMap["padding|2xs"] || 4;
+        var xs = nodes.map(function (n) { return n.style.x; }), ys = nodes.map(function (n) { return n.style.y; });
+        var fid2 = "bd-free-" + nodes[0].id;
+        return [
+          e(Field, { key: "free", id: fid2, label: "On the canvas", hint: "Placed where it was dropped, in steps of --dt-space-inset-2xs (" + Math.round(unit) + "px). Drag it to move it, or drop it into a stack to join the flow." },
+            e("div", { className: "bd-size-row" },
+              e(NumberField, { short: "X", label: "X position", value: same(xs) ? Math.round(xs[0] * unit) : "", onChange: function (v) { setStyles(ids, { x: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }),
+              e(NumberField, { short: "Y", label: "Y position", value: same(ys) ? Math.round(ys[0] * unit) : "", onChange: function (v) { setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }))),
+          e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined }); } }, "Put it in the flow"),
+        ];
+      }
       var pv = nodes.map(function (n) { return n.style.position || ""; });
       var av = nodes.map(function (n) { return n.style.anchor || ""; });
       var position = same(pv) ? pv[0] : null;
@@ -2637,8 +3106,15 @@
             e(Field, { key: "mode", id: "bd-fr-mode", label: "Mode" },
               e(Segmented, { labelledBy: "bd-fr-mode", wide: true, value: frame.dark ? "dark" : "light", onChange: function (v) { setFrame("dark", v === "dark"); },
                 options: [{ value: "light", label: "Light", picture: e(React.Fragment, null, e(Icon, { name: "sun" }), "Light") }, { value: "dark", label: "Dark", picture: e(React.Fragment, null, e(Icon, { name: "moon" }), "Dark") }] })),
-            e(Field, { key: "fill", id: "bd-pg-surface", label: "Fill" },
-              e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.surface, preview: "color", className: "bd-dd-field bd-dd-swatch", onChange: function (v) { setFrame("surface", v || "base"); }, options: surfaceOptions })),
+            e(Field, { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : null },
+              e("div", { className: "bd-canvas-row" },
+                e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.canvas ? "" : frame.surface, placeholder: "Custom", preview: "color", className: "bd-dd-field bd-dd-swatch",
+                  onChange: function (v) { change(function (d) { var f = active(d); f.surface = v || "base"; delete f.canvas; return undefined; }); }, options: surfaceOptions }),
+                e("label", { className: cx("bd-canvas-custom", frame.canvas && "is-on"), title: "A custom canvas colour" },
+                  e("span", { className: "bd-canvas-chip", style: frame.canvas ? { background: frame.canvas } : undefined, "aria-hidden": true }),
+                  e("span", { className: "visually-hidden" }, "Custom canvas colour"),
+                  e("input", { type: "color", className: "bd-canvas-input", value: frame.canvas || "#ffffff",
+                    onChange: function (ev) { var v = ev.target.value; if (/^#[0-9a-f]{6}$/i.test(v)) setFrame("canvas", v.toLowerCase()); } })))),
           ])]
         : [          sec("frame-flow", "Page layout", [
             e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
@@ -2697,16 +3173,17 @@
       var have = { appearance: true, layout: true, content: contentRows.length > 0 };
       var current = pickTab(have);
       var body;
-      if (current === "content") body = [sec("content", "Content", contentRows)];
+      var propNames = function (t) { return byTab(t).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
+      if (current === "content") body = [sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content")))];
       else if (current === "layout") {
         body = [
-          flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex) : null,
-          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)]),
-          sec("spacing", "Spacing", boxModel(nodes)),
-          sec("position", "Position", positionRows(nodes)),
+          flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self"])),
+          sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
+          sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
         ];
       } else {
-        body = [styleRows.length ? sec("style", "Style", styleRows) : null]
+        body = [styleRows.length ? sec("style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null]
           .concat(lookSections(nodes, toned ? e("p", { key: "note", className: "bd-note" }, "Tone, under Style, paints this one's own background. Fill sits underneath it.") : null));
       }
       var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
@@ -2758,11 +3235,6 @@
       e("span", { className: "bd-tool-group" },
         e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
         e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))),
-      e("button", { type: "button", className: "bd-act", onClick: function () { frameOps.add(); }, title: "New frame", "aria-label": "New frame" }, e(Icon, { name: "plus" })),
-      e(Dropdown, { label: "Frame size, " + frame.name, value: presetOf(frame), placeholder: frame.width + " × " + (frame.hug ? "hug" : frame.height), compact: true, iconValue: true, className: "bd-frame-size", onChange: setPreset,
-        options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) }),
-      e("button", { type: "button", className: "bd-act", "aria-pressed": String(frame.dark), title: frame.dark ? "Dark. Switch to light" : "Light. Switch to dark", "aria-label": "Dark mode",
-        onClick: function () { setFrame("dark", !frame.dark); } }, e(Icon, { name: frame.dark ? "moon" : "sun" })),
       e(Dropdown, { menu: true, label: "Zoom, " + zoomText, placeholder: zoomText, compact: true, narrow: true, className: "bd-zoom", icon: "zoomIn",
         options: [
           { value: "in", label: "Zoom in", hint: "Ctrl +" }, { value: "out", label: "Zoom out", hint: "Ctrl −" },
@@ -2775,19 +3247,14 @@
       e("span", { className: "bd-tool-spacer" }),
       e("span", { className: cx("bd-saved", !saved.ok && "is-error"), title: savedTitle, role: "status" }, e(Icon, { name: saved.ok ? "check" : "alert" }), e("span", { className: "bd-saved-text" }, savedText)),
       wide ? e("button", { type: "button", className: "bd-act", "aria-pressed": String(bare), title: (bare ? "Show" : "Hide") + " panels (Tab)", "aria-label": "Hide panels", onClick: actions.panels }, e(Icon, { name: "panels" })) : null,
+      e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function () { openPlay(); } }, e(Icon, { name: "play" })),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
       e("button", { type: "button", className: "bd-act", onClick: share, title: "Copy a share link", "aria-label": "Share" }, e(Icon, { name: "link" })),
       e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: openCode, disabled: !ready[frame.id] }, e(Icon, { name: "code" }), "Code"));
 
     /* ------------------------------------------------- drawing */
 
-    var STEPS = DATA.tokens.w.options.map(function (o) { var m = /^x(\d+)$/.exec(o.value); return m ? Number(m[1]) : null; }).filter(Boolean);
-    var snapStep = function (px, unit) {
-      var n = px / unit;
-      return "x" + STEPS.reduce(function (best, st) { return Math.abs(st - n) < Math.abs(best - n) ? st : best; }, STEPS[0]);
-    };
-    /* What each tool puts down. A drag gives it a size in whole steps of the
-       large control size; a click gives it a sensible one. */
+    /* What each tool puts down. */
     var toolNode = function (kind, size) {
       if (kind === "box") {
         var box = make("Group", { direction: "column", gap: "sm" }, [], { padding: "md", border: "subtle", radius: "container" });
@@ -2802,76 +3269,43 @@
       }
       return null;
     };
-    /* A tool dropped at a point a drag resolved, in that frame. */
+    /* A tool dropped at a point a drag resolved, in that frame; with no
+       point, a click on the bar, into the selection or the active frame. */
     var placeTool = function (kind, hit) {
+      if (kind === "frame" || kind === "page") { frameOps.add(null, kind === "page"); return; }
       var node = toolNode(kind, null);
       if (!node) return;
+      if (!hit) hit = target();
+      if (hit.free) node.style.x = hit.free.x, node.style.y = hit.free.y;
       var fid = hit.frame || docRef.current.active;
       var fr = frameById(docRef.current, fid);
       change(function (d) { d.active = fid; return ops.insert(d, hit.parent, hit.index, node, fid); }, "Added " + (node.type === "Shape" ? node.props.shape : node.type) + (fr ? " to " + fr.name : ""));
       if (kind === "comp:Text" || kind === "comp:Heading") setTimeout(function () { beginEditRef.current(node.id); }, 350);
     };
-    var finishSketch = function (sk) {
-      var z = camRef.current.z;
-      var dx = Math.abs(sk.x1 - sk.x0), dy = Math.abs(sk.y1 - sk.y0);
-      var dragged = dx > 6 || dy > 6;
-      var kind = sk.tool;
-      setTool("select");
-      if (kind === "frame" || kind === "page") {
-        frameOps.add(dragged ? { width: Math.round(dx / z / 10) * 10, height: Math.round(dy / z / 10) * 10 } : null, kind === "page");
-        return;
-      }
-      var sr = stageRef.current.getBoundingClientRect();
-      var cx = sr.left + Math.min(sk.x0, sk.x1), cy = sr.top + Math.min(sk.y0, sk.y1);
-      var at = frameAt(cx + 1, cy + 1);
-      var f = at && api(at.fid);
-      if (!f) { announce("Draw inside a frame. The frame tool adds a new one."); return; }
-      var hit = f.drop((cx + 1 - at.r.left) / z, (cy + 1 - at.r.top) / z, null, 12 / z);
-      var fr = frameById(docRef.current, at.fid);
-      if (!hit) hit = { parent: "root", index: fr.root.children.length };
-      var unit = f.unit ? f.unit() : 48;
-      var node = toolNode(kind, dragged ? { w: snapStep(dx / z, unit), h: snapStep(dy / z, unit) } : null);
-      if (!node) return;
-      var where = hit.parent === "root" ? fr.name : ((locate(docRef.current, hit.parent, at.fid) || { node: { type: "it" } }).node.type);
-      change(function (d) { d.active = at.fid; return ops.insert(d, hit.parent, hit.index, node, at.fid); }, "Added " + (node.type === "Shape" ? node.props.shape : node.type) + " to " + where);
-      if (kind === "comp:Text" || kind === "comp:Heading") setTimeout(function () { beginEditRef.current(node.id); }, 350);
-    };
-    var drawHandlers = {
+    /* Hand: a drag anywhere on the canvas pans it. */
+    var handHandlers = {
       onPointerDown: function (ev) {
         ev.stopPropagation();
         ev.preventDefault();
         releaseFocus();
         try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
-        if (tool === "hand" || spaceRef.current || ev.button === 1) { gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); return; }
-        if (ev.button !== 0) return;
-        var p = stageXY(ev.clientX, ev.clientY);
-        setSketch({ tool: tool, id: ev.pointerId, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
+        gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
       },
-      onPointerMove: function (ev) {
-        if (gest.current.pts[ev.pointerId]) { gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); return; }
-        if (!sketch || sketch.id !== ev.pointerId) return;
-        var p = stageXY(ev.clientX, ev.clientY);
-        setSketch(Object.assign({}, sketch, { x1: p.x, y1: p.y }));
-      },
-      onPointerUp: function (ev) {
-        if (gest.current.pts[ev.pointerId]) { gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); return; }
-        if (!sketch || sketch.id !== ev.pointerId) return;
-        var p = stageXY(ev.clientX, ev.clientY);
-        var done = Object.assign({}, sketch, { x1: p.x, y1: p.y });
-        setSketch(null);
-        finishSketch(done);
-      },
-      onPointerCancel: function (ev) {
-        if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
-        setSketch(null);
-      },
+      onPointerMove: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+      onPointerUp: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+      onPointerCancel: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
     };
     var usable = function (it) { var m = /^comp:(\w+)$/.exec(it.id); return !m || !placeable || placeable[m[1]]; };
+    /* Select and Hand are modes; everything else goes straight in. Drag one
+       from the bar to put it exactly where it should go. */
     var pickTool = function (it) {
       if (it.soon) { announce(it.label + " are coming soon."); return; }
-      setTool(it.id);
-      announce(it.label + (it.id === "select" || it.id === "hand" ? "" : it.id === "frame" || it.id === "page" ? ": press or drag on the canvas" : ": press or drag on a frame"));
+      if (it.id === "select" || it.id === "hand") { setTool(it.id); announce(it.label); return; }
+      setLastTool(function (m) { var n = Object.assign({}, m); n[it.group || TOOL_INFO[it.id].group] = it.id; return n; });
+      setTray(null);
+      placeTool(it.id, null);
     };
+    pickToolRef.current = pickTool;
     var shownGroup = TOOLBAR.filter(function (t) { return t && t.group === trayShown; })[0];
     /* Press to pick; press and drag to drop the thing itself on the canvas. */
     var toolDrag = function (it) {
@@ -2913,6 +3347,66 @@
             onClick: function () { if (!justDragged.current) setTray(tray === t.group ? null : t.group); },
           }, e(Icon, { name: face.icon }), e("span", { className: "bd-tool-caret", "aria-hidden": true }));
         })));
+
+    /* A frame's right and bottom edges, and its corner, drag to resize it. A
+       page lands on a standard viewport size; a frame snaps to one nearby. */
+    var startResize = function (ev, f, edge) {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      releaseFocus();
+      /* Captured, so the pointer stays with the handle over the frames. */
+      try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      var b = layoutRef.current.boxes[f.id];
+      var z = camRef.current.z;
+      var start = { x: ev.clientX, y: ev.clientY, w: f.width, h: b.h };
+      var cur = null;
+      var move = function (mv) {
+        var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
+        var w = edge === "b" ? start.w : Math.max(MIN_SIDE, Math.min(MAX_WIDTH, snapSide(start.w + dx, VIEW_W, f.hug, 16 / z)));
+        var h = edge === "r" ? null : Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, snapSide(start.h + dy, VIEW_H, f.hug, 16 / z)));
+        cur = { fid: f.id, w: w, h: h };
+        setResizing(cur);
+      };
+      var up = function (ok) {
+        return function () {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", onUp);
+          window.removeEventListener("pointercancel", onCancel);
+          setResizing(null);
+          if (!ok || !cur) return;
+          var done = cur;
+          change(function (d) {
+            var fr = frameById(d, f.id);
+            if (!fr) return null;
+            fr.width = done.w;
+            if (done.h != null) { fr.height = done.h; fr.hug = false; }
+            d.active = f.id;
+            return undefined;
+          }, f.name + " is " + done.w + " by " + (done.h != null ? done.h : "its content"));
+        };
+      };
+      var onUp = up(true), onCancel = up(false);
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
+    };
+    var sizeName = function (w, h) {
+      var p = PRESETS.filter(function (x) { return x.width === w && (h == null || x.height === h); })[0];
+      return w + " × " + (h == null ? "hug" : h) + (p ? " · " + p.label : "");
+    };
+    var resizers = e("div", { className: "bd-resizers", "aria-hidden": true },
+      doc.frames.map(function (f) {
+        var b = boxes[f.id];
+        if (!b) return null;
+        var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
+        var r = resizing && resizing.fid === f.id ? resizing : null;
+        return e(React.Fragment, { key: f.id },
+          e("div", { className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } }),
+          e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H - 4, width: W }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "b"); } }),
+          e("div", { className: "bd-resize is-c", style: { left: X + W - 7, top: Y + H - 7 }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "c"); } }),
+          r ? e("div", { className: "bd-resize-tag", style: { left: X + W, top: Y + H } }, sizeName(r.w, r.h != null ? r.h : f.hug ? null : f.height)) : null);
+      }));
 
     var isBackground = function (t) { return t === stageRef.current || (t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"))); };
     var frameSrc = mountEl.getAttribute("data-frame");
@@ -2983,14 +3477,53 @@
         }) : null,
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
         marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
-      !preview && tool !== "select" ? e("div", Object.assign({ className: cx("bd-draw", tool === "hand" ? "is-hand" : "is-draw") }, drawHandlers)) : null,
-      sketch && sketch.tool !== "hand" ? e("div", { className: "bd-sketch", "aria-hidden": true,
-        style: { left: Math.min(sketch.x0, sketch.x1), top: Math.min(sketch.y0, sketch.y1), width: Math.abs(sketch.x1 - sketch.x0), height: Math.abs(sketch.y1 - sketch.y0) } }) : null,
+      spacing ? e("div", { className: "bd-spacing" }, spacing.lines.map(function (l, i) {
+        var r = toStage({ left: Math.min(l.x1, l.x2), top: Math.min(l.y1, l.y2), width: Math.abs(l.x2 - l.x1), height: Math.abs(l.y2 - l.y1) }, spacing.fid);
+        if (!r) return null;
+        var across = Math.abs(l.x2 - l.x1) >= Math.abs(l.y2 - l.y1);
+        return e(React.Fragment, { key: i },
+          e("div", { className: cx("bd-spacing-line", across ? "is-x" : "is-y"), style: across ? { left: r.left, top: r.top, width: r.width } : { left: r.left, top: r.top, height: r.height }, "aria-hidden": true }),
+          e("button", { type: "button", className: "bd-spacing-tag", disabled: !l.owner, title: l.owner ? "Open this in the inspector" : "Not set by a token on either item",
+            style: { left: r.left + (across ? r.width / 2 : 0), top: r.top + (across ? 0 : r.height / 2) },
+            onPointerDown: function (ev) { ev.stopPropagation(); },
+            onClick: function () { if (l.owner) openToken(l.owner, l.sec); } }, l.label));
+      })) : null,
+      !preview && tool === "hand" ? e("div", Object.assign({ className: "bd-draw is-hand" }, handHandlers)) : null,
+      !preview ? resizers : null,
       !preview ? tools : null,
       edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
       wide && bare && !preview ? e("button", { type: "button", className: "bd-float", onClick: actions.panels, title: "Show panels (Tab)" }, e(Icon, { name: "panels" }), "Show panels") : null,
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
+
+    /* Play: the frame through a screen-sized window. It scrolls inside, so
+       sticky, pinned and floating items behave as they would on a device. */
+    var openPlay = function () { setPlay({ fid: frame.id, h: playDefault(frame.width) }); };
+    var renderPlay = function () {
+      var el = playFrameRef.current;
+      var fr = play && frameById(docRef.current, play.fid);
+      var a = null;
+      try { a = el && el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { a = null; }
+      if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap }, root: fr.root }, { preview: true, hug: false });
+    };
+    var playDialog = function () {
+      var fr = play && frameById(doc, play.fid);
+      if (!fr) return null;
+      var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, (playBox.h - 32) / play.h) : 0.5;
+      var hs = playHeights(fr.width);
+      return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: function () { setPlay(null); } },
+        e("div", { className: "bd-play-head" },
+          e("div", { className: "bd-play-intro" },
+            e("h2", { id: "bd-play-title" }, "Play: " + fr.name),
+            e("p", { className: "bd-inspect-sub" }, fr.width + " wide, seen " + play.h + " tall. Scroll inside it; pinned and sticky items stay put the way they would on the device.")),
+          e(Segmented, { label: "Screen height", value: play.h, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { h: v })); },
+            options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) }),
+          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function () { playRef.current.close(); } }, e(Icon, { name: "close" }))),
+        e("div", { className: "bd-play-stage", ref: playStageRef },
+          e("div", { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
+            e("iframe", { ref: playFrameRef, src: frameSrc, title: fr.name + ", " + fr.width + " by " + play.h, onLoad: renderPlay,
+              style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))));
+    };
 
     var importDialog = function () {
       var read = readLayout(importText);
@@ -3033,11 +3566,15 @@
             t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
         })),
       e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane },
-        e("aside", { className: "bd-left", "aria-label": "Assets and layers", hidden: hidePanels || undefined },
-          e("div", { className: "bd-left-tabs", role: "tablist", "aria-label": "Left panel" },
-            e("button", { type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === "assets"), onClick: function () { setLeft("assets"); } }, e(Icon, { name: "plus" }), "Assets"),
-            e("button", { type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === "layers"), onClick: function () { setLeft("layers"); } }, e(Icon, { name: "blocks" }), "Layers")),
-          e("div", { className: "bd-left-body" }, left === "assets" ? assetsPanel() : layersPanel())),
+        e("aside", { className: "bd-left", "aria-label": "Assets, layers, content and configure", hidden: hidePanels || undefined },
+          e("div", { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
+            RAIL.map(function (r) {
+              return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === r[0]), "aria-controls": "bd-left-body", title: r[2],
+                onClick: function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
+            })),
+          e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
+            left === "assets" ? assetsPanel() : left === "layers" ? layersPanel() : left === "content" ? contentPanel()
+              : e("div", { className: "bd-config-dock", ref: dockRef }))),
         e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
       drag ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
@@ -3053,6 +3590,7 @@
             e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
       importDialog(),
+      playDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
   }
 

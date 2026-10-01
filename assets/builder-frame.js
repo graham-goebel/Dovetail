@@ -72,6 +72,10 @@
      character with everything else. */
   var ROOT_GAP = { related: "--dt-layout-stack-related", group: "--dt-layout-stack-group", block: "--dt-layout-stack-block", section: "--dt-layout-stack-section" };
 
+  /* Something placed freely on a frame sits at x and y steps of the smallest
+     inset, over the flow, instead of in it. */
+  var FREE_UNIT = "var(--dt-space-inset-2xs)";
+  function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
   function styleFor(st) {
     if (!st) return null;
     var out = null;
@@ -80,6 +84,12 @@
       var o = DATA.tokens[k].options.filter(function (x) { return x.value === st[k]; })[0];
       if (o) out = Object.assign(out || {}, o.css);
     });
+    if (isFree(st)) {
+      out = Object.assign(out || {}, { position: "absolute", left: "calc(" + FREE_UNIT + " * " + st.x + ")", top: "calc(" + FREE_UNIT + " * " + st.y + ")", margin: "0" });
+      delete out.right;
+      delete out.bottom;
+      delete out.transform;
+    }
     return out;
   }
 
@@ -158,11 +168,11 @@
     if (node.type === "Group") {
       var gp = node.props || {};
       var gkids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
-      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", style: { display: "contents" } },
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: Object.assign(groupStyle(gp), styleFor(node.style) || {}) }, gkids));
     }
     if (node.type === "Shape") {
-      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", style: { display: "contents" } },
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: shapeStyle(node), role: "presentation" }));
     }
     var Comp = NS[node.type];
@@ -173,7 +183,7 @@
       kids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
     }
     var el = kids === undefined ? e(Comp, p) : e(Comp, p, kids);
-    return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": node.type, style: { display: "contents" } },
+    return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": node.type, "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
       e(Guard, { stamp: stamp, name: node.type }, el));
   }
 
@@ -183,7 +193,19 @@
   /* React commits on its own schedule, so the builder hears about a new
      layout from here, after the canvas has really changed. */
   function Painted(props) {
-    React.useLayoutEffect(function () { if (host()) host().moved(); });
+    React.useLayoutEffect(function () {
+      /* Free items don't push a hugging frame open, so it grows to them here. */
+      var rootEl = mount.firstElementChild;
+      if (rootEl) {
+        var need = 0;
+        if (opts.hug) {
+          var top = rootEl.getBoundingClientRect().top;
+          Array.prototype.forEach.call(rootEl.querySelectorAll("[data-bf-free] > *"), function (el) { need = Math.max(need, el.getBoundingClientRect().bottom - top); });
+        }
+        rootEl.style.minHeight = need ? Math.ceil(need) + "px" : "";
+      }
+      if (host()) host().moved();
+    });
     return props.children;
   }
 
@@ -204,7 +226,10 @@
     html.style.overflow = opts.hug ? "hidden" : "";
     /* While editing, a finger pans and pinches the builder's canvas. */
     html.style.touchAction = opts.preview ? "" : "none";
-    var style = { background: "var(--dt-surface-" + (page.surface || "base") + ")", color: "var(--dt-text-primary)" };
+    /* A custom canvas colour is the one raw value a frame takes: the page's own
+       backdrop, outside the system. */
+    var canvas = /^#[0-9a-f]{6}$/i.test(page.canvas || "") ? page.canvas : null;
+    var style = { background: canvas || "var(--dt-surface-" + (page.surface || "base") + ")", color: "var(--dt-text-primary)" };
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
     root.render(e(Painted, null, e("div", { className: cls.join(" "), "data-layout": page.spacing || undefined, "data-bf-id": "root", style: style }, kids)));
@@ -578,7 +603,8 @@
     var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
     var page = tree.page || {};
     var kids = tree.root.children.map(function (c) { return block(c, used, "      "); });
-    var rootStyle = ["background: \"var(--dt-surface-" + (page.surface || "base") + ")\""];
+    var rootStyle = ["background: \"" + (/^#[0-9a-f]{6}$/i.test(page.canvas || "") ? page.canvas : "var(--dt-surface-" + (page.surface || "base") + ")") + "\""];
+    if (tree.root.children.some(function (c) { return isFree(c.style); })) rootStyle.push("position: \"relative\"");
     if (page.gap && ROOT_GAP[page.gap]) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
     var cls = page.dark ? "dark" : "";
     var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
