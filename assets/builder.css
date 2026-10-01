@@ -543,6 +543,277 @@ kbd {
   outline-offset: var(--dt-focus-ring-offset);
 }
 
+/* Inspector fields: filled, borderless until hovered or focused, with a
+   short label inside where a picture or a letter says enough. */
+.bd-right .bd-dd,
+.bd-right .bd-input,
+.bd-right .bd-num {
+  border-color: transparent;
+  background: var(--dt-surface-sunken);
+}
+
+.bd-right .bd-dd:hover,
+.bd-right .bd-input:hover,
+.bd-right .bd-num:hover {
+  border-color: var(--dt-border-default);
+}
+
+.bd-right .bd-dd[aria-expanded="true"],
+.bd-right .bd-input:focus,
+.bd-right .bd-num:focus-within {
+  border-color: var(--dt-focus-ring-color);
+}
+
+.bd-dd-prefix {
+  flex: none;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+  white-space: nowrap;
+}
+
+.bd-dd-field .bd-dd-prefix {
+  min-width: 1.25em;
+}
+
+.bd-dd-icon.bd-dd {
+  width: var(--dt-size-control-sm);
+  min-width: var(--dt-size-control-sm);
+  justify-content: center;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+.bd-right .bd-dd-icon.bd-dd {
+  background: transparent;
+}
+
+.bd-dd-icon.bd-dd:hover,
+.bd-right .bd-dd-icon.bd-dd:hover {
+  background: var(--dt-surface-raised);
+}
+
+.bd-dd-icon .bd-dd-chev {
+  display: none;
+}
+
+.bd-grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--dt-space-inline-2xs);
+}
+
+.bd-btn-sm {
+  min-height: calc(var(--dt-size-control-sm) - 4px);
+  padding: 0 var(--dt-space-inset-xs);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-btn[aria-pressed="true"] {
+  border-color: var(--dt-surface-selected);
+  background: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+.bd-act-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* Pictures in a segmented row: corner radii, shadows. */
+.bd-seg-pics .bd-seg-btn {
+  min-width: 0;
+  padding: 0;
+}
+
+.bd-seg-btn .bd-pv-radius,
+.bd-seg-btn .bd-pv-shadow {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+}
+
+.bd-seg-btn .bd-pv-shadow {
+  border-radius: 3px;
+  background: var(--dt-surface-base);
+  outline: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+/* The box model: margin around padding around the item. */
+.bd-box {
+  font-size: var(--dt-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.bd-box-ring {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(2.75rem, 1fr) minmax(0, 2.4fr) minmax(2.75rem, 1fr);
+  grid-template-areas: ". top ." "left mid right" ". bottom .";
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-box-m {
+  background: var(--dt-surface-sunken);
+  border: var(--dt-border-width-default) dashed var(--dt-border-default);
+}
+
+.bd-box-p {
+  grid-area: mid;
+  background: var(--dt-surface-base);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+}
+
+.bd-box-core {
+  grid-area: mid;
+  min-height: 18px;
+  border-radius: 2px;
+  background: var(--dt-surface-sunken);
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) var(--dt-border-subtle);
+}
+
+.bd-box-cell {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.bd-box-cell.is-top { grid-area: top; }
+.bd-box-cell.is-right { grid-area: right; }
+.bd-box-cell.is-bottom { grid-area: bottom; }
+.bd-box-cell.is-left { grid-area: left; }
+
+.bd-right .bd-box .bd-dd {
+  width: auto;
+  min-width: 0;
+  min-height: 22px;
+  justify-content: center;
+  padding: 0 4px;
+  border-color: transparent;
+  background: transparent;
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-right .bd-box .bd-dd:hover {
+  background: var(--dt-surface-raised);
+}
+
+.bd-box .bd-dd-chev {
+  display: none;
+}
+
+.bd-box .bd-dd-label {
+  flex: none;
+}
+
+.bd-box-val.is-inherited .bd-dd-label {
+  color: var(--dt-text-tertiary);
+}
+
+.bd-right .bd-box .bd-box-all {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  z-index: 1;
+  padding-left: 2px;
+}
+
+.bd-box-all .bd-dd-prefix {
+  color: var(--dt-text-secondary);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs, 0.7rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bd-box-all .bd-dd-label:empty {
+  display: none;
+}
+
+/* Flex layout: direction and wrap, then the alignment pad beside the gap. */
+.bd-flex-head {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+  margin-top: var(--dt-space-stack-xs);
+}
+
+.bd-flex-head .bd-seg {
+  flex: 1;
+}
+
+.bd-flex-head .bd-seg .bd-seg-btn {
+  flex: 1;
+}
+
+.bd-flex-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--dt-space-inline-xs);
+  margin-top: var(--dt-space-stack-xs);
+}
+
+.bd-flex-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+}
+
+.bd-mx {
+  display: grid;
+  grid-template-columns: repeat(3, 26px);
+  grid-template-rows: repeat(3, 26px);
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+}
+
+.bd-mx-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bd-mx-cell:hover {
+  background: var(--dt-surface-raised);
+}
+
+.bd-mx-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dt-border-strong);
+}
+
+.bd-mx-cell[aria-pressed="true"] .bd-mx-dot {
+  border-radius: 1px;
+  background: var(--dt-text-primary);
+}
+
+.bd-mx.is-row .bd-mx-cell[aria-pressed="true"] .bd-mx-dot {
+  width: 4px;
+  height: 14px;
+}
+
+.bd-mx.is-column .bd-mx-cell[aria-pressed="true"] .bd-mx-dot {
+  width: 14px;
+  height: 4px;
+}
+
+.bd-mx-cell:focus-visible,
+.bd-tool:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: 1px;
+}
+
 /* --------------------------------------------------------------- assets */
 
 .bd-assets,
@@ -995,10 +1266,107 @@ span.bd-layer-twisty.is-open .bd-ic {
   outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
 }
 
+/* The tool bar, floating along the canvas's foot. */
+.bd-tools {
+  position: absolute;
+  bottom: var(--dt-space-inset-sm);
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  max-width: calc(100% - 16px);
+  overflow-x: auto;
+  transform: translateX(-50%);
+  scrollbar-width: none;
+  gap: 2px;
+  padding: 4px;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-overlay);
+  background: var(--dt-surface-overlay);
+  box-shadow: var(--dt-elevation-2);
+}
+
+.bd-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-sm);
+  height: var(--dt-size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-secondary);
+  cursor: pointer;
+}
+
+.bd-tool:hover {
+  background: var(--dt-surface-raised);
+  color: var(--dt-text-primary);
+}
+
+.bd-tool[aria-pressed="true"] {
+  background: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+.bd-tool {
+  flex: none;
+}
+
+.bd-tools-sep {
+  flex: none;
+  width: var(--dt-border-width-default);
+  margin: 4px 2px;
+  background: var(--dt-border-subtle);
+}
+
+/* With a drawing tool, the canvas takes the press itself. */
+.bd-draw {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  touch-action: none;
+}
+
+.bd-draw.is-draw {
+  cursor: crosshair;
+}
+
+.bd-draw.is-hand {
+  cursor: grab;
+}
+
+.bd-sketch {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  border: var(--dt-border-width-strong) dashed var(--dt-text-primary);
+  background: color-mix(in oklch, var(--dt-text-primary) 6%, transparent);
+  pointer-events: none;
+}
+
+.bd-sketch.is-ellipse {
+  border-radius: 50%;
+}
+
+.bd-flabel .bd-frame-menu.bd-dd {
+  width: auto;
+  min-width: 0;
+  min-height: 18px;
+  padding: 0 2px;
+  color: var(--dt-text-secondary);
+  pointer-events: auto;
+}
+
+.bd-flabel .bd-frame-menu .bd-ic {
+  width: var(--dt-size-icon-xs);
+  height: var(--dt-size-icon-xs);
+}
+
 /* Buttons that float over the canvas: show the panels, leave preview. */
 .bd-float {
   position: absolute;
-  top: var(--dt-space-inset-sm);
+  bottom: var(--dt-space-inset-sm);
   left: var(--dt-space-inset-sm);
   z-index: 3;
   display: inline-flex;
@@ -1017,6 +1385,8 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-float-center {
+  top: var(--dt-space-inset-sm);
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -1122,6 +1492,33 @@ span.bd-layer-twisty.is-open .bd-ic {
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
 }
 
+.bd-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dt-space-inline-xs);
+}
+
+.bd-head-row .bd-inspect-title {
+  flex-wrap: nowrap;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.bd-head-row .bd-inspect-title > :last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bd-head-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  margin-top: var(--dt-space-stack-2xs);
+}
+
 .bd-inspect-title {
   display: flex;
   flex-wrap: wrap;
@@ -1193,45 +1590,46 @@ span.bd-layer-twisty.is-open .bd-ic {
   margin-top: var(--dt-space-stack-sm);
 }
 
-/* The inspector's tabs stay in view as its controls scroll. */
+/* The inspector's tabs: a segmented row that stays in view as its controls
+   scroll. */
 .bd-itabs {
   position: sticky;
   top: 0;
   z-index: 1;
   display: flex;
-  gap: var(--dt-space-inline-2xs);
-  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md) 0;
+  gap: 2px;
+  margin: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md);
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
   background: var(--dt-surface-subtle);
 }
 
 .bd-itab {
-  position: relative;
-  min-height: var(--dt-size-control-sm);
+  flex: 1;
+  min-height: calc(var(--dt-size-control-sm) - 4px);
   padding: 0 var(--dt-space-inset-xs);
   border: 0;
+  border-radius: var(--dt-radius-control);
   background: transparent;
   color: var(--dt-text-secondary);
   font: inherit;
-  font-size: var(--dt-font-size-sm);
+  font-size: var(--dt-font-size-xs);
   font-weight: var(--dt-font-weight-medium);
   cursor: pointer;
 }
 
-.bd-itab:hover:not(:disabled),
-.bd-itab[aria-selected="true"] {
+.bd-itabs {
+  box-shadow: inset 0 0 0 0 transparent;
+}
+
+.bd-itab:hover:not(:disabled) {
   color: var(--dt-text-primary);
 }
 
-.bd-itab[aria-selected="true"]::after {
-  content: "";
-  position: absolute;
-  right: var(--dt-space-inset-xs);
-  bottom: calc(var(--dt-border-width-default) * -1);
-  left: var(--dt-space-inset-xs);
-  height: var(--dt-border-width-strong);
-  border-radius: var(--dt-radius-pill);
-  background: var(--dt-text-primary);
+.bd-itab[aria-selected="true"] {
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+  box-shadow: var(--dt-elevation-1);
 }
 
 .bd-itab:disabled {
@@ -1292,17 +1690,56 @@ span.bd-layer-twisty.is-open .bd-ic {
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
 }
 
-.bd-sec-h {
+.bd-sec.is-closed {
+  padding-bottom: var(--dt-space-inset-sm);
+}
+
+/* A section's title row: the name, which folds it, and an action. */
+.bd-sec-head {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dt-space-inline-xs);
+  min-height: var(--dt-size-control-xs);
+}
+
+.bd-sec-h {
+  display: inline-flex;
+  flex: 1;
   align-items: center;
   gap: var(--dt-space-inline-2xs);
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-semibold, 600);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-sec-chev {
+  width: var(--dt-size-icon-xs);
+  height: var(--dt-size-icon-xs);
+  margin-left: auto;
   color: var(--dt-text-tertiary);
-  font-family: var(--dt-font-family-mono);
-  font-size: var(--dt-font-size-2xs, 0.7rem);
-  font-weight: var(--dt-font-weight-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+}
+
+.bd-sec.is-closed .bd-sec-chev {
+  transform: rotate(-90deg);
+}
+
+.bd-sec-body > :first-child,
+.bd-sec-body > .bd-field:first-child {
+  margin-top: var(--dt-space-stack-xs);
+}
+
+.bd-sec-empty {
+  margin: var(--dt-space-stack-2xs) 0 0;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
 }
 
 .bd-note {
