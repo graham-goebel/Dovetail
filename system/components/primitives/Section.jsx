@@ -23,13 +23,28 @@ function onFill(fg) {
     color: fg,
   };
 }
+/* On a pale brand tint, a Button's primary and secondary take the brand
+   colours: the tint's own hue leads, the other brand hue follows. Each pair
+   comes from the brand-coloured action roles, whose text passes on them. */
+function buttonsIn(lead, follow) {
+  const out = {};
+  [["primary", lead], ["secondary", follow]].forEach(([variant, hue]) => {
+    const role = `--dt-surface-action-${hue}`;
+    out[`--dt-button-${variant}-bg`] = `var(${role})`;
+    out[`--dt-button-${variant}-bg-hover`] = `var(${role}-hover)`;
+    out[`--dt-button-${variant}-bg-active`] = `var(${role}-active)`;
+    out[`--dt-button-${variant}-fg`] = `var(--dt-text-on-action-${hue})`;
+    out[`--dt-button-${variant}-border`] = "var(--dt-color-transparent)";
+  });
+  return out;
+}
 const TONES = {
   base: { background: "var(--dt-surface-base)" },
   subtle: { background: "var(--dt-surface-subtle)" },
   brand: { background: "var(--dt-surface-brand)", ...onFill("var(--dt-text-on-brand)") },
-  "brand-muted": { background: "var(--dt-surface-brand-muted)", ...onFill("var(--dt-text-on-brand-muted)") },
+  "brand-muted": { background: "var(--dt-surface-brand-muted)", ...onFill("var(--dt-text-on-brand-muted)"), ...buttonsIn("brand", "brand-secondary") },
   secondary: { background: "var(--dt-surface-brand-secondary)", ...onFill("var(--dt-text-on-brand-secondary)") },
-  "secondary-muted": { background: "var(--dt-surface-brand-secondary-muted)", ...onFill("var(--dt-text-on-brand-secondary-muted)") },
+  "secondary-muted": { background: "var(--dt-surface-brand-secondary-muted)", ...onFill("var(--dt-text-on-brand-secondary-muted)"), ...buttonsIn("brand-secondary", "brand") },
 };
 
 function scrimImage(scrim, align) {

@@ -69,6 +69,10 @@
   --dt-surface-action-brand-hover: var(--dt-color-primary-400);
   --dt-surface-action-brand-active: var(--dt-color-primary-300);
   --dt-text-on-action-brand: var(--dt-color-neutral-950);
+  --dt-surface-action-brand-secondary: var(--dt-color-secondary-500);
+  --dt-surface-action-brand-secondary-hover: var(--dt-color-secondary-400);
+  --dt-surface-action-brand-secondary-active: var(--dt-color-secondary-300);
+  --dt-text-on-action-brand-secondary: var(--dt-color-neutral-950);
   --dt-text-link-brand: var(--dt-color-primary-400);
   --dt-text-link-brand-hover: var(--dt-color-primary-300);
   --dt-surface-selected-brand: var(--dt-color-primary-950);

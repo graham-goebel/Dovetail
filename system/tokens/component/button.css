@@ -51,6 +51,20 @@
   --dt-button-danger-fg: var(--dt-text-on-action-danger);
   --dt-button-danger-border: var(--dt-color-transparent);
 
+  /* The brand variants: the primary and secondary brand hues, from the
+     brand-coloured action roles, so their text always has a passing pair. */
+  --dt-button-brand-bg: var(--dt-surface-action-brand);
+  --dt-button-brand-bg-hover: var(--dt-surface-action-brand-hover);
+  --dt-button-brand-bg-active: var(--dt-surface-action-brand-active);
+  --dt-button-brand-fg: var(--dt-text-on-action-brand);
+  --dt-button-brand-border: var(--dt-color-transparent);
+
+  --dt-button-brand-secondary-bg: var(--dt-surface-action-brand-secondary);
+  --dt-button-brand-secondary-bg-hover: var(--dt-surface-action-brand-secondary-hover);
+  --dt-button-brand-secondary-bg-active: var(--dt-surface-action-brand-secondary-active);
+  --dt-button-brand-secondary-fg: var(--dt-text-on-action-brand-secondary);
+  --dt-button-brand-secondary-border: var(--dt-color-transparent);
+
   --dt-button-disabled-bg: var(--dt-surface-action-disabled);
   --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
   --dt-button-disabled-border: var(--dt-color-transparent);
@@ -84,6 +98,16 @@
   --dt-button-danger-bg-active: var(--dt-surface-action-danger-active);
   --dt-button-danger-fg: var(--dt-text-on-action-danger);
   --dt-button-danger-border: var(--dt-color-transparent);
+  --dt-button-brand-bg: var(--dt-surface-action-brand);
+  --dt-button-brand-bg-hover: var(--dt-surface-action-brand-hover);
+  --dt-button-brand-bg-active: var(--dt-surface-action-brand-active);
+  --dt-button-brand-fg: var(--dt-text-on-action-brand);
+  --dt-button-brand-border: var(--dt-color-transparent);
+  --dt-button-brand-secondary-bg: var(--dt-surface-action-brand-secondary);
+  --dt-button-brand-secondary-bg-hover: var(--dt-surface-action-brand-secondary-hover);
+  --dt-button-brand-secondary-bg-active: var(--dt-surface-action-brand-secondary-active);
+  --dt-button-brand-secondary-fg: var(--dt-text-on-action-brand-secondary);
+  --dt-button-brand-secondary-border: var(--dt-color-transparent);
   --dt-button-disabled-bg: var(--dt-surface-action-disabled);
   --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
   --dt-button-disabled-border: var(--dt-color-transparent);

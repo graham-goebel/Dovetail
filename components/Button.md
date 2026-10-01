@@ -30,14 +30,30 @@ The system's action control. Use exactly one `primary` button per view. If two t
 | `secondary` | Everything else with equal visual weight to each other |
 | `ghost` | Low-emphasis actions in toolbars and table rows |
 | `danger` | Destructive actions, always behind a confirmation |
+| `brand` | A call to action in the primary brand colour, where the brand should lead |
+| `brand-secondary` | The same, in the secondary brand colour |
 
 Sizes `sm` / `md` / `lg`. In marketing context `md` is already 48px, so `lg` is rarely needed.
+
+### On a brand tint
+Inside a `Section` toned `brand-muted`, `primary` takes the brand colour and `secondary` the secondary brand colour, each with text that passes on it. Inside `secondary-muted` the two swap: `primary` takes the secondary brand colour and `secondary` the primary one. The band decides; the buttons in it need no prop. The colours come from `--dt-surface-action-brand*` and `--dt-surface-action-brand-secondary*`, the same steps the Configure panel checks for contrast.
+
+```jsx
+<Section tone="brand-muted">
+  <Inline gap="sm">
+    <Button>Start free</Button>                 {/* the brand colour */}
+    <Button variant="secondary">See plans</Button> {/* the secondary brand colour */}
+  </Inline>
+</Section>
+```
+
+Pass `variant="brand"` or `variant="brand-secondary"` to use those colours anywhere else.
 
 ### Product vs marketing
 The same component. Context tokens change its height, padding, and font size: `dt-context-product` gives a 40px/14px toolbar button, `dt-context-marketing` a 48px/16px CTA. Do not hand-size buttons per surface.
 
 ### Tokens
-Reads `--dt-button-*` (Tier 3), which resolve to `--dt-surface-action*` and `--dt-text-on-action*`. Override the Tier 3 tokens to restyle Button alone; override the semantic tokens to move every action surface together.
+Reads `--dt-button-*` (Tier 3), which resolve to `--dt-surface-action*` and `--dt-text-on-action*`. The brand variants read `--dt-button-brand-*` and `--dt-button-brand-secondary-*`, which resolve to `--dt-surface-action-brand*`, `--dt-surface-action-brand-secondary*` and their `--dt-text-on-action-brand*` pairs. Override the Tier 3 tokens to restyle Button alone; override the semantic tokens to move every action surface together.
 
 ### As a link
 `as="a"` with an `href` makes a real link that looks like a button. Button sets `text-decoration: none`, so the system's global link underline does not reach it; `Link` is the component that keeps the underline.
@@ -57,8 +73,8 @@ import * as React from "react";
  * The system's primary action control.
  */
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** primary is the single main action in a view; everything else is secondary, ghost, or danger. @default "primary" */
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  /** primary is the single main action in a view; everything else is secondary, ghost, or danger. brand and brand-secondary fill the button with the primary or secondary brand colour, with text that passes contrast on it. Inside a Section toned brand-muted or secondary-muted, primary and secondary take the brand colours on their own. @default "primary" */
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "brand" | "brand-secondary";
   /** @default "md" */
   size?: "sm" | "md" | "lg";
   disabled?: boolean;
@@ -82,6 +98,16 @@ export declare function Button(props: ButtonProps): React.JSX.Element;
 | Token | Tier | Declared as |
 | --- | --- | --- |
 | `--dt-button-border-width` | component | `var(--dt-border-width-default)` |
+| `--dt-button-brand-bg` | component | `var(--dt-surface-action-brand)` |
+| `--dt-button-brand-bg-active` | component | `var(--dt-surface-action-brand-active)` |
+| `--dt-button-brand-bg-hover` | component | `var(--dt-surface-action-brand-hover)` |
+| `--dt-button-brand-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-brand-fg` | component | `var(--dt-text-on-action-brand)` |
+| `--dt-button-brand-secondary-bg` | component | `var(--dt-surface-action-brand-secondary)` |
+| `--dt-button-brand-secondary-bg-active` | component | `var(--dt-surface-action-brand-secondary-active)` |
+| `--dt-button-brand-secondary-bg-hover` | component | `var(--dt-surface-action-brand-secondary-hover)` |
+| `--dt-button-brand-secondary-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-brand-secondary-fg` | component | `var(--dt-text-on-action-brand-secondary)` |
 | `--dt-button-danger-bg` | component | `var(--dt-surface-action-danger)` |
 | `--dt-button-danger-bg-active` | component | `var(--dt-surface-action-danger-active)` |
 | `--dt-button-danger-bg-hover` | component | `var(--dt-surface-action-danger-hover)` |
@@ -131,6 +157,8 @@ const V = {
   secondary: { bg: "--dt-button-secondary-bg", hover: "--dt-button-secondary-bg-hover", active: "--dt-button-secondary-bg-active", fg: "--dt-button-secondary-fg", border: "--dt-button-secondary-border" },
   ghost: { bg: "--dt-button-ghost-bg", hover: "--dt-button-ghost-bg-hover", active: "--dt-button-ghost-bg-active", fg: "--dt-button-ghost-fg", border: "--dt-button-ghost-border" },
   danger: { bg: "--dt-button-danger-bg", hover: "--dt-button-danger-bg-hover", active: "--dt-button-danger-bg-active", fg: "--dt-button-danger-fg", border: "--dt-button-danger-border" },
+  brand: { bg: "--dt-button-brand-bg", hover: "--dt-button-brand-bg-hover", active: "--dt-button-brand-bg-active", fg: "--dt-button-brand-fg", border: "--dt-button-brand-border" },
+  "brand-secondary": { bg: "--dt-button-brand-secondary-bg", hover: "--dt-button-brand-secondary-bg-hover", active: "--dt-button-brand-secondary-bg-active", fg: "--dt-button-brand-secondary-fg", border: "--dt-button-brand-secondary-border" },
 };
 
 export function Button({ variant = "primary", size = "md", disabled = false, loading = false, fullWidth = false, iconStart, iconEnd, as: Tag = "button", children, style, ...rest }) {

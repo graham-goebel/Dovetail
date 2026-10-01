@@ -24,14 +24,30 @@ The system's action control. Use exactly one `primary` button per view. If two t
 | `secondary` | Everything else with equal visual weight to each other |
 | `ghost` | Low-emphasis actions in toolbars and table rows |
 | `danger` | Destructive actions, always behind a confirmation |
+| `brand` | A call to action in the primary brand colour, where the brand should lead |
+| `brand-secondary` | The same, in the secondary brand colour |
 
 Sizes `sm` / `md` / `lg`. In marketing context `md` is already 48px, so `lg` is rarely needed.
+
+## On a brand tint
+Inside a `Section` toned `brand-muted`, `primary` takes the brand colour and `secondary` the secondary brand colour, each with text that passes on it. Inside `secondary-muted` the two swap: `primary` takes the secondary brand colour and `secondary` the primary one. The band decides; the buttons in it need no prop. The colours come from `--dt-surface-action-brand*` and `--dt-surface-action-brand-secondary*`, the same steps the Configure panel checks for contrast.
+
+```jsx
+<Section tone="brand-muted">
+  <Inline gap="sm">
+    <Button>Start free</Button>                 {/* the brand colour */}
+    <Button variant="secondary">See plans</Button> {/* the secondary brand colour */}
+  </Inline>
+</Section>
+```
+
+Pass `variant="brand"` or `variant="brand-secondary"` to use those colours anywhere else.
 
 ## Product vs marketing
 The same component. Context tokens change its height, padding, and font size: `dt-context-product` gives a 40px/14px toolbar button, `dt-context-marketing` a 48px/16px CTA. Do not hand-size buttons per surface.
 
 ## Tokens
-Reads `--dt-button-*` (Tier 3), which resolve to `--dt-surface-action*` and `--dt-text-on-action*`. Override the Tier 3 tokens to restyle Button alone; override the semantic tokens to move every action surface together.
+Reads `--dt-button-*` (Tier 3), which resolve to `--dt-surface-action*` and `--dt-text-on-action*`. The brand variants read `--dt-button-brand-*` and `--dt-button-brand-secondary-*`, which resolve to `--dt-surface-action-brand*`, `--dt-surface-action-brand-secondary*` and their `--dt-text-on-action-brand*` pairs. Override the Tier 3 tokens to restyle Button alone; override the semantic tokens to move every action surface together.
 
 ## As a link
 `as="a"` with an `href` makes a real link that looks like a button. Button sets `text-decoration: none`, so the system's global link underline does not reach it; `Link` is the component that keeps the underline.

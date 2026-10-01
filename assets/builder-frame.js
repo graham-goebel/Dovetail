@@ -49,7 +49,8 @@
   var GROUP_GAP = { row: "--dt-space-inline-", column: "--dt-space-stack-" };
   function groupStyle(p) {
     var dir = p.direction === "column" ? "column" : "row";
-    var st = { display: "flex", flexDirection: dir, flexWrap: p.wrap === true ? "wrap" : "nowrap", alignItems: p.align || "stretch", justifyContent: p.justify || "flex-start" };
+    /* Relative, so anything floating inside it floats over the group. */
+    var st = { position: "relative", display: "flex", flexDirection: dir, flexWrap: p.wrap === true ? "wrap" : "nowrap", alignItems: p.align || "stretch", justifyContent: p.justify || "flex-start" };
     var gap = p.gap || "sm";
     if (gap !== "none") st.gap = "var(" + GROUP_GAP[dir] + gap + ")";
     return st;
@@ -710,6 +711,27 @@
     pick: pick,
     jsx: jsx,
     has: function (type) { return type === "Group" || type === "Shape" || !!NS[type]; },
+    /* What each CSS value comes to in pixels here, in this frame's context,
+       layout character and theme: a width-shaped probe inside the canvas
+       root. A value that isn't a length gives null. */
+    measure: function (values) {
+      var where = mount.firstElementChild || document.body;
+      /* One probe per value, all read in a single layout: a reused probe
+         can keep a width it was given before. */
+      var box = document.createElement("div");
+      box.style.cssText = "position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none";
+      var probes = values.map(function (v) {
+        var p = document.createElement("div");
+        p.style.cssText = "position:absolute;left:0;top:0;height:0";
+        p.style.width = v;
+        box.appendChild(p);
+        return p.style.width ? p : null;
+      });
+      where.appendChild(box);
+      var out = probes.map(function (p) { return p ? Math.round(p.getBoundingClientRect().width * 10) / 10 : null; });
+      box.remove();
+      return out;
+    },
     /* The large control size in pixels, which drawn shapes snap to. */
     unit: function () {
       var probe = document.createElement("div");

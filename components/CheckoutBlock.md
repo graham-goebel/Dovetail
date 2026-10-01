@@ -291,6 +291,7 @@ export declare function CheckoutBlock(props: CheckoutBlockProps): React.JSX.Elem
 | `--dt-text-link-visited` | semantic | `var(--dt-color-neutral-700)` |
 | `--dt-text-on-action` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-action-brand` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-brand-secondary` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-action-danger` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-action-disabled` | semantic | `var(--dt-color-neutral-400)` |
 | `--dt-text-on-action-ghost` | semantic | `var(--dt-color-neutral-900)` |

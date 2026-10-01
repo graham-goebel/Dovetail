@@ -11,7 +11,9 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   /**
    * The surface, and the text roles that belong on it. Brand and secondary
    * tones re-point --dt-text-primary, -secondary and -tertiary on the section,
-   * so Heading and Text inside follow without a prop. Ignored when `media` is set.
+   * so Heading and Text inside follow without a prop. The -muted tones also
+   * point a Button's primary and secondary at the brand colours (brand-muted:
+   * brand then secondary; secondary-muted: the reverse). Ignored when `media` is set.
    * @default "base"
    */
   tone?: "base" | "subtle" | "brand" | "brand-muted" | "secondary" | "secondary-muted";

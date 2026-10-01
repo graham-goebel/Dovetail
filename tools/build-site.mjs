@@ -2088,11 +2088,56 @@ const borderOpts = (prop) => ["subtle", "default", "strong", "brand"]
 /* Fixed sizes are whole multiples of the large control size, so a shape drawn
    on the canvas snaps to the system's own grid. */
 const BUILDER_STEPS = [1, 2, 3, 4, 6, 8, 12];
+/* Each option names its family, so the builder can offer the ones that suit
+   what's selected first: control sizes for a Button, containers and layout
+   layers for a Section, avatar sizes for an Avatar. */
+const fam = (family, o) => Object.assign(o, { family });
+/* Sizes from the semantic size tokens, as [value, token, name]. */
+const SIZE_SET = {
+  control: [["control-xs", "--dt-size-control-xs", "control-xs"], ["control-sm", "--dt-size-control-sm", "control-sm"], ["control-md", "--dt-size-control-md", "control-md"],
+    ["control-lg", "--dt-size-control-lg", "control-lg"], ["touch", "--dt-size-touch-target", "touch-target"]],
+  icon: ["xs", "sm", "md", "lg", "xl"].map((s) => [`icon-${s}`, `--dt-size-icon-${s}`, `icon-${s}`]),
+  avatar: ["xs", "sm", "md", "lg", "xl"].map((s) => [`avatar-${s}`, `--dt-size-avatar-${s}`, `avatar-${s}`]),
+};
+const sizeOpts = (prop, sets) => sets.flatMap((set) => SIZE_SET[set].map(([v, t, name]) => fam(set, tokenOption(v, [t], { [prop]: cssVar(t) }, name))));
+const stepOpts = (prop, steps = BUILDER_STEPS) => steps.map((n) => fam("step", tokenOption(`x${n}`, ["--dt-size-control-lg"], { [prop]: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)));
+const media = (prop, list) => list.map(([v, t, name]) => fam("media", tokenOption(v, [t], { [prop]: cssVar(t) }, name)));
+const HEIGHT_MEDIA = [["media-min", "--dt-size-media-min", "media-min"], ["artboard-square", "--dt-size-artboard-square", "artboard square"],
+  ["artboard-portrait", "--dt-size-artboard-portrait", "artboard portrait"], ["artboard-story", "--dt-size-artboard-story", "artboard story"]];
+/* Spacing: the inset scale for padding and the stack and inline scales for
+   margin, and the layout layers (related, group, block, section) that move
+   together with the layout's character, for bands and blocks. */
+const LAYERS = ["related", "group", "block", "section"];
+const insetOpts = (css) => BUILDER_SPACE.map((o) => fam("inset", tokenOption(o, [`--dt-space-inset-${o}`], css(inset(o)))));
+const layerOpts = (axis, css) => LAYERS.map((o) => fam("layout", tokenOption(o, [`--dt-layout-${axis}-${o}`], css(cssVar(`--dt-layout-${axis}-${o}`)), `layout ${o}`)));
+const layerBoth = (cssFor) => LAYERS.map((o) => fam("layout", tokenOption(o, [`--dt-layout-stack-${o}`, `--dt-layout-inline-${o}`], cssFor(cssVar(`--dt-layout-stack-${o}`), cssVar(`--dt-layout-inline-${o}`)), `layout ${o}`)));
+const module = (css) => fam("layout", tokenOption("module", ["--dt-layout-module-padding"], css(cssVar("--dt-layout-module-padding")), "module padding"));
+const spaceOpts2 = (axis, css) => BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-${axis}-${o}`], css(cssVar(`--dt-space-${axis}-${o}`)))));
+/* A pinned or floating item's distance from the edges it's pinned to. */
+const OFFSET = "var(--bd-offset, 0)";
 const BUILDER_TOKENS = {
   /* Where an item sits across its parent's flow: CSS keywords, no values. */
   self: { label: "Align self", section: "position", preview: "text",
     options: [["start", "flex-start", "Start"], ["center", "center", "Center"], ["end", "flex-end", "End"], ["stretch", "stretch", "Stretch"]]
       .map(([v, css, label]) => tokenOption(v, [], { alignSelf: css }, label)) },
+  /* Out of the flow: sticky as the frame scrolls, pinned to the frame, or
+     floating over its parent. The edges come from anchor, the distance from
+     offset, both tokens. */
+  position: { label: "Position", section: "position", preview: "text",
+    options: [
+      tokenOption("sticky", ["--dt-z-sticky"], { position: "sticky", top: OFFSET, zIndex: cssVar("--dt-z-sticky") }, "Sticky"),
+      tokenOption("pinned", ["--dt-z-sticky"], { position: "fixed", zIndex: cssVar("--dt-z-sticky") }, "Pinned to the frame"),
+      tokenOption("floating", ["--dt-z-raised"], { position: "absolute", zIndex: cssVar("--dt-z-raised") }, "Floating over its parent"),
+    ] },
+  anchor: { label: "Pin to", section: "position", preview: "text",
+    options: [
+      ["top-left", { top: OFFSET, left: OFFSET }, "Top left"], ["top", { top: OFFSET, left: "50%", transform: "translateX(-50%)" }, "Top"], ["top-right", { top: OFFSET, right: OFFSET }, "Top right"],
+      ["left", { top: "50%", left: OFFSET, transform: "translateY(-50%)" }, "Left"], ["center", { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }, "Centre"], ["right", { top: "50%", right: OFFSET, transform: "translateY(-50%)" }, "Right"],
+      ["bottom-left", { bottom: OFFSET, left: OFFSET }, "Bottom left"], ["bottom", { bottom: OFFSET, left: "50%", transform: "translateX(-50%)" }, "Bottom"], ["bottom-right", { bottom: OFFSET, right: OFFSET }, "Bottom right"],
+      ["top-stretch", { top: OFFSET, left: OFFSET, right: OFFSET }, "Across the top"], ["bottom-stretch", { bottom: OFFSET, left: OFFSET, right: OFFSET }, "Across the bottom"],
+    ].map(([v, css, label]) => tokenOption(v, [], css, label)) },
+  offset: { label: "Offset", section: "position", preview: "space",
+    options: BUILDER_SPACE.map((o) => fam("inset", tokenOption(o, [`--dt-space-inset-${o}`], { "--bd-offset": inset(o) }))) },
   surface: { label: "Fill", section: "appearance", preview: "color",
     options: ["base", "subtle", "raised", "sunken", "brand-muted", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
       .map((o) => tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
@@ -2106,42 +2151,48 @@ const BUILDER_TOKENS = {
       .map((o) => tokenOption(o, [`--dt-radius-${o}`], { borderRadius: cssVar(`--dt-radius-${o}`), overflow: "hidden" })) },
   elevation: { label: "Shadow", section: "appearance", preview: "shadow",
     options: ["0", "1", "2", "3", "4", "5"].map((o) => tokenOption(o, [`--dt-elevation-${o}`], { boxShadow: cssVar(`--dt-elevation-${o}`) })) },
-  /* Padding reads the inset scale on every side. Margin reads the stack scale
-     above and below and the inline scale left and right, so a margin follows
-     the same axis a Stack or Inline gap would. */
-  padding: { label: "Padding", section: "spacing", preview: "space", sides: ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"], options: spaceOpts((v) => ({ padding: v })) },
-  paddingTop: { label: "Padding top", section: "spacing", preview: "space", side: "top", options: spaceOpts((v) => ({ paddingTop: v })) },
-  paddingRight: { label: "Padding right", section: "spacing", preview: "space", side: "right", options: spaceOpts((v) => ({ paddingRight: v })) },
-  paddingBottom: { label: "Padding bottom", section: "spacing", preview: "space", side: "bottom", options: spaceOpts((v) => ({ paddingBottom: v })) },
-  paddingLeft: { label: "Padding left", section: "spacing", preview: "space", side: "left", options: spaceOpts((v) => ({ paddingLeft: v })) },
+  /* Padding reads the inset scale, or the layout layers for a band; margin
+     reads the stack scale above and below and the inline scale left and
+     right, or the same layers. */
+  padding: { label: "Padding", section: "spacing", preview: "space", sides: ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"],
+    options: insetOpts((v) => ({ padding: v })).concat(layerBoth((b, i) => ({ paddingBlock: b, paddingInline: i })), [module((v) => ({ padding: v }))]) },
+  paddingTop: { label: "Padding top", section: "spacing", preview: "space", side: "top", options: insetOpts((v) => ({ paddingTop: v })).concat(layerOpts("stack", (v) => ({ paddingTop: v })), [module((v) => ({ paddingTop: v }))]) },
+  paddingRight: { label: "Padding right", section: "spacing", preview: "space", side: "right", options: insetOpts((v) => ({ paddingRight: v })).concat(layerOpts("inline", (v) => ({ paddingRight: v })), [module((v) => ({ paddingRight: v }))]) },
+  paddingBottom: { label: "Padding bottom", section: "spacing", preview: "space", side: "bottom", options: insetOpts((v) => ({ paddingBottom: v })).concat(layerOpts("stack", (v) => ({ paddingBottom: v })), [module((v) => ({ paddingBottom: v }))]) },
+  paddingLeft: { label: "Padding left", section: "spacing", preview: "space", side: "left", options: insetOpts((v) => ({ paddingLeft: v })).concat(layerOpts("inline", (v) => ({ paddingLeft: v })), [module((v) => ({ paddingLeft: v }))]) },
   margin: { label: "Margin", section: "spacing", preview: "space", sides: ["marginTop", "marginRight", "marginBottom", "marginLeft"],
-    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`, `--dt-space-inline-${o}`], { marginBlock: cssVar(`--dt-space-stack-${o}`), marginInline: cssVar(`--dt-space-inline-${o}`) })) },
-  marginTop: { label: "Margin top", section: "spacing", preview: "space", side: "top", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`], { marginTop: cssVar(`--dt-space-stack-${o}`) })) },
-  marginRight: { label: "Margin right", section: "spacing", preview: "space", side: "right", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inline-${o}`], { marginRight: cssVar(`--dt-space-inline-${o}`) })) },
-  marginBottom: { label: "Margin bottom", section: "spacing", preview: "space", side: "bottom", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`], { marginBottom: cssVar(`--dt-space-stack-${o}`) })) },
-  marginLeft: { label: "Margin left", section: "spacing", preview: "space", side: "left", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inline-${o}`], { marginLeft: cssVar(`--dt-space-inline-${o}`) })) },
+    options: BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-stack-${o}`, `--dt-space-inline-${o}`], { marginBlock: cssVar(`--dt-space-stack-${o}`), marginInline: cssVar(`--dt-space-inline-${o}`) })))
+      .concat(layerBoth((b, i) => ({ marginBlock: b, marginInline: i }))) },
+  marginTop: { label: "Margin top", section: "spacing", preview: "space", side: "top", options: spaceOpts2("stack", (v) => ({ marginTop: v })).concat(layerOpts("stack", (v) => ({ marginTop: v }))) },
+  marginRight: { label: "Margin right", section: "spacing", preview: "space", side: "right", options: spaceOpts2("inline", (v) => ({ marginRight: v })).concat(layerOpts("inline", (v) => ({ marginRight: v }))) },
+  marginBottom: { label: "Margin bottom", section: "spacing", preview: "space", side: "bottom", options: spaceOpts2("stack", (v) => ({ marginBottom: v })).concat(layerOpts("stack", (v) => ({ marginBottom: v }))) },
+  marginLeft: { label: "Margin left", section: "spacing", preview: "space", side: "left", options: spaceOpts2("inline", (v) => ({ marginLeft: v })).concat(layerOpts("inline", (v) => ({ marginLeft: v }))) },
   w: { label: "Width", section: "size", preview: "text",
     options: [
-      tokenOption("hug", [], { width: "fit-content" }, "Hug contents"),
-      tokenOption("fill", [], { width: "100%" }, "Fill"),
-      ...BUILDER_STEPS.map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { width: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)),
-      ...["narrow", "default", "wide"].map((o) => tokenOption(o, [`--dt-size-container-${o}`], { width: "100%", maxWidth: cssVar(`--dt-size-container-${o}`), marginInline: "auto" }, `Container ${o}`)),
+      fam("fit", tokenOption("hug", [], { width: "fit-content" }, "Hug contents")),
+      fam("fit", tokenOption("fill", [], { width: "100%" }, "Fill")),
+      ...["narrow", "default", "wide"].map((o) => fam("container", tokenOption(o, [`--dt-size-container-${o}`], { width: "100%", maxWidth: cssVar(`--dt-size-container-${o}`), marginInline: "auto" }, `container ${o}`))),
+      ...sizeOpts("width", ["control", "icon", "avatar"]),
+      ...media("width", [["media-min", "--dt-size-media-min", "media-min"], ["artboard", "--dt-size-artboard-width", "artboard width"]]),
+      ...stepOpts("width"),
     ] },
   minW: { label: "Min width", section: "size", preview: "text",
-    options: [2, 3, 4, 6, 8].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { minWidth: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`))
-      .concat([tokenOption("narrow", ["--dt-size-container-narrow"], { minWidth: `min(100%, ${cssVar("--dt-size-container-narrow")})` }, "Container narrow")]) },
+    options: [fam("container", tokenOption("narrow", ["--dt-size-container-narrow"], { minWidth: `min(100%, ${cssVar("--dt-size-container-narrow")})` }, "container narrow"))]
+      .concat(sizeOpts("minWidth", ["control", "avatar"]), media("minWidth", [["media-min", "--dt-size-media-min", "media-min"]]), stepOpts("minWidth", [2, 3, 4, 6, 8])) },
   /* Fill takes the room its parent has: all of a set height, or the rest of
      a column (the frame, a Section, a column Group). */
   height: { label: "Height", section: "size", preview: "text",
     options: [
-      tokenOption("hug", [], { height: "auto" }, "Hug contents"),
-      tokenOption("fill", [], { height: "100%", flexGrow: "1" }, "Fill"),
-      ...BUILDER_STEPS.map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { height: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)),
-      tokenOption("narrow", ["--dt-size-container-narrow"], { height: cssVar("--dt-size-container-narrow") }, "Container narrow"),
+      fam("fit", tokenOption("hug", [], { height: "auto" }, "Hug contents")),
+      fam("fit", tokenOption("fill", [], { height: "100%", flexGrow: "1" }, "Fill")),
+      fam("container", tokenOption("narrow", ["--dt-size-container-narrow"], { height: cssVar("--dt-size-container-narrow") }, "container narrow")),
+      ...sizeOpts("height", ["control", "icon", "avatar"]),
+      ...media("height", HEIGHT_MEDIA),
+      ...stepOpts("height"),
     ] },
   h: { label: "Min height", section: "size", preview: "text",
-    options: [2, 4, 6, 8].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { minHeight: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`))
-      .concat([tokenOption("narrow", ["--dt-size-container-narrow"], { minHeight: cssVar("--dt-size-container-narrow") }, "Container narrow")]) },
+    options: [fam("container", tokenOption("narrow", ["--dt-size-container-narrow"], { minHeight: cssVar("--dt-size-container-narrow") }, "container narrow"))]
+      .concat(sizeOpts("minHeight", ["control"]), media("minHeight", HEIGHT_MEDIA), stepOpts("minHeight", [2, 4, 6, 8])) },
 };
 /* The canvas's frame presets: the screens of real devices, not tokens. A
    frame can also take any width and height in between. */

@@ -56,18 +56,13 @@
      its tray along the bar, and the group shows the last tool picked from it.
      "comp:Name" places that component. A tool marked soon isn't built yet. */
   var TOOLBAR = [
-    { id: "select", label: "Select", icon: "pointer", key: "V" },
-    { id: "hand", label: "Hand: drag to pan", icon: "hand", key: "H" },
+    { nav: true },
     null,
     { group: "layout", label: "Layout", items: [
       { id: "box", label: "Group", icon: "container", key: "B", hint: "A padded flex container" },
       { id: "comp:Section", label: "Section", icon: "layout", hint: "A band across the page" },
       { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a device size" },
       { id: "page", label: "Page", icon: "file", hint: "A frame that grows with its content" },
-    ] },
-    { group: "shape", label: "Shapes", items: [
-      { id: "rect", label: "Rectangle", icon: "square", key: "R" },
-      { id: "ellipse", label: "Ellipse", icon: "circle", key: "O" },
     ] },
     { group: "text", label: "Text", items: [
       { id: "comp:Text", label: "Text", icon: "type", key: "T", hint: "Body copy" },
@@ -84,14 +79,47 @@
     ] },
   ];
   var TOOL_KEY = {}, TOOL_INFO = {};
+  TOOL_INFO.select = { id: "select", label: "Select", icon: "pointer", key: "V" };
+  TOOL_INFO.hand = { id: "hand", label: "Hand: drag to pan", icon: "hand", key: "H" };
+  TOOL_KEY.v = "select";
+  TOOL_KEY.h = "hand";
   TOOLBAR.forEach(function (t) {
-    if (!t) return;
+    if (!t || t.nav) return;
     (t.items || [t]).forEach(function (it) {
       TOOL_INFO[it.id] = Object.assign({ group: t.group || null }, it);
       if (it.key) TOOL_KEY[it.key.toLowerCase()] = it.id;
     });
   });
   var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
+  /* Token families, and which suit what's selected, first. */
+  var FAMILY_LABEL = {
+    fit: "Fit", control: "Controls", icon: "Icons", avatar: "Avatars", media: "Media", container: "Containers",
+    step: "Steps of control-lg", inset: "Inset", space: "Stack and inline", layout: "Layout layers",
+  };
+  var CONTROL_TYPES = { Badge: 1, Tag: 1, Pagination: 1, QuantityStepper: 1, PromoCode: 1, FulfilmentToggle: 1, VariantPicker: 1, Rating: 1 };
+  var MEDIA_TYPES = { Image: 1, Video: 1, Cover: 1, Media: 1, Figure: 1, AspectRatio: 1, ProductGallery: 1, SocialPost: 1 };
+  var BAND_TYPES = { Group: 1, Section: 1, Stack: 1, Inline: 1, Grid: 1, Card: 1, Prose: 1 };
+  var TEXT_TYPES = { Text: 1, Heading: 1, Quote: 1, Code: 1, Link: 1 };
+  function contextOf(types) {
+    var t = types.length && types.every(function (x) { return x === types[0]; }) ? types[0] : null;
+    var m = t && META[t];
+    var name = t ? t : "these items";
+    if (t === "Avatar" || t === "AvatarGroup") return { name: name, size: ["avatar", "fit", "step"], space: ["inset"] };
+    if (t === "Shape") return { name: name, size: ["step", "icon", "avatar", "control"], space: ["inset", "space"] };
+    if (t && (CONTROL_TYPES[t] || (m && (m.group === "actions" || m.group === "forms")))) return { name: name, size: ["control", "fit", "step"], space: ["inset", "space"] };
+    if (t && MEDIA_TYPES[t]) return { name: name, size: ["media", "container", "fit", "step"], space: ["inset", "space"] };
+    if (t && (BAND_TYPES[t] || (m && m.group === "blocks"))) return { name: name, size: ["fit", "container", "media", "step"], space: ["layout", "inset", "space"] };
+    if (t && TEXT_TYPES[t]) return { name: name, size: ["fit", "container", "step"], space: ["inset", "space", "layout"] };
+    return { name: name, size: ["fit", "container", "step", "control"], space: ["inset", "space", "layout"] };
+  }
+  /* The tab that suits a layer when it's selected: its words for text and
+     media, its look for a shape, its layout for a container or a frame. */
+  function smartTab(type) {
+    if (type === "__frame" || type === "__mixed") return "layout";
+    if (type === "Shape") return "appearance";
+    if (type === "Group" || type === "Section" || type === "Stack" || type === "Inline" || type === "Grid") return "layout";
+    return "content";
+  }
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 1500000;
 
@@ -446,7 +474,7 @@
     return {
       category: DATA.groups.some(function (g) { return g.id === p.category; }) ? p.category : DATA.groups[0].id,
       view: p.view === "list" ? "list" : "grid",
-      tab: TABS.some(function (t) { return t[0] === p.tab; }) ? p.tab : "content",
+      tabs: p.tabs && typeof p.tabs === "object" ? p.tabs : {},
       closed: p.closed && typeof p.closed === "object" ? p.closed : {},
     };
   }
@@ -717,7 +745,10 @@
         onKeyDown: onListKey,
       }, options.map(function (o, i) {
         var isSel = !props.menu && !props.mixed && o.value === props.value;
-        return e("li", {
+        /* A heading where a group of options starts: not an option itself. */
+        var head = o.group && (i === 0 || options[i - 1].group !== o.group)
+          ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+        return [head, e("li", {
           key: String(o.value), id: ids.list + "-" + i, "data-i": i, role: props.menu ? "menuitem" : "option",
           "aria-selected": props.menu ? undefined : String(isSel), "aria-disabled": o.disabled ? "true" : undefined,
           className: cx("bd-dd-opt", i === activeI && "is-active", isSel && "is-selected", o.disabled && "is-disabled", o.danger && "is-danger"),
@@ -725,10 +756,11 @@
           onClick: function () { choose(o); },
         },
           o.icon ? e(Icon, { name: o.icon }) : e(Preview, { option: o, kind: props.preview }),
+          o.px != null ? e("span", { className: "bd-dd-px" }, o.px) : null,
           e("span", { className: "bd-dd-opt-text" },
             e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
             o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null),
-          isSel ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null);
+          isSel ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null)];
       })), document.body) : null);
   }
 
@@ -888,6 +920,23 @@
     return e("div", { className: cx("bd-mx", "is-" + props.dir), role: "group", "aria-label": "Alignment" }, cells);
   }
 
+  /* Where a pinned or floating item sits: nine spots, and two that run the
+     width of the top or bottom edge. */
+  var PIN_GRID = ["top-left", "top", "top-right", "left", "center", "right", "bottom-left", "bottom", "bottom-right"];
+  var PIN_WORD = { "top-left": "Top left", top: "Top", "top-right": "Top right", left: "Left", center: "Centre", right: "Right", "bottom-left": "Bottom left", bottom: "Bottom", "bottom-right": "Bottom right" };
+  function PinPad(props) {
+    return e("div", { className: "bd-pin", role: "group", "aria-label": "Pin to" },
+      e("div", { className: "bd-mx bd-pin-grid" }, PIN_GRID.map(function (v) {
+        var on = props.value === v || (props.value === "top-stretch" && /^top/.test(v)) || (props.value === "bottom-stretch" && /^bottom/.test(v));
+        return e("button", { key: v, type: "button", className: "bd-mx-cell", "aria-pressed": String(on), "aria-label": PIN_WORD[v], title: PIN_WORD[v], onClick: function () { props.onChange(v); } },
+          e("span", { className: "bd-mx-dot" }));
+      })),
+      e("div", { className: "bd-flex-side" },
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(props.value === "top-stretch"), onClick: function () { props.onChange("top-stretch"); }, title: "Pinned across the top edge, like a header" }, "Across the top"),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(props.value === "bottom-stretch"), onClick: function () { props.onChange("bottom-stretch"); }, title: "Pinned across the bottom edge, like a tab bar" }, "Across the bottom"),
+        props.children));
+  }
+
   /* A search box with a clear button. Escape clears it too. */
   function SearchField(props) {
     var input = useRef(null);
@@ -977,14 +1026,23 @@
     var category = categoryState[0], setCategory = categoryState[1];
     var viewState = useState(prefs.view);
     var view = viewState[0], setView = viewState[1];
-    var tabState = useState(prefs.tab);
-    var tab = tabState[0], setTab = tabState[1];
+    var tabsState = useState(prefs.tabs);
+    var tabByType = tabsState[0], setTabByType = tabsState[1];
+    var pxState = useState({});
+    var pxMap = pxState[0], setPxMap = pxState[1];
+    var themeStampState = useState(0);
+    var themeStamp = themeStampState[0], setThemeStamp = themeStampState[1];
     var closedState = useState(prefs.closed);
     var closedSecs = closedState[0], setClosedSecs = closedState[1];
     var toolState = useState("select");
     var tool = toolState[0], setToolState = toolState[1];
     var trayState = useState(null);
-    var tray = trayState[0], setTray = trayState[1];
+    var tray = trayState[0], setTrayOpen = trayState[1];
+    /* The tray keeps its last group's tools while it closes, so it can
+       animate away rather than vanish. */
+    var trayShownState = useState(null);
+    var trayShown = trayShownState[0], setTrayShown = trayShownState[1];
+    var setTray = function (g) { setTrayOpen(g); if (g) setTrayShown(g); };
     var lastState = useState({});
     var lastTool = lastState[0], setLastTool = lastState[1];
     /* Picking a tool closes its tray and makes it its group's face. */
@@ -1131,8 +1189,8 @@
       setSaved({ ok: !!ok, at: new Date() });
     }, [doc]);
     useEffect(function () {
-      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tab: tab, closed: closedSecs })); });
-    }, [category, view, tab, closedSecs]);
+      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tabs: tabByType, closed: closedSecs })); });
+    }, [category, view, tabByType, closedSecs]);
     var firstDoc = useRef(doc);
     useEffect(function () {
       if (doc !== firstDoc.current && /^#b=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -1458,6 +1516,8 @@
     var dragMove = function (x, y) {
       var dr = dragRef.current;
       if (!dr) return;
+      dr.lastX = x;
+      dr.lastY = y;
       setDrag({ label: dr.payload.label, x: x, y: y });
       var hit = resolve(x, y, dr.payload);
       dr.hit = hit;
@@ -1474,8 +1534,15 @@
       justDragged.current = true;
       setTimeout(function () { justDragged.current = false; }, 60);
       var hit = dr.hit;
+      /* A frame or page dragged from the tool bar lands anywhere on the canvas. */
+      if (commitIt && dr.payload.kind === "tool" && (dr.payload.tool === "frame" || dr.payload.tool === "page")) {
+        var sr = stageRef.current && stageRef.current.getBoundingClientRect();
+        if (sr && dr.lastX >= sr.left && dr.lastX <= sr.right && dr.lastY >= sr.top && dr.lastY <= sr.bottom) frameOps.add(null, dr.payload.tool === "page");
+        return;
+      }
       if (!commitIt || !hit) return;
       var fid = hit.frame || docRef.current.active;
+      if (dr.payload.kind === "tool") { placeTool(dr.payload.tool, hit); return; }
       if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid }); return; }
       if (fid !== docRef.current.active) {
         var moving = dr.payload.id;
@@ -1616,6 +1683,34 @@
       }
     }, [ready, doc, preview]);
 
+    /* Every token option's size in pixels, measured in the active frame, so
+       the inspector can say "48 control-lg" rather than a name alone. Measured
+       again when the frame, its layout character or the theme changes. */
+    useEffect(function () {
+      var a = api(doc.active);
+      if (!a || !a.measure) return;
+      var keys = [], values = [];
+      Object.keys(DATA.tokens).forEach(function (k) {
+        var sec = DATA.tokens[k].section;
+        if (sec !== "size" && sec !== "spacing" && k !== "offset") return;
+        DATA.tokens[k].options.forEach(function (o) {
+          var v = null;
+          Object.keys(o.css).some(function (prop) { var c = String(o.css[prop]); if (/var\(--dt-/.test(c)) { v = c; return true; } return false; });
+          if (v) { keys.push(k + "|" + o.value); values.push(v); }
+        });
+      });
+      var got = a.measure(values);
+      var map = {};
+      keys.forEach(function (k, i) { if (got[i] != null && got[i] >= 0) map[k] = got[i]; });
+      setPxMap(map);
+    }, [ready[doc.active], doc.active, frame.spacing, frame.width, themeStamp]);
+    useEffect(function () {
+      var bump = function () { setThemeStamp(function (n) { return n + 1; }); };
+      window.addEventListener("storage", bump);
+      window.addEventListener("focus", bump);
+      return function () { window.removeEventListener("storage", bump); window.removeEventListener("focus", bump); };
+    }, []);
+
     useEffect(function () { remeasure(); }, [selection, hover, cam, layout.width, layout.height, doc.active, edit && edit.id]);
     useEffect(function () { if (rightRef.current) rightRef.current.scrollTop = 0; }, [sel, doc.active]);
 
@@ -1634,6 +1729,7 @@
     /* A press on the canvas hands the keyboard back to it, so Tab and the
        shortcuts work straight after. */
     var releaseFocus = function () {
+      setTrayOpen(null);
       var a = document.activeElement;
       if (!a || a === document.body || a.classList.contains("bd-inline")) return;
       if (mountEl.contains(a) || (a.closest && a.closest("#app-toolbar"))) a.blur();
@@ -2059,28 +2155,44 @@
     /* A token's dropdown. opts: label, prefix, compact, className, noPreview,
        noneLabel and noneShort (the unset choice, in the list and on the button),
        short (a shorter name for the button), mixedLabel, onChange. */
+    /* A token's dropdown. opts: label, prefix, compact, className, noPreview,
+       noneLabel and noneShort (the unset choice, in the list and on the button),
+       short (a shorter name for the button), mixedLabel, onChange, pxOnly (the
+       button shows just the pixels). Options carry their size in pixels and,
+       for size and spacing, sit in families: those that suit the selection
+       first, the rest after under More. */
     var tokenDropdown = function (key, nodes, id, opts) {
       opts = opts || {};
       var def = DATA.tokens[key];
       var values = nodes.map(function (n) { return n.style[key] || ""; });
       var mixed = !same(values);
       var value = mixed ? "" : values[0];
-      var options = [{ value: "", label: opts.noneLabel || "None", short: opts.noneShort }].concat(def.options.map(function (o) {
-        return { value: o.value, label: o.label || o.value, short: opts.short ? opts.short(o) : undefined, hint: o.tokens.join(" · ") || "CSS keyword", tokens: o.tokens };
+      var ctx = contextOf(nodes.map(function (n) { return n.type; }));
+      var order = def.section === "size" ? ctx.size : def.section === "spacing" ? ctx.space : null;
+      var list = def.options.slice();
+      if (order && list.some(function (o) { return o.family; })) {
+        var rank = function (o) { var i = order.indexOf(o.family); return i < 0 ? order.length : i; };
+        list = list.map(function (o, i) { return { o: o, i: i }; }).sort(function (a, b) { return rank(a.o) - rank(b.o) || a.i - b.i; }).map(function (x) { return x.o; });
+      }
+      var more = def.section === "size" ? "More sizes" : "More spacing";
+      var options = [{ value: "", label: opts.noneLabel || "None", short: opts.noneShort }].concat(list.map(function (o) {
+        var px = pxMap[key + "|" + o.value];
+        var name = o.label || o.value;
+        var group = order && o.family ? (order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more) : undefined;
+        var short = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : undefined;
+        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group, short: short, hint: o.tokens.join(" · ") || "CSS keyword", tokens: o.tokens };
       }));
       return e(Dropdown, {
         labelledBy: id || undefined, label: opts.label || def.label, value: value, mixed: mixed, mixedLabel: opts.mixedLabel, options: options,
         preview: opts.noPreview ? null : def.preview, compact: opts.compact, narrow: opts.compact, prefix: opts.prefix, className: opts.className,
+        title: (opts.label || def.label) + (order ? ": suggestions for " + ctx.name + " first" : ""),
         onChange: opts.onChange || function (v) { setStyle(nodes.map(function (n) { return n.id; }), key, v); },
       });
     };
-    /* A size option's name on a small button: Hug, Fill, ×4, Narrow. */
-    var shortSize = function (o) {
-      if (o.value === "hug") return "Hug";
-      if (o.value === "fill") return "Fill";
-      var m = /^x(\d+)$/.exec(o.value);
-      if (m) return "×" + m[1];
-      return String(o.label || o.value).replace(/^Container /, "");
+    /* A size on a small button: its pixels, then a short name. */
+    var shortSize = function (o, px) {
+      var name = o.value === "hug" ? "Hug" : o.value === "fill" ? "Fill" : /^x(\d+)$/.test(o.value) ? "×" + o.value.slice(1) : String(o.label || o.value).replace(/^container /, "").replace(/^(control|icon|avatar)-/, "");
+      return px != null && o.value !== "hug" && o.value !== "fill" ? Math.round(px) + " " + name : name;
     };
 
     /* A token with one value for every side, or one per side behind a toggle. */
@@ -2140,8 +2252,9 @@
         var own = nodes.some(function (n) { return n.style[key]; });
         return e("div", { key: key, className: "bd-box-cell is-" + where },
           tokenDropdown(key, nodes, null, {
-            compact: true, noPreview: true, mixedLabel: "~", className: cx("bd-box-val", !own && "is-inherited"),
-            noneLabel: inherited ? "Same as every side (" + inherited + ")" : "None", noneShort: inherited || "–",
+            compact: true, noPreview: true, mixedLabel: "~", pxOnly: true, className: cx("bd-box-val", !own && "is-inherited"),
+            noneLabel: inherited ? "Same as every side (" + inherited + ")" : "None",
+            noneShort: inherited ? (pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited) : "–",
           }));
       };
       var ring = function (key, title) {
@@ -2435,7 +2548,19 @@
     var tabPanel = function (current, children) {
       return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current }, children);
     };
-    var pickTab = function (have) { return have[tab] ? tab : have.layout ? "layout" : TABS.filter(function (t) { return have[t[0]]; }).map(function (t) { return t[0]; })[0]; };
+    /* The tab follows the kind of layer: what suits it the first time, then
+       whatever was last chosen for that kind. */
+    var tabKey = function () {
+      var ns = nodesOf(selection);
+      if (!ns.length) return "__frame";
+      return ns.every(function (n) { return n.type === ns[0].type; }) ? ns[0].type : "__mixed";
+    };
+    var setTab = function (t) { var k = tabKey(); setTabByType(function (m) { var n = Object.assign({}, m); n[k] = t; return n; }); };
+    var pickTab = function (have) {
+      var k = tabKey();
+      var want = tabByType[k] || smartTab(k);
+      return have[want] ? want : have.layout ? "layout" : TABS.filter(function (t) { return have[t[0]]; }).map(function (t) { return t[0]; })[0];
+    };
 
     /* A section that remembers whether it's folded, per title. */
     var sec = function (key, title, children, action) {
@@ -2475,6 +2600,32 @@
       ];
     };
 
+    /* In the flow, or out of it: sticky as the frame scrolls, pinned to the
+       frame, or floating over its parent, at a spot and a token offset. */
+    var POSITION_DEFAULT_ANCHOR = { sticky: "", pinned: "bottom-right", floating: "top-right" };
+    var positionRows = function (nodes) {
+      var ids = nodes.map(function (n) { return n.id; });
+      var pv = nodes.map(function (n) { return n.style.position || ""; });
+      var av = nodes.map(function (n) { return n.style.anchor || ""; });
+      var position = same(pv) ? pv[0] : null;
+      var anchor = same(av) ? av[0] : null;
+      var pid = "bd-pos-" + nodes[0].id;
+      return [
+        e(Field, { key: "pos", id: pid, label: "Position", hint: position === "pinned" ? "Stays put on the frame while it scrolls." : position === "floating" ? "Floats over its parent, out of the flow." : position === "sticky" ? "Scrolls with the page until it reaches its edge, then sticks." : null },
+          e(Segmented, { labelledBy: pid, wide: true, value: position === null ? null : position,
+            onChange: function (v) {
+              v = v || "";
+              /* Back in flow, the pin and offset go too; between positions they stay. */
+              setStyles(ids, v ? { position: v, anchor: anchor || POSITION_DEFAULT_ANCHOR[v] } : { position: undefined, anchor: undefined, offset: undefined });
+            },
+            options: [{ value: "", label: "In flow" }, { value: "sticky", label: "Sticky" }, { value: "pinned", label: "Pinned" }, { value: "floating", label: "Floating" }] })),
+        position ? e("div", { key: "pin", className: "bd-field" },
+          e("span", { className: "bd-field-label" }, "Pin to"),
+          e(PinPad, { value: anchor, onChange: function (v) { setStyle(ids, "anchor", v); } },
+            tokenDropdown("offset", nodes, null, { label: "Offset from the edge", prefix: "Offset", noneLabel: "Flush to the edge", noneShort: "0", className: "bd-dd-field", noPreview: true }))) : null,
+      ];
+    };
+
     var frameInspector = function () {
       var surfaceOptions = DATA.tokens.surface.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens }; });
       var b = boxes[frame.id] || { h: frame.height };
@@ -2489,19 +2640,7 @@
             e(Field, { key: "fill", id: "bd-pg-surface", label: "Fill" },
               e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.surface, preview: "color", className: "bd-dd-field bd-dd-swatch", onChange: function (v) { setFrame("surface", v || "base"); }, options: surfaceOptions })),
           ])]
-        : [sec("frame-size", "Frame", [
-            e(Dropdown, { key: "device", label: "Device", prefix: "Device", value: preset, placeholder: "Custom", iconValue: true, className: "bd-dd-field", onChange: setPreset,
-              options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) }),
-            e("div", { key: "wh", className: "bd-size-row" },
-              e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function (v) { setSize(v, undefined); } }),
-              e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : undefined, onChange: function (v) { setSize(undefined, v); } }),
-              e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function () { setSize(frame.height, frame.width); } }, e(Icon, { name: "rotate" }))),
-            e(Field, { key: "hug", id: "bd-fr-hug", label: "Height", hint: frame.hug ? "Follows what's in the frame." : null },
-              e(Segmented, { labelledBy: "bd-fr-hug", wide: true, value: frame.hug ? "hug" : "fixed",
-                onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }); },
-                options: [{ value: "fixed", label: "Fixed" }, { value: "hug", label: "Hug contents" }] })),
-          ]),
-          sec("frame-flow", "Page layout", [
+        : [          sec("frame-flow", "Page layout", [
             e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
               e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
             e(Field, { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
@@ -2514,7 +2653,18 @@
             e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "frame" }),
               e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame.id, "title"), onChange: function (v) { frameOps.rename(frame.id, v); } })),
             e("div", { className: "bd-head-actions" }, frameMenu(frame, "title"))),
-          e("p", { className: "bd-inspect-sub" }, sizeText(frame) + (frame.hug ? ", hugging its content" : "") + ". Select something in it to change that instead.")),
+          e("p", { className: "bd-inspect-sub" }, (frame.hug ? "Hugs its content" : "A fixed screen") + ". Select something in it to change that instead."),
+          /* A frame's size is always in view: the first thing a frame or page needs. */
+          e("div", { className: "bd-frame-size-head" },
+            e(Dropdown, { label: "Device", prefix: "Device", value: preset, placeholder: "Custom", iconValue: true, className: "bd-dd-field", onChange: setPreset,
+              options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) }),
+            e("div", { className: "bd-size-row" },
+              e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function (v) { setSize(v, undefined); } }),
+              e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : undefined, onChange: function (v) { setSize(undefined, v); } }),
+              e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function () { setSize(frame.height, frame.width); } }, e(Icon, { name: "rotate" }))),
+            e(Segmented, { label: "Height", wide: true, value: frame.hug ? "hug" : "fixed",
+              onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }); },
+              options: [{ value: "fixed", label: "Fixed height" }, { value: "hug", label: "Hug contents" }] }))),
         tabBar(have, current),
         tabPanel(current, body));
     };
@@ -2553,6 +2703,7 @@
           flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex) : null,
           sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)]),
           sec("spacing", "Spacing", boxModel(nodes)),
+          sec("position", "Position", positionRows(nodes)),
         ];
       } else {
         body = [styleRows.length ? sec("style", "Style", styleRows) : null]
@@ -2638,8 +2789,6 @@
     /* What each tool puts down. A drag gives it a size in whole steps of the
        large control size; a click gives it a sensible one. */
     var toolNode = function (kind, size) {
-      if (kind === "rect") return make("Shape", { shape: "rectangle" }, null, { w: size ? size.w : "x4", height: size ? size.h : "x2", surface: "sunken", radius: "control" });
-      if (kind === "ellipse") return make("Shape", { shape: "ellipse" }, null, { w: size ? size.w : "x2", height: size ? size.h : "x2", surface: "brand-muted" });
       if (kind === "box") {
         var box = make("Group", { direction: "column", gap: "sm" }, [], { padding: "md", border: "subtle", radius: "container" });
         if (size) { box.style.w = size.w; box.style.h = size.h; }
@@ -2652,6 +2801,15 @@
         return make(m[1]);
       }
       return null;
+    };
+    /* A tool dropped at a point a drag resolved, in that frame. */
+    var placeTool = function (kind, hit) {
+      var node = toolNode(kind, null);
+      if (!node) return;
+      var fid = hit.frame || docRef.current.active;
+      var fr = frameById(docRef.current, fid);
+      change(function (d) { d.active = fid; return ops.insert(d, hit.parent, hit.index, node, fid); }, "Added " + (node.type === "Shape" ? node.props.shape : node.type) + (fr ? " to " + fr.name : ""));
+      if (kind === "comp:Text" || kind === "comp:Heading") setTimeout(function () { beginEditRef.current(node.id); }, 350);
     };
     var finishSketch = function (sk) {
       var z = camRef.current.z;
@@ -2677,7 +2835,6 @@
       var where = hit.parent === "root" ? fr.name : ((locate(docRef.current, hit.parent, at.fid) || { node: { type: "it" } }).node.type);
       change(function (d) { d.active = at.fid; return ops.insert(d, hit.parent, hit.index, node, at.fid); }, "Added " + (node.type === "Shape" ? node.props.shape : node.type) + " to " + where);
       if (kind === "comp:Text" || kind === "comp:Heading") setTimeout(function () { beginEditRef.current(node.id); }, 350);
-      else if (TOOL_INFO[kind] && TOOL_INFO[kind].group === "media") setTab("content");
     };
     var drawHandlers = {
       onPointerDown: function (ev) {
@@ -2715,30 +2872,45 @@
       setTool(it.id);
       announce(it.label + (it.id === "select" || it.id === "hand" ? "" : it.id === "frame" || it.id === "page" ? ": press or drag on the canvas" : ": press or drag on a frame"));
     };
-    var openGroup = TOOLBAR.filter(function (t) { return t && t.group === tray; })[0];
-    var tools = e("div", { className: cx("bd-tools", openGroup && "is-open"), role: "toolbar", "aria-label": "Tools" },
-      openGroup ? e("div", { className: "bd-tray", id: "bd-tray", role: "group", "aria-label": openGroup.label },
-        openGroup.items.filter(usable).map(function (it) {
+    var shownGroup = TOOLBAR.filter(function (t) { return t && t.group === trayShown; })[0];
+    /* Press to pick; press and drag to drop the thing itself on the canvas. */
+    var toolDrag = function (it) {
+      return function (ev) {
+        if (it.soon || it.id === "select" || it.id === "hand" || ev.pointerType === "touch") return;
+        startDrag(ev, { kind: "tool", tool: it.id, label: it.label });
+      };
+    };
+    var navTool = tool === "hand" ? "hand" : "select";
+    var tools = e("div", { className: "bd-tools", role: "toolbar", "aria-label": "Tools" },
+      shownGroup ? e("div", { className: cx("bd-tray", tray && "is-open"), id: "bd-tray", role: "group", "aria-label": shownGroup.label, "aria-hidden": tray ? undefined : "true", inert: tray ? undefined : "" },
+        shownGroup.items.filter(usable).map(function (it) {
           return e("button", {
-            key: it.id, type: "button", className: cx("bd-tray-item", it.soon && "is-soon"), "aria-pressed": String(tool === it.id), "aria-disabled": it.soon ? "true" : undefined,
-            title: it.soon ? it.label + ": coming soon" : (it.hint ? it.label + ": " + it.hint : it.label) + (it.key ? " (" + it.key + ")" : ""),
-            onClick: function () { pickTool(it); },
+            key: it.id, type: "button", className: cx("bd-tray-item", it.soon && "is-soon"), "aria-pressed": String(tool === it.id), "aria-disabled": it.soon ? "true" : undefined, tabIndex: tray ? undefined : -1,
+            title: it.soon ? it.label + ": coming soon" : (it.hint ? it.label + ": " + it.hint : it.label) + (it.key ? " (" + it.key + ")" : "") + ". Drag it onto the canvas, or press then click.",
+            onPointerDown: toolDrag(it),
+            onClick: function () { if (!justDragged.current) pickTool(it); },
           }, e(Icon, { name: it.icon }), e("span", { className: "bd-tray-label" }, it.label), it.soon ? e("span", { className: "bd-tray-soon" }, "Soon") : null);
         })) : null,
       e("div", { className: "bd-tools-row" },
         TOOLBAR.map(function (t, i) {
           if (!t) return e("span", { key: "sep" + i, className: "bd-tools-sep", "aria-hidden": true });
-          if (!t.group) {
-            return e("button", { key: t.id, type: "button", className: "bd-tool", "aria-pressed": String(tool === t.id), "aria-label": t.label, title: t.label + " (" + t.key + ")",
-              onClick: function () { pickTool(t); } }, e(Icon, { name: t.icon }));
+          if (t.nav) {
+            var on = tool === "select" || tool === "hand";
+            return e("button", {
+              key: "nav", type: "button", className: cx("bd-tool bd-tool-nav", navTool === "hand" && "is-hand"), "aria-pressed": String(on),
+              "aria-label": navTool === "hand" ? "Hand. Press for Select" : "Select. Press for Hand",
+              title: navTool === "hand" ? "Hand (H): drag to pan. Press for Select (V)" : "Select (V). Press for Hand (H)",
+              onClick: function () { pickTool(TOOL_INFO[tool === "select" ? "hand" : "select"]); },
+            }, e("span", { className: "bd-nav-icons", "aria-hidden": true }, e(Icon, { name: "pointer", className: "bd-nav-pointer" }), e(Icon, { name: "hand", className: "bd-nav-hand" })));
           }
           var face = TOOL_INFO[TOOL_INFO[tool] && TOOL_INFO[tool].group === t.group ? tool : lastTool[t.group] || t.items[0].id];
-          var on = !!(TOOL_INFO[tool] && TOOL_INFO[tool].group === t.group);
+          var on2 = !!(TOOL_INFO[tool] && TOOL_INFO[tool].group === t.group);
           return e("button", {
-            key: t.group, type: "button", className: cx("bd-tool bd-tool-group", tray === t.group && "is-expanded"), "aria-pressed": String(on),
+            key: t.group, type: "button", className: cx("bd-tool bd-tool-group", tray === t.group && "is-expanded"), "aria-pressed": String(on2),
             "aria-expanded": String(tray === t.group), "aria-controls": tray === t.group ? "bd-tray" : undefined,
             "aria-label": t.label + ", " + face.label, title: t.label + ": " + t.items.filter(function (x) { return !x.soon; }).map(function (x) { return x.label; }).join(", "),
-            onClick: function () { setTray(tray === t.group ? null : t.group); },
+            onPointerDown: toolDrag(face),
+            onClick: function () { if (!justDragged.current) setTray(tray === t.group ? null : t.group); },
           }, e(Icon, { name: face.icon }), e("span", { className: "bd-tool-caret", "aria-hidden": true }));
         })));
 
@@ -2812,7 +2984,7 @@
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
         marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
       !preview && tool !== "select" ? e("div", Object.assign({ className: cx("bd-draw", tool === "hand" ? "is-hand" : "is-draw") }, drawHandlers)) : null,
-      sketch && sketch.tool !== "hand" ? e("div", { className: cx("bd-sketch", sketch.tool === "ellipse" && "is-ellipse"), "aria-hidden": true,
+      sketch && sketch.tool !== "hand" ? e("div", { className: "bd-sketch", "aria-hidden": true,
         style: { left: Math.min(sketch.x0, sketch.x1), top: Math.min(sketch.y0, sketch.y1), width: Math.abs(sketch.x1 - sketch.x0), height: Math.abs(sketch.y1 - sketch.y0) } }) : null,
       !preview ? tools : null,
       edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
@@ -2883,6 +3055,69 @@
       importDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
   }
+
+  /* Tooltips: a resting pointer on anything with a title shows it after a
+     beat, in the builder's own style. The title moves to data-tip so the
+     browser's own tip doesn't show as well; an element named only by its
+     title keeps that name as its aria-label. Touch never shows one. */
+  (function installTips() {
+    var DELAY = 650;
+    var tip = null, timer = 0, owner = null;
+    var inScope = function (el) { return mountEl.contains(el) || (el.closest && el.closest("#app-toolbar, .bd-dd-list")); };
+    var target = function (el) {
+      while (el && el.nodeType === 1) {
+        if (el.hasAttribute("title") || el.hasAttribute("data-tip")) return el;
+        if (el === mountEl || el === document.body) return null;
+        el = el.parentElement;
+      }
+      return null;
+    };
+    var claim = function (el) {
+      var t = el.getAttribute("title");
+      if (t) {
+        el.setAttribute("data-tip", t);
+        el.removeAttribute("title");
+        if (!el.hasAttribute("aria-label") && !el.hasAttribute("aria-labelledby") && !el.textContent.trim()) el.setAttribute("aria-label", t);
+      }
+      return el.getAttribute("data-tip");
+    };
+    var hide = function () {
+      clearTimeout(timer);
+      timer = 0;
+      owner = null;
+      if (tip) { tip.remove(); tip = null; }
+    };
+    var show = function (el) {
+      var text = el.isConnected ? el.getAttribute("data-tip") : null;
+      if (!text) return;
+      tip = document.createElement("div");
+      tip.className = "bd-tip";
+      tip.setAttribute("role", "tooltip");
+      tip.textContent = text;
+      (el.closest("dialog[open]") || document.body).appendChild(tip);
+      var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 8;
+      var top = r.top - h - gap < 8 ? r.bottom + gap : r.top - h - gap;
+      var left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+      tip.style.top = Math.round(top) + "px";
+      tip.style.left = Math.round(left) + "px";
+      tip.classList.add(top > r.top ? "is-below" : "is-above");
+    };
+    document.addEventListener("pointerover", function (ev) {
+      if (ev.pointerType === "touch") return;
+      var el = target(ev.target);
+      if (el === owner) return;
+      hide();
+      if (!el || !inScope(el) || !claim(el)) return;
+      owner = el;
+      timer = setTimeout(function () { timer = 0; if (owner === el) show(el); }, DELAY);
+    }, true);
+    document.addEventListener("pointerout", function (ev) {
+      if (owner && (!ev.relatedTarget || !owner.contains(ev.relatedTarget))) hide();
+    }, true);
+    ["pointerdown", "keydown", "wheel", "scroll", "blur"].forEach(function (type) {
+      (type === "blur" ? window : document).addEventListener(type, hide, true);
+    });
+  })();
 
   mountEl.textContent = "";
   ReactDOM.createRoot(mountEl).render(e(App));

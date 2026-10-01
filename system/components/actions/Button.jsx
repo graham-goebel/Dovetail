@@ -5,6 +5,8 @@ const V = {
   secondary: { bg: "--dt-button-secondary-bg", hover: "--dt-button-secondary-bg-hover", active: "--dt-button-secondary-bg-active", fg: "--dt-button-secondary-fg", border: "--dt-button-secondary-border" },
   ghost: { bg: "--dt-button-ghost-bg", hover: "--dt-button-ghost-bg-hover", active: "--dt-button-ghost-bg-active", fg: "--dt-button-ghost-fg", border: "--dt-button-ghost-border" },
   danger: { bg: "--dt-button-danger-bg", hover: "--dt-button-danger-bg-hover", active: "--dt-button-danger-bg-active", fg: "--dt-button-danger-fg", border: "--dt-button-danger-border" },
+  brand: { bg: "--dt-button-brand-bg", hover: "--dt-button-brand-bg-hover", active: "--dt-button-brand-bg-active", fg: "--dt-button-brand-fg", border: "--dt-button-brand-border" },
+  "brand-secondary": { bg: "--dt-button-brand-secondary-bg", hover: "--dt-button-brand-secondary-bg-hover", active: "--dt-button-brand-secondary-bg-active", fg: "--dt-button-brand-secondary-fg", border: "--dt-button-brand-secondary-border" },
 };
 
 export function Button({ variant = "primary", size = "md", disabled = false, loading = false, fullWidth = false, iconStart, iconEnd, as: Tag = "button", children, style, ...rest }) {

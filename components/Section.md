@@ -34,6 +34,8 @@ A page section: a column bounded by a container width, the section rhythm above 
 ### Tones
 A tone is a surface and the text roles that go on it. The `brand` tone follows Configure's Fill: solid, gradient, duotone, or Quiet, which is the palest tint of the primary (`--dt-surface-brand-muted`, its 050 step) with the text that belongs on it, for a band that does not shout. Padding follows the layout's modules setting. To tint a section without re-colouring its text, put `data-surface="brand-muted"` on it: the surface roles become the brand's tint and text keeps its ordinary roles. Put it on `html` for the whole page. `brand` and `secondary` are full fills; the `-muted` tones are the pale tint of the same hue. The section re-points `--dt-text-primary`, `-secondary` and `-tertiary` on itself, so everything inside that reads the semantic text roles, `Stat` and `Card` descriptions included, follows the band. That is also how to build a band that should not follow the page's light or dark mode: its colours come from the brand roles, not the page surface.
 
+The `-muted` tones also re-point the buttons inside them. On `brand-muted`, a primary `Button` takes the brand colour and a secondary one the secondary brand colour; on `secondary-muted` the two swap. Each uses the brand-coloured action roles, so its text passes on it.
+
 On a `brand` fill the primary button and the fill are the same colour. Use a secondary or ghost button there, or a `-muted` tone.
 
 ### Dark and photo bands
@@ -60,7 +62,9 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   /**
    * The surface, and the text roles that belong on it. Brand and secondary
    * tones re-point --dt-text-primary, -secondary and -tertiary on the section,
-   * so Heading and Text inside follow without a prop. Ignored when `media` is set.
+   * so Heading and Text inside follow without a prop. The -muted tones also
+   * point a Button's primary and secondary at the brand colours (brand-muted:
+   * brand then secondary; secondary-muted: the reverse). Ignored when `media` is set.
    * @default "base"
    */
   tone?: "base" | "subtle" | "brand" | "brand-muted" | "secondary" | "secondary-muted";
@@ -90,6 +94,54 @@ export declare function Section(props: SectionProps): React.JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-button-border-width` | component | `var(--dt-border-width-default)` |
+| `--dt-button-brand-bg` | component | `var(--dt-surface-action-brand)` |
+| `--dt-button-brand-bg-active` | component | `var(--dt-surface-action-brand-active)` |
+| `--dt-button-brand-bg-hover` | component | `var(--dt-surface-action-brand-hover)` |
+| `--dt-button-brand-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-brand-fg` | component | `var(--dt-text-on-action-brand)` |
+| `--dt-button-brand-secondary-bg` | component | `var(--dt-surface-action-brand-secondary)` |
+| `--dt-button-brand-secondary-bg-active` | component | `var(--dt-surface-action-brand-secondary-active)` |
+| `--dt-button-brand-secondary-bg-hover` | component | `var(--dt-surface-action-brand-secondary-hover)` |
+| `--dt-button-brand-secondary-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-brand-secondary-fg` | component | `var(--dt-text-on-action-brand-secondary)` |
+| `--dt-button-danger-bg` | component | `var(--dt-surface-action-danger)` |
+| `--dt-button-danger-bg-active` | component | `var(--dt-surface-action-danger-active)` |
+| `--dt-button-danger-bg-hover` | component | `var(--dt-surface-action-danger-hover)` |
+| `--dt-button-danger-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-danger-fg` | component | `var(--dt-text-on-action-danger)` |
+| `--dt-button-disabled-bg` | component | `var(--dt-surface-action-disabled)` |
+| `--dt-button-disabled-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-disabled-fg` | component | `var(--dt-text-on-action-disabled)` |
+| `--dt-button-font-family` | component | `var(--dt-text-label-md-family)` |
+| `--dt-button-font-size-lg` | component | `var(--dt-font-size-md)` |
+| `--dt-button-font-size-md` | component | `var(--dt-font-size-sm)` |
+| `--dt-button-font-size-sm` | component | `var(--dt-font-size-sm)` |
+| `--dt-button-font-weight` | component | `var(--dt-font-weight-medium)` |
+| `--dt-button-gap` | component | `var(--dt-space-inline-xs)` |
+| `--dt-button-ghost-bg` | component | `var(--dt-surface-action-ghost)` |
+| `--dt-button-ghost-bg-active` | component | `var(--dt-surface-action-ghost-active)` |
+| `--dt-button-ghost-bg-hover` | component | `var(--dt-surface-action-ghost-hover)` |
+| `--dt-button-ghost-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-ghost-fg` | component | `var(--dt-text-on-action-ghost)` |
+| `--dt-button-height-lg` | component | `var(--dt-size-control-lg)` |
+| `--dt-button-height-md` | component | `var(--dt-size-control-md)` |
+| `--dt-button-height-sm` | component | `var(--dt-size-control-sm)` |
+| `--dt-button-padding-lg` | component | `var(--dt-space-inset-lg)` |
+| `--dt-button-padding-md` | component | `var(--dt-space-inset-md)` |
+| `--dt-button-padding-sm` | component | `var(--dt-space-inset-sm)` |
+| `--dt-button-primary-bg` | component | `var(--dt-surface-action)` |
+| `--dt-button-primary-bg-active` | component | `var(--dt-surface-action-active)` |
+| `--dt-button-primary-bg-hover` | component | `var(--dt-surface-action-hover)` |
+| `--dt-button-primary-border` | component | `var(--dt-color-transparent)` |
+| `--dt-button-primary-fg` | component | `var(--dt-text-on-action)` |
+| `--dt-button-radius` | component | `var(--dt-radius-pill)` |
+| `--dt-button-secondary-bg` | component | `var(--dt-surface-action-secondary)` |
+| `--dt-button-secondary-bg-active` | component | `var(--dt-surface-action-secondary-active)` |
+| `--dt-button-secondary-bg-hover` | component | `var(--dt-surface-action-secondary-hover)` |
+| `--dt-button-secondary-border` | component | `var(--dt-border-action-secondary)` |
+| `--dt-button-secondary-fg` | component | `var(--dt-text-on-action-secondary)` |
+| `--dt-button-transition` | component | `var(--dt-motion-micro)` |
 | `--dt-layout-module-padding` | semantic | `var(--dt-space-section)` |
 | `--dt-scrim-full` | semantic | `color-mix(in oklab, var(--dt-color-neutral-950) 55%, transparent)` |
 | `--dt-size-container-default` | semantic | `var(--dt-dim-container-xl)` |
@@ -98,6 +150,24 @@ export declare function Section(props: SectionProps): React.JSX.Element;
 | `--dt-space-gutter` | semantic | `var(--dt-dim-6)` |
 | `--dt-space-section` | semantic | `var(--dt-dim-24)` |
 | `--dt-space-section-compact` | semantic | `var(--dt-dim-16)` |
+| `--dt-surface-action-active` | semantic | `var(--dt-color-neutral-700)` |
+| `--dt-surface-action-brand` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-action-brand-active` | semantic | `var(--dt-color-primary-800)` |
+| `--dt-surface-action-brand-hover` | semantic | `var(--dt-color-primary-700)` |
+| `--dt-surface-action-brand-secondary` | semantic | `var(--dt-color-secondary-600)` |
+| `--dt-surface-action-brand-secondary-active` | semantic | `var(--dt-color-secondary-800)` |
+| `--dt-surface-action-brand-secondary-hover` | semantic | `var(--dt-color-secondary-700)` |
+| `--dt-surface-action-danger` | semantic | `var(--dt-color-red-600)` |
+| `--dt-surface-action-danger-active` | semantic | `var(--dt-color-red-800)` |
+| `--dt-surface-action-danger-hover` | semantic | `var(--dt-color-red-700)` |
+| `--dt-surface-action-disabled` | semantic | `var(--dt-color-neutral-100)` |
+| `--dt-surface-action-ghost` | semantic | `var(--dt-color-transparent)` |
+| `--dt-surface-action-ghost-active` | semantic | `var(--dt-color-neutral-200)` |
+| `--dt-surface-action-ghost-hover` | semantic | `var(--dt-color-neutral-100)` |
+| `--dt-surface-action-hover` | semantic | `var(--dt-color-neutral-800)` |
+| `--dt-surface-action-secondary` | semantic | `var(--dt-color-neutral-100)` |
+| `--dt-surface-action-secondary-active` | semantic | `var(--dt-color-neutral-300)` |
+| `--dt-surface-action-secondary-hover` | semantic | `var(--dt-color-neutral-200)` |
 | `--dt-surface-base` | semantic | `var(--dt-color-white)` |
 | `--dt-surface-brand` | semantic | `var(--dt-color-primary-600)` |
 | `--dt-surface-brand-muted` | semantic | `var(--dt-color-primary-050)` |
@@ -107,6 +177,12 @@ export declare function Section(props: SectionProps): React.JSX.Element;
 | `--dt-surface-subtle` | semantic | `var(--dt-color-neutral-050)` |
 | `--dt-surface-texture` | semantic | `none` |
 | `--dt-text-headline` | semantic | `var(--dt-text-primary)` |
+| `--dt-text-on-action-brand` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-brand-secondary` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-danger` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-action-disabled` | semantic | `var(--dt-color-neutral-400)` |
+| `--dt-text-on-action-ghost` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-text-on-action-secondary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-on-brand` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-brand-muted` | semantic | `var(--dt-color-primary-900)` |
 | `--dt-text-on-brand-secondary` | semantic | `var(--dt-color-white)` |
@@ -116,6 +192,7 @@ export declare function Section(props: SectionProps): React.JSX.Element;
 | `--dt-text-primary` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-text-secondary` | semantic | `var(--dt-color-neutral-600)` |
 | `--dt-text-tertiary` | semantic | `var(--dt-color-neutral-500)` |
+| `--dt-color-transparent` | primitive | `oklch(0 0 0 / 0)` |
 | `--dt-dim-container-sm` | primitive | `640px` |
 
 ## Source
@@ -146,13 +223,28 @@ function onFill(fg) {
     color: fg,
   };
 }
+/* On a pale brand tint, a Button's primary and secondary take the brand
+   colours: the tint's own hue leads, the other brand hue follows. Each pair
+   comes from the brand-coloured action roles, whose text passes on them. */
+function buttonsIn(lead, follow) {
+  const out = {};
+  [["primary", lead], ["secondary", follow]].forEach(([variant, hue]) => {
+    const role = `--dt-surface-action-${hue}`;
+    out[`--dt-button-${variant}-bg`] = `var(${role})`;
+    out[`--dt-button-${variant}-bg-hover`] = `var(${role}-hover)`;
+    out[`--dt-button-${variant}-bg-active`] = `var(${role}-active)`;
+    out[`--dt-button-${variant}-fg`] = `var(--dt-text-on-action-${hue})`;
+    out[`--dt-button-${variant}-border`] = "var(--dt-color-transparent)";
+  });
+  return out;
+}
 const TONES = {
   base: { background: "var(--dt-surface-base)" },
   subtle: { background: "var(--dt-surface-subtle)" },
   brand: { background: "var(--dt-surface-brand)", ...onFill("var(--dt-text-on-brand)") },
-  "brand-muted": { background: "var(--dt-surface-brand-muted)", ...onFill("var(--dt-text-on-brand-muted)") },
+  "brand-muted": { background: "var(--dt-surface-brand-muted)", ...onFill("var(--dt-text-on-brand-muted)"), ...buttonsIn("brand", "brand-secondary") },
   secondary: { background: "var(--dt-surface-brand-secondary)", ...onFill("var(--dt-text-on-brand-secondary)") },
-  "secondary-muted": { background: "var(--dt-surface-brand-secondary-muted)", ...onFill("var(--dt-text-on-brand-secondary-muted)") },
+  "secondary-muted": { background: "var(--dt-surface-brand-secondary-muted)", ...onFill("var(--dt-text-on-brand-secondary-muted)"), ...buttonsIn("brand-secondary", "brand") },
 };
 
 function scrimImage(scrim, align) {
