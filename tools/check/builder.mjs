@@ -146,6 +146,12 @@ async function pick(page, label, optionText) {
   await option(page, optionText).click();
 }
 const labels = (page) => page.$$eval(".bd-flabel-name", (n) => n.map((x) => x.textContent));
+/* A blank frame replaces the canvas's iframe, so for a moment there is no
+   frame to ask; wait in the page until the new one has drawn its empty root. */
+const emptyFrame = (page) => page.waitForFunction(() => {
+  const i = document.querySelector("iframe.bd-frame");
+  try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector('[data-bf-slot="root"]')); } catch (err) { return false; }
+});
 /* Hands the keyboard back to the canvas, as a press on it does. */
 const release = (page) => page.evaluate(() => document.activeElement && document.activeElement.blur());
 /* Every frame in view. */
@@ -201,7 +207,7 @@ try {
   await step("Drag onto an empty frame, add into the selection, select and deselect on the canvas", async () => {
     await page.locator(".bd-start").click();
     await option(page, "Blank frame").click();
-    await frame().waitForSelector('[data-bf-slot="root"]');
+    await emptyFrame(page);
     await category(page, "Layout");
     const from = await page.locator('.bd-tile[data-type="Stack"]').boundingBox();
     const to = await canvasPoint(page, '[data-bf-slot="root"]');
@@ -478,7 +484,7 @@ try {
     const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
     await page.locator(".bd-start").click();
     await option(page, "Blank frame").click();
-    await frame().waitForSelector('[data-bf-slot="root"]');
+    await emptyFrame(page);
     expect(await page.locator(".bd-tools-row > .bd-tool").count() === 4, "one Select/Hand button and three groups in the bar, with no shapes");
     const trays = {};
     for (const g of ["Layout", "Text", "Images and media"]) {
@@ -554,7 +560,7 @@ try {
     const current = () => page.locator(".bd-itab[aria-selected=true]").textContent();
     await page.locator(".bd-start").click();
     await option(page, "Blank frame").click();
-    await frame().waitForSelector('[data-bf-slot="root"]');
+    await emptyFrame(page);
 
     const nav = page.locator(".bd-tool-nav");
     expect(/^Select/.test(await nav.getAttribute("aria-label")), "the nav button starts on Select");
@@ -684,7 +690,7 @@ try {
 
     await page.locator(".bd-start").click();
     await option(page, "Blank frame").click();
-    await frame().waitForSelector('[data-bf-slot="root"]');
+    await emptyFrame(page);
     await rail("Content").click();
     const png = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 160; c.height = 120; const x = c.getContext("2d"); x.fillStyle = "#f3f2ee"; x.fillRect(0, 0, 160, 120); x.fillStyle = "#a01010"; x.beginPath(); x.arc(80, 60, 36, 0, 7); x.fill(); return c.toDataURL("image/png"); });
     await page.setInputFiles("#bd-lib-file", { name: "red-dot.png", mimeType: "image/png", buffer: Buffer.from(png.split(",")[1], "base64") });
