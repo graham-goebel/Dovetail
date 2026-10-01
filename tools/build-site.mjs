@@ -2064,17 +2064,59 @@ ${families
 
 /* ------------------------------------------------------------------ builder */
 
-/* The builder's choices are tokens, never values. Each list names the token
-   for every option, and the build fails if one doesn't exist, so a renamed
-   token can't leave the inspector offering a value that resolves to nothing.
-   assets/builder-frame.js turns a choice back into the same custom property. */
+/* The builder's choices are tokens, never values. Each option names the
+   tokens it uses and the declarations it sets, and the build fails if a token
+   doesn't exist, so a renamed token can't leave the inspector offering a value
+   that resolves to nothing. The canvas (assets/builder-frame.js) applies these
+   same declarations and the code export prints them, so the three can't
+   disagree. A few CSS keywords appear (100%, auto, fit-content); a length or a
+   colour never does. */
+const cssVar = (t) => `var(${t})`;
+const BUILDER_SPACE = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+const tokenOption = (value, tokens, css, label) => ({ value, tokens, css, ...(label ? { label } : {}) });
 const BUILDER_TOKENS = {
-  surface: { label: "Surface", prefix: "--dt-surface-", options: ["base", "subtle", "raised", "sunken", "brand-muted", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"] },
-  padding: { label: "Padding", prefix: "--dt-space-inset-", options: ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"] },
-  radius: { label: "Radius", prefix: "--dt-radius-", options: ["none", "control", "container", "overlay", "media", "pill"] },
-  border: { label: "Border", prefix: "--dt-border-", options: ["subtle", "default", "strong", "brand"] },
-  elevation: { label: "Elevation", prefix: "--dt-elevation-", options: ["0", "1", "2", "3", "4", "5"] },
-  width: { label: "Max width", prefix: "--dt-size-container-", options: ["narrow", "default", "wide"] },
+  surface: { label: "Fill", section: "appearance", preview: "color",
+    options: ["base", "subtle", "raised", "sunken", "brand-muted", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
+      .map((o) => tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
+  border: { label: "Border", section: "appearance", preview: "color",
+    options: ["subtle", "default", "strong", "brand"]
+      .map((o) => tokenOption(o, [`--dt-border-${o}`, "--dt-border-width-default"], { border: `${cssVar("--dt-border-width-default")} solid ${cssVar(`--dt-border-${o}`)}` })) },
+  radius: { label: "Radius", section: "appearance", preview: "radius",
+    options: ["none", "control", "container", "overlay", "media", "pill"]
+      .map((o) => tokenOption(o, [`--dt-radius-${o}`], { borderRadius: cssVar(`--dt-radius-${o}`), overflow: "hidden" })) },
+  elevation: { label: "Shadow", section: "appearance", preview: "shadow",
+    options: ["0", "1", "2", "3", "4", "5"].map((o) => tokenOption(o, [`--dt-elevation-${o}`], { boxShadow: cssVar(`--dt-elevation-${o}`) })) },
+  padding: { label: "Padding", section: "spacing", preview: "space",
+    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inset-${o}`], { padding: cssVar(`--dt-space-inset-${o}`) })) },
+  marginY: { label: "Margin, top and bottom", section: "spacing", preview: "space",
+    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`], { marginBlock: cssVar(`--dt-space-stack-${o}`) })) },
+  marginX: { label: "Margin, left and right", section: "spacing", preview: "space",
+    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inline-${o}`], { marginInline: cssVar(`--dt-space-inline-${o}`) })) },
+  w: { label: "Width", section: "size", preview: "text",
+    options: [
+      tokenOption("hug", [], { width: "fit-content" }, "Hug contents"),
+      tokenOption("fill", [], { width: "100%" }, "Fill"),
+      ...["narrow", "default", "wide"].map((o) => tokenOption(o, [`--dt-size-container-${o}`], { width: "100%", maxWidth: cssVar(`--dt-size-container-${o}`), marginInline: "auto" }, `Container ${o}`)),
+    ] },
+  h: { label: "Min height", section: "size", preview: "text",
+    options: [2, 4, 6, 8].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { minHeight: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`))
+      .concat([tokenOption("narrow", ["--dt-size-container-narrow"], { minHeight: cssVar("--dt-size-container-narrow") }, "Container narrow")]) },
+};
+/* The builder's own flex group: any components side by side or stacked, with
+   a gap from the inline scale (in a row) or the stack scale (in a column). */
+const BUILDER_GROUP = {
+  blurb: "A flex group of anything",
+  group: "layout",
+  container: true,
+  builder: true,
+  href: null,
+  props: [
+    { name: "direction", kind: "enum", options: ["row", "column"], default: "row", note: "Side by side or stacked", layout: true },
+    { name: "gap", kind: "enum", options: ["none"].concat(BUILDER_SPACE), default: "sm", note: "From the inline scale in a row, the stack scale in a column", layout: true },
+    { name: "align", kind: "enum", options: ["flex-start", "center", "flex-end", "stretch"], default: "stretch", note: "Cross axis", layout: true },
+    { name: "justify", kind: "enum", options: ["flex-start", "center", "flex-end", "space-between"], default: "flex-start", note: "Main axis", layout: true },
+    { name: "wrap", kind: "boolean", default: "true", note: "Let items wrap onto a new line", layout: true },
+  ],
 };
 /* Grid's minColumnWidth is a CSS length in the component. The builder offers
    it only as multiples of a size token. */
@@ -2082,11 +2124,11 @@ const BUILDER_COLUMN_WIDTHS = [3, 4, 5, 6].map((n) => ({ value: `calc(var(--dt-s
 /* The page root's gap reads a layout layer (builder-frame.js ROOT_GAP). */
 const BUILDER_ROOT_GAPS = ["related", "group", "block", "section"];
 /* Components the builder arranges children inside. */
-const BUILDER_CONTAINERS = ["Section", "Stack", "Inline", "Grid", "Card"];
+const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
 /* Fixed to the viewport when open, or invisible by design: nothing to place. */
 const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
 /* Props that shape the layout, shown first in the inspector. */
-const BUILDER_LAYOUT_PROPS = ["width", "tone", "dark", "texture", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "surface"];
+const BUILDER_LAYOUT_PROPS = ["direction", "width", "tone", "dark", "texture", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "surface"];
 /* Stack, Inline and Grid type align and justify as CSS keywords. */
 const BUILDER_KEYWORDS = {
   align: ["flex-start", "center", "flex-end", "stretch"],
@@ -2112,8 +2154,10 @@ function buildBuilder() {
   const need = (t) => { if (!declared.has(t)) missing.push(t); return t; };
   const tokens = {};
   for (const [key, def] of Object.entries(BUILDER_TOKENS)) {
-    tokens[key] = { label: def.label, options: def.options.map((o) => ({ value: o, token: need(def.prefix + o) })) };
+    def.options.forEach((o) => o.tokens.forEach(need));
+    tokens[key] = def;
   }
+  BUILDER_SPACE.forEach((g) => { need(`--dt-space-inline-${g}`); need(`--dt-space-stack-${g}`); });
   BUILDER_COLUMN_WIDTHS.forEach((w) => need(w.token));
   BUILDER_ROOT_GAPS.forEach((g) => need(`--dt-layout-stack-${g}`));
   if (missing.length) throw new Error(`builder: tokens that don't exist: ${missing.join(", ")}`);
@@ -2145,8 +2189,9 @@ function buildBuilder() {
     };
     return c.name;
   };
+  meta.Group = BUILDER_GROUP;
   const layout = BUILDER_CONTAINERS.concat(["Divider"]).map((n) => components.find((c) => c.name === n)).filter(Boolean);
-  groups.push({ id: "layout", label: "Layout", items: layout.map(entry) });
+  groups.push({ id: "layout", label: "Layout", items: ["Group"].concat(layout.map(entry)) });
   for (const g of GROUP_ORDER) {
     const items = byGroup(g).filter((c) => !BUILDER_SKIP.has(c.name) && !layout.includes(c)).map(entry);
     if (items.length) groups.push({ id: g, label: GROUP_LABEL[g], items });
@@ -2159,7 +2204,8 @@ function buildBuilder() {
   /* The canvas loads its own copies of the bundle, the specimens and its
      script; the stamps keep each one fresh after a deploy. */
   const frameSrc = `assets/builder-frame.html?b=${hashOf(path.join(ROOT, "system/components/bundle.js"))}` +
-    `&s=${hashOf(path.join(ROOT, "assets/specimens.js"))}&f=${hashOf(path.join(ROOT, "assets/builder-frame.js"))}`;
+    `&s=${hashOf(path.join(ROOT, "assets/specimens.js"))}&d=${hashOf(path.join(ROOT, "assets/builder-data.js"))}` +
+    `&f=${hashOf(path.join(ROOT, "assets/builder-frame.js"))}`;
 
   const body = `<link rel="stylesheet" href="assets/builder.css">
 <h1 class="visually-hidden">Builder</h1>
@@ -2170,6 +2216,8 @@ function buildBuilder() {
   const scripts =
     `<script src="system/components/lib/react.production.min.js" defer></script>\n` +
     `<script src="system/components/lib/react-dom.production.min.js" defer></script>\n` +
+    `<script src="system/components/bundle.js" defer></script>\n` +
+    `<script src="assets/specimens.js" defer></script>\n` +
     `<script src="assets/builder-data.js" defer></script>\n` +
     `<script src="assets/builder.js" defer></script>\n`;
   writePage("builder.html", {
