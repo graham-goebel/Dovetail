@@ -574,8 +574,17 @@ try {
     await page.locator('.bd-tool-group[aria-label^="Shapes,"]').click();
     const item = await page.locator(".bd-tray.is-open .bd-tray-item", { hasText: "Rectangle" }).boundingBox();
     const box = await page.locator("iframe.bd-frame").boundingBox();
-    await drag(page, { x: item.x + item.width / 2, y: item.y + item.height / 2 }, { x: box.x + box.width / 2, y: box.y + 60 });
-    await frame().waitForSelector('[data-bf-type="Shape"]');
+    const from = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
+    const to = await canvasPoint(page, '[data-bf-slot="root"]');
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 12, from.y - 12, { steps: 3 });
+    await page.locator(".bd-ghost").waitFor({ timeout: 3000 }).catch(() => { throw new Error("pressing and dragging a tray item doesn't start a drag"); });
+    await page.mouse.move(to.x, to.y, { steps: 12 });
+    await page.waitForFunction(() => document.querySelectorAll(".bd-mark-box, .bd-mark-line").length > 0, null, { timeout: 3000 })
+      .catch(async () => { throw new Error(`no drop target shows over the frame at ${Math.round(to.x)},${Math.round(to.y)}; the frame is at ${JSON.stringify(box)}`); });
+    await page.mouse.up();
+    await frame().waitForSelector('[data-bf-type="Shape"]', { timeout: 4000 }).catch(() => { throw new Error("a rectangle dropped from its tray doesn't land on the frame"); });
     await page.waitForFunction(() => /Shape|Rectangle/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await current() === "Appearance", `a shape opens on Appearance, got ${await current()}`);
     ok("a rectangle dragged from its tray lands on the frame, selected, with the inspector on Appearance");
