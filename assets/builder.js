@@ -219,39 +219,50 @@
     var def = DATA.tokens[key];
     return def ? def.options.filter(function (o) { return o.value === v; })[0] || null : null;
   }
-  function cleanNode(n) {
-    if (!n || typeof n !== "object" || !META[n.type]) return null;
+  /* Each clean step can say what it left out, for a pasted layout or a link:
+     report is an array of lines, or nothing. */
+  function note(report, line) { if (report && report.indexOf(line) < 0) report.push(line); }
+  function cleanNode(n, report) {
+    if (!n || typeof n !== "object") return null;
+    if (!META[n.type]) { note(report, (n.type ? "\"" + String(n.type).slice(0, 40) + "\"" : "A node with no type") + " isn't something the builder places, so it and anything inside it were left out"); return null; }
     var meta = META[n.type];
     var names = meta.props.map(function (p) { return p.name; });
     if (!meta.builder) names.push("children");
     if (n.type === "Grid") names.push("minColumnWidth");
     var props = {};
-    Object.keys(n.props || {}).forEach(function (k) {
-      var v = n.props[k];
-      if (names.indexOf(k) < 0) return;
+    var given = Object.assign({}, n.props || {});
+    /* Text written straight into children, on something that holds no layers. */
+    if (!isContainer(n.type) && !meta.builder && typeof n.children === "string" && given.children === undefined) given.children = n.children;
+    Object.keys(given).forEach(function (k) {
+      var v = given[k];
+      if (names.indexOf(k) < 0) { note(report, n.type + ": " + k + " isn't a prop the builder sets"); return; }
       var spec = meta.props.filter(function (p) { return p.name === k; })[0];
-      if (k === "minColumnWidth") { if (DATA.columnWidths.some(function (w) { return w.value === v; })) props[k] = v; return; }
-      if (spec && spec.kind === "media") { if (typeof v === "string" && MEDIA_URL.test(v)) props[k] = v; return; }
-      if (spec && spec.kind === "enum" && spec.options.indexOf(v) < 0) return;
+      if (k === "minColumnWidth") { if (DATA.columnWidths.some(function (w) { return w.value === v; })) props[k] = v; else note(report, "Grid: minColumnWidth takes a multiple of --dt-size-control-lg, not " + JSON.stringify(v)); return; }
+      if (spec && spec.kind === "media") { if (typeof v === "string" && MEDIA_URL.test(v)) props[k] = v; else note(report, n.type + ": " + k + " takes an https URL"); return; }
+      if (spec && spec.kind === "enum" && spec.options.indexOf(v) < 0) { note(report, n.type + ": " + k + " " + JSON.stringify(v) + " isn't one of " + spec.options.join(", ")); return; }
       if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") props[k] = v;
+      else note(report, n.type + ": " + k + " takes text, a number or true/false, not an element or object");
     });
     var style = {};
     /* Older layouts stored two-sided margins. */
     var st = Object.assign({}, n.style || {});
-    if (st.marginY) { st.marginTop = st.marginTop || st.marginY; st.marginBottom = st.marginBottom || st.marginY; }
-    if (st.marginX) { st.marginLeft = st.marginLeft || st.marginX; st.marginRight = st.marginRight || st.marginX; }
+    if (st.marginY) { st.marginTop = st.marginTop || st.marginY; st.marginBottom = st.marginBottom || st.marginY; delete st.marginY; }
+    if (st.marginX) { st.marginLeft = st.marginLeft || st.marginX; st.marginRight = st.marginRight || st.marginX; delete st.marginX; }
     Object.keys(st).forEach(function (k) {
       if (k === "dark") { if (st.dark === true) style.dark = true; return; }
       if (tokenOption(k, st[k])) style[k] = st[k];
+      else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function (o) { return o.value; }).join(", ") + ")");
+      else note(report, n.type + ": style " + k + " isn't one the builder sets");
     });
     var out = { id: typeof n.id === "string" && /^[\w-]{1,40}$/.test(n.id) ? n.id : uid(), type: n.type, props: props, style: style };
     /* A Group can be named by hand; a detached component keeps its old name
        on whatever container it became. */
     if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
-    if (isContainer(n.type)) out.children = (Array.isArray(n.children) ? n.children : []).map(cleanNode).filter(Boolean);
+    if (isContainer(n.type)) out.children = (Array.isArray(n.children) ? n.children : []).map(function (c) { return cleanNode(c, report); }).filter(Boolean);
+    else if (Array.isArray(n.children) && n.children.length) note(report, n.type + " doesn't hold layers, so what was inside it was left out. Use a container: Group, Section, Stack, Inline, Grid or Card");
     return out;
   }
-  function cleanFrame(f, i) {
+  function cleanFrame(f, i, report) {
     var base = makeFrame("Frame " + (i + 1), "desktop");
     if (!f || typeof f !== "object") return base;
     if (typeof f.id === "string" && /^[\w-]{1,40}$/.test(f.id)) base.id = f.id;
@@ -267,26 +278,57 @@
       base.width = side(f.width, MAX_WIDTH, base.width);
       base.height = side(f.height, MAX_HEIGHT, base.height);
       base.hug = f.hug === true;
+      if (f.width !== undefined && base.width !== f.width) note(report, base.name + ": width " + JSON.stringify(f.width) + " became " + base.width + " (" + MIN_SIDE + " to " + MAX_WIDTH + ")");
+      if (f.height !== undefined && base.height !== f.height) note(report, base.name + ": height " + JSON.stringify(f.height) + " became " + base.height + " (" + MIN_SIDE + " to " + MAX_HEIGHT + ")");
     }
     base.dark = f.dark === true;
     base.surface = tokenOption("surface", f.surface) ? f.surface : "base";
+    if (f.surface !== undefined && base.surface !== f.surface) note(report, base.name + ": surface " + JSON.stringify(f.surface) + " isn't a token option, so it's base");
     base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
     base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
-    var kids = f.root && Array.isArray(f.root.children) ? f.root.children : [];
-    base.root.children = kids.map(cleanNode).filter(Boolean);
+    /* A frame may give its nodes as root.children or straight as children. */
+    var kids = f.root && Array.isArray(f.root.children) ? f.root.children : Array.isArray(f.children) ? f.children : [];
+    base.root.children = kids.map(function (c) { return cleanNode(c, report); }).filter(Boolean);
     var seen = {};
     (function dedupe(n) { (n.children || []).forEach(function (c) { if (seen[c.id]) c.id = uid(); seen[c.id] = true; dedupe(c); }); })(base.root);
     return base;
   }
-  function clean(doc) {
+  function clean(doc, report) {
     if (!doc || typeof doc !== "object") return emptyDoc();
     /* A layout saved before frames existed is one frame. */
     var frames = Array.isArray(doc.frames) && doc.frames.length ? doc.frames : [Object.assign({}, doc.page || {}, { root: doc.root })];
-    var out = { frames: frames.slice(0, 24).map(cleanFrame), active: null };
+    if (frames.length > 24) note(report, "Only the first 24 frames were kept");
+    var out = { frames: frames.slice(0, 24).map(function (f, i) { return cleanFrame(f, i, report); }), active: null };
     var ids = {};
     out.frames.forEach(function (f) { if (ids[f.id]) f.id = uid(); ids[f.id] = true; });
     out.active = ids[doc.active] ? doc.active : out.frames[0].id;
     return out;
+  }
+
+  /* A pasted layout: a builder link, or JSON for a whole layout, one frame,
+     one node or a list of nodes. Returns { doc, report } or { error }. */
+  function readLayout(text) {
+    var t = String(text || "").trim();
+    if (!t) return null;
+    var data = null;
+    var m = /#b=([\w-]+)/.exec(t);
+    if (m) {
+      data = decode(m[1]);
+      if (!data) return { error: "That link doesn't hold a layout the builder can read." };
+    } else {
+      try { data = JSON.parse(t.replace(/^```(?:json)?\s*|\s*```$/g, "")); } catch (err) { return { error: "That isn't JSON or a builder link. " + String(err.message || "").split("\n")[0] }; }
+    }
+    if (Array.isArray(data)) data = { frames: [{ name: "Pasted", hug: true, root: { children: data } }] };
+    else if (data && typeof data === "object" && !Array.isArray(data.frames)) {
+      if (data.type) data = { frames: [{ name: "Pasted", hug: true, root: { children: [data] } }] };
+      else if (data.root || data.children) data = { frames: [data] };
+    }
+    if (!data || typeof data !== "object" || !Array.isArray(data.frames) || !data.frames.length) return { error: "No frames or nodes found. See the layout format for what the builder reads." };
+    var report = [];
+    var doc = clean(data, report);
+    var layers = 0;
+    doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { layers++; walk(c); }); })(f.root); });
+    return { doc: doc, report: report, layers: layers };
   }
 
   /* ------------------------------------------------------------ starters */
@@ -356,7 +398,7 @@
     var m = /^#b=([\w-]+)$/.exec(location.hash);
     if (m) {
       var shared = decode(m[1]);
-      if (shared) return { doc: clean(shared), from: "link" };
+      if (shared) { var dropped = []; return { doc: clean(shared, dropped), from: "link", dropped: dropped }; }
     }
     var saved = storage(function (s) { return s.getItem(STORE_KEY); });
     if (saved) {
@@ -914,6 +956,8 @@
     var scalars = scalarsState[0], setScalars = scalarsState[1];
     var detachableState = useState({});
     var detachable = detachableState[0], setDetachable = detachableState[1];
+    var importState = useState("");
+    var importText = importState[0], setImportText = importState[1];
     var codeState = useState("");
     var code = codeState[0], setCode = codeState[1];
     var sayState = useState("");
@@ -968,6 +1012,7 @@
     var grows = useRef({});
     var stageRef = useRef(null);
     var dialogRef = useRef(null);
+    var importRef = useRef(null);
     var rightRef = useRef(null);
     var layersRef = useRef(null);
     var dragRef = useRef(null);
@@ -1042,7 +1087,10 @@
     useEffect(function () {
       if (doc !== firstDoc.current && /^#b=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
     }, [doc]);
-    useEffect(function () { if (init.from === "link") announce("Opened a shared layout"); }, []);
+    useEffect(function () {
+      if (init.from !== "link") return;
+      announce(init.dropped.length ? "Opened a shared layout. " + init.dropped.length + (init.dropped.length === 1 ? " thing it carried was" : " things it carried were") + " left out: " + init.dropped.slice(0, 3).join("; ") : "Opened a shared layout");
+    }, []);
     useEffect(function () {
       if (!window.matchMedia) return;
       var m = window.matchMedia("(min-width: 901px)");
@@ -1706,7 +1754,7 @@
        only while nothing else has focus. */
     var keyRef = useRef(function () { return false; });
     keyRef.current = function (ev) {
-      if (dialogRef.current && dialogRef.current.open) return false;
+      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open)) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (typing || (t && t.closest && t.closest(".bd-dd-list"))) return false;
@@ -1867,6 +1915,7 @@
     };
 
     var startFrom = function (id) {
+      if (id === "import") { openImport(); return; }
       var s = STARTERS.filter(function (x) { return x[0] === id; })[0];
       if (!s) return;
       var has = docRef.current.frames.some(function (f) { return f.root.children.length; });
@@ -1875,6 +1924,47 @@
       var next = s[2]();
       commit(next, null, "Started from " + s[1] + ". Undo to go back.");
       setTimeout(function () { showFrameRef.current(next.active); }, 0);
+    };
+
+    /* A layout written elsewhere (by hand, or by Claude) comes in through the
+       same cleaning as a link, and the dialog says what it left out. */
+    var openImport = function () {
+      setImportText("");
+      var dlg = importRef.current;
+      if (dlg && dlg.showModal) dlg.showModal();
+    };
+    var importLayout = function (mode) {
+      var read = readLayout(importText);
+      if (!read || read.error) return;
+      var incoming = read.doc.frames;
+      var dlg = importRef.current;
+      if (dlg) dlg.close();
+      var dropped = read.report.length ? " " + read.report.length + (read.report.length === 1 ? " thing was" : " things were") + " left out." : "";
+      if (mode === "replace") {
+        storage(function (st) { st.setItem(BACKUP_KEY, JSON.stringify(docRef.current)); });
+        commit(read.doc, null, "Opened the pasted layout. Undo to go back." + dropped);
+        setTimeout(function () { showFrameRef.current(read.doc.active); }, 0);
+        return;
+      }
+      var firstId = null;
+      change(function (d) {
+        incoming.forEach(function (f) {
+          var c = copy(f);
+          c.id = uid();
+          if (!firstId) firstId = c.id;
+          d.frames.push(c);
+        });
+        d.frames = d.frames.slice(0, 24);
+        if (firstId && frameById(d, firstId)) d.active = firstId;
+        return [];
+      }, "Added " + incoming.length + (incoming.length === 1 ? " frame" : " frames") + " from the pasted layout." + dropped);
+      setTimeout(function () { if (firstId) showFrameRef.current(firstId, true); }, 0);
+    };
+    var copyLayout = function () {
+      var out = withoutUploads(docRef.current);
+      copyText(JSON.stringify(out.doc, null, 2)).then(function () {
+        announce("Layout JSON copied" + (out.dropped ? ". Uploaded files aren't in it." : "."));
+      }, function () { announce("This browser didn't allow copying."); });
     };
 
     /* ------------------------------------------------- rendering helpers */
@@ -2460,7 +2550,7 @@
 
     var toolbar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
       e(Dropdown, { menu: true, label: "Start from a layout", placeholder: "Start from", compact: true, className: "bd-start",
-        options: STARTERS.map(function (s) { return { value: s[0], label: s[1] }; }), onChange: startFrom }),
+        options: STARTERS.map(function (s) { return { value: s[0], label: s[1] }; }).concat([{ value: "import", label: "Paste a layout…", icon: "upload", hint: "JSON or a builder link" }]), onChange: startFrom }),
       e("span", { className: "bd-tool-group" },
         e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
         e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))),
@@ -2652,6 +2742,36 @@
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
 
+    var importDialog = function () {
+      var read = readLayout(importText);
+      var ok = read && !read.error;
+      var formatHref = mountEl.getAttribute("data-format") || "assets/builder-layouts.md";
+      return e("dialog", { className: "bd-code bd-import", ref: importRef, "aria-labelledby": "bd-import-title" },
+        e("div", { className: "bd-code-head" },
+          e("div", { className: "bd-code-intro" },
+            e("h2", { id: "bd-import-title" }, "Paste a layout"),
+            e("p", { className: "bd-inspect-sub" }, "Paste builder JSON (from Claude, a teammate or Copy layout JSON) or a builder link. Only the components, props and tokens the builder can set come in. ",
+              e("a", { href: formatHref, target: "_blank", rel: "noopener" }, "The layout format"), ".")),
+          e("div", { className: "bd-code-actions" },
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { importRef.current.close(); } }, e(Icon, { name: "close" })))),
+        e("div", { className: "bd-import-body" },
+          e("textarea", { className: "bd-import-text", "aria-label": "Layout JSON or link", spellCheck: false, value: importText, placeholder: '{ "frames": [ { "name": "Home", "width": 1280, "hug": true, "root": { "children": [ { "type": "HeroBlock" } ] } } ] }',
+            onChange: function (ev) { setImportText(ev.target.value); } }),
+          e("div", { className: "bd-import-report", role: "status", "aria-live": "polite" },
+            !read ? e("p", { className: "bd-sec-empty" }, "Nothing pasted yet.")
+              : read.error ? e("p", { className: "bd-import-error" }, e(Icon, { name: "alert" }), read.error)
+              : e(React.Fragment, null,
+                e("p", { className: "bd-import-ok" }, e(Icon, { name: "check" }),
+                  read.doc.frames.length + (read.doc.frames.length === 1 ? " frame, " : " frames, ") + read.layers + (read.layers === 1 ? " layer" : " layers") + ": " + read.doc.frames.map(function (f) { return f.name + " (" + f.width + (f.hug ? " wide, hugging" : " × " + f.height) + ")"; }).join(", ")),
+                read.report.length ? e("div", { className: "bd-import-dropped" },
+                  e("p", null, read.report.length + (read.report.length === 1 ? " thing will be left out:" : " things will be left out:")),
+                  e("ul", null, read.report.slice(0, 12).map(function (line, i) { return e("li", { key: i }, line); })),
+                  read.report.length > 12 ? e("p", null, "and " + (read.report.length - 12) + " more.") : null) : e("p", { className: "bd-sec-empty" }, "Everything in it comes in."))),
+          e("div", { className: "bd-import-actions" },
+            e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !ok, onClick: function () { importLayout("add"); } }, e(Icon, { name: "plus" }), ok ? "Add " + (read.doc.frames.length === 1 ? "the frame" : read.doc.frames.length + " frames") : "Add"),
+            e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function () { importLayout("replace"); } }, "Replace all frames"))));
+    };
+
     var inspector = selectedNodes.length ? nodeInspector(selectedNodes) : frameInspector();
     var slot = wide ? document.getElementById("app-toolbar") : null;
 
@@ -2679,8 +2799,10 @@
           e("div", { className: "bd-code-actions" },
             e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { copyText(code).then(function () { announce("Code copied"); }); } }, e(Icon, { name: "copy" }), "Copy"),
             e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: (frame.name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download"),
+            e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
             e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
+      importDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
   }
 

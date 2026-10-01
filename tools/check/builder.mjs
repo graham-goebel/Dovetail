@@ -33,6 +33,8 @@
    - pressing anywhere on a canvas node and dragging moves it;
    - Detach rebuilds a block from primitives; a media prop takes a URL;
    - undo, and a reload that keeps the work;
+   - the layout reference's own example opens with nothing left out, and a
+     pasted layout comes in beside the frames there, listing what it left out;
    - a share link opens the frames it encodes, and one carrying props,
      styles, sizes or components the inspector can't set loses them;
    - a theme tried in Configure reaches the frames and not the builder's own
@@ -41,6 +43,9 @@
 
    Chromium comes from Playwright; set CHROMIUM_PATH to use a local binary. */
 
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { serve } from "./serve.mjs";
 
@@ -53,6 +58,7 @@ async function step(title, fn) {
   try { await fn(); } catch (err) { fail(String(err && err.message ? err.message : err).split("\n")[0]); }
 }
 
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const server = await serve(0);
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const errors = [];
@@ -255,7 +261,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -503,6 +509,53 @@ try {
     expect(inl && inl.props.wrap === false, "an Inline added from the panel starts on one line");
     ok("an Inline added from the panel doesn't wrap");
     await page.close();
+  });
+
+  await step("Layouts from elsewhere: the reference's example opens whole, and a pasted layout lists what it left out", async () => {
+    const md = fs.readFileSync(path.join(ROOT, "assets/builder-layouts.md"), "utf8");
+    const m = /\]\(https:\/\/[^)]*builder\.html(#b=[\w-]+)\)/.exec(md);
+    expect(m, "the layout reference links its example into the builder");
+    const ex = await open({ width: 1440, height: 900 }, { hash: m[1] });
+    await ex.frame().waitForSelector('[data-bf-type="HeroBlock"]');
+    await ex.frame().waitForSelector('[data-bf-type="Shape"]');
+    await ex.page.waitForFunction(() => /Opened a shared layout/.test(document.querySelector('.visually-hidden[role="status"]')?.textContent || ""));
+    const said = await ex.page.locator('.visually-hidden[role="status"]').last().textContent();
+    expect(!/left out/.test(said), `the example should open with nothing left out, but: ${said}`);
+    ok("the example in assets/builder-layouts.md opens on the canvas with nothing left out");
+
+    await ex.page.locator(".bd-start").click();
+    await option(ex.page, "Paste a layout").click();
+    const pasted = [
+      { type: "Heading", props: { children: "Pricing" } },
+      { type: "Group", props: { direction: "row", gap: "md" }, style: { padding: "lg", w: "320px" }, children: [
+        { type: "Card", props: { title: "Starter", onClick: "alert(1)" } },
+        { type: "Card", props: { title: "Team" } },
+        { type: "Sparkle" },
+      ] },
+      { type: "Text", children: "Billed monthly." },
+    ];
+    await ex.page.locator(".bd-import-text").fill("```json\n" + JSON.stringify(pasted) + "\n```");
+    const report = await ex.page.locator(".bd-import-report").textContent();
+    expect(/1 frame, 5 layers/.test(report), `the summary counts what comes in, got: ${report}`);
+    for (const bit of ["onClick isn't a prop", "\"320px\" isn't a token option", "\"Sparkle\" isn't something the builder places"]) expect(report.includes(bit), `the report should say ${bit}, got: ${report}`);
+    await ex.page.locator(".bd-import-actions .bd-btn-primary").click();
+    await ex.page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await ex.frame(1).waitForFunction(() => document.querySelectorAll('[data-bf-type="Card"]').length === 2 && [...document.querySelectorAll('[data-bf-type="Text"]')].some((t) => t.textContent === "Billed monthly."));
+    const saved = await ex.page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    expect(saved.frames.length === 2 && saved.frames[0].name === "Launch" && saved.frames[1].name === "Pasted", "the pasted frame sits beside the example's");
+    const group = saved.frames[1].root.children[1];
+    expect(JSON.stringify(group.style) === JSON.stringify({ padding: "lg" }) && group.children.length === 2, `only token styles and known components come in, got ${JSON.stringify(group)}`);
+    ok("a pasted list of nodes, in a code fence, comes in as a new frame; an unknown prop, a raw width and an unknown component are listed and left out");
+
+    await ex.page.locator(".bd-start").click();
+    await option(ex.page, "Paste a layout").click();
+    await ex.page.locator(".bd-import-text").fill("not a layout");
+    expect(/isn't JSON or a builder link/.test(await ex.page.locator(".bd-import-report").textContent()) && await ex.page.locator(".bd-import-actions .bd-btn-primary").isDisabled(), "text that isn't a layout is refused");
+    await ex.page.locator(".bd-import-text").fill(JSON.stringify(saved));
+    await ex.page.locator(".bd-import-actions .bd-btn", { hasText: "Replace all frames" }).click();
+    await ex.page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    ok("text that isn't a layout is refused, and a saved layout pasted back replaces the frames");
+    await ex.page.close();
   });
 
   await step("Share links open what they encode, and nothing the inspector can't set", async () => {

@@ -119,7 +119,7 @@ try {
     else ok("only dist/, skills/, package.json, README.md, LICENSE and CHANGELOG.md");
     const want = [
       "package.json", "README.md", "dist/react/index.js", "dist/react/index.d.ts", "dist/styles.css", "dist/fonts.css",
-      "dist/configure/core.js", "skills/dovetail-setup/SKILL.md", "skills/dovetail-setup/scripts/theme.mjs", "skills/dovetail-setup/references/wiring.md",
+      "dist/configure/core.js", "skills/dovetail-setup/SKILL.md", "skills/dovetail-setup/scripts/theme.mjs", "skills/dovetail-setup/scripts/builder-link.mjs", "skills/dovetail-setup/references/wiring.md",
     ];
     for (const f of ["LICENSE", "CHANGELOG.md"]) if (fs.existsSync(path.join(ROOT, f))) want.push(f);
     const missing = want.filter((f) => !tarFiles.includes(f));
@@ -327,6 +327,18 @@ say("tokens/tokens.css resolves through exports");`
     const wrong = node(["build", "-"], JSON.stringify({ radius: "round" }));
     if (wrong.code !== 1 || !/"round" is not one of/.test(wrong.out)) throw new Error(`build accepted an invalid choice:\n${indent(wrong.out)}`);
     ok("build rejects an invalid choice and lists the valid ones");
+
+    const linker = path.join(path.dirname(script), "builder-link.mjs");
+    const layout = { frames: [{ name: "Home", width: 390, hug: true, root: { children: [{ type: "Heading", props: { children: "Hi" }, style: { padding: "10px" } }] } }] };
+    const r = spawnSync(process.execPath, [linker, "-"], { cwd: CONSUMER, encoding: "utf8", env, input: JSON.stringify(layout) });
+    const url = (r.stdout || "").trim();
+    const m = /builder\.html#b=([\w-]+)$/.exec(url);
+    if (r.status !== 0 || !m) throw new Error(`builder-link didn't print a link:\n${indent(`${r.stdout}${r.stderr}`)}`);
+    if (JSON.stringify(JSON.parse(Buffer.from(m[1], "base64url").toString("utf8"))) !== JSON.stringify(layout)) throw new Error("the link doesn't decode to the layout it was given");
+    if (!/style padding "10px" should be a token option name/.test(r.stderr)) throw new Error(`builder-link didn't flag a raw value:\n${indent(r.stderr)}`);
+    const none = spawnSync(process.execPath, [linker, "-"], { cwd: CONSUMER, encoding: "utf8", env, input: "{}" });
+    if (none.status !== 1) throw new Error("builder-link accepted a layout with nothing in it");
+    ok("builder-link turns a layout into a builder link that decodes to it, flags a raw value, and refuses an empty layout");
   });
 
   await step(`types (tsc --noEmit on a consumer .tsx importing "${NAME}")`, () => {
