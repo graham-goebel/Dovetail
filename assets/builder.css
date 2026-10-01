@@ -1266,37 +1266,54 @@ span.bd-layer-twisty.is-open .bd-ic {
   outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
 }
 
-/* The tool bar, floating along the canvas's foot. */
+/* The tool bar, floating along the canvas's foot: square-ish buttons in a
+   softly rounded bar. A group's tray opens above its row, inside the bar. */
 .bd-tools {
   position: absolute;
-  bottom: var(--dt-space-inset-sm);
+  bottom: var(--dt-space-inset-md);
   left: 50%;
   z-index: 4;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   max-width: calc(100% - 16px);
-  overflow-x: auto;
-  transform: translateX(-50%);
-  scrollbar-width: none;
-  gap: 2px;
-  padding: 4px;
+  padding: 6px;
   border: var(--dt-border-width-default) solid var(--dt-border-default);
-  border-radius: var(--dt-radius-overlay);
+  border-radius: var(--dt-radius-container);
   background: var(--dt-surface-overlay);
-  box-shadow: var(--dt-elevation-2);
+  box-shadow: var(--dt-elevation-3);
+  transform: translateX(-50%);
+}
+
+.bd-tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .bd-tool {
+  position: relative;
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--dt-size-control-sm);
-  height: var(--dt-size-control-sm);
+  width: var(--dt-size-control-lg);
+  height: var(--dt-size-control-lg);
   padding: 0;
   border: 0;
   border-radius: var(--dt-radius-control);
   background: transparent;
   color: var(--dt-text-secondary);
   cursor: pointer;
+}
+
+.bd-tool .bd-ic {
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
 }
 
 .bd-tool:hover {
@@ -1309,15 +1326,111 @@ span.bd-layer-twisty.is-open .bd-ic {
   color: var(--dt-text-on-selected);
 }
 
-.bd-tool {
-  flex: none;
+.bd-tool.is-expanded {
+  box-shadow: inset 0 0 0 var(--dt-border-width-strong) var(--dt-text-primary);
+}
+
+/* A group button's corner mark: it opens more. */
+.bd-tool-caret {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 0;
+  height: 0;
+  border-bottom: 5px solid currentColor;
+  border-left: 5px solid transparent;
+  opacity: 0.6;
 }
 
 .bd-tools-sep {
   flex: none;
+  align-self: stretch;
   width: var(--dt-border-width-default);
-  margin: 4px 2px;
-  background: var(--dt-border-subtle);
+  margin: 8px 4px;
+  background: var(--dt-border-default);
+}
+
+.bd-tray {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+}
+
+.bd-tray-item {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: calc(var(--dt-size-control-lg) * 1.5);
+  min-height: calc(var(--dt-size-control-lg) * 1.4);
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  cursor: pointer;
+}
+
+.bd-tray-item .bd-ic {
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+}
+
+.bd-tray-item:hover {
+  background: var(--dt-surface-base);
+}
+
+.bd-tray-item[aria-pressed="true"] {
+  background: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+.bd-tray-item.is-soon {
+  color: var(--dt-text-tertiary);
+  cursor: default;
+}
+
+.bd-tray-item.is-soon:hover {
+  background: transparent;
+}
+
+.bd-tray-soon {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  padding: 0 4px;
+  border-radius: var(--dt-radius-pill);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-secondary);
+  font-size: 9px;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.bd-tool:focus-visible,
+.bd-tray-item:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: 1px;
+}
+
+@media (max-width: 900px) {
+  .bd-tool {
+    width: var(--dt-size-control-md);
+    height: var(--dt-size-control-md);
+  }
+
+  .bd-tray-item {
+    min-width: calc(var(--dt-size-control-md) * 1.5);
+  }
 }
 
 /* With a drawing tool, the canvas takes the press itself. */
