@@ -462,7 +462,18 @@ try {
     await page.locator(".bd-start").click();
     await option(page, "Blank frame").click();
     await frame().waitForSelector('[data-bf-slot="root"]');
-    expect((await page.$$eval(".bd-tool", (t) => t.map((x) => x.getAttribute("aria-label")))).length === 8, "eight tools in the bar");
+    expect(await page.locator(".bd-tools-row > .bd-tool").count() === 6, "Select, Hand and four groups in the bar");
+    const trays = {};
+    for (const g of ["Layout", "Shapes", "Text", "Images and media"]) {
+      await page.locator(`.bd-tool-group[aria-label^="${g},"]`).click();
+      trays[g] = await page.$$eval(".bd-tray-item", (b) => b.map((x) => x.querySelector(".bd-tray-label").textContent + (x.getAttribute("aria-disabled") ? "*" : "")));
+      await page.locator(`.bd-tool-group[aria-label^="${g},"]`).click();
+    }
+    expect(trays.Layout.join() === "Group,Section,Frame,Page", `the Layout tray, got ${trays.Layout}`);
+    expect(trays.Text.join() === "Text,Heading", `the Text tray, got ${trays.Text}`);
+    expect(trays["Images and media"].join() === "Image,Video,Cover,Media,Figure,Icons*,Illustrations*", `the media tray, with icons and illustrations to come, got ${trays["Images and media"]}`);
+    expect(await page.locator(".bd-tray").count() === 0, "pressing a group again closes its tray");
+    ok("the bar's groups open trays: Group, Section, Frame, Page; Text, Heading; Image, Video, Cover, Media, Figure, with Icons and Illustrations marked coming soon");
     const box = await page.locator("iframe.bd-frame").boundingBox();
     await page.keyboard.press("b");
     await drag(page, { x: box.x + box.width * 0.1, y: box.y + box.height * 0.1 }, { x: box.x + box.width * 0.5, y: box.y + box.height * 0.6 });
@@ -496,11 +507,27 @@ try {
     const kinds = d.frames[0].root.children[0].children.map((c) => c.type === "Shape" ? c.props.shape : c.type);
     expect(kinds.includes("ellipse") && kinds.includes("Text") && kinds.includes("rectangle"), `the container holds a rectangle, an ellipse and text, got ${kinds.join(", ")}`);
     ok("O and a click add an ellipse; T and a click add text and open it for typing");
+    await page.locator('.bd-tool-group[aria-label^="Text,"]').click();
+    await page.locator(".bd-tray-item", { hasText: "Heading" }).click();
+    expect(await page.locator('.bd-tool-group[aria-label="Text, Heading"]').getAttribute("aria-pressed") === "true", "the Text group shows Heading once it's picked");
+    await page.mouse.click(inside.x, inside.y + 4);
+    await page.locator(".bd-inline").waitFor();
+    await page.keyboard.type("Drawn heading");
+    await page.keyboard.press("Enter");
+    await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Heading"]')].some((t) => t.textContent === "Drawn heading"));
+    ok("Heading, picked from the Text tray, places a heading and opens it for typing");
     await page.keyboard.press("f");
     const stage = await page.locator(".bd-stage").boundingBox();
     await drag(page, { x: stage.x + 40, y: stage.y + stage.height - 140 }, { x: stage.x + 160, y: stage.y + stage.height - 60 });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     ok("F and a drag on empty canvas add a frame");
+    await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
+    await page.locator(".bd-tray-item", { hasText: "Page" }).click();
+    await page.mouse.click(stage.x + 60, stage.y + stage.height - 100);
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 3);
+    const pageFrame = (await saved()).frames[2];
+    expect(pageFrame.hug === true && pageFrame.root.children[0].type === "Section", `Page adds a frame that hugs its content, started with a Section, got ${JSON.stringify(pageFrame).slice(0, 160)}`);
+    ok("Page, from the Layout tray, adds a frame that hugs its content with a Section to fill");
     await page.locator(".bd-left-tabs .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Layout");
     await page.locator('.bd-tile[data-type="Inline"]').click();

@@ -52,13 +52,45 @@
   var TABS = [["appearance", "Appearance"], ["layout", "Layout"], ["content", "Content"]];
   /* The canvas tools, in a bar along the canvas's foot. Each draws one primitive where it's pressed, sized by
      the drag and snapped to the system's size steps. */
-  var TOOLS = [
-    [["select", "Select", "pointer", "V"], ["hand", "Hand: drag to pan", "hand", "H"]],
-    [["frame", "Frame", "frame", "F"], ["box", "Container", "container", "B"], ["rect", "Rectangle", "square", "R"], ["ellipse", "Ellipse", "circle", "O"]],
-    [["text", "Text", "type", "T"], ["image", "Image", "image", "I"]],
+  /* Select and Hand stand alone; the rest are groups. Pressing a group opens
+     its tray along the bar, and the group shows the last tool picked from it.
+     "comp:Name" places that component. A tool marked soon isn't built yet. */
+  var TOOLBAR = [
+    { id: "select", label: "Select", icon: "pointer", key: "V" },
+    { id: "hand", label: "Hand: drag to pan", icon: "hand", key: "H" },
+    null,
+    { group: "layout", label: "Layout", items: [
+      { id: "box", label: "Group", icon: "container", key: "B", hint: "A padded flex container" },
+      { id: "comp:Section", label: "Section", icon: "layout", hint: "A band across the page" },
+      { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a device size" },
+      { id: "page", label: "Page", icon: "file", hint: "A frame that grows with its content" },
+    ] },
+    { group: "shape", label: "Shapes", items: [
+      { id: "rect", label: "Rectangle", icon: "square", key: "R" },
+      { id: "ellipse", label: "Ellipse", icon: "circle", key: "O" },
+    ] },
+    { group: "text", label: "Text", items: [
+      { id: "comp:Text", label: "Text", icon: "type", key: "T", hint: "Body copy" },
+      { id: "comp:Heading", label: "Heading", icon: "heading", hint: "A title" },
+    ] },
+    { group: "media", label: "Images and media", items: [
+      { id: "comp:Image", label: "Image", icon: "image", key: "I" },
+      { id: "comp:Video", label: "Video", icon: "video" },
+      { id: "comp:Cover", label: "Cover", icon: "cover", hint: "Text over an image" },
+      { id: "comp:Media", label: "Media", icon: "media", hint: "An image beside text" },
+      { id: "comp:Figure", label: "Figure", icon: "figure", hint: "An image with a caption" },
+      { id: "soon:icons", label: "Icons", icon: "star", soon: true },
+      { id: "soon:illustrations", label: "Illustrations", icon: "squiggle", soon: true },
+    ] },
   ];
-  var TOOL_KEY = {};
-  TOOLS.forEach(function (g) { g.forEach(function (t) { TOOL_KEY[t[3].toLowerCase()] = t[0]; }); });
+  var TOOL_KEY = {}, TOOL_INFO = {};
+  TOOLBAR.forEach(function (t) {
+    if (!t) return;
+    (t.items || [t]).forEach(function (it) {
+      TOOL_INFO[it.id] = Object.assign({ group: t.group || null }, it);
+      if (it.key) TOOL_KEY[it.key.toLowerCase()] = it.id;
+    });
+  });
   var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 1500000;
@@ -502,6 +534,13 @@
     wrapLines: ["M4 6h16", "M4 12h13a3 3 0 0 1 0 6h-4", "m15 16-2 2 2 2", "M4 18h5"],
     plusSm: ["M12 7v10", "M7 12h10"],
     minus: ["M6 12h12"],
+    heading: ["M6 4v16", "M18 4v16", "M6 12h12"],
+    video: ["M3 6h13v12H3z", "m16 10 5-3v10l-5-3"],
+    cover: ["M3 4h18v16H3z", "M7 14h10", "M9 17h6"],
+    media: ["M3 5h8v8H3z", "M14 6h7", "M14 10h5", "M3 17h18"],
+    figure: ["M4 3h16v13H4z", "M8 20h8"],
+    star: ["M12 3l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.1l5.8-.8z"],
+    squiggle: ["M3 17c2.5-6 5-9 7.5-9s2.5 6 5 6 3.5-3 5.5-5", "M4 6h.01"],
     fit: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5"],
     rotate: ["M4 12a8 8 0 0 1 14-5.3L20 9", "M20 4v5h-5", "M20 12a8 8 0 0 1-14 5.3L4 15", "M4 20v-5h5"],
   };
@@ -943,7 +982,18 @@
     var closedState = useState(prefs.closed);
     var closedSecs = closedState[0], setClosedSecs = closedState[1];
     var toolState = useState("select");
-    var tool = toolState[0], setTool = toolState[1];
+    var tool = toolState[0], setToolState = toolState[1];
+    var trayState = useState(null);
+    var tray = trayState[0], setTray = trayState[1];
+    var lastState = useState({});
+    var lastTool = lastState[0], setLastTool = lastState[1];
+    /* Picking a tool closes its tray and makes it its group's face. */
+    var setTool = function (id) {
+      setToolState(id);
+      setTray(null);
+      var info = TOOL_INFO[id];
+      if (info && info.group) setLastTool(function (l) { var n = Object.assign({}, l); n[info.group] = id; return n; });
+    };
     var sketchState = useState(null);
     var sketch = sketchState[0], setSketch = sketchState[1];
     var collapsedState = useState({});
@@ -1766,6 +1816,7 @@
       if (mod && ev.key === "\\") { actions.panels(); return true; }
       if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
       if (previewRef.current) return false;
+      if (ev.key === "Escape" && tray) { setTray(null); return true; }
       if (ev.key === "Escape" && tool !== "select") { setTool("select"); setSketch(null); return true; }
       if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { setTool(TOOL_KEY[key]); return true; }
       if (mod && key === "z") { (ev.shiftKey ? redo : undo)(); return true; }
@@ -1843,11 +1894,13 @@
     var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
     var frameOps = {
-      add: function (size) {
+      /* page: a frame that hugs its content, started with a Section to fill. */
+      add: function (size, page) {
         var cur = active(docRef.current);
-        var f = makeFrame("Frame " + (docRef.current.frames.length + 1), "desktop");
-        f.width = size ? side(size.width, MAX_WIDTH, cur.width) : cur.width;
-        f.height = size ? side(size.height, MAX_HEIGHT, cur.height) : cur.height;
+        var f = makeFrame((page ? "Page " : "Frame ") + (docRef.current.frames.length + 1), "desktop", !!page);
+        f.width = size ? side(size.width, MAX_WIDTH, cur.width) : page ? PRESET.desktop.width : cur.width;
+        f.height = size ? side(size.height, MAX_HEIGHT, cur.height) : page ? PRESET.desktop.height : cur.height;
+        if (page) f.root.children = [make("Section")];
         change(function (d) { d.frames.push(f); d.active = f.id; return []; }, "Added " + f.name);
         setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
       },
@@ -2592,8 +2645,12 @@
         if (size) { box.style.w = size.w; box.style.h = size.h; }
         return box;
       }
-      if (kind === "text") return make("Text", { children: "Text" });
-      if (kind === "image") return make("Image");
+      var m = /^comp:(\w+)$/.exec(kind);
+      if (m && META[m[1]]) {
+        if (m[1] === "Text") return make("Text", { children: "Text" });
+        if (m[1] === "Heading") return make("Heading", { children: "Heading" });
+        return make(m[1]);
+      }
       return null;
     };
     var finishSketch = function (sk) {
@@ -2602,8 +2659,8 @@
       var dragged = dx > 6 || dy > 6;
       var kind = sk.tool;
       setTool("select");
-      if (kind === "frame") {
-        frameOps.add(dragged ? { width: Math.round(dx / z / 10) * 10, height: Math.round(dy / z / 10) * 10 } : null);
+      if (kind === "frame" || kind === "page") {
+        frameOps.add(dragged ? { width: Math.round(dx / z / 10) * 10, height: Math.round(dy / z / 10) * 10 } : null, kind === "page");
         return;
       }
       var sr = stageRef.current.getBoundingClientRect();
@@ -2619,8 +2676,8 @@
       if (!node) return;
       var where = hit.parent === "root" ? fr.name : ((locate(docRef.current, hit.parent, at.fid) || { node: { type: "it" } }).node.type);
       change(function (d) { d.active = at.fid; return ops.insert(d, hit.parent, hit.index, node, at.fid); }, "Added " + (node.type === "Shape" ? node.props.shape : node.type) + " to " + where);
-      if (kind === "text") setTimeout(function () { beginEditRef.current(node.id); }, 350);
-      if (kind === "image") setTab("content");
+      if (kind === "comp:Text" || kind === "comp:Heading") setTimeout(function () { beginEditRef.current(node.id); }, 350);
+      else if (TOOL_INFO[kind] && TOOL_INFO[kind].group === "media") setTab("content");
     };
     var drawHandlers = {
       onPointerDown: function (ev) {
@@ -2652,17 +2709,38 @@
         setSketch(null);
       },
     };
-    var tools = e("div", { className: "bd-tools", role: "toolbar", "aria-label": "Tools" },
-      TOOLS.map(function (group, gi) {
-        return e(React.Fragment, { key: gi },
-          gi ? e("span", { className: "bd-tools-sep", "aria-hidden": true }) : null,
-          group.map(function (t) {
-            return e("button", {
-              key: t[0], type: "button", className: "bd-tool", "aria-pressed": String(tool === t[0]), "aria-label": t[1], title: t[1] + " (" + t[3] + ")",
-              onClick: function () { setTool(t[0]); announce(t[1] + (t[0] === "select" || t[0] === "hand" ? "" : ": press or drag on a frame")); },
-            }, e(Icon, { name: t[2] }));
-          }));
-      }));
+    var usable = function (it) { var m = /^comp:(\w+)$/.exec(it.id); return !m || !placeable || placeable[m[1]]; };
+    var pickTool = function (it) {
+      if (it.soon) { announce(it.label + " are coming soon."); return; }
+      setTool(it.id);
+      announce(it.label + (it.id === "select" || it.id === "hand" ? "" : it.id === "frame" || it.id === "page" ? ": press or drag on the canvas" : ": press or drag on a frame"));
+    };
+    var openGroup = TOOLBAR.filter(function (t) { return t && t.group === tray; })[0];
+    var tools = e("div", { className: cx("bd-tools", openGroup && "is-open"), role: "toolbar", "aria-label": "Tools" },
+      openGroup ? e("div", { className: "bd-tray", id: "bd-tray", role: "group", "aria-label": openGroup.label },
+        openGroup.items.filter(usable).map(function (it) {
+          return e("button", {
+            key: it.id, type: "button", className: cx("bd-tray-item", it.soon && "is-soon"), "aria-pressed": String(tool === it.id), "aria-disabled": it.soon ? "true" : undefined,
+            title: it.soon ? it.label + ": coming soon" : (it.hint ? it.label + ": " + it.hint : it.label) + (it.key ? " (" + it.key + ")" : ""),
+            onClick: function () { pickTool(it); },
+          }, e(Icon, { name: it.icon }), e("span", { className: "bd-tray-label" }, it.label), it.soon ? e("span", { className: "bd-tray-soon" }, "Soon") : null);
+        })) : null,
+      e("div", { className: "bd-tools-row" },
+        TOOLBAR.map(function (t, i) {
+          if (!t) return e("span", { key: "sep" + i, className: "bd-tools-sep", "aria-hidden": true });
+          if (!t.group) {
+            return e("button", { key: t.id, type: "button", className: "bd-tool", "aria-pressed": String(tool === t.id), "aria-label": t.label, title: t.label + " (" + t.key + ")",
+              onClick: function () { pickTool(t); } }, e(Icon, { name: t.icon }));
+          }
+          var face = TOOL_INFO[TOOL_INFO[tool] && TOOL_INFO[tool].group === t.group ? tool : lastTool[t.group] || t.items[0].id];
+          var on = !!(TOOL_INFO[tool] && TOOL_INFO[tool].group === t.group);
+          return e("button", {
+            key: t.group, type: "button", className: cx("bd-tool bd-tool-group", tray === t.group && "is-expanded"), "aria-pressed": String(on),
+            "aria-expanded": String(tray === t.group), "aria-controls": tray === t.group ? "bd-tray" : undefined,
+            "aria-label": t.label + ", " + face.label, title: t.label + ": " + t.items.filter(function (x) { return !x.soon; }).map(function (x) { return x.label; }).join(", "),
+            onClick: function () { setTray(tray === t.group ? null : t.group); },
+          }, e(Icon, { name: face.icon }), e("span", { className: "bd-tool-caret", "aria-hidden": true }));
+        })));
 
     var isBackground = function (t) { return t === stageRef.current || (t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"))); };
     var frameSrc = mountEl.getAttribute("data-frame");
