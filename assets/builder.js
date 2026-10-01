@@ -50,6 +50,15 @@
   var META = DATA.components;
   var STYLE_KEYS = Object.keys(DATA.tokens);
   var TABS = [["appearance", "Appearance"], ["layout", "Layout"], ["content", "Content"]];
+  /* The canvas tools, in a bar along the canvas's foot. Each draws one primitive where it's pressed, sized by
+     the drag and snapped to the system's size steps. */
+  var TOOLS = [
+    [["select", "Select", "pointer", "V"], ["hand", "Hand: drag to pan", "hand", "H"]],
+    [["frame", "Frame", "frame", "F"], ["box", "Container", "container", "B"], ["rect", "Rectangle", "square", "R"], ["ellipse", "Ellipse", "circle", "O"]],
+    [["text", "Text", "type", "T"], ["image", "Image", "image", "I"]],
+  ];
+  var TOOL_KEY = {};
+  TOOLS.forEach(function (g) { g.forEach(function (t) { TOOL_KEY[t[3].toLowerCase()] = t[0]; }); });
   var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 1500000;
@@ -364,6 +373,7 @@
       category: DATA.groups.some(function (g) { return g.id === p.category; }) ? p.category : DATA.groups[0].id,
       view: p.view === "list" ? "list" : "grid",
       tab: TABS.some(function (t) { return t[0] === p.tab; }) ? p.tab : "content",
+      closed: p.closed && typeof p.closed === "object" ? p.closed : {},
     };
   }
 
@@ -443,6 +453,13 @@
     row: ["M4 8h5v8H4z", "M10 8h5v8h-5z", "M16 8h4v8h-4z"],
     column: ["M8 4h8v5H8z", "M8 10h8v5H8z", "M8 16h8v4H8z"],
     panels: ["M3 4h18v16H3z", "M9 4v16", "M15 4v16"],
+    hand: ["M8 13V5.5a1.5 1.5 0 0 1 3 0V12", "M11 11V4.5a1.5 1.5 0 0 1 3 0V12", "M14 11.5V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.5 13.6a1.5 1.5 0 0 1 2.4-1.8L8 14"],
+    square: ["M5 5h14v14H5z"],
+    circle: ["M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"],
+    container: ["M4 4h16v16H4z", "M8 8h8", "M8 12h8", "M8 16h5"],
+    wrapLines: ["M4 6h16", "M4 12h13a3 3 0 0 1 0 6h-4", "m15 16-2 2 2 2", "M4 18h5"],
+    plusSm: ["M12 7v10", "M7 12h10"],
+    minus: ["M6 12h12"],
     fit: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5"],
     rotate: ["M4 12a8 8 0 0 1 14-5.3L20 9", "M20 4v5h-5", "M20 12a8 8 0 0 1-14 5.3L4 15", "M4 20v-5h5"],
   };
@@ -464,15 +481,18 @@
 
   /* --------------------------------------------------------- small parts */
 
+  /* One pressed, icons or pictures where they say it. clearable: pressing
+     the pressed one again unsets it. */
   function Segmented(props) {
-    return e("div", { className: cx("bd-seg", props.wide && "bd-seg-wide"), role: "group", "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? undefined : props.label },
+    return e("div", { className: cx("bd-seg", props.wide && "bd-seg-wide", props.className), role: "group", "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? undefined : props.label },
       props.options.map(function (o) {
         var pressed = props.value === o.value;
+        var pictured = o.icon || o.picture;
         return e("button", {
           key: String(o.value), type: "button", className: "bd-seg-btn", "aria-pressed": String(pressed),
-          title: o.title || (o.icon ? o.label : undefined), "aria-label": o.icon ? o.label : undefined,
-          onClick: function () { props.onChange(o.value); },
-        }, o.icon ? e(Icon, { name: o.icon }) : o.label);
+          title: o.title || (pictured ? o.label : undefined), "aria-label": pictured ? o.label : undefined,
+          onClick: function () { props.onChange(pressed && props.clearable ? undefined : o.value); },
+        }, o.picture || (o.icon ? e(Icon, { name: o.icon }) : o.label));
       }));
   }
 
@@ -594,7 +614,7 @@
       }
     };
 
-    var label = props.menu ? props.placeholder : props.mixed ? "Mixed" : selected ? (selected.label || String(selected.value)) : props.placeholder || "None";
+    var label = props.menu ? props.placeholder : props.mixed ? props.mixedLabel || "Mixed" : selected ? (selected.short != null ? selected.short : selected.label || String(selected.value)) : props.placeholder || "None";
     return e(React.Fragment, null,
       e("button", {
         ref: btn, id: ids.btn, type: "button", className: cx("bd-dd", props.compact && "bd-dd-compact", props.mixed && "is-mixed", props.className),
@@ -604,6 +624,7 @@
         onClick: function () { if (open) close(false); else show(); },
         onKeyDown: function (ev) { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); show(); } },
       },
+        props.prefix ? e("span", { className: "bd-dd-prefix", "aria-hidden": true }, props.prefix) : null,
         props.icon ? e(Icon, { name: props.icon }) : selected && selected.icon && props.iconValue ? e(Icon, { name: selected.icon }) : null,
         !props.menu && selected && !props.mixed ? e(Preview, { option: selected, kind: props.preview }) : null,
         props.iconOnly ? e("span", { className: "visually-hidden" }, label) : e("span", { className: "bd-dd-label" }, label),
@@ -637,10 +658,18 @@
       props.hint ? e("span", { className: "bd-field-hint" }, props.hint) : null);
   }
 
+  /* A titled group of controls that folds away. Its title row can carry an
+     action on the right, like adding a border. */
   function Section(props) {
-    return e("section", { className: "bd-sec" },
-      e("h3", { className: "bd-sec-h" }, props.title),
-      props.children);
+    var bodyId = "bd-sec-" + String(props.id || props.title).replace(/\W+/g, "-");
+    var open = !props.closed;
+    return e("section", { className: cx("bd-sec", !open && "is-closed") },
+      e("div", { className: "bd-sec-head" },
+        props.onToggle ? e("button", { type: "button", className: "bd-sec-h", "aria-expanded": String(open), "aria-controls": bodyId, onClick: props.onToggle },
+          props.title, e(Icon, { name: "down", className: "bd-sec-chev" }))
+          : e("h3", { className: "bd-sec-h" }, props.title),
+        props.action || null),
+      open ? e("div", { className: "bd-sec-body", id: bodyId }, props.children) : null);
   }
 
   /* A name that turns into a text field on double-click, Enter or F2. */
@@ -677,6 +706,8 @@
     static getDerivedStateFromError() { return { failed: true }; }
     render() { return this.state.failed ? null : this.props.children; }
   }
+  /* The builder's own primitives have no specimen; their tile shows an icon. */
+  var BUILDER_ICON = { Group: "group", Shape: "square" };
   function Thumb(props) {
     var holder = useRef(null);
     useEffect(function () {
@@ -685,7 +716,7 @@
       var specs = window.DovetailSpecimens;
       if (!el) return;
       el.setAttribute("inert", "");
-      var build = specs && NS && props.type !== "Group" ? (specs.samples && specs.samples[props.type]) || specs.build[props.type] : null;
+      var build = specs && NS && !BUILDER_ICON[props.type] ? (specs.samples && specs.samples[props.type]) || specs.build[props.type] : null;
       if (!build) return;
       var root = null, stage = null, io = null, done = false;
       var fit = function () {
@@ -720,7 +751,7 @@
       };
     }, [props.type]);
     return e("span", { className: "bd-thumb", ref: holder, "aria-hidden": true },
-      props.type === "Group" ? e(Icon, { name: "group", className: "bd-thumb-ic" }) : null);
+      BUILDER_ICON[props.type] ? e(Icon, { name: BUILDER_ICON[props.type], className: "bd-thumb-ic" }) : null);
   }
 
   /* A text field laid over the node whose text it edits, in the same type. */
@@ -750,6 +781,30 @@
       onBlur: function () { props.onDone(true); },
       onPointerDown: function (ev) { ev.stopPropagation(); },
     });
+  }
+
+  /* A 3 × 3 pad for a flex container's alignment: across is the main axis in
+     a row and the cross axis in a column. A pressed cell shows where the
+     children sit; stretch or space between lights a whole line. */
+  var ALIGN_POS = ["flex-start", "center", "flex-end"];
+  var ALIGN_WORD = { "flex-start": "start", center: "center", "flex-end": "end" };
+  function AlignMatrix(props) {
+    var cells = [];
+    for (var r = 0; r < 3; r++) {
+      for (var c = 0; c < 3; c++) {
+        (function (r, c) {
+          var j = ALIGN_POS[props.dir === "row" ? c : r], a = ALIGN_POS[props.dir === "row" ? r : c];
+          var on = props.align !== undefined && props.justify !== undefined &&
+            (props.justify === "space-between" || props.justify === j) && (props.align === "stretch" || props.align === a);
+          cells.push(e("button", {
+            key: r + "-" + c, type: "button", className: "bd-mx-cell", "aria-pressed": String(on),
+            "aria-label": "Children at " + ALIGN_WORD[j] + " on the main axis, " + ALIGN_WORD[a] + " across",
+            onClick: function () { props.onChange(a, j); },
+          }, e("span", { className: "bd-mx-dot" })));
+        })(r, c);
+      }
+    }
+    return e("div", { className: cx("bd-mx", "is-" + props.dir), role: "group", "aria-label": "Alignment" }, cells);
   }
 
   /* A search box with a clear button. Escape clears it too. */
@@ -843,6 +898,12 @@
     var view = viewState[0], setView = viewState[1];
     var tabState = useState(prefs.tab);
     var tab = tabState[0], setTab = tabState[1];
+    var closedState = useState(prefs.closed);
+    var closedSecs = closedState[0], setClosedSecs = closedState[1];
+    var toolState = useState("select");
+    var tool = toolState[0], setTool = toolState[1];
+    var sketchState = useState(null);
+    var sketch = sketchState[0], setSketch = sketchState[1];
     var collapsedState = useState({});
     var collapsed = collapsedState[0], setCollapsed = collapsedState[1];
     var readyState = useState({});
@@ -975,8 +1036,8 @@
       setSaved({ ok: !!ok, at: new Date() });
     }, [doc]);
     useEffect(function () {
-      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tab: tab })); });
-    }, [category, view, tab]);
+      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tab: tab, closed: closedSecs })); });
+    }, [category, view, tab, closedSecs]);
     var firstDoc = useRef(doc);
     useEffect(function () {
       if (doc !== firstDoc.current && /^#b=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -1450,7 +1511,7 @@
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
-        Object.keys(META).forEach(function (n) { ok[n] = any.has(n) && (META[n].container || any.hasStarter(n)); sc[n] = any.scalars(n); det[n] = any.canDetach(n); });
+        Object.keys(META).forEach(function (n) { ok[n] = any.has(n) && (META[n].container || META[n].builder || any.hasStarter(n)); sc[n] = any.scalars(n); det[n] = any.canDetach(n); });
         setPlaceable(ok);
         setScalars(sc);
         setDetachable(det);
@@ -1557,6 +1618,8 @@
       var t = where || target();
       var fid = t.frame || docRef.current.active;
       var n = make(type);
+      /* A row added here stays on one line until it's told to wrap. */
+      if (type === "Inline") n.props.wrap = false;
       var parentAt = t.parent === "root" ? null : locate(docRef.current, t.parent, fid);
       var parentName = parentAt ? parentAt.node.type : (frameById(docRef.current, fid) || frame).name;
       change(function (d) { d.active = fid; return ops.insert(d, t.parent, t.index, n, fid); }, "Added " + type + " to " + parentName);
@@ -1655,6 +1718,8 @@
       if (mod && ev.key === "\\") { actions.panels(); return true; }
       if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
       if (previewRef.current) return false;
+      if (ev.key === "Escape" && tool !== "select") { setTool("select"); setSketch(null); return true; }
+      if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { setTool(TOOL_KEY[key]); return true; }
       if (mod && key === "z") { (ev.shiftKey ? redo : undo)(); return true; }
       if (mod && key === "y") { redo(); return true; }
       if (mod && (ev.key === "=" || ev.key === "+")) { zoomStep(1); return true; }
@@ -1730,11 +1795,11 @@
     var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
     var frameOps = {
-      add: function () {
+      add: function (size) {
         var cur = active(docRef.current);
         var f = makeFrame("Frame " + (docRef.current.frames.length + 1), "desktop");
-        f.width = cur.width;
-        f.height = cur.height;
+        f.width = size ? side(size.width, MAX_WIDTH, cur.width) : cur.width;
+        f.height = size ? side(size.height, MAX_HEIGHT, cur.height) : cur.height;
         change(function (d) { d.frames.push(f); d.active = f.id; return []; }, "Added " + f.name);
         setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
       },
@@ -1822,48 +1887,197 @@
     };
     var typeIcon = function (type) {
       if (type === "Group") return "group";
+      if (type === "Shape") return "square";
       if (isContainer(type)) return "box";
       return "component";
     };
     var nodesOf = function (ids) { return ids.map(function (id) { return locate(doc, id); }).filter(Boolean).map(function (a) { return a.node; }); };
     var same = function (values) { return values.every(function (v) { return JSON.stringify(v) === JSON.stringify(values[0]); }); };
+    /* A frame's actions, behind its ellipsis. */
+    var frameMenu = function (f, where) {
+      return e(Dropdown, { menu: true, label: "Actions for " + f.name, placeholder: "Frame actions", icon: "more", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon bd-frame-menu",
+        options: [
+          { value: "duplicate", label: "Duplicate frame", icon: "copy" },
+          { value: "rename", label: "Rename", icon: "pencil" },
+          { value: "fit", label: "Zoom to frame", icon: "fit" },
+          { value: "delete", label: "Delete frame", icon: "trash", disabled: doc.frames.length < 2, danger: true },
+        ],
+        onChange: function (v) {
+          if (v === "duplicate") frameOps.duplicate(f.id);
+          if (v === "rename") setRenaming({ id: "frame:" + f.id, where: where });
+          if (v === "fit") { activate(f.id); showFrame(f.id); }
+          if (v === "delete") frameOps.remove(f.id);
+        } });
+    };
     var sizeText = function (f) { return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height); };
 
     /* ------------------------------------------------- inspector controls */
 
-    var tokenDropdown = function (key, nodes, id, compact) {
+    /* A token's dropdown. opts: label, prefix, compact, className, noPreview,
+       noneLabel and noneShort (the unset choice, in the list and on the button),
+       short (a shorter name for the button), mixedLabel, onChange. */
+    var tokenDropdown = function (key, nodes, id, opts) {
+      opts = opts || {};
       var def = DATA.tokens[key];
       var values = nodes.map(function (n) { return n.style[key] || ""; });
       var mixed = !same(values);
       var value = mixed ? "" : values[0];
-      var options = [{ value: "", label: "None" }].concat(def.options.map(function (o) {
-        return { value: o.value, label: o.label || o.value, hint: o.tokens.join(" · ") || "CSS keyword", tokens: o.tokens };
+      var options = [{ value: "", label: opts.noneLabel || "None", short: opts.noneShort }].concat(def.options.map(function (o) {
+        return { value: o.value, label: o.label || o.value, short: opts.short ? opts.short(o) : undefined, hint: o.tokens.join(" · ") || "CSS keyword", tokens: o.tokens };
       }));
-      return e(Dropdown, { labelledBy: id, value: value, mixed: mixed, options: options, preview: def.preview, compact: compact, narrow: compact,
-        onChange: function (v) { setStyle(nodes.map(function (n) { return n.id; }), key, v); } });
+      return e(Dropdown, {
+        labelledBy: id || undefined, label: opts.label || def.label, value: value, mixed: mixed, mixedLabel: opts.mixedLabel, options: options,
+        preview: opts.noPreview ? null : def.preview, compact: opts.compact, narrow: opts.compact, prefix: opts.prefix, className: opts.className,
+        onChange: opts.onChange || function (v) { setStyle(nodes.map(function (n) { return n.id; }), key, v); },
+      });
+    };
+    /* A size option's name on a small button: Hug, Fill, ×4, Narrow. */
+    var shortSize = function (o) {
+      if (o.value === "hug") return "Hug";
+      if (o.value === "fill") return "Fill";
+      var m = /^x(\d+)$/.exec(o.value);
+      if (m) return "×" + m[1];
+      return String(o.label || o.value).replace(/^Container /, "");
     };
 
     /* A token with one value for every side, or one per side behind a toggle. */
-    var tokenControl = function (key, nodes, id) {
+    var tokenControl = function (key, nodes, id, label) {
       var def = DATA.tokens[key];
       var cur = !nodes.some(function (n) { return n.style[key] !== nodes[0].style[key]; }) ? tokenOption(key, nodes[0].style[key]) : null;
       var sides = def.sides;
       var anySide = sides && nodes.some(function (n) { return sides.some(function (k) { return n.style[k]; }); });
       var open = !!sidesOpen[key] || anySide;
-      return e(Field, { key: key, id: id, label: def.label, hint: cur ? cur.tokens.join(" · ") || null : null },
+      return e(Field, { key: key, id: id, label: label || def.label, hint: cur ? cur.tokens.join(" · ") || null : null },
         e("div", { className: "bd-sides-row" },
-          tokenDropdown(key, nodes, id),
+          tokenDropdown(key, nodes, id, { className: "bd-dd-field" }),
           sides ? e("button", {
             type: "button", className: "bd-act bd-act-sm", "aria-pressed": String(open), title: "Each side on its own", "aria-label": def.label + ", each side",
             onClick: function () { setSidesOpen(function (s) { var n = Object.assign({}, s); n[key] = !open; return n; }); },
           }, e(Icon, { name: "sides" })) : null),
         sides && open ? e("div", { className: "bd-sides" }, sides.map(function (k) {
           var sdef = DATA.tokens[k];
-          var sid = id + "-" + k;
           return e("span", { key: k, className: "bd-side" },
-            e("span", { className: "bd-side-l", id: sid, title: sdef.label }, sdef.side[0].toUpperCase()),
-            tokenDropdown(k, nodes, sid, true));
+            tokenDropdown(k, nodes, null, { compact: true, prefix: sdef.side[0].toUpperCase(), className: "bd-dd-field" }));
         })) : null);
+    };
+
+    /* Several styles at once, in one undo step. */
+    var setStyles = function (ids, patch) {
+      change(function (d) {
+        var any = false;
+        ids.forEach(function (id) {
+          var at = locate(d, id);
+          if (!at) return;
+          any = true;
+          Object.keys(patch).forEach(function (k) { if (patch[k] === undefined || patch[k] === "") delete at.node.style[k]; else at.node.style[k] = patch[k]; });
+        });
+        return any ? undefined : null;
+      });
+    };
+    var setProps = function (ids, patch) {
+      change(function (d) {
+        var any = false;
+        ids.forEach(function (id) {
+          var at = locate(d, id);
+          if (!at) return;
+          any = true;
+          Object.keys(patch).forEach(function (k) { if (patch[k] === undefined) delete at.node.props[k]; else at.node.props[k] = patch[k]; });
+        });
+        return any ? undefined : null;
+      });
+    };
+
+    /* Margin around padding around the item, each side its own token, the way
+       a box model reads. The name in each ring sets every side at once. */
+    var boxModel = function (nodes) {
+      var ids = nodes.map(function (n) { return n.id; });
+      var side = function (key, all, where) {
+        var allValues = nodes.map(function (n) { return n.style[all] || ""; });
+        var inherited = same(allValues) ? allValues[0] : "";
+        var own = nodes.some(function (n) { return n.style[key]; });
+        return e("div", { key: key, className: "bd-box-cell is-" + where },
+          tokenDropdown(key, nodes, null, {
+            compact: true, noPreview: true, mixedLabel: "~", className: cx("bd-box-val", !own && "is-inherited"),
+            noneLabel: inherited ? "Same as every side (" + inherited + ")" : "None", noneShort: inherited || "–",
+          }));
+      };
+      var ring = function (key, title) {
+        return tokenDropdown(key, nodes, null, {
+          compact: true, noPreview: true, label: title + ", every side", prefix: title, mixedLabel: "", noneShort: "", short: function () { return ""; }, className: "bd-box-all",
+          onChange: function (v) {
+            var patch = {};
+            patch[key] = v || undefined;
+            DATA.tokens[key].sides.forEach(function (k) { patch[k] = undefined; });
+            setStyles(ids, patch);
+          },
+        });
+      };
+      return e("div", { className: "bd-box", role: "group", "aria-label": "Margin and padding" },
+        e("div", { className: "bd-box-ring bd-box-m" },
+          ring("margin", "Margin"),
+          side("marginTop", "margin", "top"), side("marginRight", "margin", "right"), side("marginBottom", "margin", "bottom"), side("marginLeft", "margin", "left"),
+          e("div", { className: "bd-box-ring bd-box-p" },
+            ring("padding", "Padding"),
+            side("paddingTop", "padding", "top"), side("paddingRight", "padding", "right"), side("paddingBottom", "padding", "bottom"), side("paddingLeft", "padding", "left"),
+            e("div", { className: "bd-box-core", "aria-hidden": true }))));
+    };
+
+    /* Width, height and their minimums, two by two. */
+    var sizeGrid = function (nodes) {
+      var field = function (key, prefix) {
+        return e("div", { key: key }, tokenDropdown(key, nodes, null, { prefix: prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field" }));
+      };
+      return e("div", { className: "bd-grid2" }, field("w", "W"), field("height", "H"), field("minW", "Min W"), field("h", "Min H"));
+    };
+
+    var selfRow = function (nodes) {
+      var ids = nodes.map(function (n) { return n.id; });
+      var values = nodes.map(function (n) { return n.style.self || ""; });
+      var id = "bd-self-" + nodes[0].id;
+      return e(Field, { key: "self", id: id, label: "Align self", note: "Where it sits across its parent's flow" },
+        e(Segmented, { labelledBy: id, wide: true, clearable: true, value: same(values) ? values[0] || undefined : null, onChange: function (v) { setStyle(ids, "self", v); },
+          options: [["start", "Start", "alignStart"], ["center", "Center", "alignCenter"], ["end", "End", "alignEnd"], ["stretch", "Stretch", "alignStretch"]].map(function (o) { return { value: o[0], label: o[1], icon: o[2] }; }) }));
+    };
+
+    /* Direction, wrap, a 3 × 3 alignment pad and the gap, for anything that
+       lays its children out with flex. */
+    var flexSection = function (nodes, meta) {
+      var first = nodes[0];
+      var ids = nodes.map(function (n) { return n.id; });
+      var base = scalars[first.type] || {};
+      var spec = function (name) { return meta.props.filter(function (p) { return p.name === name; })[0]; };
+      var dflt = function (p) { return p && p.default != null ? (p.kind === "boolean" ? p.default === "true" : p.default) : undefined; };
+      var val = function (name) {
+        var p = spec(name);
+        var vs = nodes.map(function (n) { return n.props[name] !== undefined ? n.props[name] : base[name] !== undefined ? base[name] : dflt(p); });
+        return same(vs) ? vs[0] : undefined;
+      };
+      var align = spec("align"), justify = spec("justify"), gap = spec("gap");
+      var dir = first.type === "Stack" ? "column" : first.type === "Inline" ? "row" : spec("direction") ? val("direction") || "row" : "column";
+      var pad = align && justify && ["flex-start", "center", "flex-end"].every(function (v) { return align.options.indexOf(v) >= 0 && justify.options.indexOf(v) >= 0; });
+      var a = val("align"), j = val("justify");
+      var head = [];
+      if (spec("direction")) head.push(e(Segmented, { key: "dir", label: "Direction", value: val("direction"), onChange: function (v) { setProp(ids, "direction", v); },
+        options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }] }));
+      if (spec("wrap")) head.push(e("button", { key: "wrap", type: "button", className: "bd-act", "aria-pressed": String(!!val("wrap")), title: val("wrap") ? "Wraps onto new lines" : "Stays on one line", "aria-label": "Wrap onto new lines",
+        onClick: function () { setProp(ids, "wrap", !val("wrap")); } }, e(Icon, { name: "wrapLines" })));
+      var side = [];
+      if (gap) side.push(e(Dropdown, { key: "gap", label: "Gap", prefix: "Gap", value: val("gap"), className: "bd-dd-field", narrow: true,
+        options: gap.options.map(function (o) { return { value: o, label: o === "none" ? "None" : o, hint: first.type === "Group" && o !== "none" ? (dir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o : undefined }; }),
+        onChange: function (v) { setProp(ids, "gap", v); } }));
+      if (pad && align.options.indexOf("stretch") >= 0) side.push(e("button", { key: "stretch", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(a === "stretch"), title: "Children fill the cross axis",
+        onClick: function () { setProp(ids, "align", a === "stretch" ? "flex-start" : "stretch"); } }, e(Icon, { name: "alignStretch" }), "Stretch"));
+      if (pad && justify.options.indexOf("space-between") >= 0) side.push(e("button", { key: "between", type: "button", className: "bd-btn bd-btn-sm", "aria-pressed": String(j === "space-between"), title: "Spread children along the main axis",
+        onClick: function () { setProp(ids, "justify", j === "space-between" ? "flex-start" : "space-between"); } }, e(Icon, { name: "justifyBetween" }), "Space between"));
+      var rest = meta.props.filter(function (p) { return (p.tab || "content") === "layout" && ["direction", "wrap", "gap"].indexOf(p.name) < 0 && !(pad && (p.name === "align" || p.name === "justify")); })
+        .map(function (p) { return propControl(p, nodes); }).filter(Boolean);
+      if (!head.length && !pad && !side.length && !rest.length) return null;
+      return [
+        head.length ? e("div", { key: "head", className: "bd-flex-head" }, head) : null,
+        pad || side.length ? e("div", { key: "pad", className: "bd-flex-grid" },
+          pad ? e(AlignMatrix, { dir: dir, align: a, justify: j, onChange: function (na, nj) { setProps(ids, { align: na, justify: nj }); } }) : null,
+          side.length ? e("div", { className: "bd-flex-side" }, side) : null) : null,
+      ].concat(rest);
     };
 
     var propControl = function (p, nodes) {
@@ -2080,46 +2294,84 @@
     };
     var pickTab = function (have) { return have[tab] ? tab : have.layout ? "layout" : TABS.filter(function (t) { return have[t[0]]; }).map(function (t) { return t[0]; })[0]; };
 
+    /* A section that remembers whether it's folded, per title. */
+    var sec = function (key, title, children, action) {
+      return e(Section, { key: key, id: key, title: title, action: action, closed: !!closedSecs[key],
+        onToggle: function () { setClosedSecs(function (c) { var n = Object.assign({}, c); if (n[key]) delete n[key]; else n[key] = true; return n; }); } }, children);
+    };
+    var headAction = function (icon, label, onClick, pressed) {
+      return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label, "aria-label": label, "aria-pressed": pressed === undefined ? undefined : String(pressed), onClick: onClick }, e(Icon, { name: icon }));
+    };
+
+    /* Fill, border, radius, shadow and mode: pictures to pick from, all tokens. */
+    var lookSections = function (nodes, extra) {
+      var ids = nodes.map(function (n) { return n.id; });
+      var first = nodes[0];
+      var sidesOf = DATA.tokens.border.sides;
+      var hasBorder = nodes.some(function (n) { return n.style.border || sidesOf.some(function (k) { return n.style[k]; }); });
+      var radiusValues = nodes.map(function (n) { return n.style.radius || ""; });
+      var shadowValues = nodes.map(function (n) { return n.style.elevation || ""; });
+      var darkValues = nodes.map(function (n) { return !!n.style.dark; });
+      var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
+      return [
+        sec("fill", "Fill", [extra || null, tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" })]),
+        sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
+          hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
+            : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); })),
+        sec("corners", "Corners and shadow", [
+          e(Field, { key: "radius", id: rid, label: "Radius" },
+            e(Segmented, { labelledBy: rid, wide: true, clearable: true, className: "bd-seg-pics", value: same(radiusValues) ? radiusValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "radius", v); },
+              options: DATA.tokens.radius.options.map(function (o) { return { value: o.value, label: o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }) }; }) })),
+          e(Field, { key: "shadow", id: sid, label: "Shadow" },
+            e(Segmented, { labelledBy: sid, wide: true, clearable: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "elevation", v); },
+              options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) })),
+        ]),
+        sec("mode", "Mode", e(Field, { id: mid, label: "Colour mode", hint: darkValues[0] && same(darkValues) ? "Adds the dark class: everything inside resolves dark." : null },
+          e(Segmented, { labelledBy: mid, wide: true, value: same(darkValues) ? (darkValues[0] ? "dark" : "inherit") : null, onChange: function (v) { setStyle(ids, "dark", v === "dark" ? true : undefined); },
+            options: [{ value: "inherit", label: "Inherit" }, { value: "dark", label: "Dark band" }] }))),
+      ];
+    };
+
     var frameInspector = function () {
       var surfaceOptions = DATA.tokens.surface.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens }; });
-      var cur = DATA.tokens.surface.options.filter(function (o) { return o.value === frame.surface; })[0];
       var b = boxes[frame.id] || { h: frame.height };
       var preset = presetOf(frame);
       var have = { appearance: true, layout: true };
       var current = pickTab(have);
       var body = current === "appearance"
-        ? [e(Section, { key: "look", title: "Frame" },
-            e(Field, { id: "bd-fr-mode", label: "Mode" },
+        ? [sec("frame-look", "Frame", [
+            e(Field, { key: "mode", id: "bd-fr-mode", label: "Mode" },
               e(Segmented, { labelledBy: "bd-fr-mode", wide: true, value: frame.dark ? "dark" : "light", onChange: function (v) { setFrame("dark", v === "dark"); },
-                options: [{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }] })),
-            e(Field, { id: "bd-pg-surface", label: "Fill", hint: cur ? cur.tokens[0] : null },
-              e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.surface, preview: "color", onChange: function (v) { setFrame("surface", v || "base"); }, options: surfaceOptions })))]
-        : [e(Section, { key: "size", title: "Size" },
-            e(Field, { id: "bd-fr-preset", label: "Device" },
-              e(Dropdown, { labelledBy: "bd-fr-preset", value: preset, placeholder: "Custom", iconValue: true, onChange: setPreset,
-                options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) })),
-            e("div", { className: "bd-field" },
-              e("span", { className: "bd-field-label" }, "Width and height"),
-              e("div", { className: "bd-size-row" },
-                e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function (v) { setSize(v, undefined); } }),
-                e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : undefined, onChange: function (v) { setSize(undefined, v); } }),
-                e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function () { setSize(frame.height, frame.width); } }, e(Icon, { name: "rotate" })))),
-            e(Field, { id: "bd-fr-hug", label: "Hug contents", inline: true, hint: frame.hug ? "The height follows what's in the frame." : null },
-              e(Switch, { labelledBy: "bd-fr-hug", value: frame.hug, onChange: function (v) { change(function (d) { var f = active(d); f.hug = v; if (!v) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }); } }))),
-          e(Section, { key: "flow", title: "Layout" },
-            e(Field, { id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
-              e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
-            e(Field, { id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
-              e(Dropdown, { labelledBy: "bd-pg-gap", value: frame.gap, onChange: function (v) { setFrame("gap", v || ""); },
-                options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function (g) { return { value: g, label: g, hint: "--dt-layout-stack-" + g }; })) })))];
+                options: [{ value: "light", label: "Light", picture: e(React.Fragment, null, e(Icon, { name: "sun" }), "Light") }, { value: "dark", label: "Dark", picture: e(React.Fragment, null, e(Icon, { name: "moon" }), "Dark") }] })),
+            e(Field, { key: "fill", id: "bd-pg-surface", label: "Fill" },
+              e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.surface, preview: "color", className: "bd-dd-field bd-dd-swatch", onChange: function (v) { setFrame("surface", v || "base"); }, options: surfaceOptions })),
+          ])]
+        : [sec("frame-size", "Frame", [
+            e(Dropdown, { key: "device", label: "Device", prefix: "Device", value: preset, placeholder: "Custom", iconValue: true, className: "bd-dd-field", onChange: setPreset,
+              options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) }),
+            e("div", { key: "wh", className: "bd-size-row" },
+              e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function (v) { setSize(v, undefined); } }),
+              e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : undefined, onChange: function (v) { setSize(undefined, v); } }),
+              e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function () { setSize(frame.height, frame.width); } }, e(Icon, { name: "rotate" }))),
+            e(Field, { key: "hug", id: "bd-fr-hug", label: "Height", hint: frame.hug ? "Follows what's in the frame." : null },
+              e(Segmented, { labelledBy: "bd-fr-hug", wide: true, value: frame.hug ? "hug" : "fixed",
+                onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }); },
+                options: [{ value: "fixed", label: "Fixed" }, { value: "hug", label: "Hug contents" }] })),
+          ]),
+          sec("frame-flow", "Page layout", [
+            e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
+              e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
+            e(Field, { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
+              e(Dropdown, { labelledBy: "bd-pg-gap", value: frame.gap, className: "bd-dd-field", onChange: function (v) { setFrame("gap", v || ""); },
+                options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function (g) { return { value: g, label: g, hint: "--dt-layout-stack-" + g }; })) })),
+          ])];
       return e("div", { className: "bd-inspect" },
         e("div", { className: "bd-inspect-head" },
-          e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "frame" }),
-            e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame.id, "title"), onChange: function (v) { frameOps.rename(frame.id, v); } })),
-          e("p", { className: "bd-inspect-sub" }, sizeText(frame) + (frame.hug ? ", hugging its content" : "") + ". Select something in it to change that instead."),
-          e("div", { className: "bd-actions" },
-            e("button", { type: "button", className: "bd-btn", onClick: function () { frameOps.duplicate(frame.id); } }, e(Icon, { name: "copy" }), "Duplicate frame"),
-            doc.frames.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: function () { frameOps.remove(frame.id); } }, e(Icon, { name: "trash" }), "Delete") : null)),
+          e("div", { className: "bd-head-row" },
+            e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "frame" }),
+              e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame.id, "title"), onChange: function (v) { frameOps.rename(frame.id, v); } })),
+            e("div", { className: "bd-head-actions" }, frameMenu(frame, "title"))),
+          e("p", { className: "bd-inspect-sub" }, sizeText(frame) + (frame.hug ? ", hugging its content" : "") + ". Select something in it to change that instead.")),
         tabBar(have, current),
         tabPanel(current, body));
     };
@@ -2134,45 +2386,34 @@
       var base = scalars[first.type] || {};
       var byTab = function (t) { return meta.props.filter(function (p) { return (p.tab || "content") === t; }); };
       var textId = "bd-text-" + first.id;
-      var hasText = sameType && !meta.container && (typeof base.children === "string" || typeof first.props.children === "string");
+      var hasText = sameType && !meta.container && !meta.builder && (typeof base.children === "string" || typeof first.props.children === "string");
       var columnsId = "bd-cols-" + first.id;
       var ids = nodes.map(function (n) { return n.id; });
       var selected = !many ? locate(doc, first.id) : null;
       var textValues = nodes.map(function (n) { return n.props.children != null ? String(n.props.children) : String(base.children || ""); });
-      var tokenRows = function (section) {
-        return STYLE_KEYS.filter(function (k) { return DATA.tokens[k].section === section && !DATA.tokens[k].side; })
-          .map(function (k) { return tokenControl(k, nodes, "bd-t-" + first.id + "-" + k); });
-      };
       var contentRows = (hasText ? [e(Field, { key: "text", id: textId, label: "Text", hint: many ? null : "Double-click it on the canvas to type in place" },
         e("input", { className: "bd-input", type: "text", "aria-labelledby": textId, placeholder: same(textValues) ? "" : "Mixed", value: same(textValues) ? textValues[0] : "",
           onChange: function (ev) { setProp(ids, "children", ev.target.value); } }))] : [])
         .concat(byTab("content").map(function (p) { return propControl(p, nodes); }).filter(Boolean));
-      var arrangeRows = byTab("layout").map(function (p) { return propControl(p, nodes); }).filter(Boolean);
-      if (sameType && first.type === "Grid") arrangeRows.push(e(Field, { key: "cols", id: columnsId, label: "Responsive columns", hint: first.props.minColumnWidth ? "Fits columns at least this wide; ignores columns." : "Off: uses columns." },
-        e(Dropdown, { labelledBy: columnsId, value: first.props.minColumnWidth || "", onChange: function (v) { setProp(ids, "minColumnWidth", v || undefined); },
-          options: [{ value: "", label: "Off" }].concat(DATA.columnWidths.map(function (w) { return { value: w.value, label: w.label, hint: w.token }; })) })));
+      var flex = sameType ? flexSection(nodes, meta) : null;
+      if (sameType && first.type === "Grid") flex = (flex || []).concat([e(Field, { key: "cols", id: columnsId, label: "Responsive columns", hint: first.props.minColumnWidth ? "Fits columns at least this wide; ignores columns." : "Off: uses columns." },
+        e(Dropdown, { labelledBy: columnsId, value: first.props.minColumnWidth || "", className: "bd-dd-field", onChange: function (v) { setProp(ids, "minColumnWidth", v || undefined); },
+          options: [{ value: "", label: "Off" }].concat(DATA.columnWidths.map(function (w) { return { value: w.value, label: w.label, hint: w.token }; })) }))]);
       var styleRows = byTab("appearance").map(function (p) { return propControl(p, nodes); }).filter(Boolean);
       var toned = meta.props.some(function (p) { return p.name === "tone"; });
-      var darkValues = nodes.map(function (n) { return !!n.style.dark; });
       var have = { appearance: true, layout: true, content: contentRows.length > 0 };
       var current = pickTab(have);
       var body;
-      if (current === "content") body = [e(Section, { key: "content", title: "Content" }, contentRows)];
+      if (current === "content") body = [sec("content", "Content", contentRows)];
       else if (current === "layout") {
         body = [
-          arrangeRows.length ? e(Section, { key: "arrange", title: "Arrangement" }, arrangeRows) : null,
-          e(Section, { key: "size", title: "Size" }, tokenRows("size")),
-          e(Section, { key: "spacing", title: "Spacing" }, tokenRows("spacing")),
+          flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex) : null,
+          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)]),
+          sec("spacing", "Spacing", boxModel(nodes)),
         ];
       } else {
-        body = [
-          styleRows.length ? e(Section, { key: "style", title: "Style" }, styleRows) : null,
-          e(Section, { key: "fill", title: "Fill and border" },
-            toned ? e("p", { className: "bd-note" }, "Tone, above, paints this one's own background. Fill sits underneath it.") : null,
-            tokenRows("appearance"),
-            e(Field, { id: "bd-dark-" + first.id, label: "Dark band", inline: true, hint: darkValues[0] && same(darkValues) ? "Adds the dark class: everything inside resolves dark." : null },
-              e(Switch, { labelledBy: "bd-dark-" + first.id, value: darkValues[0], mixed: !same(darkValues), onChange: function (v) { setStyle(ids, "dark", v ? true : undefined); } }))),
-        ];
+        body = [styleRows.length ? sec("style", "Style", styleRows) : null]
+          .concat(lookSections(nodes, toned ? e("p", { key: "note", className: "bd-note" }, "Tone, under Style, paints this one's own background. Fill sits underneath it.") : null));
       }
       var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
       return e("div", { className: "bd-inspect" },
@@ -2186,22 +2427,21 @@
                 isLast ? e("span", { className: "bd-crumb", "aria-current": "true" }, name)
                   : e("button", { type: "button", className: "bd-crumb", onClick: function () { select(n.id === "root" ? [] : [n.id]); } }, name));
             })) : null,
-          e("h2", { className: "bd-inspect-title" }, e(Icon, { name: sameType ? typeIcon(first.type) : "component" }),
-            many ? title : first.type === "Group"
-              ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
-              : first.type),
+          e("div", { className: "bd-head-row" },
+            e("h2", { className: "bd-inspect-title" }, e(Icon, { name: sameType ? typeIcon(first.type) : "component" }),
+              many ? title : isContainer(first.type) && first.type === "Group"
+                ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
+                : first.name || first.type),
+            e("div", { className: "bd-head-actions", role: "toolbar", "aria-label": "Selection" },
+              e(Dropdown, { menu: true, label: "Wrap in", placeholder: "Wrap in", icon: "wrap", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon", title: "Wrap in a container",
+                options: WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: w, label: "Wrap in " + w, icon: typeIcon(w) }; }),
+                onChange: actions.wrap }),
+              !many && first.type === "Group"
+                ? headAction("group", "Ungroup (Ctrl+Shift+G)", actions.ungroup)
+                : headAction("group", "Group (Ctrl+G)", actions.group),
+              !many && detachable[first.type] ? headAction("detach", "Detach into primitives", actions.detach) : null)),
           many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
-            : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
-          e("div", { className: "bd-actions", role: "toolbar", "aria-label": "Selection" },
-            e(Dropdown, { menu: true, label: "Wrap in", placeholder: "Wrap in", icon: "wrap", compact: true, title: "Wrap in a container",
-              options: WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: w, label: w, icon: typeIcon(w) }; }),
-              onChange: actions.wrap }),
-            !many && first.type === "Group"
-              ? e("button", { type: "button", className: "bd-btn", onClick: actions.ungroup, title: "Ungroup (Ctrl+Shift+G)" }, e(Icon, { name: "group" }), "Ungroup")
-              : e("button", { type: "button", className: "bd-btn", onClick: actions.group, title: "Group (Ctrl+G)" }, e(Icon, { name: "group" }), "Group"),
-            !many && detachable[first.type]
-              ? e("button", { type: "button", className: "bd-btn", onClick: actions.detach, title: "Rebuild from primitives, so its parts can be moved" }, e(Icon, { name: "detach" }), "Detach")
-              : null)),
+            : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null),
         tabBar(have, current),
         tabPanel(current, body));
     };
@@ -2224,7 +2464,7 @@
       e("span", { className: "bd-tool-group" },
         e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
         e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))),
-      e("button", { type: "button", className: "bd-act", onClick: frameOps.add, title: "New frame", "aria-label": "New frame" }, e(Icon, { name: "plus" })),
+      e("button", { type: "button", className: "bd-act", onClick: function () { frameOps.add(); }, title: "New frame", "aria-label": "New frame" }, e(Icon, { name: "plus" })),
       e(Dropdown, { label: "Frame size, " + frame.name, value: presetOf(frame), placeholder: frame.width + " × " + (frame.hug ? "hug" : frame.height), compact: true, iconValue: true, className: "bd-frame-size", onChange: setPreset,
         options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) }),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(frame.dark), title: frame.dark ? "Dark. Switch to light" : "Light. Switch to dark", "aria-label": "Dark mode",
@@ -2245,12 +2485,101 @@
       e("button", { type: "button", className: "bd-act", onClick: share, title: "Copy a share link", "aria-label": "Share" }, e(Icon, { name: "link" })),
       e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: openCode, disabled: !ready[frame.id] }, e(Icon, { name: "code" }), "Code"));
 
+    /* ------------------------------------------------- drawing */
+
+    var STEPS = DATA.tokens.w.options.map(function (o) { var m = /^x(\d+)$/.exec(o.value); return m ? Number(m[1]) : null; }).filter(Boolean);
+    var snapStep = function (px, unit) {
+      var n = px / unit;
+      return "x" + STEPS.reduce(function (best, st) { return Math.abs(st - n) < Math.abs(best - n) ? st : best; }, STEPS[0]);
+    };
+    /* What each tool puts down. A drag gives it a size in whole steps of the
+       large control size; a click gives it a sensible one. */
+    var toolNode = function (kind, size) {
+      if (kind === "rect") return make("Shape", { shape: "rectangle" }, null, { w: size ? size.w : "x4", height: size ? size.h : "x2", surface: "sunken", radius: "control" });
+      if (kind === "ellipse") return make("Shape", { shape: "ellipse" }, null, { w: size ? size.w : "x2", height: size ? size.h : "x2", surface: "brand-muted" });
+      if (kind === "box") {
+        var box = make("Group", { direction: "column", gap: "sm" }, [], { padding: "md", border: "subtle", radius: "container" });
+        if (size) { box.style.w = size.w; box.style.h = size.h; }
+        return box;
+      }
+      if (kind === "text") return make("Text", { children: "Text" });
+      if (kind === "image") return make("Image");
+      return null;
+    };
+    var finishSketch = function (sk) {
+      var z = camRef.current.z;
+      var dx = Math.abs(sk.x1 - sk.x0), dy = Math.abs(sk.y1 - sk.y0);
+      var dragged = dx > 6 || dy > 6;
+      var kind = sk.tool;
+      setTool("select");
+      if (kind === "frame") {
+        frameOps.add(dragged ? { width: Math.round(dx / z / 10) * 10, height: Math.round(dy / z / 10) * 10 } : null);
+        return;
+      }
+      var sr = stageRef.current.getBoundingClientRect();
+      var cx = sr.left + Math.min(sk.x0, sk.x1), cy = sr.top + Math.min(sk.y0, sk.y1);
+      var at = frameAt(cx + 1, cy + 1);
+      var f = at && api(at.fid);
+      if (!f) { announce("Draw inside a frame. The frame tool adds a new one."); return; }
+      var hit = f.drop((cx + 1 - at.r.left) / z, (cy + 1 - at.r.top) / z, null, 12 / z);
+      var fr = frameById(docRef.current, at.fid);
+      if (!hit) hit = { parent: "root", index: fr.root.children.length };
+      var unit = f.unit ? f.unit() : 48;
+      var node = toolNode(kind, dragged ? { w: snapStep(dx / z, unit), h: snapStep(dy / z, unit) } : null);
+      if (!node) return;
+      var where = hit.parent === "root" ? fr.name : ((locate(docRef.current, hit.parent, at.fid) || { node: { type: "it" } }).node.type);
+      change(function (d) { d.active = at.fid; return ops.insert(d, hit.parent, hit.index, node, at.fid); }, "Added " + (node.type === "Shape" ? node.props.shape : node.type) + " to " + where);
+      if (kind === "text") setTimeout(function () { beginEditRef.current(node.id); }, 350);
+      if (kind === "image") setTab("content");
+    };
+    var drawHandlers = {
+      onPointerDown: function (ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
+        releaseFocus();
+        try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+        if (tool === "hand" || spaceRef.current || ev.button === 1) { gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); return; }
+        if (ev.button !== 0) return;
+        var p = stageXY(ev.clientX, ev.clientY);
+        setSketch({ tool: tool, id: ev.pointerId, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
+      },
+      onPointerMove: function (ev) {
+        if (gest.current.pts[ev.pointerId]) { gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); return; }
+        if (!sketch || sketch.id !== ev.pointerId) return;
+        var p = stageXY(ev.clientX, ev.clientY);
+        setSketch(Object.assign({}, sketch, { x1: p.x, y1: p.y }));
+      },
+      onPointerUp: function (ev) {
+        if (gest.current.pts[ev.pointerId]) { gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); return; }
+        if (!sketch || sketch.id !== ev.pointerId) return;
+        var p = stageXY(ev.clientX, ev.clientY);
+        var done = Object.assign({}, sketch, { x1: p.x, y1: p.y });
+        setSketch(null);
+        finishSketch(done);
+      },
+      onPointerCancel: function (ev) {
+        if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+        setSketch(null);
+      },
+    };
+    var tools = e("div", { className: "bd-tools", role: "toolbar", "aria-label": "Tools" },
+      TOOLS.map(function (group, gi) {
+        return e(React.Fragment, { key: gi },
+          gi ? e("span", { className: "bd-tools-sep", "aria-hidden": true }) : null,
+          group.map(function (t) {
+            return e("button", {
+              key: t[0], type: "button", className: "bd-tool", "aria-pressed": String(tool === t[0]), "aria-label": t[1], title: t[1] + " (" + t[3] + ")",
+              onClick: function () { setTool(t[0]); announce(t[1] + (t[0] === "select" || t[0] === "hand" ? "" : ": press or drag on a frame")); },
+            }, e(Icon, { name: t[2] }));
+          }));
+      }));
+
     var isBackground = function (t) { return t === stageRef.current || (t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"))); };
     var frameSrc = mountEl.getAttribute("data-frame");
     var anyReady = doc.frames.some(function (f) { return ready[f.id]; });
 
     var stage = e("div", {
-      className: cx("bd-stage", drag && "is-dragging", (space || panning) && "is-panning", preview && "is-preview"), ref: stageRef,
+      className: cx("bd-stage", drag && "is-dragging", (space || panning || tool === "hand") && "is-panning", preview && "is-preview"), ref: stageRef,
       onPointerDown: function (ev) {
         if (!isBackground(ev.target) && !spaceRef.current && ev.button !== 1) return;
         if (ev.button === 2) return;
@@ -2293,7 +2622,8 @@
                 onClick: function () { frameOps.pick(f.id); },
                 onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "label" }); },
               }, e("span", { className: "bd-flabel-name" }, f.name)),
-            e("span", { className: "bd-flabel-size" }, sizeText(f)));
+            e("span", { className: "bd-flabel-size" }, sizeText(f)),
+            on && !preview ? frameMenu(f, "label") : null);
         })),
       e("div", { className: "bd-marks", "aria-hidden": true },
         !preview && boxes[frame.id] ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
@@ -2313,6 +2643,10 @@
         }) : null,
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
         marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
+      !preview && tool !== "select" ? e("div", Object.assign({ className: cx("bd-draw", tool === "hand" ? "is-hand" : "is-draw") }, drawHandlers)) : null,
+      sketch && sketch.tool !== "hand" ? e("div", { className: cx("bd-sketch", sketch.tool === "ellipse" && "is-ellipse"), "aria-hidden": true,
+        style: { left: Math.min(sketch.x0, sketch.x1), top: Math.min(sketch.y0, sketch.y1), width: Math.abs(sketch.x1 - sketch.x0), height: Math.abs(sketch.y1 - sketch.y0) } }) : null,
+      !preview ? tools : null,
       edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
       wide && bare && !preview ? e("button", { type: "button", className: "bd-float", onClick: actions.panels, title: "Show panels (Tab)" }, e(Icon, { name: "panels" }), "Show panels") : null,
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,

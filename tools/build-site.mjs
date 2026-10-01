@@ -2081,7 +2081,14 @@ const inset = (o) => cssVar(`--dt-space-inset-${o}`);
 const spaceOpts = (css) => BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inset-${o}`], css(inset(o))));
 const borderOpts = (prop) => ["subtle", "default", "strong", "brand"]
   .map((o) => tokenOption(o, [`--dt-border-${o}`, "--dt-border-width-default"], { [prop]: `${cssVar("--dt-border-width-default")} solid ${cssVar(`--dt-border-${o}`)}` }));
+/* Fixed sizes are whole multiples of the large control size, so a shape drawn
+   on the canvas snaps to the system's own grid. */
+const BUILDER_STEPS = [1, 2, 3, 4, 6, 8, 12];
 const BUILDER_TOKENS = {
+  /* Where an item sits across its parent's flow: CSS keywords, no values. */
+  self: { label: "Align self", section: "position", preview: "text",
+    options: [["start", "flex-start", "Start"], ["center", "center", "Center"], ["end", "flex-end", "End"], ["stretch", "stretch", "Stretch"]]
+      .map(([v, css, label]) => tokenOption(v, [], { alignSelf: css }, label)) },
   surface: { label: "Fill", section: "appearance", preview: "color",
     options: ["base", "subtle", "raised", "sunken", "brand-muted", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
       .map((o) => tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
@@ -2113,6 +2120,7 @@ const BUILDER_TOKENS = {
     options: [
       tokenOption("hug", [], { width: "fit-content" }, "Hug contents"),
       tokenOption("fill", [], { width: "100%" }, "Fill"),
+      ...BUILDER_STEPS.map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { width: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)),
       ...["narrow", "default", "wide"].map((o) => tokenOption(o, [`--dt-size-container-${o}`], { width: "100%", maxWidth: cssVar(`--dt-size-container-${o}`), marginInline: "auto" }, `Container ${o}`)),
     ] },
   minW: { label: "Min width", section: "size", preview: "text",
@@ -2124,7 +2132,7 @@ const BUILDER_TOKENS = {
     options: [
       tokenOption("hug", [], { height: "auto" }, "Hug contents"),
       tokenOption("fill", [], { height: "100%", flexGrow: "1" }, "Fill"),
-      ...[1, 2, 4, 6, 8, 12].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { height: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)),
+      ...BUILDER_STEPS.map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { height: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)),
       tokenOption("narrow", ["--dt-size-container-narrow"], { height: cssVar("--dt-size-container-narrow") }, "Container narrow"),
     ] },
   h: { label: "Min height", section: "size", preview: "text",
@@ -2154,7 +2162,19 @@ const BUILDER_GROUP = {
     { name: "gap", kind: "enum", options: ["none"].concat(BUILDER_SPACE), default: "sm", note: "From the inline scale in a row, the stack scale in a column", tab: "layout" },
     { name: "align", kind: "enum", options: ["flex-start", "center", "flex-end", "stretch"], default: "stretch", note: "Cross axis", tab: "layout" },
     { name: "justify", kind: "enum", options: ["flex-start", "center", "flex-end", "space-between"], default: "flex-start", note: "Main axis", tab: "layout" },
-    { name: "wrap", kind: "boolean", default: "true", note: "Let items wrap onto a new line", tab: "layout" },
+    { name: "wrap", kind: "boolean", default: "false", note: "Let items wrap onto a new line", tab: "layout" },
+  ],
+};
+/* The builder's own shape: a box or a circle with no content, sized and
+   painted only by the Size and Appearance tokens. */
+const BUILDER_SHAPE = {
+  blurb: "A rectangle or ellipse, painted with tokens",
+  group: "layout",
+  container: false,
+  builder: true,
+  href: null,
+  props: [
+    { name: "shape", kind: "enum", options: ["rectangle", "ellipse"], default: "rectangle", note: "Its outline", tab: "appearance" },
   ],
 };
 /* Grid's minColumnWidth is a CSS length in the component. The builder offers
@@ -2234,8 +2254,9 @@ function buildBuilder() {
     return c.name;
   };
   meta.Group = BUILDER_GROUP;
+  meta.Shape = BUILDER_SHAPE;
   const layout = BUILDER_CONTAINERS.concat(["Divider"]).map((n) => components.find((c) => c.name === n)).filter(Boolean);
-  groups.push({ id: "layout", label: "Layout", items: ["Group"].concat(layout.map(entry)) });
+  groups.push({ id: "layout", label: "Layout", items: ["Group", "Shape"].concat(layout.map(entry)) });
   for (const g of GROUP_ORDER) {
     const items = byGroup(g).filter((c) => !BUILDER_SKIP.has(c.name) && !layout.includes(c)).map(entry);
     if (items.length) groups.push({ id: g, label: GROUP_LABEL[g], items });

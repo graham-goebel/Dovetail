@@ -12,7 +12,10 @@
      all and clears, tiles carry a live preview, and grid and list both work;
    - dragging a tile onto an empty frame adds it, clicking it on the canvas
      selects it, and clicking the empty canvas clears the selection;
-   - the inspector splits into Appearance, Layout and Content;
+   - the inspector splits into Appearance, Layout and Content, with a box
+     model for margin and padding, a size grid and a flex alignment pad;
+   - the tools draw a rectangle, an ellipse, a container, text and a frame,
+     sized in steps of a size token; groups and new rows don't wrap;
    - Enter goes into a container's children and Shift+Enter back out;
    - a token chosen from a dropdown (by keyboard) reaches the component as a
      custom property, one side at a time too, and height and min width are
@@ -118,6 +121,11 @@ const row = (page, name) => page.locator(`.bd-layer[data-layer]:has(.bd-layer-na
 const tab = (page, name) => page.locator(".bd-itab", { hasText: name }).click();
 const category = (page, name) => page.locator(".bd-cat", { hasText: name }).click();
 const camera = (page) => page.evaluate(() => document.querySelector(".bd-world").style.transform);
+const dd = (page, label) => page.locator(`.bd-right .bd-dd[aria-label="${label}"]`).first();
+async function pick(page, label, optionText) {
+  await dd(page, label).click();
+  await option(page, optionText).click();
+}
 const labels = (page) => page.$$eval(".bd-flabel-name", (n) => n.map((x) => x.textContent));
 /* Hands the keyboard back to the canvas, as a press on it does. */
 const release = (page) => page.evaluate(() => document.activeElement && document.activeElement.blur());
@@ -196,7 +204,8 @@ try {
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Content" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Content opens first, with the Text field");
-    expect(await page.locator(".bd-inspect-head .bd-actions").textContent() === "Wrap inGroup", "the head offers only Wrap and Group for a Heading");
+    const actions = await page.$$eval(".bd-inspect-head .bd-head-actions [aria-label]", (b) => b.map((x) => x.getAttribute("aria-label")));
+    expect(actions.join("|") === "Wrap in|Group (Ctrl+G)", `the head offers only Wrap and Group for a Heading, got ${actions.join("|")}`);
     const stage = await page.locator(".bd-stage").boundingBox();
     await page.mouse.click(stage.x + 6, stage.y + stage.height - 6);
     await page.waitForFunction(() => /Frame 1/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -218,23 +227,23 @@ try {
     await tab(page, "Layout");
     const sections = await page.$$eval(".bd-ipanel .bd-sec-h", (h) => h.map((x) => x.textContent));
     expect(sections.includes("Size") && sections.includes("Spacing"), `Layout holds Size and Spacing, got ${sections.join(", ")}`);
-    const dd = page.locator(".bd-right .bd-field", { hasText: /^Padding/ }).first().locator(".bd-dd").first();
-    await dd.focus();
+    await page.locator(".bd-box-p > .bd-box-all").focus();
     await page.keyboard.press("ArrowDown");
     await page.locator(".bd-dd-list").waitFor();
     for (let i = 0; i < 5; i++) await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Enter");
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]').firstElementChild.style.padding === "var(--dt-space-inset-lg)");
-    ok("Padding chosen by keyboard (arrows, Enter) sets var(--dt-space-inset-lg)");
-    await page.locator(".bd-right .bd-field", { hasText: /^Padding/ }).first().locator(".bd-act-sm").click();
-    await page.locator(".bd-right .bd-side").first().locator(".bd-dd").click();
+    ok("Padding chosen by keyboard in the box model (arrows, Enter) sets var(--dt-space-inset-lg)");
+    expect(await page.locator(".bd-box-p > .bd-box-cell.is-top .bd-dd-label").textContent() === "lg", "each side shows the padding it takes from every side");
+    await page.locator(".bd-box-p > .bd-box-cell.is-top .bd-dd").click();
     await option(page, /^2xl$/).click();
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]').firstElementChild.style.paddingTop === "var(--dt-space-inset-2xl)");
-    ok("the per-side toggle shows T/R/B/L; top set to 2xl gives paddingTop: var(--dt-space-inset-2xl)");
-    await choose(page, /^Height/, "control-lg × 2");
-    await choose(page, /^Min width/, "control-lg × 3");
+    ok("the box model's top padding set to 2xl gives paddingTop: var(--dt-space-inset-2xl)");
+    await pick(page, "Height", "control-lg × 2");
+    await pick(page, "Min width", "control-lg × 3");
     await frame().waitForFunction(() => { const s = document.querySelector('[data-bf-type="Heading"]').firstElementChild.style; return s.height === "calc(var(--dt-size-control-lg) * 2)" && s.minWidth === "calc(var(--dt-size-control-lg) * 3)"; });
-    ok("Height and Min width are multiples of --dt-size-control-lg");
+    expect(await dd(page, "Height").locator(".bd-dd-label").textContent() === "×2", "the size grid names a step briefly");
+    ok("Height and Min width, from the size grid, are multiples of --dt-size-control-lg");
     const offered = await page.evaluate(() => Object.values(window.DovetailBuilderData.tokens).flatMap((d) => d.options.flatMap((o) => Object.values(o.css))));
     const bad = offered.filter(raw);
     expect(bad.length === 0, `options with raw values: ${bad.join(", ")}`);
@@ -307,7 +316,8 @@ try {
     await page.waitForFunction((p) => { const m = /scale\(([\d.]+)\)/.exec(document.querySelector(".bd-world").style.transform); return m && Number(m[1]) !== Number(/scale\(([\d.]+)\)/.exec(p)[1]); }, panned);
     ok("the wheel and a drag on empty canvas pan it; Ctrl and the wheel zoom");
     await page.keyboard.press("Escape");
-    await page.locator(".bd-right .bd-btn", { hasText: "Duplicate frame" }).click();
+    await page.locator(".bd-right .bd-frame-menu").click();
+    await option(page, "Duplicate frame").click();
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     expect((await labels(page)).join("|") === "Frame 1|Frame 1 copy", `the copy sits beside the original, got ${(await labels(page)).join("|")}`);
     await frame(1).waitForSelector('[data-bf-type="Stack"] [data-bf-type="Heading"]');
@@ -372,10 +382,15 @@ try {
     await page.waitForTimeout(200);
     expect((await layerNames(page)).slice(-3).join(" ") === "1:Group 2:StatsBlock 2:TestimonialBlock", `Ctrl+G groups them, got ${(await layerNames(page)).join(" ")}`);
     await tab(page, "Layout");
+    await frame().waitForFunction(() => document.querySelector('[data-bf-type="Group"]').firstElementChild.style.flexWrap === "nowrap");
     await page.locator('.bd-right .bd-seg-btn[aria-label="Column"]').click();
-    await choose(page, /^Gap/, /^lg$/);
+    await pick(page, "Gap", /^lg$/);
     await frame().waitForFunction(() => { const g = document.querySelector('[data-bf-type="Group"]').firstElementChild; return g.style.flexDirection === "column" && g.style.gap === "var(--dt-space-stack-lg)"; });
-    ok("shift-select and Ctrl+G make a Group; a column with gap lg uses var(--dt-space-stack-lg)");
+    ok("shift-select and Ctrl+G make a Group that stays on one line; a column with gap lg uses var(--dt-space-stack-lg)");
+    await page.locator(".bd-mx-cell").nth(8).click();
+    await frame().waitForFunction(() => { const g = document.querySelector('[data-bf-type="Group"]').firstElementChild; return g.style.alignItems === "flex-end" && g.style.justifyContent === "flex-end"; });
+    expect(await page.locator(".bd-mx-cell[aria-pressed=true]").count() === 1, "one cell of the pad is pressed");
+    ok("the alignment pad's corner sets align and justify to flex-end together");
     await row(page, "Group").dblclick();
     await page.keyboard.type("Proof");
     await page.keyboard.press("Enter");
@@ -396,7 +411,7 @@ try {
     ok("pressing anywhere on a canvas node and dragging moves it");
 
     await row(page, "HeroBlock").click();
-    await page.locator(".bd-right .bd-btn", { hasText: "Detach" }).click();
+    await page.locator('.bd-right [aria-label="Detach into primitives"]').click();
     await page.waitForFunction(() => [...document.querySelectorAll(".bd-layer-name")].filter((n) => n.textContent === "Button").length >= 2);
     const names = await layerNames(page);
     const heroAt = names.indexOf("1:HeroBlock");
@@ -432,6 +447,61 @@ try {
     await frame(1).waitForSelector('[data-bf-type="Group"] [data-bf-type="StatsBlock"]');
     expect(await page.locator(".bd-flabel.is-current .bd-flabel-name").textContent() === "Frame 2", "the frame it landed in becomes active");
     ok("a node drags from one frame into another, and that frame becomes active");
+    await page.close();
+  });
+
+  await step("Tools draw primitives sized by tokens", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    await page.locator(".bd-start").click();
+    await option(page, "Blank frame").click();
+    await frame().waitForSelector('[data-bf-slot="root"]');
+    expect((await page.$$eval(".bd-tool", (t) => t.map((x) => x.getAttribute("aria-label")))).length === 8, "eight tools in the bar");
+    const box = await page.locator("iframe.bd-frame").boundingBox();
+    await page.keyboard.press("b");
+    await drag(page, { x: box.x + box.width * 0.1, y: box.y + box.height * 0.1 }, { x: box.x + box.width * 0.5, y: box.y + box.height * 0.6 });
+    await frame().waitForSelector('[data-bf-type="Group"]');
+    let d = await saved();
+    const group = d.frames[0].root.children[0];
+    expect(group.type === "Group" && /^x\d+$/.test(group.style.w) && /^x\d+$/.test(group.style.h) && group.style.padding === "md", `a drawn container is a Group with token sizes, got ${JSON.stringify(group.style)}`);
+    expect(await page.locator(".bd-tool[aria-pressed=true]").getAttribute("aria-label") === "Select", "the tool goes back to Select after drawing");
+    ok(`B and a drag draw a container: a padded Group ${group.style.w} wide, at least ${group.style.h} tall`);
+    const inside = await canvasPoint(page, '[data-bf-type="Group"]', "left");
+    await page.keyboard.press("r");
+    const unit = await frame().evaluate(() => window.BuilderFrame.unit());
+    const z = box.width / 1280;
+    await drag(page, { x: inside.x, y: inside.y + 4 }, { x: inside.x + unit * 3 * z, y: inside.y + 4 + unit * 2 * z });
+    await frame().waitForSelector('[data-bf-type="Group"] [data-bf-type="Shape"]');
+    d = await saved();
+    const rect = d.frames[0].root.children[0].children[0];
+    expect(rect.type === "Shape" && rect.props.shape === "rectangle" && rect.style.w === "x3" && rect.style.height === "x2", `a rectangle dragged 3 by 2 steps snaps to x3 by x2, got ${JSON.stringify(rect)}`);
+    const css = await frame().evaluate(() => document.querySelector('[data-bf-type="Shape"]').firstElementChild.style.width);
+    expect(css === "calc(var(--dt-size-control-lg) * 3)", `its width is a multiple of the token, got ${css}`);
+    ok("R and a drag draw a rectangle inside the container, snapped to control-lg × 3 by × 2");
+    await page.keyboard.press("o");
+    await page.mouse.click(inside.x, inside.y + 4);
+    await page.keyboard.press("t");
+    await page.mouse.click(inside.x, inside.y + 4);
+    await page.locator(".bd-inline").waitFor();
+    await page.keyboard.type("Drawn text");
+    await page.keyboard.press("Enter");
+    await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Text"]')].some((t) => t.textContent === "Drawn text"));
+    d = await saved();
+    const kinds = d.frames[0].root.children[0].children.map((c) => c.type === "Shape" ? c.props.shape : c.type);
+    expect(kinds.includes("ellipse") && kinds.includes("Text") && kinds.includes("rectangle"), `the container holds a rectangle, an ellipse and text, got ${kinds.join(", ")}`);
+    ok("O and a click add an ellipse; T and a click add text and open it for typing");
+    await page.keyboard.press("f");
+    const stage = await page.locator(".bd-stage").boundingBox();
+    await drag(page, { x: stage.x + 40, y: stage.y + stage.height - 140 }, { x: stage.x + 160, y: stage.y + stage.height - 60 });
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    ok("F and a drag on empty canvas add a frame");
+    await page.locator(".bd-left-tabs .bd-tab", { hasText: "Assets" }).click();
+    await category(page, "Layout");
+    await page.locator('.bd-tile[data-type="Inline"]').click();
+    d = await saved();
+    const inl = d.frames[d.frames.length - 1].root.children.find((c) => c.type === "Inline");
+    expect(inl && inl.props.wrap === false, "an Inline added from the panel starts on one line");
+    ok("an Inline added from the panel doesn't wrap");
     await page.close();
   });
 

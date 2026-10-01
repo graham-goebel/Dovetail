@@ -22,7 +22,9 @@
    `style` holds token names, never values. Each name is looked up in the
    builder data (assets/builder-data.js, generated and checked by the site
    build), whose declarations are the only way a value reaches the canvas.
-   Group is the builder's own flex container: a div whose gap is a token. */
+   Group is the builder's own flex container: a div whose gap is a token, on
+   one line unless it's told to wrap. Shape is the builder's own rectangle or
+   ellipse: a div painted and sized only by tokens. */
 
 (function () {
   "use strict";
@@ -47,9 +49,21 @@
   var GROUP_GAP = { row: "--dt-space-inline-", column: "--dt-space-stack-" };
   function groupStyle(p) {
     var dir = p.direction === "column" ? "column" : "row";
-    var st = { display: "flex", flexDirection: dir, flexWrap: p.wrap === false ? "nowrap" : "wrap", alignItems: p.align || "stretch", justifyContent: p.justify || "flex-start" };
+    var st = { display: "flex", flexDirection: dir, flexWrap: p.wrap === true ? "wrap" : "nowrap", alignItems: p.align || "stretch", justifyContent: p.justify || "flex-start" };
     var gap = p.gap || "sm";
     if (gap !== "none") st.gap = "var(" + GROUP_GAP[dir] + gap + ")";
+    return st;
+  }
+
+  /* A shape with no size of its own is one large control square; an ellipse
+     rounds whatever box it has. */
+  var SHAPE_SIZE = "var(--dt-size-control-lg)";
+  function shapeStyle(node) {
+    var st = Object.assign({ boxSizing: "border-box", flex: "none" }, styleFor(node.style) || {});
+    if (!st.width) st.width = SHAPE_SIZE;
+    if (!st.height) st.height = SHAPE_SIZE;
+    if (!st.background) st.background = "var(--dt-surface-sunken)";
+    if ((node.props || {}).shape === "ellipse") st.borderRadius = "50%";
     return st;
   }
 
@@ -145,6 +159,10 @@
       var gkids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
       return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", style: { display: "contents" } },
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: Object.assign(groupStyle(gp), styleFor(node.style) || {}) }, gkids));
+    }
+    if (node.type === "Shape") {
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", style: { display: "contents" } },
+        e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: shapeStyle(node), role: "presentation" }));
     }
     var Comp = NS[node.type];
     if (!Comp) return e("div", { key: node.id, className: "bf-error", "data-bf-id": node.id }, "Unknown component " + node.type);
@@ -533,6 +551,7 @@
   }
 
   function block(node, used, pad) {
+    if (node.type === "Shape") return pad + "<div" + (node.style && node.style.dark ? ' className="dark"' : "") + ' role="presentation" style={' + value(shapeStyle(node), used, 0) + "} />";
     if (node.type === "Group") {
       var gs = Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {});
       var gattrs = (node.style && node.style.dark ? ' className="dark"' : "") + " style={" + value(gs, used, 0) + "}";
@@ -690,7 +709,16 @@
     drop: drop,
     pick: pick,
     jsx: jsx,
-    has: function (type) { return type === "Group" || !!NS[type]; },
+    has: function (type) { return type === "Group" || type === "Shape" || !!NS[type]; },
+    /* The large control size in pixels, which drawn shapes snap to. */
+    unit: function () {
+      var probe = document.createElement("div");
+      probe.style.cssText = "position:absolute;visibility:hidden;width:var(--dt-size-control-lg)";
+      document.body.appendChild(probe);
+      var w = probe.getBoundingClientRect().width;
+      probe.remove();
+      return w || 48;
+    },
     /* A component's starting props that are plain values, so the inspector
        can show what a control is set to before the reader touches it. */
     scalars: function (type) {
