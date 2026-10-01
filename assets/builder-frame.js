@@ -5,7 +5,9 @@
 
    - render(tree, options): draws the tree with the bundle's components;
    - rect(id) and drop(x, y, dragId): geometry, in this frame's coordinates;
-   - jsx(tree): the code for the tree, with each component's full props.
+   - jsx(tree, name): the code for the tree, with each component's full props;
+   - detach(node): the same thing built from primitives, where a recipe exists;
+   - textRect(id, text): where a node's text sits, for editing it in place.
 
    A node is { id, type, props, style, children }. `props` holds only what the
    reader changed; everything else comes from the component's specimen
@@ -343,17 +345,21 @@
       if (!editing()) return;
       ev.preventDefault();
       ev.stopPropagation();
-      if (type !== "click" || !host()) return;
-      if (swallowClick) { swallowClick = false; return; }
+      if (!host()) return;
       var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
-      host().pick(w ? w.getAttribute("data-bf-id") : "root", ev.shiftKey || ev.metaKey || ev.ctrlKey);
+      var id = w ? w.getAttribute("data-bf-id") : "root";
+      if (type === "dblclick") { host().edit(id); return; }
+      if (type !== "click") return;
+      if (swallowClick) { swallowClick = false; return; }
+      /* Shift adds to the selection; Cmd or Ctrl goes straight to the text. */
+      host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey);
     }, true);
   });
   document.addEventListener("pointerdown", function (ev) {
     if (!editing()) return;
     /* No focus, no text selection, no native drag of an image. */
     if (ev.pointerType === "mouse") ev.preventDefault();
-    if (ev.button !== 0 || ev.pointerType === "touch" || ev.shiftKey || !host()) return;
+    if (ev.button !== 0 || ev.pointerType === "touch" || ev.shiftKey || ev.metaKey || ev.ctrlKey || !host()) return;
     var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
     var id = w ? w.getAttribute("data-bf-id") : null;
     if (!id || id === "root" || !index[id]) return;
@@ -487,8 +493,9 @@
     return kids ? open + ">" + kids + "</" + tag + ">" : open + " />";
   }
 
-  function jsx(tree) {
+  function jsx(tree, name) {
     var used = new Set();
+    var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
     var page = tree.page || {};
     var kids = tree.root.children.map(function (c) { return block(c, used, "      "); });
     var rootStyle = ["background: \"var(--dt-surface-" + (page.surface || "base") + ")\""];
@@ -497,11 +504,128 @@
     var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
     return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
-      "export function Screen() {\n  return (\n    <div" + rootAttrs + ">\n" + kids.join("\n") + (kids.length ? "\n" : "") + "    </div>\n  );\n}\n";
+      "export function " + fn + "() {\n  return (\n    <div" + rootAttrs + ">\n" + kids.join("\n") + (kids.length ? "\n" : "") + "    </div>\n  );\n}\n";
+  }
+
+  /* ------------------------------------------------------------ detach */
+
+  /* A component rebuilt from primitives, so its parts can be moved and
+     restyled. Each recipe reads the props the node renders with (its specimen's
+     and the reader's) and lays out Groups, Headings, Text and the smaller
+     components the same way. Nodes come back without ids; the builder assigns
+     them. Where no recipe exists, detach returns null and the button is off. */
+  function n(type, props, children, style) {
+    var node = { type: type, props: props || {}, style: style || {} };
+    if (children) node.children = children.filter(Boolean);
+    return node;
+  }
+  var str = function (v) { return typeof v === "string" || typeof v === "number" ? String(v) : null; };
+  var text = function (v, props) { var t = str(v); return t ? n("Text", Object.assign({ children: t }, props || {})) : null; };
+  var heading = function (v, size) { var t = str(v); return t ? n("Heading", { children: t, size: size }) : null; };
+  var plain = function (props) {
+    var out = {};
+    Object.keys(props || {}).forEach(function (k) {
+      var v = props[k];
+      if (k !== "children" && k !== "style" && k !== "className" && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) out[k] = v;
+    });
+    return out;
+  };
+  /* A React element from a specimen (a row of Buttons, an img) as nodes. */
+  function fromElement(el) {
+    if (el === null || el === undefined || el === false) return null;
+    if (typeof el === "string" || typeof el === "number") return text(el);
+    if (Array.isArray(el)) return el.map(fromElement).filter(Boolean);
+    if (!isElement(el)) return null;
+    if (el.type === React.Fragment) return fromElement(el.props.children);
+    if (el.type === "img") return n("Image", { src: el.props.src, alt: el.props.alt || "" });
+    if (typeof el.type === "string") return fromElement(el.props.children);
+    var name = names.get(el.type);
+    if (!name) return null;
+    var kids = [].concat(fromElement(el.props.children) || []);
+    if (name === "Inline" || name === "Stack") return n("Group", { direction: name === "Inline" ? "row" : "column", gap: el.props.gap || "sm", align: el.props.align, justify: el.props.justify }, kids);
+    var props = plain(el.props);
+    if (typeof el.props.children === "string") props.children = el.props.children;
+    return CONTAINERS[name] ? n(name, props, kids) : n(name, props);
+  }
+  var section = function (b, kids) { return n("Section", plain({ tone: b.tone, dark: b.dark, texture: b.texture, spacing: b.spacing, width: b.width }), kids); };
+  var header = function (b, size) { return [text(b.eyebrow, { variant: "eyebrow" }), heading(b.title, size || "display-sm"), text(b.lead, { variant: "lead", tone: "secondary" })]; };
+  var RECIPES = {
+    Stack: function (b, node) { return n("Group", { direction: "column", gap: b.gap || "md", align: b.align, justify: b.justify }, node.children, node.style); },
+    Inline: function (b, node) { return n("Group", { direction: "row", gap: b.gap || "sm", align: b.align || "center", justify: b.justify, wrap: b.wrap !== false }, node.children, node.style); },
+    Card: function (b, node) {
+      return n("Group", { direction: "column", gap: "xs" },
+        [text(b.eyebrow, { variant: "eyebrow" }), heading(b.title, "heading-md"), text(b.description, { tone: "secondary" })].concat(node.children || [], [].concat(fromElement(b.footer) || [])),
+        Object.assign({ padding: "md", surface: "raised", border: "default", radius: "container" }, node.style));
+    },
+    BlockHeader: function (b) { return n("Group", { direction: "column", gap: "xs", align: b.align === "center" ? "center" : "flex-start" }, header(b, b.size).concat([].concat(fromElement(b.actions) || []))); },
+    HeroBlock: function (b) {
+      var copy = n("Group", { direction: "column", gap: "sm", align: b.layout === "centered" ? "center" : "flex-start" }, header(b, "display-lg").concat([].concat(fromElement(b.actions) || [])));
+      var media = fromElement(b.media);
+      /* Copy beside media as two equal columns, the way the block lays them out. */
+      if (b.layout === "centered" || !media) return section(b, [n("Group", { direction: "column", gap: "lg", align: b.layout === "centered" ? "center" : "flex-start" }, [copy].concat(media ? [media] : []))]);
+      return section(b, [n("Grid", { columns: 2, gap: "xl", align: "center" }, [copy, media])]);
+    },
+    SplitBlock: function (b) {
+      var points = Array.isArray(b.points) ? n("Group", { direction: "column", gap: "2xs" }, b.points.map(function (p) { return text(p); })) : null;
+      var copy = n("Group", { direction: "column", gap: "sm" }, header(b).concat([text(b.body, { tone: "secondary" }), points].concat([].concat(fromElement(b.actions) || []))));
+      var media = fromElement(b.media);
+      if (!media) return section(b, [copy]);
+      return section(b, [n("Grid", { columns: 2, gap: "xl", align: b.align === "top" ? "start" : "center" }, b.reverse ? [media, copy] : [copy, media])]);
+    },
+    CtaBlock: function (b) { return section(b, [n("Group", { direction: "column", gap: "sm", align: "center" }, header(b).concat([].concat(fromElement(b.actions) || [])))]); },
+    FeatureGridBlock: function (b) {
+      var items = (b.items || []).map(function (it) { return n("Card", plain({ title: it.title, description: it.description }), []); });
+      return section(b, [n("Group", { direction: "column", gap: "lg" }, [n("Group", { direction: "column", gap: "xs" }, header(b)), n("Grid", { columns: b.columns || 3 }, items)])]);
+    },
+    StatsBlock: function (b) {
+      var stats = (b.stats || []).map(function (it) { return n("Stat", plain({ label: it.label, value: it.value, caption: it.caption })); });
+      return section(b, [n("Group", { direction: "column", gap: "lg" }, [n("Group", { direction: "column", gap: "xs" }, header(b)), n("Grid", { columns: Math.min(4, stats.length || 3) }, stats)])]);
+    },
+    TestimonialBlock: function (b) {
+      var quotes = (b.quotes || []).map(function (q) { return n("Quote", plain({ children: q.quote, attribution: q.name, role: q.role })); });
+      return section(b, [n("Group", { direction: "column", gap: "lg" }, [n("Group", { direction: "column", gap: "xs" }, header(b)), n("Grid", { columns: Math.min(2, quotes.length || 2) }, quotes)])]);
+    },
+    FaqBlock: function (b) {
+      var items = (b.items || []).map(function (it) { return n("Card", plain({ title: it.question, description: it.answer }), []); });
+      return section(b, [n("Group", { direction: "column", gap: "lg" }, [n("Group", { direction: "column", gap: "xs" }, header(b)), n("Group", { direction: "column", gap: "sm" }, items)])]);
+    },
+    ProductGridBlock: function (b) {
+      var cards = (b.products || []).map(function (pr) { return n("ProductCard", plain({ name: pr.name, price: pr.price, compareAt: pr.compareAt, href: pr.href, locale: pr.locale, currency: pr.currency })); });
+      return section(b, [n("Group", { direction: "column", gap: "lg" }, [n("Group", { direction: "column", gap: "xs" }, header(b)), n("Grid", { columns: b.columns || 3 }, cards)])]);
+    },
+  };
+  function detach(node) {
+    var recipe = RECIPES[node.type];
+    if (!recipe) return null;
+    try { return recipe(propsOf(node), node); } catch (err) { return null; }
+  }
+
+  /* Where a node's text is drawn: the box of the element holding it, and the
+     type it's set in, so an editor laid over it reads the same. */
+  function textRect(id, want) {
+    var w = wrapper(id);
+    if (!w) return null;
+    var target = String(want == null ? "" : want).trim();
+    var walker = document.createTreeWalker(w, NodeFilter.SHOW_TEXT);
+    var node, hit = null;
+    while ((node = walker.nextNode())) {
+      if (node.textContent.trim() && (!target || node.textContent.trim() === target)) { hit = node; break; }
+    }
+    var el = hit ? hit.parentElement : null;
+    var r = el ? el.getBoundingClientRect() : rect(id);
+    if (!r) return null;
+    var cs = el ? getComputedStyle(el) : null;
+    return {
+      rect: { left: r.left, top: r.top, width: r.width, height: r.height },
+      font: cs ? { fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, lineHeight: cs.lineHeight, letterSpacing: cs.letterSpacing, textAlign: cs.textAlign, color: cs.color, textTransform: cs.textTransform } : null,
+    };
   }
 
   window.BuilderFrame = {
     render: render,
+    detach: detach,
+    textRect: textRect,
+    canDetach: function (type) { return !!RECIPES[type]; },
     rect: rect,
     drop: drop,
     pick: pick,
