@@ -317,7 +317,9 @@ try {
     const names = await layerNames(page);
     const heroAt = names.indexOf("0:HeroBlock");
     expect(heroAt >= 0 && names[heroAt + 1] === "1:Grid" && names.slice(heroAt).some((n) => /Heading/.test(n)), `the hero should become a named Section holding a Grid of primitives, got ${names.slice(heroAt, heroAt + 6).join(" ")}`);
-    expect(await frame().evaluate(() => !document.querySelector('[data-bf-type="HeroBlock"]') && !!document.querySelector('[data-bf-type="Section"] [data-bf-type="Heading"]')), "the canvas shows the primitives, not the block");
+    /* The canvas commits on its own schedule, after the layers list. */
+    await frame().waitForFunction(() => !document.querySelector('[data-bf-type="HeroBlock"]') && !!document.querySelector('[data-bf-type="Section"] [data-bf-type="Heading"]'))
+      .catch(() => { throw new Error("the canvas shows the primitives, not the block"); });
     ok("Detach replaces the HeroBlock with a Section, a Grid, Heading, Text, Buttons and an Image");
 
     await page.locator(".bd-left-tabs .bd-tab", { hasText: "Assets" }).click();
