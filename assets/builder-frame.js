@@ -7,7 +7,13 @@
    - rect(id) and drop(x, y, dragId): geometry, in this frame's coordinates;
    - jsx(tree, name): the code for the tree, with each component's full props;
    - detach(node): the same thing built from primitives, where a recipe exists;
-   - textRect(id, text): where a node's text sits, for editing it in place.
+   - textRect(id, text): where a node's text sits, for editing it in place;
+   - height() and scrollBy(dx, dy): how tall the content is, and scrolling
+     that hands back what it couldn't use, so the builder pans the rest.
+
+   The builder shows several frames side by side, each its own copy of this
+   page. Every call back to it goes through host(), which the builder binds to
+   this frame.
 
    A node is { id, type, props, style, children }. `props` holds only what the
    reader changed; everything else comes from the component's specimen
@@ -171,9 +177,14 @@
     index.root = { node: tree.root, parent: null };
     var cls = ["bf-root"];
     if (page.dark) cls.push("dark");
-    if (page.context) cls.push("dt-context-" + page.context);
     if (opts.preview) cls.push("bf-preview");
     else cls.push("bf-editing");
+    /* A frame that hugs its content grows to it, so nothing here may fill the
+       window, and nothing scrolls. */
+    if (opts.hug) cls.push("bf-hug");
+    html.style.overflow = opts.hug ? "hidden" : "";
+    /* While editing, a finger pans and pinches the builder's canvas. */
+    html.style.touchAction = opts.preview ? "" : "none";
     var style = { background: "var(--dt-surface-" + (page.surface || "base") + ")", color: "var(--dt-text-primary)" };
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
@@ -332,7 +343,13 @@
   /* While editing, a click selects instead of following a link, submitting a
      form or opening a menu. Preview mode hands the canvas back. */
   function editing() { return current && !opts.preview; }
-  function host() { return window.parent && window.parent !== window ? window.parent.BuilderHost : null; }
+  var bound = null;
+  function host() {
+    var h = window.parent && window.parent !== window ? window.parent.BuilderHost : null;
+    if (!h) return null;
+    if (!bound || bound.host !== h) bound = { host: h, api: h.bind ? h.bind(window) : h };
+    return bound.api;
+  }
 
   /* Press on any part of a node and drag to move it. Inside the selection,
      the selection moves; elsewhere, the node under the pointer does. Touch
@@ -355,10 +372,28 @@
       host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey);
     }, true);
   });
+  /* A pan or a pinch: every finger while editing, the middle button, a drag
+     on the frame's own background, or any drag while the builder holds Space.
+     The builder moves the canvas and says whether the pointer moved, so a pan
+     doesn't end in a click. */
+  var pans = {};
+  function panning(ev) {
+    if (!host()) return false;
+    if (ev.pointerType === "touch") return true;
+    if (ev.button === 1 || (host().spaceHeld && host().spaceHeld())) return true;
+    var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+    return ev.button === 0 && !ev.shiftKey && !ev.metaKey && !ev.ctrlKey && (!w || w.getAttribute("data-bf-id") === "root");
+  }
   document.addEventListener("pointerdown", function (ev) {
     if (!editing()) return;
     /* No focus, no text selection, no native drag of an image. */
     if (ev.pointerType === "mouse") ev.preventDefault();
+    if (panning(ev)) {
+      pans[ev.pointerId] = true;
+      try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      host().gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType);
+      return;
+    }
     if (ev.button !== 0 || ev.pointerType === "touch" || ev.shiftKey || ev.metaKey || ev.ctrlKey || !host()) return;
     var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
     var id = w ? w.getAttribute("data-bf-id") : null;
@@ -370,6 +405,7 @@
   }, true);
   document.addEventListener("pointermove", function (ev) {
     if (!editing() || !host()) return;
+    if (pans[ev.pointerId]) { host().gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType); return; }
     if (press && ev.pointerId === press.pointer) {
       if (!press.active && Math.abs(ev.clientX - press.x) + Math.abs(ev.clientY - press.y) > 5) {
         press.active = true;
@@ -381,6 +417,14 @@
   }, true);
   function release(commit) {
     return function (ev) {
+      if (pans[ev.pointerId]) {
+        delete pans[ev.pointerId];
+        if (host() && host().gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType)) {
+          swallowClick = true;
+          setTimeout(function () { swallowClick = false; }, 0);
+        }
+        return;
+      }
       if (!press || ev.pointerId !== press.pointer) return;
       if (press.active && host()) {
         host().dragEnd(commit);
@@ -398,17 +442,33 @@
     if (!editing() || !host()) return;
     if (host().key(ev)) ev.preventDefault();
   }, true);
+  document.addEventListener("keyup", function (ev) { if (host() && host().keyup) host().keyup(ev); }, true);
+
+  /* The wheel scrolls this frame while it can, then pans the canvas; with
+     Ctrl or Cmd (a trackpad pinch) it zooms the canvas at the pointer. */
+  function room(dx, dy) {
+    var se = document.scrollingElement || html;
+    if (dy > 0 && se.scrollTop + se.clientHeight < se.scrollHeight - 1) return true;
+    if (dy < 0 && se.scrollTop > 0) return true;
+    if (dx > 0 && se.scrollLeft + se.clientWidth < se.scrollWidth - 1) return true;
+    if (dx < 0 && se.scrollLeft > 0) return true;
+    return false;
+  }
+  window.addEventListener("wheel", function (ev) {
+    if (!host() || !host().wheel) return;
+    if (!(ev.ctrlKey || ev.metaKey) && room(ev.deltaX, ev.deltaY)) return;
+    ev.preventDefault();
+    host().wheel(ev.clientX, ev.clientY, ev.deltaX, ev.deltaY, ev.ctrlKey || ev.metaKey, ev.deltaMode);
+  }, { passive: false });
   window.addEventListener("scroll", function () { if (host()) host().moved(); }, { passive: true });
   window.addEventListener("resize", function () { if (host()) host().moved(); });
   if (window.ResizeObserver) new ResizeObserver(function () { if (host()) host().moved(); }).observe(mount);
 
-  /* The site's Configure panel themes every same-origin frame, dark mode and
-     context included. Here those two belong to the builder's own controls,
-     on the canvas root, so they're taken back off <html>. */
+  /* The site's Configure panel themes every same-origin frame, its context
+  included. Dark mode here belongs to each frame's own setting, on the canvas
+  root, so it's taken back off <html>. */
   function keepHtmlNeutral() {
-    ["dark", "dt-context-product", "dt-context-marketing", "dt-context-social"].forEach(function (c) {
-      if (html.classList.contains(c)) html.classList.remove(c);
-    });
+    if (html.classList.contains("dark")) html.classList.remove("dark");
   }
   keepHtmlNeutral();
   new MutationObserver(keepHtmlNeutral).observe(html, { attributes: true, attributeFilter: ["class"] });
@@ -500,7 +560,7 @@
     var kids = tree.root.children.map(function (c) { return block(c, used, "      "); });
     var rootStyle = ["background: \"var(--dt-surface-" + (page.surface || "base") + ")\""];
     if (page.gap && ROOT_GAP[page.gap]) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
-    var cls = [page.dark ? "dark" : "", page.context ? "dt-context-" + page.context : ""].filter(Boolean).join(" ");
+    var cls = page.dark ? "dark" : "";
     var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
     return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
@@ -642,6 +702,17 @@
       return out;
     },
     hasStarter: function (type) { return !!((specs.samples && specs.samples[type]) || specs.build[type]); },
+    /* How tall the content is, for a frame that hugs it. */
+    height: function () {
+      var r = mount.firstElementChild;
+      return r ? Math.ceil(r.getBoundingClientRect().height) : 0;
+    },
+    /* Scrolls by (dx, dy) and returns how far it really went. */
+    scrollBy: function (dx, dy) {
+      var x = window.scrollX, y = window.scrollY;
+      window.scrollBy(dx, dy);
+      return { x: window.scrollX - x, y: window.scrollY - y };
+    },
   };
   if (host()) host().ready();
 })();

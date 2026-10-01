@@ -16,12 +16,14 @@
 <link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">
 <link rel="stylesheet" href="../system/tokens/contexts/context-social.css">
 <script>
-  /* The saved Configure theme, before first paint. Dark mode and the context
-     are the builder's own settings, applied to the canvas root rather than to
-     <html>, so they are left out here. */
+  /* The saved Configure theme and context, before first paint. Dark mode is
+     each frame's own setting, applied to the canvas root rather than to
+     <html>, so it is left out here. */
   try {
     var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = localStorage.getItem("dovetail-docs-context") || "";
     if (cfg && cfg.vars) for (var k in cfg.vars) document.documentElement.style.setProperty(k, cfg.vars[k]);
+    if (ctx) document.documentElement.classList.add(ctx);
     if (cfg && cfg.fontHref) {
       var font = document.createElement("link");
       font.rel = "stylesheet";
@@ -34,6 +36,7 @@
   html, body { margin: 0; min-height: 100%; }
   body { background: var(--dt-surface-base); color: var(--dt-text-primary); font-family: var(--dt-font-family-sans); }
   .bf-root { min-height: 100vh; display: flex; flex-direction: column; }
+  .bf-root.bf-hug { min-height: 0; }
   .bf-empty {
     display: flex; align-items: center; justify-content: center; text-align: center;
     min-height: var(--dt-size-control-lg); min-width: calc(var(--dt-size-control-lg) * 3);

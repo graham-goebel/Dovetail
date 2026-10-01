@@ -2,20 +2,22 @@
    screens, with an inspector that offers only tokens.
 
    This page owns the document, the selection, the history and every control.
-   The canvas is a page of its own (assets/builder-frame.html), so a phone frame
-   is really 390px wide; it renders the active frame with the real components
-   and answers geometry questions through window.BuilderFrame, and reports
-   presses, drags, picks and double-clicks back through window.BuilderHost.
-   The two share the docs site's origin, so the Configure panel's theme reaches
-   the canvas too.
+   The canvas is an open surface that pans and zooms, with every frame laid
+   out side by side. Each frame is a page of its own (assets/builder-frame.html),
+   so a phone frame is really 390px wide; it renders its tree with the real
+   components, answers geometry questions through window.BuilderFrame, and
+   reports presses, drags, picks, gestures and double-clicks back through
+   window.BuilderHost, bound to that frame. The frames share the docs site's
+   origin, so the Configure panel's theme reaches them; this page's own chrome
+   stays fixed (data-theme-fixed) so the tools look the same whatever is tried.
 
    What the builder may place, each component's props (read from its .d.ts),
    the frame sizes and the token options with the declarations each sets come
    from assets/builder-data.js, which the site build writes and checks: a token
    that doesn't exist fails the build.
 
-   The document: { frames, active }. A frame is { id, name, size, dark,
-   context, surface, spacing, gap, root }, where root is { id: "root", type:
+   The document: { frames, active }. A frame is { id, name, width, height,
+   hug, dark, surface, spacing, gap, root }, where root is { id: "root", type:
    "Root", children } and each node is { id, type, name?, props, style,
    children? }. props holds only what the reader changed, as plain strings,
    numbers and booleans (plus an uploaded image as a data URL); style holds
@@ -35,17 +37,19 @@
   var STORE_KEY = "dovetail-builder";
   var BACKUP_KEY = "dovetail-builder-previous";
   var PREFS_KEY = "dovetail-builder-prefs";
-  var FRAMES = DATA.frames;
-  var FRAME_WIDTH = {};
-  FRAMES.forEach(function (f) { FRAME_WIDTH[f.id] = f.width; });
-  var FRAME_ICON = { phone: "phone", "phone-lg": "phone", tablet: "tablet", laptop: "desktop", desktop: "desktop", wide: "desktop" };
-  var CONTEXTS = [["product", "Product"], ["marketing", "Marketing"], ["social", "Social"]];
+  var PRESETS = DATA.frames;
+  var PRESET = {};
+  PRESETS.forEach(function (f) { PRESET[f.id] = f; });
+  var PRESET_ICON = { phone: "phone", "phone-lg": "phone", tablet: "tablet", laptop: "desktop", desktop: "desktop", wide: "desktop" };
+  var MIN_SIDE = 200, MAX_WIDTH = 3840, MAX_HEIGHT = 12000;
   var SPACINGS = [["", "Page default"], ["tight", "Tight"], ["balanced", "Balanced"], ["open", "Open"]];
   var WRAPS = ["Group", "Stack", "Inline", "Grid", "Section", "Card"];
-  var ZOOMS = [["fit", "Fit"], [0.5, "50%"], [0.75, "75%"], [1, "100%"], [1.25, "125%"], [1.5, "150%"], [2, "200%"]];
+  /* The canvas: frames in a row this far apart, zoom between these. */
+  var FRAME_GAP = 120, LABEL_ROOM = 28, STAGE_PAD = 32, MIN_ZOOM = 0.05, MAX_ZOOM = 4;
+  var ZOOM_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
   var META = DATA.components;
   var STYLE_KEYS = Object.keys(DATA.tokens);
-  var SECTIONS = [["size", "Size"], ["spacing", "Spacing"], ["appearance", "Appearance"]];
+  var TABS = [["appearance", "Appearance"], ["layout", "Layout"], ["content", "Content"]];
   var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
   var MEDIA_URL = /^(https?:\/\/|data:(image|video)\/)/;
   var MEDIA_LIMIT = 1500000;
@@ -72,18 +76,31 @@
     return n;
   }
 
-  function makeFrame(name, size) {
-    return { id: uid(), name: name || "Frame", size: FRAME_WIDTH[size] ? size : "desktop", dark: false, context: "product", surface: "base", spacing: "", gap: "", root: { id: "root", type: "Root", props: {}, style: {}, children: [] } };
+  function side(v, max, fallback) {
+    var n = Math.round(Number(v));
+    return isFinite(n) && n > 0 ? Math.max(MIN_SIDE, Math.min(max, n)) : fallback;
+  }
+  /* A frame is a size, from a preset or typed, and whether its height hugs
+     what's in it. */
+  function makeFrame(name, preset, hug) {
+    var p = PRESET[preset] || PRESET.desktop;
+    return { id: uid(), name: name || "Frame", width: p.width, height: p.height, hug: !!hug, dark: false, surface: "base", spacing: "", gap: "", root: { id: "root", type: "Root", props: {}, style: {}, children: [] } };
+  }
+  function presetOf(f) {
+    var hit = PRESETS.filter(function (p) { return p.width === f.width && (f.hug || p.height === f.height); })[0];
+    return hit ? hit.id : "";
   }
   function emptyDoc() {
     var f = makeFrame("Frame 1", "desktop");
     return { frames: [f], active: f.id };
   }
   function active(doc) { return doc.frames.filter(function (f) { return f.id === doc.active; })[0] || doc.frames[0]; }
+  function frameById(doc, fid) { return doc.frames.filter(function (f) { return f.id === fid; })[0] || null; }
   function copy(doc) { return JSON.parse(JSON.stringify(doc)); }
 
-  function locate(doc, id) {
-    var frame = active(doc);
+  /* A node in the active frame, or in the frame named. */
+  function locate(doc, id, fid) {
+    var frame = (fid && frameById(doc, fid)) || active(doc);
     if (id === "root") return { node: frame.root, parent: null, index: -1, path: [frame.root] };
     var out = null;
     (function walk(n, path) {
@@ -104,8 +121,8 @@
   }
 
   var ops = {
-    insert: function (doc, parentId, index, n) {
-      var p = locate(doc, parentId);
+    insert: function (doc, parentId, index, n, fid) {
+      var p = locate(doc, parentId, fid);
       if (!p || !p.node.children) return null;
       p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, n);
       return n.id;
@@ -230,11 +247,19 @@
     if (!f || typeof f !== "object") return base;
     if (typeof f.id === "string" && /^[\w-]{1,40}$/.test(f.id)) base.id = f.id;
     if (typeof f.name === "string" && f.name.trim()) base.name = f.name.trim().slice(0, 60);
-    /* Older layouts named the size "viewport". */
-    var size = f.size || f.viewport;
-    base.size = FRAME_WIDTH[size] ? size : "desktop";
+    /* Older layouts named a preset ("size", or "viewport" before that) and
+       showed the whole page, so they open hugging their content. */
+    var legacy = PRESET[f.size || f.viewport];
+    if (legacy && f.width === undefined) {
+      base.width = legacy.width;
+      base.height = legacy.height;
+      base.hug = true;
+    } else {
+      base.width = side(f.width, MAX_WIDTH, base.width);
+      base.height = side(f.height, MAX_HEIGHT, base.height);
+      base.hug = f.hug === true;
+    }
     base.dark = f.dark === true;
-    base.context = CONTEXTS.some(function (c) { return c[0] === f.context; }) ? f.context : "product";
     base.surface = tokenOption("surface", f.surface) ? f.surface : "base";
     base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
     base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
@@ -257,8 +282,8 @@
 
   /* ------------------------------------------------------------ starters */
 
-  function one(name, size, children, extra) {
-    var f = makeFrame(name, size);
+  function one(name, preset, children, extra) {
+    var f = makeFrame(name, preset, true);
     Object.assign(f, extra || {});
     f.root.children = children;
     return { frames: [f], active: f.id };
@@ -268,7 +293,7 @@
       return one("Landing", "desktop", [
         make("HeroBlock"), make("FeatureGridBlock", { tone: "subtle" }), make("StatsBlock"),
         make("TestimonialBlock", { tone: "subtle" }), make("CtaBlock", { tone: "brand" }),
-      ], { context: "marketing" });
+      ]);
     }],
     ["store", "Store page", function () {
       return one("Store", "desktop", [make("Navbar", { brand: "Kiln & Co." }), make("ProductGridBlock"), make("SplitBlock", { tone: "subtle" }), make("FaqBlock"), make("CtaBlock", { tone: "brand-muted" })]);
@@ -287,7 +312,7 @@
       ], { surface: "subtle" });
     }],
     ["chat", "Support chat (phone)", function () {
-      return one("Support chat", "phone", [make("Stack", { gap: "md" }, [make("ChatBlock")], { padding: "md" })], { surface: "subtle" });
+      return one("Support chat", "phone", [make("Stack", { gap: "md" }, [make("ChatBlock")], { padding: "md" })], { surface: "subtle", hug: false });
     }],
     ["blank", "Blank frame", function () { return emptyDoc(); }],
   ];
@@ -329,13 +354,17 @@
       try { return { doc: clean(JSON.parse(saved)), from: "saved" }; } catch (err) { /* fall through */ }
     }
     var first = STARTERS[0][2]();
-    if (mql("(max-width: 900px)")) first.frames[0].size = "phone";
+    if (mql("(max-width: 900px)")) first.frames[0].width = PRESET.phone.width;
     return { doc: first, from: "starter" };
   }
 
   function loadPrefs() {
     var p = storage(function (s) { return JSON.parse(s.getItem(PREFS_KEY) || "null"); }) || {};
-    return { category: DATA.groups.some(function (g) { return g.id === p.category; }) ? p.category : DATA.groups[0].id, view: p.view === "list" ? "list" : "grid" };
+    return {
+      category: DATA.groups.some(function (g) { return g.id === p.category; }) ? p.category : DATA.groups[0].id,
+      view: p.view === "list" ? "list" : "grid",
+      tab: TABS.some(function (t) { return t[0] === p.tab; }) ? p.tab : "content",
+    };
   }
 
   /* The site's copy helper (assets/site.js) falls back to a hidden textarea
@@ -413,6 +442,9 @@
     justifyBetween: ["M4 4v16", "M20 4v16", "M6 8h4v8H6z", "M14 8h4v8h-4z"],
     row: ["M4 8h5v8H4z", "M10 8h5v8h-5z", "M16 8h4v8h-4z"],
     column: ["M8 4h8v5H8z", "M8 10h8v5H8z", "M8 16h8v4H8z"],
+    panels: ["M3 4h18v16H3z", "M9 4v16", "M15 4v16"],
+    fit: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5"],
+    rotate: ["M4 12a8 8 0 0 1 14-5.3L20 9", "M20 4v5h-5", "M20 12a8 8 0 0 1-14 5.3L4 15", "M4 20v-5h5"],
   };
   function Icon(props) {
     return e("svg", { className: cx("bd-ic", props.className), viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" },
@@ -426,6 +458,8 @@
     orientation: { horizontal: "row", vertical: "column" },
   };
   var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
+  /* A component's own prop that would read like one of the Size controls. */
+  var PROP_LABEL = { width: "Content width", spacing: "Section spacing" };
   function words(name) { return name.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^\w/, function (c) { return c.toUpperCase(); }); }
 
   /* --------------------------------------------------------- small parts */
@@ -718,6 +752,68 @@
     });
   }
 
+  /* A search box with a clear button. Escape clears it too. */
+  function SearchField(props) {
+    var input = useRef(null);
+    return e("div", { className: "bd-search" },
+      e(Icon, { name: "search" }),
+      e("input", {
+        ref: input, type: "search", "aria-label": props.label, placeholder: props.placeholder, value: props.value,
+        onChange: function (ev) { props.onChange(ev.target.value); },
+        onKeyDown: function (ev) { if (ev.key === "Escape" && props.value) { ev.preventDefault(); ev.stopPropagation(); props.onChange(""); } },
+      }),
+      props.value ? e("button", {
+        type: "button", className: "bd-search-clear", "aria-label": "Clear " + props.label.toLowerCase(), title: "Clear",
+        onClick: function () { props.onChange(""); if (input.current) input.current.focus(); },
+      }, e(Icon, { name: "close" })) : null);
+  }
+
+  /* A size typed in full before it applies: Enter or leaving the field
+     commits it, Escape puts it back, the arrows step it (Shift by ten). */
+  function NumberField(props) {
+    var textState = useState(String(props.value));
+    var text = textState[0], setText = textState[1];
+    useEffect(function () { setText(String(props.value)); }, [props.value]);
+    var commit = function () {
+      var n = Math.round(Number(text));
+      if (!text.trim() || !isFinite(n) || n === props.value) { setText(String(props.value)); return; }
+      props.onChange(n);
+    };
+    return e("label", { className: cx("bd-num", props.muted && "is-muted"), title: props.title },
+      e("span", { className: "bd-num-l", "aria-hidden": true }, props.short),
+      e("input", {
+        type: "text", inputMode: "numeric", "aria-label": props.label, value: text,
+        onChange: function (ev) { setText(ev.target.value.replace(/[^\d]/g, "").slice(0, 5)); },
+        onBlur: commit,
+        onKeyDown: function (ev) {
+          if (ev.key === "Enter") { ev.preventDefault(); commit(); }
+          else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setText(String(props.value)); }
+          else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
+            ev.preventDefault();
+            props.onChange((Number(text) || props.value) + (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" ? 1 : -1));
+          }
+        },
+      }));
+  }
+
+  function clampZoom(z) { return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z)); }
+  function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function midpoint(a, b) { return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+
+  /* Where each frame sits on the canvas: side by side, tops aligned. A frame
+     that hugs its content is as tall as the content last measured. */
+  function layoutOf(doc, heights) {
+    var x = 0, out = { boxes: {}, width: 0, height: 0 };
+    doc.frames.forEach(function (f) {
+      var h = f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
+      out.boxes[f.id] = { x: x, y: 0, w: f.width, h: h };
+      out.height = Math.max(out.height, h);
+      x += f.width + FRAME_GAP;
+    });
+    out.width = Math.max(0, x - FRAME_GAP);
+    return out;
+  }
+
   /* ------------------------------------------------------------ the app */
 
   function App() {
@@ -735,6 +831,8 @@
     var pane = paneState[0], setPane = paneState[1];
     var previewState = useState(false);
     var preview = previewState[0], setPreview = previewState[1];
+    var bareState = useState(false);
+    var bare = bareState[0], setBare = bareState[1];
     var queryState = useState("");
     var query = queryState[0], setQuery = queryState[1];
     var layerQueryState = useState("");
@@ -743,9 +841,11 @@
     var category = categoryState[0], setCategory = categoryState[1];
     var viewState = useState(prefs.view);
     var view = viewState[0], setView = viewState[1];
+    var tabState = useState(prefs.tab);
+    var tab = tabState[0], setTab = tabState[1];
     var collapsedState = useState({});
     var collapsed = collapsedState[0], setCollapsed = collapsedState[1];
-    var readyState = useState(false);
+    var readyState = useState({});
     var ready = readyState[0], setReady = readyState[1];
     var placeableState = useState(null);
     var placeable = placeableState[0], setPlaceable = placeableState[1];
@@ -761,8 +861,11 @@
     var saved = savedState[0], setSaved = savedState[1];
     var boxState = useState({ w: 0, h: 0 });
     var box = boxState[0], setBox = boxState[1];
-    var zoomState = useState("fit");
-    var zoom = zoomState[0], setZoom = zoomState[1];
+    var camState = useState(null);
+    var cam = camState[0] || { x: STAGE_PAD, y: STAGE_PAD + LABEL_ROOM, z: 1 };
+    var setCamState = camState[1];
+    var heightsState = useState({});
+    var heights = heightsState[0], setHeights = heightsState[1];
     var dragState = useState(null);
     var drag = dragState[0], setDrag = dragState[1];
     var marksState = useState({ sel: [], hover: null, drop: null });
@@ -775,31 +878,52 @@
     var wide = wideState[0], setWide = wideState[1];
     var sidesState = useState({});
     var sidesOpen = sidesState[0], setSidesOpen = sidesState[1];
+    /* What is being renamed, and where: { id, where }. */
     var renameState = useState(null);
     var renaming = renameState[0], setRenaming = renameState[1];
+    var spaceState = useState(false);
+    var space = spaceState[0], setSpace = spaceState[1];
+    var panningState = useState(false);
+    var panning = panningState[0], setPanning = panningState[1];
 
     var frame = active(doc);
     var sel = selection.length ? selection[selection.length - 1] : null;
+    var layout = layoutOf(doc, heights);
+    var boxes = layout.boxes;
 
     var history = useRef({ past: [], future: [] });
     var docRef = useRef(doc); docRef.current = doc;
     var selRef = useRef(selection); selRef.current = selection;
-    var frameRef = useRef(null);
+    var camRef = useRef(cam); camRef.current = cam;
+    var layoutRef = useRef(layout); layoutRef.current = layout;
+    var boxRef = useRef(box); boxRef.current = box;
+    var heightsRef = useRef(heights); heightsRef.current = heights;
+    var hoverRef = useRef(hover); hoverRef.current = hover;
+    var editRef = useRef(edit); editRef.current = edit;
+    var previewRef = useRef(preview); previewRef.current = preview;
+    var spaceRef = useRef(false);
+    var frameEls = useRef({});
+    var rendered = useRef({});
+    var grows = useRef({});
     var stageRef = useRef(null);
     var dialogRef = useRef(null);
     var rightRef = useRef(null);
     var layersRef = useRef(null);
     var dragRef = useRef(null);
-    var editRef = useRef(edit); editRef.current = edit;
     var justDragged = useRef(false);
+    var gest = useRef({ pts: {}, moved: false, start: null, pinch: null, fid: null });
 
-    var api = function () {
-      var f = frameRef.current;
-      try { return f && f.contentWindow && f.contentWindow.BuilderFrame; } catch (err) { return null; }
+    var api = function (fid) {
+      var el = frameEls.current[fid || docRef.current.active];
+      try { return el && el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { return null; }
     };
 
     var announce = useCallback(function (text) { setSay(""); setTimeout(function () { setSay(text); }, 30); }, []);
-    var select = useCallback(function (ids) { setSelection(ids.filter(function (x) { return x && x !== "root"; })); }, []);
+    var select = useCallback(function (ids) {
+      var next = ids.filter(function (x) { return x && x !== "root"; });
+      selRef.current = next;
+      setSelection(next);
+    }, []);
 
     var snapshot = useCallback(function () {
       history.current.past.push(JSON.stringify(docRef.current));
@@ -808,6 +932,7 @@
     }, []);
     var commit = useCallback(function (next, nextSel, message) {
       snapshot();
+      docRef.current = next;
       setDoc(next);
       if (nextSel !== undefined) select(nextSel === null || nextSel === "root" ? [] : [].concat(nextSel));
       if (message) announce(message);
@@ -826,19 +951,21 @@
       if (!h.past.length) return;
       h.future.push(JSON.stringify(docRef.current));
       var prev = JSON.parse(h.past.pop());
+      docRef.current = prev;
       setDoc(prev);
-      setSelection(function (s) { return s.filter(function (id) { return locate(prev, id); }); });
+      select(selRef.current.filter(function (id) { return locate(prev, id); }));
       announce("Undone");
-    }, [announce]);
+    }, [announce, select]);
     var redo = useCallback(function () {
       var h = history.current;
       if (!h.future.length) return;
       h.past.push(JSON.stringify(docRef.current));
       var next = JSON.parse(h.future.pop());
+      docRef.current = next;
       setDoc(next);
-      setSelection(function (s) { return s.filter(function (id) { return locate(next, id); }); });
+      select(selRef.current.filter(function (id) { return locate(next, id); }));
       announce("Redone");
-    }, [announce]);
+    }, [announce, select]);
 
     /* Every change is written straight away. The toolbar says when it last
        saved, or that this browser won't keep it (a private window, blocked
@@ -848,8 +975,8 @@
       setSaved({ ok: !!ok, at: new Date() });
     }, [doc]);
     useEffect(function () {
-      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view })); });
-    }, [category, view]);
+      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tab: tab })); });
+    }, [category, view, tab]);
     var firstDoc = useRef(doc);
     useEffect(function () {
       if (doc !== firstDoc.current && /^#b=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -862,19 +989,22 @@
       m.addEventListener("change", on);
       return function () { m.removeEventListener("change", on); };
     }, []);
-    /* The selection belongs to one frame. */
-    useEffect(function () { setSelection([]); setEdit(null); }, [doc.active]);
 
-    /* ------------------------------------------------- canvas plumbing */
+    /* One frame is active: the selection, the layers and the inspector are
+       its. Switching isn't an undo step. */
+    var activate = function (fid) {
+      var d = docRef.current;
+      if (!frameById(d, fid)) return;
+      select([]);
+      if (editRef.current) setEdit(null);
+      if (d.active === fid) return;
+      var next = Object.assign({}, d, { active: fid });
+      docRef.current = next;
+      setDoc(next);
+    };
+    var activateRef = useRef(activate); activateRef.current = activate;
 
-    var vpWidth = FRAME_WIDTH[frame.size] || 1280;
-    var PAD = 16;
-    var fitScale = box.w ? Math.min(1, (box.w - PAD * 2) / vpWidth) : 1;
-    var scale = zoom === "fit" ? fitScale : zoom;
-    var innerW = Math.max(box.w, vpWidth * scale + PAD * 2);
-    var frameH = box.h ? Math.max(200, (box.h - PAD * 2) / scale) : 800;
-    var offX = Math.max(PAD, (innerW - vpWidth * scale) / 2);
-    var offY = PAD;
+    /* ------------------------------------------------- the camera */
 
     useEffect(function () {
       var el = stageRef.current;
@@ -887,85 +1017,239 @@
       return function () { ro.disconnect(); };
     }, [pane]);
 
-    /* Ctrl or Cmd and the wheel zooms the canvas; the keys below do too. */
-    var fitScaleRef = useRef(fitScale); fitScaleRef.current = fitScale;
+    var setCam = function (c) {
+      var next = { x: c.x, y: c.y, z: clampZoom(c.z) };
+      camRef.current = next;
+      setCamState(next);
+    };
+    var stageXY = function (clientX, clientY) {
+      var el = stageRef.current;
+      var r = el ? el.getBoundingClientRect() : { left: 0, top: 0 };
+      return { x: clientX - r.left, y: clientY - r.top };
+    };
+    var panBy = function (dx, dy) { var c = camRef.current; setCam({ x: c.x + dx, y: c.y + dy, z: c.z }); };
+    /* Zooming keeps the point under the pointer (or the middle) still. */
+    var zoomAt = function (sx, sy, z) {
+      var c = camRef.current;
+      z = clampZoom(z);
+      var wx = (sx - c.x) / c.z, wy = (sy - c.y) / c.z;
+      setCam({ x: sx - wx * z, y: sy - wy * z, z: z });
+    };
+    var zoomTo = function (z) { zoomAt(boxRef.current.w / 2, boxRef.current.h / 2, z); };
+    var zoomStep = function (dir) {
+      var z = camRef.current.z;
+      var next = dir > 0 ? ZOOM_STEPS.filter(function (s) { return s > z + 0.001; })[0] : ZOOM_STEPS.filter(function (s) { return s < z - 0.001; }).pop();
+      if (next) zoomTo(next);
+    };
+    var fitAll = function () {
+      var L = layoutRef.current, W = boxRef.current.w, H = boxRef.current.h;
+      if (!W || !L.width) return;
+      var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / L.width, (H - STAGE_PAD * 2 - LABEL_ROOM) / L.height));
+      setCam({ x: (W - L.width * z) / 2, y: Math.max(STAGE_PAD + LABEL_ROOM, (H - L.height * z + LABEL_ROOM) / 2), z: z });
+    };
+    var fitWidth = function () {
+      var L = layoutRef.current, W = boxRef.current.w;
+      if (!W || !L.width) return;
+      var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / L.width));
+      setCam({ x: (W - L.width * z) / 2, y: STAGE_PAD + LABEL_ROOM, z: z });
+    };
+    /* A frame across the stage's width, from its top (or centred when it's
+       short enough to fit). keep: never zoom in to do it. */
+    var showFrame = function (fid, keep) {
+      var b = layoutRef.current.boxes[fid], W = boxRef.current.w, H = boxRef.current.h;
+      if (!b || !W) return;
+      var z = Math.min(1, (W - STAGE_PAD * 2) / b.w);
+      if (keep) z = Math.min(camRef.current.z, z);
+      z = clampZoom(z);
+      /* A frame that hugs its content may still grow, so it starts at its top. */
+      var f = frameById(docRef.current, fid);
+      var fits = !(f && f.hug) && b.h * z <= H - STAGE_PAD * 2 - LABEL_ROOM;
+      setCam({ x: (W - b.w * z) / 2 - b.x * z, y: (fits ? (H - b.h * z + LABEL_ROOM) / 2 : STAGE_PAD + LABEL_ROOM) - b.y * z, z: z });
+    };
+    var showFrameRef = useRef(showFrame); showFrameRef.current = showFrame;
+
+    /* The first view: the active frame on its own, or every frame across. */
+    useEffect(function () {
+      if (camState[0] || !box.w) return;
+      if (doc.frames.length > 1 && wide) fitWidth(); else showFrame(doc.active);
+    }, [box.w]);
+
+    /* The wheel pans; with Ctrl or Cmd (and a trackpad pinch) it zooms at
+       the pointer. Frames forward theirs here once they can't scroll. */
+    var wheel = function (clientX, clientY, dx, dy, zoom, mode) {
+      if (mode === 1) { dx *= 16; dy *= 16; } else if (mode === 2) { dx *= boxRef.current.w; dy *= boxRef.current.h; }
+      if (zoom) {
+        var p = stageXY(clientX, clientY);
+        zoomAt(p.x, p.y, camRef.current.z * Math.exp(-Math.max(-50, Math.min(50, dy)) * 0.01));
+        return;
+      }
+      panBy(-dx, -dy);
+    };
+    var wheelRef = useRef(wheel); wheelRef.current = wheel;
     useEffect(function () {
       var el = stageRef.current;
       if (!el) return;
       var onWheel = function (ev) {
-        if (!(ev.ctrlKey || ev.metaKey)) return;
+        if (previewRef.current && !(ev.ctrlKey || ev.metaKey) && ev.target.tagName === "IFRAME") return;
         ev.preventDefault();
-        setZoom(function (z) {
-          var cur = z === "fit" ? fitScaleRef.current : z;
-          var next = Math.min(2, Math.max(0.25, cur * (ev.deltaY < 0 ? 1.1 : 0.9)));
-          return Math.round(next * 100) / 100;
-        });
+        wheelRef.current(ev.clientX, ev.clientY, ev.deltaX, ev.deltaY, ev.ctrlKey || ev.metaKey, ev.deltaMode);
       };
       el.addEventListener("wheel", onWheel, { passive: false });
       return function () { el.removeEventListener("wheel", onWheel); };
-    }, []);
-    var zoomBy = function (dir) {
-      setZoom(function (z) {
-        var cur = z === "fit" ? fitScaleRef.current : z;
-        var steps = ZOOMS.filter(function (x) { return x[0] !== "fit"; }).map(function (x) { return x[0]; });
-        var next = dir > 0 ? steps.filter(function (s) { return s > cur + 0.01; })[0] : steps.filter(function (s) { return s < cur - 0.01; }).pop();
-        return next === undefined ? z : next;
-      });
-    };
+    }, [pane]);
 
-    var toStage = useCallback(function (r) {
+    /* A press that pans: one pointer drags the canvas, two pinch it. In a
+       frame that scrolls, a finger scrolls the frame first. Returns whether
+       the pointer moved, so the press doesn't also count as a click. */
+    var gesture = function (phase, id, clientX, clientY, kind, fid) {
+      var g = gest.current;
+      var p = stageXY(clientX, clientY);
+      var keys = Object.keys(g.pts);
+      if (phase === "down") {
+        if (!keys.length) { g.moved = false; g.start = p; g.fid = fid || null; setPanning(true); }
+        g.pts[id] = p;
+        keys = Object.keys(g.pts);
+        g.pinch = null;
+        if (keys.length >= 2) {
+          var a0 = g.pts[keys[0]], b0 = g.pts[keys[1]];
+          g.pinch = { d: Math.max(1, distance(a0, b0)), mid: midpoint(a0, b0), cam: Object.assign({}, camRef.current) };
+          g.moved = true;
+        }
+        return false;
+      }
+      if (!g.pts[id]) return false;
+      if (phase === "move") {
+        var prev = g.pts[id];
+        g.pts[id] = p;
+        if (g.pinch && keys.length >= 2) {
+          var a = g.pts[keys[0]], b = g.pts[keys[1]];
+          var m = midpoint(a, b), c0 = g.pinch.cam;
+          var z = clampZoom(c0.z * distance(a, b) / g.pinch.d);
+          var wx = (g.pinch.mid.x - c0.x) / c0.z, wy = (g.pinch.mid.y - c0.y) / c0.z;
+          setCam({ x: m.x - wx * z, y: m.y - wy * z, z: z });
+          return true;
+        }
+        if (!g.moved && Math.abs(p.x - g.start.x) + Math.abs(p.y - g.start.y) < 5) return false;
+        g.moved = true;
+        var dx = p.x - prev.x, dy = p.y - prev.y;
+        var fr = g.fid && frameById(docRef.current, g.fid);
+        var f = fr && !fr.hug && kind === "touch" ? api(g.fid) : null;
+        if (f && f.scrollBy) {
+          var zc = camRef.current.z;
+          var went = f.scrollBy(-dx / zc, -dy / zc);
+          dx += went.x * zc;
+          dy += went.y * zc;
+        }
+        if (dx || dy) panBy(dx, dy);
+        return true;
+      }
+      delete g.pts[id];
+      keys = Object.keys(g.pts);
+      if (keys.length < 2) g.pinch = null;
+      if (!keys.length) { g.fid = null; setPanning(false); }
+      return g.moved;
+    };
+    var gestureRef = useRef(gesture); gestureRef.current = gesture;
+
+    /* ------------------------------------------------- measuring */
+
+    /* A node's box in stage coordinates, from its frame's own. */
+    var toStage = useCallback(function (r, fid) {
       if (!r) return null;
-      return { left: offX + r.left * scale, top: offY + r.top * scale, width: r.width * scale, height: r.height * scale };
-    }, [offX, offY, scale]);
-    var toStageRef = useRef(toStage); toStageRef.current = toStage;
-    var scaleRef = useRef(scale); scaleRef.current = scale;
-    var hoverRef = useRef(hover); hoverRef.current = hover;
+      var b = layoutRef.current.boxes[fid || docRef.current.active];
+      if (!b) return null;
+      var c = camRef.current;
+      return { left: c.x + (b.x + r.left) * c.z, top: c.y + (b.y + r.top) * c.z, width: r.width * c.z, height: r.height * c.z };
+    }, []);
 
     var remeasure = useCallback(function () {
-      var f = api();
-      if (!f) return;
+      var fid = docRef.current.active;
+      var f = api(fid);
+      var h = hoverRef.current;
+      var hf = h ? api(h.f) : null;
       setMarks(function (m) {
-        var ids = selRef.current;
         return {
-          sel: ids.map(function (id) { var r = toStage(f.rect(id)); return r ? { id: id, r: r } : null; }).filter(Boolean),
-          hover: hoverRef.current && ids.indexOf(hoverRef.current) < 0 && hoverRef.current !== "root" ? toStage(f.rect(hoverRef.current)) : null,
+          sel: f ? selRef.current.map(function (id) { var r = toStage(f.rect(id), fid); return r ? { id: id, r: r } : null; }).filter(Boolean) : [],
+          hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? toStage(hf.rect(h.id), h.f) : null,
           drop: m.drop,
         };
       });
       var ed = editRef.current;
-      if (ed) {
+      if (ed && f) {
         var t = f.textRect(ed.id, ed.value);
-        if (t) setEdit(function (cur) { return cur && cur.id === ed.id ? Object.assign({}, cur, { box: toStage(t.rect), font: t.font }) : cur; });
+        if (t) setEdit(function (cur) { return cur && cur.id === ed.id ? Object.assign({}, cur, { box: toStage(t.rect, fid), font: t.font }) : cur; });
       }
     }, [toStage]);
-    var remeasureRef = useRef(remeasure); remeasureRef.current = remeasure;
+
+    /* A frame that hugs its content follows the content's height. Something
+       sized to the window keeps growing with the frame, so a frame stops
+       after a few rounds of growth until its tree changes. */
+    var measure = function () {
+      var hs = heightsRef.current, next = null;
+      docRef.current.frames.forEach(function (f) {
+        if (!f.hug) return;
+        var a = api(f.id);
+        if (!a || !a.height) return;
+        var h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, a.height() || 0));
+        var old = hs[f.id] || 0;
+        if (Math.abs(h - old) <= 1) return;
+        if (old && h > old) {
+          grows.current[f.id] = (grows.current[f.id] || 0) + 1;
+          if (grows.current[f.id] > 6) return;
+        }
+        next = next || Object.assign({}, hs);
+        next[f.id] = h;
+      });
+      if (next) { heightsRef.current = next; setHeights(next); }
+      remeasure();
+    };
+    var measureRef = useRef(measure); measureRef.current = measure;
 
     /* ------------------------------------------------- dragging */
+
+    var frameAt = function (x, y) {
+      var els = frameEls.current;
+      for (var k in els) {
+        if (!els[k]) continue;
+        var r = els[k].getBoundingClientRect();
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { fid: k, r: r };
+      }
+      return null;
+    };
 
     var resolve = function (x, y, payload) {
       var list = layersRef.current;
       var el = document.elementFromPoint(x, y);
       if (list && el && list.contains(el)) return listTarget(el, y, payload);
-      var fr = frameRef.current;
-      var f = api();
-      if (!fr || !f) return null;
-      var r = fr.getBoundingClientRect();
-      if (x < r.left || x > r.right || y < r.top || y > r.bottom) return null;
-      var s = scaleRef.current;
-      var hit = f.drop((x - r.left) / s, (y - r.top) / s, payload.id || null, 12 / s);
+      var st = stageRef.current;
+      if (!st) return null;
+      var sr = st.getBoundingClientRect();
+      if (x < sr.left || x > sr.right || y < sr.top || y > sr.bottom) return null;
+      var at = frameAt(x, y);
+      var f = at && api(at.fid);
+      if (!f) return null;
+      var z = camRef.current.z;
+      var own = at.fid === docRef.current.active;
+      var hit = f.drop((x - at.r.left) / z, (y - at.r.top) / z, own ? payload.id || null : null, 12 / z);
       if (!hit) return null;
-      return { where: "canvas", parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
+      return { where: "canvas", frame: at.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
     };
 
     /* A row's top third drops before it, the bottom third after it, and the
-       middle of a container drops inside it, at the end. */
+       middle of a container drops inside it, at the end. Another frame's row
+       takes it at the end of that frame. */
     var listTarget = function (el, y, payload) {
-      var row = el.closest ? el.closest("[data-layer]") : null;
       var d = docRef.current;
+      var frameRow = el.closest ? el.closest("[data-frame-row]") : null;
+      if (frameRow && frameRow.getAttribute("data-frame-row") !== d.active) {
+        var other = frameById(d, frameRow.getAttribute("data-frame-row"));
+        return other ? { where: "list", frame: other.id, parent: "root", index: other.root.children.length, inside: "frame:" + other.id } : null;
+      }
+      var row = el.closest ? el.closest("[data-layer]") : null;
       var root = active(d).root;
       if (!row) return { where: "list", parent: "root", index: root.children.length, indicator: { top: layersRef.current.scrollHeight - 2, left: 8 } };
       var id = row.getAttribute("data-layer");
-      if (id === "root") return { where: "list", parent: "root", index: 0, indicator: { top: row.offsetTop + row.offsetHeight, left: 8 } };
+      if (id === "root") return { where: "list", parent: "root", index: 0, indicator: { top: row.offsetTop + row.offsetHeight, left: 22 } };
       var at = locate(d, id);
       if (!at) return null;
       if (payload.id && at.path.some(function (n) { return n.id === payload.id; })) return null;
@@ -980,17 +1264,26 @@
     var show = function (hit) {
       setListDrop(hit && hit.where === "list" ? hit : null);
       setMarks(function (m) {
-        return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStageRef.current(hit.line)) : null, box: hit.box ? toStageRef.current(hit.box) : null } : null });
+        return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box ? toStage(hit.box, hit.frame) : null } : null });
       });
     };
 
+    /* Near the stage's edge the canvas pans; near a scrolling frame's top or
+       bottom the frame scrolls; near the layers' ends the list does. */
     var autoscroll = function (x, y) {
-      var fr = frameRef.current;
-      if (fr) {
-        var r = fr.getBoundingClientRect();
-        if (x >= r.left && x <= r.right) {
-          if (y - r.top < 48 && y >= r.top - 24) fr.contentWindow.scrollBy(0, -14);
-          else if (r.bottom - y < 48 && y <= r.bottom + 24) fr.contentWindow.scrollBy(0, 14);
+      var st = stageRef.current;
+      if (st) {
+        var sr = st.getBoundingClientRect();
+        if (x >= sr.left && x <= sr.right && y >= sr.top && y <= sr.bottom) {
+          var px = x - sr.left < 32 ? 12 : sr.right - x < 32 ? -12 : 0;
+          var py = y - sr.top < 32 ? 12 : sr.bottom - y < 32 ? -12 : 0;
+          if (px || py) panBy(px, py);
+          var at = frameAt(x, y);
+          var fr = at && frameById(docRef.current, at.fid);
+          if (fr && !fr.hug) {
+            if (y - at.r.top < 48) frameEls.current[at.fid].contentWindow.scrollBy(0, -14);
+            else if (at.r.bottom - y < 48) frameEls.current[at.fid].contentWindow.scrollBy(0, 14);
+          }
         }
       }
       var list = layersRef.current;
@@ -1023,8 +1316,23 @@
       setTimeout(function () { justDragged.current = false; }, 60);
       var hit = dr.hit;
       if (!commitIt || !hit) return;
-      if (dr.payload.kind === "new") add(dr.payload.type, { parent: hit.parent, index: hit.index });
-      else if (change(function (d) { return ops.move(d, dr.payload.id, hit.parent, hit.index); }, "Moved " + dr.payload.label)) {
+      var fid = hit.frame || docRef.current.active;
+      if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid }); return; }
+      if (fid !== docRef.current.active) {
+        var moving = dr.payload.id;
+        var dest = frameById(docRef.current, fid);
+        change(function (d) {
+          var from = locate(d, moving);
+          var to = locate(d, hit.parent, fid);
+          if (!from || !from.parent || !to || !to.node.children) return null;
+          from.parent.children.splice(from.index, 1);
+          to.node.children.splice(Math.min(hit.index, to.node.children.length), 0, from.node);
+          d.active = fid;
+          return moving;
+        }, "Moved " + dr.payload.label + " to " + (dest ? dest.name : "another frame"));
+        return;
+      }
+      if (change(function (d) { return ops.move(d, dr.payload.id, hit.parent, hit.index); }, "Moved " + dr.payload.label)) {
         if (hit.parent !== "root") setCollapsed(function (c) { var n = Object.assign({}, c); delete n[hit.parent]; return n; });
       }
     };
@@ -1064,58 +1372,93 @@
       window.addEventListener("keydown", esc, true);
     };
 
-    /* ------------------------------------------------- the canvas calls */
+    /* ------------------------------------------------- the frames call */
 
+    /* Each frame binds the host to itself, so a pick, a hover or a gesture
+       says which frame it came from. */
     useEffect(function () {
       var raf = 0;
+      var fidOf = function (win) {
+        var els = frameEls.current;
+        for (var k in els) { try { if (els[k] && els[k].contentWindow === win) return k; } catch (err) { /* gone */ } }
+        return null;
+      };
+      var toPage = function (fid, x, y) {
+        var el = frameEls.current[fid];
+        var r = el ? el.getBoundingClientRect() : { left: 0, top: 0 };
+        var z = camRef.current.z;
+        return { x: r.left + x * z, y: r.top + y * z };
+      };
       window.BuilderHost = {
-        ready: function () { setReady(true); },
-        selection: function () { var s = selRef.current; return s.length ? s[s.length - 1] : null; },
-        pick: function (id, additive, deep) { pickRef.current(id, additive, deep, "canvas"); },
-        edit: function (id) { beginEditRef.current(id); },
-        hover: function (id) { if (hoverRef.current !== id) setHover(id); },
-        key: function (ev) { return keyRef.current(ev); },
-        moved: function () {
-          cancelAnimationFrame(raf);
-          raf = requestAnimationFrame(function () { remeasureRef.current(); });
+        bind: function (win) {
+          var on = function (fn) { return function () { var fid = fidOf(win); return fid ? fn.apply(null, [fid].concat([].slice.call(arguments))) : undefined; }; };
+          return {
+            ready: on(function (fid) { readyRef.current(fid); }),
+            selection: on(function (fid) { if (docRef.current.active !== fid) return null; var s = selRef.current; return s.length ? s[s.length - 1] : null; }),
+            pick: on(function (fid, id, additive, deep) { pickRef.current(id, additive, deep, "canvas", fid); }),
+            edit: on(function (fid, id) { if (docRef.current.active !== fid) activateRef.current(fid); beginEditRef.current(id); }),
+            hover: on(function (fid, id) {
+              var h = hoverRef.current;
+              if (!id) { if (h && h.f === fid) setHover(null); return; }
+              if (!h || h.f !== fid || h.id !== id) setHover({ f: fid, id: id });
+            }),
+            key: function (ev) { return keyRef.current(ev); },
+            keyup: function (ev) { keyUpRef.current(ev); },
+            moved: function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { measureRef.current(); }); },
+            dragStart: on(function (fid, id) {
+              if (docRef.current.active !== fid) activateRef.current(fid);
+              var at = locate(docRef.current, id);
+              if (!at) return;
+              dragRef.current = { payload: { kind: "move", id: id, label: at.node.name || at.node.type }, active: true };
+              if (selRef.current.indexOf(id) < 0) select([id]);
+            }),
+            dragMove: on(function (fid, x, y) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y); }),
+            dragEnd: function (commitIt) { dragEndRef.current(commitIt); },
+            gesture: on(function (fid, phase, id, x, y, kind) { var p = toPage(fid, x, y); return gestureRef.current(phase, id, p.x, p.y, kind, fid); }),
+            wheel: on(function (fid, x, y, dx, dy, zoom, mode) { var p = toPage(fid, x, y); wheelRef.current(p.x, p.y, dx, dy, zoom, mode); }),
+            spaceHeld: function () { return spaceRef.current; },
+          };
         },
-        dragStart: function (id) {
-          var at = locate(docRef.current, id);
-          if (!at) return;
-          dragRef.current = { payload: { kind: "move", id: id, label: at.node.type }, active: true };
-          if (selRef.current.indexOf(id) < 0) select([id]);
-        },
-        dragMove: function (fx, fy) {
-          var fr = frameRef.current;
-          if (!fr || !dragRef.current) return;
-          var r = fr.getBoundingClientRect();
-          var s = scaleRef.current;
-          dragMoveRef.current(r.left + fx * s, r.top + fy * s);
-        },
-        dragEnd: function (commitIt) { dragEndRef.current(commitIt); },
       };
       return function () { delete window.BuilderHost; };
     }, []);
     var dragMoveRef = useRef(dragMove); dragMoveRef.current = dragMove;
     var dragEndRef = useRef(dragEnd); dragEndRef.current = dragEnd;
 
-    var onFrameLoad = function () { if (api()) setReady(true); };
+    /* A frame that (re)loads draws its tree again. */
+    var frameReady = function (fid) {
+      if (!api(fid)) return;
+      delete rendered.current[fid];
+      setReady(function (m) { var n = Object.assign({}, m); n[fid] = (m[fid] || 0) + 1; return n; });
+    };
+    var readyRef = useRef(frameReady); readyRef.current = frameReady;
 
+    /* Each frame draws its own tree, and only when that tree (or preview)
+       changed. */
     useEffect(function () {
-      var f = api();
-      if (!ready || !f) return;
-      if (!placeable) {
+      var any = null;
+      doc.frames.forEach(function (f) {
+        if (!ready[f.id]) return;
+        var a = api(f.id);
+        if (!a) return;
+        any = any || a;
+        var key = JSON.stringify(f) + "|" + preview;
+        if (rendered.current[f.id] === key) return;
+        rendered.current[f.id] = key;
+        grows.current[f.id] = 0;
+        a.render({ page: { dark: f.dark, surface: f.surface, spacing: f.spacing, gap: f.gap }, root: f.root }, { preview: preview, hug: f.hug });
+      });
+      if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
-        Object.keys(META).forEach(function (n) { ok[n] = f.has(n) && (META[n].container || f.hasStarter(n)); sc[n] = f.scalars(n); det[n] = f.canDetach(n); });
+        Object.keys(META).forEach(function (n) { ok[n] = any.has(n) && (META[n].container || any.hasStarter(n)); sc[n] = any.scalars(n); det[n] = any.canDetach(n); });
         setPlaceable(ok);
         setScalars(sc);
         setDetachable(det);
       }
-      f.render({ page: { dark: frame.dark, context: frame.context, surface: frame.surface, spacing: frame.spacing, gap: frame.gap }, root: frame.root }, { preview: preview });
     }, [ready, doc, preview]);
 
-    useEffect(function () { remeasure(); }, [selection, hover, scale, offX, box.h, edit && edit.id]);
-    useEffect(function () { if (rightRef.current) rightRef.current.scrollTop = 0; }, [sel]);
+    useEffect(function () { remeasure(); }, [selection, hover, cam, layout.width, layout.height, doc.active, edit && edit.id]);
+    useEffect(function () { if (rightRef.current) rightRef.current.scrollTop = 0; }, [sel, doc.active]);
 
     /* ------------------------------------------------- selecting */
 
@@ -1129,9 +1472,20 @@
       return null;
     };
 
+    /* A press on the canvas hands the keyboard back to it, so Tab and the
+       shortcuts work straight after. */
+    var releaseFocus = function () {
+      var a = document.activeElement;
+      if (!a || a === document.body || a.classList.contains("bd-inline")) return;
+      if (mountEl.contains(a) || (a.closest && a.closest("#app-toolbar"))) a.blur();
+    };
+
     /* Shift adds to the selection; Cmd or Ctrl selects and goes straight to
-       the text. A click on nothing clears it. */
-    var pick = function (id, additive, deep, from) {
+       the text. A click on nothing clears it. A click in another frame makes
+       that frame active first. */
+    var pick = function (id, additive, deep, from, fid) {
+      if (from === "canvas") releaseFocus();
+      if (fid && fid !== docRef.current.active) { activate(fid); additive = false; }
       if (!id || id === "root") { if (!additive) select([]); return; }
       var cur = selRef.current;
       if (additive) {
@@ -1161,7 +1515,7 @@
       if (!t) return;
       select([id]);
       snapshot();
-      setEdit({ id: id, prop: prop, value: value, before: value, box: toStageRef.current(t.rect), font: t.font });
+      setEdit({ id: id, prop: prop, value: value, before: value, box: toStage(t.rect), font: t.font });
       if (mql("(max-width: 900px)")) setPane("canvas");
     };
     var beginEditRef = useRef(beginEdit); beginEditRef.current = beginEdit;
@@ -1173,6 +1527,7 @@
       var at = locate(next, ed.id);
       if (!at) return;
       at.node.props[ed.prop] = value;
+      docRef.current = next;
       setDoc(next);
     };
     var editDone = function (keep) {
@@ -1181,7 +1536,7 @@
       setEdit(null);
       if (!keep) {
         var prev = history.current.past.pop();
-        if (prev) setDoc(JSON.parse(prev));
+        if (prev) { docRef.current = JSON.parse(prev); setDoc(docRef.current); }
         announce("Edit cancelled");
       } else if (ed.value === ed.before) history.current.past.pop();
     };
@@ -1200,9 +1555,11 @@
 
     var add = function (type, where) {
       var t = where || target();
+      var fid = t.frame || docRef.current.active;
       var n = make(type);
-      var parentName = t.parent === "root" ? "the frame" : (locate(docRef.current, t.parent) || { node: { type: "frame" } }).node.type;
-      change(function (d) { return ops.insert(d, t.parent, t.index, n); }, "Added " + type + " to " + parentName);
+      var parentAt = t.parent === "root" ? null : locate(docRef.current, t.parent, fid);
+      var parentName = parentAt ? parentAt.node.type : (frameById(docRef.current, fid) || frame).name;
+      change(function (d) { d.active = fid; return ops.insert(d, t.parent, t.index, n, fid); }, "Added " + type + " to " + parentName);
       if (mql("(max-width: 900px)")) setPane("canvas");
     };
 
@@ -1260,33 +1617,65 @@
         if (isContainer(node.type) && !node.name) node.name = at.node.type;
         change(function (d) { return ops.replace(d, id, node); }, at.node.type + " detached into primitives");
       },
-      rename: function () { var id = selRef.current[selRef.current.length - 1]; if (id) setRenaming(id); },
+      rename: function () {
+        var id = selRef.current[selRef.current.length - 1];
+        var where = wide && left === "layers" && !bare ? "layer" : "title";
+        if (id) { var at = locate(docRef.current, id); if (at && at.node.type === "Group") setRenaming({ id: id, where: where }); }
+        else setRenaming({ id: "frame:" + docRef.current.active, where: wide && !bare ? "title" : "label" });
+      },
+      /* Tab, or Ctrl/Cmd+\, hides the side panels to give the canvas the room. */
+      panels: function () {
+        setBare(function (b) {
+          announce(b ? "Panels shown" : "Panels hidden. Press Tab to show them.");
+          return !b;
+        });
+      },
+      preview: function () {
+        var on = !previewRef.current;
+        setPreview(on);
+        select([]);
+        setHover(null);
+        announce(on ? "Preview: the components respond to clicks and typing. Escape to edit." : "Editing");
+      },
     };
 
+    /* Keys the canvas and the page share. Tab and Space belong to the canvas
+       only while nothing else has focus. */
     var keyRef = useRef(function () { return false; });
     keyRef.current = function (ev) {
       if (dialogRef.current && dialogRef.current.open) return false;
       var t = ev.target;
-      var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+      var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (typing || (t && t.closest && t.closest(".bd-dd-list"))) return false;
+      var free = !t || t === document.body || t === document.documentElement || t.ownerDocument !== document || (t.classList && t.classList.contains("bd-stage"));
       var mod = ev.metaKey || ev.ctrlKey;
       var key = ev.key.toLowerCase();
+      if (ev.key === "Escape" && previewRef.current) { actions.preview(); return true; }
+      if (ev.key === "Tab" && free && !mod && !ev.altKey && !ev.shiftKey && wide) { actions.panels(); return true; }
+      if (mod && ev.key === "\\") { actions.panels(); return true; }
+      if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
+      if (previewRef.current) return false;
       if (mod && key === "z") { (ev.shiftKey ? redo : undo)(); return true; }
       if (mod && key === "y") { redo(); return true; }
-      if (mod && (ev.key === "=" || ev.key === "+")) { zoomBy(1); return true; }
-      if (mod && ev.key === "-") { zoomBy(-1); return true; }
-      if (mod && ev.key === "0") { setZoom("fit"); return true; }
+      if (mod && (ev.key === "=" || ev.key === "+")) { zoomStep(1); return true; }
+      if (mod && ev.key === "-") { zoomStep(-1); return true; }
+      if (mod && ev.key === "0") { fitAll(); return true; }
+      if (ev.shiftKey && !mod && ev.code === "Digit0") { zoomTo(1); return true; }
+      if (ev.shiftKey && !mod && ev.code === "Digit1") { fitAll(); return true; }
+      if (ev.shiftKey && !mod && ev.code === "Digit2") { showFrame(docRef.current.active); return true; }
       if (ev.key === "Enter") { (ev.shiftKey ? actions.out : actions.into)(); return true; }
       if (ev.key === "Escape") { select([]); return true; }
+      if (ev.key === "F2") { actions.rename(); return true; }
       if (!selRef.current.length) return false;
       if (mod && key === "g") { (ev.shiftKey ? actions.ungroup : actions.group)(); return true; }
       if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
       if (mod && key === "d") { actions.duplicate(); return true; }
       if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
       if ((ev.altKey || mod) && ev.key === "ArrowDown") { actions.down(); return true; }
-      if (ev.key === "F2") { actions.rename(); return true; }
       return false;
     };
+    var keyUpRef = useRef(function () {});
+    keyUpRef.current = function (ev) { if (ev.key === " " && spaceRef.current) { spaceRef.current = false; setSpace(false); } };
     useEffect(function () {
       var onKey = function (ev) {
         /* The toolbar renders into the site header, outside the builder's box. */
@@ -1294,13 +1683,34 @@
         if (!inside) return;
         if (keyRef.current(ev)) ev.preventDefault();
       };
+      var onUp = function (ev) { keyUpRef.current(ev); };
+      var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } };
       document.addEventListener("keydown", onKey);
-      return function () { document.removeEventListener("keydown", onKey); };
+      document.addEventListener("keyup", onUp);
+      window.addEventListener("blur", onBlur);
+      return function () {
+        document.removeEventListener("keydown", onKey);
+        document.removeEventListener("keyup", onUp);
+        window.removeEventListener("blur", onBlur);
+      };
     }, []);
 
     /* ------------------------------------------------- settings */
 
     var setFrame = function (key, value, message) { change(function (d) { active(d)[key] = value; return undefined; }, message); };
+    var setSize = function (w, h) {
+      change(function (d) {
+        var f = active(d);
+        if (w !== undefined) f.width = side(w, MAX_WIDTH, f.width);
+        /* Typing a height fixes it. */
+        if (h !== undefined) { f.height = side(h, MAX_HEIGHT, f.height); f.hug = false; }
+        return undefined;
+      });
+    };
+    var setPreset = function (id) {
+      var p = PRESET[id];
+      if (p) change(function (d) { var f = active(d); f.width = p.width; f.height = p.height; return undefined; }, frame.name + " is " + p.label + ", " + p.width + " by " + p.height);
+    };
     /* Props and styles apply to every selected node, so several of the same
        kind change together. */
     var setProp = function (ids, key, value) {
@@ -1321,12 +1731,17 @@
 
     var frameOps = {
       add: function () {
-        var f = makeFrame("Frame " + (docRef.current.frames.length + 1), active(docRef.current).size);
-        change(function (d) { d.frames.push(f); d.active = f.id; return undefined; }, "Added " + f.name);
+        var cur = active(docRef.current);
+        var f = makeFrame("Frame " + (docRef.current.frames.length + 1), "desktop");
+        f.width = cur.width;
+        f.height = cur.height;
+        change(function (d) { d.frames.push(f); d.active = f.id; return []; }, "Added " + f.name);
+        setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
       },
       duplicate: function (id) {
+        var made = null;
         change(function (d) {
-          var src = d.frames.filter(function (x) { return x.id === id; })[0];
+          var src = frameById(d, id);
           if (!src) return null;
           var c = copy(src);
           c.id = uid();
@@ -1335,23 +1750,38 @@
           c.root.id = "root";
           d.frames.splice(d.frames.indexOf(src) + 1, 0, c);
           d.active = c.id;
-          return undefined;
+          made = c.id;
+          return [];
         }, "Duplicated frame");
+        if (made) {
+          var h = heightsRef.current[id];
+          if (h) setHeights(function (hs) { var n = Object.assign({}, hs); n[made] = h; return n; });
+          setTimeout(function () { showFrameRef.current(made, true); }, 0);
+        }
       },
       remove: function (id) {
         if (docRef.current.frames.length < 2) return;
-        var f = docRef.current.frames.filter(function (x) { return x.id === id; })[0];
+        var f = frameById(docRef.current, id);
         if (f && f.root.children.length && !window.confirm("Delete " + f.name + "? Undo brings it back.")) return;
         change(function (d) {
           var i = d.frames.findIndex(function (x) { return x.id === id; });
           if (i < 0) return null;
           d.frames.splice(i, 1);
           if (d.active === id) d.active = (d.frames[i] || d.frames[i - 1]).id;
-          return undefined;
+          return [];
         }, "Deleted frame");
       },
-      rename: function (id, name) { setRenaming(null); if (name) change(function (d) { var f = d.frames.filter(function (x) { return x.id === id; })[0]; if (!f || f.name === name) return null; f.name = name; return undefined; }); },
-      show: function (id) { if (id !== docRef.current.active) change(function (d) { d.active = id; return undefined; }); },
+      rename: function (id, name) { setRenaming(null); if (name) change(function (d) { var f = frameById(d, id); if (!f || f.name === name) return null; f.name = name; return undefined; }); },
+      /* The frame picked as a whole: active, nothing inside selected. */
+      pick: function (id, reveal) {
+        releaseFocus();
+        activate(id);
+        if (reveal) {
+          var b = layoutRef.current.boxes[id], c = camRef.current, W = boxRef.current.w, H = boxRef.current.h;
+          var x = c.x + b.x * c.z, y = c.y + b.y * c.z;
+          if (x > W - 40 || x + b.w * c.z < 40 || y > H - 40 || y + b.h * c.z < 40) showFrame(id, true);
+        }
+      },
     };
 
     var openCode = function () {
@@ -1377,7 +1807,9 @@
       var has = docRef.current.frames.some(function (f) { return f.root.children.length; });
       if (has && !window.confirm("Replace every frame with the " + s[1].toLowerCase() + "? Undo brings your work back.")) return;
       storage(function (st) { st.setItem(BACKUP_KEY, JSON.stringify(docRef.current)); });
-      commit(s[2](), null, "Started from " + s[1] + ". Undo to go back.");
+      var next = s[2]();
+      commit(next, null, "Started from " + s[1] + ". Undo to go back.");
+      setTimeout(function () { showFrameRef.current(next.active); }, 0);
     };
 
     /* ------------------------------------------------- rendering helpers */
@@ -1395,6 +1827,9 @@
     };
     var nodesOf = function (ids) { return ids.map(function (id) { return locate(doc, id); }).filter(Boolean).map(function (a) { return a.node; }); };
     var same = function (values) { return values.every(function (v) { return JSON.stringify(v) === JSON.stringify(values[0]); }); };
+    var sizeText = function (f) { return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height); };
+
+    /* ------------------------------------------------- inspector controls */
 
     var tokenDropdown = function (key, nodes, id, compact) {
       var def = DATA.tokens[key];
@@ -1441,7 +1876,7 @@
       var current = mixed ? undefined : values[0];
       var ids = nodes.map(function (n) { return n.id; });
       var set = function (v) { setProp(ids, p.name, v); };
-      var label = words(p.name);
+      var label = PROP_LABEL[p.name] || words(p.name);
       var control;
       if (p.kind === "media") {
         var src = typeof current === "string" ? current : "";
@@ -1488,36 +1923,34 @@
       return e(Field, { key: p.name, id: id, label: label, note: p.note }, control);
     };
 
+
     /* ------------------------------------------------- the panels */
 
     var assetsPanel = function () {
       var q = query.trim().toLowerCase();
       var groups = DATA.groups;
+      var usable = function (g) { return g.items.filter(function (n) { return !placeable || placeable[n]; }); };
       var items;
       if (q) {
         items = [];
         groups.forEach(function (g) {
-          g.items.forEach(function (n) {
-            if (placeable && !placeable[n]) return;
+          usable(g).forEach(function (n) {
             if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) items.push(n);
           });
         });
       } else {
-        var g = groups.filter(function (x) { return x.id === category; })[0] || groups[0];
-        items = g.items.filter(function (n) { return !placeable || placeable[n]; });
+        items = usable(groups.filter(function (x) { return x.id === category; })[0] || groups[0]);
       }
       var current = groups.filter(function (x) { return x.id === category; })[0] || groups[0];
       return e("div", { className: "bd-assets" },
-        e("label", { className: "bd-search" },
-          e(Icon, { name: "search" }),
-          e("span", { className: "visually-hidden" }, "Search components"),
-          e("input", { type: "search", placeholder: "Search all components", value: query, onChange: function (ev) { setQuery(ev.target.value); } })),
+        e(SearchField, { label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }),
         e("div", { className: cx("bd-cats", q && "is-muted"), role: "group", "aria-label": "Categories" },
           groups.map(function (g) {
+            var on = !q && category === g.id;
             return e("button", {
-              key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(!q && category === g.id), title: g.label, "aria-label": g.label,
+              key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(on), title: g.label + ": " + usable(g).length + " to add",
               onClick: function () { setCategory(g.id); setQuery(""); },
-            }, e(Icon, { name: GROUP_ICON[g.id] || "box" }));
+            }, e(Icon, { name: GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
           })),
         e("div", { className: "bd-assets-head" },
           e("h3", { className: "bd-assets-title" }, q ? "Results" : current.label, e("span", { className: "bd-count" }, items.length)),
@@ -1535,10 +1968,12 @@
               e("span", { className: "bd-tile-text" },
                 e("span", { className: "bd-tile-name" }, n),
                 view === "list" && meta.blurb ? e("span", { className: "bd-tile-blurb" }, meta.blurb) : null)));
-        })),
-        e("p", { className: "bd-tip" }, "Drag onto the canvas or the layers, or tap to add after the selection."));
+        })));
     };
 
+    var isRenaming = function (id, where) { return !!renaming && renaming.id === id && renaming.where === where; };
+
+    /* Every frame is a row; the active one opens onto its layers. */
     var layersPanel = function () {
       var q = layerQuery.trim().toLowerCase();
       var rows = [];
@@ -1559,73 +1994,134 @@
           rows.push({ n: c, depth: depth });
           if (c.children && (q || !collapsed[c.id])) walk(c, depth + 1);
         });
-      })(frame.root, 0);
+      })(frame.root, 1);
       var toggle = function (id) { setCollapsed(function (c) { var n = Object.assign({}, c); if (n[id]) delete n[id]; else n[id] = true; return n; }); };
+      var nodeRow = function (r) {
+        var n = r.n;
+        var text = labelOf(n);
+        var on = selection.indexOf(n.id) >= 0;
+        var open = !collapsed[n.id] || !!q;
+        var renameable = n.type === "Group";
+        return e("div", {
+          key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === frame.id && hover.id === n.id && "is-hover"),
+          "data-layer": n.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
+          "aria-expanded": n.children ? String(open) : undefined,
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
+          onPointerEnter: function () { setHover({ f: frame.id, id: n.id }); },
+          onPointerLeave: function () { setHover(null); },
+        },
+          n.children ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + n.type, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
+            : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+          e("button", {
+            type: "button", className: "bd-layer-main",
+            onClick: function (ev) { if (!justDragged.current) pick(n.id, ev.shiftKey || ev.metaKey || ev.ctrlKey, false, "layers"); },
+            onDoubleClick: function () { if (renameable) setRenaming({ id: n.id, where: "layer" }); },
+            onPointerDown: function (ev) { if (ev.pointerType === "mouse") startDrag(ev, { kind: "move", id: n.id, label: n.name || n.type }); },
+          },
+            e(Icon, { name: typeIcon(n.type) }),
+            renameable && isRenaming(n.id, "layer")
+              ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
+              : e("span", { className: "bd-layer-name" }, n.name || n.type),
+            text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
+      };
       return e("div", { className: "bd-layers-panel" },
-        e("label", { className: "bd-search" },
-          e(Icon, { name: "search" }),
-          e("span", { className: "visually-hidden" }, "Filter layers"),
-          e("input", { type: "search", placeholder: "Filter layers", value: layerQuery, onChange: function (ev) { setLayerQuery(ev.target.value); } })),
+        e(SearchField, { label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }),
         e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
-          e("div", { className: cx("bd-layer", !sel && "is-current"), "data-layer": "root", role: "treeitem", "aria-selected": String(!sel) },
-            e("button", { type: "button", className: "bd-layer-main", onClick: function () { select([]); } },
-              e(Icon, { name: "frame" }), e("span", { className: "bd-layer-name" }, frame.name))),
-          rows.length ? null : e("p", { className: "bd-empty-note" }, q ? "No layers match." : "The frame is empty. Add something from Assets."),
-          rows.map(function (r) {
-            var n = r.n;
-            var text = labelOf(n);
-            var on = selection.indexOf(n.id) >= 0;
-            var open = !collapsed[n.id] || !!q;
-            var renameable = n.type === "Group";
-            return e("div", {
-              key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover === n.id && "is-hover"),
-              "data-layer": n.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
-              "aria-expanded": n.children ? String(open) : undefined,
-              style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-              onPointerEnter: function () { setHover(n.id); },
-              onPointerLeave: function () { setHover(null); },
+          doc.frames.map(function (f) {
+            var on = f.id === doc.active;
+            var head = e("div", {
+              key: "frame-" + f.id, className: cx("bd-layer bd-layer-frame", on && !sel && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
+              "data-layer": on ? "root" : undefined, "data-frame-row": f.id, role: "treeitem", "aria-level": 1,
+              "aria-selected": String(on && !sel), "aria-expanded": String(on),
             },
-              n.children ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + n.type, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
-                : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+              e("span", { className: cx("bd-layer-twisty", on && "is-open"), "aria-hidden": true }, e(Icon, { name: "right" })),
               e("button", {
-                type: "button", className: "bd-layer-main",
-                onClick: function (ev) { if (!justDragged.current) pick(n.id, ev.shiftKey || ev.metaKey || ev.ctrlKey, false, "layers"); },
-                onDoubleClick: function () { if (renameable) setRenaming(n.id); },
-                onPointerDown: function (ev) { if (ev.pointerType === "mouse") startDrag(ev, { kind: "move", id: n.id, label: n.name || n.type }); },
+                type: "button", className: "bd-layer-main", title: on ? "Double-click to rename" : "Show " + f.name,
+                onClick: function () { frameOps.pick(f.id, true); },
+                onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "layer" }); },
               },
-                e(Icon, { name: typeIcon(n.type) }),
-                renameable && renaming === n.id
-                  ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
-                  : e("span", { className: "bd-layer-name" }, n.name || n.type),
-                text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
+                e(Icon, { name: "frame" }),
+                isRenaming("frame:" + f.id, "layer")
+                  ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function (v) { frameOps.rename(f.id, v); } })
+                  : e("span", { className: "bd-layer-name" }, f.name),
+                e("span", { className: "bd-layer-text" }, sizeText(f))));
+            if (!on) return head;
+            return e(React.Fragment, { key: "frame-" + f.id },
+              head,
+              rows.length ? rows.map(nodeRow) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets."));
           }),
-          listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null),
-        e("p", { className: "bd-tip" }, "Drag rows to reorder or nest. Shift-click to select several. Double-click a group to rename it."));
+          listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null));
     };
+
+    /* The inspector's tabs. One with nothing to set for this selection is off,
+       and the inspector shows Layout instead. */
+    var tabBar = function (have, current) {
+      return e("div", { className: "bd-itabs", role: "tablist", "aria-label": "Inspector" },
+        TABS.filter(function (t) { return have[t[0]] !== undefined; }).map(function (t) {
+          var on = current === t[0];
+          return e("button", {
+            key: t[0], type: "button", role: "tab", id: "bd-itab-" + t[0], className: "bd-itab", "aria-selected": String(on), "aria-controls": "bd-ipanel",
+            disabled: !have[t[0]], tabIndex: on ? 0 : -1,
+            onClick: function () { setTab(t[0]); },
+            onKeyDown: function (ev) {
+              if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+              ev.preventDefault();
+              var list = TABS.filter(function (x) { return have[x[0]]; }).map(function (x) { return x[0]; });
+              var i = list.indexOf(current) + (ev.key === "ArrowRight" ? 1 : -1);
+              var next = list[(i + list.length) % list.length];
+              setTab(next);
+              setTimeout(function () { var b = document.getElementById("bd-itab-" + next); if (b) b.focus(); }, 0);
+            },
+          }, t[1]);
+        }));
+    };
+    var tabPanel = function (current, children) {
+      return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current }, children);
+    };
+    var pickTab = function (have) { return have[tab] ? tab : have.layout ? "layout" : TABS.filter(function (t) { return have[t[0]]; }).map(function (t) { return t[0]; })[0]; };
 
     var frameInspector = function () {
       var surfaceOptions = DATA.tokens.surface.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens }; });
       var cur = DATA.tokens.surface.options.filter(function (o) { return o.value === frame.surface; })[0];
+      var b = boxes[frame.id] || { h: frame.height };
+      var preset = presetOf(frame);
+      var have = { appearance: true, layout: true };
+      var current = pickTab(have);
+      var body = current === "appearance"
+        ? [e(Section, { key: "look", title: "Frame" },
+            e(Field, { id: "bd-fr-mode", label: "Mode" },
+              e(Segmented, { labelledBy: "bd-fr-mode", wide: true, value: frame.dark ? "dark" : "light", onChange: function (v) { setFrame("dark", v === "dark"); },
+                options: [{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }] })),
+            e(Field, { id: "bd-pg-surface", label: "Fill", hint: cur ? cur.tokens[0] : null },
+              e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.surface, preview: "color", onChange: function (v) { setFrame("surface", v || "base"); }, options: surfaceOptions })))]
+        : [e(Section, { key: "size", title: "Size" },
+            e(Field, { id: "bd-fr-preset", label: "Device" },
+              e(Dropdown, { labelledBy: "bd-fr-preset", value: preset, placeholder: "Custom", iconValue: true, onChange: setPreset,
+                options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) })),
+            e("div", { className: "bd-field" },
+              e("span", { className: "bd-field-label" }, "Width and height"),
+              e("div", { className: "bd-size-row" },
+                e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function (v) { setSize(v, undefined); } }),
+                e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : undefined, onChange: function (v) { setSize(undefined, v); } }),
+                e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function () { setSize(frame.height, frame.width); } }, e(Icon, { name: "rotate" })))),
+            e(Field, { id: "bd-fr-hug", label: "Hug contents", inline: true, hint: frame.hug ? "The height follows what's in the frame." : null },
+              e(Switch, { labelledBy: "bd-fr-hug", value: frame.hug, onChange: function (v) { change(function (d) { var f = active(d); f.hug = v; if (!v) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }); } }))),
+          e(Section, { key: "flow", title: "Layout" },
+            e(Field, { id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
+              e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
+            e(Field, { id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
+              e(Dropdown, { labelledBy: "bd-pg-gap", value: frame.gap, onChange: function (v) { setFrame("gap", v || ""); },
+                options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function (g) { return { value: g, label: g, hint: "--dt-layout-stack-" + g }; })) })))];
       return e("div", { className: "bd-inspect" },
         e("div", { className: "bd-inspect-head" },
           e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "frame" }),
-            e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: renaming === "frame:" + frame.id, onChange: function (v) { frameOps.rename(frame.id, v); } })),
-          e("p", { className: "bd-inspect-sub" }, "Select something on the canvas or in the layers to change it. Light or dark is in the toolbar."),
+            e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame.id, "title"), onChange: function (v) { frameOps.rename(frame.id, v); } })),
+          e("p", { className: "bd-inspect-sub" }, sizeText(frame) + (frame.hug ? ", hugging its content" : "") + ". Select something in it to change that instead."),
           e("div", { className: "bd-actions" },
             e("button", { type: "button", className: "bd-btn", onClick: function () { frameOps.duplicate(frame.id); } }, e(Icon, { name: "copy" }), "Duplicate frame"),
             doc.frames.length > 1 ? e("button", { type: "button", className: "bd-btn", onClick: function () { frameOps.remove(frame.id); } }, e(Icon, { name: "trash" }), "Delete") : null)),
-        e(Section, { title: "Frame" },
-          e(Field, { id: "bd-fr-size", label: "Size" },
-            e(Dropdown, { labelledBy: "bd-fr-size", value: frame.size, iconValue: true, onChange: function (v) { setFrame("size", v); },
-              options: FRAMES.map(function (f) { return { value: f.id, label: f.label, hint: f.width + "px", icon: FRAME_ICON[f.id] || "desktop" }; }) })),
-          e(Field, { id: "bd-pg-ctx", label: "Context" }, e(Segmented, { labelledBy: "bd-pg-ctx", wide: true, value: frame.context, onChange: function (v) { setFrame("context", v); }, options: CONTEXTS.map(function (c) { return { value: c[0], label: c[1] }; }) })),
-          e(Field, { id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
-            e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
-          e(Field, { id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
-            e(Dropdown, { labelledBy: "bd-pg-gap", value: frame.gap, onChange: function (v) { setFrame("gap", v || ""); },
-              options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function (g) { return { value: g, label: g, hint: "--dt-layout-stack-" + g }; })) })),
-          e(Field, { id: "bd-pg-surface", label: "Fill", hint: cur ? cur.tokens[0] : null },
-            e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.surface, preview: "color", onChange: function (v) { setFrame("surface", v || "base"); }, options: surfaceOptions }))));
+        tabBar(have, current),
+        tabPanel(current, body));
     };
 
     /* One node, or several: the same kind edits every prop together; a mix
@@ -1636,28 +2132,48 @@
       var sameType = nodes.every(function (n) { return n.type === first.type; });
       var meta = sameType ? META[first.type] || { props: [] } : { props: [] };
       var base = scalars[first.type] || {};
-      var layoutProps = meta.props.filter(function (p) { return p.layout; });
-      var contentProps = meta.props.filter(function (p) { return !p.layout; });
+      var byTab = function (t) { return meta.props.filter(function (p) { return (p.tab || "content") === t; }); };
       var textId = "bd-text-" + first.id;
       var hasText = sameType && !meta.container && (typeof base.children === "string" || typeof first.props.children === "string");
       var columnsId = "bd-cols-" + first.id;
       var ids = nodes.map(function (n) { return n.id; });
       var selected = !many ? locate(doc, first.id) : null;
       var textValues = nodes.map(function (n) { return n.props.children != null ? String(n.props.children) : String(base.children || ""); });
+      var tokenRows = function (section) {
+        return STYLE_KEYS.filter(function (k) { return DATA.tokens[k].section === section && !DATA.tokens[k].side; })
+          .map(function (k) { return tokenControl(k, nodes, "bd-t-" + first.id + "-" + k); });
+      };
       var contentRows = (hasText ? [e(Field, { key: "text", id: textId, label: "Text", hint: many ? null : "Double-click it on the canvas to type in place" },
         e("input", { className: "bd-input", type: "text", "aria-labelledby": textId, placeholder: same(textValues) ? "" : "Mixed", value: same(textValues) ? textValues[0] : "",
           onChange: function (ev) { setProp(ids, "children", ev.target.value); } }))] : [])
-        .concat(contentProps.map(function (p) { return propControl(p, nodes); }).filter(Boolean));
-      var styleSection = function (sec) {
-        var keys = STYLE_KEYS.filter(function (k) { return DATA.tokens[k].section === sec[0] && !DATA.tokens[k].side; });
-        var toned = sec[0] === "appearance" && meta.props.some(function (p) { return p.name === "tone"; });
-        var darkValues = nodes.map(function (n) { return !!n.style.dark; });
-        return e(Section, { key: sec[0], title: sec[1] },
-          toned ? e("p", { className: "bd-note" }, "This one paints its own background from Tone, under Layout. Fill here sits underneath it.") : null,
-          keys.map(function (k) { return tokenControl(k, nodes, "bd-t-" + first.id + "-" + k); }),
-          sec[0] === "appearance" ? e(Field, { id: "bd-dark-" + first.id, label: "Dark band", inline: true, hint: darkValues[0] && same(darkValues) ? "Adds the dark class: everything inside resolves dark." : null },
-            e(Switch, { labelledBy: "bd-dark-" + first.id, value: darkValues[0], mixed: !same(darkValues), onChange: function (v) { setStyle(ids, "dark", v ? true : undefined); } })) : null);
-      };
+        .concat(byTab("content").map(function (p) { return propControl(p, nodes); }).filter(Boolean));
+      var arrangeRows = byTab("layout").map(function (p) { return propControl(p, nodes); }).filter(Boolean);
+      if (sameType && first.type === "Grid") arrangeRows.push(e(Field, { key: "cols", id: columnsId, label: "Responsive columns", hint: first.props.minColumnWidth ? "Fits columns at least this wide; ignores columns." : "Off: uses columns." },
+        e(Dropdown, { labelledBy: columnsId, value: first.props.minColumnWidth || "", onChange: function (v) { setProp(ids, "minColumnWidth", v || undefined); },
+          options: [{ value: "", label: "Off" }].concat(DATA.columnWidths.map(function (w) { return { value: w.value, label: w.label, hint: w.token }; })) })));
+      var styleRows = byTab("appearance").map(function (p) { return propControl(p, nodes); }).filter(Boolean);
+      var toned = meta.props.some(function (p) { return p.name === "tone"; });
+      var darkValues = nodes.map(function (n) { return !!n.style.dark; });
+      var have = { appearance: true, layout: true, content: contentRows.length > 0 };
+      var current = pickTab(have);
+      var body;
+      if (current === "content") body = [e(Section, { key: "content", title: "Content" }, contentRows)];
+      else if (current === "layout") {
+        body = [
+          arrangeRows.length ? e(Section, { key: "arrange", title: "Arrangement" }, arrangeRows) : null,
+          e(Section, { key: "size", title: "Size" }, tokenRows("size")),
+          e(Section, { key: "spacing", title: "Spacing" }, tokenRows("spacing")),
+        ];
+      } else {
+        body = [
+          styleRows.length ? e(Section, { key: "style", title: "Style" }, styleRows) : null,
+          e(Section, { key: "fill", title: "Fill and border" },
+            toned ? e("p", { className: "bd-note" }, "Tone, above, paints this one's own background. Fill sits underneath it.") : null,
+            tokenRows("appearance"),
+            e(Field, { id: "bd-dark-" + first.id, label: "Dark band", inline: true, hint: darkValues[0] && same(darkValues) ? "Adds the dark class: everything inside resolves dark." : null },
+              e(Switch, { labelledBy: "bd-dark-" + first.id, value: darkValues[0], mixed: !same(darkValues), onChange: function (v) { setStyle(ids, "dark", v ? true : undefined); } }))),
+        ];
+      }
       var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
       return e("div", { className: "bd-inspect" },
         e("div", { className: "bd-inspect-head" },
@@ -1672,7 +2188,7 @@
             })) : null,
           e("h2", { className: "bd-inspect-title" }, e(Icon, { name: sameType ? typeIcon(first.type) : "component" }),
             many ? title : first.type === "Group"
-              ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: renaming === first.id, onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
+              ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
               : first.type),
           many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
             : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
@@ -1686,13 +2202,8 @@
             !many && detachable[first.type]
               ? e("button", { type: "button", className: "bd-btn", onClick: actions.detach, title: "Rebuild from primitives, so its parts can be moved" }, e(Icon, { name: "detach" }), "Detach")
               : null)),
-        contentRows.length ? e(Section, { title: "Content and props" }, contentRows) : null,
-        sameType && (layoutProps.length || first.type === "Grid") ? e(Section, { title: "Layout" },
-          layoutProps.map(function (p) { return propControl(p, nodes); }),
-          first.type === "Grid" ? e(Field, { id: columnsId, label: "Responsive columns", hint: first.props.minColumnWidth ? "Fits columns at least this wide; ignores columns." : "Off: uses columns." },
-            e(Dropdown, { labelledBy: columnsId, value: first.props.minColumnWidth || "", onChange: function (v) { setProp(ids, "minColumnWidth", v || undefined); },
-              options: [{ value: "", label: "Off" }].concat(DATA.columnWidths.map(function (w) { return { value: w.value, label: w.label, hint: w.token }; })) })) : null) : null,
-        SECTIONS.map(styleSection));
+        tabBar(have, current),
+        tabPanel(current, body));
     };
 
     /* ------------------------------------------------- layout */
@@ -1704,6 +2215,8 @@
     var savedTitle = saved.ok
       ? "Saved in this browser" + (saved.at ? " at " + saved.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "") + ". It stays when you reload or come back."
       : "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
+    var hidePanels = wide && (bare || preview);
+    var zoomText = Math.round(cam.z * 100) + "%";
 
     var toolbar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
       e(Dropdown, { menu: true, label: "Start from a layout", placeholder: "Start from", compact: true, className: "bd-start",
@@ -1711,58 +2224,99 @@
       e("span", { className: "bd-tool-group" },
         e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
         e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))),
-      e(Dropdown, { label: "Frame size", value: frame.size, compact: true, iconValue: true, className: "bd-frame-size", onChange: function (v) { setFrame("size", v); },
-        options: FRAMES.map(function (f) { return { value: f.id, label: f.label, hint: f.width + "px", icon: FRAME_ICON[f.id] || "desktop" }; }) }),
+      e("button", { type: "button", className: "bd-act", onClick: frameOps.add, title: "New frame", "aria-label": "New frame" }, e(Icon, { name: "plus" })),
+      e(Dropdown, { label: "Frame size, " + frame.name, value: presetOf(frame), placeholder: frame.width + " × " + (frame.hug ? "hug" : frame.height), compact: true, iconValue: true, className: "bd-frame-size", onChange: setPreset,
+        options: PRESETS.map(function (p) { return { value: p.id, label: p.label, hint: p.width + " × " + p.height, icon: PRESET_ICON[p.id] || "desktop" }; }) }),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(frame.dark), title: frame.dark ? "Dark. Switch to light" : "Light. Switch to dark", "aria-label": "Dark mode",
         onClick: function () { setFrame("dark", !frame.dark); } }, e(Icon, { name: frame.dark ? "moon" : "sun" })),
-      e(Dropdown, { label: "Zoom", value: zoom, compact: true, narrow: true, className: "bd-zoom", icon: "zoomIn", onChange: setZoom,
-        options: ZOOMS.map(function (z) { return { value: z[0], label: z[1] }; }) }),
+      e(Dropdown, { menu: true, label: "Zoom, " + zoomText, placeholder: zoomText, compact: true, narrow: true, className: "bd-zoom", icon: "zoomIn",
+        options: [
+          { value: "in", label: "Zoom in", hint: "Ctrl +" }, { value: "out", label: "Zoom out", hint: "Ctrl −" },
+          { value: "all", label: "Zoom to fit", hint: "Shift 1" }, { value: "frame", label: "Zoom to " + frame.name, hint: "Shift 2" },
+          { value: 0.5, label: "50%" }, { value: 1, label: "100%", hint: "Shift 0" }, { value: 2, label: "200%" },
+        ],
+        onChange: function (v) {
+          if (v === "in") zoomStep(1); else if (v === "out") zoomStep(-1); else if (v === "all") fitAll(); else if (v === "frame") showFrame(frame.id); else zoomTo(v);
+        } }),
       e("span", { className: "bd-tool-spacer" }),
       e("span", { className: cx("bd-saved", !saved.ok && "is-error"), title: savedTitle, role: "status" }, e(Icon, { name: saved.ok ? "check" : "alert" }), e("span", { className: "bd-saved-text" }, savedText)),
-      e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components", "aria-label": "Preview",
-        onClick: function () { setPreview(!preview); select([]); announce(preview ? "Editing" : "Preview: the components respond to clicks and typing"); } }, e(Icon, { name: "eye" })),
+      wide ? e("button", { type: "button", className: "bd-act", "aria-pressed": String(bare), title: (bare ? "Show" : "Hide") + " panels (Tab)", "aria-label": "Hide panels", onClick: actions.panels }, e(Icon, { name: "panels" })) : null,
+      e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
       e("button", { type: "button", className: "bd-act", onClick: share, title: "Copy a share link", "aria-label": "Share" }, e(Icon, { name: "link" })),
-      e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: openCode, disabled: !ready }, e(Icon, { name: "code" }), "Code"));
+      e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: openCode, disabled: !ready[frame.id] }, e(Icon, { name: "code" }), "Code"));
 
-    var frameStrip = e("div", { className: "bd-frames", role: "tablist", "aria-label": "Frames" },
-      doc.frames.map(function (f) {
-        var on = f.id === doc.active;
-        return e("div", { key: f.id, className: cx("bd-frame-tab", on && "is-current") },
-          e("button", {
-            type: "button", role: "tab", "aria-selected": String(on), className: "bd-frame-btn", title: f.name + ", " + (FRAME_WIDTH[f.size] || 1280) + "px",
-            onClick: function () { frameOps.show(f.id); },
+    var isBackground = function (t) { return t === stageRef.current || (t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"))); };
+    var frameSrc = mountEl.getAttribute("data-frame");
+    var anyReady = doc.frames.some(function (f) { return ready[f.id]; });
+
+    var stage = e("div", {
+      className: cx("bd-stage", drag && "is-dragging", (space || panning) && "is-panning", preview && "is-preview"), ref: stageRef,
+      onPointerDown: function (ev) {
+        if (!isBackground(ev.target) && !spaceRef.current && ev.button !== 1) return;
+        if (ev.button === 2) return;
+        ev.preventDefault();
+        releaseFocus();
+        try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+        gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+      },
+      onPointerMove: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+      onPointerUp: function (ev) {
+        if (!gest.current.pts[ev.pointerId]) return;
+        var moved = gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+        if (!moved && isBackground(ev.target) && !spaceRef.current) { select([]); if (editRef.current) editDone(true); }
+      },
+      onPointerCancel: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+    },
+      e("div", { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
+        doc.frames.map(function (f) {
+          var b = boxes[f.id];
+          return e("iframe", {
+            key: f.id, className: cx("bd-frame", f.id === doc.active && "is-active"),
+            ref: function (el) { if (el) frameEls.current[f.id] = el; else delete frameEls.current[f.id]; },
+            title: "Frame " + f.name + ", " + f.width + " by " + Math.round(b.h) + " pixels", src: frameSrc,
+            onLoad: function () { frameReady(f.id); },
+            style: { left: b.x + "px", top: b.y + "px", width: b.w + "px", height: b.h + "px" },
+          });
+        })),
+      e("div", { className: "bd-labels" },
+        doc.frames.map(function (f) {
+          var b = boxes[f.id];
+          var on = f.id === doc.active;
+          return e("div", {
+            key: f.id, className: cx("bd-flabel", on && "is-current", on && !sel && "is-selected"),
+            style: { left: cam.x + b.x * cam.z + "px", top: cam.y + b.y * cam.z + "px", maxWidth: Math.max(80, b.w * cam.z) + "px" },
           },
-            e(Icon, { name: FRAME_ICON[f.size] || "desktop" }),
-            on ? e(Renamable, { value: f.name, label: "Frame name", className: "bd-frame-name", startEditing: renaming === "frame:" + f.id, onChange: function (v) { frameOps.rename(f.id, v); } }) : e("span", { className: "bd-frame-name" }, f.name)),
-          on ? e(Dropdown, { menu: true, label: "Frame actions", placeholder: "Frame actions", icon: "more", iconOnly: true, compact: true, alignEnd: true, className: "bd-frame-more",
-            options: [{ value: "duplicate", label: "Duplicate frame", icon: "copy" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete frame", icon: "trash", disabled: doc.frames.length < 2, danger: true }],
-            onChange: function (v) { if (v === "duplicate") frameOps.duplicate(f.id); if (v === "delete") frameOps.remove(f.id); if (v === "rename") setRenaming("frame:" + f.id); } }) : null);
-      }),
-      e("button", { type: "button", className: "bd-act", onClick: frameOps.add, title: "New frame", "aria-label": "New frame" }, e(Icon, { name: "plus" })));
-
-    var stage = e("div", { className: cx("bd-stage", drag && "is-dragging"), ref: stageRef,
-      onPointerDown: function (ev) { if (ev.target === ev.currentTarget || ev.target.classList.contains("bd-stage-inner")) { select([]); if (editRef.current) editDone(true); } } },
-      e("div", { className: "bd-stage-inner", style: { width: innerW + "px" } },
-        e("iframe", {
-          ref: frameRef, className: "bd-frame", title: "Builder canvas, " + frame.name + ", " + vpWidth + "px wide", src: mountEl.getAttribute("data-frame"), onLoad: onFrameLoad,
-          style: { width: vpWidth + "px", height: frameH + "px", transform: "scale(" + scale + ")", left: offX + "px", top: offY + "px" },
-        }),
-        e("div", { className: "bd-marks", "aria-hidden": true },
-          !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
-          !preview ? marks.sel.map(function (m) {
-            var at = locate(doc, m.id);
-            if (!at) return null;
-            var isMain = m.id === sel && !edit;
-            return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", m.r.top < 24 && "is-top"), style: m.r },
-              isMain ? e("span", {
-                className: "bd-mark-tag", title: "Drag to move",
-                onPointerDown: function (ev) { ev.preventDefault(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
-              }, at.node.name || at.node.type) : null);
-          }) : null,
-          marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
-          marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
-        edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: scale, onChange: editChange, onDone: editDone }) : null),
-      ready ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
+            isRenaming("frame:" + f.id, "label")
+              ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-flabel-name", onChange: function (v) { frameOps.rename(f.id, v); } })
+              : e("button", {
+                type: "button", className: "bd-flabel-btn", title: f.name + ", " + sizeText(f) + ". Double-click to rename.",
+                onClick: function () { frameOps.pick(f.id); },
+                onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "label" }); },
+              }, e("span", { className: "bd-flabel-name" }, f.name)),
+            e("span", { className: "bd-flabel-size" }, sizeText(f)));
+        })),
+      e("div", { className: "bd-marks", "aria-hidden": true },
+        !preview && boxes[frame.id] ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+        !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
+        !preview ? marks.sel.map(function (m) {
+          var at = locate(doc, m.id);
+          if (!at) return null;
+          var isMain = m.id === sel && !edit;
+          /* At the top of the stage, or of its frame (where the frame's name
+             sits), the tag goes inside the box. */
+          var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
+          return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+            isMain ? e("span", {
+              className: "bd-mark-tag", title: "Drag to move",
+              onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
+            }, at.node.name || at.node.type) : null);
+        }) : null,
+        marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
+        marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
+      edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
+      wide && bare && !preview ? e("button", { type: "button", className: "bd-float", onClick: actions.panels, title: "Show panels (Tab)" }, e(Icon, { name: "panels" }), "Show panels") : null,
+      preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
+      anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
 
     var inspector = selectedNodes.length ? nodeInspector(selectedNodes) : frameInspector();
     var slot = wide ? document.getElementById("app-toolbar") : null;
@@ -1774,23 +2328,24 @@
           return e("button", { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0]), onClick: function () { setPane(t[0]); } },
             t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
         })),
-      e("div", { className: "bd-shell", "data-pane": pane },
-        e("aside", { className: "bd-left", "aria-label": "Assets and layers" },
+      e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane },
+        e("aside", { className: "bd-left", "aria-label": "Assets and layers", hidden: hidePanels || undefined },
           e("div", { className: "bd-left-tabs", role: "tablist", "aria-label": "Left panel" },
             e("button", { type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === "assets"), onClick: function () { setLeft("assets"); } }, e(Icon, { name: "plus" }), "Assets"),
             e("button", { type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === "layers"), onClick: function () { setLeft("layers"); } }, e(Icon, { name: "blocks" }), "Layers")),
           e("div", { className: "bd-left-body" }, left === "assets" ? assetsPanel() : layersPanel())),
-        e("div", { className: "bd-center" }, slot ? null : toolbar, frameStrip, stage),
-        e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef }, inspector)),
+        e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
+        e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
       drag ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
       e("dialog", { className: "bd-code", ref: dialogRef, "aria-labelledby": "bd-code-title" },
         e("div", { className: "bd-code-head" },
-          e("h2", { id: "bd-code-title" }, "Code: " + frame.name),
-          e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own."),
+          e("div", { className: "bd-code-intro" },
+            e("h2", { id: "bd-code-title" }, "Code: " + frame.name),
+            e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own.")),
           e("div", { className: "bd-code-actions" },
             e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { copyText(code).then(function () { announce("Code copied"); }); } }, e(Icon, { name: "copy" }), "Copy"),
             e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: (frame.name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download"),
-            e("button", { type: "button", className: "bd-btn", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" }), "Close"))),
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
   }

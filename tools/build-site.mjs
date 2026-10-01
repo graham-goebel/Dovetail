@@ -914,7 +914,7 @@ function page({ title, lede, body, active, root, wide = false, home = false, app
   const hasToc = !home && toc.length >= 3;
   const actions = pageActions({ title, root, md, mdName: mdName || (md ? md.split("/").pop() : null), pageUrl, sources, copies });
   return `<!doctype html>
-<html lang="en">
+<html lang="en"${app ? " data-theme-fixed" : ""}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -925,12 +925,15 @@ function page({ title, lede, body, active, root, wide = false, home = false, app
 <link rel="stylesheet" href="${root}assets/site.css">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
-     theme on its way to the chosen one. assets/theme.js owns everything after. */
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
   try {
     var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
     var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
-    var ctx = localStorage.getItem("dovetail-docs-context") || "";
-    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
     if (cfg && cfg.dark) r.classList.add("dark");
     if (ctx) r.classList.add(ctx);
     r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
@@ -2112,19 +2115,31 @@ const BUILDER_TOKENS = {
       tokenOption("fill", [], { width: "100%" }, "Fill"),
       ...["narrow", "default", "wide"].map((o) => tokenOption(o, [`--dt-size-container-${o}`], { width: "100%", maxWidth: cssVar(`--dt-size-container-${o}`), marginInline: "auto" }, `Container ${o}`)),
     ] },
+  minW: { label: "Min width", section: "size", preview: "text",
+    options: [2, 3, 4, 6, 8].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { minWidth: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`))
+      .concat([tokenOption("narrow", ["--dt-size-container-narrow"], { minWidth: `min(100%, ${cssVar("--dt-size-container-narrow")})` }, "Container narrow")]) },
+  /* Fill takes the room its parent has: all of a set height, or the rest of
+     a column (the frame, a Section, a column Group). */
+  height: { label: "Height", section: "size", preview: "text",
+    options: [
+      tokenOption("hug", [], { height: "auto" }, "Hug contents"),
+      tokenOption("fill", [], { height: "100%", flexGrow: "1" }, "Fill"),
+      ...[1, 2, 4, 6, 8, 12].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { height: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)),
+      tokenOption("narrow", ["--dt-size-container-narrow"], { height: cssVar("--dt-size-container-narrow") }, "Container narrow"),
+    ] },
   h: { label: "Min height", section: "size", preview: "text",
     options: [2, 4, 6, 8].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { minHeight: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`))
       .concat([tokenOption("narrow", ["--dt-size-container-narrow"], { minHeight: cssVar("--dt-size-container-narrow") }, "Container narrow")]) },
 };
-/* The canvas's frame sizes. Widths of real devices, not tokens; the builder
-   offers these and nothing else. */
+/* The canvas's frame presets: the screens of real devices, not tokens. A
+   frame can also take any width and height in between. */
 const BUILDER_FRAMES = [
-  { id: "phone", label: "Phone", width: 390 },
-  { id: "phone-lg", label: "Phone, large", width: 430 },
-  { id: "tablet", label: "Tablet", width: 768 },
-  { id: "laptop", label: "Laptop", width: 1024 },
-  { id: "desktop", label: "Desktop", width: 1280 },
-  { id: "wide", label: "Wide", width: 1440 },
+  { id: "phone", label: "Phone", width: 390, height: 844 },
+  { id: "phone-lg", label: "Phone, large", width: 430, height: 932 },
+  { id: "tablet", label: "Tablet", width: 768, height: 1024 },
+  { id: "laptop", label: "Laptop", width: 1024, height: 768 },
+  { id: "desktop", label: "Desktop", width: 1280, height: 800 },
+  { id: "wide", label: "Wide", width: 1440, height: 900 },
 ];
 /* The builder's own flex group: any components side by side or stacked, with
    a gap from the inline scale (in a row) or the stack scale (in a column). */
@@ -2135,11 +2150,11 @@ const BUILDER_GROUP = {
   builder: true,
   href: null,
   props: [
-    { name: "direction", kind: "enum", options: ["row", "column"], default: "row", note: "Side by side or stacked", layout: true },
-    { name: "gap", kind: "enum", options: ["none"].concat(BUILDER_SPACE), default: "sm", note: "From the inline scale in a row, the stack scale in a column", layout: true },
-    { name: "align", kind: "enum", options: ["flex-start", "center", "flex-end", "stretch"], default: "stretch", note: "Cross axis", layout: true },
-    { name: "justify", kind: "enum", options: ["flex-start", "center", "flex-end", "space-between"], default: "flex-start", note: "Main axis", layout: true },
-    { name: "wrap", kind: "boolean", default: "true", note: "Let items wrap onto a new line", layout: true },
+    { name: "direction", kind: "enum", options: ["row", "column"], default: "row", note: "Side by side or stacked", tab: "layout" },
+    { name: "gap", kind: "enum", options: ["none"].concat(BUILDER_SPACE), default: "sm", note: "From the inline scale in a row, the stack scale in a column", tab: "layout" },
+    { name: "align", kind: "enum", options: ["flex-start", "center", "flex-end", "stretch"], default: "stretch", note: "Cross axis", tab: "layout" },
+    { name: "justify", kind: "enum", options: ["flex-start", "center", "flex-end", "space-between"], default: "flex-start", note: "Main axis", tab: "layout" },
+    { name: "wrap", kind: "boolean", default: "true", note: "Let items wrap onto a new line", tab: "layout" },
   ],
 };
 /* Grid's minColumnWidth is a CSS length in the component. The builder offers
@@ -2151,8 +2166,10 @@ const BUILDER_ROOT_GAPS = ["related", "group", "block", "section"];
 const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
 /* Fixed to the viewport when open, or invisible by design: nothing to place. */
 const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
-/* Props that shape the layout, shown first in the inspector. */
-const BUILDER_LAYOUT_PROPS = ["direction", "width", "tone", "dark", "texture", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "surface"];
+/* The inspector's tabs: how a component looks, how it lays out, and what it
+   says. Every other prop is content. */
+const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit"];
+const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky"];
 /* Stack, Inline and Grid type align and justify as CSS keywords. */
 const BUILDER_KEYWORDS = {
   align: ["flex-start", "center", "flex-end", "stretch"],
@@ -2203,10 +2220,10 @@ function buildBuilder() {
         props.push({ name: k, kind: "enum", options: BUILDER_KEYWORDS[k], default: null, note: "" });
       }
     }
-    props.forEach((p) => { p.layout = BUILDER_LAYOUT_PROPS.includes(p.name); });
+    props.forEach((p) => { p.tab = BUILDER_APPEARANCE_PROPS.includes(p.name) ? "appearance" : BUILDER_LAYOUT_PROPS.includes(p.name) ? "layout" : "content"; });
     /* An image or video source takes an upload or a URL, never typed CSS. */
     const media = ["Image", "Cover", "Video"].includes(c.name) ? ["src"].concat(c.name === "Video" ? ["poster"] : []) : [];
-    media.forEach((name) => props.push({ name, kind: "media", options: null, default: null, note: name === "poster" ? "Shown before the video plays" : "The picture or clip", layout: false }));
+    media.forEach((name) => props.push({ name, kind: "media", options: null, default: null, note: name === "poster" ? "Shown before the video plays" : "The picture or clip", tab: "content" }));
     meta[c.name] = {
       blurb: NAV_BLURB[c.name] || String(c.summary || "").replace(/[`*_]/g, "").split(". ")[0],
       group: c.group,

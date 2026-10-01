@@ -10,12 +10,15 @@
 <link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
-     theme on its way to the chosen one. assets/theme.js owns everything after. */
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
   try {
     var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
     var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
-    var ctx = localStorage.getItem("dovetail-docs-context") || "";
-    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
     if (cfg && cfg.dark) r.classList.add("dark");
     if (ctx) r.classList.add(ctx);
     r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
@@ -214,7 +217,7 @@ export function Spinner({ size = &quot;md&quot;, label = &quot;Loading&quot;, in
 <script src="../assets/search-data.js?v=9d13d38df9" defer></script>
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=e86531a11f" defer></script>
-<script src="../assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="../assets/theme.js?v=0ede19e246" defer></script>
 <script src="../assets/site.js?v=544ba24909" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>
 </body>
