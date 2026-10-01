@@ -11,8 +11,10 @@
    reader changed; everything else comes from the component's specimen
    (assets/specimens.js), the same starting point the component pages use, so
    a dropped component looks like a real use of it rather than an empty shell.
-   `style` holds token names, never values: STYLE below turns each one into a
-   custom property, which is the only way a value reaches the canvas. */
+   `style` holds token names, never values. Each name is looked up in the
+   builder data (assets/builder-data.js, generated and checked by the site
+   build), whose declarations are the only way a value reaches the canvas.
+   Group is the builder's own flex container: a div whose gap is a token. */
 
 (function () {
   "use strict";
@@ -28,30 +30,32 @@
 
   /* Components whose children the reader arranges. Their specimen's own
      children are dropped; the tree supplies new ones. */
-  var CONTAINERS = { Root: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true };
+  var CONTAINERS = { Root: true, Group: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true };
 
-  /* Token-only styling. Each key maps a token name chosen in the inspector to
-     the declarations it sets. */
-  var STYLE = {
-    surface: function (v) { return { background: "var(--dt-surface-" + v + ")" }; },
-    padding: function (v) { return { padding: "var(--dt-space-inset-" + v + ")" }; },
-    radius: function (v) { return { borderRadius: "var(--dt-radius-" + v + ")", overflow: "hidden" }; },
-    border: function (v) { return { border: "var(--dt-border-width-default) solid var(--dt-border-" + v + ")" }; },
-    elevation: function (v) { return { boxShadow: "var(--dt-elevation-" + v + ")" }; },
-    width: function (v) { return { width: "100%", maxWidth: "var(--dt-size-container-" + v + ")", marginInline: "auto" }; },
-  };
-  var STYLE_ORDER = ["surface", "padding", "radius", "border", "elevation", "width"];
+  var DATA = window.DovetailBuilderData || { tokens: {} };
+  var STYLE_KEYS = Object.keys(DATA.tokens);
+
+  /* Group's gap: the inline scale in a row, the stack scale in a column. */
+  var GROUP_GAP = { row: "--dt-space-inline-", column: "--dt-space-stack-" };
+  function groupStyle(p) {
+    var dir = p.direction === "column" ? "column" : "row";
+    var st = { display: "flex", flexDirection: dir, flexWrap: p.wrap === false ? "nowrap" : "wrap", alignItems: p.align || "stretch", justifyContent: p.justify || "flex-start" };
+    var gap = p.gap || "sm";
+    if (gap !== "none") st.gap = "var(" + GROUP_GAP[dir] + gap + ")";
+    return st;
+  }
 
   /* The page root's gap reads a layout layer, so it follows the layout's
      character with everything else. */
   var ROOT_GAP = { related: "--dt-layout-stack-related", group: "--dt-layout-stack-group", block: "--dt-layout-stack-block", section: "--dt-layout-stack-section" };
 
-  function styleFor(s) {
-    if (!s) return null;
+  function styleFor(st) {
+    if (!st) return null;
     var out = null;
-    STYLE_ORDER.forEach(function (k) {
-      if (!s[k] || !STYLE[k]) return;
-      out = Object.assign(out || {}, STYLE[k](s[k]));
+    STYLE_KEYS.forEach(function (k) {
+      if (!st[k]) return;
+      var o = DATA.tokens[k].options.filter(function (x) { return x.value === st[k]; })[0];
+      if (o) out = Object.assign(out || {}, o.css);
     });
     return out;
   }
@@ -73,7 +77,7 @@
   /* Layout containers start clean: their specimens show off a variant (a
      photo band, a wide gap) that would be a surprising default for an empty
      box. Card keeps its specimen's title and copy. */
-  var CLEAN = { Section: true, Stack: true, Inline: true, Grid: true };
+  var CLEAN = { Group: true, Section: true, Stack: true, Inline: true, Grid: true };
 
   var baseCache = {};
   function base(type) {
@@ -128,6 +132,12 @@
 
   function renderNode(node, parentId) {
     index[node.id] = { node: node, parent: parentId };
+    if (node.type === "Group") {
+      var gp = node.props || {};
+      var gkids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", style: { display: "contents" } },
+        e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: Object.assign(groupStyle(gp), styleFor(node.style) || {}) }, gkids));
+    }
     var Comp = NS[node.type];
     if (!Comp) return e("div", { key: node.id, className: "bf-error", "data-bf-id": node.id }, "Unknown component " + node.type);
     var p = propsOf(node);
@@ -322,26 +332,61 @@
   function editing() { return current && !opts.preview; }
   function host() { return window.parent && window.parent !== window ? window.parent.BuilderHost : null; }
 
+  /* Press on any part of a node and drag to move it. Inside the selection,
+     the selection moves; elsewhere, the node under the pointer does. Touch
+     scrolls instead, and moves with the selection's tag. */
+  var press = null;
+  var swallowClick = false;
+
   ["click", "submit", "auxclick", "dblclick"].forEach(function (type) {
     document.addEventListener(type, function (ev) {
       if (!editing()) return;
       ev.preventDefault();
       ev.stopPropagation();
-      if (type === "click" && host()) {
-        var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
-        host().pick(w ? w.getAttribute("data-bf-id") : "root");
-      }
+      if (type !== "click" || !host()) return;
+      if (swallowClick) { swallowClick = false; return; }
+      var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+      host().pick(w ? w.getAttribute("data-bf-id") : "root", ev.shiftKey || ev.metaKey || ev.ctrlKey);
     }, true);
   });
   document.addEventListener("pointerdown", function (ev) {
     if (!editing()) return;
     /* No focus, no text selection, no native drag of an image. */
     if (ev.pointerType === "mouse") ev.preventDefault();
+    if (ev.button !== 0 || ev.pointerType === "touch" || ev.shiftKey || !host()) return;
+    var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+    var id = w ? w.getAttribute("data-bf-id") : null;
+    if (!id || id === "root" || !index[id]) return;
+    var sel = host().selection();
+    var dragId = sel && sel !== "root" && index[sel] && contains(sel, id) ? sel : id;
+    press = { id: dragId, x: ev.clientX, y: ev.clientY, pointer: ev.pointerId, active: false };
+    try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
   }, true);
   document.addEventListener("pointermove", function (ev) {
-    if (!editing() || !host() || ev.pointerType !== "mouse") return;
-    host().hover(pick(ev.clientX, ev.clientY));
+    if (!editing() || !host()) return;
+    if (press && ev.pointerId === press.pointer) {
+      if (!press.active && Math.abs(ev.clientX - press.x) + Math.abs(ev.clientY - press.y) > 5) {
+        press.active = true;
+        host().dragStart(press.id);
+      }
+      if (press.active) { host().dragMove(ev.clientX, ev.clientY); return; }
+    }
+    if (ev.pointerType === "mouse") host().hover(pick(ev.clientX, ev.clientY));
   }, true);
+  function release(commit) {
+    return function (ev) {
+      if (!press || ev.pointerId !== press.pointer) return;
+      if (press.active && host()) {
+        host().dragEnd(commit);
+        /* The click that follows this release is the drag's, not a pick. */
+        swallowClick = true;
+        setTimeout(function () { swallowClick = false; }, 0);
+      }
+      press = null;
+    };
+  }
+  document.addEventListener("pointerup", release(true), true);
+  document.addEventListener("pointercancel", release(false), true);
   document.addEventListener("pointerleave", function () { if (host()) host().hover(null); });
   document.addEventListener("keydown", function (ev) {
     if (!editing() || !host()) return;
@@ -422,6 +467,13 @@
   }
 
   function block(node, used, pad) {
+    if (node.type === "Group") {
+      var gs = Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {});
+      var gattrs = (node.style && node.style.dark ? ' className="dark"' : "") + " style={" + value(gs, used, 0) + "}";
+      var gopen = pad + "<div" + gattrs;
+      if (!(node.children || []).length) return gopen + " />";
+      return gopen + ">\n" + node.children.map(function (c) { return block(c, used, pad + "  "); }).join("\n") + "\n" + pad + "</div>";
+    }
     var tag = node.type;
     used.add(tag);
     var p = propsOf(node);
@@ -454,7 +506,7 @@
     drop: drop,
     pick: pick,
     jsx: jsx,
-    has: function (type) { return !!NS[type]; },
+    has: function (type) { return type === "Group" || !!NS[type]; },
     /* A component's starting props that are plain values, so the inspector
        can show what a control is set to before the reader touches it. */
     scalars: function (type) {

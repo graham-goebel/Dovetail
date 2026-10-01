@@ -62,10 +62,10 @@
 <script src="../system/components/lib/react-dom.production.min.js"></script>
 <script>
   /* The bundle, the specimens and the canvas script, each with the stamp the
-     builder page passed in (b, s, f), so a deploy never pairs this page with a
+     builder page passed in (b, s, d, f), so a deploy never pairs this page with a
      cached copy of an older one. async = false runs them in order. */
   (function () {
-    var files = [["../system/components/bundle.js", "b"], ["specimens.js", "s"], ["builder-frame.js", "f"]];
+    var files = [["../system/components/bundle.js", "b"], ["specimens.js", "s"], ["builder-data.js", "d"], ["builder-frame.js", "f"]];
     files.forEach(function (f) {
       var m = new RegExp("[?&]" + f[1] + "=(\\w+)").exec(location.search);
       var tag = document.createElement("script");
