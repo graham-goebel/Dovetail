@@ -1779,6 +1779,47 @@ function literalOptions(type) {
   if (lits.length < 2 || parts.some((x) => !lits.includes(x) && !/^(string|number)$/.test(x))) return null;
   return lits.map((x) => (x[0] === '"' ? x.slice(1, -1) : Number(x)));
 }
+/* A list prop (an Accordion's items, a block's stats) becomes an editor whose
+   fields come from the item's own type: text, numbers, switches and choices.
+   A list whose items need something the builder can't edit (a nested list, an
+   element) is left out, unless that part is optional, when it's skipped. */
+function listFields(type) {
+  type = type.replace(/\s+/g, " ").trim();
+  const arr = /^(.+)\[\]$/.exec(type) || /^Array<(.+)>$/.exec(type);
+  if (!arr) return null;
+  const item = arr[1].trim();
+  if (/^(string|React\.ReactNode)$/.test(item)) return { of: "text" };
+  let body = null, only = null;
+  const pick = /^Pick<(\w+),\s*(.+)>$/.exec(item);
+  if (pick) { body = interfaceBody(allTypes(), pick[1]); only = literalOptions(pick[2]) || [pick[2].replace(/"/g, "")]; }
+  else if (/^\w+$/.test(item)) body = interfaceBody(allTypes(), item);
+  if (body == null) return null;
+  const fields = [];
+  const re = /(?:\/\*\*([\s\S]*?)\*\/\s*)?\n\s*([a-zA-Z]\w*)(\?)?:\s*([^;]+);/g;
+  let m;
+  while ((m = re.exec(body))) {
+    const [, doc = "", name, opt, raw] = m;
+    if (only && !only.includes(name)) continue;
+    if (/^on[A-Z]/.test(name)) continue;
+    const t = resolveIndexed(raw.replace(/\s+/g, " ").trim());
+    let kind = null, options = null;
+    if (t === "string" || t === "React.ReactNode") kind = /^(src|image|poster)$/.test(name) ? "media" : /^href$/.test(name) ? "url" : "text";
+    else if (t === "number" || t === "number | string" || t === "string | number") kind = "number";
+    else if (t === "boolean") kind = "boolean";
+    else if ((options = literalOptions(t))) kind = "enum";
+    /* A raw width or colour isn't a token, so it isn't a field. */
+    if (kind !== "enum" && /^(width|height|minWidth|maxWidth|color|background)$/.test(name)) kind = null;
+    if (!kind) { if (opt) continue; return null; }
+    const f = { name, kind, optional: !!opt };
+    if (options) f.options = options;
+    const note = doc.replace(/^\s*\*\s?/gm, "").replace(/@\w+[^\n]*/g, "").replace(/\s+/g, " ").trim();
+    if (note) f.note = note.split(". ")[0].slice(0, 80);
+    fields.push(f);
+  }
+  /* Only an id (an item type that extends another, say) is nothing to edit. */
+  return fields.some((f) => !/^(id|key)$/.test(f.name)) ? { fields } : null;
+}
+
 function builderExtraProps(c, have) {
   if (!c.types) return [];
   const src = read(path.join(ROOT, c.types));
@@ -1791,6 +1832,13 @@ function builderExtraProps(c, have) {
   while ((m = re.exec(body))) {
     const [, doc = "", name, , rawType] = m;
     if (have.has(name) || /^(style|as|className|id|children)$/.test(name) || /^on[A-Z]/.test(name)) continue;
+    /* A list, unless it's a controlled value or a free-form union. */
+    const list = /^(value|default[A-Z]\w*|blocks|rows)$/.test(name) ? null : listFields(rawType);
+    if (list) {
+      const note0 = doc.replace(/^\s*\*\s?/gm, "").replace(/@\w+[^\n]*/g, "").replace(/\s+/g, " ").trim();
+      out.push(Object.assign({ name, kind: "list", options: null, default: null, note: note0.split(". ")[0].slice(0, 120) }, list));
+      continue;
+    }
     const options = literalOptions(resolveIndexed(rawType.replace(/\s+/g, " ").trim()));
     if (!options) continue;
     let def = ((doc.match(/@default\s+([^\n*]+)/) || [])[1] || "").trim().replace(/^"|"$/g, "");
@@ -2368,7 +2416,8 @@ function buildBuilderFormat(meta, groups, tokens) {
   const containers = Object.keys(meta).filter((n) => meta[n].container);
   const propLine = (p) => {
     const slot = p.kind === "node" && (p.accepts || /^(actions|media|footer|aside|extra|start|end|leading|trailing)$/.test(p.name));
-    const kind = p.kind === "enum" ? `one of ${list(p.options)}` : p.kind === "media" ? "an https URL" : slot ? `a slot${p.accepts ? ` taking ${list(p.accepts)}` : ""}` : p.kind === "node" ? "text" : p.kind;
+    const kind = p.kind === "enum" ? `one of ${list(p.options)}` : p.kind === "media" ? "an https URL" : slot ? `a slot${p.accepts ? ` taking ${list(p.accepts)}` : ""}`
+      : p.kind === "list" ? (p.of === "text" ? "a list of text" : `a list of { ${p.fields.map((f) => f.name + (f.optional ? "?" : "")).join(", ")} }`) : p.kind === "node" ? "text" : p.kind;
     return `${code(p.name)} (${kind}${p.default != null && p.default !== "" ? `; default ${code(p.default)}` : ""})`;
   };
   const lines = [
@@ -2416,7 +2465,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     "```",
     ``,
     `- ${code("type")}: a component from the list below.`,
-    `- ${code("props")}: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A component's text is ${code("props.children")}. Leave a prop out to keep the sample content the builder starts it with.`,
+    `- ${code("props")}: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a ${code("?")} marks one you may leave out), and "a list of text" an array of strings. A component's text is ${code("props.children")}. Leave a prop out to keep the sample content the builder starts it with.`,
     `- ${code("style")}: keys from the style table, each set to one of its option names. Never a CSS value.`,
     `- ${code("children")}: an array of nodes, only on containers: ${list(containers)}.`,
     `- On any other component, ${code("children")} may hold its slots instead: ${code('{ "type": "Slot", "props": { "name": "actions" }, "children": [ ...nodes ] }')}. A slot stands for one of the component's element props (a hero's ${code("actions")} or ${code("media")}, marked "a slot" below). What's in it renders into that prop and exports as JSX in it. Leave a slot out to keep the sample's own content.`,

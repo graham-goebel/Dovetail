@@ -2984,3 +2984,107 @@ span.bd-layer-twisty.is-open .bd-ic {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------------------------------------------------------------- lists */
+
+.bd-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+}
+
+.bd-list-item {
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-base);
+  min-width: 0;
+}
+
+.bd-list-item.is-open {
+  border-color: var(--dt-border-default);
+}
+
+.bd-list-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline-end: 2px;
+  min-width: 0;
+}
+
+.bd-list-sum {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  min-width: 0;
+  min-height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-2xs);
+  border: 0;
+  background: transparent;
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  text-align: start;
+  cursor: pointer;
+}
+
+.bd-list-chev {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--dt-text-tertiary);
+}
+
+.bd-list-item.is-open .bd-list-chev {
+  transform: rotate(90deg);
+}
+
+.bd-list-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-list-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs) var(--dt-space-inset-xs);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+.bd-list-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+}
+
+.bd-list-field.is-inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bd-list-text {
+  min-height: calc(var(--dt-size-control-sm) * 2);
+  padding-block: var(--dt-space-inset-2xs);
+  resize: vertical;
+  line-height: var(--dt-line-height-sm);
+}
+
+.bd-list-add {
+  align-self: flex-start;
+}
+
+.bd-list-field .bd-input[aria-invalid="true"] {
+  border-color: var(--dt-border-danger);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-list-chev {
+    transition: transform var(--dt-motion-micro);
+  }
+}

@@ -201,6 +201,42 @@
     return out;
   }
 
+  /* A list prop's sample, as the builder edits it: only when every item fits
+     the fields the item's type gives, so editing never drops what's there. */
+  function listSample(type, name) {
+    var m = DATA.components && DATA.components[type];
+    var spec = m && m.props.filter(function (p) { return p.kind === "list" && p.name === name; })[0];
+    if (!spec) return null;
+    var v = base(type)[name];
+    if (v === undefined || v === null) return [];
+    if (!Array.isArray(v)) return null;
+    var out = [];
+    for (var i = 0; i < v.length; i++) {
+      var item = v[i];
+      if (spec.of === "text") {
+        if (typeof item !== "string" && typeof item !== "number") return null;
+        out.push(String(item));
+        continue;
+      }
+      if (!item || typeof item !== "object" || isElement(item) || Array.isArray(item)) return null;
+      var o = {};
+      var keys = Object.keys(item);
+      for (var k = 0; k < keys.length; k++) {
+        var key = keys[k], val = item[key];
+        if (val === undefined || val === null) continue;
+        var f = spec.fields.filter(function (x) { return x.name === key; })[0];
+        if (!f) return null;
+        if (f.kind === "number") { if (typeof val !== "number") return null; }
+        else if (f.kind === "boolean") { if (typeof val !== "boolean") return null; }
+        else if (f.kind === "enum") { if (f.options.indexOf(val) < 0) return null; }
+        else if (typeof val !== "string" && typeof val !== "number") return null;
+        o[key] = f.kind === "text" || f.kind === "url" || f.kind === "media" ? String(val) : val;
+      }
+      out.push(o);
+    }
+    return out;
+  }
+
   var stamp = 0;
   var index = {};
 
@@ -811,6 +847,7 @@
     textRect: textRect,
     canDetach: function (type) { return !!RECIPES[type]; },
     slots: slotTemplate,
+    listSample: listSample,
     rect: rect,
     drop: drop,
     pick: pick,
