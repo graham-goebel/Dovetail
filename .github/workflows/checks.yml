@@ -76,3 +76,6 @@ jobs:
 
       - name: Dialog, Drawer and Tabs behave in a real browser
         run: npm run check:behavior
+
+      - name: The builder places, styles, exports and shares
+        run: npm run check:builder

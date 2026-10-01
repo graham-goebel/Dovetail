@@ -14,8 +14,8 @@ How to get set up, make a change, and get it merged when several people (and the
 | `tools/` | Build scripts and checks | hand |
 | `changes/` | Pending changelog entries, one per change | hand |
 | `examples/` | Sites built with Dovetail, as stretch tests | hand |
-| `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html` | The documentation site | **generated** |
-| `system/components/bundle.js`, `system/_ds_bundle.js`, `system/templates/_support/card-kit.js`, `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js`, `llms.txt` | Build output | **generated** |
+| `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html`, `builder.html` | The documentation site | **generated** |
+| `system/components/bundle.js`, `system/_ds_bundle.js`, `system/templates/_support/card-kit.js`, `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js`, `assets/builder-data.js`, `llms.txt` | Build output | **generated** |
 | The `<style>` block and app script of `previews/MarketingKit.html` and `previews/DashboardKit.html` | Compiled from the templates in `system/kits/` | **generated** |
 
 **Never edit a generated file by hand.** Change its source and run `npm run build`.
@@ -87,7 +87,8 @@ Edit `assets/` or `tools/build-site.mjs`, run `npm run build`, and look at the r
 | `npm run check:build` | The bundle, card kit and site are current with their sources |
 | `npm run check:changes` | Every entry in `changes/` is valid (fields, migration notes for majors) |
 | `npm run check:browser` | Every card and every site page loads with no script error, no missing local file and no bundle error; every local link resolves |
-| `npm run check` | All three |
+| `npm run check:builder` | The builder page renders every palette component, drags, styles with tokens only, exports, undoes and opens share links safely |
+| `npm run check` | All of these, plus the server-render, package, consumer and behaviour checks |
 
 In CI, pull requests also have to add a changelog entry when they touch shipped sources. Add `bump: none` or the `skip-changelog` label if there's truly nothing to say.
 
