@@ -25,6 +25,9 @@
    - a block's element props are slots: its own buttons are picked on the
      canvas, changed, and exported as JSX in the prop; a slot empties, takes
      its sample back, and only takes the kinds it allows;
+   - a block's array props are lists: FaqBlock's items open onto fields read
+     from its types, edit on the canvas, add with an id of their own, move,
+     go, survive a reload, and export as an array in the prop;
    - Select and Hand share one button; a group's tray closes on a press on
      the canvas, and its items drag onto a frame;
    - the inspector opens on the tab that suits the layer; size and spacing
@@ -847,6 +850,64 @@ try {
     hero = heroOf(await saved());
     expect(hero.children.filter((c) => c.type === "Slot").length === 2, "the slots survive a reload");
     ok("the slots and what's in them survive a reload");
+    await page.close();
+  });
+
+  await step("Lists: a block's items edit one by one, add, move and go, and export as its prop", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const items = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "FaqBlock").props.items);
+    const labelsNow = () => page.locator(".bd-list-label").allTextContents();
+    await page.locator(".bd-start").click();
+    await option(page, "Blank frame").click();
+    await emptyFrame(page);
+    await category(page, "Blocks");
+    await page.locator('.bd-tile[data-type="FaqBlock"]').click();
+    await frame().waitForSelector('[data-bf-type="FaqBlock"]');
+    await tab(page, "Content");
+    expect(await page.locator(".bd-right .bd-list").count() === 1, "FaqBlock's items show as a list, and defaultOpen, which is state, doesn't");
+    const first = await labelsNow();
+    expect(first.length === 2 && /dishwasher/.test(first[0]), `each item is named by its question, not its id, got ${first}`);
+    const fields = await page.locator(".bd-list-item.is-open .bd-field-label").allTextContents();
+    expect(fields.join(",") === "Question,Answer,Id", `an item's fields come from its type with the id last, got ${fields}`);
+    await page.locator(".bd-list-item.is-open .bd-list-field", { hasText: "Question" }).locator("input").fill("Do the mugs survive a dishwasher?");
+    await frame().waitForFunction(() => document.body.textContent.includes("Do the mugs survive a dishwasher?"));
+    ok("FaqBlock's items list by question, open onto Question, Answer and Id, and an edit reaches the canvas");
+
+    await page.locator(".bd-list-add").click();
+    let now = await items();
+    expect(now.length === 3 && now[2].id === "ship-2" && now[2].question === now[1].question, `a new item copies the last with an id of its own, got ${JSON.stringify(now[2])}`);
+    await page.locator(".bd-list-item").nth(0).locator('[aria-label="Move down"]').click();
+    await page.locator(".bd-list-item").last().locator('[aria-label^="Remove"]').click();
+    now = await items();
+    expect(now.map((x) => x.id).join(",") === "ship,dish", `moved and removed, got ${now.map((x) => x.id)}`);
+    await frame().waitForFunction(() => { const t = document.body.textContent; return t.indexOf("How long does shipping take?") < t.indexOf("Do the mugs survive a dishwasher?"); });
+    ok("Add copies the last item with the id ship-2; Move down and Remove reorder and trim it, on the canvas too");
+
+    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(/<FaqBlock[^>]*items=\{\[\{ id: "ship", question: "How long does shipping take\?"[^\]]*\}, \{ id: "dish", question: "Do the mugs survive a dishwasher\?"/.test(code), "the export writes the items as an array in the prop");
+    ok("Code writes items={[{ id: \"ship\", … }, { id: \"dish\", question: \"Do the mugs survive a dishwasher?\", … }]}");
+
+    await page.locator(".bd-assets input[type=search]").fill("Navbar");
+    await page.locator('.bd-tile[data-type="Navbar"]').click();
+    await frame().waitForSelector('[data-bf-type="Navbar"]');
+    await tab(page, "Content");
+    const href = page.locator(".bd-list-item.is-open .bd-list-field", { hasText: "Href" }).locator("input");
+    await href.fill("");
+    await href.pressSequentially("https://example.com/shop");
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href === "https://example.com/shop");
+    await href.fill("javascript:alert(1)");
+    expect(await href.getAttribute("aria-invalid") === "true", "an unsafe link shows as invalid");
+    const kept = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href);
+    expect(kept === "https://example.com/shop", `an unsafe link isn't kept, got ${kept}`);
+    await page.locator(".bd-assets .bd-search-clear").click();
+    ok("a Navbar link's href types in a letter at a time, and javascript: shows invalid and isn't kept");
+
+    await page.reload();
+    await page.waitForSelector(".bd-tile", { state: "attached" });
+    await page.waitForFunction(() => /Do the mugs survive a dishwasher\?/.test(document.querySelector("iframe.bd-frame")?.contentDocument?.body?.textContent || ""));
+    ok("the edited list survives a reload");
     await page.close();
   });
 

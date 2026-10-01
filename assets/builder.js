@@ -392,6 +392,33 @@
   /* Bands run the width of the page, so they always join its flow. */
   var BAND_ROOT = { Section: 1, AppShell: 1, Navbar: 1, Sidebar: 1, BottomNav: 1, Banner: 1, StoreHeader: 1 };
   function joinsFlow(type) { return !type || !!BAND_ROOT[type] || !!(META[type] && META[type].group === "blocks"); }
+  /* A list prop: plain items with only the fields its type gives, each of
+     the right kind; links that go somewhere safe; at most 60 items. */
+  var SAFE_HREF = /^(https?:\/\/|\/|#|mailto:|tel:|\.{0,2}\/?[\w-][\w./?=&%#-]*$)/;
+  function cleanList(spec, v) {
+    if (!Array.isArray(v) || v.length > 60) return null;
+    var out = [];
+    for (var i = 0; i < v.length; i++) {
+      var it = v[i];
+      if (spec.of === "text") { if (typeof it !== "string" && typeof it !== "number") return null; out.push(String(it).slice(0, 2000)); continue; }
+      if (!it || typeof it !== "object" || Array.isArray(it)) return null;
+      var o = {};
+      for (var j = 0; j < spec.fields.length; j++) {
+        var f = spec.fields[j], val = it[f.name];
+        if (val === undefined || val === null || val === "") { if (!f.optional && f.kind !== "boolean") o[f.name] = f.kind === "number" ? 0 : ""; continue; }
+        if (f.kind === "number") { if (typeof val !== "number" || !isFinite(val)) return null; o[f.name] = val; }
+        else if (f.kind === "boolean") { if (typeof val !== "boolean") return null; o[f.name] = val; }
+        else if (f.kind === "enum") { if (f.options.indexOf(val) < 0) return null; o[f.name] = val; }
+        else if (f.kind === "url") { if (typeof val !== "string" || !SAFE_HREF.test(val)) return null; o[f.name] = val; }
+        else if (f.kind === "media") { if (typeof val !== "string" || !MEDIA_URL.test(val)) return null; o[f.name] = val; }
+        else { if (typeof val !== "string" && typeof val !== "number") return null; o[f.name] = String(val).slice(0, 2000); }
+      }
+      if (Object.keys(it).some(function (k) { return !spec.fields.some(function (f) { return f.name === k; }); })) return null;
+      out.push(o);
+    }
+    return out;
+  }
+
   /* A slot, under the component it belongs to: only the kinds it takes. */
   function cleanSlot(c, owner, report) {
     var name = c.props.name;
@@ -420,6 +447,7 @@
       var spec = meta.props.filter(function (p) { return p.name === k; })[0];
       if (k === "minColumnWidth") { if (DATA.columnWidths.some(function (w) { return w.value === v; })) props[k] = v; else note(report, "Grid: minColumnWidth takes a multiple of --dt-size-control-lg, not " + JSON.stringify(v)); return; }
       if (spec && spec.kind === "media") { if (typeof v === "string" && MEDIA_URL.test(v)) props[k] = v; else note(report, n.type + ": " + k + " takes an https URL"); return; }
+      if (spec && spec.kind === "list") { var lv = cleanList(spec, v); if (lv) props[k] = lv; else note(report, n.type + ": " + k + " takes a list of " + (spec.of === "text" ? "text" : "{ " + spec.fields.map(function (f) { return f.name; }).join(", ") + " }") + ", with nothing else in its items"); return; }
       if (spec && spec.kind === "enum" && spec.options.indexOf(v) < 0) { note(report, n.type + ": " + k + " " + JSON.stringify(v) + " isn't one of " + spec.options.join(", ")); return; }
       if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") props[k] = v;
       else note(report, n.type + ": " + k + " takes text, a number or true/false, not an element or object");
@@ -649,6 +677,7 @@
     undo: ["M9 14 4 9l5-5", "M4 9h11a5 5 0 0 1 0 10h-3"],
     redo: ["m15 14 5-5-5-5", "M20 9H9a5 5 0 0 0 0 10h3"],
     down: ["m6 9 6 6 6-6"],
+    up: ["m6 15 6-6 6 6"],
     right: ["m9 6 6 6-6 6"],
     copy: ["M8 8h12v12H8z", "M16 8V4H4v12h4"],
     trash: ["M4 7h16", "M10 11v6", "M14 11v6", "M6 7l1 13h10l1-13", "M9 7V4h6v3"],
@@ -738,6 +767,94 @@
   function words(name) { return name.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^\w/, function (c) { return c.toUpperCase(); }); }
 
   /* --------------------------------------------------------- small parts */
+
+  /* A list prop, item by item: each folds open onto its fields, and moves,
+     copies or goes. A new item starts as a copy of the last. */
+  var LONG_FIELD = /^(content|answer|description|quote|body|note|detail|caption|hint)$/;
+  var ID_FIELD = /^(id|key)$/;
+  var NAME_FIELD = /^(title|label|question|name|heading|quote|text)$/;
+  function ListEditor(props) {
+    var spec = props.spec, items = props.value || [];
+    var openState = useState(items.length ? 0 : -1);
+    var open = openState[0], setOpen = openState[1];
+    var text = spec.of === "text";
+    var put = function (next) { props.onChange(next); };
+    var setAt = function (i, v) { var n = items.slice(); n[i] = v; put(n); };
+    var move = function (i, by) { var j = i + by; if (j < 0 || j >= items.length) return; var n = items.slice(); var t = n[i]; n[i] = n[j]; n[j] = t; put(n); setOpen(j); };
+    /* What names an item: its title or question before any text, and never
+       the id that only ties it to state. */
+    /* value is an id when every item's reads like one ("tab-2"), and the
+       figure on show when it doesn't ("4,000"). */
+    var isId = function (f) {
+      return ID_FIELD.test(f.name) || (f.name === "value" && items.length > 0 && items.every(function (x) { return /^[a-z][\w-]*$/.test(String(x[f.name])); }));
+    };
+    var fields = text ? [] : spec.fields.filter(function (f) { return !isId(f); }).concat(spec.fields.filter(isId));
+    var summary = function (it, i) {
+      if (text) return String(it || "") || "Empty";
+      var named = fields.filter(function (x) { return x.kind === "text" && it[x.name] && !isId(x); });
+      var f = named.filter(function (x) { return NAME_FIELD.test(x.name); })[0] || named[0];
+      return f ? String(it[f.name]) : "Item " + (i + 1);
+    };
+    /* A copy keeps its look, but an id another item has would tie the two
+       together, so it gets the next free one. */
+    var unique = function (o) {
+      fields.forEach(function (f) {
+        if (!isId(f) || o[f.name] == null) return;
+        if (f.kind === "number") { o[f.name] = Math.max.apply(null, items.map(function (x) { return Number(x[f.name]) || 0; })) + 1; return; }
+        var taken = items.map(function (x) { return String(x[f.name]); });
+        var base = String(o[f.name]).replace(/-\d+$/, ""), n = 2;
+        while (taken.indexOf(base + "-" + n) >= 0) n++;
+        o[f.name] = base + "-" + n;
+      });
+      return o;
+    };
+    var blank = function () {
+      if (text) return items.length ? String(items[items.length - 1]) : "";
+      if (items.length) return unique(JSON.parse(JSON.stringify(items[items.length - 1])));
+      var o = {};
+      fields.forEach(function (f) { if (!f.optional) o[f.name] = f.kind === "number" ? 0 : f.kind === "boolean" ? false : f.kind === "enum" ? f.options[0] : isId(f) ? "item-1" : ""; });
+      return o;
+    };
+    var field = function (it, i, f) {
+      var id = props.id + "-" + i + "-" + f.name;
+      var val = it[f.name];
+      var set = function (v) { var o = Object.assign({}, it); if (v === undefined || v === "") delete o[f.name]; else o[f.name] = v; setAt(i, o); };
+      var control;
+      if (f.kind === "boolean") return e("div", { key: f.name, className: "bd-list-field is-inline" }, e("span", { className: "bd-field-label", id: id }, words(f.name)), e(Switch, { labelledBy: id, value: !!val, onChange: set }));
+      if (f.kind === "enum") control = e(Dropdown, { labelledBy: id, value: val, placeholder: f.optional ? "None" : "Choose", onChange: function (v) { set(v || undefined); }, options: (f.optional ? [{ value: "", label: "None" }] : []).concat(f.options.map(function (o) { return { value: o, label: String(o) }; })) });
+      else if (f.kind === "number") control = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function (ev) { set(ev.target.value === "" ? undefined : Number(ev.target.value)); } });
+      else if (LONG_FIELD.test(f.name)) control = e("textarea", { className: "bd-input bd-list-text", rows: 3, "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function (ev) { set(ev.target.value); } });
+      else if (f.kind === "url" || f.kind === "media") control = e(UrlInput, { labelledBy: id, value: val, placeholder: f.kind === "media" ? "https://" : f.optional ? "Optional" : "", ok: f.kind === "media" ? MEDIA_URL : SAFE_HREF, onChange: set });
+      else control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, value: val == null ? "" : String(val), placeholder: f.optional ? "Optional" : "", onChange: function (ev) { set(ev.target.value); } });
+      return e("div", { key: f.name, className: "bd-list-field" }, e("span", { className: "bd-field-label", id: id }, words(f.name)), control);
+    };
+    return e("div", { className: "bd-list", role: "group", "aria-labelledby": props.id },
+      items.map(function (it, i) {
+        var isOpen = open === i;
+        return e("div", { key: i, className: cx("bd-list-item", isOpen && "is-open") },
+          e("div", { className: "bd-list-head" },
+            e("button", { type: "button", className: "bd-list-sum", "aria-expanded": String(isOpen), onClick: function () { setOpen(isOpen ? -1 : i); } },
+              e(Icon, { name: "right", className: "bd-list-chev" }), e("span", { className: "bd-list-label" }, summary(it, i))),
+            e("button", { type: "button", className: "bd-act bd-act-sm bd-act-ghost", "aria-label": "Move up", title: "Move up", disabled: i === 0, onClick: function () { move(i, -1); } }, e(Icon, { name: "up" })),
+            e("button", { type: "button", className: "bd-act bd-act-sm bd-act-ghost", "aria-label": "Move down", title: "Move down", disabled: i === items.length - 1, onClick: function () { move(i, 1); } }, e(Icon, { name: "down" })),
+            e("button", { type: "button", className: "bd-act bd-act-sm bd-act-ghost", "aria-label": "Remove " + summary(it, i), title: "Remove", onClick: function () { put(items.filter(function (x, k) { return k !== i; })); setOpen(-1); } }, e(Icon, { name: "close" }))),
+          isOpen ? e("div", { className: "bd-list-body" },
+            text ? e("input", { className: "bd-input", type: "text", "aria-label": props.label + " " + (i + 1), value: String(it == null ? "" : it), onChange: function (ev) { setAt(i, ev.target.value); } })
+              : fields.map(function (f) { return field(it, i, f); })) : null);
+      }),
+      e("button", { type: "button", className: "bd-btn bd-list-add", disabled: items.length >= 60, onClick: function () { put(items.concat([blank()])); setOpen(items.length); } }, e(Icon, { name: "plus" }), "Add " + (text ? "a line" : "an item")));
+  }
+
+  /* A link typed a letter at a time isn't one until it's whole: the field
+     keeps what's typed and only hands on a link that's safe. */
+  function UrlInput(props) {
+    var draftState = useState(props.value == null ? "" : String(props.value));
+    var draft = draftState[0], setDraft = draftState[1];
+    useEffect(function () { setDraft(props.value == null ? "" : String(props.value)); }, [props.value]);
+    var bad = !!draft && !props.ok.test(draft.trim());
+    return e("input", { className: "bd-input", type: "url", "aria-labelledby": props.labelledBy, "aria-invalid": bad ? "true" : undefined, value: draft, placeholder: props.placeholder,
+      onChange: function (ev) { var v = ev.target.value; setDraft(v); v = v.trim(); if (!v) props.onChange(undefined); else if (props.ok.test(v)) props.onChange(v); } });
+  }
 
   /* One pressed, icons or pictures where they say it. clearable: pressing
      the pressed one again unsets it. */
@@ -2810,6 +2927,16 @@
       var set = function (v) { setProp(ids, p.name, v); };
       var label = PROP_LABEL[p.name] || words(p.name);
       var control;
+      if (p.kind === "list") {
+        var fa = api(docRef.current.active);
+        var own = first.props[p.name];
+        var sample = own !== undefined ? own : fa && fa.listSample ? fa.listSample(first.type, p.name) : null;
+        var count = Array.isArray(sample) ? sample.length : 0;
+        if (nodes.length > 1) return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: "Select one " + first.type + " to edit its " + label.toLowerCase() + "." }, null);
+        if (!Array.isArray(sample)) return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: "Its sample has parts the builder can't edit here (pictures or elements), so it keeps them." }, null);
+        return e(Field, { key: p.name, id: id, label: label + (count ? " (" + count + ")" : ""), note: p.note },
+          e(ListEditor, { key: first.id + p.name, id: id, label: label, spec: p, value: sample, onChange: function (v) { setProp([first.id], p.name, v); } }));
+      }
       if (p.kind === "media") {
         var src = typeof current === "string" ? current : "";
         var fileId = id + "-file";
