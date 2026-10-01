@@ -22,6 +22,9 @@
      drags it onto the canvas; a frame's edge resizes it; a frame takes a
      custom canvas colour; sections show a dot when something is set; Shift
      shows spacing with its token; Play shows a frame at a screen's height;
+   - a block's element props are slots: its own buttons are picked on the
+     canvas, changed, and exported as JSX in the prop; a slot empties, takes
+     its sample back, and only takes the kinds it allows;
    - Select and Hand share one button; a group's tray closes on a press on
      the canvas, and its items drag onto a frame;
    - the inspector opens on the tab that suits the layer; size and spacing
@@ -775,6 +778,75 @@ try {
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector(".bd-play"));
     ok(`Play shows the frame through a screen-sized window (${hs.join(", ")}) and Escape closes it`);
+    await page.close();
+  });
+
+  await step("Slots: a block's own buttons are picked on the canvas, changed, and exported in its prop", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const heroOf = (d) => d.frames[0].root.children.find((c) => c.type === "HeroBlock");
+    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); const h = d && d.frames[0].root.children.find((c) => c.type === "HeroBlock"); return h && h.children && h.children.some((c) => c.type === "Slot"); });
+    let hero = heroOf(await saved());
+    const names = hero.children.map((c) => c.props.name);
+    expect(names.includes("actions") && names.includes("media"), `the hero's slots come from its types, got ${names}`);
+    ok(`a HeroBlock on the canvas gets its slots (${names.join(", ")}) filled from its sample`);
+
+    const pt = await frame().evaluate(() => { const b = [...document.querySelectorAll("button")].find((x) => /Shop the collection/.test(x.textContent)); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const ib = await page.locator("iframe.bd-frame").boundingBox();
+    const sc = await page.evaluate(() => { const i = document.querySelector("iframe.bd-frame"); return i.getBoundingClientRect().width / parseFloat(i.style.width); });
+    await page.mouse.click(ib.x + pt.x * sc, ib.y + pt.y * sc);
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const crumbs = await page.locator(".bd-crumbs").first().textContent();
+    expect(/HeroBlock.*Actions.*Button/.test(crumbs), `the path runs through the slot, got ${crumbs}`);
+    await tab(page, "Content");
+    await page.locator(".bd-right input.bd-input[type=text]").first().fill("Browse mugs");
+    await tab(page, "Appearance");
+    await choose(page, "Variant", "brand");
+    await frame().waitForFunction(() => {
+      const b = [...document.querySelectorAll("button")].find((x) => x.textContent === "Browse mugs");
+      if (!b) return false;
+      const probe = document.createElement("div");
+      probe.style.background = "var(--dt-surface-action-brand)";
+      document.body.appendChild(probe);
+      const want = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return getComputedStyle(b).backgroundColor === want;
+    });
+    expect(await frame().locator('[data-bf-type="HeroBlock"]').count() === 1, "the hero is still a HeroBlock, not detached");
+    ok(`clicking the hero's button selects it (${crumbs.replace(/\s+/g, " ")}); its label and variant change on the canvas`);
+
+    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(/<HeroBlock[^]*actions=\{<>[^]*<Button[^>]*variant="brand"[^>]*>Browse mugs<\/Button>/.test(code), "the export writes the slot as JSX in the hero's actions prop");
+    expect(/media=\{<>[^]*<Image /.test(code), "and its media as an Image");
+    ok("Code writes the hero with actions={<>…<Button variant=\"brand\">Browse mugs</Button>…</>} and its media as an Image");
+
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    await page.locator('.bd-layer[data-layer]:has(.bd-layer-name:text-is("Actions")) .bd-layer-main').first().click();
+    await page.waitForFunction(() => /Actions/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(/It takes Button/.test(await page.locator(".bd-inspect-sub").first().textContent()), "the slot says what it takes");
+    await page.locator(".bd-right .bd-btn", { hasText: "Empty it" }).click();
+    await frame().waitForFunction(() => ![...document.querySelectorAll("button")].some((x) => x.textContent === "Browse mugs"));
+    await page.locator(".bd-right .bd-btn", { hasText: "Put the sample back" }).click();
+    await frame().waitForFunction(() => [...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
+    ok("the Actions slot says what it takes, empties, and puts the sample back");
+
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    hero = heroOf(await saved());
+    const kids = (await saved()).frames[0].root.children.map((c) => c.type);
+    const slot = hero.children.find((c) => c.props.name === "actions");
+    expect(!JSON.stringify(slot).includes('"Heading"') && kids[kids.indexOf("HeroBlock") + 1] === "Heading", `a Heading, which Actions doesn't take, goes after the hero instead, got ${kids}`);
+    ok("something a slot doesn't take goes after the component instead");
+
+    await page.reload();
+    await page.waitForSelector(".bd-tile", { state: "attached" });
+    await frame().waitForFunction(() => [...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
+    hero = heroOf(await saved());
+    expect(hero.children.filter((c) => c.type === "Slot").length === 2, "the slots survive a reload");
+    ok("the slots and what's in them survive a reload");
     await page.close();
   });
 

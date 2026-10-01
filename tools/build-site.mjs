@@ -1740,7 +1740,9 @@ function playgroundProps(c) {
     const type = rawType.replace(/\s+/g, " ").trim();
     if (/^(style|as|className|id)$/.test(name) || /^on[A-Z]/.test(name)) continue;
     const def = (doc.match(/@default\s+([^\n*]+)/) || [])[1];
-    const note = doc.replace(/^\s*\*\s?/gm, "").replace(/@default[^\n]*/g, "").replace(/\s+/g, " ").trim();
+    /* @slot Button, Link: what an element prop takes in the builder. */
+    const slot = (doc.match(/@slot\s+([^\n*@]+)/) || [])[1];
+    const note = doc.replace(/^\s*\*\s?/gm, "").replace(/@default[^\n]*/g, "").replace(/@slot[^\n*@]*/g, "").replace(/\s+/g, " ").trim();
     let kind = null, options = null;
     if (/^("[^"]*"\s*\|\s*)+"[^"]*"$/.test(type)) { kind = "enum"; options = type.split("|").map((x) => x.trim().replace(/"/g, "")); }
     else if (type === "boolean") kind = "boolean";
@@ -1748,7 +1750,53 @@ function playgroundProps(c) {
     else if (type === "string") kind = "text";
     else if (type === "React.ReactNode") kind = "node";
     if (!kind) continue;
-    out.push({ name, kind, options, default: def ? def.trim().replace(/^"|"$/g, "") : null, note: note.split(". ")[0].slice(0, 120) });
+    const prop = { name, kind, options, default: def ? def.trim().replace(/^"|"$/g, "") : null, note: note.split(". ")[0].slice(0, 120) };
+    if (slot && kind === "node") prop.accepts = slot.split(/[\s,]+/).filter(Boolean);
+    out.push(prop);
+  }
+  return out;
+}
+
+/* The builder reads a few more prop types than the docs playground: a
+   literal union with a free-form fallback ("4:3" | … | number) offers the
+   named options, numbers count as literals (a heading's level), and an
+   indexed type (AspectRatioProps["ratio"]) is looked up where it's declared. */
+let typeIndex = null;
+function allTypes() {
+  if (typeIndex === null) typeIndex = components.filter((c) => c.types).map((c) => read(path.join(ROOT, c.types))).join("\n");
+  return typeIndex;
+}
+function resolveIndexed(type) {
+  const m = /^(\w+)\["(\w+)"\]$/.exec(type);
+  if (!m) return type;
+  const body = interfaceBody(allTypes(), m[1]);
+  const mm = body && new RegExp(`\\n\\s*${m[2]}\\??:\\s*([^;]+);`).exec(body);
+  return mm ? mm[1].replace(/\s+/g, " ").trim() : type;
+}
+function literalOptions(type) {
+  const parts = type.split("|").map((x) => x.trim()).filter(Boolean);
+  const lits = parts.filter((x) => /^"[^"]*"$/.test(x) || /^-?\d+(\.\d+)?$/.test(x));
+  if (lits.length < 2 || parts.some((x) => !lits.includes(x) && !/^(string|number)$/.test(x))) return null;
+  return lits.map((x) => (x[0] === '"' ? x.slice(1, -1) : Number(x)));
+}
+function builderExtraProps(c, have) {
+  if (!c.types) return [];
+  const src = read(path.join(ROOT, c.types));
+  const union = src.match(new RegExp(`export type ${c.name}Props\\s*=\\s*(\\w+)\\s*\\|`));
+  const body = interfaceBody(src, union ? union[1] : `${c.name}Props`);
+  if (body == null) return [];
+  const out = [];
+  const re = /(?:\/\*\*([\s\S]*?)\*\/\s*)?\n\s*([a-zA-Z]\w*)(\?)?:\s*([^;]+);/g;
+  let m;
+  while ((m = re.exec(body))) {
+    const [, doc = "", name, , rawType] = m;
+    if (have.has(name) || /^(style|as|className|id|children)$/.test(name) || /^on[A-Z]/.test(name)) continue;
+    const options = literalOptions(resolveIndexed(rawType.replace(/\s+/g, " ").trim()));
+    if (!options) continue;
+    let def = ((doc.match(/@default\s+([^\n*]+)/) || [])[1] || "").trim().replace(/^"|"$/g, "");
+    def = def === "" ? null : typeof options[0] === "number" && /^-?\d/.test(def) ? Number(def) : def;
+    const note = doc.replace(/^\s*\*\s?/gm, "").replace(/@\w+[^\n]*/g, "").replace(/\s+/g, " ").trim();
+    out.push({ name, kind: "enum", options, default: def, note: note.split(". ")[0].slice(0, 120) });
   }
   return out;
 }
@@ -2243,7 +2291,7 @@ const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card
 const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
 /* The inspector's tabs: how a component looks, how it lays out, and what it
    says. Every other prop is content. */
-const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit"];
+const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio"];
 const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky"];
 /* Stack, Inline and Grid type align and justify as CSS keywords. */
 const BUILDER_KEYWORDS = {
@@ -2319,7 +2367,8 @@ function buildBuilderFormat(meta, groups, tokens) {
   const list = (xs) => xs.map(code).join(", ");
   const containers = Object.keys(meta).filter((n) => meta[n].container);
   const propLine = (p) => {
-    const kind = p.kind === "enum" ? `one of ${list(p.options)}` : p.kind === "media" ? "an https URL" : p.kind === "node" ? "text" : p.kind;
+    const slot = p.kind === "node" && (p.accepts || /^(actions|media|footer|aside|extra|start|end|leading|trailing)$/.test(p.name));
+    const kind = p.kind === "enum" ? `one of ${list(p.options)}` : p.kind === "media" ? "an https URL" : slot ? `a slot${p.accepts ? ` taking ${list(p.accepts)}` : ""}` : p.kind === "node" ? "text" : p.kind;
     return `${code(p.name)} (${kind}${p.default != null && p.default !== "" ? `; default ${code(p.default)}` : ""})`;
   };
   const lines = [
@@ -2370,6 +2419,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     `- ${code("props")}: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A component's text is ${code("props.children")}. Leave a prop out to keep the sample content the builder starts it with.`,
     `- ${code("style")}: keys from the style table, each set to one of its option names. Never a CSS value.`,
     `- ${code("children")}: an array of nodes, only on containers: ${list(containers)}.`,
+    `- On any other component, ${code("children")} may hold its slots instead: ${code('{ "type": "Slot", "props": { "name": "actions" }, "children": [ ...nodes ] }')}. A slot stands for one of the component's element props (a hero's ${code("actions")} or ${code("media")}, marked "a slot" below). What's in it renders into that prop and exports as JSX in it. Leave a slot out to keep the sample's own content.`,
     `- ${code("name")}: a label for a container, shown in the layers.`,
     `- ${code("id")}: optional. The builder assigns one.`,
     ``,
@@ -2408,7 +2458,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `- Raw values: pixels, colours, custom CSS or class names. Use the style keys.`,
     `- Free positions. Everything sits in the flow of its container.`,
-    `- React elements as props (a hero's own buttons or image). The component keeps its sample content; detach it in the builder, or build the part from Groups.`,
+    `- React elements in props that aren't slots (a popover's trigger, an icon). The component keeps its sample content there.`,
     `- Handlers, state and data mapped into lists.`,
     ``
   );
@@ -2437,7 +2487,8 @@ function buildBuilder() {
        their names (Section's width is a token scale). children has its own
        Text field. */
     let props = playgroundProps(c).filter((p) => p.name !== "children" &&
-      !(p.kind !== "enum" && /^(minHeight|minColumnWidth|media|href|src|poster|background\w*|collapseBelow|width|height|maxRows|position|imagePosition|stickyTop|radius|measure|htmlFor|labelId|messageId)$/.test(p.name)));
+      !(p.kind !== "enum" && !(p.kind === "node" && p.name === "media") && /^(minHeight|minColumnWidth|media|href|src|poster|background\w*|collapseBelow|width|height|maxRows|position|imagePosition|stickyTop|radius|measure|htmlFor|labelId|messageId)$/.test(p.name)));
+    props = props.concat(builderExtraProps(c, new Set(playgroundProps(c).map((p) => p.name))));
     props = props.map((p) => (BUILDER_KEYWORDS[p.name] && !p.options ? { ...p, kind: "enum", options: BUILDER_KEYWORDS[p.name] } : p));
     /* align and justify are CSSProperties types, which playgroundProps skips. */
     const src = c.types ? read(path.join(ROOT, c.types)) : "";

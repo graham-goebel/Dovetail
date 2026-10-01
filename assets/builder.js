@@ -48,6 +48,26 @@
   var FRAME_GAP = 120, LABEL_ROOM = 28, STAGE_PAD = 32, MIN_ZOOM = 0.05, MAX_ZOOM = 4;
   var ZOOM_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
   var META = DATA.components;
+  /* A slot: what a component holds in one of its element props (a hero's
+     actions, its media), kept as nodes so each part can be picked. */
+  META.Slot = { blurb: "A part of a component that holds other components", group: null, container: true, builder: true, href: null, props: [] };
+  /* What a slot takes when the component's types don't say (@slot). */
+  var SLOT_ACCEPTS = {
+    actions: ["Button", "IconButton", "Link", "ButtonGroup", "Badge", "Tag", "Text", "Inline", "Stack", "Group"],
+    media: ["Image", "Video", "Figure", "AspectRatio", "Cover", "Shape", "Avatar", "Inline", "Stack", "Group"],
+  };
+  function slotSpec(type, name) {
+    var m = META[type];
+    return m && !m.builder && name !== "trigger" ? m.props.filter(function (p) { return p.kind === "node" && p.name === name && !(p.accepts && p.accepts[0] === "none"); })[0] || null : null;
+  }
+  function slotTakes(type, name) { var p = slotSpec(type, name); return p ? p.accepts || SLOT_ACCEPTS[name] || null : null; }
+  function slotAccepts(ownerType, name, childType) {
+    if (!slotSpec(ownerType, name) || childType === "Slot") return false;
+    var list = slotTakes(ownerType, name);
+    return list ? list.indexOf(childType) >= 0 : !joinsFlow(childType);
+  }
+  function hasSlots(n) { return !!(n && n.children && n.children.some(function (c) { return c.type === "Slot"; })); }
+  function nameOf(n) { return n.type === "Slot" ? words(n.props.name) : n.name || n.type; }
   var STYLE_KEYS = Object.keys(DATA.tokens);
   var TABS = [["appearance", "Appearance"], ["layout", "Layout"], ["content", "Content"]];
   /* The canvas tools, in a bar along the canvas's foot. Each draws one primitive where it's pressed, sized by
@@ -259,10 +279,20 @@
     return c;
   }
 
+  /* Whether a spot can take a node: a container, or a slot that takes its kind. */
+  function canHold(p, child) {
+    if (!p || !p.node.children || !child || child.type === "Slot") return false;
+    if (p.node.type === "Slot") { var owner = p.path[p.path.length - 2]; return !!owner && slotAccepts(owner.type, p.node.props.name, child.type); }
+    return p.node.type === "Root" || isContainer(p.node.type);
+  }
+  function parentSpot(at) { return { node: at.parent, path: at.path.slice(0, -1) }; }
+  function fixedSpot(at) { return !at || !at.parent || at.node.type === "Slot"; }
+  var fixed = fixedSpot;
+
   var ops = {
     insert: function (doc, parentId, index, n, fid) {
       var p = locate(doc, parentId, fid);
-      if (!p || !p.node.children) return null;
+      if (!canHold(p, n)) return null;
       p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, n);
       return n.id;
     },
@@ -270,7 +300,7 @@
       if (id === "root" || id === parentId) return null;
       var from = locate(doc, id);
       var to = locate(doc, parentId);
-      if (!from || !to || !to.node.children) return null;
+      if (fixed(from) || !canHold(to, from.node)) return null;
       if (to.path.some(function (x) { return x.id === id; })) return null;
       if (from.parent === to.node && (index === from.index || index === from.index + 1)) return null;
       from.parent.children.splice(from.index, 1);
@@ -283,7 +313,7 @@
       var next = null, any = false;
       [].concat(ids).forEach(function (id) {
         var at = locate(doc, id);
-        if (!at || !at.parent) return;
+        if (fixed(at)) return;
         at.parent.children.splice(at.index, 1);
         any = true;
         var n = at.parent.children[at.index] || at.parent.children[at.index - 1];
@@ -293,28 +323,30 @@
     },
     duplicate: function (doc, id) {
       var at = locate(doc, id);
-      if (!at || !at.parent) return null;
+      if (fixed(at)) return null;
       var c = fresh(at.node);
       at.parent.children.splice(at.index + 1, 0, c);
       return c.id;
     },
     replace: function (doc, id, n) {
       var at = locate(doc, id);
-      if (!at || !at.parent) return null;
+      if (fixed(at) || !canHold(parentSpot(at), n)) return null;
       at.parent.children.splice(at.index, 1, n);
       return n.id;
     },
     wrap: function (doc, id, type) {
       var at = locate(doc, id);
-      if (!at || !at.parent) return null;
+      if (fixed(at)) return null;
       var box = make(type, {}, [at.node]);
+      if (!canHold(parentSpot(at), box)) return null;
       at.parent.children.splice(at.index, 1, box);
       return box.id;
     },
     /* Siblings into one Group, in their order, where the first one was. */
     group: function (doc, ids) {
       var spots = ids.map(function (id) { return locate(doc, id); }).filter(Boolean);
-      if (!spots.length) return null;
+      if (!spots.length || spots.some(fixed)) return null;
+      if (!canHold(parentSpot(spots[0]), { type: "Group" })) return null;
       var parent = spots[0].parent;
       if (!parent || spots.some(function (s) { return s.parent !== parent; })) return null;
       spots.sort(function (a, b) { return a.index - b.index; });
@@ -326,14 +358,15 @@
     },
     ungroup: function (doc, id) {
       var at = locate(doc, id);
-      if (!at || !at.parent || !at.node.children) return null;
+      if (fixed(at) || !at.node.children || !isContainer(at.node.type)) return null;
       var kids = at.node.children;
+      if (kids.some(function (k) { return !canHold(parentSpot(at), k); })) return null;
       at.parent.children.splice.apply(at.parent.children, [at.index, 1].concat(kids));
       return kids.length ? kids[0].id : at.parent.id;
     },
     nudge: function (doc, id, by) {
       var at = locate(doc, id);
-      if (!at || !at.parent) return null;
+      if (fixed(at)) return null;
       var to = at.index + by;
       if (to < 0 || to >= at.parent.children.length) return null;
       at.parent.children.splice(at.index, 1);
@@ -359,8 +392,19 @@
   /* Bands run the width of the page, so they always join its flow. */
   var BAND_ROOT = { Section: 1, AppShell: 1, Navbar: 1, Sidebar: 1, BottomNav: 1, Banner: 1, StoreHeader: 1 };
   function joinsFlow(type) { return !type || !!BAND_ROOT[type] || !!(META[type] && META[type].group === "blocks"); }
+  /* A slot, under the component it belongs to: only the kinds it takes. */
+  function cleanSlot(c, owner, report) {
+    var name = c.props.name;
+    var kids = (Array.isArray(c.children) ? c.children : []).map(function (k) { return cleanNode(k, report); }).filter(Boolean).filter(function (k) {
+      if (slotAccepts(owner, name, k.type)) return true;
+      note(report, owner + ": " + name + " doesn't take " + k.type + ", so it was left out");
+      return false;
+    });
+    return { id: typeof c.id === "string" && /^[\w-]{1,40}$/.test(c.id) ? c.id : uid(), type: "Slot", props: { name: name }, style: {}, children: kids };
+  }
   function cleanNode(n, report) {
     if (!n || typeof n !== "object") return null;
+    if (n.type === "Slot") { note(report, "A slot only lives inside the component it belongs to, so it was left out"); return null; }
     if (!META[n.type]) { note(report, (n.type ? "\"" + String(n.type).slice(0, 40) + "\"" : "A node with no type") + " isn't something the builder places, so it and anything inside it were left out"); return null; }
     var meta = META[n.type];
     var names = meta.props.map(function (p) { return p.name; });
@@ -401,8 +445,23 @@
     /* A Group can be named by hand; a detached component keeps its old name
        on whatever container it became. */
     if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
-    if (isContainer(n.type)) out.children = (Array.isArray(n.children) ? n.children : []).map(function (c) { return cleanNode(c, report); }).filter(Boolean);
-    else if (Array.isArray(n.children) && n.children.length) note(report, n.type + " doesn't hold layers, so what was inside it was left out. Use a container: Group, Section, Stack, Inline, Grid or Card");
+    var seenSlot0 = {};
+    var slotChild = function (c) {
+      if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot0[c.props.name]) return false;
+      seenSlot0[c.props.name] = true;
+      return true;
+    };
+    if (isContainer(n.type)) out.children = (Array.isArray(n.children) ? n.children : []).map(function (c) { return slotChild(c) ? cleanSlot(c, n.type, report) : cleanNode(c, report); }).filter(Boolean);
+    else if (Array.isArray(n.children) && n.children.length) {
+      var seenSlot = {};
+      var slots = n.children.filter(function (c) {
+        if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot[c.props.name]) return false;
+        seenSlot[c.props.name] = true;
+        return true;
+      });
+      if (slots.length) out.children = slots.map(function (c) { return cleanSlot(c, n.type, report); });
+      if (slots.length < n.children.length) note(report, n.type + " holds layers only in its slots (" + (META[n.type].props.filter(function (p) { return p.kind === "node" && p.name !== "children"; }).map(function (p) { return p.name; }).join(", ") || "none") + "), so what else was inside it was left out");
+    }
     return out;
   }
   function cleanFrame(f, i, report) {
@@ -1246,6 +1305,7 @@
     var dialogRef = useRef(null);
     var importRef = useRef(null);
     var rightRef = useRef(null);
+    var slotTpl = useRef({});
     var dockRef = useRef(null);
 
     /* Configure lives in the left panel on this page, not over it. */
@@ -1306,6 +1366,16 @@
       if (nextSel !== undefined) select(nextSel === null || nextSel === "root" ? [] : [].concat(nextSel));
       if (message) announce(message);
     }, [announce, select, snapshot]);
+
+    /* A change that isn't an edit (filling a component's slots from its
+       sample): no history step, no message. */
+    var quiet = function (fn) {
+      var next = copy(docRef.current);
+      if (fn(next) === null) return false;
+      docRef.current = next;
+      setDoc(next);
+      return true;
+    };
 
     var change = useCallback(function (fn, message) {
       var next = copy(docRef.current);
@@ -1689,6 +1759,12 @@
       var hit = f.drop((x - at.r.left) / z, (y - at.r.top) / z, own ? payload.id || null : null, 12 / z);
       if (!hit) return null;
       var out = { where: "canvas", frame: at.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
+      var dragType = payload.kind === "move" && payload.id ? (locate(docRef.current, payload.id) || { node: {} }).node.type : payload.kind === "new" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
+      var into = locate(docRef.current, hit.parent, at.fid);
+      if (into && into.node.type === "Slot" && dragType) {
+        var slotOwner = into.path[into.path.length - 2];
+        if (!slotOwner || !slotAccepts(slotOwner.type, into.node.props.name, dragType)) return null;
+      }
       /* On the frame's own canvas, outside any stack, it lands where it's let go. */
       var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
       var type = moving ? moving.node.type : payload.kind === "new" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
@@ -1815,7 +1891,7 @@
         change(function (d) {
           var from = locate(d, mid);
           var dest = frameById(d, fid);
-          if (!from || !dest) return null;
+          if (fixedSpot(from) || !dest) return null;
           var stays = fid === d.active && from.parent && from.parent.id === "root";
           if (!stays) {
             from.parent.children.splice(from.index, 1);
@@ -1838,7 +1914,7 @@
         change(function (d) {
           var from = locate(d, lid);
           var to = locate(d, hit.parent, fid);
-          if (!from || !to || !to.node.children) return null;
+          if (!from || fixedSpot(from) || !canHold(to, from.node)) return null;
           delete from.node.style.x;
           delete from.node.style.y;
           from.parent.children.splice(from.index, 1);
@@ -1856,7 +1932,7 @@
         change(function (d) {
           var from = locate(d, moving);
           var to = locate(d, hit.parent, fid);
-          if (!from || !from.parent || !to || !to.node.children) return null;
+          if (!from || fixedSpot(from) || !canHold(to, from.node)) return null;
           from.parent.children.splice(from.index, 1);
           to.node.children.splice(Math.min(hit.index, to.node.children.length), 0, from.node);
           d.active = fid;
@@ -1941,7 +2017,8 @@
               if (docRef.current.active !== fid) activateRef.current(fid);
               var at = locate(docRef.current, id);
               if (!at) return;
-              dragRef.current = { payload: { kind: "move", id: id, label: at.node.name || at.node.type }, active: true };
+              if (at.node.type === "Slot") return;
+              dragRef.current = { payload: { kind: "move", id: id, label: nameOf(at.node) }, active: true };
               if (selRef.current.indexOf(id) < 0) select([id]);
             }),
             dragMove: on(function (fid, x, y) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y); }),
@@ -1969,6 +2046,37 @@
        changed. */
     useEffect(function () {
       var any = null;
+      /* A component's slots are filled from its sample once, the first time
+         it's on a canvas, so its parts can be picked from then on. */
+      var first = null;
+      doc.frames.forEach(function (f) { if (!first && ready[f.id]) first = api(f.id); });
+      if (first && first.slots) {
+        var tpl = function (type) {
+          if (slotTpl.current[type] === undefined) { try { slotTpl.current[type] = first.slots(type) || []; } catch (err) { slotTpl.current[type] = []; } }
+          return slotTpl.current[type];
+        };
+        var wants = function (n) { var m = META[n.type]; return !!m && !m.builder && !hasSlots(n) && tpl(n.type).length > 0; };
+        var missing = false;
+        doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { if (wants(c)) missing = true; walk(c); }); })(f.root); });
+        if (missing) {
+          quiet(function (d) {
+            d.frames.forEach(function (f) {
+              (function walk(n) {
+                (n.children || []).forEach(function (c) {
+                  if (wants(c)) {
+                    c.children = tpl(c.type).map(function (t) {
+                      return { id: uid(), type: "Slot", props: { name: t.name }, style: {}, children: t.nodes.map(function (k) { return cleanNode(JSON.parse(JSON.stringify(k)), null); }).filter(function (k) { return k && slotAccepts(c.type, t.name, k.type); }) };
+                    }).concat(c.children || []);
+                  }
+                  walk(c);
+                });
+              })(f.root);
+            });
+            return undefined;
+          });
+          return;
+        }
+      }
       doc.frames.forEach(function (f) {
         if (!ready[f.id]) return;
         var a = api(f.id);
@@ -2147,6 +2255,15 @@
     var add = function (type, where, props) {
       var t = where || target();
       var fid = t.frame || docRef.current.active;
+      /* A slot that doesn't take this kind: it goes after the component instead. */
+      var pAt = locate(docRef.current, t.parent, fid);
+      if (pAt && pAt.node.type === "Slot") {
+        var ownerAt = pAt.path.length > 1 ? locate(docRef.current, pAt.path[pAt.path.length - 2].id, fid) : null;
+        if (ownerAt && !slotAccepts(ownerAt.node.type, pAt.node.props.name, type)) {
+          if (where) { announce(words(pAt.node.props.name) + " in " + ownerAt.node.type + " takes " + (slotTakes(ownerAt.node.type, pAt.node.props.name) || ["components"]).join(", ")); return; }
+          t = { parent: ownerAt.parent.id, index: ownerAt.index + 1, frame: fid };
+        }
+      }
       var n = make(type);
       if (props) Object.assign(n.props, props);
       if (t.free) { n.style.x = t.free.x; n.style.y = t.free.y; }
@@ -2467,6 +2584,7 @@
       return typeof text === "string" || typeof text === "number" ? String(text) : "";
     };
     var typeIcon = function (type) {
+      if (type === "Slot") return "blocks";
       if (type === "Group") return "group";
       if (type === "Shape") return "square";
       if (isContainer(type)) return "box";
@@ -2888,6 +3006,17 @@
         })));
     };
 
+    /* Containers start open in Layers; a component's slots start folded. */
+    var isOpen = function (n) { return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false; };
+    useEffect(function () {
+      var opens = {};
+      selection.forEach(function (id) {
+        var at = locate(doc, id);
+        if (at) at.path.slice(1, -1).forEach(function (n) { if (!isOpen(n)) opens[n.id] = isContainer(n.type) ? "del" : false; });
+      });
+      if (!Object.keys(opens).length) return;
+      setCollapsed(function (c) { var n = Object.assign({}, c); Object.keys(opens).forEach(function (id) { if (opens[id] === "del") delete n[id]; else n[id] = false; }); return n; });
+    }, [selection]);
     var isRenaming = function (id, where) { return !!renaming && renaming.id === id && renaming.where === where; };
 
     /* Every frame is a row; the active one opens onto its layers. */
@@ -2909,15 +3038,19 @@
         (n.children || []).forEach(function (c) {
           if (keep && !keep[c.id]) return;
           rows.push({ n: c, depth: depth });
-          if (c.children && (q || !collapsed[c.id])) walk(c, depth + 1);
+          if (c.children && (q || isOpen(c))) walk(c, depth + 1);
         });
       })(frame.root, 1);
-      var toggle = function (id) { setCollapsed(function (c) { var n = Object.assign({}, c); if (n[id]) delete n[id]; else n[id] = true; return n; }); };
+      var toggle = function (id) {
+        var at = locate(doc, id);
+        var owner = at && !isContainer(at.node.type);
+        setCollapsed(function (c) { var n = Object.assign({}, c); if (owner) { if (n[id] === false) delete n[id]; else n[id] = false; } else if (n[id]) delete n[id]; else n[id] = true; return n; });
+      };
       var nodeRow = function (r) {
         var n = r.n;
         var text = labelOf(n);
         var on = selection.indexOf(n.id) >= 0;
-        var open = !collapsed[n.id] || !!q;
+        var open = isOpen(n) || !!q;
         var renameable = n.type === "Group";
         return e("div", {
           key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === frame.id && hover.id === n.id && "is-hover"),
@@ -2933,12 +3066,12 @@
             type: "button", className: "bd-layer-main",
             onClick: function (ev) { if (!justDragged.current) pick(n.id, ev.shiftKey || ev.metaKey || ev.ctrlKey, false, "layers"); },
             onDoubleClick: function () { if (renameable) setRenaming({ id: n.id, where: "layer" }); },
-            onPointerDown: function (ev) { if (ev.pointerType === "mouse") startDrag(ev, { kind: "move", id: n.id, label: n.name || n.type }); },
+            onPointerDown: function (ev) { if (ev.pointerType === "mouse" && n.type !== "Slot") startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
           },
             e(Icon, { name: typeIcon(n.type) }),
             renameable && isRenaming(n.id, "layer")
               ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
-              : e("span", { className: "bd-layer-name" }, n.name || n.type),
+              : e("span", { className: "bd-layer-name" }, nameOf(n)),
             text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
       };
       return e("div", { className: "bd-layers-panel" },
@@ -3147,6 +3280,45 @@
 
     /* One node, or several: the same kind edits every prop together; a mix
        of kinds edits size, spacing and appearance together. */
+    /* A slot: what it takes, what's in it, and a way back to the sample. */
+    var slotInspector = function (node) {
+      var at = locate(doc, node.id);
+      var owner = at && at.path.length > 1 ? at.path[at.path.length - 2] : null;
+      if (!owner) return null;
+      var takes = slotTakes(owner.type, node.props.name);
+      var spec = slotSpec(owner.type, node.props.name);
+      var refill = function () {
+        var tpl = (slotTpl.current[owner.type] || []).filter(function (t) { return t.name === node.props.name; })[0];
+        change(function (d) {
+          var s2 = locate(d, node.id);
+          if (!s2) return null;
+          s2.node.children = tpl ? tpl.nodes.map(function (k) { return cleanNode(JSON.parse(JSON.stringify(k)), null); }).filter(function (k) { return k && slotAccepts(owner.type, node.props.name, k.type); }) : [];
+          return node.id;
+        }, words(node.props.name) + " is back to the sample");
+      };
+      return e("div", { className: "bd-inspect" },
+        e("div", { className: "bd-inspect-head" },
+          e("nav", { className: "bd-crumbs", "aria-label": "Selection path" },
+            at.path.map(function (n, i) {
+              var last = i === at.path.length - 1;
+              return e(React.Fragment, { key: n.id },
+                i ? e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›") : null,
+                last ? e("span", { className: "bd-crumb is-current", "aria-current": "true" }, nameOf(n))
+                  : e("button", { type: "button", className: "bd-crumb", onClick: function () { select(n.type === "Root" ? [] : [n.id]); } }, n.type === "Root" ? frame.name : nameOf(n)));
+            })),
+          e("div", { className: "bd-head-row" },
+            e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "blocks" }), words(node.props.name))),
+          e("p", { className: "bd-inspect-sub" }, "A slot in " + owner.type + (spec && spec.note ? ": " + spec.note : "") + ". It takes " + (takes ? takes.join(", ") : "most components") + ". What you add from Assets now goes in here.")),
+        sec("slot-items", "In this slot", node.children.length
+          ? e("ul", { className: "bd-slot-items", role: "list" }, node.children.map(function (c) {
+              return e("li", { key: c.id }, e("button", { type: "button", className: "bd-btn bd-slot-item", onClick: function () { select([c.id]); } }, e(Icon, { name: typeIcon(c.type) }), nameOf(c), labelOf(c) ? e("span", { className: "bd-layer-text" }, labelOf(c)) : null));
+            }))
+          : e("p", { className: "bd-sec-empty" }, "Empty: the component shows nothing here.")),
+        sec("slot-acts", "Slot", e("div", { className: "bd-media-actions" },
+          e("button", { type: "button", className: "bd-btn", onClick: refill }, e(Icon, { name: "undo" }), "Put the sample back"),
+          node.children.length ? e("button", { type: "button", className: "bd-btn", onClick: function () { change(function (d) { var s2 = locate(d, node.id); if (!s2) return null; s2.node.children = []; return node.id; }, words(node.props.name) + " emptied"); } }, e(Icon, { name: "trash" }), "Empty it") : null)));
+    };
+
     var nodeInspector = function (nodes) {
       var first = nodes[0];
       var many = nodes.length > 1;
@@ -3192,7 +3364,7 @@
           selected ? e("nav", { className: "bd-crumbs", "aria-label": "Selection path" },
             selected.path.map(function (n, i) {
               var isLast = i === selected.path.length - 1;
-              var name = n.type === "Root" ? frame.name : n.name || n.type;
+              var name = n.type === "Root" ? frame.name : nameOf(n);
               return e(React.Fragment, { key: n.id },
                 i ? e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›") : null,
                 isLast ? e("span", { className: "bd-crumb", "aria-current": "true" }, name)
@@ -3202,7 +3374,7 @@
             e("h2", { className: "bd-inspect-title" }, e(Icon, { name: sameType ? typeIcon(first.type) : "component" }),
               many ? title : isContainer(first.type) && first.type === "Group"
                 ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
-                : first.name || first.type),
+                : nameOf(first)),
             e("div", { className: "bd-head-actions", role: "toolbar", "aria-label": "Selection" },
               e(Dropdown, { menu: true, label: "Wrap in", placeholder: "Wrap in", icon: "wrap", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon", title: "Wrap in a container",
                 options: WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: w, label: "Wrap in " + w, icon: typeIcon(w) }; }),
@@ -3473,7 +3645,7 @@
             isMain ? e("span", {
               className: "bd-mark-tag", title: "Drag to move",
               onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
-            }, at.node.name || at.node.type) : null);
+            }, nameOf(at.node)) : null);
         }) : null,
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
         marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
@@ -3555,7 +3727,8 @@
             e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function () { importLayout("replace"); } }, "Replace all frames"))));
     };
 
-    var inspector = selectedNodes.length ? nodeInspector(selectedNodes) : frameInspector();
+    var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
+      : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes) : frameInspector();
     var slot = wide ? document.getElementById("app-toolbar") : null;
 
     return e(React.Fragment, null,

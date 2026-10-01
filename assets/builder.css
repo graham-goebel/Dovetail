@@ -2961,3 +2961,26 @@ span.bd-layer-twisty.is-open .bd-ic {
   padding-inline: var(--dt-space-inset-2xs);
   font-size: var(--dt-font-size-xs);
 }
+
+/* ---------------------------------------------------------------- slots */
+
+.bd-slot-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-slot-item {
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+}
+
+.bd-slot-item .bd-layer-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
