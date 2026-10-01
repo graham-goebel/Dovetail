@@ -856,6 +856,15 @@
     if (!doc || !doc.documentElement) return;
     var root = doc.documentElement;
 
+    /* An app page (the builder) keeps its own chrome fixed, so the tools look
+       the same whatever theme is being tried; only dark mode follows. Its
+       frames still take the whole theme. */
+    if (root.hasAttribute("data-theme-fixed")) {
+      root.setAttribute("data-theme", cfg.dark ? "dark" : "light");
+      root.classList.toggle("dark", !!cfg.dark);
+      return;
+    }
+
     var previous = root.__dovetailApplied || [];
     previous.forEach(function (name) {
       root.style.removeProperty(name);

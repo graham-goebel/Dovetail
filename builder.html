@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme-fixed>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,15 @@
 <link rel="stylesheet" href="assets/site.css?v=80956e1e94">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
-     theme on its way to the chosen one. assets/theme.js owns everything after. */
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
   try {
     var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
     var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
-    var ctx = localStorage.getItem("dovetail-docs-context") || "";
-    if (cfg && cfg.vars) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
     if (cfg && cfg.dark) r.classList.add("dark");
     if (ctx) r.classList.add(ctx);
     r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
@@ -52,9 +55,9 @@
 </nav>
 <main id="main" class="main app">
 <div class="doc">
-<link rel="stylesheet" href="assets/builder.css?v=10cf19a87a">
+<link rel="stylesheet" href="assets/builder.css?v=b26af544f0">
 <h1 class="visually-hidden">Builder</h1>
-<div class="builder" id="builder" data-frame="assets/builder-frame.html?b=6f02c646fa&amp;s=9c6e75e147&amp;d=03e3acf24d&amp;f=30b1031ad3">
+<div class="builder" id="builder" data-frame="assets/builder-frame.html?b=6f02c646fa&amp;s=9c6e75e147&amp;d=29e227326b&amp;f=8b3670b94c">
   <noscript><p class="builder-noscript">The builder needs JavaScript.</p></noscript>
   <p class="builder-loading muted">Loading the builder…</p>
 </div>
@@ -74,13 +77,13 @@
 <script src="system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
 <script src="system/components/bundle.js?v=6f02c646fa" defer></script>
 <script src="assets/specimens.js?v=9c6e75e147" defer></script>
-<script src="assets/builder-data.js?v=03e3acf24d" defer></script>
-<script src="assets/builder.js?v=21c6b9ef20" defer></script>
+<script src="assets/builder-data.js?v=29e227326b" defer></script>
+<script src="assets/builder.js?v=21b67c24ad" defer></script>
 <script src="assets/configure-data.js?v=a347e023ef" defer></script>
 <script src="assets/search-data.js?v=9d13d38df9" defer></script>
 <script src="assets/search.js?v=50ed93a581" defer></script>
 <script src="assets/menu.js?v=e86531a11f" defer></script>
-<script src="assets/theme.js?v=6f81cef7ad" defer></script>
+<script src="assets/theme.js?v=0ede19e246" defer></script>
 <script src="assets/site.js?v=544ba24909" defer></script>
 
 </body>
