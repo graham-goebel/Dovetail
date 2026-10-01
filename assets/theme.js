@@ -2510,12 +2510,13 @@
        in as the big one scrolls away, and Reset. */
     var lead = tab
       ? h("button", { type: "button", class: "configure-round", "data-bid": "back", "aria-label": "Back to all groups", onclick: function () { setTab("", "back"); } }, [sheetIcon("back")])
+      : dockedIn ? h("span", { class: "configure-round-gap", "aria-hidden": "true" })
       : h("button", { type: "button", class: "configure-round", "data-bid": "close", "aria-label": "Close", onclick: close }, [sheetIcon("close")]);
     body.appendChild(
       h("div", { class: "configure-bar-top" }, [
         lead,
         h("p", { class: "configure-mini", "aria-hidden": "true", text: tab ? tab.label : "Configure" }),
-        isPhone()
+        isPhone() && !dockedIn
           ? h("div", { class: "configure-bar-acts" }, [
               h("button", { type: "button", class: "configure-round", "data-bid": "reset", "aria-label": "Reset to defaults", title: "Reset", onclick: reset }, [sheetIcon("reset")]),
               h("button", { type: "button", class: "configure-round configure-save", "data-bid": "save", "aria-label": "Save changes", title: "Save", onclick: save }, [sheetIcon("check")]),
@@ -2645,6 +2646,10 @@
   /* --------------------------------------------------------------- opening */
 
   var lastFocus = null;
+  /* An app page can hold the sheet in a panel of its own (the builder's left
+     panel): then it has no close button, never drafts, and Escape only backs
+     out of a group. */
+  var dockedIn = null;
 
   function snapshot() {
     return { config: assign({}, config), brand: assign({}, brand), media: assign({}, media), context: context };
@@ -2673,6 +2678,7 @@
   }
 
   function open() {
+    if (dockedIn) return;
     lastFocus = document.activeElement;
     draft = isPhone() ? { before: snapshot(), pending: {}, dirty: false } : null;
     activeTab = "";
@@ -2686,8 +2692,34 @@
     if (first) first.focus();
   }
 
+  /* Into a panel the page owns, and back out to the floating sheet. */
+  function dock(container) {
+    if (!container || dockedIn === container) return;
+    if (!el.sheet.hidden && !dockedIn) close();
+    dockedIn = container;
+    draft = null;
+    activeTab = "";
+    el.sheet.classList.add("is-docked");
+    el.sheet.removeAttribute("role");
+    el.sheet.hidden = false;
+    container.appendChild(el.sheet);
+    paintBody();
+    el.body.scrollTop = 0;
+    el.body.style.setProperty("--p", "0");
+  }
+
+  function undock() {
+    if (!dockedIn) return;
+    dockedIn = null;
+    el.sheet.hidden = true;
+    el.sheet.classList.remove("is-docked");
+    el.sheet.setAttribute("role", "dialog");
+    document.body.appendChild(el.sheet);
+  }
+
   /* Returns false when the reader chose to keep editing. */
   function close() {
+    if (dockedIn) return true;
     if (draft) {
       if (draft.dirty && !window.confirm("Discard your changes?")) return false;
       discard();
@@ -2723,7 +2755,7 @@
     }
 
     sheet.addEventListener("touchstart", function (event) {
-      if (event.touches.length !== 1) return;
+      if (event.touches.length !== 1 || dockedIn) return;
       var target = event.target;
       if (target.closest && target.closest('input, textarea, select, .configure-ramp, .configure-seg, .configure-swatches')) {
         start = null;
@@ -2782,6 +2814,7 @@
   }
 
   function toggle() {
+    if (dockedIn) return;
     if (el.sheet.hidden) open();
     else close();
   }
@@ -2830,6 +2863,7 @@
 
   document.addEventListener("keydown", function (event) {
     if (event.key !== "Escape" || el.sheet.hidden) return;
+    if (dockedIn && !dockedIn.contains(document.activeElement)) return;
     if (activeTab) setTab("", "back");
     else close();
   });
@@ -2842,7 +2876,17 @@
     open();
   });
 
-  window.DovetailConfigurePanel = { open: open, close: close, reset: reset, config: function () { return assign({}, config); } };
+  window.DovetailConfigurePanel = {
+    open: open, close: close, reset: reset, dock: dock, undock: undock,
+    config: function () { return assign({}, config); },
+    /* Another panel on the page (the builder's Content) can pick the icon library. */
+    setIconLib: function (key) {
+      if (key !== "custom" && !DATA.icons[key]) return;
+      commit({ iconLib: key, iconStroke: DATA.icons[key] ? DATA.icons[key].stroke : config.iconStroke });
+      render();
+    },
+  };
+  window.dispatchEvent(new Event("dovetail:configure-ready"));
 
   /* Once, and only from the directory this file was served out of, so a page
      at any depth recovers and a data file that loads without defining the

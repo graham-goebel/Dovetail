@@ -14,8 +14,14 @@
      selects it, and clicking the empty canvas clears the selection;
    - the inspector splits into Appearance, Layout and Content, with a box
      model for margin and padding, a size grid and a flex alignment pad;
-   - the tools draw a container, text, a heading and a frame,
-     sized in steps of a size token; groups and new rows don't wrap;
+   - the tools add a container, text, a heading, a frame and a page with no
+     marquee to draw, and one dragged onto a frame's canvas lands where it's
+     dropped; groups and new rows don't wrap;
+   - the left rail switches Assets, Layers, Content and Configure, and
+     Configure sits in the panel; Content cuts an image's backdrop out and
+     drags it onto the canvas; a frame's edge resizes it; a frame takes a
+     custom canvas colour; sections show a dot when something is set; Shift
+     shows spacing with its token; Play shows a frame at a screen's height;
    - Select and Hand share one button; a group's tray closes on a press on
      the canvas, and its items drag onto a frame;
    - the inspector opens on the tab that suits the layer; size and spacing
@@ -448,7 +454,8 @@ try {
     expect(await frame().evaluate(() => ![...document.querySelectorAll('[data-bf-type="Image"] img')].some((i) => /^javascript:/.test(i.getAttribute("src") || ""))), "a non-http(s), non-data URL is refused");
     ok("an Image takes a pasted https URL, and refuses a javascript: one");
 
-    await page.locator(".bd-toolbar [aria-label='New frame']").click();
+    await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
+    await page.locator(".bd-tray-item", { hasText: "Frame" }).click();
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     await frame(1).waitForFunction(() => !!window.BuilderFrame && !!document.querySelector('[data-bf-slot="root"]'));
     await fitAll(page);
@@ -466,7 +473,7 @@ try {
     await page.close();
   });
 
-  await step("Tools draw primitives sized by tokens", async () => {
+  await step("Tools add primitives straight away, and land where they are dropped", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
     await page.locator(".bd-start").click();
@@ -484,43 +491,49 @@ try {
     expect(trays["Images and media"].join() === "Image,Video,Cover,Media,Figure,Icons*,Illustrations*", `the media tray, with icons and illustrations to come, got ${trays["Images and media"]}`);
     expect(await page.locator(".bd-tray.is-open").count() === 0, "pressing a group again closes its tray");
     ok("the bar's groups open trays: Group, Section, Frame, Page; Text, Heading; Image, Video, Cover, Media, Figure, with Icons and Illustrations marked coming soon");
-    const box = await page.locator("iframe.bd-frame").boundingBox();
     await page.keyboard.press("b");
-    await drag(page, { x: box.x + box.width * 0.1, y: box.y + box.height * 0.1 }, { x: box.x + box.width * 0.5, y: box.y + box.height * 0.6 });
     await frame().waitForSelector('[data-bf-type="Group"]');
     let d = await saved();
     const group = d.frames[0].root.children[0];
-    expect(group.type === "Group" && /^x\d+$/.test(group.style.w) && /^x\d+$/.test(group.style.h) && group.style.padding === "md", `a drawn container is a Group with token sizes, got ${JSON.stringify(group.style)}`);
-    expect(/^Select/.test(await page.locator(".bd-tool[aria-pressed=true]").getAttribute("aria-label")), "the tool goes back to Select after drawing");
-    ok(`B and a drag draw a container: a padded Group ${group.style.w} wide, at least ${group.style.h} tall`);
-    const inside = await canvasPoint(page, '[data-bf-type="Group"]', "left");
+    expect(group.type === "Group" && group.style.padding === "md" && group.style.x === undefined, `B adds a padded Group in the flow, got ${JSON.stringify(group.style)}`);
+    expect(await page.locator(".bd-draw, .bd-sketch").count() === 0, "no drawing mode: nothing waits for a drag on the canvas");
+    ok("B adds a padded Group straight away, with no marquee to draw");
     await page.keyboard.press("t");
-    await page.mouse.click(inside.x, inside.y + 4);
     await page.locator(".bd-inline").waitFor();
     await page.keyboard.type("Drawn text");
     await page.keyboard.press("Enter");
     await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Text"]')].some((t) => t.textContent === "Drawn text"));
     d = await saved();
     const kinds = d.frames[0].root.children[0].children.map((c) => c.type);
-    expect(kinds.join() === "Text", `the container holds the text, got ${kinds.join(", ")}`);
-    ok("T and a click add text inside the container and open it for typing");
+    expect(kinds.join() === "Text", `the selected container takes the text, got ${kinds.join(", ")}`);
+    ok("T adds text inside the selected container and opens it for typing");
     await page.locator('.bd-tool-group[aria-label^="Text,"]').click();
     await page.locator(".bd-tray-item", { hasText: "Heading" }).click();
-    expect(await page.locator('.bd-tool-group[aria-label="Text, Heading"]').getAttribute("aria-pressed") === "true", "the Text group shows Heading once it's picked");
-    await page.mouse.click(inside.x, inside.y + 4);
     await page.locator(".bd-inline").waitFor();
     await page.keyboard.type("Drawn heading");
     await page.keyboard.press("Enter");
     await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Heading"]')].some((t) => t.textContent === "Drawn heading"));
-    ok("Heading, picked from the Text tray, places a heading and opens it for typing");
+    expect(await page.locator('.bd-tool-group[aria-label="Text, Heading"]').count() === 1, "the Text group shows Heading once it's picked");
+    ok("Heading, pressed in the Text tray, goes straight in and opens for typing");
+    await release(page);
+    await page.mouse.click((await page.locator(".bd-stage").boundingBox()).x + 20, (await page.locator(".bd-stage").boundingBox()).y + 20);
+    await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
+    const gi = await page.locator(".bd-tray.is-open .bd-tray-item", { hasText: "Group" }).boundingBox();
+    await page.waitForFunction(() => { const t = document.querySelector(".bd-tray.is-open"); return t && getComputedStyle(t).visibility === "visible"; });
+    const fb = await page.locator("iframe.bd-frame").boundingBox();
+    const spot = { x: fb.x + fb.width * 0.6, y: fb.y + fb.height * 0.7 };
+    await drag(page, { x: gi.x + gi.width / 2, y: gi.y + gi.height / 2 }, spot);
+    d = await saved();
+    const free = d.frames[0].root.children[d.frames[0].root.children.length - 1];
+    expect(free.type === "Group" && Number.isInteger(free.style.x) && Number.isInteger(free.style.y) && free.style.x > 0, `a Group dropped on the frame's canvas is placed freely, got ${JSON.stringify(free.style)}`);
+    const left = await frame().evaluate((id) => document.querySelector(`[data-bf-id="${id}"]`).firstElementChild.style.left, free.id);
+    expect(left === `calc(var(--dt-space-inset-2xs) * ${free.style.x})`, `its position is steps of a token, got ${left}`);
+    ok(`a Group dragged from the tray onto the canvas lands where it's dropped: x ${free.style.x}, y ${free.style.y} steps of --dt-space-inset-2xs`);
     await page.keyboard.press("f");
-    const stage = await page.locator(".bd-stage").boundingBox();
-    await drag(page, { x: stage.x + 40, y: stage.y + stage.height - 140 }, { x: stage.x + 160, y: stage.y + stage.height - 60 });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
-    ok("F and a drag on empty canvas add a frame");
+    ok("F adds a frame");
     await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
     await page.locator(".bd-tray-item", { hasText: "Page" }).click();
-    await page.mouse.click(stage.x + 60, stage.y + stage.height - 100);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 3);
     const pageFrame = (await saved()).frames[2];
     expect(pageFrame.hug === true && pageFrame.root.children[0].type === "Section", `Page adds a frame that hugs its content, started with a Section, got ${JSON.stringify(pageFrame).slice(0, 160)}`);
@@ -648,6 +661,114 @@ try {
     await page.mouse.move(stage.x + 10, stage.y + 10);
     await page.waitForFunction(() => !document.querySelector(".bd-tip"));
     ok(`resting on a tool shows its tip ("${tipText}") and moving away hides it`);
+    await page.close();
+  });
+
+  await step("The rail, Configure in the panel, Content with background removal, edge resizing, a canvas colour, override dots, Shift spacing and Play", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
+
+    const tabs = await page.$$eval(".bd-rail .bd-tab", (b) => b.map((x) => x.textContent));
+    expect(tabs.join() === "Assets,Layers,Content,Configure", `the rail holds Assets, Layers, Content and Configure, got ${tabs}`);
+    const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
+    expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
+    await rail("Configure").click();
+    await page.waitForSelector(".bd-config-dock .configure-sheet.is-docked .configure-row");
+    expect(await page.evaluate(() => { const b = document.querySelector(".configure-bar"); return !b || getComputedStyle(b).display === "none"; }), "the floating Configure button is gone on this page");
+    await page.locator(".bd-config-dock .configure-row", { hasText: "Color" }).click();
+    await page.locator(".bd-config-dock [data-bid='back']").waitFor();
+    await rail("Assets").click();
+    expect(await page.evaluate(() => { const s = document.querySelector(".configure-sheet"); return s.parentElement === document.body && s.hidden; }), "leaving Configure puts the sheet away");
+    ok("the rail switches Assets, Layers, Content and Configure; Configure sits in the panel, and the top bar has no duplicates");
+
+    await page.locator(".bd-start").click();
+    await option(page, "Blank frame").click();
+    await frame().waitForSelector('[data-bf-slot="root"]');
+    await rail("Content").click();
+    const png = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 160; c.height = 120; const x = c.getContext("2d"); x.fillStyle = "#f3f2ee"; x.fillRect(0, 0, 160, 120); x.fillStyle = "#a01010"; x.beginPath(); x.arc(80, 60, 36, 0, 7); x.fill(); return c.toDataURL("image/png"); });
+    await page.setInputFiles("#bd-lib-file", { name: "red-dot.png", mimeType: "image/png", buffer: Buffer.from(png.split(",")[1], "base64") });
+    await page.waitForSelector(".bd-lib-item");
+    await page.locator(".bd-lib-menu").first().click();
+    await option(page, "Remove background").click();
+    await page.waitForFunction(() => /Background removed/.test(document.querySelector('.visually-hidden[role="status"]')?.textContent || ""), null, { timeout: 10000 });
+    const lib = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder-library")));
+    expect(lib.images.length === 1 && lib.images[0].original && /^data:image\/png/.test(lib.images[0].src), "the cut-out replaces the picture and keeps the original");
+    const corner = await page.evaluate((src) => new Promise((res) => { const i = new Image(); i.onload = () => { const c = document.createElement("canvas"); c.width = i.width; c.height = i.height; const x = c.getContext("2d"); x.drawImage(i, 0, 0); res([x.getImageData(2, 2, 1, 1).data[3], x.getImageData(i.width / 2, i.height / 2, 1, 1).data[3]]); }; i.src = src; }), lib.images[0].src);
+    expect(corner[0] === 0 && corner[1] === 255, `the backdrop is clear and the subject solid, got alpha ${corner}`);
+    const thumb = await page.locator(".bd-lib-thumb").first().boundingBox();
+    const fb = await page.locator("iframe.bd-frame").boundingBox();
+    await drag(page, { x: thumb.x + thumb.width / 2, y: thumb.y + thumb.height / 2 }, { x: fb.x + fb.width * 0.4, y: fb.y + fb.height * 0.4 });
+    await frame().waitForSelector('[data-bf-type="Image"] img[src^="data:image/png"]');
+    let d = await saved();
+    const img = d.frames[0].root.children.find((c) => c.type === "Image");
+    expect(img && Number.isInteger(img.style.x), `the picture lands where it's dropped, got ${JSON.stringify(img && img.style)}`);
+    ok("Content keeps an uploaded image, cuts out its backdrop (corner clear, centre solid), and drags onto the canvas where it's dropped");
+
+    const edge = await page.locator(".bd-resize.is-r").first().boundingBox();
+    await drag(page, { x: edge.x + 4, y: edge.y + 100 }, { x: edge.x - 120, y: edge.y + 100 });
+    d = await saved();
+    expect(d.frames[0].width < 1280 && d.frames[0].width % 10 === 0, `dragging the right edge resizes the frame, got ${d.frames[0].width}`);
+    ok(`the frame's right edge drags it to ${d.frames[0].width} wide`);
+
+    await page.mouse.click((await page.locator(".bd-stage").boundingBox()).x + 20, (await page.locator(".bd-stage").boundingBox()).y + 20);
+    await page.locator(".bd-flabel-btn").first().click();
+    await tab(page, "Appearance");
+    await page.locator(".bd-canvas-input").evaluate((el) => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set; set.call(el, "#ffe8cc"); el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); });
+    await frame().waitForFunction(() => getComputedStyle(document.querySelector(".bf-root")).backgroundColor === "rgb(255, 232, 204)");
+    expect((await saved()).frames[0].canvas === "#ffe8cc", "the frame keeps its custom canvas colour");
+    ok("a frame takes a custom canvas colour");
+
+    await rail("Assets").click();
+    await category(page, "Layout");
+    await page.locator('.bd-tile[data-type="Stack"]').click();
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await page.locator('.bd-tile[data-type="Text"]').click();
+    await frame().waitForSelector('[data-bf-type="Stack"] [data-bf-type="Text"]');
+    await rail("Layers").click();
+    await row(page, "Heading").click();
+    await tab(page, "Layout");
+    expect(await page.locator('[data-sec="spacing"] .bd-sec-dot').count() === 0, "nothing set in Spacing, so no dot");
+    await page.locator(".bd-box-p > .bd-box-all").click();
+    await option(page, /^lg$/).click();
+    await page.locator('[data-sec="spacing"] .bd-sec-dot').waitFor();
+    ok("a section shows a dot once something in it is set on the item");
+    await page.locator(".bd-box-p > .bd-box-all").click();
+    await option(page, "None").click();
+    await page.locator('[data-sec="spacing"] .bd-sec-dot').waitFor({ state: "detached" });
+    await frame().waitForFunction(() => !document.querySelector('[data-bf-type="Stack"] [data-bf-type="Heading"]').firstElementChild.style.padding);
+
+    /* The canvas eases to a new selection; measure once it has settled. */
+    let tp = null;
+    for (let i = 0; i < 20; i++) {
+      const next = await canvasPoint(page, '[data-bf-type="Stack"] [data-bf-type="Text"]');
+      if (tp && Math.abs(next.x - tp.x) < 0.5 && Math.abs(next.y - tp.y) < 0.5) break;
+      tp = next;
+      await page.waitForTimeout(120);
+    }
+    await page.keyboard.down("Shift");
+    await page.mouse.move(tp.x, tp.y, { steps: 4 });
+    const tag = page.locator(".bd-spacing-tag").first();
+    await tag.waitFor();
+    const said = await tag.textContent();
+    expect(/^\d+ gap \w+$/.test(said), `Shift shows the gap between the Heading and the Text with its token, got ${said}`);
+    await tag.click();
+    await page.waitForFunction(() => /Stack/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the label opens the Stack's Layout tab");
+    await page.keyboard.up("Shift");
+    await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
+    ok(`Shift and a hover show the space between two items ("${said}"); its label opens the Stack's gap, and letting go clears it`);
+
+    await page.locator("[aria-label='Play']").first().click();
+    await page.locator(".bd-play[open]").waitFor();
+    await page.waitForFunction(() => { const i = document.querySelector(".bd-play iframe"); return i && i.contentDocument && i.contentDocument.querySelector('[data-bf-type="Heading"]'); });
+    const hs = await page.$$eval(".bd-play .bd-seg-btn", (b) => b.map((x) => x.textContent));
+    const w = (await saved()).frames[0].width;
+    expect(hs.length >= 3 && (w > 1100 ? hs.includes("900") : w > 500 ? hs.includes("1180") : hs.includes("812")), `screen heights that suit a ${w} wide frame, got ${hs}`);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-play"));
+    ok(`Play shows the frame through a screen-sized window (${hs.join(", ")}) and Escape closes it`);
     await page.close();
   });
 
