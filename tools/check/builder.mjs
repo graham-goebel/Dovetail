@@ -579,7 +579,10 @@ try {
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
     await page.mouse.move(from.x + 12, from.y - 12, { steps: 3 });
-    await page.locator(".bd-ghost").waitFor({ timeout: 3000 }).catch(() => { throw new Error("pressing and dragging a tray item doesn't start a drag"); });
+    await page.locator(".bd-ghost").waitFor({ timeout: 3000 }).catch(async () => {
+      const under = await page.evaluate(({ x, y }) => { const el = document.elementFromPoint(x, y); const t = document.querySelector(".bd-tray"); return { el: el ? el.tagName + "." + el.className + " " + (el.textContent || "").slice(0, 20) : null, tray: t ? t.className + " inert=" + t.hasAttribute("inert") + " " + getComputedStyle(t).visibility + " " + getComputedStyle(t).transform : null }; }, from);
+      throw new Error(`pressing and dragging a tray item doesn't start a drag: pressed at ${Math.round(from.x)},${Math.round(from.y)} on ${JSON.stringify(under)}`);
+    });
     await page.mouse.move(to.x, to.y, { steps: 12 });
     await page.waitForFunction(() => document.querySelectorAll(".bd-mark-box, .bd-mark-line").length > 0, null, { timeout: 3000 })
       .catch(async () => { throw new Error(`no drop target shows over the frame at ${Math.round(to.x)},${Math.round(to.y)}; the frame is at ${JSON.stringify(box)}`); });
