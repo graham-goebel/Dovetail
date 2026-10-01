@@ -481,6 +481,51 @@ kbd {
   color: var(--dt-text-primary);
 }
 
+/* Where a family of options starts: Controls, Layout layers, More sizes. */
+.bd-dd-group {
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-xs) var(--dt-space-inset-2xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+.bd-dd-group:not(:first-child) {
+  margin-top: var(--dt-space-stack-2xs);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+/* The measured size, first: what it is, then what it's called. */
+.bd-dd-px {
+  flex: none;
+  min-width: 3ch;
+  color: var(--dt-text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Pin to: nine spots beside the edge-wide choices and the offset. */
+.bd-pin {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--dt-space-inline-xs);
+  margin-top: var(--dt-space-stack-xs);
+}
+
+.bd-pin .bd-btn {
+  justify-content: flex-start;
+}
+
+/* A frame's size, under its name. */
+.bd-frame-size-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+  margin-top: var(--dt-space-stack-sm);
+}
+
 /* Token previews, drawn with the token. */
 .bd-sw {
   flex: none;
@@ -1350,14 +1395,82 @@ span.bd-layer-twisty.is-open .bd-ic {
   background: var(--dt-border-default);
 }
 
+/* A group's tray floats above the bar. It stays in the page while it
+   closes, so it can fade and settle rather than blink out. */
 .bd-tray {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-wrap: nowrap;
+  justify-content: safe center;
   gap: 4px;
-  padding: 4px;
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-sunken);
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  overflow-x: auto;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-overlay);
+  box-shadow: var(--dt-elevation-3);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px) scale(0.96);
+  transform-origin: 50% 100%;
+  visibility: hidden;
+  scrollbar-width: none;
+}
+
+.bd-tray.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(1);
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-tray {
+    transition: opacity var(--dt-motion-micro), transform var(--dt-motion-micro), visibility 0s linear 200ms;
+  }
+
+  .bd-tray.is-open {
+    transition: opacity var(--dt-motion-micro), transform var(--dt-motion-micro), visibility 0s;
+  }
+
+  .bd-tool,
+  .bd-tray-item {
+    transition: background var(--dt-motion-micro), color var(--dt-motion-micro), box-shadow var(--dt-motion-micro);
+  }
+
+  .bd-nav-icons .bd-ic {
+    transition: opacity var(--dt-motion-micro), transform var(--dt-motion-micro);
+  }
+}
+
+/* Select and Hand share one button: the face shows the one that's on. */
+.bd-nav-icons {
+  position: relative;
+  display: inline-grid;
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+}
+
+.bd-nav-icons .bd-ic {
+  grid-area: 1 / 1;
+}
+
+.bd-nav-hand,
+.bd-tool-nav.is-hand .bd-nav-pointer {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.bd-tool-nav.is-hand .bd-nav-hand {
+  opacity: 1;
+  transform: none;
+}
+
+.bd-tray-item {
+  flex: none;
 }
 
 .bd-tray-item {
@@ -1420,6 +1533,26 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-tray-item:focus-visible {
   outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
   outline-offset: 1px;
+}
+
+@media (max-width: 600px) {
+  /* Clear of the site's floating buttons in the bottom right corner. */
+  .bd-tools {
+    left: var(--dt-space-inset-xs);
+    transform: none;
+  }
+
+  .bd-tray {
+    left: 0;
+    justify-content: flex-start;
+    max-width: calc(100vw - 16px);
+    transform: translate(0, 8px) scale(0.96);
+    transform-origin: 0 100%;
+  }
+
+  .bd-tray.is-open {
+    transform: none;
+  }
 }
 
 @media (max-width: 900px) {
@@ -2252,4 +2385,32 @@ span.bd-layer-twisty.is-open .bd-ic {
   display: flex;
   flex-wrap: wrap;
   gap: var(--dt-space-inline-xs);
+}
+
+/* ------------------------------------------------------------- tooltips */
+
+.bd-tip {
+  position: fixed;
+  z-index: 1000;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-inverse);
+  box-shadow: var(--dt-elevation-2);
+  color: var(--dt-text-inverse);
+  font-size: var(--dt-font-size-xs);
+  line-height: var(--dt-line-height-xs);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-tip {
+    animation: bd-tip-in var(--dt-motion-micro);
+  }
+}
+
+@keyframes bd-tip-in {
+  from {
+    opacity: 0;
+  }
 }

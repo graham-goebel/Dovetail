@@ -55,6 +55,9 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle or 
 | Key | What it sets | Options |
 |---|---|---|
 | `self` | Align self | `start`, `center`, `end`, `stretch` |
+| `position` | Position | `sticky`, `pinned`, `floating` |
+| `anchor` | Pin to | `top-left`, `top`, `top-right`, `left`, `center`, `right`, `bottom-left`, `bottom`, `bottom-right`, `top-stretch`, `bottom-stretch` |
+| `offset` | Offset | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
 | `surface` | Fill | `base`, `subtle`, `raised`, `sunken`, `brand-muted`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` |
 | `border` | Border | `subtle`, `default`, `strong`, `brand` |
 | `borderTop` | Border top | `subtle`, `default`, `strong`, `brand` |
@@ -63,20 +66,20 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle or 
 | `borderLeft` | Border left | `subtle`, `default`, `strong`, `brand` |
 | `radius` | Radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
 | `elevation` | Shadow | `0`, `1`, `2`, `3`, `4`, `5` |
-| `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `paddingTop` | Padding top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `paddingRight` | Padding right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `paddingBottom` | Padding bottom | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `paddingLeft` | Padding left | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `margin` | Margin | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `marginTop` | Margin top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `marginRight` | Margin right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `marginBottom` | Margin bottom | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `marginLeft` | Margin left | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `w` | Width | `hug`, `fill`, `x1`, `x2`, `x3`, `x4`, `x6`, `x8`, `x12`, `narrow`, `default`, `wide` |
-| `minW` | Min width | `x2`, `x3`, `x4`, `x6`, `x8`, `narrow` |
-| `height` | Height | `hug`, `fill`, `x1`, `x2`, `x3`, `x4`, `x6`, `x8`, `x12`, `narrow` |
-| `h` | Min height | `x2`, `x4`, `x6`, `x8`, `narrow` |
+| `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
+| `paddingTop` | Padding top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
+| `paddingRight` | Padding right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
+| `paddingBottom` | Padding bottom | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
+| `paddingLeft` | Padding left | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
+| `margin` | Margin | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
+| `marginTop` | Margin top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
+| `marginRight` | Margin right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
+| `marginBottom` | Margin bottom | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
+| `marginLeft` | Margin left | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
+| `w` | Width | `hug`, `fill`, `narrow`, `default`, `wide`, `control-xs`, `control-sm`, `control-md`, `control-lg`, `touch`, `icon-xs`, `icon-sm`, `icon-md`, `icon-lg`, `icon-xl`, `avatar-xs`, `avatar-sm`, `avatar-md`, `avatar-lg`, `avatar-xl`, `media-min`, `artboard`, `x1`, `x2`, `x3`, `x4`, `x6`, `x8`, `x12` |
+| `minW` | Min width | `narrow`, `control-xs`, `control-sm`, `control-md`, `control-lg`, `touch`, `avatar-xs`, `avatar-sm`, `avatar-md`, `avatar-lg`, `avatar-xl`, `media-min`, `x2`, `x3`, `x4`, `x6`, `x8` |
+| `height` | Height | `hug`, `fill`, `narrow`, `control-xs`, `control-sm`, `control-md`, `control-lg`, `touch`, `icon-xs`, `icon-sm`, `icon-md`, `icon-lg`, `icon-xl`, `avatar-xs`, `avatar-sm`, `avatar-md`, `avatar-lg`, `avatar-xl`, `media-min`, `artboard-square`, `artboard-portrait`, `artboard-story`, `x1`, `x2`, `x3`, `x4`, `x6`, `x8`, `x12` |
+| `h` | Min height | `narrow`, `control-xs`, `control-sm`, `control-md`, `control-lg`, `touch`, `media-min`, `artboard-square`, `artboard-portrait`, `artboard-story`, `x2`, `x4`, `x6`, `x8` |
 
 A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key for that side. Sizes named `x1` to `x12` are that many times `--dt-size-control-lg`.
 
@@ -100,7 +103,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 
 ### Actions
 
-- **Button**: The main action. Props: `variant` (one of `primary`, `secondary`, `ghost`, `danger`; default `primary`), `size` (one of `sm`, `md`, `lg`; default `md`), `disabled` (boolean), `loading` (boolean), `fullWidth` (boolean), `iconStart` (text), `iconEnd` (text).
+- **Button**: The main action. Props: `variant` (one of `primary`, `secondary`, `ghost`, `danger`, `brand`, `brand-secondary`; default `primary`), `size` (one of `sm`, `md`, `lg`; default `md`), `disabled` (boolean), `loading` (boolean), `fullWidth` (boolean), `iconStart` (text), `iconEnd` (text).
 - **ButtonGroup**: Related buttons. Props: `label` (text), `attached` (boolean; default `false`).
 - **IconButton**: An icon-only action. Props: `label` (text), `variant` (one of `ghost`, `solid`; default `ghost`), `size` (one of `xs`, `sm`, `md`, `lg`; default `md`), `disabled` (boolean).
 - **Link**: Goes somewhere. Props: `external` (boolean), `underline` (one of `always`, `hover`, `never`; default `always`), `tone` (one of `primary`, `inherit`; default `primary`).
