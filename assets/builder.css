@@ -1418,6 +1418,9 @@ span.bd-layer-twisty.is-open .bd-ic {
   transform-origin: 50% 100%;
   visibility: hidden;
   scrollbar-width: none;
+  /* No transition at all unless motion is welcome: a forced short one
+     would start it hidden for a frame and let a press fall through. */
+  transition-property: none;
 }
 
 .bd-tray.is-open {
@@ -1589,10 +1592,6 @@ span.bd-layer-twisty.is-open .bd-ic {
   border: var(--dt-border-width-strong) dashed var(--dt-text-primary);
   background: color-mix(in oklch, var(--dt-text-primary) 6%, transparent);
   pointer-events: none;
-}
-
-.bd-sketch.is-ellipse {
-  border-radius: 50%;
 }
 
 .bd-flabel .bd-frame-menu.bd-dd {

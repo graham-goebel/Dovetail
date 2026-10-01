@@ -14,7 +14,7 @@
      selects it, and clicking the empty canvas clears the selection;
    - the inspector splits into Appearance, Layout and Content, with a box
      model for margin and padding, a size grid and a flex alignment pad;
-   - the tools draw a rectangle, an ellipse, a container, text and a frame,
+   - the tools draw a container, text, a heading and a frame,
      sized in steps of a size token; groups and new rows don't wrap;
    - Select and Hand share one button; a group's tray closes on a press on
      the canvas, and its items drag onto a frame;
@@ -472,9 +472,9 @@ try {
     await page.locator(".bd-start").click();
     await option(page, "Blank frame").click();
     await frame().waitForSelector('[data-bf-slot="root"]');
-    expect(await page.locator(".bd-tools-row > .bd-tool").count() === 5, "one Select/Hand button and four groups in the bar");
+    expect(await page.locator(".bd-tools-row > .bd-tool").count() === 4, "one Select/Hand button and three groups in the bar, with no shapes");
     const trays = {};
-    for (const g of ["Layout", "Shapes", "Text", "Images and media"]) {
+    for (const g of ["Layout", "Text", "Images and media"]) {
       await page.locator(`.bd-tool-group[aria-label^="${g},"]`).click();
       trays[g] = await page.$$eval(".bd-tray-item", (b) => b.map((x) => x.querySelector(".bd-tray-label").textContent + (x.getAttribute("aria-disabled") ? "*" : "")));
       await page.locator(`.bd-tool-group[aria-label^="${g},"]`).click();
@@ -494,19 +494,6 @@ try {
     expect(/^Select/.test(await page.locator(".bd-tool[aria-pressed=true]").getAttribute("aria-label")), "the tool goes back to Select after drawing");
     ok(`B and a drag draw a container: a padded Group ${group.style.w} wide, at least ${group.style.h} tall`);
     const inside = await canvasPoint(page, '[data-bf-type="Group"]', "left");
-    await page.keyboard.press("r");
-    const unit = await frame().evaluate(() => window.BuilderFrame.unit());
-    const z = box.width / 1280;
-    await drag(page, { x: inside.x, y: inside.y + 4 }, { x: inside.x + unit * 3 * z, y: inside.y + 4 + unit * 2 * z });
-    await frame().waitForSelector('[data-bf-type="Group"] [data-bf-type="Shape"]');
-    d = await saved();
-    const rect = d.frames[0].root.children[0].children[0];
-    expect(rect.type === "Shape" && rect.props.shape === "rectangle" && rect.style.w === "x3" && rect.style.height === "x2", `a rectangle dragged 3 by 2 steps snaps to x3 by x2, got ${JSON.stringify(rect)}`);
-    const css = await frame().evaluate(() => document.querySelector('[data-bf-type="Shape"]').firstElementChild.style.width);
-    expect(css === "calc(var(--dt-size-control-lg) * 3)", `its width is a multiple of the token, got ${css}`);
-    ok("R and a drag draw a rectangle inside the container, snapped to control-lg × 3 by × 2");
-    await page.keyboard.press("o");
-    await page.mouse.click(inside.x, inside.y + 4);
     await page.keyboard.press("t");
     await page.mouse.click(inside.x, inside.y + 4);
     await page.locator(".bd-inline").waitFor();
@@ -514,9 +501,9 @@ try {
     await page.keyboard.press("Enter");
     await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Text"]')].some((t) => t.textContent === "Drawn text"));
     d = await saved();
-    const kinds = d.frames[0].root.children[0].children.map((c) => c.type === "Shape" ? c.props.shape : c.type);
-    expect(kinds.includes("ellipse") && kinds.includes("Text") && kinds.includes("rectangle"), `the container holds a rectangle, an ellipse and text, got ${kinds.join(", ")}`);
-    ok("O and a click add an ellipse; T and a click add text and open it for typing");
+    const kinds = d.frames[0].root.children[0].children.map((c) => c.type);
+    expect(kinds.join() === "Text", `the container holds the text, got ${kinds.join(", ")}`);
+    ok("T and a click add text inside the container and open it for typing");
     await page.locator('.bd-tool-group[aria-label^="Text,"]').click();
     await page.locator(".bd-tray-item", { hasText: "Heading" }).click();
     expect(await page.locator('.bd-tool-group[aria-label="Text, Heading"]').getAttribute("aria-pressed") === "true", "the Text group shows Heading once it's picked");
@@ -564,15 +551,16 @@ try {
     expect(/^Select/.test(await nav.getAttribute("aria-label")), "pressing it again goes back to Select");
     ok("Select and Hand share one button that toggles between them");
 
-    await page.locator('.bd-tool-group[aria-label^="Shapes,"]').click();
+    await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
     await page.locator(".bd-tray.is-open").waitFor();
     const stage = await page.locator(".bd-stage").boundingBox();
     await page.mouse.click(stage.x + 30, stage.y + 30);
     await page.waitForFunction(() => !document.querySelector(".bd-tray.is-open"));
     ok("a press on the empty canvas closes an open tray");
 
-    await page.locator('.bd-tool-group[aria-label^="Shapes,"]').click();
-    const item = await page.locator(".bd-tray.is-open .bd-tray-item", { hasText: "Rectangle" }).boundingBox();
+    await page.locator('.bd-tool-group[aria-label^="Images and media,"]').click();
+    await page.waitForFunction(() => { const t = document.querySelector(".bd-tray.is-open"); return t && getComputedStyle(t).visibility === "visible" && getComputedStyle(t).opacity === "1"; });
+    const item = await page.locator(".bd-tray.is-open .bd-tray-item", { hasText: /^Image$/ }).boundingBox();
     const box = await page.locator("iframe.bd-frame").boundingBox();
     const from = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
     const to = await canvasPoint(page, '[data-bf-slot="root"]');
@@ -587,10 +575,16 @@ try {
     await page.waitForFunction(() => document.querySelectorAll(".bd-mark-box, .bd-mark-line").length > 0, null, { timeout: 3000 })
       .catch(async () => { throw new Error(`no drop target shows over the frame at ${Math.round(to.x)},${Math.round(to.y)}; the frame is at ${JSON.stringify(box)}`); });
     await page.mouse.up();
-    await frame().waitForSelector('[data-bf-type="Shape"]', { timeout: 4000 }).catch(() => { throw new Error("a rectangle dropped from its tray doesn't land on the frame"); });
-    await page.waitForFunction(() => /Shape|Rectangle/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Appearance", `a shape opens on Appearance, got ${await current()}`);
-    ok("a rectangle dragged from its tray lands on the frame, selected, with the inspector on Appearance");
+    await frame().waitForSelector('[data-bf-type="Image"]', { timeout: 4000 }).catch(() => { throw new Error("an Image dropped from its tray doesn't land on the frame"); });
+    await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(await current() === "Content", `an Image opens on Content, got ${await current()}`);
+    ok("an Image dragged from its tray lands on the frame, selected, with the inspector on Content");
+
+    await category(page, "Layout");
+    await page.locator('.bd-tile[data-type="Shape"]').click();
+    await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(await current() === "Appearance", `a Shape opens on Appearance, got ${await current()}`);
+    ok("a Shape from the assets panel opens on Appearance");
 
     await page.mouse.click(stage.x + 30, stage.y + 30);
     await category(page, "Layout");
@@ -647,10 +641,10 @@ try {
     ok("Pinned fixes the Button to the frame, the pin pad moves it, and In flow puts it back");
 
     await page.mouse.move(stage.x + 10, stage.y + 10);
-    await page.locator('.bd-tool-group[aria-label^="Shapes,"]').hover();
+    await page.locator('.bd-tool-group[aria-label^="Text,"]').hover();
     await page.locator(".bd-tip").waitFor({ timeout: 3000 });
     const tipText = await page.locator(".bd-tip").textContent();
-    expect(/^Shapes/.test(tipText), `the tip names the group, got ${tipText}`);
+    expect(/^Text/.test(tipText), `the tip names the group, got ${tipText}`);
     await page.mouse.move(stage.x + 10, stage.y + 10);
     await page.waitForFunction(() => !document.querySelector(".bd-tip"));
     ok(`resting on a tool shows its tip ("${tipText}") and moving away hides it`);

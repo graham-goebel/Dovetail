@@ -64,10 +64,6 @@
       { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a device size" },
       { id: "page", label: "Page", icon: "file", hint: "A frame that grows with its content" },
     ] },
-    { group: "shape", label: "Shapes", items: [
-      { id: "rect", label: "Rectangle", icon: "square", key: "R" },
-      { id: "ellipse", label: "Ellipse", icon: "circle", key: "O" },
-    ] },
     { group: "text", label: "Text", items: [
       { id: "comp:Text", label: "Text", icon: "type", key: "T", hint: "Body copy" },
       { id: "comp:Heading", label: "Heading", icon: "heading", hint: "A title" },
@@ -2793,8 +2789,6 @@
     /* What each tool puts down. A drag gives it a size in whole steps of the
        large control size; a click gives it a sensible one. */
     var toolNode = function (kind, size) {
-      if (kind === "rect") return make("Shape", { shape: "rectangle" }, null, { w: size ? size.w : "x4", height: size ? size.h : "x2", surface: "sunken", radius: "control" });
-      if (kind === "ellipse") return make("Shape", { shape: "ellipse" }, null, { w: size ? size.w : "x2", height: size ? size.h : "x2", surface: "brand-muted" });
       if (kind === "box") {
         var box = make("Group", { direction: "column", gap: "sm" }, [], { padding: "md", border: "subtle", radius: "container" });
         if (size) { box.style.w = size.w; box.style.h = size.h; }
@@ -2990,7 +2984,7 @@
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
         marks.drop && marks.drop.box ? e("div", { className: "bd-mark-box", style: marks.drop.box }) : null),
       !preview && tool !== "select" ? e("div", Object.assign({ className: cx("bd-draw", tool === "hand" ? "is-hand" : "is-draw") }, drawHandlers)) : null,
-      sketch && sketch.tool !== "hand" ? e("div", { className: cx("bd-sketch", sketch.tool === "ellipse" && "is-ellipse"), "aria-hidden": true,
+      sketch && sketch.tool !== "hand" ? e("div", { className: "bd-sketch", "aria-hidden": true,
         style: { left: Math.min(sketch.x0, sketch.x1), top: Math.min(sketch.y0, sketch.y1), width: Math.abs(sketch.x1 - sketch.x0), height: Math.abs(sketch.y1 - sketch.y0) } }) : null,
       !preview ? tools : null,
       edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,

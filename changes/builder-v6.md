@@ -15,6 +15,7 @@ The Builder page (`builder.html`) sizes things in pixels and context, pins items
 - **Smart tabs:** the inspector opens on the tab that suits the layer. A shape opens on Appearance, a container or frame on Layout, and text or a component on Content. It remembers the tab you pick for each kind.
 - **Tool bar:**
   - Select and Hand share one button that toggles between them.
+  - Rectangle and Ellipse, and their R and O keys, leave the bar. A Shape can still be added from the assets panel.
   - A group's tray floats above the bar and eases open and shut. It doesn't move under reduced motion.
   - Items drag from a tray, or from the assets panel, onto a frame.
   - A press on the empty canvas clears the selection and closes an open tray.
