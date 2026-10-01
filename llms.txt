@@ -182,6 +182,10 @@ Page sections that stack into a landing page. Each is a Section with its layout 
 - [CartBlock](https://graham-goebel.github.io/Dovetail/system/components/blocks/CartBlock.md): The cart page: the cart's lines on the left and an `OrderSummary` on the right with a promo field and the checkout action, sticky while a long cart scrolls. On a narrow screen the summary wraps below the lines. With no lines it shows an empty state. ([props](https://graham-goebel.github.io/Dovetail/system/components/blocks/CartBlock.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/blocks/CartBlock.jsx))
 - [CheckoutBlock](https://graham-goebel.github.io/Dovetail/system/components/blocks/CheckoutBlock.md): A one-page checkout. The form (contact email, shipping address, delivery method, card details and the place-order action) sits on the left; the order, read-only lines over an `OrderSummary`, sits on the right and stays in view. When the block is narrower than `collapseBelow` the order moves to the top, folded into a "Show order summary · $141.09" disclosure, the usual phone pattern. ([props](https://graham-goebel.github.io/Dovetail/system/components/blocks/CheckoutBlock.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/blocks/CheckoutBlock.jsx))
 
+## Builder
+
+- [Builder layouts](https://graham-goebel.github.io/Dovetail/assets/builder-layouts.md): the JSON a layout is written in, every component, prop and token the builder takes, and how to open one on its canvas as a link
+
 ## Optional
 
 - [Contributing a component](https://graham-goebel.github.io/Dovetail/system/guidelines/contributing.md)

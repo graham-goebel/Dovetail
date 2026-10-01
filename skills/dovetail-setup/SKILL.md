@@ -1,6 +1,6 @@
 ---
 name: dovetail-setup
-description: Sets up the Dovetail design system (@dovetail-ds/react) in a project and gives it the team's own look. It either interviews the user about brand colour, buttons, type, shape, spacing and surfaces, or imports a theme CSS file downloaded from the Dovetail docs site's Configure panel (usually theme-custom.css). It then writes the theme with Configure's own code, wires the stylesheets and fonts into the app root, and checks contrast. Use it whenever someone installs, sets up, themes, brands or restyles Dovetail, mentions @dovetail-ds/react with colours, fonts or dark mode, attaches or points at a theme-custom.css or other Dovetail theme file, or asks to change the Dovetail look later ("make the buttons our blue", "rounder corners", "switch to Inter"), even if they never say "skill" or "theme".
+description: Sets up the Dovetail design system (@dovetail-ds/react) in a project and gives it the team's own look. It either interviews the user about brand colour, buttons, type, shape, spacing and surfaces, or imports a theme CSS file downloaded from the Dovetail docs site's Configure panel (usually theme-custom.css). It then writes the theme with Configure's own code, wires the stylesheets and fonts into the app root, and checks contrast. Use it whenever someone installs, sets up, themes, brands or restyles Dovetail, mentions @dovetail-ds/react with colours, fonts or dark mode, attaches or points at a theme-custom.css or other Dovetail theme file, or asks to change the Dovetail look later ("make the buttons our blue", "rounder corners", "switch to Inter"), even if they never say "skill" or "theme". Also use it when someone wants a Dovetail screen or layout they can open and keep editing in the Dovetail builder ("open it in the builder", "a builder link", "something I can tweak visually").
 ---
 
 # Dovetail setup
@@ -104,6 +104,23 @@ A theme built by this skill starts with a comment like `/* dovetail-setup choice
 4. Show the user the diff in plain terms.
 
 Never hand-edit the colour ramps, because they are computed together and the contrast checks depend on them. A theme imported from Configure has no choices comment. To change it, either re-export from Configure, or rebuild it with the interview path (the check output shows its primary colour and fonts to start from). Say which you're doing.
+
+## Opening a screen in the builder
+
+The Dovetail builder (https://graham-goebel.github.io/Dovetail/builder.html) is a canvas where people arrange Dovetail components and style them with tokens. A layout you write as JSON opens there as layers they can keep editing. Offer it whenever you design a Dovetail screen, alongside the code: "Open in the builder" turns a draft into something they can rearrange themselves.
+
+1. Read the format first: https://graham-goebel.github.io/Dovetail/assets/builder-layouts.md. It is generated from the builder's own data, so its component list, props and token options are exactly what the builder accepts. Don't work from memory: the lists change between versions.
+2. Write the layout to a file. It holds frames, each holding nodes. A node is a component `type`, its `props` (plain strings, numbers and booleans, its text in `props.children`), its `style` (token option names such as `"padding": "md"`, never CSS values) and, for containers, `children`. Give images an https URL.
+3. Make the link:
+
+   ```sh
+   node scripts/builder-link.mjs layout.json
+   ```
+
+   It prints the link, then a line on stderr with what it counted, and a warning for each value that plainly isn't a token. Fix the warnings, then rerun.
+4. Give the user the link. If it's very long (the script warns past 30,000 characters), give them the JSON instead and tell them to paste it in the builder: Start from, then Paste a layout. Delete the layout file afterwards unless they want to keep it.
+
+The builder leaves out anything it can't set (a raw value, an unknown prop, a React element passed as a prop) and lists what it left out. Tell the user what won't carry over before they open it, rather than letting the list surprise them. The other direction works too: the builder's Code dialog has Copy layout JSON, which a user can paste back to you to change.
 
 ## What not to do
 
