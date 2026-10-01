@@ -946,12 +946,12 @@ function page({ title, lede, body, active, root, wide = false, home = false, app
     <span class="wordmark-text">Dovetail</span>
   </a>
   <span class="wordmark-note">White-label design system</span>
-  <div class="header-controls">
+  ${app ? '<div class="header-controls header-app" id="app-toolbar"></div>' : `<div class="header-controls">
     <button type="button" class="search-btn" data-open-search aria-label="Search components and pages">${icon("search").replace('class="tile-icon"', 'class="ic"')}<span>Search</span><kbd>/</kbd></button>
     ${actions.button}
-  </div>
+  </div>`}
 </header>
-${phoneChrome(root, active, title, actions.button)}
+${phoneChrome(root, active, title, app ? "" : actions.button)}
 <div class="layout">
 ${nav(root, active)}
 <main id="main" class="${["main", wide ? "wide" : "", home ? "home" : "", app ? "app" : "", hasToc ? "has-toc" : ""].filter(Boolean).join(" ")}">
@@ -966,7 +966,7 @@ ${graph ? GRAPH_SPRITE : ""}
   <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
 </footer>
 ${fab()}
-${actions.sheet}
+${app ? "" : actions.sheet}
 ${scripts}<script src="${root}assets/configure-data.js" defer></script>
 <script src="${root}assets/search-data.js" defer></script>
 <script src="${root}assets/search.js" defer></script>
@@ -2074,24 +2074,38 @@ ${families
 const cssVar = (t) => `var(${t})`;
 const BUILDER_SPACE = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
 const tokenOption = (value, tokens, css, label) => ({ value, tokens, css, ...(label ? { label } : {}) });
+const inset = (o) => cssVar(`--dt-space-inset-${o}`);
+const spaceOpts = (css) => BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inset-${o}`], css(inset(o))));
+const borderOpts = (prop) => ["subtle", "default", "strong", "brand"]
+  .map((o) => tokenOption(o, [`--dt-border-${o}`, "--dt-border-width-default"], { [prop]: `${cssVar("--dt-border-width-default")} solid ${cssVar(`--dt-border-${o}`)}` }));
 const BUILDER_TOKENS = {
   surface: { label: "Fill", section: "appearance", preview: "color",
     options: ["base", "subtle", "raised", "sunken", "brand-muted", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
       .map((o) => tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
-  border: { label: "Border", section: "appearance", preview: "color",
-    options: ["subtle", "default", "strong", "brand"]
-      .map((o) => tokenOption(o, [`--dt-border-${o}`, "--dt-border-width-default"], { border: `${cssVar("--dt-border-width-default")} solid ${cssVar(`--dt-border-${o}`)}` })) },
+  border: { label: "Border", section: "appearance", preview: "color", sides: ["borderTop", "borderRight", "borderBottom", "borderLeft"], options: borderOpts("border") },
+  borderTop: { label: "Border top", section: "appearance", preview: "color", side: "top", options: borderOpts("borderTop") },
+  borderRight: { label: "Border right", section: "appearance", preview: "color", side: "right", options: borderOpts("borderRight") },
+  borderBottom: { label: "Border bottom", section: "appearance", preview: "color", side: "bottom", options: borderOpts("borderBottom") },
+  borderLeft: { label: "Border left", section: "appearance", preview: "color", side: "left", options: borderOpts("borderLeft") },
   radius: { label: "Radius", section: "appearance", preview: "radius",
     options: ["none", "control", "container", "overlay", "media", "pill"]
       .map((o) => tokenOption(o, [`--dt-radius-${o}`], { borderRadius: cssVar(`--dt-radius-${o}`), overflow: "hidden" })) },
   elevation: { label: "Shadow", section: "appearance", preview: "shadow",
     options: ["0", "1", "2", "3", "4", "5"].map((o) => tokenOption(o, [`--dt-elevation-${o}`], { boxShadow: cssVar(`--dt-elevation-${o}`) })) },
-  padding: { label: "Padding", section: "spacing", preview: "space",
-    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inset-${o}`], { padding: cssVar(`--dt-space-inset-${o}`) })) },
-  marginY: { label: "Margin, top and bottom", section: "spacing", preview: "space",
-    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`], { marginBlock: cssVar(`--dt-space-stack-${o}`) })) },
-  marginX: { label: "Margin, left and right", section: "spacing", preview: "space",
-    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inline-${o}`], { marginInline: cssVar(`--dt-space-inline-${o}`) })) },
+  /* Padding reads the inset scale on every side. Margin reads the stack scale
+     above and below and the inline scale left and right, so a margin follows
+     the same axis a Stack or Inline gap would. */
+  padding: { label: "Padding", section: "spacing", preview: "space", sides: ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"], options: spaceOpts((v) => ({ padding: v })) },
+  paddingTop: { label: "Padding top", section: "spacing", preview: "space", side: "top", options: spaceOpts((v) => ({ paddingTop: v })) },
+  paddingRight: { label: "Padding right", section: "spacing", preview: "space", side: "right", options: spaceOpts((v) => ({ paddingRight: v })) },
+  paddingBottom: { label: "Padding bottom", section: "spacing", preview: "space", side: "bottom", options: spaceOpts((v) => ({ paddingBottom: v })) },
+  paddingLeft: { label: "Padding left", section: "spacing", preview: "space", side: "left", options: spaceOpts((v) => ({ paddingLeft: v })) },
+  margin: { label: "Margin", section: "spacing", preview: "space", sides: ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+    options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`, `--dt-space-inline-${o}`], { marginBlock: cssVar(`--dt-space-stack-${o}`), marginInline: cssVar(`--dt-space-inline-${o}`) })) },
+  marginTop: { label: "Margin top", section: "spacing", preview: "space", side: "top", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`], { marginTop: cssVar(`--dt-space-stack-${o}`) })) },
+  marginRight: { label: "Margin right", section: "spacing", preview: "space", side: "right", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inline-${o}`], { marginRight: cssVar(`--dt-space-inline-${o}`) })) },
+  marginBottom: { label: "Margin bottom", section: "spacing", preview: "space", side: "bottom", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-stack-${o}`], { marginBottom: cssVar(`--dt-space-stack-${o}`) })) },
+  marginLeft: { label: "Margin left", section: "spacing", preview: "space", side: "left", options: BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inline-${o}`], { marginLeft: cssVar(`--dt-space-inline-${o}`) })) },
   w: { label: "Width", section: "size", preview: "text",
     options: [
       tokenOption("hug", [], { width: "fit-content" }, "Hug contents"),
@@ -2102,6 +2116,16 @@ const BUILDER_TOKENS = {
     options: [2, 4, 6, 8].map((n) => tokenOption(`x${n}`, ["--dt-size-control-lg"], { minHeight: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`))
       .concat([tokenOption("narrow", ["--dt-size-container-narrow"], { minHeight: cssVar("--dt-size-container-narrow") }, "Container narrow")]) },
 };
+/* The canvas's frame sizes. Widths of real devices, not tokens; the builder
+   offers these and nothing else. */
+const BUILDER_FRAMES = [
+  { id: "phone", label: "Phone", width: 390 },
+  { id: "phone-lg", label: "Phone, large", width: 430 },
+  { id: "tablet", label: "Tablet", width: 768 },
+  { id: "laptop", label: "Laptop", width: 1024 },
+  { id: "desktop", label: "Desktop", width: 1280 },
+  { id: "wide", label: "Wide", width: 1440 },
+];
 /* The builder's own flex group: any components side by side or stacked, with
    a gap from the inline scale (in a row) or the stack scale (in a column). */
 const BUILDER_GROUP = {
@@ -2180,6 +2204,9 @@ function buildBuilder() {
       }
     }
     props.forEach((p) => { p.layout = BUILDER_LAYOUT_PROPS.includes(p.name); });
+    /* An image or video source takes an upload or a URL, never typed CSS. */
+    const media = ["Image", "Cover", "Video"].includes(c.name) ? ["src"].concat(c.name === "Video" ? ["poster"] : []) : [];
+    media.forEach((name) => props.push({ name, kind: "media", options: null, default: null, note: name === "poster" ? "Shown before the video plays" : "The picture or clip", layout: false }));
     meta[c.name] = {
       blurb: NAV_BLURB[c.name] || String(c.summary || "").replace(/[`*_]/g, "").split(". ")[0],
       group: c.group,
@@ -2199,7 +2226,7 @@ function buildBuilder() {
 
   write("assets/builder-data.js",
     "/* GENERATED by tools/build-site.mjs (buildBuilder): what the builder can place and the tokens it may offer. Do not edit. */\n" +
-    `window.DovetailBuilderData = ${JSON.stringify({ groups, components: meta, tokens, columnWidths: BUILDER_COLUMN_WIDTHS, rootGaps: BUILDER_ROOT_GAPS })};\n`);
+    `window.DovetailBuilderData = ${JSON.stringify({ groups, components: meta, tokens, columnWidths: BUILDER_COLUMN_WIDTHS, rootGaps: BUILDER_ROOT_GAPS, frames: BUILDER_FRAMES })};\n`);
 
   /* The canvas loads its own copies of the bundle, the specimens and its
      script; the stamps keep each one fresh after a deploy. */

@@ -4,7 +4,28 @@
    (assets/builder-frame.html), scaled to fit. This is site chrome, so it is
    styled from the system's tokens like the rest of the docs. */
 
-.page-app .site-footer {
+.page-app .site-footer,
+.page-app .wordmark-note {
+  display: none;
+}
+
+/* The toolbar lives in the site header on a wide screen. */
+.header-app {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--dt-space-inline-md);
+}
+
+.site-header .bd-toolbar {
+  flex-wrap: nowrap;
+  padding: 0;
+  overflow-x: auto;
+  border: 0;
+  background: transparent;
+  scrollbar-width: none;
+}
+
+.site-header .bd-toolbar::-webkit-scrollbar {
   display: none;
 }
 
@@ -679,7 +700,7 @@ kbd {
 }
 
 .bd-layer.is-drop-inside {
-  box-shadow: inset 0 0 0 var(--dt-border-width-strong) var(--dt-focus-ring-color-brand);
+  box-shadow: inset 0 0 0 var(--dt-border-width-strong) var(--dt-text-primary);
 }
 
 .bd-layer-twisty {
@@ -741,24 +762,8 @@ button.bd-layer-twisty.is-open .bd-ic {
   white-space: nowrap;
 }
 
-.bd-layer-lock,
-.bd-layer-grip {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--dt-size-control-xs);
-  height: var(--dt-size-control-xs);
-  opacity: 0.5;
-}
-
-.bd-layer-grip {
-  cursor: grab;
-  touch-action: none;
-}
-
-.bd-layer-grip:hover {
-  opacity: 1;
+.bd-layer-main:active {
+  cursor: grabbing;
 }
 
 .bd-layers-line {
@@ -767,7 +772,7 @@ button.bd-layer-twisty.is-open .bd-ic {
   height: 3px;
   margin-top: -1.5px;
   border-radius: var(--dt-radius-pill);
-  background: var(--dt-focus-ring-color-brand);
+  background: var(--dt-text-primary);
   pointer-events: none;
 }
 
@@ -808,10 +813,17 @@ button.bd-layer-twisty.is-open .bd-ic {
   position: relative;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  overscroll-behavior: contain;
   background-color: var(--dt-surface-sunken);
   background-image: radial-gradient(var(--dt-border-default) 1px, transparent 1px);
   background-size: var(--dt-space-inset-lg) var(--dt-space-inset-lg);
+}
+
+.bd-stage-inner {
+  position: relative;
+  height: 100%;
+  min-width: 100%;
 }
 
 .bd-frame {
@@ -849,11 +861,11 @@ button.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-mark-hover {
-  outline: var(--dt-border-width-default) dashed var(--dt-focus-ring-color-brand);
+  outline: var(--dt-border-width-default) dashed var(--dt-text-secondary);
 }
 
 .bd-mark-sel {
-  outline: var(--dt-border-width-strong) solid var(--dt-focus-ring-color-brand);
+  outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
 }
 
 .bd-mark-sel.is-extra {
@@ -869,8 +881,8 @@ button.bd-layer-twisty.is-open .bd-ic {
   gap: var(--dt-space-inline-2xs);
   padding: 2px var(--dt-space-inset-xs);
   border-radius: var(--dt-radius-control) var(--dt-radius-control) 0 0;
-  background: var(--dt-focus-ring-color-brand);
-  color: var(--dt-color-white);
+  background: var(--dt-surface-inverse);
+  color: var(--dt-text-inverse);
   font-size: var(--dt-font-size-xs);
   font-weight: var(--dt-font-weight-medium);
   white-space: nowrap;
@@ -890,14 +902,14 @@ button.bd-layer-twisty.is-open .bd-ic {
 .bd-mark-line {
   position: absolute;
   border-radius: var(--dt-radius-pill);
-  background: var(--dt-focus-ring-color-brand);
+  background: var(--dt-text-primary);
 }
 
 .bd-mark-box {
   position: absolute;
   box-sizing: border-box;
-  outline: var(--dt-border-width-strong) dashed var(--dt-focus-ring-color-brand);
-  background: color-mix(in oklch, var(--dt-focus-ring-color-brand) 10%, transparent);
+  outline: var(--dt-border-width-strong) dashed var(--dt-text-primary);
+  background: color-mix(in oklch, var(--dt-text-primary) 8%, transparent);
 }
 
 .bd-ghost {
@@ -1010,7 +1022,7 @@ button.bd-layer-twisty.is-open .bd-ic {
   text-transform: uppercase;
 }
 
-.bd-lock-note {
+.bd-note {
   display: flex;
   gap: var(--dt-space-inline-xs);
   margin: var(--dt-space-stack-sm) 0 0;
@@ -1102,6 +1114,180 @@ button.bd-layer-twisty.is-open .bd-ic {
   font-size: var(--dt-font-size-xs);
   line-height: 1.6;
   white-space: pre;
+}
+
+/* --------------------------------------------------------------- frames */
+
+.bd-frames {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-sm);
+  overflow-x: auto;
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
+  background: var(--dt-surface-base);
+  scrollbar-width: none;
+}
+
+.bd-frames::-webkit-scrollbar {
+  display: none;
+}
+
+.bd-frame-tab {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-frame-tab.is-current {
+  background: var(--dt-surface-sunken);
+}
+
+.bd-frame-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-sm);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.bd-frame-tab.is-current .bd-frame-btn {
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-frame-more.bd-dd {
+  min-height: var(--dt-size-control-xs);
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+}
+
+.bd-frame-more .bd-dd-chev {
+  display: none;
+}
+
+.bd-rename {
+  box-sizing: border-box;
+  max-width: 14rem;
+  min-height: var(--dt-size-control-xs);
+  padding: 0 var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-strong);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-input-bg);
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: inherit;
+}
+
+.bd-title-name {
+  cursor: text;
+}
+
+/* Typing straight into the canvas. */
+.bd-inline {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  resize: none;
+  border: 0;
+  border-radius: 2px;
+  outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
+  outline-offset: 2px;
+  background: transparent;
+  caret-color: var(--dt-text-primary);
+}
+
+/* ----------------------------------------------------- sides and media */
+
+.bd-sides-row {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+}
+
+.bd-sides-row > .bd-dd {
+  flex: 1;
+  min-width: 0;
+}
+
+.bd-act-sm {
+  flex: none;
+}
+
+.bd-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--dt-space-inline-2xs);
+  margin-top: var(--dt-space-stack-2xs);
+}
+
+.bd-side {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bd-side-l {
+  flex: none;
+  width: 1.1em;
+  color: var(--dt-text-tertiary);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs, 0.7rem);
+  text-align: center;
+}
+
+.bd-side .bd-dd {
+  flex: 1;
+  min-width: 0;
+  padding-left: var(--dt-space-inset-xs);
+}
+
+.bd-media {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+}
+
+.bd-media-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken) center / cover no-repeat;
+  color: var(--dt-text-tertiary);
+}
+
+.bd-media-actions {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+}
+
+.bd-media-actions .bd-btn {
+  cursor: pointer;
+}
+
+.bd-dd.is-mixed .bd-dd-label,
+.bd-switch.is-mixed {
+  opacity: 0.6;
+}
+
+.bd-dd-opt.is-danger {
+  color: var(--dt-text-danger);
 }
 
 /* ---------------------------------------------------------- narrower */
