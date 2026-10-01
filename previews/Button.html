@@ -46,14 +46,14 @@
 
 <script>/* Show only this component's shelf from the actions-detail.card.html reference card. */
 (function(){var only="Button";var S=window.Shelf;window.Shelf=function(p){return p&&p.name===only?S(p):null};window.PageHead=function(){return null};})();</script>
-<script>let Button, ButtonGroup, IconButton, Link, Inline, Stack;
+<script>let Button, ButtonGroup, IconButton, Link, Inline, Stack, Section;
 const Dots = () => React.createElement("span", { style: { fontSize: 16, lineHeight: 1 } }, "\u22EF");
 const Plus = () => React.createElement("span", { style: { fontSize: 15, lineHeight: 1 } }, "+");
 function Page() {
     return (React.createElement(React.Fragment, null,
         React.createElement(PageHead, { title: "Actions", subtitle: "Controls that do something. The split is intent, not appearance: if it changes data it is a Button, if it changes the page it is a Link." }),
-        React.createElement(Shelf, { name: "Button", summary: "The system's primary action control. Four variants, three sizes, and a loading state that keeps its label.", props: [
-                { name: "variant", type: '"primary" | "secondary" | "ghost" | "danger"', default: '"primary"', notes: "primary is the single main action in a view." },
+        React.createElement(Shelf, { name: "Button", summary: "The system's primary action control. Six variants, three sizes, and a loading state that keeps its label.", props: [
+                { name: "variant", type: '"primary" | "secondary" | "ghost" | "danger" | "brand" | "brand-secondary"', default: '"primary"', notes: "primary is the single main action in a view. brand and brand-secondary use the brand colours." },
                 { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
                 { name: "loading", type: "boolean", notes: "Shows a spinner and blocks interaction. Keep the label." },
                 { name: "disabled", type: "boolean" },
@@ -74,6 +74,20 @@ function Page() {
                     React.createElement(Button, { variant: "secondary" }, "Cancel"),
                     React.createElement(Button, { variant: "ghost" }, "Skip"),
                     React.createElement(Button, { variant: "danger" }, "Delete project"))),
+            React.createElement(Specimen, { label: "Brand colours", bg: "var(--dt-surface-base)" },
+                React.createElement(Inline, { gap: "sm", wrap: true },
+                    React.createElement(Button, { variant: "brand" }, "Start free"),
+                    React.createElement(Button, { variant: "brand-secondary" }, "See plans"))),
+            React.createElement(Specimen, { label: "On a brand tint: primary and secondary follow the band", bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "sm" },
+                    React.createElement(Section, { tone: "brand-muted", spacing: "compact", width: "full" },
+                        React.createElement(Inline, { gap: "sm", wrap: true },
+                            React.createElement(Button, null, "Start free"),
+                            React.createElement(Button, { variant: "secondary" }, "See plans"))),
+                    React.createElement(Section, { tone: "secondary-muted", spacing: "compact", width: "full" },
+                        React.createElement(Inline, { gap: "sm", wrap: true },
+                            React.createElement(Button, null, "Start free"),
+                            React.createElement(Button, { variant: "secondary" }, "See plans"))))),
             React.createElement(Specimen, { label: "Sizes", bg: "var(--dt-surface-base)" },
                 React.createElement(Inline, { gap: "sm", align: "center", wrap: true },
                     React.createElement(Button, { size: "sm" }, "Small"),
@@ -162,7 +176,7 @@ function Page() {
    report that window.dsReady is missing waits forever. Everything below runs from this
    file alone and always resolves: render, or say why not. */
 (function () {
-    var NEED = ["Button", "ButtonGroup", "IconButton", "Link", "Inline", "Stack"];
+    var NEED = ["Button", "ButtonGroup", "IconButton", "Link", "Inline", "Stack", "Section"];
     var NS_KEY = "BeamMobileDesignSystem_e33121";
     var TICK = 40, REFETCH_AT = 1200, DEADLINE = 8000;
     var startedAt = Date.now(), refetched = false;
@@ -208,7 +222,7 @@ function Page() {
     (function poll() {
         var gaps = missingComponents();
         if (gaps.length === 0 && kitReady()) {
-            ({ Button, ButtonGroup, IconButton, Link, Inline, Stack } = window[NS_KEY]);
+            ({ Button, ButtonGroup, IconButton, Link, Inline, Stack, Section } = window[NS_KEY]);
             ReactDOM.createRoot(document.getElementById("root-ref")).render(React.createElement(Page, null));
             return;
         }

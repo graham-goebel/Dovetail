@@ -118,6 +118,12 @@
   --dt-surface-action-brand-hover: var(--dt-color-primary-700);
   --dt-surface-action-brand-active: var(--dt-color-primary-800);
   --dt-text-on-action-brand: var(--dt-color-white);
+  /* The same, in the secondary brand hue: a Button's brand-secondary variant,
+     and the secondary button on a primary tint. */
+  --dt-surface-action-brand-secondary: var(--dt-color-secondary-600);
+  --dt-surface-action-brand-secondary-hover: var(--dt-color-secondary-700);
+  --dt-surface-action-brand-secondary-active: var(--dt-color-secondary-800);
+  --dt-text-on-action-brand-secondary: var(--dt-color-white);
   --dt-text-link-brand: var(--dt-color-primary-700);
   --dt-text-link-brand-hover: var(--dt-color-primary-800);
   --dt-surface-selected-brand: var(--dt-color-primary-050);
