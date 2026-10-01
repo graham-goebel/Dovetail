@@ -24,7 +24,8 @@
      shows spacing with its token; Play shows a frame at a screen's height;
    - a block's element props are slots: its own buttons are picked on the
      canvas, changed, and exported as JSX in the prop; a slot empties, takes
-     its sample back, and only takes the kinds it allows;
+     its sample back, and only takes the kinds it allows; a layer dropped on
+     the middle of a slot owner's row lands beside it;
    - a block's array props are lists: FaqBlock's items open onto fields read
      from its types, edit on the canvas, add with an id of their own, move,
      go, survive a reload, and export as an array in the prop;
@@ -850,6 +851,14 @@ try {
     hero = heroOf(await saved());
     expect(hero.children.filter((c) => c.type === "Slot").length === 2, "the slots survive a reload");
     ok("the slots and what's in them survive a reload");
+
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    const heroRow = await page.locator('.bd-layer[data-layer]:has(.bd-layer-name:text-is("HeroBlock"))').first().boundingBox();
+    const ctaRow = await row(page, "CtaBlock").first().boundingBox();
+    await drag(page, { x: ctaRow.x + 30, y: ctaRow.y + ctaRow.height / 2 }, { x: heroRow.x + 60, y: heroRow.y + heroRow.height / 2 });
+    const order = (await layerNames(page)).filter((n) => n.startsWith("1:"));
+    expect(Math.abs(order.indexOf("1:CtaBlock") - order.indexOf("1:HeroBlock")) === 1, `a row dropped on the middle of the hero's row lands beside it, since the hero only holds its slots, got ${order.join(" ")}`);
+    ok("a layer dropped on the middle of the hero's row lands beside it rather than being refused");
     await page.close();
   });
 

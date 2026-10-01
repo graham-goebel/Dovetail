@@ -1907,8 +1907,10 @@
     };
 
     /* A row's top third drops before it, the bottom third after it, and the
-       middle of a container drops inside it, at the end. Another frame's row
-       takes it at the end of that frame. */
+       middle of a container (or a slot that takes the kind) drops inside it,
+       at the end. A component holding only its slots isn't one, so its
+       middle splits before and after. Another frame's row takes it at the
+       end of that frame. */
     var listTarget = function (el, y, payload) {
       var d = docRef.current;
       var frameRow = el.closest ? el.closest("[data-frame-row]") : null;
@@ -1927,7 +1929,8 @@
       var r = row.getBoundingClientRect();
       var depth = Number(row.getAttribute("data-depth")) || 0;
       var rel = (y - r.top) / r.height;
-      if (at.node.children && rel > 0.3 && rel < 0.7) return { where: "list", parent: id, index: at.node.children.length, inside: id };
+      var probe = payload.id ? (locate(d, payload.id) || {}).node : { type: payload.kind === "asset" ? "Image" : payload.type || "Group" };
+      if (rel > 0.3 && rel < 0.7 && canHold(at, probe)) return { where: "list", parent: id, index: at.node.children.length, inside: id };
       var after = rel >= 0.5;
       return { where: "list", parent: at.parent.id, index: at.index + (after ? 1 : 0), indicator: { top: row.offsetTop + (after ? row.offsetHeight : 0), left: 8 + depth * 14 } };
     };
