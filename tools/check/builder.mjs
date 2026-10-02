@@ -1119,6 +1119,8 @@ try {
     const { page } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
     const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
+    /* What's saved lands a beat after a change; wait for it rather than race it. */
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children.length; });
 
     const bar = await page.locator("#app-toolbar .bd-toolbar").boundingBox();
@@ -1128,6 +1130,7 @@ try {
 
     await page.locator(".bd-frame-item", { hasText: "StatsBlock" }).click();
     await page.waitForFunction(() => /StatsBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.waitForSelector(".bd-mark-sel");
     const outline = await page.evaluate(() => getComputedStyle(document.querySelector(".bd-mark-sel")).outlineWidth);
     expect(outline === "1px", `the selection outline is thin, got ${outline}`);
     ok("a frame lists its components in the inspector; pressing one selects it, outlined at 1px");
@@ -1154,11 +1157,11 @@ try {
     await page.mouse.down();
     await page.mouse.move(pre.x + 80, pre.y + pre.height / 2, { steps: 8 });
     await page.mouse.up();
-    const scrubbed = findIn((await saved()).frames[0].root, "Button").style.height;
+    const scrubbed = await poll(async () => findIn((await saved()).frames[0].root, "Button").style.height, Boolean);
     expect(!!scrubbed, "dragging the H sideways steps the height through its sizes");
     await release(page);
     await page.keyboard.press("Control+z");
-    expect(!findIn((await saved()).frames[0].root, "Button").style.height, "the whole scrub is one undo step");
+    expect(!(await poll(async () => findIn((await saved()).frames[0].root, "Button").style.height, (v) => !v)), "the whole scrub is one undo step");
     ok(`dragging H sideways scrubbed the height to ${scrubbed}, and one undo takes it back`);
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
@@ -1175,8 +1178,7 @@ try {
     await page.keyboard.up("Control");
     await page.locator(".bd-assets .bd-search-clear").click();
     await page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    const hero = (await saved()).frames[0].root.children.find((c) => c.type === "HeroBlock");
-    const badge = findIn(hero, "Badge");
+    const badge = await poll(async () => findIn((await saved()).frames[0].root.children.find((c) => c.type === "HeroBlock"), "Badge"), Boolean);
     expect(badge && badge.style.w === fixedW, `the Badge takes the Button's place and its size (${fixedW}), got ${JSON.stringify(badge && badge.style)}`);
     ok(`Ctrl-dragging Badge onto the Button swapped it, at the Button's width ${fixedW}`);
 
@@ -1202,7 +1204,7 @@ try {
     await page.mouse.up();
     await page.keyboard.up("Shift");
     await page.keyboard.up("Control");
-    const after = (await saved()).frames;
+    const after = await poll(async () => (await saved()).frames, (fs) => fs.length === before + 1);
     expect(after.length === before + 1 && typeof after[1].x === "number" && /copy$/.test(after[1].name), `Cmd-Shift-drag on a frame's name drops a copy where it's let go, got ${JSON.stringify(after.map((f) => [f.name, f.x, f.y]))}`);
     ok(`Cmd-Shift-dragging the frame dropped ${after[1].name} at ${after[1].x}, ${after[1].y}`);
     await page.locator(".bd-frame-item", { hasText: "Badge" }).click();
@@ -1223,13 +1225,13 @@ try {
     await page.locator('.bd-assets [aria-label="Back to Assets"]').click().catch(() => {});
     await page.locator('.bd-assets [data-asset-kind="variables"]').click();
     await page.locator(".bd-vars-sec", { hasText: "Radius" }).locator(".bd-var", { hasText: /^pill$/ }).click();
-    const radius = findIn((await saved()).frames[1].root, "Badge").style.radius;
+    const radius = await poll(async () => findIn((await saved()).frames[1].root, "Badge").style.radius, (v) => v === "pill");
     expect(radius === "pill", `a variable pressed applies to the selection, got radius ${radius}`);
     await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
     await page.locator('.bd-assets [data-asset-kind="templates"]').click();
     const count = (await saved()).frames.length;
     await page.locator('.bd-kind[data-template="store"]').click();
-    const withStore = (await saved()).frames;
+    const withStore = await poll(async () => (await saved()).frames, (fs) => fs.length === count + 1);
     expect(withStore.length === count + 1, `a template's frames go beside yours, got ${withStore.map((f) => f.name).join(", ")}`);
     ok("Variables apply to the selection (radius pill on the Badge); a template adds its frames beside yours");
     await page.close();
