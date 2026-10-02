@@ -43,6 +43,9 @@ A page section with a header over a responsive grid of `ProductCard`s. Reach for
 ## Composition
 A `Section` holding a `BlockHeader` and a `<ul>` of `ProductCard`s, each rendered as the list item (`as="li"`). Each entry of `products` is spread into a `ProductCard`, so every `ProductCard` prop is available (`badge`, `swatches`, `soldOut`, `action`, `onQuickAdd`, `ratio`, `layout`); `id` is the React key and is not passed on. Stack it with other blocks: it takes the same `tone`, `dark`, `texture`, `spacing` and `width` props as every block.
 
+## Title size
+Set `titleSize` to move the title along the type scale, from `display-lg` down to `heading-md`. It defaults to `heading-lg`. Only its size changes: the heading level stays what the block renders.
+
 ## Tokens
 Has none of its own. The gap between the header and the grid is `--dt-layout-module-gap`, so the Configure sheet's module spacing reaches it; the grid gaps are `--dt-space-stack-lg` and `--dt-space-inline-md`. The cards read the `--dt-card-*` and `--dt-product-*` tokens through `ProductCard`.
 

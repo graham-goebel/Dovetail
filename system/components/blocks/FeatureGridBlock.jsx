@@ -11,12 +11,12 @@ const MIN = { 2: "360px", 3: "260px", 4: "200px" };
 /* A header over a grid of features: an icon on a brand tint, a title and a
    sentence each. Cards puts each on a raised surface; plain leaves the band's
    own background. */
-export function FeatureGridBlock({ eyebrow, title, lead, actions, items = [], columns = 3, align = "center", variant = "plain", tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function FeatureGridBlock({ eyebrow, title, titleSize = "heading-lg", lead, actions, items = [], columns = 3, align = "center", variant = "plain", tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const card = variant === "cards";
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
-        {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} align={align} />}
+        {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} actions={actions} align={align} />}
         <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN[columns] || MIN[3]}), 1fr))`, gap: "var(--dt-space-inline-lg)" }}>
           {items.map((it, i) => (
             <div key={it.title || i} style={{

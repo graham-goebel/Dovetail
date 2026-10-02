@@ -17,6 +17,8 @@ export interface TestimonialBlockProps extends Omit<React.HTMLAttributes<HTMLEle
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   lead?: React.ReactNode;
   quotes: TestimonialItem[];
   /** The band's surface, passed to Section. @default "base" */

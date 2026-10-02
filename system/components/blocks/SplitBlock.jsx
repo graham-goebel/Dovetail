@@ -12,13 +12,13 @@ const CHECK = (
 /* Copy beside media: a picture, a video, a product shot, a live component.
    The two sit side by side on a wide screen and stack on a phone, the media
    first unless reverse puts the copy first. Points become a checked list. */
-export function SplitBlock({ eyebrow, title, body, points, actions, media, reverse = false, align = "center", tone = "base", dark, texture, spacing = "default", width = "default", children, ...rest }) {
+export function SplitBlock({ eyebrow, title, titleSize = "heading-lg", body, points, actions, media, reverse = false, align = "center", tone = "base", dark, texture, spacing = "default", width = "default", children, ...rest }) {
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "var(--dt-space-inline-2xl)", alignItems: align === "top" ? "start" : "center" }}>
         {media && <div style={{ minWidth: 0, order: reverse ? 2 : 1 }}>{media}</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-md)", order: reverse ? 1 : 2 }}>
-          <BlockHeader eyebrow={eyebrow} title={title} lead={body} />
+          <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={body} />
           {points && points.length > 0 && (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "var(--dt-space-stack-xs)" }}>
               {points.map((p) => (

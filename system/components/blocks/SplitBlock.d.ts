@@ -6,6 +6,8 @@ export interface SplitBlockProps extends Omit<React.HTMLAttributes<HTMLElement>,
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   /** The paragraph under the title. */
   body?: React.ReactNode;
   /** Short claims, shown as a checked list. */

@@ -31,6 +31,9 @@ A header over a grid of features: an icon on a brand tint, a title and a sentenc
 ### Stacking blocks
 Blocks are Sections, so a page is a list of them. Alternate `tone` (base, subtle, base, brand) so one band ends where the next begins, keep one `HeroBlock` at the top and one `CtaBlock` at the end, and let everything between be the argument. Pass `dark` to scope dark mode to a single block.
 
+### Title size
+Set `titleSize` to move the title along the type scale, from `display-lg` down to `heading-md`. It defaults to `heading-lg`. Only its size changes: the heading level stays what the block renders.
+
 ### Tokens
 Reads the section, typography and card tokens through `Section`, `Heading` and `Text`; it has none of its own. Retheme it by retheming those.
 
@@ -61,6 +64,8 @@ export interface FeatureGridBlockProps extends Omit<React.HTMLAttributes<HTMLEle
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   lead?: React.ReactNode;
   actions?: React.ReactNode;
   items: FeatureItem[];
@@ -122,12 +127,12 @@ const MIN = { 2: "360px", 3: "260px", 4: "200px" };
 /* A header over a grid of features: an icon on a brand tint, a title and a
    sentence each. Cards puts each on a raised surface; plain leaves the band's
    own background. */
-export function FeatureGridBlock({ eyebrow, title, lead, actions, items = [], columns = 3, align = "center", variant = "plain", tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function FeatureGridBlock({ eyebrow, title, titleSize = "heading-lg", lead, actions, items = [], columns = 3, align = "center", variant = "plain", tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const card = variant === "cards";
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
-        {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} align={align} />}
+        {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} actions={actions} align={align} />}
         <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${MIN[columns] || MIN[3]}), 1fr))`, gap: "var(--dt-space-inline-lg)" }}>
           {items.map((it, i) => (
             <div key={it.title || i} style={{

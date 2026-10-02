@@ -29,6 +29,9 @@ Questions before someone commits, in an `Accordion`. `split` puts the header bes
 ### Stacking blocks
 Blocks are Sections, so a page is a list of them. Alternate `tone` (base, subtle, base, brand) so one band ends where the next begins, keep one `HeroBlock` at the top and one `CtaBlock` at the end, and let everything between be the argument. Pass `dark` to scope dark mode to a single block.
 
+### Title size
+Set `titleSize` to move the title along the type scale, from `display-lg` down to `heading-md`. It defaults to `heading-lg`. Only its size changes: the heading level stays what the block renders.
+
 ### Tokens
 Reads the section, typography and card tokens through `Section`, `Heading` and `Text`; it has none of its own. Retheme it by retheming those.
 
@@ -53,6 +56,8 @@ export interface FaqBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   lead?: React.ReactNode;
   /** A link to support, under the lead. */
   actions?: React.ReactNode;
@@ -94,7 +99,7 @@ import { BlockHeader } from "./BlockHeader.jsx";
 
 /* Questions before someone commits. Split puts the header beside the
    answers on a wide screen; stacked centres the header over them. */
-export function FaqBlock({ eyebrow, title, lead, actions, items = [], layout = "split", defaultOpen, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function FaqBlock({ eyebrow, title, titleSize = "heading-lg", lead, actions, items = [], layout = "split", defaultOpen, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const list = (
     <Accordion
       label={typeof title === "string" ? title : "Questions"}
@@ -102,7 +107,7 @@ export function FaqBlock({ eyebrow, title, lead, actions, items = [], layout = "
       items={items.map((q, i) => ({ id: q.id || String(i), title: q.question, content: q.answer }))}
     />
   );
-  const header = <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} align={layout === "split" ? "start" : "center"} />;
+  const header = <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} actions={actions} align={layout === "split" ? "start" : "center"} />;
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
       {layout === "split" ? (

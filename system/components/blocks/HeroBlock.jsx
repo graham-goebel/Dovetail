@@ -5,8 +5,8 @@ import { BlockHeader } from "./BlockHeader.jsx";
 /* The top of a page. Split puts the copy beside a picture and stacks them on
    a phone; centred puts the copy over the picture; a background image turns
    the whole block into a photo band with the copy on a scrim. */
-export function HeroBlock({ eyebrow, title, lead, actions, media, background, layout = "split", tone = "base", dark, texture, spacing = "default", width = "default", children, ...rest }) {
-  const header = <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} level={1} size="display-sm" align={layout === "centered" || background ? (layout === "centered" ? "center" : "start") : "start"} />;
+export function HeroBlock({ eyebrow, title, titleSize = "display-sm", lead, actions, media, background, layout = "split", tone = "base", dark, texture, spacing = "default", width = "default", children, ...rest }) {
+  const header = <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} actions={actions} level={1} align={layout === "centered" || background ? (layout === "centered" ? "center" : "start") : "start"} />;
   if (background) {
     return (
       <Section media={background} align={layout === "centered" ? "center" : "bottom"} dark={dark} spacing={spacing} width={width} {...rest}>

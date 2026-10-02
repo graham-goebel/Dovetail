@@ -2392,7 +2392,7 @@ const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card
 const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
 /* The inspector's tabs: how a component looks, how it lays out, and what it
    says. Every other prop is content. */
-const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio"];
+const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "titleSize", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio"];
 const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky"];
 /* Stack, Inline and Grid type align and justify as CSS keywords. */
 const BUILDER_KEYWORDS = {

@@ -5,7 +5,7 @@ import { BlockHeader } from "./BlockHeader.jsx";
 
 /* Questions before someone commits. Split puts the header beside the
    answers on a wide screen; stacked centres the header over them. */
-export function FaqBlock({ eyebrow, title, lead, actions, items = [], layout = "split", defaultOpen, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function FaqBlock({ eyebrow, title, titleSize = "heading-lg", lead, actions, items = [], layout = "split", defaultOpen, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const list = (
     <Accordion
       label={typeof title === "string" ? title : "Questions"}
@@ -13,7 +13,7 @@ export function FaqBlock({ eyebrow, title, lead, actions, items = [], layout = "
       items={items.map((q, i) => ({ id: q.id || String(i), title: q.question, content: q.answer }))}
     />
   );
-  const header = <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} align={layout === "split" ? "start" : "center"} />;
+  const header = <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} actions={actions} align={layout === "split" ? "start" : "center"} />;
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={width} {...rest}>
       {layout === "split" ? (

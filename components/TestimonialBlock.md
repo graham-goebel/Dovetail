@@ -24,6 +24,9 @@ What customers say. One quote is set large and centred; several sit in a grid on
 ### Stacking blocks
 Blocks are Sections, so a page is a list of them. Alternate `tone` (base, subtle, base, brand) so one band ends where the next begins, keep one `HeroBlock` at the top and one `CtaBlock` at the end, and let everything between be the argument. Pass `dark` to scope dark mode to a single block.
 
+### Title size
+Set `titleSize` to move the title along the type scale, from `display-lg` down to `heading-md`. It defaults to `heading-lg`. Only its size changes: the heading level stays what the block renders.
+
 ### Tokens
 Reads the section, typography and card tokens through `Section`, `Heading` and `Text`; it has none of its own. Retheme it by retheming those.
 
@@ -52,6 +55,8 @@ export interface TestimonialBlockProps extends Omit<React.HTMLAttributes<HTMLEle
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   lead?: React.ReactNode;
   quotes: TestimonialItem[];
   /** The band's surface, passed to Section. @default "base" */
@@ -93,7 +98,7 @@ import { BlockHeader } from "./BlockHeader.jsx";
 
 /* What customers say. One quote is set large and centred; several sit in a
    grid on raised surfaces. */
-export function TestimonialBlock({ eyebrow, title, lead, quotes = [], tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function TestimonialBlock({ eyebrow, title, titleSize = "heading-lg", lead, quotes = [], tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const one = quotes.length === 1;
   const quote = (q, size) => (
     <Quote size={size} attribution={q.name} role={q.role} avatar={q.avatar || (q.name ? <Avatar name={q.name} /> : undefined)}>{q.quote}</Quote>
@@ -101,7 +106,7 @@ export function TestimonialBlock({ eyebrow, title, lead, quotes = [], tone = "ba
   return (
     <Section tone={tone} dark={dark} texture={texture} spacing={spacing} width={one ? "narrow" : width} {...rest}>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)", alignItems: one ? "center" : "stretch" }}>
-        {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} align="center" />}
+        {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} align="center" />}
         {one ? quote(quotes[0], "lg") : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "var(--dt-space-inline-lg)" }}>
             {quotes.map((q, i) => (

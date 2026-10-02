@@ -14,7 +14,7 @@ const GAP = "var(--dt-space-inline-md)";
    screen; each track is at least a share of the row and at least MIN_CARD,
    so the grid gives up columns as the width runs out and lands on two on a
    phone. */
-export function ProductGridBlock({ eyebrow, title, lead, products = [], columns = 4, action, emptyState, level = 2, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function ProductGridBlock({ eyebrow, title, titleSize = "heading-lg", lead, products = [], columns = 4, action, emptyState, level = 2, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const n = [2, 3, 4].includes(columns) ? columns : 4;
   const hasHeader = !!(eyebrow || title || lead || action);
   return (
@@ -22,7 +22,7 @@ export function ProductGridBlock({ eyebrow, title, lead, products = [], columns 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
         {hasHeader && (
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", columnGap: "var(--dt-space-inline-lg)", rowGap: "var(--dt-space-stack-sm)" }}>
-            {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} level={level} style={{ flex: "1 1 auto", minWidth: 0 }} />}
+            {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} level={level} style={{ flex: "1 1 auto", minWidth: 0 }} />}
             {action && <div style={{ flex: "none", display: "flex", alignItems: "center", gap: "var(--dt-space-inline-sm)" }}>{action}</div>}
           </div>
         )}
