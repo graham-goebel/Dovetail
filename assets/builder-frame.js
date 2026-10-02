@@ -529,6 +529,7 @@
      The builder moves the canvas and says whether the pointer moved, so a pan
      doesn't end in a click. */
   var pans = {};
+  var framing = null;
   function panning(ev) {
     if (!host()) return false;
     if (ev.pointerType === "touch") return true;
@@ -540,6 +541,13 @@
     if (!editing()) return;
     /* No focus, no text selection, no native drag of an image. */
     if (ev.pointerType === "mouse") ev.preventDefault();
+    /* Cmd or Ctrl with Shift: the whole frame is dragged, to drop a copy. */
+    if (ev.button === 0 && ev.shiftKey && (ev.metaKey || ev.ctrlKey) && host() && host().frameDrag) {
+      framing = ev.pointerId;
+      try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      host().frameDrag("down", ev.clientX, ev.clientY);
+      return;
+    }
     if (panning(ev)) {
       pans[ev.pointerId] = true;
       try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
@@ -557,6 +565,7 @@
   }, true);
   document.addEventListener("pointermove", function (ev) {
     if (!editing() || !host()) return;
+    if (framing === ev.pointerId) { host().frameDrag("move", ev.clientX, ev.clientY); return; }
     if (pans[ev.pointerId]) { host().gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType); return; }
     if (press && ev.pointerId === press.pointer) {
       if (!press.active && Math.abs(ev.clientX - press.x) + Math.abs(ev.clientY - press.y) > 5) {
@@ -569,6 +578,13 @@
   }, true);
   function release(commit) {
     return function (ev) {
+      if (framing === ev.pointerId) {
+        framing = null;
+        if (host()) host().frameDrag(commit ? "up" : "cancel", ev.clientX, ev.clientY);
+        swallowClick = true;
+        setTimeout(function () { swallowClick = false; }, 0);
+        return;
+      }
       if (pans[ev.pointerId]) {
         delete pans[ev.pointerId];
         if (host() && host().gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType)) {
@@ -962,10 +978,23 @@
     jsx: jsx,
     jsxNodes: jsxNodes,
     outer: outer,
-    /* The node being dragged fades while its copy follows the pointer. */
-    dim: function (id, on) {
+    /* The node being dragged moves itself: shifted by (dx, dy) and let
+       through to the pointer, so what's under it can take the drop. Null
+       puts it back where it was. */
+    lift: function (id, dx, dy) {
       var w = wrapper(id);
-      if (w) Array.prototype.forEach.call(w.children, function (c) { c.style.opacity = on ? "0.35" : ""; });
+      if (!w) return;
+      Array.prototype.forEach.call(w.children, function (c) {
+        var on = dx != null;
+        c.style.transform = on ? "translate(" + dx + "px, " + dy + "px)" : "";
+        c.style.pointerEvents = on ? "none" : "";
+        c.style.willChange = on ? "transform" : "";
+      });
+    },
+    /* Out of the frame, it travels with the pointer on the canvas instead. */
+    hide: function (id, on) {
+      var w = wrapper(id);
+      if (w) Array.prototype.forEach.call(w.children, function (c) { c.style.visibility = on ? "hidden" : ""; });
     },
     anatomy: anatomy,
     snapshot: snapshot,
