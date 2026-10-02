@@ -10,7 +10,7 @@
      the docs site's origin, so the Configure panel's theme reaches it the same
      way it reaches a preview card. -->
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" crossorigin="anonymous">
 <link rel="stylesheet" href="../system/styles.css">
 <link rel="stylesheet" href="../system/tokens/contexts/context-product.css">
 <link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">
@@ -37,6 +37,9 @@
   body { background: var(--dt-surface-base); color: var(--dt-text-primary); font-family: var(--dt-font-family-sans); }
   .bf-root { position: relative; min-height: 100vh; display: flex; flex-direction: column; }
   .bf-root.bf-hug { min-height: 0; }
+  /* A loose object on the builder's canvas: no page behind it, as wide as it is. */
+  .bf-bare-doc, .bf-bare-doc body { background: transparent; }
+  .bf-root.bf-bare { width: max-content; max-width: 100vw; min-width: 16px; min-height: 0; }
   .bf-empty {
     display: flex; align-items: center; justify-content: center; text-align: center;
     min-height: var(--dt-size-control-lg); min-width: calc(var(--dt-size-control-lg) * 3);
