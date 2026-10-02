@@ -905,9 +905,22 @@ try {
     ok("the slots and what's in them survive a reload");
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
-    const heroRow = await page.locator('.bd-layer[data-layer]:has(.bd-layer-name:text-is("HeroBlock"))').first().boundingBox();
+    /* The list can still be settling (a component's parts fill in once its
+       frame answers), so the hero's row is measured again just before the drop. */
+    const heroRowLoc = page.locator('.bd-layer[data-layer]:has(.bd-layer-name:text-is("HeroBlock"))').first();
+    await page.waitForTimeout(300);
     const ctaRow = await row(page, "CtaBlock").first().boundingBox();
-    await drag(page, { x: ctaRow.x + 30, y: ctaRow.y + ctaRow.height / 2 }, { x: heroRow.x + 60, y: heroRow.y + heroRow.height / 2 });
+    await page.mouse.move(ctaRow.x + 30, ctaRow.y + ctaRow.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(ctaRow.x + 42, ctaRow.y + ctaRow.height / 2 + 12, { steps: 3 });
+    let heroRow = await heroRowLoc.boundingBox();
+    await page.mouse.move(heroRow.x + 60, heroRow.y + heroRow.height / 2, { steps: 10 });
+    await page.waitForTimeout(80);
+    heroRow = await heroRowLoc.boundingBox();
+    await page.mouse.move(heroRow.x + 60, heroRow.y + heroRow.height / 2, { steps: 2 });
+    await page.waitForTimeout(60);
+    await page.mouse.up();
+    await page.waitForTimeout(250);
     const order = (await layerNames(page)).filter((n) => n.startsWith("1:"));
     expect(Math.abs(order.indexOf("1:CtaBlock") - order.indexOf("1:HeroBlock")) === 1, `a row dropped on the middle of the hero's row lands beside it, since the hero only holds its slots, got ${order.join(" ")}`);
     ok("a layer dropped on the middle of the hero's row lands beside it rather than being refused");
