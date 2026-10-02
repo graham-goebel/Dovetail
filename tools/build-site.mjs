@@ -310,7 +310,8 @@ const RUNTIME_MARKER = "dovetail-site-runtime";
 const CONTEXT_LINKS =
   '<link rel="stylesheet" href="../system/tokens/contexts/context-product.css">' +
   '<link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css">' +
-  '<link rel="stylesheet" href="../system/tokens/contexts/context-social.css">';
+  '<link rel="stylesheet" href="../system/tokens/contexts/context-social.css">' +
+  '<link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">';
 
 /* The bundle is loaded with the stamp the site's link to this card carries
    (stampPreviews), written in as a parser-blocking script so it still runs
@@ -2352,6 +2353,11 @@ const BUILDER_FRAMES = [
   { id: "laptop", label: "Laptop", width: 1024, height: 768 },
   { id: "desktop", label: "Desktop", width: 1280, height: 800 },
   { id: "wide", label: "Wide", width: 1440, height: 900 },
+  /* Social artboards: authored at 1080 and read small, so they bring the
+     social type scale with them. */
+  { id: "post", label: "Social post", width: 1080, height: 1350, typeScale: "social" },
+  { id: "square", label: "Social square", width: 1080, height: 1080, typeScale: "social" },
+  { id: "story", label: "Story", width: 1080, height: 1920, typeScale: "social" },
 ];
 /* The builder's own flex group: any components side by side or stacked, with
    a gap from the inline scale (in a row) or the stack scale (in a column). */
@@ -2500,14 +2506,15 @@ function buildBuilderFormat(meta, groups, tokens) {
     `| Field | Value | Default |`,
     `|---|---|---|`,
     `| ${code("name")} | text | "Frame 1" |`,
-    `| ${code("width")} | pixels, 200 to 3840 | 1280 |`,
-    `| ${code("height")} | pixels, 200 to 12000 | 800 |`,
+    `| ${code("width")} | pixels, 16 to 3840 on a free frame, 200 to 3840 on a structured one | 1280 |`,
+    `| ${code("height")} | pixels, 16 to 12000 on a free frame, 200 to 12000 on a structured one | 800 |`,
     `| ${code("hug")} | ${code("true")}: the height follows the content | ${code("false")} |`,
     `| ${code("dark")} | ${code("true")} for dark mode | ${code("false")} |`,
     `| ${code("surface")} | the page fill: ${list(tokens.surface.options.map((o) => o.value))} | ${code("base")} |`,
     `| ${code("spacing")} | layout character: ${list(["tight", "balanced", "open"])} | page default |`,
-    `| ${code("gap")} | space between top-level blocks: ${list(BUILDER_ROOT_GAPS)} | none |`,
-    `| ${code("mode")} | ${code("free")}: items may sit anywhere on it and take custom colours; ${code("structured")}: everything sits in Groups, in the flow, with tokens only | ${code("free")} |`,
+    `| ${code("gap")} | space between top-level blocks: ${list(BUILDER_ROOT_GAPS)} | none (${code("block")} on a new structured page) |`,
+    `| ${code("typeScale")} | ${code("social")}: type sized for a 1080 artboard read in a feed (${code("data-type-scale=\"social\"")}) | page sizes |`,
+    `| ${code("mode")} | ${code("free")}: items may sit anywhere on it and take custom colours; ${code("structured")}: everything sits in Groups, in the flow, with tokens only, and each Group gets a direction, ${code("gap")} and padding | ${code("free")} |`,
     `| ${code("canvas")} | a custom page colour, ${code("#rrggbb")}, in a free frame | none |`,
     `| ${code("lock")} | ${code("true")}: width and height keep their proportions | ${code("false")} |`,
     `| ${code("x")}, ${code("y")} | where the frame sits on the canvas, in pixels; leave them out to line frames up side by side | side by side |`,

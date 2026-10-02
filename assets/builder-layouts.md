@@ -24,21 +24,22 @@ The paste box also takes a single frame, a single node, or an array of nodes, an
 | Field | Value | Default |
 |---|---|---|
 | `name` | text | "Frame 1" |
-| `width` | pixels, 200 to 3840 | 1280 |
-| `height` | pixels, 200 to 12000 | 800 |
+| `width` | pixels, 16 to 3840 on a free frame, 200 to 3840 on a structured one | 1280 |
+| `height` | pixels, 16 to 12000 on a free frame, 200 to 12000 on a structured one | 800 |
 | `hug` | `true`: the height follows the content | `false` |
 | `dark` | `true` for dark mode | `false` |
 | `surface` | the page fill: `base`, `subtle`, `raised`, `sunken`, `brand`, `brand-muted`, `brand-secondary`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` | `base` |
 | `spacing` | layout character: `tight`, `balanced`, `open` | page default |
-| `gap` | space between top-level blocks: `related`, `group`, `block`, `section` | none |
-| `mode` | `free`: items may sit anywhere on it and take custom colours; `structured`: everything sits in Groups, in the flow, with tokens only | `free` |
+| `gap` | space between top-level blocks: `related`, `group`, `block`, `section` | none (`block` on a new structured page) |
+| `typeScale` | `social`: type sized for a 1080 artboard read in a feed (`data-type-scale="social"`) | page sizes |
+| `mode` | `free`: items may sit anywhere on it and take custom colours; `structured`: everything sits in Groups, in the flow, with tokens only, and each Group gets a direction, `gap` and padding | `free` |
 | `canvas` | a custom page colour, `#rrggbb`, in a free frame | none |
 | `lock` | `true`: width and height keep their proportions | `false` |
 | `x`, `y` | where the frame sits on the canvas, in pixels; leave them out to line frames up side by side | side by side |
 | `bare` | `true`: a loose object on the canvas, with no frame around it, as wide as what's in it | `false` |
 | `root` | `{ "children": [ ...nodes ] }` | empty |
 
-Device sizes: Phone 390 × 844, Phone, large 430 × 932, Tablet 768 × 1024, Laptop 1024 × 768, Desktop 1280 × 800, Wide 1440 × 900.
+Device sizes: Phone 390 × 844, Phone, large 430 × 932, Tablet 768 × 1024, Laptop 1024 × 768, Desktop 1280 × 800, Wide 1440 × 900, Social post 1080 × 1350, Social square 1080 × 1080, Story 1080 × 1920.
 
 ### Node
 

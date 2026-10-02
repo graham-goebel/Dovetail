@@ -1,0 +1,74 @@
+/* TYPE SCALE: SOCIAL
+   Type for a surface drawn large and seen small: a social post or story,
+   authored on a 1080px artboard and read in a feed about 390px wide, so at
+   roughly a third of its size. Apply it to the artboard:
+
+     <div data-type-scale="social"> … </div>
+
+   The logic, so another scale can follow it:
+
+   1. Readable at the size it's seen. Text has to land at phone sizes after
+      the artboard shrinks: body near 15px, metadata no smaller than 12px,
+      headlines 30px and up. At a third of the size, that is body and labels
+      about two and a half times the page sizes.
+   2. A steeper ladder for headings. A feed is scanned, not read, and the
+      headline has to win at a glance, so headings grow more than body
+      (2.75x) and display type more again (3x). Display large to body goes
+      from about 4.3 times on a page to about 5.2 times here.
+   3. Line heights move with their sizes, and tracking stays, so each role
+      keeps its rhythm and its tightness at the larger size.
+   4. Space follows type. --dt-layout-scale takes the same factor as body,
+      so Stack and Inline gaps keep their proportion to the words.
+
+   Every role is declared again here, from the primitives, because a custom
+   property resolves where it is declared: a factor set on a region can't
+   reach roles the page resolved already. So the page's context (product,
+   marketing, social) doesn't carry into a scaled region; the scale is a
+   context of its own. Families, weights and tracking still follow the
+   theme. */
+
+[data-type-scale="social"] {
+  --dt-type-scale-body: 2.5;
+  --dt-type-scale-heading: 2.75;
+  --dt-type-scale-display: 3;
+  --dt-layout-scale: 2.5;
+
+  --dt-text-display-lg-size: calc(var(--dt-font-size-7xl) * var(--dt-type-scale-display));
+  --dt-text-display-lg-line: calc(var(--dt-line-height-7xl) * var(--dt-type-scale-display));
+  --dt-text-display-md-size: calc(var(--dt-font-size-6xl) * var(--dt-type-scale-display));
+  --dt-text-display-md-line: calc(var(--dt-line-height-6xl) * var(--dt-type-scale-display));
+  --dt-text-display-sm-size: calc(var(--dt-font-size-5xl) * var(--dt-type-scale-display));
+  --dt-text-display-sm-line: calc(var(--dt-line-height-5xl) * var(--dt-type-scale-display));
+
+  --dt-text-heading-xl-size: calc(var(--dt-font-size-4xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-xl-line: calc(var(--dt-line-height-4xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-lg-size: calc(var(--dt-font-size-3xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-lg-line: calc(var(--dt-line-height-3xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-md-size: calc(var(--dt-font-size-2xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-md-line: calc(var(--dt-line-height-2xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-sm-size: calc(var(--dt-font-size-xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-sm-line: calc(var(--dt-line-height-xl) * var(--dt-type-scale-heading));
+  --dt-text-heading-xs-size: calc(var(--dt-font-size-lg) * var(--dt-type-scale-heading));
+  --dt-text-heading-xs-line: calc(var(--dt-line-height-lg) * var(--dt-type-scale-heading));
+
+  --dt-text-body-lg-size: calc(var(--dt-font-size-lg) * var(--dt-type-scale-body));
+  --dt-text-body-lg-line: calc(var(--dt-line-height-lg) * var(--dt-type-scale-body));
+  --dt-text-body-md-size: calc(var(--dt-font-size-md) * var(--dt-type-scale-body));
+  --dt-text-body-md-line: calc(var(--dt-line-height-md) * var(--dt-type-scale-body));
+  --dt-text-body-sm-size: calc(var(--dt-font-size-sm) * var(--dt-type-scale-body));
+  --dt-text-body-sm-line: calc(var(--dt-line-height-sm) * var(--dt-type-scale-body));
+  --dt-text-body-xs-size: calc(var(--dt-font-size-xs) * var(--dt-type-scale-body));
+  --dt-text-body-xs-line: calc(var(--dt-line-height-xs) * var(--dt-type-scale-body));
+  --dt-text-label-lg-size: calc(var(--dt-font-size-md) * var(--dt-type-scale-body));
+  --dt-text-label-lg-line: calc(var(--dt-line-height-md) * var(--dt-type-scale-body));
+  --dt-text-label-md-size: calc(var(--dt-font-size-sm) * var(--dt-type-scale-body));
+  --dt-text-label-md-line: calc(var(--dt-line-height-sm) * var(--dt-type-scale-body));
+  --dt-text-label-sm-size: calc(var(--dt-font-size-xs) * var(--dt-type-scale-body));
+  --dt-text-label-sm-line: calc(var(--dt-line-height-xs) * var(--dt-type-scale-body));
+  --dt-text-eyebrow-size: calc(var(--dt-font-size-2xs) * var(--dt-type-scale-body));
+  --dt-text-eyebrow-line: calc(var(--dt-line-height-2xs) * var(--dt-type-scale-body));
+  --dt-text-code-md-size: calc(var(--dt-font-size-sm) * var(--dt-type-scale-body));
+  --dt-text-code-md-line: calc(var(--dt-line-height-sm) * var(--dt-type-scale-body));
+  --dt-text-code-sm-size: calc(var(--dt-font-size-xs) * var(--dt-type-scale-body));
+  --dt-text-code-sm-line: calc(var(--dt-line-height-xs) * var(--dt-type-scale-body));
+}

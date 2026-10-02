@@ -6,7 +6,7 @@
 <title>Token reference · Dovetail</title>
 <meta name="description" content="Every token, tier by tier.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="../system/styles.css?v=748c234097">
+<link rel="stylesheet" href="../system/styles.css?v=5e1b81ba92">
 <link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
@@ -104,6 +104,12 @@
 <p>Naming the axis also lets a density theme retune one axis without touching the others.</p>
 <p>Four layers say how closely the two things either side of a gap belong together: <code>--dt-layout-stack-*</code> and <code>--dt-layout-inline-*</code> for <code>related</code> (parts of one thing), <code>group</code> (members of a set), <code>block</code> (one unit from the next) and <code>section</code> (a theme from the next). The layout's character moves them as one: <code>tight</code> for a technical screen, <code>balanced</code>, or <code>open</code> for breathing room, where what is related stays close and the layers move apart. Set it on the page in Configure, or on any region with <code>data-layout</code>; <code>Stack</code> and <code>Inline</code> take <code>layer</code> and <code>spacing</code> props for it.</p>
 <p>Two more groups say what the gaps are between, for the two things a page is made of. <strong>Text</strong> is the gaps between the items of a block of text: <code>--dt-layout-text-eyebrow</code> (an eyebrow and its heading), <code>-subcopy</code> (a heading and the lead under it) and <code>-paragraph</code>. <strong>Modules</strong> is the room a module takes: <code>--dt-layout-module-padding</code> above and below its content, and <code>--dt-layout-module-gap</code> between its own parts. At the balanced character they are the space axes themselves, so a context still moves them. <code>--dt-layout-scale</code> multiplies every layer in <code>Stack</code> and <code>Inline</code> (1 on a page), which is how a social artboard drawn at 1080px keeps its proportions.</p>
+<h3 id="type-scale">Type scale</h3>
+<p>A social post is authored on a 1080px artboard and read in a feed about 390px wide, so at about a third of its size. Type sized for a page all but disappears there. Set <code>data-type-scale=&quot;social&quot;</code> on the artboard and every text role grows for it:</p>
+<div class="table-wrap"><table><thead><tr><th>Roles</th><th>Factor</th><th>Display large / body on a 1080 post</th><th>Seen in a feed</th></tr></thead><tbody><tr><td>body, label, eyebrow, code</td><td>2.5x</td><td>body 40px</td><td>about 15px</td></tr><tr><td>heading</td><td>2.75x</td><td>heading large 91px</td><td>about 33px</td></tr><tr><td>display</td><td>3x</td><td>display large 207px</td><td>about 75px</td></tr></tbody></table></div>
+<p>The logic, so another scale can follow it:</p>
+<ol><li><strong>Readable at the size it's seen.</strong> Body near 15px, metadata no smaller than 12px and headlines from 30px up after the artboard shrinks. At a third of the size, that is about two and a half times the page sizes.</li><li><strong>A steeper ladder for headings.</strong> A feed is scanned, not read, so the headline has to win at a glance. Headings grow more than body and display more again. Display large to body goes from about 4.3 times on a page to about 5.2 times.</li><li><strong>Rhythm kept.</strong> Line heights move with their sizes and tracking stays, so each role keeps its proportions at the larger size.</li><li><strong>Space follows type.</strong> <code>--dt-layout-scale</code> takes the body factor, so <code>Stack</code> and <code>Inline</code> gaps keep their proportion to the words.</li></ol>
+<p>The factors are tokens (<code>--dt-type-scale-body</code>, <code>--dt-type-scale-heading</code>, <code>--dt-type-scale-display</code>) declared with every role in <code>tokens/contexts/type-scale.css</code>. The roles are declared again there because a custom property resolves where it's declared. The page's context doesn't carry into a scaled region. Families, weights and tracking still follow the theme. <code>SocialPost</code> keeps its own artboard roles (<code>--dt-text-artboard-*</code>).</p>
 <h3 id="size">Size</h3>
 <p>Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32. <code>--dt-size-touch-target</code> (44px) is the minimum hit area on touch surfaces.</p>
 <h3 id="shape">Shape</h3>
@@ -147,6 +153,7 @@
     <li class="nested"><a href="#text">Text</a></li>
     <li class="nested"><a href="#actions">Actions</a></li>
     <li class="nested"><a href="#layout">Layout</a></li>
+    <li class="nested"><a href="#type-scale">Type scale</a></li>
     <li class="nested"><a href="#size">Size</a></li>
     <li class="nested"><a href="#shape">Shape</a></li>
     <li class="nested"><a href="#elevation">Elevation</a></li>

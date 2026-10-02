@@ -44,8 +44,11 @@
   var PRESETS = DATA.frames;
   var PRESET = {};
   PRESETS.forEach(function (f) { PRESET[f.id] = f; });
-  var PRESET_ICON = { phone: "phone", "phone-lg": "phone", tablet: "tablet", laptop: "desktop", desktop: "desktop", wide: "desktop" };
+  var PRESET_ICON = { phone: "phone", "phone-lg": "phone", tablet: "tablet", laptop: "desktop", desktop: "desktop", wide: "desktop", post: "image", square: "image", story: "phone" };
   var MIN_SIDE = 200, MAX_WIDTH = 3840, MAX_HEIGHT = 12000;
+  /* A freeform canvas takes any size, down to a small swatch. */
+  var MIN_FREE = 16;
+  function minSide(f) { return f && f.mode === "structured" ? MIN_SIDE : MIN_FREE; }
   var SPACINGS = [["", "Page default"], ["tight", "Tight"], ["balanced", "Balanced"], ["open", "Open"]];
   var WRAPS = ["Group", "Stack", "Inline", "Grid", "Section", "Card"];
   /* The canvas: frames in a row this far apart, zoom between these. */
@@ -178,6 +181,13 @@
         return it && typeof it.id === "string" && typeof it.name === "string" && typeof it.src === "string" && (k === "video" ? /^data:video\//.test(it.src) : /^data:image\//.test(it.src));
       }).map(function (it) { return { id: it.id, name: it.name.slice(0, 80), src: it.src, original: typeof it.original === "string" && /^data:image\//.test(it.original) ? it.original : undefined }; });
     });
+    /* Local components: layers kept to reuse, cleaned like anything else
+       that comes in, with the tokens they're built on. */
+    out.components = (Array.isArray(raw.components) ? raw.components : []).map(function (c) {
+      if (!c || typeof c.id !== "string" || typeof c.name !== "string" || !c.node || typeof c.node !== "object") return null;
+      var node = cleanNode(c.node, null);
+      return node ? { id: c.id, name: c.name.slice(0, 60), node: node, tokens: Array.isArray(c.tokens) ? c.tokens.filter(function (t) { return typeof t === "string" && /^--dt-[\w-]+$/.test(t); }).slice(0, 300) : [], made: typeof c.made === "number" ? c.made : 0 } : null;
+    }).filter(Boolean);
     return out;
   }
   /* A photo is scaled to fit 1600px and kept as JPEG unless it has
@@ -288,9 +298,9 @@
     return n;
   }
 
-  function side(v, max, fallback) {
+  function side(v, max, fallback, min) {
     var n = Math.round(Number(v));
-    return isFinite(n) && n > 0 ? Math.max(MIN_SIDE, Math.min(max, n)) : fallback;
+    return isFinite(n) && n > 0 ? Math.max(min || MIN_SIDE, Math.min(max, n)) : fallback;
   }
   /* A frame is a size, from a preset or typed, and whether its height hugs
      what's in it. */
@@ -345,11 +355,25 @@
   /* A structured frame keeps everything in Groups: something that isn't a
      band or a container, put straight on its page, comes in a Group of its
      own, and nothing in it is placed freely. */
+  /* In a structured frame every Group lays out with flex as auto layout does:
+     a direction, a gap and padding, from tokens, unless it has its own. */
+  function autoLayout(n) {
+    (function walk(x) {
+      if (x.type === "Group") {
+        if (!x.props.direction) x.props.direction = "column";
+        if (!x.props.gap) x.props.gap = "md";
+        if (!x.style.padding && !["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"].some(function (k) { return x.style[k]; })) x.style.padding = "md";
+      }
+      (x.children || []).forEach(walk);
+    })(n);
+    return n;
+  }
   function settle(frame, parentId, n) {
     if (!frame || frame.mode !== "structured") return n;
     (function unfree(x) { if (x.style) { delete x.style.x; delete x.style.y; } (x.children || []).forEach(unfree); })(n);
+    autoLayout(n);
     if (parentId !== "root" || joinsFlow(n.type) || isContainer(n.type)) return n;
-    return make("Group", { direction: "column", gap: "md" }, [n]);
+    return make("Group", { direction: "column", gap: "md" }, [n], { padding: "md" });
   }
   var ops = {
     insert: function (doc, parentId, index, n, fid) {
@@ -570,11 +594,12 @@
       base.height = legacy.height;
       base.hug = true;
     } else {
-      base.width = side(f.width, MAX_WIDTH, base.width);
-      base.height = side(f.height, MAX_HEIGHT, base.height);
+      var lo = f.mode === "structured" ? MIN_SIDE : MIN_FREE;
+      base.width = side(f.width, MAX_WIDTH, base.width, lo);
+      base.height = side(f.height, MAX_HEIGHT, base.height, lo);
       base.hug = f.hug === true;
-      if (f.width !== undefined && base.width !== f.width) note(report, base.name + ": width " + JSON.stringify(f.width) + " became " + base.width + " (" + MIN_SIDE + " to " + MAX_WIDTH + ")");
-      if (f.height !== undefined && base.height !== f.height) note(report, base.name + ": height " + JSON.stringify(f.height) + " became " + base.height + " (" + MIN_SIDE + " to " + MAX_HEIGHT + ")");
+      if (f.width !== undefined && base.width !== f.width) note(report, base.name + ": width " + JSON.stringify(f.width) + " became " + base.width + " (" + lo + " to " + MAX_WIDTH + ")");
+      if (f.height !== undefined && base.height !== f.height) note(report, base.name + ": height " + JSON.stringify(f.height) + " became " + base.height + " (" + lo + " to " + MAX_HEIGHT + ")");
     }
     base.dark = f.dark === true;
     base.surface = tokenOption("surface", f.surface) ? f.surface : "base";
@@ -589,6 +614,7 @@
     if (f.bare === true) { base.bare = true; base.hug = true; }
     base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
     base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
+    if (f.typeScale === "social") base.typeScale = "social";
     /* A frame may give its nodes as root.children or straight as children. */
     var kids = f.root && Array.isArray(f.root.children) ? f.root.children : Array.isArray(f.children) ? f.children : [];
     base.root.children = kids.map(function (c) { return cleanNode(c, report); }).filter(Boolean);
@@ -2210,7 +2236,7 @@
       var hit = f.drop((x - at.r.left) / z, (y - at.r.top) / z, own ? payload.id || null : null, 12 / z);
       if (!hit) return null;
       var out = { where: "canvas", frame: at.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
-      var dragType = payload.kind === "move" && payload.id ? (locate(docRef.current, payload.id) || { node: {} }).node.type : payload.kind === "new" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
+      var dragType = payload.kind === "move" && payload.id ? (locate(docRef.current, payload.id) || { node: {} }).node.type : payload.kind === "new" || payload.kind === "local" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
       var into = locate(docRef.current, hit.parent, at.fid);
       if (into && into.node.type === "Slot" && dragType) {
         var slotOwner = into.path[into.path.length - 2];
@@ -2218,7 +2244,7 @@
       }
       /* On the frame's own canvas, outside any stack, it lands where it's let go. */
       var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
-      var type = moving ? moving.node.type : payload.kind === "new" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
+      var type = moving ? moving.node.type : payload.kind === "new" || payload.kind === "local" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
       var hostFrame = frameById(docRef.current, at.fid);
       if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && hostFrame.mode !== "structured" && !hostFrame.bare) {
         var unit = (f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0]) || 4;
@@ -2403,6 +2429,7 @@
         return;
       }
       if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
+      if (dr.payload.kind === "local") { addLocal(dr.payload.comp, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
       /* Moved on its frame's canvas: it keeps its place in the list and takes
          the new position; from inside a stack, it comes out onto the canvas. */
       if (hit.free) {
@@ -2568,6 +2595,25 @@
       var ok = change(function (d) { d.active = fid; return ops.replace(d, id, n); }, "Swapped " + was + " for " + type + ", the same size");
       if (!ok) announce(type + " can't go where " + was + " is");
     };
+    /* A local component, put down: a fresh copy of what was kept, with new ids
+       and no position of its own. */
+    var instanceOf = function (comp) {
+      var n = cleanNode(copy(comp.node), null);
+      if (!n) return null;
+      n = fresh(n);
+      delete n.style.x; delete n.style.y;
+      n.name = comp.name;
+      return n;
+    };
+    var addLocal = function (comp, where) {
+      var n = instanceOf(comp);
+      if (!n) { announce(comp.name + " couldn't be read back"); return; }
+      var t = where || target();
+      var fid = t.frame || docRef.current.active;
+      if (t.free) { n.style.x = t.free.x; n.style.y = t.free.y; }
+      var fr = frameById(docRef.current, fid);
+      if (!change(function (d) { d.active = fid; return ops.insert(d, t.parent, t.index, n, fid); }, "Added " + comp.name + " to " + (fr ? fr.name : "the frame"))) announce(comp.name + " can't go there");
+    };
     /* Dropped off every frame: a loose object there, with no page around it.
        A band (a Section or a block) gets a page of its own instead. */
     var placeLoose = function (payload, hit) {
@@ -2575,6 +2621,7 @@
       if (payload.kind === "new") { node = make(payload.type); if (payload.type === "Inline") node.props.wrap = false; }
       else if (payload.kind === "asset") node = payload.media === "video" ? make("Video", { src: payload.src }) : make("Image", { src: payload.src, alt: payload.label });
       else if (payload.kind === "tool") node = toolNode(payload.tool, null);
+      else if (payload.kind === "local") node = instanceOf(payload.comp);
       else if (payload.kind === "move") moving = payload.id;
       var made = null;
       change(function (d) {
@@ -2748,7 +2795,7 @@
         if (rendered.current[f.id] === key) return;
         rendered.current[f.id] = key;
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -3035,7 +3082,7 @@
        only while nothing else has focus. */
     var keyRef = useRef(function () { return false; });
     keyRef.current = function (ev) {
-      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open) || newOpenRef.current) return false;
+      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open) || newOpenRef.current) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -3070,6 +3117,7 @@
       if (ev.key === "F2") { actions.rename(); return true; }
       if (!selRef.current.length) return false;
       if (mod && key === "g") { (ev.shiftKey ? actions.ungroup : actions.group)(); return true; }
+      if (mod && ev.altKey && (key === "k" || ev.code === "KeyK")) { openComponent(); return true; }
       if (mod && (key === "c" || key === "x") && !ev.shiftKey) { copySelection(key === "x"); return true; }
       if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
       if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
@@ -3106,15 +3154,15 @@
 
     var setFrame = function (key, value, message) { change(function (d) { active(d)[key] = value; return undefined; }, message); };
     var sizeOn = function (f, w, h) {
-      var ratio = f.height / f.width;
+      var ratio = f.height / f.width, lo = minSide(f);
       if (w !== undefined) {
-        f.width = side(w, MAX_WIDTH, f.width);
-        if (f.lock && h === undefined) { f.height = side(Math.round(f.width * ratio), MAX_HEIGHT, f.height); f.hug = false; }
+        f.width = side(w, MAX_WIDTH, f.width, lo);
+        if (f.lock && h === undefined) { f.height = side(Math.round(f.width * ratio), MAX_HEIGHT, f.height, lo); f.hug = false; }
       }
       /* Typing a height fixes it. */
       if (h !== undefined) {
-        f.height = side(h, MAX_HEIGHT, f.height); f.hug = false;
-        if (f.lock && w === undefined) f.width = side(Math.round(f.height / ratio), MAX_WIDTH, f.width);
+        f.height = side(h, MAX_HEIGHT, f.height, lo); f.hug = false;
+        if (f.lock && w === undefined) f.width = side(Math.round(f.height / ratio), MAX_WIDTH, f.width, lo);
       }
     };
     var setSize = function (w, h) { change(function (d) { sizeOn(active(d), w, h); return undefined; }); };
@@ -3126,7 +3174,7 @@
     };
     var setPreset = function (id) {
       var p = PRESET[id];
-      if (p) change(function (d) { var f = active(d); f.width = p.width; f.height = p.height; return undefined; }, frame.name + " is " + p.label + ", " + p.width + " by " + p.height);
+      if (p) change(function (d) { var f = active(d); f.width = p.width; f.height = p.height; if (p.typeScale) f.typeScale = p.typeScale; else delete f.typeScale; return undefined; }, frame.name + " is " + p.label + ", " + p.width + " by " + p.height + (p.typeScale ? ", with social type" : ""));
     };
     /* Props and styles apply to every selected node, so several of the same
        kind change together. */
@@ -3160,6 +3208,8 @@
         (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; } (n.children || []).forEach(unfree); })(f.root);
         if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
         f.root.children = kept;
+        if (!f.gap) f.gap = "block";
+        autoLayout(f.root);
         return [];
       }, mode === "structured" ? "Structured: everything is in Groups now" : "Freeform: place things anywhere");
     };
@@ -3417,8 +3467,9 @@
       var structured = mode === "structured";
       var f = makeFrame((structured ? "Page " : "Canvas ") + (d.frames.length + 1), "desktop", structured);
       f.mode = structured ? "structured" : "free";
-      /* A structured page starts with a Group to put things in. */
-      if (structured) { var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" }); g.name = "Content"; f.root.children = [g]; }
+      /* A structured page starts with a Group to put things in, and its blocks
+         sit a block's gap apart. */
+      if (structured) { var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" }); g.name = "Content"; f.root.children = [g]; f.gap = "block"; }
       change(function (dd) { dd.frames.push(f); dd.active = f.id; return []; }, "Added " + f.name + (structured ? ": a structured page. Everything goes in Groups." : ": a free canvas. Place things anywhere."));
       setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
     };
@@ -3435,6 +3486,124 @@
       var next = s[2]();
       commit(next, null, "Started from " + s[1] + ". Undo to go back.");
       setTimeout(function () { showFrameRef.current(next.active); }, 0);
+    };
+
+    /* Local components. A selection becomes one when everything in it comes
+       from the system: tokens for every style, layers in the flow, nothing
+       only this browser holds. What stops it is listed, with a fix where
+       there is one; what's merely worth knowing is a warning. */
+    var compRef = useRef(null);
+    var compState = useState(null);
+    var compDraft = compState[0], setCompDraft = compState[1];
+    var componentCheck = function (node) {
+      var issues = [], tokens = {}, count = 0;
+      (function walk(n, depth) {
+        count++;
+        var label = nameOf(n);
+        if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
+        Object.keys(n.style || {}).forEach(function (k) {
+          var v = n.style[k];
+          if (k === "x" || k === "y") {
+            if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label + " is placed by position. A component's layers sit in its flow." });
+            return;
+          }
+          if (k === "fill" || k === "color") { issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." }); return; }
+          var def = DATA.tokens[k];
+          var o = def ? def.options.filter(function (x) { return x.value === v; })[0] : null;
+          if (o) o.tokens.forEach(function (t) { tokens[t] = 1; });
+        });
+        if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
+        Object.keys(n.props || {}).forEach(function (k) {
+          if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
+        });
+        (n.children || []).forEach(function (c) { walk(c, depth + 1); });
+      })(node, 0);
+      var list = Object.keys(tokens);
+      if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
+      if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
+      if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
+      return { issues: issues, tokens: list, count: count };
+    };
+    /* The selection as one node: itself, or several side by side in a Group. */
+    var componentSource = function () {
+      var d = docRef.current;
+      var at = selRef.current.map(function (id) { return locate(d, id); }).filter(Boolean);
+      if (!at.length) return null;
+      if (at.length === 1) return copy(at[0].node);
+      return make("Group", { direction: "column", gap: "md" }, at.map(function (a) { return copy(a.node); }));
+    };
+    var openComponent = function () {
+      var node = componentSource();
+      if (!node) { announce("Select layers to make a component of"); return; }
+      setCompDraft({ name: node.name || (node.type === "Group" ? "My component" : node.type), ids: selRef.current.slice() });
+      setTimeout(function () { var dlg = compRef.current; if (dlg && dlg.showModal && !dlg.open) dlg.showModal(); }, 0);
+    };
+    var fixComponent = function () {
+      var ids = compDraft ? compDraft.ids : [];
+      change(function (d) {
+        var any = false;
+        ids.forEach(function (id) {
+          var at = locate(d, id);
+          if (!at) return;
+          (function walk(n, depth) {
+            ["fill", "color"].forEach(function (k) { if (n.style[k]) { delete n.style[k]; any = true; } });
+            if (depth > 0 && (n.style.x !== undefined || n.style.y !== undefined)) { delete n.style.x; delete n.style.y; any = true; }
+            (n.children || []).forEach(function (c) { walk(c, depth + 1); });
+          })(at.node, 0);
+        });
+        return any ? undefined : null;
+      }, "Custom colours and positions taken out; it uses the system's now");
+    };
+    var saveComponent = function () {
+      var node = componentSource();
+      if (!node || !compDraft) return;
+      var check = componentCheck(node);
+      if (check.issues.some(function (i) { return i.level === "error"; })) return;
+      var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
+      var kept = cleanNode(copy(node), null);
+      if (!kept) return;
+      delete kept.style.x; delete kept.style.y;
+      setLibrary(function (l) { var n = Object.assign({}, l); n.components = [{ id: uid(), name: name, node: kept, tokens: check.tokens, made: Date.now() }].concat(l.components || []); return n; });
+      if (compDraft.ids.length === 1) setName(compDraft.ids[0], name);
+      var dlg = compRef.current;
+      if (dlg && dlg.open) dlg.close();
+      setCompDraft(null);
+      announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
+    };
+    var componentDialog = function () {
+      var node = compDraft ? componentSource() : null;
+      var check = node ? componentCheck(node) : null;
+      var errors = check ? check.issues.filter(function (i) { return i.level === "error"; }) : [];
+      var warns = check ? check.issues.filter(function (i) { return i.level === "warn"; }) : [];
+      var fixable = errors.some(function (i) { return i.fix; });
+      return e("dialog", { className: "bd-code bd-comp-dlg", ref: compRef, "aria-labelledby": "bd-comp-title", onClose: function () { setCompDraft(null); } },
+        e("div", { className: "bd-code-head" },
+          e("div", { className: "bd-code-intro" },
+            e("h2", { id: "bd-comp-title" }, "Create component"),
+            e("p", { className: "bd-inspect-sub" }, "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.")),
+          e("div", { className: "bd-code-actions" },
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { compRef.current.close(); } }, e(Icon, { name: "close" })))),
+        check ? e("div", { className: "bd-comp-body" },
+          e("label", { className: "bd-field" }, e("span", { className: "bd-field-label" }, "Name"),
+            e("input", { className: "bd-input bd-comp-name", type: "text", maxLength: 60, value: compDraft.name, onChange: function (ev) { var v = ev.target.value; setCompDraft(function (c) { return c ? Object.assign({}, c, { name: v }) : c; }); } })),
+          e("div", { className: cx("bd-comp-status", errors.length ? "is-blocked" : "is-ready"), role: "status" },
+            e(Icon, { name: errors.length ? "alert" : "check" }),
+            errors.length ? errors.length + (errors.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check.count + (check.count === 1 ? " layer" : " layers") + " on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens")),
+          errors.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors.concat(warns).map(function (i, k) {
+            return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
+          })) : null,
+          check.tokens.length ? e("details", { className: "bd-comp-tokens" }, e("summary", null, "The tokens it's built on (" + check.tokens.length + ")"),
+            e("ul", null, check.tokens.map(function (t) { return e("li", { key: t }, e("code", null, t)); }))) : null,
+          e("div", { className: "bd-import-actions" },
+            e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !!errors.length, onClick: saveComponent }, e(Icon, { name: "component" }), "Create component"),
+            fixable ? e("button", { type: "button", className: "bd-btn", onClick: fixComponent, title: "Takes out custom colours and positions inside it, so it uses the system's" }, "Use the system's instead") : null)) : null);
+    };
+    var removeComponent = function (id) { setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).filter(function (c) { return c.id !== id; }); return n; }); };
+    var renameComponent = function (id) {
+      var c = (library.components || []).filter(function (x) { return x.id === id; })[0];
+      if (!c) return;
+      var name = window.prompt("Rename " + c.name, c.name);
+      if (name && name.trim()) setLibrary(function (l) { var n = Object.assign({}, l); n.components = l.components.map(function (x) { return x.id === id ? Object.assign({}, x, { name: name.trim().slice(0, 60) }) : x; }); return n; });
     };
 
     /* A layout written elsewhere (by hand, or by Claude) comes in through the
@@ -3954,12 +4123,16 @@
       return [];
     };
     var usableIn = function (g) { return g.items.filter(function (n) { return !placeable || placeable[n]; }); };
+    /* Primitives show as their icon and name; components draw a preview. */
+    var PLAIN = {};
+    groupsOf("primitives").forEach(function (g) { g.items.forEach(function (n) { PLAIN[n] = true; }); });
     var tileList = function (items) {
       return e("ul", { className: cx("bd-tiles", view === "list" ? "is-list" : "is-grid") }, items.map(function (n) {
         var meta = META[n];
+        var plain = PLAIN[n];
         return e("li", { key: n },
           e("button", {
-            type: "button", className: "bd-tile", "data-type": n, "aria-label": "Add " + n,
+            type: "button", className: cx("bd-tile", plain && "is-icon"), "data-type": n, "aria-label": "Add " + n,
             title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
             onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") }); },
             onClick: function (ev) {
@@ -3969,7 +4142,8 @@
               add(n);
             },
           },
-            e(Thumb, { type: n, wide: meta.group === "blocks" }),
+            plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" }))
+              : e(Thumb, { type: n, wide: meta.group === "blocks" }),
             e("span", { className: "bd-tile-text" },
               e("span", { className: "bd-tile-name" }, n),
               view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null)));
@@ -4074,6 +4248,22 @@
       }));
     };
 
+    var mineList = function (list) {
+      return e("ul", { className: "bd-mine", role: "list" }, list.map(function (c) {
+        var layers = 0;
+        (function walk(n) { layers++; (n.children || []).forEach(walk); })(c.node);
+        return e("li", { key: c.id, className: "bd-mine-item" },
+          e("button", { type: "button", className: "bd-mine-btn", "data-local": c.id, title: c.name + ": drag onto a frame, or press to add. Built on " + c.tokens.slice(0, 6).join(", ") + (c.tokens.length > 6 ? "…" : ""),
+            onPointerDown: function (ev) { startDrag(ev, { kind: "local", comp: c, type: c.node.type, label: c.name }); },
+            onClick: function () { if (!justDragged.current) addLocal(c); } },
+            e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
+            e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))),
+          e(Dropdown, { menu: true, label: "Actions for " + c.name, icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon",
+            options: [{ value: "add", label: "Add to " + frame.name, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
+            onChange: function (v) { if (v === "add") addLocal(c); else if (v === "rename") renameComponent(c.id); else if (v === "delete") removeComponent(c.id); } }));
+      }));
+    };
+
     var assetsPanel = function () {
       var q = query.trim().toLowerCase();
       var head = null;
@@ -4084,9 +4274,12 @@
             if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
           });
         });
+        var foundMine = (library.components || []).filter(function (c) { return c.name.toLowerCase().indexOf(q) >= 0; });
         return e("div", { className: "bd-assets" }, head,
+          foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
+          foundMine.length ? mineList(foundMine) : null,
           e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle()),
-          found.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
+          found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
           tileList(found));
       }
       if (!assetKind) {
@@ -4094,11 +4287,11 @@
           e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function (k) {
             var note = k[3];
             var count = k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? (STARTERS.length - 1) + " pages" : groupsOf(k[0]).reduce(function (t, g) { return t + usableIn(g).length; }, 0) + " to add";
-            return e("li", { key: k[0] }, e("button", { type: "button", className: "bd-kind", "data-asset-kind": k[0], onClick: function () { setAssetKind(k[0]); } },
+            return e("li", { key: k[0] }, e("button", { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note, onClick: function () { setAssetKind(k[0]); } },
               e("span", { className: "bd-kind-pics is-asset" },
                 k[0] === "variables" ? e("span", { className: "bd-kind-swatches", "aria-hidden": true }, ["--dt-surface-brand", "--dt-surface-brand-secondary", "--dt-surface-action", "--dt-surface-inverse"].map(function (t) { return e("span", { key: t, style: { background: "var(" + t + ")" } }); }))
                   : e(Icon, { name: k[2] })),
-              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-note" }, note), e("span", { className: "bd-kind-count" }, count))));
+              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))));
           })));
       }
       var kind = ASSET_KINDS.filter(function (k) { return k[0] === assetKind; })[0] || ASSET_KINDS[0];
@@ -4108,8 +4301,22 @@
       if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head, back, variablesPanel());
       if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head, back, templatesPanel());
       var groups = groupsOf(kind[0]);
-      var current = groups.filter(function (x) { return x.id === category; })[0] || groups[0];
+      /* Components open with yours, then the system's. */
+      if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
+      var current = groups.filter(function (x) { return x.id === category; })[0] || groups[kind[0] === "components" && (library.components || []).length ? 0 : kind[0] === "components" ? 1 : 0];
       var items = usableIn(current);
+      if (current.id === "mine") {
+        var mine = library.components || [];
+        return e("div", { className: "bd-assets" },
+          head, back,
+          e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function (g) {
+            return e("button", { key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(current.id === g.id), onClick: function () { setCategory(g.id); } },
+              e(Icon, { name: g.id === "mine" ? "component" : GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
+          })),
+          e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
+          mine.length ? mineList(mine) : e("div", { className: "bd-empty" }, e(Icon, { name: "component" }),
+            e("p", null, "Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not.")));
+      }
       return e("div", { className: "bd-assets" },
         head,
         back,
@@ -4353,6 +4560,8 @@
       var hasBorder = nodes.some(function (n) { return n.style.border || sidesOf.some(function (k) { return n.style[k]; }); });
       var radiusValues = nodes.map(function (n) { return n.style.radius || ""; });
       var shadowValues = nodes.map(function (n) { return n.style.elevation || ""; });
+      var hasRadius = nodes.some(function (n) { return n.style.radius; });
+      var hasShadow = nodes.some(function (n) { return n.style.elevation; });
       var darkValues = nodes.map(function (n) { return !!n.style.dark; });
       var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
       var free = frame.mode !== "structured";
@@ -4395,14 +4604,22 @@
         sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
           hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
             : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),
-        sec("corners", "Corners and shadow", [
-          e(Field, { key: "radius", id: rid, label: "Radius" },
-            e(Segmented, { labelledBy: rid, wide: true, clearable: true, className: "bd-seg-pics", value: same(radiusValues) ? radiusValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "radius", v); },
-              options: DATA.tokens.radius.options.map(function (o) { return { value: o.value, label: o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }) }; }) })),
-          e(Field, { key: "shadow", id: sid, label: "Shadow" },
-            e(Segmented, { labelledBy: sid, wide: true, clearable: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "elevation", v); },
-              options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) })),
-        ], null, styled(nodes, ["radius", "elevation"])),
+        /* Corners and shadow stay out of the way until they're added, as a
+           border is. */
+        sec("corners", "Corners", hasRadius
+          ? e(Field, { key: "radius", id: rid, label: "Radius" },
+              e(Segmented, { labelledBy: rid, wide: true, className: "bd-seg-pics", value: same(radiusValues) ? radiusValues[0] || undefined : null, onChange: function (v) { if (v) setStyle(ids, "radius", v); },
+                options: DATA.tokens.radius.options.map(function (o) { return { value: o.value, label: o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }) }; }) }))
+          : e("p", { className: "bd-sec-empty" }, "None"),
+          hasRadius ? headAction("minus", "Remove the corners", function () { setStyle(ids, "radius", undefined); })
+            : headAction("plusSm", "Add corners", function () { setStyle(ids, "radius", DATA.tokens.radius.options.some(function (o) { return o.value === "container"; }) ? "container" : DATA.tokens.radius.options[1].value); }), hasRadius),
+        sec("shadow", "Shadow", hasShadow
+          ? e(Field, { key: "shadow", id: sid, label: "Elevation" },
+              e(Segmented, { labelledBy: sid, wide: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { if (v) setStyle(ids, "elevation", v); },
+                options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) }))
+          : e("p", { className: "bd-sec-empty" }, "None"),
+          hasShadow ? headAction("minus", "Remove the shadow", function () { setStyle(ids, "elevation", undefined); })
+            : headAction("plusSm", "Add a shadow", function () { var opts = DATA.tokens.elevation.options; setStyle(ids, "elevation", (opts[1] || opts[0]).value); }), hasShadow),
       ];
     };
 
@@ -4445,36 +4662,6 @@
       ];
     };
 
-    /* Every component in a frame, in order and indented by depth; pressing
-       one selects it on the canvas. What's in a component's slots sits under
-       the component. */
-    var componentsOf = function (f) {
-      var rows = [];
-      (function walk(n, depth) {
-        (n.children || []).forEach(function (c) {
-          if (c.type === "Slot") { walk(c, depth); return; }
-          rows.push({ n: c, depth: depth });
-          walk(c, depth + 1);
-        });
-      })(f.root, 0);
-      return rows;
-    };
-    var frameItems = function (f, rows) {
-      if (!rows.length) return e("p", { className: "bd-sec-empty" }, "Nothing in it yet. Add something from Assets.");
-      return e("ul", { className: "bd-frame-items", role: "list", "aria-label": "Components in " + f.name }, rows.slice(0, 400).map(function (r) {
-        var text = labelOf(r.n);
-        return e("li", { key: r.n.id },
-          e("button", { type: "button", className: "bd-frame-item", "data-item": r.n.id, style: { paddingInlineStart: "calc(var(--dt-space-inset-xs) + " + r.depth + " * 12px)" },
-            title: "Select " + nameOf(r.n) + " on the canvas",
-            onClick: function () { if (docRef.current.active !== f.id) activate(f.id); select([r.n.id]); },
-            onPointerEnter: function () { setHover({ f: f.id, id: r.n.id }); },
-            onPointerLeave: function () { setHover(null); } },
-            e(Icon, { name: typeIcon(r.n.type) }),
-            e("span", { className: "bd-frame-item-name" }, nameOf(r.n)),
-            text && !r.n.name ? e("span", { className: "bd-layer-text" }, text) : null));
-      }));
-    };
-
     var frameInspector = function () {
       var surfaceOptions = DATA.tokens.surface.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens }; });
       var b = boxes[frame.id] || { h: frame.height };
@@ -4495,12 +4682,13 @@
           sec("frame-flow", "Page layout", [
             e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
               e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
+            e(Field, { key: "type", id: "bd-pg-type", label: "Type scale", hint: frame.typeScale === "social" ? "data-type-scale=\"social\": body 2.5x, headings 2.75x, display 3x, for a 1080 post read in a feed." : "The page's own sizes." },
+              e(Dropdown, { labelledBy: "bd-pg-type", value: frame.typeScale || "", className: "bd-dd-field", onChange: function (v) { setFrame("typeScale", v || undefined, v ? frame.name + " has social type" : frame.name + " has page type"); },
+                options: [{ value: "", label: "Page", hint: "The system's sizes" }, { value: "social", label: "Social", hint: "Larger body, steeper headlines, for a 1080 artboard" }] })),
             e(Field, { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
               e(Dropdown, { labelledBy: "bd-pg-gap", value: frame.gap, className: "bd-dd-field", onChange: function (v) { setFrame("gap", v || ""); },
                 options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function (g) { return { value: g, label: g, hint: "--dt-layout-stack-" + g }; })) })),
           ])];
-      var items = componentsOf(frame);
-      body = body.concat([sec("frame-items", "Components" + (items.length ? " (" + items.length + ")" : ""), frameItems(frame, items))]);
       return e("div", { className: "bd-inspect" },
         e("div", { className: "bd-inspect-head" },
           e("div", { className: "bd-head-row" },
@@ -4669,7 +4857,8 @@
                 ? headAction("group", "Ungroup (Ctrl+Shift+G)", actions.ungroup)
                 : headAction("group", "Group (Ctrl+G)", actions.group),
               !many && detachable[first.type] ? headAction("detach", "Detach into primitives", actions.detach) : null,
-              !many ? headAction("link", "Copy a link to this layer", function () { share(first.id); }) : null)),
+              !many ? headAction("link", "Copy a link to this layer", function () { share(first.id); }) : null,
+              headAction("component", "Create component (Ctrl+Alt+K)", openComponent))),
           many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
             : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null),
         tabBar(have, current),
@@ -4820,17 +5009,20 @@
       var z = camRef.current.z;
       var start = { x: ev.clientX, y: ev.clientY, w: f.width, h: b.h };
       var cur = null;
+      /* A structured page lands on a viewport size; a freeform canvas takes any. */
+      var lo = minSide(f), snaps = f.mode === "structured";
+      var fit = function (v, list) { return snaps ? snapSide(v, list, f.hug, 16 / z) : Math.round(v); };
       var move = function (mv) {
         var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
-        var w = edge === "b" ? start.w : Math.max(MIN_SIDE, Math.min(MAX_WIDTH, snapSide(start.w + dx, VIEW_W, f.hug, 16 / z)));
-        var h = edge === "r" ? null : Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, snapSide(start.h + dy, VIEW_H, f.hug, 16 / z)));
+        var w = edge === "b" ? start.w : Math.max(lo, Math.min(MAX_WIDTH, fit(start.w + dx, VIEW_W)));
+        var h = edge === "r" ? null : Math.max(lo, Math.min(MAX_HEIGHT, fit(start.h + dy, VIEW_H)));
         /* Proportions kept: the edge pulled leads, the other side follows. */
         if (f.lock) {
           var k = start.h / start.w;
-          if (edge === "b") w = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(h / k)));
-          else if (edge === "r") h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, Math.round(w * k)));
-          else if (Math.abs(dx) >= Math.abs(dy)) { w = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(start.w + dx))); h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, Math.round(w * k))); }
-          else { h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, Math.round(start.h + dy))); w = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(h / k))); }
+          if (edge === "b") w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(h / k)));
+          else if (edge === "r") h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(w * k)));
+          else if (Math.abs(dx) >= Math.abs(dy)) { w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(start.w + dx))); h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(w * k))); }
+          else { h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(start.h + dy))); w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(h / k))); }
         }
         cur = { fid: f.id, w: w, h: h };
         setResizing(cur);
@@ -5050,25 +5242,29 @@
       var fr = play && frameById(docRef.current, play.fid);
       var a = null;
       try { a = el && el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { a = null; }
-      if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap }, root: fr.root }, { preview: true, hug: false });
+      if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale }, root: fr.root }, { preview: true, hug: false });
     };
     var playDialog = function () {
       var fr = play && frameById(doc, play.fid);
       if (!fr) return null;
-      var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, (playBox.h - 32) / play.h) : 0.5;
+      var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
       var hs = playHeights(fr.width);
+      /* A theater: the screen alone on a dark stage, its name and Close at
+         the top, and the screen sizes in a bar along the foot where the
+         canvas keeps its tools. */
       return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: function () { setPlay(null); } },
         e("div", { className: "bd-play-head" },
           e("div", { className: "bd-play-intro" },
-            e("h2", { id: "bd-play-title" }, "Play: " + fr.name),
-            e("p", { className: "bd-inspect-sub" }, fr.width + " wide, seen " + play.h + " tall. Scroll inside it; pinned and sticky items stay put the way they would on the device.")),
-          e(Segmented, { label: "Screen height", value: play.h, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { h: v })); },
-            options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) }),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function () { playRef.current.close(); } }, e(Icon, { name: "close" }))),
+            e("h2", { id: "bd-play-title" }, fr.name),
+            e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")),
+          e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function () { playRef.current.close(); } }, e(Icon, { name: "close" }))),
         e("div", { className: "bd-play-stage", ref: playStageRef },
           e("div", { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
             e("iframe", { ref: playFrameRef, src: frameSrc, title: fr.name + ", " + fr.width + " by " + play.h, onLoad: renderPlay,
-              style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))));
+              style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))),
+        e("div", { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height" },
+          e(Segmented, { label: "Screen height", value: play.h, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { h: v })); },
+            options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) })));
     };
 
     var NEW_KINDS = [
@@ -5147,50 +5343,52 @@
           /* Nothing selected: what the system offers, rather than a list of
              frames (Layers has those). */
           sec("builder-vars", "Variables", [
-            e("div", { key: "colour", className: "bd-sys-row" },
-              e("span", { className: "bd-sys-label" }, "Colour"),
-              e("div", { className: "bd-sys-swatches" }, DATA.tokens.surface.options.slice(0, 16).map(function (o) {
-                return e("span", { key: o.value, className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" }, title: o.value + " · " + o.tokens[0] });
-              }))),
-            e("div", { key: "space", className: "bd-sys-row" },
-              e("span", { className: "bd-sys-label" }, "Spacing"),
-              e("div", { className: "bd-sys-scale" }, DATA.tokens.padding.options.filter(function (o) { return !o.family || o.family === "inset"; }).slice(0, 8).map(function (o) {
-                var px = pxMap["padding|" + o.value];
-                return e("span", { key: o.value, className: "bd-sys-step", title: o.tokens.join(" · ") }, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(64, Math.round(px)) + "px" : "8px" } }), e("span", null, (px != null ? Math.round(px) + " " : "") + o.value));
-              }))),
-            e("div", { key: "radius", className: "bd-sys-row" },
-              e("span", { className: "bd-sys-label" }, "Radius"),
-              e("div", { className: "bd-sys-chips" }, DATA.tokens.radius.options.map(function (o) {
-                return e("span", { key: o.value, className: "bd-sys-chip", title: o.tokens[0] }, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value);
-              }))),
+            sysGroup("colour", "Colour", DATA.tokens.surface.options.slice(0, 16).map(function (o) {
+              return sysRow(o.value, e("span", { className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
+            })),
+            sysGroup("space", "Spacing", DATA.tokens.padding.options.filter(function (o) { return !o.family || o.family === "inset"; }).slice(0, 8).map(function (o) {
+              var px = pxMap["padding|" + o.value];
+              return sysRow(o.value, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(28, Math.round(px)) + "px" : "8px" } }), o.value, px != null ? Math.round(px) + "px" : o.tokens[0]);
+            })),
+            sysGroup("radius", "Radius", DATA.tokens.radius.options.map(function (o) {
+              return sysRow(o.value, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
+            })),
             e("div", { key: "acts", className: "bd-media-actions" },
               e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("assets"); setAssetKind("variables"); } }, e(Icon, { name: "variable" }), "Apply from Assets"),
               e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("configure"); } }, e(Icon, { name: "sliders" }), "Change in Configure")),
           ]),
           sec("builder-prims", "Primitives", [
             e("p", { key: "n", className: "bd-sec-empty" }, "Press one to add it to " + frame.name + ", or drag it onto the canvas."),
-            e("div", { key: "grid", className: "bd-sys-prims" }, DATA.groups.filter(function (g) { return g.id === "layout" || g.id === "typography"; }).reduce(function (a, g) { return a.concat(g.items); }, []).filter(function (n) { return !placeable || placeable[n]; }).map(function (n) {
-              return e("button", { key: n, type: "button", className: "bd-sys-prim", "data-type": n, title: (META[n].blurb ? n + ": " + META[n].blurb : n),
+            e("ul", { key: "list", className: "bd-sys-list", role: "list" }, DATA.groups.filter(function (g) { return g.id === "layout" || g.id === "typography"; }).reduce(function (a, g) { return a.concat(g.items); }, []).filter(function (n) { return !placeable || placeable[n]; }).map(function (n) {
+              return e("li", { key: n }, e("button", { type: "button", className: "bd-sys-item bd-sys-prim", "data-type": n, title: META[n].blurb ? n + ": " + META[n].blurb : n,
                 onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n }); },
-                onClick: function () { if (!justDragged.current) add(n); } }, e(Icon, { name: typeIcon(n) }), e("span", null, n));
+                onClick: function () { if (!justDragged.current) add(n); } },
+                e("span", { className: "bd-sys-lead" }, e(Icon, { name: typeIcon(n) })),
+                e("span", { className: "bd-sys-name" }, n),
+                e("span", { className: "bd-sys-meta" }, META[n].blurb || "")));
             })),
           ]),
           sec("builder-styles", "Styles", [
-            e("div", { key: "text", className: "bd-sys-row" },
-              e("span", { className: "bd-sys-label" }, "Text"),
-              e("ul", { className: "bd-sys-type", role: "list" }, TEXT_STYLES.map(function (t) {
-                var px = pxMap["text|" + t[0]];
-                return e("li", { key: t[0], title: "--dt-text-" + t[0] + "-size" },
-                  e("span", { className: "bd-sys-ag", style: { fontFamily: "var(--dt-text-" + t[0] + "-family)", fontWeight: "var(--dt-text-" + t[0] + "-weight)" }, "aria-hidden": true }, "Ag"),
-                  e("span", { className: "bd-sys-type-name" }, t[1]),
-                  e("span", { className: "bd-sys-type-px" }, px != null ? Math.round(px) : ""));
-              }))),
-            e("div", { key: "fx", className: "bd-sys-row" },
-              e("span", { className: "bd-sys-label" }, "Shadow"),
-              e("div", { className: "bd-sys-chips" }, DATA.tokens.elevation.options.map(function (o) {
-                return e("span", { key: o.value, className: "bd-sys-chip", title: o.tokens[0] }, e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }), o.value);
-              }))),
+            sysGroup("text", "Text", TEXT_STYLES.map(function (t) {
+              var px = pxMap["text|" + t[0]];
+              return sysRow(t[0], e("span", { className: "bd-sys-ag", style: { fontFamily: "var(--dt-text-" + t[0] + "-family)", fontWeight: "var(--dt-text-" + t[0] + "-weight)" } }, "Ag"), t[1], px != null ? Math.round(px) + "px" : "", "--dt-text-" + t[0] + "-size");
+            })),
+            sysGroup("fx", "Shadow", DATA.tokens.elevation.options.map(function (o) {
+              return sysRow(o.value, e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }), "Elevation " + o.value, o.tokens[0]);
+            })),
           ])));
+    };
+    /* The system at rest, as list rows: what it shows, its name, its detail. */
+    var sysRow = function (key, lead, name, meta, title) {
+      return e("li", { key: key, className: "bd-sys-item", title: title || meta },
+        e("span", { className: "bd-sys-lead", "aria-hidden": true }, lead),
+        e("span", { className: "bd-sys-name" }, name),
+        e("span", { className: "bd-sys-meta" }, meta));
+    };
+    var sysGroup = function (key, label, rows) {
+      return e("div", { key: key, className: "bd-sys-row" },
+        e("span", { className: "bd-sys-label" }, label),
+        e("ul", { className: "bd-sys-list", role: "list" }, rows));
     };
     var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
       : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes)
@@ -5241,6 +5439,7 @@
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
       newMenu(),
       importDialog(),
+      componentDialog(),
       playDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
   }

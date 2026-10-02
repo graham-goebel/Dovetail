@@ -1042,17 +1042,18 @@ html.bd-configure-docked .configure-open-btn {
 .bd-tiles.is-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 1fr;
+  grid-auto-rows: auto;
   align-content: start;
   gap: var(--dt-space-inline-xs);
 }
 
-/* The list is one column of the same tiles, the picture over the words,
-   every tile the same height. */
+/* The list is one column of the same tiles, the picture over the words.
+   Every tile is already one height (fixed picture, one-line name, a
+   two-line blurb), so the rows hug them rather than share out the panel. */
 .bd-tiles.is-list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: 1fr;
+  grid-auto-rows: auto;
   align-content: start;
   gap: var(--dt-space-stack-xs);
 }
@@ -1062,16 +1063,20 @@ html.bd-configure-docked .configure-open-btn {
   min-width: 0;
 }
 
+/* A tile: a white rounded card on the panel's tint, its picture inset at
+   the top and its name centred under it. */
 .bd-tile {
   display: flex;
   flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
   width: 100%;
   height: 100%;
-  padding: 0;
+  padding: var(--dt-space-inset-2xs);
   overflow: hidden;
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-control);
+  border: var(--dt-border-width-default) solid transparent;
+  border-radius: var(--dt-radius-container);
   background: var(--dt-surface-base);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--dt-color-neutral-950) 6%, transparent);
   color: var(--dt-text-primary);
   font: inherit;
   text-align: left;
@@ -1083,7 +1088,7 @@ html.bd-configure-docked .configure-open-btn {
 }
 
 .bd-tile:hover {
-  border-color: var(--dt-border-strong);
+  border-color: var(--dt-border-default);
 }
 
 .bd-thumb {
@@ -1093,8 +1098,22 @@ html.bd-configure-docked .configure-open-btn {
   justify-content: center;
   aspect-ratio: 4 / 3;
   overflow: hidden;
+  border-radius: calc(var(--dt-radius-container) - 4px);
   background: var(--dt-surface-subtle);
   pointer-events: none;
+}
+
+/* A primitive is its icon, with no preview behind it. */
+.bd-thumb.is-icon {
+  aspect-ratio: auto;
+  height: var(--dt-size-control-md);
+  background: none;
+}
+
+.bd-thumb.is-icon .bd-thumb-ic {
+  width: var(--dt-size-icon-lg);
+  height: var(--dt-size-icon-lg);
+  color: var(--dt-text-primary);
 }
 
 .bd-thumb-stage {
@@ -1116,8 +1135,8 @@ html.bd-configure-docked .configure-open-btn {
   flex-direction: column;
   gap: 1px;
   min-width: 0;
-  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
-  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  padding: 0 var(--dt-space-inset-2xs) var(--dt-space-inset-2xs);
+  text-align: center;
 }
 
 .bd-tile-name {
@@ -1150,6 +1169,16 @@ html.bd-configure-docked .configure-open-btn {
 .bd-tiles.is-list .bd-thumb {
   aspect-ratio: 16 / 7;
 }
+
+.bd-tiles.is-list .bd-thumb.is-icon {
+  aspect-ratio: auto;
+}
+
+.bd-tiles.is-list .bd-tile-text {
+  text-align: left;
+}
+
+
 
 .bd-tip,
 .bd-empty-note {
@@ -2956,35 +2985,37 @@ span.bd-layer-twisty.is-open .bd-ic {
 /* ---------------------------------------------------------------- play */
 
 .bd-play {
-  width: calc(100vw - 32px);
+  width: 100vw;
   max-width: none;
-  height: calc(100dvh - 32px);
+  height: 100dvh;
   max-height: none;
+  margin: 0;
   padding: 0;
-  border: var(--dt-border-width-default) solid var(--dt-border-default);
-  border-radius: var(--dt-radius-overlay);
-  background: var(--dt-surface-sunken);
-  color: var(--dt-text-primary);
-  box-shadow: var(--dt-elevation-4);
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in oklch, var(--dt-color-neutral-950) 96%, transparent);
+  color: var(--dt-color-neutral-100);
+  box-shadow: none;
 }
 
 .bd-play[open] {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
 }
 
 .bd-play::backdrop {
-  background: var(--dt-surface-scrim);
+  background: var(--dt-color-neutral-950);
 }
 
+/* The theater's top: the frame's name, and Close. */
 .bd-play-head {
+  flex: none;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--dt-space-inline-sm);
   padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
-  border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
-  background: var(--dt-surface-overlay);
 }
 
 .bd-play-intro {
@@ -2994,7 +3025,20 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-play-intro h2 {
   margin: 0;
+  color: var(--dt-color-neutral-050);
   font-size: var(--dt-font-size-md);
+}
+
+.bd-play-sub {
+  margin: 2px 0 0;
+  color: var(--dt-color-neutral-400);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-play-close {
+  border-color: color-mix(in oklch, var(--dt-color-neutral-100) 18%, transparent);
+  background: color-mix(in oklch, var(--dt-color-neutral-100) 10%, transparent);
+  color: var(--dt-color-neutral-050);
 }
 
 .bd-play-stage {
@@ -3003,7 +3047,37 @@ span.bd-layer-twisty.is-open .bd-ic {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 var(--dt-space-inset-md);
   overflow: hidden;
+}
+
+/* Screen sizes, in a bar where the canvas keeps its tools. */
+.bd-play-bar {
+  flex: none;
+  align-self: center;
+  margin: var(--dt-space-inset-sm) 0 var(--dt-space-inset-md);
+  max-width: calc(100% - 2 * var(--dt-space-inset-md));
+  padding: 6px;
+  border: var(--dt-border-width-default) solid color-mix(in oklch, var(--dt-color-neutral-100) 16%, transparent);
+  border-radius: var(--dt-radius-container);
+  background: color-mix(in oklch, var(--dt-color-neutral-900) 80%, transparent);
+  -webkit-backdrop-filter: var(--dt-backdrop-glass);
+  backdrop-filter: var(--dt-backdrop-glass);
+  box-shadow: var(--dt-elevation-3);
+}
+
+.bd-play-bar .bd-seg {
+  background: transparent;
+}
+
+.bd-play-bar .bd-seg-btn {
+  min-width: calc(var(--dt-size-control-md) * 1.4);
+  color: var(--dt-color-neutral-300);
+}
+
+.bd-play-bar .bd-seg-btn[aria-pressed="true"] {
+  background: var(--dt-color-neutral-050);
+  color: var(--dt-color-neutral-950);
 }
 
 /* The screen: the frame at its own width, cut to a device's height. */
@@ -3012,7 +3086,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   overflow: hidden;
   border-radius: var(--dt-radius-container);
   background: var(--dt-surface-base);
-  box-shadow: var(--dt-elevation-3), 0 0 0 var(--dt-border-width-strong) var(--dt-border-strong);
+  box-shadow: 0 24px 80px oklch(0 0 0 / 0.5), 0 0 0 var(--dt-border-width-default) color-mix(in oklch, var(--dt-color-neutral-100) 14%, transparent);
 }
 
 .bd-play-device iframe {
@@ -3344,7 +3418,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-kinds {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: 1fr;
   gap: var(--dt-space-stack-xs);
   flex: none;
@@ -3379,9 +3453,10 @@ span.bd-layer-twisty.is-open .bd-ic {
   width: 100%;
   height: 100%;
   padding: var(--dt-space-inset-2xs) var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border: var(--dt-border-width-default) solid transparent;
   border-radius: var(--dt-radius-container);
   background: var(--dt-surface-base);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--dt-color-neutral-950) 6%, transparent);
   color: var(--dt-text-primary);
   font: inherit;
   text-align: left;
@@ -3390,7 +3465,42 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-kind:hover {
   border-color: var(--dt-border-default);
-  background: var(--dt-surface-raised);
+}
+
+/* An Assets kind is its icon over its name, centred, like a primitive. */
+.bd-asset-kinds .bd-kind {
+  align-items: center;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-2xs);
+  text-align: center;
+}
+
+.bd-kind-pics.is-asset {
+  aspect-ratio: auto;
+  height: var(--dt-size-control-md);
+  background: none;
+  color: var(--dt-text-primary);
+}
+
+.bd-asset-kinds .bd-kind-text {
+  align-items: center;
+}
+
+.bd-asset-kinds .bd-kind-name {
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-asset-kinds .bd-kind-swatches > span {
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+}
+
+.bd-asset-kinds .bd-kind-count {
+  padding-top: 0;
+}
+
+.bd-asset-kinds .bd-kind-chev {
+  display: none;
 }
 
 .bd-kind-pics {
@@ -3922,31 +4032,9 @@ span.bd-layer-twisty.is-open .bd-ic {
   font-weight: var(--dt-font-weight-medium);
 }
 
-.bd-sys-swatches {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: var(--dt-space-inline-2xs);
-}
 
-.bd-sys-sw {
-  width: auto;
-  height: auto;
-  aspect-ratio: 1;
-}
 
-.bd-sys-scale {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: var(--dt-font-size-xs);
-}
 
-.bd-sys-step {
-  display: flex;
-  align-items: center;
-  gap: var(--dt-space-inline-xs);
-  color: var(--dt-text-secondary);
-}
 
 .bd-sys-bar {
   flex: none;
@@ -3955,88 +4043,16 @@ span.bd-layer-twisty.is-open .bd-ic {
   background: var(--dt-text-tertiary);
 }
 
-.bd-sys-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--dt-space-inline-2xs);
-}
 
-.bd-sys-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px var(--dt-space-inset-xs) 2px 4px;
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-base);
-  font-size: var(--dt-font-size-xs);
-}
 
-.bd-sys-prims {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--dt-space-inline-2xs);
-}
 
-.bd-sys-prim {
-  display: flex;
-  align-items: center;
-  gap: var(--dt-space-inline-xs);
-  min-height: var(--dt-size-control-md);
-  padding: 0 var(--dt-space-inset-xs);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-base);
-  color: var(--dt-text-primary);
-  font: inherit;
-  font-size: var(--dt-font-size-sm);
-  text-align: left;
-  cursor: grab;
-  touch-action: pan-y;
-}
 
-.bd-sys-prim:hover {
-  border-color: var(--dt-border-strong);
-}
 
-.bd-sys-prim:focus-visible {
-  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
-  outline-offset: 2px;
-}
 
-.bd-sys-type {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
 
-.bd-sys-type li {
-  display: flex;
-  align-items: baseline;
-  gap: var(--dt-space-inline-xs);
-  min-height: calc(var(--dt-size-control-sm) - 4px);
-  font-size: var(--dt-font-size-sm);
-}
 
-.bd-sys-ag {
-  flex: none;
-  width: 2.2em;
-  font-size: var(--dt-font-size-md);
-}
 
-.bd-sys-type-name {
-  flex: 1;
-  min-width: 0;
-}
 
-.bd-sys-type-px {
-  color: var(--dt-text-tertiary);
-  font-family: var(--dt-font-mono);
-  font-size: var(--dt-font-size-xs);
-  font-variant-numeric: tabular-nums;
-}
 
 /* A block's title: a part that can be picked, for its words and size. */
 .bd-layer.is-part.is-pickable {
@@ -4060,4 +4076,230 @@ span.bd-layer-twisty.is-open .bd-ic {
   .bd-left-main {
     padding-bottom: 0;
   }
+}
+
+/* The system at rest, as rows: what it shows, its name, its detail. */
+.bd-sys-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-sys-item {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(var(--dt-size-control-sm) - 2px);
+  padding: 0 var(--dt-space-inset-xs);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  text-align: left;
+}
+
+button.bd-sys-item {
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+button.bd-sys-item:hover {
+  background: var(--dt-surface-sunken);
+}
+
+button.bd-sys-item:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-sys-lead {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-icon-lg);
+  color: var(--dt-text-secondary);
+}
+
+.bd-sys-name {
+  flex: none;
+}
+
+.bd-sys-meta {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-sys-sw {
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+  border-radius: 50%;
+}
+
+.bd-sys-ag {
+  font-size: var(--dt-font-size-md);
+  line-height: 1;
+}
+
+/* ------------------------------------------------------ my components */
+
+.bd-mine {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  margin: 0;
+  padding: 0 var(--dt-space-inset-sm) var(--dt-space-inset-sm);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bd-mine-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: calc(var(--dt-radius-container) - 2px);
+  background: var(--dt-surface-base);
+}
+
+.bd-mine-item:hover {
+  border-color: var(--dt-border-strong);
+}
+
+.bd-mine-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
+  min-height: var(--dt-size-control-lg);
+  padding: 0 var(--dt-space-inset-xs);
+  border: 0;
+  background: transparent;
+  color: var(--dt-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.bd-mine-btn:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-mine-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bd-mine-name {
+  overflow: hidden;
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-mine-meta {
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-comp-dlg {
+  width: min(560px, calc(100vw - 32px));
+  height: auto;
+  max-height: calc(100dvh - 48px);
+}
+
+.bd-comp-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-sm);
+  padding: var(--dt-space-inset-md);
+  overflow-y: auto;
+}
+
+.bd-comp-status {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-radius: var(--dt-radius-control);
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-comp-status.is-ready {
+  background: var(--dt-surface-success-subtle);
+  color: var(--dt-text-success);
+}
+
+.bd-comp-status.is-blocked {
+  background: var(--dt-surface-danger-subtle);
+  color: var(--dt-text-danger);
+}
+
+.bd-comp-issues {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-comp-issues li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dt-space-inline-xs);
+}
+
+.bd-comp-issues .bd-ic {
+  flex: none;
+  margin-top: 2px;
+}
+
+.bd-comp-issues .is-error .bd-ic {
+  color: var(--dt-text-danger);
+}
+
+.bd-comp-issues .is-warn .bd-ic {
+  color: var(--dt-text-warning);
+}
+
+.bd-comp-tokens summary {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+  cursor: pointer;
+}
+
+.bd-comp-tokens ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-2xs);
+  margin: var(--dt-space-stack-xs) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-comp-tokens code {
+  padding: 2px 6px;
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+  font-size: var(--dt-font-size-xs);
 }

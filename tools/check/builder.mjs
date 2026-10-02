@@ -83,9 +83,11 @@ let failures = 0;
 const ok = (m) => console.log(`  ok    ${m}`);
 const fail = (m) => { failures++; console.log(`  FAIL  ${m}`); };
 const expect = (cond, m) => { if (!cond) throw new Error(m); };
+/* ONLY=<text> runs just the steps whose title has it, to work on one. */
 async function step(title, fn) {
+  if (process.env.ONLY && !title.includes(process.env.ONLY) && title !== "page errors") return;
   console.log(title);
-  try { await fn(); } catch (err) { fail(String(err && err.message ? err.message : err).split("\n")[0]); }
+  try { await fn(); } catch (err) { if (process.env.DEBUG) console.log(err); fail(String(err && err.message ? err.message : err).split("\n")[0]); }
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -152,6 +154,21 @@ const option = (page, text) => page.locator(".bd-dd-opt", { has: page.locator(".
 async function choose(page, fieldText, optionText) {
   await page.locator(".bd-right .bd-field", { hasText: fieldText }).first().locator(".bd-dd").first().click();
   await option(page, optionText).click();
+}
+/* Selects a layer by the text on its row in Layers, which it opens. */
+async function pickLayer(page, text) {
+  await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+  await page.locator(".bd-layer[data-layer] .bd-layer-main", { hasText: text }).first().click();
+}
+/* Presses the canvas button that reads `text`, in frame `i`, to select it. */
+async function pressButton(page, text, i = 0) {
+  const at = await page.evaluate(({ text, i }) => {
+    const f = document.querySelectorAll("iframe.bd-frame")[i];
+    const b = [...f.contentDocument.querySelectorAll("button")].find((x) => x.textContent.includes(text));
+    const r = b.getBoundingClientRect(), box = f.getBoundingClientRect(), s = box.width / parseFloat(f.style.width);
+    return { x: box.left + (r.left + r.width / 2) * s, y: box.top + (r.top + r.height / 2) * s };
+  }, { text, i });
+  await page.mouse.click(at.x, at.y);
 }
 const row = (page, name) => page.locator(`.bd-layer[data-layer]:has(.bd-layer-name:text-is("${name}")) .bd-layer-main`);
 const tab = (page, name) => page.locator(".bd-itab", { hasText: name }).click();
@@ -279,7 +296,7 @@ try {
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Content" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Content opens first, with the Text field");
     const actions = await page.$$eval(".bd-inspect-head .bd-head-actions [aria-label]", (b) => b.map((x) => x.getAttribute("aria-label")));
-    expect(actions.join("|") === "Wrap in|Group (Ctrl+G)|Copy a link to this layer", `the head offers only Wrap, Group and a link for a Heading, got ${actions.join("|")}`);
+    expect(actions.join("|") === "Wrap in|Group (Ctrl+G)|Copy a link to this layer|Create component (Ctrl+Alt+K)", `the head offers only Wrap, Group, a link and Create component for a Heading, got ${actions.join("|")}`);
     const stage = await stageBox(page);
     await page.mouse.click(stage.x + 6, stage.y + stage.height - 6);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -335,7 +352,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new)").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -1150,12 +1167,12 @@ try {
     expect((await page.locator(".bd-export").textContent()).trim() === "Export" && bar.x + bar.width - (exp.x + exp.width) < 24 && bar.width > 1000, `the top bar spans the header with Export at its right end (bar ${Math.round(bar.width)}px wide)`);
     ok("the top bar spans the header, Export at its right end");
 
-    await page.locator(".bd-frame-item", { hasText: "StatsBlock" }).click();
+    await pickLayer(page, "StatsBlock");
     await page.waitForFunction(() => /StatsBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await page.waitForSelector(".bd-mark-sel");
     const outline = await page.evaluate(() => getComputedStyle(document.querySelector(".bd-mark-sel")).outlineWidth);
     expect(outline === "1px", `the selection outline is thin, got ${outline}`);
-    ok("a frame lists its components in the inspector; pressing one selects it, outlined at 1px");
+    ok("pressing a layer selects it on the canvas, outlined at 1px");
 
     await tab(page, "Appearance");
     expect(await page.locator(".bd-right .bd-canvas-custom .bd-canvas-ic").count() >= 1, "custom colours open from a colour picker icon");
@@ -1163,7 +1180,7 @@ try {
 
     await release(page);
     await page.keyboard.press("Escape");
-    await page.locator(".bd-frame-item", { hasText: "Shop the collection" }).click();
+    await pressButton(page, "Shop the collection");
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await tab(page, "Layout");
     await dd(page, "Width").click();
@@ -1229,7 +1246,8 @@ try {
     const after = await poll(async () => (await saved()).frames, (fs) => fs.length === before + 1);
     expect(after.length === before + 1 && typeof after[1].x === "number" && /copy$/.test(after[1].name), `Cmd-Shift-drag on a frame's name drops a copy where it's let go, got ${JSON.stringify(after.map((f) => [f.name, f.x, f.y]))}`);
     ok(`Cmd-Shift-dragging the frame dropped ${after[1].name} at ${after[1].x}, ${after[1].y}`);
-    await page.locator(".bd-frame-item", { hasText: "Badge" }).click();
+    { const at = await canvasPoint(page, '[data-bf-type="Badge"]', "center", await page.evaluate(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; return fs.map((f, i) => (f.contentDocument.querySelector('[data-bf-type="Badge"]') ? i : -1)).filter((i) => i >= 0).pop(); })); await page.mouse.click(at.x, at.y); }
+    await page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
 
     await page.locator(".bd-start").click();
     const glass = await page.evaluate(() => getComputedStyle(document.querySelector(".bd-newmenu")).backdropFilter);
@@ -1243,11 +1261,11 @@ try {
     await page.keyboard.press("Escape");
     ok("Export offers code, a PNG or JPG, and the layout JSON");
 
-    await page.locator(".bd-frame-item, .bd-layer").first().waitFor({ state: "attached" }).catch(() => {});
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await page.locator('.bd-assets [aria-label="Back to Assets"]').click().catch(() => {});
     await page.locator('.bd-assets [data-asset-kind="variables"]').click();
     await page.locator(".bd-vars-sec", { hasText: "Radius" }).locator(".bd-var", { hasText: /^pill$/ }).click();
-    const radius = await poll(async () => findIn((await saved()).frames[1].root, "Badge").style.radius, (v) => v === "pill");
+    const radius = await poll(async () => (await saved()).frames.map((f) => findIn(f.root, "Badge")).filter(Boolean).map((b) => b.style.radius).find(Boolean), (v) => v === "pill");
     expect(radius === "pill", `a variable pressed applies to the selection, got radius ${radius}`);
     await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
     await page.locator('.bd-assets [data-asset-kind="templates"]').click();
@@ -1283,7 +1301,7 @@ try {
     ok(`one search sits at the foot of Assets, Layers and Content, at y ${atAssets}`);
 
     const st = await stageBox(page);
-    await page.locator(".bd-frame-item", { hasText: "StatsBlock" }).click();
+    await pickLayer(page, "StatsBlock");
     await page.mouse.click(st.x + st.width / 2, st.y + 8);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await page.locator(".bd-ring").count() === 0 && await page.locator(".bd-mark-sel").count() === 0, "a press on the canvas lets go of the layer and the frame");
@@ -1345,6 +1363,112 @@ try {
     await page.locator(".bd-mode-toggle").click();
     expect(await poll(async () => (await saved()).frames[0].dark, Boolean) === true, "the frame's sun and moon toggle turns it dark");
     ok("a frame's light and dark is one toggle icon");
+    await page.close();
+  });
+
+  await step("v11: rows for the system, no component list on a frame, social type, any freeform size, structured auto layout, corners and shadow on demand, local components, a theater", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children.length; });
+
+    { const sb = await stageBox(page); await page.mouse.click(sb.x + sb.width / 2, sb.y + 8); }
+    await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const rows = await page.$$eval(".bd-right .bd-sys-list .bd-sys-item", (r) => r.map((x) => { const b = x.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }));
+    expect(rows.length > 10 && rows.every(([w, h]) => w > 200 && h < 56), `variables, primitives and styles list as full-width rows, got ${rows.length} rows, first ${JSON.stringify(rows[0])}`);
+    const kinds = await page.$$eval(".bd-asset-kinds .bd-kind", (k) => k.map((x) => Math.round(x.getBoundingClientRect().width)));
+    expect(kinds.length === 5 && Math.abs(kinds[0] - kinds[1]) < 2 && await page.locator(".bd-asset-kinds .bd-kind-note").count() === 0, `the Assets kinds are two columns of icon and name, got widths ${kinds.join(", ")}`);
+    await page.locator('.bd-assets [data-asset-kind="primitives"]').click();
+    const prim = await page.locator('.bd-tile[data-type="Stack"]').evaluate((t) => ({ icon: !!t.querySelector(".bd-thumb.is-icon .bd-ic"), stage: !!t.querySelector(".bd-thumb-stage"), h: Math.round(t.getBoundingClientRect().height) }));
+    expect(prim.icon && !prim.stage && prim.h < 120, `a primitive's tile is its icon and name, got ${JSON.stringify(prim)}`);
+    await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
+    ok(`the system lists as ${rows.length} rows; Assets kinds and primitives are icon-and-name tiles in two columns`);
+
+    await page.locator(".bd-flabel.is-current .bd-flabel-btn").click();
+    await page.waitForFunction(() => /Landing/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const secs = await page.$$eval(".bd-right .bd-sec-h", (h) => h.map((x) => x.textContent.trim()));
+    expect(!secs.includes("Components") && await page.locator(".bd-frame-item").count() === 0, `a frame's inspector lists no components, got ${secs.join(", ")}`);
+    const h1 = () => page.evaluate(() => { const d = document.querySelector("iframe.bd-frame").contentDocument; return parseFloat(getComputedStyle(d.querySelector('[data-bf-type="HeroBlock"] h1')).fontSize); });
+    const before = await h1();
+    await pick(page, "Device", /^Social post$/);
+    const post = await poll(async () => (await saved()).frames[0], (f) => f.typeScale === "social" && f.width === 1080);
+    expect(post.typeScale === "social" && post.width === 1080 && post.height === 1350, `the Social post preset sizes the frame 1080 × 1350 with social type, got ${post.width} × ${post.height} ${post.typeScale}`);
+    await page.waitForFunction(() => document.querySelector("iframe.bd-frame").contentDocument.querySelector('[data-type-scale="social"]'));
+    const after = await poll(h1, (v) => v > before * 2);
+    expect(after > before * 2, `social type sets the hero's headline far larger, ${before}px became ${after}px`);
+    await tab(page, "Layout");
+    await page.locator('.bd-right .bd-dd[aria-labelledby^="bd-pg-type "]').click();
+    await option(page, /^Page$/).click();
+    expect(!(await poll(async () => (await saved()).frames[0].typeScale, (v) => !v)), "Type scale back to Page takes the social sizes off");
+    ok(`a frame lists no components; Social post is 1080 × 1350 with data-type-scale="social", its headline ${before}px to ${after}px, and Type scale sets it back`);
+
+    await page.locator(".bd-start").click();
+    await page.locator(".bd-new-kind", { hasText: "Freeform canvas" }).click();
+    await poll(async () => (await saved()).frames.length, (n) => n === 2);
+    const w = page.locator("input[aria-label='Frame width']");
+    await w.fill("40");
+    await w.press("Enter");
+    const tiny = await poll(async () => (await saved()).frames[1].width, (v) => v === 40);
+    expect(tiny === 40, `a freeform frame takes any width, got ${tiny}`);
+    await page.locator(".bd-start").click();
+    await page.locator(".bd-new-kind", { hasText: "Structured page" }).click();
+    const page3 = await poll(async () => (await saved()).frames[2], Boolean);
+    const g = page3.root.children[0];
+    expect(page3.gap && g.type === "Group" && g.props.direction === "column" && g.props.gap && g.style.padding, `a structured page and its Group get auto layout, got gap ${page3.gap}, ${JSON.stringify(g.props)} ${JSON.stringify(g.style)}`);
+    ok(`a freeform frame shrinks to ${tiny}px wide; a structured page gaps its sections (${page3.gap}) and its Group stacks with gap ${g.props.gap} and padding ${g.style.padding}`);
+
+    await fitAll(page);
+    await pressButton(page, "Shop the collection");
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Appearance");
+    expect(await page.locator('.bd-right [aria-label="Add corners"]').count() === 1 && await page.locator('.bd-right [aria-label="Add a shadow"]').count() === 1 && await page.locator(".bd-right .bd-field", { hasText: /^Radius/ }).count() === 0, "corners and shadow wait behind their + buttons");
+    await page.locator('.bd-right [aria-label="Add corners"]').click();
+    await page.locator('.bd-right [aria-label="Add a shadow"]').click();
+    const btn = await poll(async () => findIn((await saved()).frames[0].root, "Button"), (b) => b && b.style.radius && b.style.elevation);
+    expect(btn.style.radius && btn.style.elevation && await page.locator('.bd-right [aria-label="Remove the corners"]').count() === 1, `+ adds a radius and a shadow, got ${JSON.stringify(btn.style)}`);
+    ok(`Corners and Shadow show None until +; pressing them gives the Button radius ${btn.style.radius} and elevation ${btn.style.elevation}`);
+
+    await page.evaluate((id) => {
+      const d = JSON.parse(localStorage.getItem("dovetail-builder"));
+      (function w(x) { (x.children || []).forEach((c) => { if (c.id === id) c.style.fill = "#ff0000"; w(c); }); })(d.frames[0].root);
+      localStorage.setItem("dovetail-builder", JSON.stringify(d));
+    }, btn.id);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame);
+    await fitAll(page);
+    await pressButton(page, "Shop the collection");
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator('.bd-inspect-head [aria-label="Create component (Ctrl+Alt+K)"]').click();
+    await page.locator(".bd-comp-dlg[open]").waitFor();
+    expect(await page.locator(".bd-comp-status.is-blocked").count() === 1 && await page.locator(".bd-comp-dlg .bd-btn-primary").isDisabled(), "a custom fill blocks the component, and says why");
+    await page.locator(".bd-comp-dlg .bd-btn", { hasText: "Use the system's instead" }).click();
+    await page.locator(".bd-comp-status.is-ready").waitFor();
+    await page.locator(".bd-comp-name").fill("Shop button");
+    await page.locator(".bd-comp-dlg .bd-btn-primary").click();
+    await page.waitForFunction(() => !document.querySelector(".bd-comp-dlg[open]"));
+    const lib = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder-library") || "{}"));
+    const mine = (lib.components || [])[0];
+    expect(mine && mine.name === "Shop button" && mine.tokens.length && !mine.node.style.fill, `the component saves with its tokens and no custom fill, got ${JSON.stringify(mine && { name: mine.name, tokens: mine.tokens, style: mine.node.style })}`);
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await page.locator('.bd-assets [data-asset-kind="components"]').click();
+    await page.locator(".bd-cat", { hasText: "My components" }).click();
+    const count = (await saved()).frames[0].root.children.length;
+    await page.locator('.bd-mine-btn', { hasText: "Shop button" }).click();
+    await poll(async () => (await saved()).frames[0], (f) => JSON.stringify(f).split('"Shop button"').length > 2 || f.root.children.length > count);
+    await page.locator(".bd-search-dock input").fill("shop");
+    expect(await page.locator(".bd-assets .bd-mine-btn", { hasText: "Shop button" }).count() === 1, "search finds a local component");
+    await page.locator(".bd-search-dock .bd-search-clear").click();
+    ok(`a custom fill blocks Create component until "Use the system's instead"; "Shop button" saves on ${mine.tokens.length} tokens, sits in My components, adds to the frame and turns up in search`);
+
+    await page.locator("[aria-label='Play']").first().click();
+    await page.locator(".bd-play[open]").waitFor();
+    const theater = await page.evaluate(() => { const p = document.querySelector(".bd-play"), bar = document.querySelector(".bd-play-bar").getBoundingClientRect(); return { bg: getComputedStyle(p).backgroundColor, w: p.getBoundingClientRect().width, mid: Math.round(bar.left + bar.width / 2), bottom: Math.round(innerHeight - bar.bottom) }; });
+    expect(theater.w >= 1440 && Math.abs(theater.mid - 720) < 4 && theater.bottom < 40 && await page.locator(".bd-play-bar .bd-seg-btn").count() >= 3, `Play fills the screen on a dark stage with its heights in a bar at the foot, got ${JSON.stringify(theater)}`);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-play"));
+    ok(`Play is a theater: full screen on ${theater.bg}, the screen heights in a bar centred at the foot`);
     await page.close();
   });
 
