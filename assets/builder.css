@@ -19,6 +19,8 @@
 }
 
 .site-header .bd-toolbar {
+  flex: 1;
+  min-width: 0;
   flex-wrap: nowrap;
   padding: 0;
   overflow-x: auto;
@@ -1039,20 +1041,31 @@ html.bd-configure-docked .configure-open-btn {
 .bd-tiles.is-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   align-content: start;
   gap: var(--dt-space-inline-xs);
 }
 
+/* The list is one column of the same tiles, the picture over the words,
+   every tile the same height. */
 .bd-tiles.is-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: 1fr;
+  align-content: start;
+  gap: var(--dt-space-stack-xs);
+}
+
+.bd-tiles > li {
   display: flex;
-  flex-direction: column;
-  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
 }
 
 .bd-tile {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   padding: 0;
   overflow: hidden;
   border: var(--dt-border-width-default) solid var(--dt-border-subtle);
@@ -1115,25 +1128,26 @@ html.bd-configure-docked .configure-open-btn {
 }
 
 .bd-tile-blurb {
+  display: -webkit-box;
+  min-height: calc(var(--dt-text-body-xs-line) * 2);
+  overflow: hidden;
   color: var(--dt-text-secondary);
   font-size: var(--dt-font-size-xs);
   line-height: var(--dt-text-body-xs-line);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-.bd-tiles.is-list .bd-tile {
-  flex-direction: row;
-  align-items: center;
+.bd-tile .bd-thumb {
+  flex: none;
+}
+
+.bd-tile-text {
+  flex: 1;
 }
 
 .bd-tiles.is-list .bd-thumb {
-  flex: none;
-  width: calc(var(--dt-size-control-lg) * 1.75);
-}
-
-.bd-tiles.is-list .bd-tile-text {
-  flex: 1;
-  border-top: 0;
-  border-left: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  aspect-ratio: 16 / 7;
 }
 
 .bd-tip,
@@ -1397,7 +1411,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-ring.is-selected {
-  outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
+  outline: var(--dt-border-width-default) solid var(--dt-text-primary);
 }
 
 /* The tool bar, floating along the canvas's foot: square-ish buttons in a
@@ -1807,7 +1821,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-mark-sel {
-  outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
+  outline: var(--dt-border-width-default) solid var(--dt-text-primary);
 }
 
 .bd-mark-sel.is-extra {
@@ -1817,7 +1831,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-mark-tag {
   position: absolute;
   bottom: 100%;
-  left: calc(var(--dt-border-width-strong) * -1);
+  left: calc(var(--dt-border-width-default) * -1);
   display: inline-flex;
   align-items: center;
   gap: var(--dt-space-inline-2xs);
@@ -1850,8 +1864,40 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-mark-box {
   position: absolute;
   box-sizing: border-box;
-  outline: var(--dt-border-width-strong) dashed var(--dt-text-primary);
+  outline: var(--dt-border-width-default) dashed var(--dt-text-primary);
   background: color-mix(in oklch, var(--dt-text-primary) 8%, transparent);
+}
+
+/* What a Cmd-drag from a tile would swap out. */
+.bd-mark-box.is-swap {
+  outline-style: solid;
+  background: color-mix(in oklch, var(--dt-text-primary) 14%, transparent);
+}
+
+/* Where a copy of a frame lands, while it's Cmd-Shift-dragged. */
+.bd-dup {
+  position: absolute;
+  box-sizing: border-box;
+  outline: var(--dt-border-width-default) dashed var(--dt-text-primary);
+  background: color-mix(in oklch, var(--dt-surface-base) 55%, transparent);
+}
+
+.bd-dup-tag {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  margin-bottom: 4px;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+  white-space: nowrap;
+}
+
+.bd-dup-tag .bd-ic {
+  width: var(--dt-size-icon-xs);
+  height: var(--dt-size-icon-xs);
 }
 
 .bd-ghost {
@@ -2763,8 +2809,18 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-canvas-chip {
   width: 60%;
   height: 60%;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-canvas-ic {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+  color: var(--dt-text-secondary);
+}
+
+.bd-canvas-custom:hover .bd-canvas-ic {
+  color: var(--dt-text-primary);
 }
 
 .bd-canvas-input {
@@ -3099,11 +3155,36 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 /* ------------------------------------------------------------------ new */
 
+/* New: glass over the canvas, about half the screen tall. */
 .bd-new {
   width: min(720px, calc(100vw - 2 * var(--dt-space-inset-md)));
-  height: auto;
+  height: max(50dvh, min(420px, calc(100dvh - 48px)));
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
+  border-color: var(--dt-border-glass);
+  background: var(--dt-surface-glass-strong);
+  -webkit-backdrop-filter: var(--dt-backdrop-glass);
+  backdrop-filter: var(--dt-backdrop-glass);
+}
+
+/* On a phone half the screen is too little; it takes what it needs. */
+@media (max-width: 600px) {
+  .bd-new {
+    height: auto;
+  }
+}
+
+.bd-new::backdrop {
+  background: color-mix(in oklch, var(--dt-surface-scrim) 45%, transparent);
+}
+
+.bd-new .bd-code-head {
+  border-bottom-color: var(--dt-border-glass);
+}
+
+.bd-new .bd-new-kind,
+.bd-new .bd-new-item {
+  background: color-mix(in oklch, var(--dt-surface-base) 70%, transparent);
 }
 
 .bd-new-back {
@@ -3202,15 +3283,20 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 /* -------------------------------------------------------- drag preview */
 
-/* What's dragged follows the pointer as itself, drawn as it is on the canvas. */
+/* A layer dragged off its frame travels over the canvas as itself, drawn
+   as it is: no card around it, no shadow. A tile's preview keeps its tile. */
 .bd-ghost-el {
   position: fixed;
   z-index: var(--dt-z-toast);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.bd-ghost-el.is-flat {
   overflow: hidden;
   border-radius: var(--dt-radius-control);
   box-shadow: var(--dt-elevation-3);
-  opacity: 0.85;
-  pointer-events: none;
+  opacity: 0.9;
 }
 
 .bd-ghost-inner {
@@ -3255,20 +3341,42 @@ span.bd-layer-twisty.is-open .bd-ic {
 /* ------------------------------------------------------ content kinds */
 
 .bd-kinds {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  grid-auto-rows: 1fr;
   gap: var(--dt-space-stack-xs);
+  flex: none;
   margin: 0;
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-md) var(--dt-space-inset-md);
   list-style: none;
 }
 
-.bd-kind {
+/* The cards scroll with their panel, so every row can be as tall as the
+   tallest card. */
+.bd-assets.is-cards {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.bd-assets .bd-kinds {
+  padding-inline: var(--dt-space-inset-sm);
+}
+
+.bd-kinds > li {
   display: flex;
-  align-items: center;
-  gap: var(--dt-space-inline-sm);
+  min-width: 0;
+}
+
+/* A card: its picture across the top, the words under it. */
+.bd-kind {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--dt-space-stack-2xs);
   width: 100%;
-  padding: var(--dt-space-inset-xs);
+  height: 100%;
+  padding: var(--dt-space-inset-2xs) var(--dt-space-inset-2xs) var(--dt-space-inset-xs);
   border: var(--dt-border-width-default) solid var(--dt-border-subtle);
   border-radius: var(--dt-radius-container);
   background: var(--dt-surface-base);
@@ -3289,11 +3397,36 @@ span.bd-layer-twisty.is-open .bd-ic {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  width: calc(var(--dt-size-control-lg) * 1.5);
-  height: var(--dt-size-control-lg);
+  width: 100%;
+  aspect-ratio: 3 / 1;
   overflow: hidden;
-  border-radius: var(--dt-radius-control);
+  border-radius: calc(var(--dt-radius-container) - 4px);
   background: var(--dt-surface-sunken);
+  color: var(--dt-text-secondary);
+}
+
+.bd-kind-pics > .bd-ic {
+  width: var(--dt-size-icon-lg);
+  height: var(--dt-size-icon-lg);
+}
+
+.bd-kind-swatches {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+}
+
+.bd-kind-swatches > span {
+  width: var(--dt-size-icon-lg);
+  height: var(--dt-size-icon-lg);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: 50%;
+}
+
+.bd-kind-count {
+  margin-top: auto;
+  padding-top: var(--dt-space-stack-2xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
 }
 
 .bd-kind-pics img {
@@ -3313,6 +3446,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  padding-inline: var(--dt-space-inset-2xs);
 }
 
 .bd-kind-name {
@@ -3322,10 +3456,13 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-kind-note {
   color: var(--dt-text-secondary);
   font-size: var(--dt-font-size-xs);
+  line-height: var(--dt-text-body-xs-line);
 }
 
 .bd-kind-chev {
-  flex: none;
+  position: absolute;
+  top: calc(var(--dt-space-inset-2xs) + 6px);
+  right: calc(var(--dt-space-inset-2xs) + 6px);
   color: var(--dt-text-tertiary);
 }
 
@@ -3355,4 +3492,146 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-canvas-row.is-tokens .bd-canvas-custom {
   display: none;
+}
+
+/* ------------------------------------------------------------- scrub */
+
+/* A W or H that drags sideways to step through sizes. */
+.bd-dd-prefix.is-scrub,
+.bd-num-l.is-scrub {
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.bd-scrubbing,
+.bd-scrubbing * {
+  cursor: ew-resize !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* ------------------------------------------------- frame's components */
+
+.bd-frame-items {
+  display: flex;
+  flex-direction: column;
+  max-height: 360px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bd-frame-item {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  width: 100%;
+  min-height: calc(var(--dt-size-control-sm) - 4px);
+  padding: 0 var(--dt-space-inset-xs);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-frame-item:hover {
+  background: var(--dt-surface-sunken);
+}
+
+.bd-frame-item:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-frame-item .bd-ic {
+  flex: none;
+  width: var(--dt-size-icon-xs);
+  height: var(--dt-size-icon-xs);
+  color: var(--dt-text-tertiary);
+}
+
+.bd-frame-item-name {
+  flex: none;
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-frame-item .bd-layer-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------- variables */
+
+.bd-vars {
+  flex: 1;
+  min-height: 0;
+  padding: 0 var(--dt-space-inset-sm) var(--dt-space-inset-md);
+  overflow-y: auto;
+}
+
+.bd-vars-note {
+  margin: 0 0 var(--dt-space-stack-xs);
+}
+
+.bd-vars-sec + .bd-vars-sec {
+  margin-top: var(--dt-space-stack-sm);
+}
+
+.bd-vars-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 104px), 1fr));
+  gap: var(--dt-space-inline-2xs);
+}
+
+.bd-var {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  min-width: 0;
+  min-height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-var:hover {
+  border-color: var(--dt-border-strong);
+}
+
+.bd-var[aria-pressed="true"] {
+  border-color: var(--dt-border-selected);
+  box-shadow: inset 0 0 0 1px var(--dt-border-selected);
+}
+
+.bd-var:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: 2px;
+}
+
+.bd-var-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-var-px {
+  flex: none;
+  min-width: 2ch;
+  color: var(--dt-text-tertiary);
+  font-family: var(--dt-font-mono);
+  font-variant-numeric: tabular-nums;
 }

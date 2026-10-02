@@ -120,7 +120,7 @@ The Dovetail builder (https://graham-goebel.github.io/Dovetail/builder.html) is 
    It prints the link, then a line on stderr with what it counted, and a warning for each value that plainly isn't a token. Fix the warnings, then rerun.
 4. Give the user the link. If it's very long (the script warns past 30,000 characters), give them the JSON instead and tell them to paste it in the builder: Start from, then Paste a layout. Delete the layout file afterwards unless they want to keep it.
 
-The builder leaves out anything it can't set (a raw value, an unknown prop, a React element passed as a prop) and lists what it left out. Tell the user what won't carry over before they open it, rather than letting the list surprise them. The other direction works too: the builder's Code dialog has Copy layout JSON, which a user can paste back to you to change.
+The builder leaves out anything it can't set (a raw value, an unknown prop, a React element passed as a prop) and lists what it left out. Tell the user what won't carry over before they open it, rather than letting the list surprise them. The other direction works too: the builder's Export dialog has Copy layout JSON, which a user can paste back to you to change.
 
 ## What not to do
 

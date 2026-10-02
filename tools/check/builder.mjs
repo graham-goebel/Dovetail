@@ -114,7 +114,7 @@ async function open(viewport, { hash = "", store = null } = {}) {
   await page.evaluate((store) => { localStorage.clear(); if (store) for (const k in store) localStorage.setItem(k, store[k]); }, store);
   if (hash) await page.goto(server.origin + "/builder.html" + hash);
   await page.reload();
-  await page.waitForSelector(".bd-tile", { state: "attached" });
+  await page.waitForSelector(".bd-assets", { state: "attached" });
   const frame = (i = 0) => frames(page)[i];
   await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length > 0);
   await frame().waitForFunction(() => !!window.BuilderFrame);
@@ -155,7 +155,20 @@ async function choose(page, fieldText, optionText) {
 }
 const row = (page, name) => page.locator(`.bd-layer[data-layer]:has(.bd-layer-name:text-is("${name}")) .bd-layer-main`);
 const tab = (page, name) => page.locator(".bd-itab", { hasText: name }).click();
-const category = (page, name) => page.locator(".bd-cat", { hasText: name }).click();
+/* Assets open on five kinds; a category lives in one of them. */
+const KIND_OF = { Layout: "primitives", Typography: "primitives", Blocks: "blocks" };
+async function category(page, name) {
+  const kind = KIND_OF[name] || "components";
+  const clear = page.locator(".bd-assets .bd-search-clear");
+  if (await clear.count()) await clear.click();
+  if (!(await page.locator(".bd-assets [data-asset-kind]").count())) {
+    const here = ((await page.locator(".bd-assets .bd-panel-title").textContent()) || "").toLowerCase();
+    if (here !== kind) await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
+  }
+  const card = page.locator(`.bd-assets [data-asset-kind="${kind}"]`);
+  if (await card.count()) await card.click();
+  if (kind !== "blocks") await page.locator(".bd-cat", { hasText: name }).click();
+}
 const camera = (page) => page.evaluate(() => document.querySelector(".bd-world").style.transform);
 const dd = (page, label) => page.locator(`.bd-right .bd-dd[aria-label="${label}"]`).first();
 async function pick(page, label, optionText) {
@@ -206,9 +219,14 @@ try {
     ok(`${types.length} components rendered from their starting props`);
   });
 
-  await step("Assets: one named category at a time, search across all and clear it, live previews, grid and list", async () => {
+  await step("Assets: five kinds, one named category at a time, search across all and clear it, live previews, grid and list", async () => {
+    const kinds = await page.$$eval(".bd-assets [data-asset-kind] .bd-kind-name", (c) => c.map((x) => x.textContent));
+    expect(kinds.join(",") === "Primitives,Variables,Components,Blocks,Templates", `Assets open on Primitives, Variables, Components, Blocks and Templates, got ${kinds.join(", ")}`);
+    const heights = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => Math.round(x.getBoundingClientRect().height)));
+    expect(new Set(heights).size === 1, `the kind cards are all one height, got ${heights.join(", ")}`);
+    await category(page, "Actions");
     const named = await page.$$eval(".bd-cat", (c) => c.map((x) => x.querySelector(".bd-cat-label")?.textContent || ""));
-    expect(named.length > 8 && named.every(Boolean), `every category should carry its name, got ${named.join(", ")}`);
+    expect(named.length >= 8 && named.every(Boolean) && !named.includes("Blocks") && !named.includes("Layout"), `every component category carries its name, without the primitives' or blocks', got ${named.join(", ")}`);
     await category(page, "Blocks");
     const blocks = await page.$$eval(".bd-tile", (t) => t.map((x) => x.getAttribute("data-type")));
     expect(blocks.includes("HeroBlock") && !blocks.includes("Button"), "the Blocks category should show blocks only");
@@ -219,9 +237,11 @@ try {
     expect(await page.locator(".bd-assets input[type=search]").inputValue() === "" && await page.locator(".bd-search-clear").count() === 0, "the clear button empties the search and goes away");
     await category(page, "Actions");
     await page.waitForFunction(() => document.querySelector('.bd-tile[data-type="Button"] .bd-thumb-stage')?.children.length > 0);
-    ok("categories are named, Blocks shows blocks, search finds Button and IconButton and clears, and the Button tile has a live preview");
+    ok("five kinds, categories are named, Blocks shows blocks, search finds Button and IconButton and clears, and the Button tile has a live preview");
     await page.locator('.bd-assets-head .bd-seg-btn[aria-label="List"]').click();
     expect(await page.locator(".bd-tiles.is-list").count() === 1, "list view");
+    const list = await page.$$eval(".bd-tiles.is-list .bd-tile", (t) => t.map((x) => { const r = x.getBoundingClientRect(), p = x.querySelector(".bd-thumb").getBoundingClientRect(), n = x.querySelector(".bd-tile-text").getBoundingClientRect(); return [Math.round(r.height), p.bottom <= n.top + 1]; }));
+    expect(new Set(list.map((x) => x[0])).size === 1 && list.every((x) => x[1]), `in the list every tile is one height, its picture over its words, got ${JSON.stringify(list)}`);
     await page.locator('.bd-assets-head .bd-seg-btn[aria-label="Grid"]').click();
     expect(await page.locator(".bd-tiles.is-grid").count() === 1, "grid view");
     ok("grid and list views switch");
@@ -252,7 +272,7 @@ try {
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Content" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Content opens first, with the Text field");
     const actions = await page.$$eval(".bd-inspect-head .bd-head-actions [aria-label]", (b) => b.map((x) => x.getAttribute("aria-label")));
-    expect(actions.join("|") === "Wrap in|Group (Ctrl+G)", `the head offers only Wrap and Group for a Heading, got ${actions.join("|")}`);
+    expect(actions.join("|") === "Wrap in|Group (Ctrl+G)|Copy a link to this layer", `the head offers only Wrap, Group and a link for a Heading, got ${actions.join("|")}`);
     const stage = await page.locator(".bd-stage").boundingBox();
     await page.mouse.click(stage.x + 6, stage.y + stage.height - 6);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -301,7 +321,7 @@ try {
     /* Nothing selected inside the frame: Code is the whole frame. */
     await release(page);
     await page.keyboard.press("Escape");
-    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    await page.locator(".bd-export").click();
     const code = await page.locator(".bd-code-pre code").textContent();
     expect(/^import \{[^}]*Heading[^}]*Stack[^}]*\} from "@dovetail-ds\/react";/.test(code), "the code should import Heading and Stack from @dovetail-ds/react");
     expect(/export function Frame1\(\)/.test(code), "the function is named after the frame");
@@ -391,7 +411,7 @@ try {
     await page.waitForFunction(() => document.querySelector(".bd-flabel.is-current .bd-flabel-name")?.textContent === "Frame 1" && /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     ok("a click in the other frame makes it active and selects what was clicked");
     await page.reload();
-    await page.waitForSelector(".bd-tile", { state: "attached" });
+    await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     await frame(1).waitForSelector('[data-bf-type="Stack"] [data-bf-type="Heading"]');
     expect(/^Saved/.test(await page.locator(".bd-saved").evaluate((el) => el.getAttribute("title") || el.getAttribute("data-tip"))), "the toolbar should say it saved");
@@ -837,13 +857,13 @@ try {
     expect(await frame().locator('[data-bf-type="HeroBlock"]').count() === 1, "the hero is still a HeroBlock, not detached");
     ok(`clicking the hero's button selects it (${crumbs.replace(/\s+/g, " ")}); its label and variant change on the canvas`);
 
-    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    await page.locator(".bd-export").click();
     const part = await page.locator(".bd-code-pre code").textContent();
     await page.keyboard.press("Escape");
     expect(/^import \{ Button \} from/.test(part) && /<Button[^>]*variant="brand"[^>]*>Browse mugs<\/Button>/.test(part) && !/HeroBlock/.test(part), `with the button selected, Code is that button alone, got ${part.slice(0, 160)}`);
     await release(page);
     await page.keyboard.press("Escape");
-    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    await page.locator(".bd-export").click();
     const code = await page.locator(".bd-code-pre code").textContent();
     await page.keyboard.press("Escape");
     expect(/<HeroBlock[^]*actions=\{<>[^]*<Button[^>]*variant="brand"[^>]*>Browse mugs<\/Button>/.test(code), "the export writes the slot as JSX in the hero's actions prop");
@@ -870,7 +890,7 @@ try {
     ok("something a slot doesn't take goes after the component instead");
 
     await page.reload();
-    await page.waitForSelector(".bd-tile", { state: "attached" });
+    await page.waitForSelector(".bd-assets", { state: "attached" });
     await frame().waitForFunction(() => [...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
     hero = heroOf(await saved());
     expect(hero.children.filter((c) => c.type === "Slot").length === 2, "the slots survive a reload");
@@ -915,7 +935,7 @@ try {
     await frame().waitForFunction(() => { const t = document.body.textContent; return t.indexOf("How long does shipping take?") < t.indexOf("Do the mugs survive a dishwasher?"); });
     ok("Add copies the last item with the id ship-2; Move down and Remove reorder and trim it, on the canvas too");
 
-    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    await page.locator(".bd-export").click();
     const code = await page.locator(".bd-code-pre code").textContent();
     await page.keyboard.press("Escape");
     expect(/<FaqBlock[^>]*items=\{\[\{ id: "ship", question: "How long does shipping take\?"[^\]]*\}, \{ id: "dish", question: "Do the mugs survive a dishwasher\?"/.test(code), "the export writes the items as an array in the prop");
@@ -937,7 +957,7 @@ try {
     ok("a Navbar link's href types in a letter at a time, and javascript: shows invalid and isn't kept");
 
     await page.reload();
-    await page.waitForSelector(".bd-tile", { state: "attached" });
+    await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => /Do the mugs survive a dishwasher\?/.test(document.querySelector("iframe.bd-frame")?.contentDocument?.body?.textContent || ""));
     ok("the edited list survives a reload");
     await page.close();
@@ -978,7 +998,7 @@ try {
     expect(findIn((await lastFrame()).root, "Heading").props.size === "heading-xl", "Shift+Down takes it back to heading-xl");
     ok("Shift+Up and Shift+Down step a Heading along the type scale, heading-xl to display-sm and back");
 
-    await page.locator(".bd-btn-primary", { hasText: "Code" }).click();
+    await page.locator(".bd-export").click();
     const one = await page.locator(".bd-code-pre code").textContent();
     await page.keyboard.press("Escape");
     expect(/^import \{ Heading \}/.test(one) && !/<div/.test(one), "with a Heading selected, Code is just that Heading");
@@ -1038,11 +1058,14 @@ try {
     await page.mouse.down();
     await page.mouse.move(box.x + r.x * sc + 20, box.y + r.y * sc + 30, { steps: 5 });
     await page.mouse.move(box.x + r.x * sc + 40, box.y + r.y * sc + 120, { steps: 5 });
-    const ghost = await page.evaluate(() => { const g = document.querySelector(".bd-ghost-el"); return g ? g.innerHTML.length : 0; });
+    const ghost = await page.locator(".bd-ghost-el, .bd-ghost").count();
+    const shifted = await fr.evaluate(() => /translate/.test(document.querySelector('[data-bf-type="StatsBlock"]').firstElementChild.style.transform));
     await page.keyboard.press("Escape");
     await page.mouse.up();
-    expect(ghost > 200, "a node dragged on the canvas is carried as itself, not an outline");
-    ok("a block dragged on the canvas is carried as itself under the pointer");
+    const back = await fr.evaluate(() => document.querySelector('[data-bf-type="StatsBlock"]').firstElementChild.style.transform === "");
+    expect(shifted && ghost === 0, `a node dragged in its frame moves itself, with no picture of it over the canvas (moved: ${shifted}, pictures: ${ghost})`);
+    expect(back, "cancelling the drag puts it back");
+    ok("a block dragged in its frame moves itself, and Escape puts it back");
 
     const firstFrame = async () => (await saved()).frames[0];
     await page.locator("[aria-label='Constrain proportions']").click();
@@ -1089,6 +1112,126 @@ try {
     await page.keyboard.press("Escape");
     expect(!widths.some((w) => /avatar/.test(w)) && widths.some((w) => /control-/.test(w)), `a Badge's widths leave out avatar sizes and offer control sizes, got ${widths.join(", ")}`);
     ok("tone swatches, a Multiply blend, inverted colours, and no avatar sizes on a Badge");
+    await page.close();
+  });
+
+  await step("v9: Export on the right, a frame's components, thin outlines, a colour picker, Fixed and scrubbed sizes, swap, copy a frame, layer links, glass New, variables and templates", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
+    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children.length; });
+
+    const bar = await page.locator("#app-toolbar .bd-toolbar").boundingBox();
+    const exp = await page.locator(".bd-export").boundingBox();
+    expect((await page.locator(".bd-export").textContent()).trim() === "Export" && bar.x + bar.width - (exp.x + exp.width) < 24 && bar.width > 1000, `the top bar spans the header with Export at its right end (bar ${Math.round(bar.width)}px wide)`);
+    ok("the top bar spans the header, Export at its right end");
+
+    await page.locator(".bd-frame-item", { hasText: "StatsBlock" }).click();
+    await page.waitForFunction(() => /StatsBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const outline = await page.evaluate(() => getComputedStyle(document.querySelector(".bd-mark-sel")).outlineWidth);
+    expect(outline === "1px", `the selection outline is thin, got ${outline}`);
+    ok("a frame lists its components in the inspector; pressing one selects it, outlined at 1px");
+
+    await tab(page, "Appearance");
+    expect(await page.locator(".bd-right .bd-canvas-custom .bd-canvas-ic").count() >= 1, "custom colours open from a colour picker icon");
+    ok("custom colours open from a colour picker icon");
+
+    await release(page);
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-frame-item", { hasText: "Shop the collection" }).click();
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Layout");
+    await dd(page, "Width").click();
+    const sizing = await page.$$eval(".bd-dd-list .bd-dd-opt-label", (o) => o.map((x) => x.textContent));
+    expect(["Auto", "Hug contents", "Fill container", "Fixed"].every((x) => sizing.includes(x)), `Width offers Auto, Hug contents, Fill container and Fixed, got ${sizing.slice(0, 6).join(", ")}`);
+    await option(page, /^Fixed$/).click();
+    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder")); let b = null; (function w(x) { (x.children || []).forEach((c) => { if (!b && c.type === "Button") b = c; w(c); }); })(d.frames[0].root); return b && b.style.w && !/^(hug|fill)$/.test(b.style.w); });
+    const fixedW = findIn((await saved()).frames[0].root, "Button").style.w;
+    ok(`Width offers Hug contents, Fill container and Fixed; Fixed holds the Button at ${fixedW}`);
+
+    const pre = await page.locator('.bd-right .bd-dd[aria-label="Height"] .bd-dd-prefix').boundingBox();
+    await page.mouse.move(pre.x + 4, pre.y + pre.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(pre.x + 80, pre.y + pre.height / 2, { steps: 8 });
+    await page.mouse.up();
+    const scrubbed = findIn((await saved()).frames[0].root, "Button").style.height;
+    expect(!!scrubbed, "dragging the H sideways steps the height through its sizes");
+    await release(page);
+    await page.keyboard.press("Control+z");
+    expect(!findIn((await saved()).frames[0].root, "Button").style.height, "the whole scrub is one undo step");
+    ok(`dragging H sideways scrubbed the height to ${scrubbed}, and one undo takes it back`);
+
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await page.locator(".bd-assets input[type=search]").fill("Badge");
+    const tileBox = await page.locator('.bd-tile[data-type="Badge"]').boundingBox();
+    const onButton = await canvasPoint(page, '[data-bf-type="Button"]');
+    await page.keyboard.down("Control");
+    await page.mouse.move(tileBox.x + 30, tileBox.y + 30);
+    await page.mouse.down();
+    await page.mouse.move(tileBox.x + 80, tileBox.y + 50, { steps: 4 });
+    await page.mouse.move(onButton.x, onButton.y, { steps: 10 });
+    expect(await page.locator(".bd-mark-box.is-swap").count() === 1, "a Cmd- or Ctrl-drag from a tile marks what it would swap");
+    await page.mouse.up();
+    await page.keyboard.up("Control");
+    await page.locator(".bd-assets .bd-search-clear").click();
+    await page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const hero = (await saved()).frames[0].root.children.find((c) => c.type === "HeroBlock");
+    const badge = findIn(hero, "Badge");
+    expect(badge && badge.style.w === fixedW, `the Badge takes the Button's place and its size (${fixedW}), got ${JSON.stringify(badge && badge.style)}`);
+    ok(`Ctrl-dragging Badge onto the Button swapped it, at the Button's width ${fixedW}`);
+
+    await page.evaluate(() => { window.DovetailCopy = { write: (t, cb) => { window.__copied = t; cb(true); } }; });
+    await page.locator('.bd-toolbar [aria-label="Copy link"]').click();
+    const link = await page.evaluate(() => window.__copied);
+    const nid = badge.id;
+    expect(link.includes("&n=" + nid), `the link names the selected layer, got ${link.slice(-60)}`);
+    const shared = await open({ width: 1280, height: 900 }, { hash: link.slice(link.indexOf("#")) });
+    await shared.page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await shared.page.close();
+    ok("Copy link carries the selected layer's id, and the link opens with that layer selected");
+
+    const before = (await saved()).frames.length;
+    const lab = await page.locator(".bd-flabel.is-current .bd-flabel-btn").boundingBox();
+    await page.keyboard.down("Control");
+    await page.keyboard.down("Shift");
+    await page.mouse.move(lab.x + 10, lab.y + lab.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(lab.x + 60, lab.y + 40, { steps: 4 });
+    await page.mouse.move(lab.x + 300, lab.y + 200, { steps: 8 });
+    expect(await page.locator(".bd-dup").count() === 1, "a Cmd-Shift-drag shows where the copy lands");
+    await page.mouse.up();
+    await page.keyboard.up("Shift");
+    await page.keyboard.up("Control");
+    const after = (await saved()).frames;
+    expect(after.length === before + 1 && typeof after[1].x === "number" && /copy$/.test(after[1].name), `Cmd-Shift-drag on a frame's name drops a copy where it's let go, got ${JSON.stringify(after.map((f) => [f.name, f.x, f.y]))}`);
+    ok(`Cmd-Shift-dragging the frame dropped ${after[1].name} at ${after[1].x}, ${after[1].y}`);
+    await page.locator(".bd-frame-item", { hasText: "Badge" }).click();
+
+    await page.locator(".bd-start").click();
+    const nb = await page.locator(".bd-new").boundingBox();
+    const glass = await page.evaluate(() => getComputedStyle(document.querySelector(".bd-new")).backdropFilter);
+    expect(nb.height >= 900 * 0.45 && nb.height <= 900 * 0.6 && glass && glass !== "none", `New is glass and about half the screen tall, got ${Math.round(nb.height)}px, ${glass}`);
+    await page.keyboard.press("Escape");
+    ok(`New opens as glass, ${Math.round(nb.height)}px tall on a 900px screen`);
+
+    await page.locator(".bd-export").click();
+    expect(/^Export:/.test(await page.locator("#bd-code-title").textContent()) && await page.locator(".bd-code-actions .bd-btn", { hasText: "PNG" }).count() === 1, "Export offers code, PNG, JPG and the layout");
+    await page.keyboard.press("Escape");
+    ok("Export offers code, a PNG or JPG, and the layout JSON");
+
+    await page.locator(".bd-frame-item, .bd-layer").first().waitFor({ state: "attached" }).catch(() => {});
+    await page.locator('.bd-assets [aria-label="Back to Assets"]').click().catch(() => {});
+    await page.locator('.bd-assets [data-asset-kind="variables"]').click();
+    await page.locator(".bd-vars-sec", { hasText: "Radius" }).locator(".bd-var", { hasText: /^pill$/ }).click();
+    const radius = findIn((await saved()).frames[1].root, "Badge").style.radius;
+    expect(radius === "pill", `a variable pressed applies to the selection, got radius ${radius}`);
+    await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
+    await page.locator('.bd-assets [data-asset-kind="templates"]').click();
+    const count = (await saved()).frames.length;
+    await page.locator('.bd-kind[data-template="store"]').click();
+    const withStore = (await saved()).frames;
+    expect(withStore.length === count + 1, `a template's frames go beside yours, got ${withStore.map((f) => f.name).join(", ")}`);
+    ok("Variables apply to the selection (radius pill on the Badge); a template adds its frames beside yours");
     await page.close();
   });
 
