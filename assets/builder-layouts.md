@@ -28,9 +28,14 @@ The paste box also takes a single frame, a single node, or an array of nodes, an
 | `height` | pixels, 200 to 12000 | 800 |
 | `hug` | `true`: the height follows the content | `false` |
 | `dark` | `true` for dark mode | `false` |
-| `surface` | the page fill: `base`, `subtle`, `raised`, `sunken`, `brand-muted`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` | `base` |
+| `surface` | the page fill: `base`, `subtle`, `raised`, `sunken`, `brand`, `brand-muted`, `brand-secondary`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` | `base` |
 | `spacing` | layout character: `tight`, `balanced`, `open` | page default |
 | `gap` | space between top-level blocks: `related`, `group`, `block`, `section` | none |
+| `mode` | `free`: items may sit anywhere on it and take custom colours; `structured`: everything sits in Groups, in the flow, with tokens only | `free` |
+| `canvas` | a custom page colour, `#rrggbb`, in a free frame | none |
+| `lock` | `true`: width and height keep their proportions | `false` |
+| `x`, `y` | where the frame sits on the canvas, in pixels; leave them out to line frames up side by side | side by side |
+| `bare` | `true`: a loose object on the canvas, with no frame around it, as wide as what's in it | `false` |
 | `root` | `{ "children": [ ...nodes ] }` | empty |
 
 Device sizes: Phone 390 × 844, Phone, large 430 × 932, Tablet 768 × 1024, Laptop 1024 × 768, Desktop 1280 × 800, Wide 1440 × 900.
@@ -43,7 +48,7 @@ Device sizes: Phone 390 × 844, Phone, large 430 × 932, Tablet 768 × 1024, Lap
 
 - `type`: a component from the list below.
 - `props`: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a `?` marks one you may leave out), and "a list of text" an array of strings. A component's text is `props.children`. Leave a prop out to keep the sample content the builder starts it with.
-- `style`: keys from the style table, each set to one of its option names. Never a CSS value.
+- `style`: keys from the style table, each set to one of its option names. Never a CSS value, with three exceptions in a free frame: `x` and `y` place a top-level item (whole steps of `--dt-space-inset-2xs`), and `fill` and `color` take a custom `#rrggbb` background and text colour.
 - `children`: an array of nodes, only on containers: `Group`, `Section`, `Stack`, `Inline`, `Grid`, `Card`.
 - On any other component, `children` may hold its slots instead: `{ "type": "Slot", "props": { "name": "actions" }, "children": [ ...nodes ] }`. A slot stands for one of the component's element props (a hero's `actions` or `media`, marked "a slot" below). What's in it renders into that prop and exports as JSX in it. Leave a slot out to keep the sample's own content.
 - `name`: a label for a container, shown in the layers.
@@ -59,7 +64,9 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle or 
 | `position` | Position | `sticky`, `pinned`, `floating` |
 | `anchor` | Pin to | `top-left`, `top`, `top-right`, `left`, `center`, `right`, `bottom-left`, `bottom`, `bottom-right`, `top-stretch`, `bottom-stretch` |
 | `offset` | Offset | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
-| `surface` | Fill | `base`, `subtle`, `raised`, `sunken`, `brand-muted`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` |
+| `surface` | Fill | `base`, `subtle`, `raised`, `sunken`, `brand`, `brand-muted`, `brand-secondary`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` |
+| `blend` | Blend mode | `multiply`, `screen`, `overlay`, `darken`, `lighten`, `color-dodge`, `color-burn`, `hard-light`, `soft-light`, `difference`, `exclusion`, `hue`, `saturation`, `color`, `luminosity` |
+| `invert` | Invert | `on` |
 | `border` | Border | `subtle`, `default`, `strong`, `brand` |
 | `borderTop` | Border top | `subtle`, `default`, `strong`, `brand` |
 | `borderRight` | Border right | `subtle`, `default`, `strong`, `brand` |
@@ -316,7 +323,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 
 ## What doesn't carry over
 
-- Raw values: pixels, colours, custom CSS or class names. Use the style keys.
-- Free positions. Everything sits in the flow of its container.
+- Raw values: pixels, custom CSS or class names, and colours outside a free frame. Use the style keys.
+- Free positions inside a container or in a structured frame. Those sit in the flow.
 - React elements in props that aren't slots (a popover's trigger, an icon). The component keeps its sample content there.
 - Handlers, state and data mapped into lists.

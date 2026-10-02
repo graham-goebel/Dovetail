@@ -75,6 +75,15 @@
   /* Something placed freely on a frame sits at x and y steps of the smallest
      inset, over the flow, instead of in it. */
   var FREE_UNIT = "var(--dt-space-inset-2xs)";
+  var HEX = /^#[0-9a-f]{6}$/i;
+  /* The page's fill: a surface option's own declarations, so a brand fill
+     brings the text roles that read on it; or a custom colour. */
+  function pageStyle(page) {
+    var o = (DATA.tokens.surface ? DATA.tokens.surface.options : []).filter(function (x) { return x.value === (page.surface || "base"); })[0];
+    var st = Object.assign({ color: "var(--dt-text-primary)" }, o ? o.css : { background: "var(--dt-surface-base)" });
+    if (HEX.test(page.canvas || "")) st.background = page.canvas;
+    return st;
+  }
   function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
   function styleFor(st) {
     if (!st) return null;
@@ -84,6 +93,9 @@
       var o = DATA.tokens[k].options.filter(function (x) { return x.value === st[k]; })[0];
       if (o) out = Object.assign(out || {}, o.css);
     });
+    /* A free frame may give a layer its own colours, as six-digit hex. */
+    if (HEX.test(st.fill || "")) out = Object.assign(out || {}, { background: st.fill });
+    if (HEX.test(st.color || "")) out = Object.assign(out || {}, { color: st.color, "--dt-text-primary": st.color, "--dt-text-headline": st.color });
     if (isFree(st)) {
       out = Object.assign(out || {}, { position: "absolute", left: "calc(" + FREE_UNIT + " * " + st.x + ")", top: "calc(" + FREE_UNIT + " * " + st.y + ")", margin: "0" });
       delete out.right;
@@ -318,8 +330,11 @@
     html.style.touchAction = opts.preview ? "" : "none";
     /* A custom canvas colour is the one raw value a frame takes: the page's own
        backdrop, outside the system. */
-    var canvas = /^#[0-9a-f]{6}$/i.test(page.canvas || "") ? page.canvas : null;
-    var style = { background: canvas || "var(--dt-surface-" + (page.surface || "base") + ")", color: "var(--dt-text-primary)" };
+    var style = pageStyle(page);
+    /* A loose object on the builder's canvas: no page around it, as wide as
+       what it holds. */
+    if (opts.bare) { cls.push("bf-bare"); style.background = "transparent"; }
+    html.classList.toggle("bf-bare-doc", !!opts.bare);
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
     root.render(e(Painted, null, e("div", { className: cls.join(" "), "data-layout": page.spacing || undefined, "data-bf-id": "root", style: style }, kids)));
@@ -705,8 +720,11 @@
     var used = new Set();
     var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
     var page = tree.page || {};
+    if (page.bare) return jsxNodes(tree.root.children, name);
     var kids = tree.root.children.map(function (c) { return block(c, used, "      "); });
-    var rootStyle = ["background: \"" + (/^#[0-9a-f]{6}$/i.test(page.canvas || "") ? page.canvas : "var(--dt-surface-" + (page.surface || "base") + ")") + "\""];
+    var ps = pageStyle(page);
+    delete ps.color;
+    var rootStyle = Object.keys(ps).map(function (k) { return (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)) + ": " + JSON.stringify(ps[k]); });
     if (tree.root.children.some(function (c) { return isFree(c.style); })) rootStyle.push("position: \"relative\"");
     if (page.gap && ROOT_GAP[page.gap]) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
     var cls = page.dark ? "dark" : "";
@@ -714,6 +732,21 @@
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
     return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
       "export function " + fn + "() {\n  return (\n    <div" + rootAttrs + ">\n" + kids.join("\n") + (kids.length ? "\n" : "") + "    </div>\n  );\n}\n";
+  }
+
+  /* Just these layers, as a component of their own: a selection's code. A
+     layer placed freely keeps its spot only on its frame, so here it sits in
+     the flow. */
+  function jsxNodes(nodes, name) {
+    var used = new Set();
+    var fn = String(name || "Part").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "P$&") || "Part";
+    var unfree = function (c) { var o = Object.assign({}, c, { style: Object.assign({}, c.style) }); delete o.style.x; delete o.style.y; return o; };
+    var many = nodes.length !== 1;
+    var kids = nodes.map(function (c) { return block(unfree(c), used, many ? "      " : "    "); });
+    var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
+    var body = many ? "    <>\n" + kids.join("\n") + "\n    </>" : kids.join("\n");
+    return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
+      "export function " + fn + "() {\n  return (\n" + body + "\n  );\n}\n";
   }
 
   /* ------------------------------------------------------------ detach */
@@ -841,6 +874,81 @@
     };
   }
 
+  /* A node as it's drawn, to carry under the pointer while it's dragged:
+     the markup it renders (styled inline from tokens) and its size. */
+  function outer(id) {
+    var w = wrapper(id);
+    var r = rect(id);
+    if (!w || !r) return null;
+    var htmlOut = "";
+    Array.prototype.forEach.call(w.children, function (c) { htmlOut += c.outerHTML; });
+    return { html: htmlOut.length > 400000 ? "" : htmlOut, width: r.width, height: r.height, left: r.left, top: r.top };
+  }
+
+  /* What a component is made of, for the layers: its headings, copy,
+     pictures and controls in drawing order. They're its own parts, set
+     through its props, so they're for reading, not picking; a slot inside it
+     is marked where it sits, since that one holds real layers. */
+  var PART = { H1: "Heading", H2: "Heading", H3: "Heading", H4: "Heading", H5: "Heading", H6: "Heading", P: "Text", IMG: "Image", PICTURE: "Image", VIDEO: "Video", svg: "Icon", SVG: "Icon",
+    BUTTON: "Button", A: "Link", INPUT: "Field", SELECT: "Select", TEXTAREA: "Text area", LABEL: "Label", UL: "List", OL: "List", LI: "Item", TABLE: "Table", BLOCKQUOTE: "Quote", FIGURE: "Figure", NAV: "Navigation", FORM: "Form", HEADER: "Header", FOOTER: "Footer" };
+  function anatomy(id) {
+    var w = wrapper(id);
+    if (!w) return null;
+    var count = 0;
+    var walk = function (el) {
+      var out = [];
+      Array.prototype.forEach.call(el.children, function (c) {
+        if (count > 60) return;
+        var bfId = c.getAttribute && c.getAttribute("data-bf-id");
+        if (bfId) {
+          if (c.getAttribute("data-bf-type") === "Slot") { count++; out.push({ slot: bfId }); }
+          return;
+        }
+        var kind = PART[c.tagName];
+        if (c.getAttribute && c.getAttribute("aria-hidden") === "true" && kind !== "Icon") return;
+        var role = c.getAttribute && c.getAttribute("role");
+        if (!kind && role && /^(img|button|link|tab|tablist|list|listitem|radiogroup|group|heading|progressbar|status|separator)$/.test(role)) kind = role.charAt(0).toUpperCase() + role.slice(1);
+        var inner = kind === "Icon" || kind === "Image" ? [] : walk(c);
+        if (!kind) { out = out.concat(inner); return; }
+        count++;
+        var text = (c.getAttribute("aria-label") || c.getAttribute("alt") || (kind === "Icon" ? "" : c.textContent) || "").replace(/\s+/g, " ").trim().slice(0, 40);
+        out.push({ kind: kind, text: text, children: inner });
+      });
+      return out;
+    };
+    return walk(w);
+  }
+
+  /* The canvas as a picture, PNG or JPEG, at twice its size. The image
+     library loads the first time it's asked for. */
+  var imaging = null;
+  function snapshot(type) {
+    if (!imaging) {
+      imaging = new Promise(function (resolve, reject) {
+        if (window.htmlToImage) { resolve(window.htmlToImage); return; }
+        var tag = document.createElement("script");
+        tag.src = "vendor/html-to-image.js";
+        tag.onload = function () { if (window.htmlToImage) resolve(window.htmlToImage); else reject(new Error("The image exporter didn't load.")); };
+        tag.onerror = function () { imaging = null; reject(new Error("The image exporter didn't load.")); };
+        document.head.appendChild(tag);
+      });
+    }
+    var target = mount.firstElementChild;
+    if (!target) return Promise.reject(new Error("Nothing to export."));
+    var bg = getComputedStyle(target).backgroundColor;
+    var options = { pixelRatio: 2, cacheBust: false, backgroundColor: type === "jpeg" && (!bg || bg === "rgba(0, 0, 0, 0)") ? "#ffffff" : undefined,
+      filter: function (node) { return !(node.classList && node.classList.contains("bf-empty")); } };
+    /* A web font it can't fetch (offline, or blocked) leaves the picture in
+       the fallback face; the library says so on the console, which is noise
+       here, so those lines are kept to the export. */
+    var said = console.error;
+    var quiet = function () { var t = String(arguments[0] || ""); if (/^Error (inlining remote css|loading remote stylesheet|while reading CSS rules|inlining remote)/.test(t)) return; said.apply(console, arguments); };
+    console.error = quiet;
+    var done = function (v) { if (console.error === quiet) console.error = said; return v; };
+    return imaging.then(function (lib) { return type === "jpeg" ? lib.toJpeg(target, Object.assign({ quality: 0.92 }, options)) : lib.toPng(target, options); })
+      .then(done, function (err) { done(); throw err; });
+  }
+
   window.BuilderFrame = {
     render: render,
     detach: detach,
@@ -852,6 +960,19 @@
     drop: drop,
     pick: pick,
     jsx: jsx,
+    jsxNodes: jsxNodes,
+    outer: outer,
+    /* The node being dragged fades while its copy follows the pointer. */
+    dim: function (id, on) {
+      var w = wrapper(id);
+      if (w) Array.prototype.forEach.call(w.children, function (c) { c.style.opacity = on ? "0.35" : ""; });
+    },
+    anatomy: anatomy,
+    snapshot: snapshot,
+    width: function () {
+      var r = mount.firstElementChild;
+      return r ? Math.ceil(r.getBoundingClientRect().width) : 0;
+    },
     has: function (type) { return type === "Group" || type === "Shape" || !!NS[type]; },
     /* What each CSS value comes to in pixels here, in this frame's context,
        layout character and theme: a width-shaped probe inside the canvas

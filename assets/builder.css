@@ -3088,3 +3088,263 @@ span.bd-layer-twisty.is-open .bd-ic {
     transition: transform var(--dt-motion-micro);
   }
 }
+
+/* ------------------------------------------------------------------ new */
+
+.bd-new {
+  width: min(720px, calc(100vw - 2 * var(--dt-space-inset-md)));
+  height: auto;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+}
+
+.bd-new-back {
+  align-self: flex-start;
+  margin-bottom: var(--dt-space-stack-2xs);
+}
+
+.bd-new-kinds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: var(--dt-space-inline-sm);
+  padding: var(--dt-space-inset-md);
+}
+
+.bd-new-kind {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--dt-space-stack-2xs);
+  padding: var(--dt-space-inset-md);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-new-kind:hover {
+  border-color: var(--dt-border-default);
+  background: var(--dt-surface-raised);
+}
+
+.bd-new-kind:focus-visible,
+.bd-new-item:focus-visible,
+.bd-kind:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: 2px;
+}
+
+.bd-new-pic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-lg);
+  height: var(--dt-size-control-lg);
+  margin-bottom: var(--dt-space-stack-2xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+}
+
+.bd-new-name {
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-new-note {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-new-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  margin: 0;
+  padding: var(--dt-space-inset-md);
+  list-style: none;
+}
+
+.bd-new-item {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+  width: 100%;
+  min-height: var(--dt-size-control-md);
+  padding: 0 var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-new-item:hover {
+  background: var(--dt-surface-raised);
+}
+
+.bd-new-hint {
+  margin-left: auto;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}
+
+/* -------------------------------------------------------- drag preview */
+
+/* What's dragged follows the pointer as itself, drawn as it is on the canvas. */
+.bd-ghost-el {
+  position: fixed;
+  z-index: var(--dt-z-toast);
+  overflow: hidden;
+  border-radius: var(--dt-radius-control);
+  box-shadow: var(--dt-elevation-3);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.bd-ghost-inner {
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* A loose object on the canvas has no page behind it. */
+.bd-frame.is-bare {
+  background: transparent;
+  box-shadow: none;
+}
+
+.bd-stage.is-dark .bd-flabel {
+  color: var(--dt-text-inverse);
+}
+
+/* ---------------------------------------------------------- layer parts */
+
+.bd-layers-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: var(--dt-space-inset-xs);
+}
+
+.bd-layers-head .bd-search {
+  flex: 1;
+  min-width: 0;
+  margin-right: var(--dt-space-inset-2xs);
+}
+
+/* A component's own part: shown, set through its props, not picked. */
+.bd-layer.is-part {
+  color: var(--dt-text-tertiary);
+}
+
+.bd-layer-main.is-static {
+  cursor: default;
+}
+
+/* ------------------------------------------------------ content kinds */
+
+.bd-kinds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-xs);
+  margin: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md) var(--dt-space-inset-md);
+  list-style: none;
+}
+
+.bd-kind {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+  width: 100%;
+  padding: var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-kind:hover {
+  border-color: var(--dt-border-default);
+  background: var(--dt-surface-raised);
+}
+
+.bd-kind-pics {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: calc(var(--dt-size-control-lg) * 1.5);
+  height: var(--dt-size-control-lg);
+  overflow: hidden;
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+}
+
+.bd-kind-pics img {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bd-kind-pics.is-icons img {
+  object-fit: contain;
+  padding: var(--dt-space-inset-2xs);
+}
+
+.bd-kind-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bd-kind-name {
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+.bd-kind-note {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-kind-chev {
+  flex: none;
+  color: var(--dt-text-tertiary);
+}
+
+.bd-gallery-head {
+  justify-content: flex-start;
+}
+
+/* ------------------------------------------------------ builder canvas */
+
+.bd-stage-swatches .bd-seg-btn {
+  min-width: var(--dt-size-control-sm);
+}
+
+.bd-stage-chip {
+  display: block;
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-stage-chip.is-default {
+  background-color: var(--dt-surface-sunken);
+  background-image: radial-gradient(var(--dt-border-strong) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.bd-canvas-row.is-tokens .bd-canvas-custom {
+  display: none;
+}

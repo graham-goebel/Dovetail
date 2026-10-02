@@ -17,7 +17,11 @@
    that doesn't exist fails the build.
 
    The document: { frames, active }. A frame is { id, name, width, height,
-   hug, dark, surface, spacing, gap, root }, where root is { id: "root", type:
+   hug, dark, surface, spacing, gap, mode, root } and maybe canvas, lock, x, y
+   and bare. mode is "free" (place anything anywhere, custom colours) or
+   "structured" (everything sits in Groups, tokens only); x and y put a frame
+   anywhere on the canvas; a bare frame is a loose object with no page around
+   it. root is { id: "root", type:
    "Root", children } and each node is { id, type, name?, props, style,
    children? }. props holds only what the reader changed, as plain strings,
    numbers and booleans (plus an uploaded image as a data URL); style holds
@@ -111,6 +115,23 @@
     });
   });
   var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
+  /* Size families every layer may use; the rest (control, icon, avatar and
+     media sizes) belong to the components they're named for, and only show
+     when one of those is selected. */
+  var SHARED_FAMILY = { fit: 1, container: 1, step: 1, inset: 1, space: 1, layout: 1 };
+  /* A tone's colour, for its swatch: a surface for a fill, a text role for
+     type. A tone with no colour of its own (inherit) has none. */
+  var TONE_FILL = {
+    base: "--dt-surface-base", subtle: "--dt-surface-subtle", raised: "--dt-surface-raised", sunken: "--dt-surface-sunken", neutral: "--dt-surface-sunken",
+    brand: "--dt-surface-brand", "brand-muted": "--dt-surface-brand-muted", secondary: "--dt-surface-brand-secondary", "secondary-muted": "--dt-surface-brand-secondary-muted",
+    "brand-secondary": "--dt-surface-brand-secondary", "brand-secondary-muted": "--dt-surface-brand-secondary-muted", primary: "--dt-surface-action",
+    success: "--dt-surface-success", warning: "--dt-surface-warning", danger: "--dt-surface-danger", info: "--dt-surface-info",
+    note: "--dt-surface-info", tip: "--dt-surface-success", important: "--dt-surface-brand", caution: "--dt-surface-warning",
+  };
+  var TONE_TEXT = {
+    headline: "--dt-text-headline", primary: "--dt-text-primary", secondary: "--dt-text-secondary", tertiary: "--dt-text-tertiary", link: "--dt-text-link",
+    brand: "--dt-text-brand", "brand-secondary": "--dt-text-brand-secondary", success: "--dt-text-success", warning: "--dt-text-warning", danger: "--dt-text-danger", info: "--dt-text-info",
+  };
   /* Token families, and which suit what's selected, first. */
   var FAMILY_LABEL = {
     fit: "Fit", control: "Controls", icon: "Icons", avatar: "Avatars", media: "Media", container: "Containers",
@@ -125,7 +146,8 @@
     var m = t && META[t];
     var name = t ? t : "these items";
     if (t === "Avatar" || t === "AvatarGroup") return { name: name, size: ["avatar", "fit", "step"], space: ["inset"] };
-    if (t === "Shape") return { name: name, size: ["step", "icon", "avatar", "control"], space: ["inset", "space"] };
+    if (t === "Icon" || t === "IconButton") return { name: name, size: ["icon", "control", "fit", "step"], space: ["inset", "space"] };
+    if (t === "Shape") return { name: name, size: ["step", "icon", "control"], space: ["inset", "space"] };
     if (t && (CONTROL_TYPES[t] || (m && (m.group === "actions" || m.group === "forms")))) return { name: name, size: ["control", "fit", "step"], space: ["inset", "space"] };
     if (t && MEDIA_TYPES[t]) return { name: name, size: ["media", "container", "fit", "step"], space: ["inset", "space"] };
     if (t && (BAND_TYPES[t] || (m && m.group === "blocks"))) return { name: name, size: ["fit", "container", "media", "step"], space: ["layout", "inset", "space"] };
@@ -243,7 +265,7 @@
      what's in it. */
   function makeFrame(name, preset, hug) {
     var p = PRESET[preset] || PRESET.desktop;
-    return { id: uid(), name: name || "Frame", width: p.width, height: p.height, hug: !!hug, dark: false, surface: "base", spacing: "", gap: "", root: { id: "root", type: "Root", props: {}, style: {}, children: [] } };
+    return { id: uid(), name: name || "Frame", width: p.width, height: p.height, hug: !!hug, dark: false, surface: "base", spacing: "", gap: "", mode: "free", root: { id: "root", type: "Root", props: {}, style: {}, children: [] } };
   }
   function presetOf(f) {
     var hit = PRESETS.filter(function (p) { return p.width === f.width && (f.hug || p.height === f.height); })[0];
@@ -289,11 +311,21 @@
   function fixedSpot(at) { return !at || !at.parent || at.node.type === "Slot"; }
   var fixed = fixedSpot;
 
+  /* A structured frame keeps everything in Groups: something that isn't a
+     band or a container, put straight on its page, comes in a Group of its
+     own, and nothing in it is placed freely. */
+  function settle(frame, parentId, n) {
+    if (!frame || frame.mode !== "structured") return n;
+    (function unfree(x) { if (x.style) { delete x.style.x; delete x.style.y; } (x.children || []).forEach(unfree); })(n);
+    if (parentId !== "root" || joinsFlow(n.type) || isContainer(n.type)) return n;
+    return make("Group", { direction: "column", gap: "md" }, [n]);
+  }
   var ops = {
     insert: function (doc, parentId, index, n, fid) {
       var p = locate(doc, parentId, fid);
       if (!canHold(p, n)) return null;
-      p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, n);
+      var put = settle((fid && frameById(doc, fid)) || active(doc), parentId, n);
+      p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, put);
       return n.id;
     },
     move: function (doc, id, parentId, index) {
@@ -305,7 +337,7 @@
       if (from.parent === to.node && (index === from.index || index === from.index + 1)) return null;
       from.parent.children.splice(from.index, 1);
       if (from.parent === to.node && from.index < index) index--;
-      to.node.children.splice(Math.max(0, Math.min(index, to.node.children.length)), 0, from.node);
+      to.node.children.splice(Math.max(0, Math.min(index, to.node.children.length)), 0, settle(active(doc), parentId, from.node));
       return id;
     },
     /* "root" means nothing left to select; null means nothing happened. */
@@ -388,6 +420,7 @@
   /* A node placed freely on a frame's canvas: x and y in steps of the smallest
      inset. Anything inside a container stays in its flow. */
   var FREE_MAX = 1200;
+  var HEX = /^#[0-9a-f]{6}$/i;
   function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
   /* Bands run the width of the page, so they always join its flow. */
   var BAND_ROOT = { Section: 1, AppShell: 1, Navbar: 1, Sidebar: 1, BottomNav: 1, Banner: 1, StoreHeader: 1 };
@@ -465,6 +498,7 @@
     Object.keys(st).forEach(function (k) {
       if (k === "x" || k === "y") return;
       if (k === "dark") { if (st.dark === true) style.dark = true; return; }
+      if (k === "fill" || k === "color") { if (HEX.test(String(st[k]))) style[k] = String(st[k]).toLowerCase(); else note(report, n.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k])); return; }
       if (tokenOption(k, st[k])) style[k] = st[k];
       else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function (o) { return o.value; }).join(", ") + ")");
       else note(report, n.type + ": style " + k + " isn't one the builder sets");
@@ -517,6 +551,11 @@
     /* The canvas may take one custom colour, as six-digit hex. */
     if (typeof f.canvas === "string" && /^#[0-9a-f]{6}$/i.test(f.canvas)) base.canvas = f.canvas.toLowerCase();
     else if (f.canvas !== undefined) note(report, base.name + ": canvas " + JSON.stringify(f.canvas) + " isn't a #rrggbb colour, so it was left out");
+    base.mode = f.mode === "structured" ? "structured" : "free";
+    if (f.lock === true) base.lock = true;
+    var place = function (v) { return typeof v === "number" && isFinite(v) ? Math.max(-40000, Math.min(40000, Math.round(v))) : null; };
+    if (place(f.x) !== null && place(f.y) !== null) { base.x = place(f.x); base.y = place(f.y); }
+    if (f.bare === true) { base.bare = true; base.hug = true; }
     base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
     base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
     /* A frame may give its nodes as root.children or straight as children. */
@@ -649,6 +688,7 @@
       view: p.view === "list" ? "list" : "grid",
       tabs: p.tabs && typeof p.tabs === "object" ? p.tabs : {},
       closed: p.closed && typeof p.closed === "object" ? p.closed : {},
+      stage: typeof p.stage === "string" && /^#[0-9a-f]{6}$/i.test(p.stage) ? p.stage.toLowerCase() : "",
     };
   }
 
@@ -678,6 +718,11 @@
     redo: ["m15 14 5-5-5-5", "M20 9H9a5 5 0 0 0 0 10h3"],
     down: ["m6 9 6 6 6-6"],
     up: ["m6 15 6-6 6 6"],
+    left: ["m15 6-6 6 6 6"],
+    chain: ["M9 15 15 9", "M10.5 6.5 12 5a4 4 0 0 1 6 6l-1.5 1.5", "M13.5 17.5 12 19a4 4 0 0 1-6-6l1.5-1.5"],
+    layers2: ["m12 4 8 4-8 4-8-4z", "m4 12 8 4 8-4", "m4 16 8 4 8-4"],
+    collapseAll: ["m7 9 5-5 5 5", "m7 15 5 5 5-5"],
+    expandAll: ["m7 4 5 5 5-5", "m7 20 5-5 5 5"],
     right: ["m9 6 6 6-6 6"],
     copy: ["M8 8h12v12H8z", "M16 8V4H4v12h4"],
     trash: ["M4 7h16", "M10 11v6", "M14 11v6", "M6 7l1 13h10l1-13", "M9 7V4h6v3"],
@@ -1255,17 +1300,28 @@
 
   /* Where each frame sits on the canvas: side by side, tops aligned. A frame
      that hugs its content is as tall as the content last measured. */
-  function layoutOf(doc, heights, resizing) {
-    var x = 0, out = { boxes: {}, width: 0, height: 0 };
+  /* A frame with its own x and y sits there; the rest line up from the left.
+     A loose object is as wide and tall as what it holds. left and top are
+     where the whole layout starts, which a frame moved up or left can push. */
+  function layoutOf(doc, heights, resizing, widths, moving) {
+    var x = 0, out = { boxes: {}, width: 0, height: 0, left: 0, top: 0 };
+    var maxX = 0, maxY = 0, minX = 0, minY = 0;
     doc.frames.forEach(function (f) {
       var r = resizing && resizing.fid === f.id ? resizing : null;
-      var w = r ? r.w : f.width;
-      var h = r && r.h != null ? r.h : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
-      out.boxes[f.id] = { x: x, y: 0, w: w, h: h };
-      out.height = Math.max(out.height, h);
-      x += w + FRAME_GAP;
+      var w = r ? r.w : f.bare ? Math.max(24, (widths && widths[f.id]) || 120) : f.width;
+      var h = r && r.h != null ? r.h : f.bare ? Math.max(16, heights[f.id] || 40) : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
+      var m = moving && moving.fid === f.id ? moving : null;
+      var b;
+      if (m) b = { x: m.x, y: m.y, w: w, h: h };
+      else if (typeof f.x === "number") b = { x: f.x, y: f.y, w: w, h: h };
+      else { b = { x: x, y: 0, w: w, h: h }; x += w + FRAME_GAP; }
+      out.boxes[f.id] = b;
+      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + w); maxY = Math.max(maxY, b.y + h);
     });
-    out.width = Math.max(0, x - FRAME_GAP);
+    out.left = minX; out.top = minY;
+    out.width = Math.max(0, maxX - minX);
+    out.height = Math.max(0, maxY - minY);
     return out;
   }
 
@@ -1401,7 +1457,25 @@
     var playBoxState = useState({ w: 0, h: 0 });
     var playBox = playBoxState[0], setPlayBox = playBoxState[1];
     var playRef = useRef(null), playFrameRef = useRef(null), playStageRef = useRef(null);
-    var layout = layoutOf(doc, heights, resizing);
+    var widthsState = useState({});
+    var widths = widthsState[0], setWidths = widthsState[1];
+    var movingState = useState(null);
+    var movingFrame = movingState[0], setMovingFrame = movingState[1];
+    /* Nothing picked at all, not even a frame: the inspector shows the
+       builder's own settings. */
+    var frameOnState = useState(true);
+    var frameOn = frameOnState[0], setFrameOn = frameOnState[1];
+    var stageColorState = useState(prefs.stage || "");
+    var stageColor = stageColorState[0], setStageColor = stageColorState[1];
+    var openFramesState = useState({});
+    var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
+    var codeTitleState = useState("");
+    var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
+    var newRef = useRef(null);
+    var newViewState = useState("pick");
+    var newView = newViewState[0], setNewView = newViewState[1];
+    var clip = useRef(null);
+    var layout = layoutOf(doc, heights, resizing, widths, movingFrame);
     var boxes = layout.boxes;
 
     var history = useRef({ past: [], future: [] });
@@ -1411,6 +1485,7 @@
     var layoutRef = useRef(layout); layoutRef.current = layout;
     var boxRef = useRef(box); boxRef.current = box;
     var heightsRef = useRef(heights); heightsRef.current = heights;
+    var widthsRef = useRef(widths); widthsRef.current = widths;
     var hoverRef = useRef(hover); hoverRef.current = hover;
     var editRef = useRef(edit); editRef.current = edit;
     var previewRef = useRef(preview); previewRef.current = preview;
@@ -1432,7 +1507,7 @@
     }, []);
     var libState = useState(loadLibrary);
     var library = libState[0], setLibrary = libState[1];
-    var libTabState = useState("images");
+    var libTabState = useState(null);
     var libTab = libTabState[0], setLibTab = libTabState[1];
     var libBusyState = useState(null);
     var libBusy = libBusyState[0], setLibBusy = libBusyState[1];
@@ -1469,6 +1544,7 @@
       var next = ids.filter(function (x) { return x && x !== "root"; });
       selRef.current = next;
       setSelection(next);
+      if (next.length) setFrameOn(true);
     }, []);
 
     var snapshot = useCallback(function () {
@@ -1498,6 +1574,12 @@
       var next = copy(docRef.current);
       var nextSel = fn(next);
       if (nextSel === null) return false;
+      /* A loose object with nothing left in it goes. */
+      var kept = next.frames.filter(function (f) { return !(f.bare && !f.root.children.length); });
+      if (kept.length && kept.length < next.frames.length) {
+        next.frames = kept;
+        if (!frameById(next, next.active)) next.active = kept[kept.length - 1].id;
+      }
       commit(next, nextSel, message);
       return true;
     }, [commit]);
@@ -1531,8 +1613,8 @@
       setSaved({ ok: !!ok, at: new Date() });
     }, [doc]);
     useEffect(function () {
-      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tabs: tabByType, closed: closedSecs, left: left })); });
-    }, [category, view, tabByType, closedSecs, left]);
+      storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, view: view, tabs: tabByType, closed: closedSecs, left: left, stage: stageColor })); });
+    }, [category, view, tabByType, closedSecs, left, stageColor]);
     var firstDoc = useRef(doc);
     useEffect(function () {
       if (doc !== firstDoc.current && /^#b=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -1555,6 +1637,7 @@
       var d = docRef.current;
       if (!frameById(d, fid)) return;
       select([]);
+      setFrameOn(true);
       if (editRef.current) setEdit(null);
       if (d.active === fid) return;
       var next = Object.assign({}, d, { active: fid });
@@ -1604,13 +1687,13 @@
       var L = layoutRef.current, W = boxRef.current.w, H = boxRef.current.h;
       if (!W || !L.width) return;
       var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / L.width, (H - STAGE_PAD * 2 - LABEL_ROOM) / L.height));
-      setCam({ x: (W - L.width * z) / 2, y: Math.max(STAGE_PAD + LABEL_ROOM, (H - L.height * z + LABEL_ROOM) / 2), z: z });
+      setCam({ x: (W - L.width * z) / 2 - L.left * z, y: Math.max(STAGE_PAD + LABEL_ROOM, (H - L.height * z + LABEL_ROOM) / 2) - L.top * z, z: z });
     };
     var fitWidth = function () {
       var L = layoutRef.current, W = boxRef.current.w;
       if (!W || !L.width) return;
       var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / L.width));
-      setCam({ x: (W - L.width * z) / 2, y: STAGE_PAD + LABEL_ROOM, z: z });
+      setCam({ x: (W - L.width * z) / 2 - L.left * z, y: STAGE_PAD + LABEL_ROOM - L.top * z, z: z });
     };
     /* A frame across the stage's width, from its top (or centred when it's
        short enough to fit). keep: never zoom in to do it. */
@@ -1829,11 +1912,22 @@
        after a few rounds of growth until its tree changes. */
     var measure = function () {
       var hs = heightsRef.current, next = null;
+      var ws = widthsRef.current, nextW = null;
       docRef.current.frames.forEach(function (f) {
-        if (!f.hug) return;
+        if (!f.bare) return;
+        var a = api(f.id);
+        if (!a || !a.width) return;
+        var w = Math.max(24, Math.min(MAX_WIDTH, a.width() || 0));
+        if (Math.abs(w - (ws[f.id] || 0)) <= 1) return;
+        nextW = nextW || Object.assign({}, ws);
+        nextW[f.id] = w;
+      });
+      if (nextW) { widthsRef.current = nextW; setWidths(nextW); }
+      docRef.current.frames.forEach(function (f) {
+        if (!f.hug && !f.bare) return;
         var a = api(f.id);
         if (!a || !a.height) return;
-        var h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, a.height() || 0));
+        var h = Math.max(f.bare ? 16 : MIN_SIDE, Math.min(MAX_HEIGHT, a.height() || 0));
         var old = hs[f.id] || 0;
         if (Math.abs(h - old) <= 1) return;
         if (old && h > old) {
@@ -1869,7 +1963,12 @@
       var sr = st.getBoundingClientRect();
       if (x < sr.left || x > sr.right || y < sr.top || y > sr.bottom) return null;
       var at = frameAt(x, y);
-      var f = at && api(at.fid);
+      /* Off every frame: a loose object on the canvas, where it's let go. */
+      if (!at) {
+        var sp = stageXY(x, y), cz = camRef.current;
+        return { where: "loose", x: (sp.x - cz.x) / cz.z, y: (sp.y - cz.y) / cz.z };
+      }
+      var f = api(at.fid);
       if (!f) return null;
       var z = camRef.current.z;
       var own = at.fid === docRef.current.active;
@@ -1885,7 +1984,8 @@
       /* On the frame's own canvas, outside any stack, it lands where it's let go. */
       var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
       var type = moving ? moving.node.type : payload.kind === "new" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
-      if (hit.parent === "root" && type && !joinsFlow(type)) {
+      var hostFrame = frameById(docRef.current, at.fid);
+      if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && hostFrame.mode !== "structured" && !hostFrame.bare) {
         var unit = (f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0]) || 4;
         var fx = (x - at.r.left) / z, fy = (y - at.r.top) / z;
         var w = 120, h = 40;
@@ -1935,10 +2035,12 @@
       return { where: "list", parent: at.parent.id, index: at.index + (after ? 1 : 0), indicator: { top: row.offsetTop + (after ? row.offsetHeight : 0), left: 8 + depth * 14 } };
     };
 
-    var show = function (hit) {
+    /* ghosted: the thing itself follows the pointer, so a free spot needs no
+       outline of its own. */
+    var show = function (hit, ghosted) {
       setListDrop(hit && hit.where === "list" ? hit : null);
       setMarks(function (m) {
-        return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box ? toStage(hit.box, hit.frame) : null } : null });
+        return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box && !(hit.free && ghosted) ? toStage(hit.box, hit.frame) : null } : null });
       });
     };
 
@@ -1977,10 +2079,26 @@
       if (dr.x === undefined) { dr.x = x; dr.y = y; }
       dr.lastX = x;
       dr.lastY = y;
-      setDrag({ label: dr.payload.label, x: x, y: y });
+      var g = dr.ghost;
+      if (g && !g.grab) {
+        /* Where the pointer holds it: under the pointer if it started on the
+           element, just below and right of it otherwise. */
+        var el0 = g.fid && frameEls.current[g.fid];
+        var fr0 = el0 ? el0.getBoundingClientRect() : null;
+        var zz = camRef.current.z;
+        var gx = fr0 ? (dr.x - (fr0.left + g.fx * zz)) / zz : -12;
+        var gy = fr0 ? (dr.y - (fr0.top + g.fy * zz)) / zz : -12;
+        g.grab = gx >= 0 && gy >= 0 && gx <= g.w && gy <= g.h ? { x: gx, y: gy } : { x: -12 / zz, y: -12 / zz };
+      }
       var hit = resolve(x, y, dr.payload);
       dr.hit = hit;
-      show(hit);
+      var spot = null;
+      if (hit && hit.where === "canvas" && hit.free && hit.box) {
+        var sr0 = stageRef.current.getBoundingClientRect(), sb = toStage(hit.box, hit.frame);
+        if (sb) spot = { x: sr0.left + sb.left, y: sr0.top + sb.top };
+      }
+      setDrag({ label: dr.payload.label, x: x, y: y, ghost: g || null, spot: spot });
+      show(hit, !!g);
       autoscroll(x, y);
     };
 
@@ -1989,6 +2107,7 @@
       dragRef.current = null;
       setDrag(null);
       show(null);
+      if (dr && dr.ghost && dr.ghost.fid) { var ga = api(dr.ghost.fid); if (ga && ga.dim) ga.dim(dr.payload.id, false); }
       if (!dr || !dr.active) return;
       justDragged.current = true;
       setTimeout(function () { justDragged.current = false; }, 60);
@@ -2000,6 +2119,7 @@
         return;
       }
       if (!commitIt || !hit) return;
+      if (hit.where === "loose") { placeLoose(dr.payload, hit); return; }
       var fid = hit.frame || docRef.current.active;
       if (dr.payload.kind === "tool") { placeTool(dr.payload.tool, hit); return; }
       if (dr.payload.kind === "asset") { add("Image", { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }, { src: dr.payload.src, alt: dr.payload.label }); return; }
@@ -2065,18 +2185,68 @@
       }
     };
 
+    /* What follows the pointer: the element itself, drawn as it is on the
+       canvas, or a tile's own preview. */
+    var ghostFor = function (payload) {
+      if (payload.kind === "move" && payload.id) {
+        var fid = docRef.current.active, a = api(fid);
+        var o = a && a.outer ? a.outer(payload.id) : null;
+        if (!o || !o.html) return null;
+        if (a.dim) a.dim(payload.id, true);
+        return { html: o.html, w: o.width, h: o.height, fx: o.left, fy: o.top, fid: fid };
+      }
+      if (payload.thumb) {
+        var t = payload.thumb;
+        return { html: t.innerHTML, w: t.offsetWidth, h: t.offsetHeight, flat: true, grab: { x: t.offsetWidth / 2, y: t.offsetHeight / 2 } };
+      }
+      return null;
+    };
+    /* Dropped off every frame: a loose object there, with no page around it.
+       A band (a Section or a block) gets a page of its own instead. */
+    var placeLoose = function (payload, hit) {
+      var node = null, moving = null;
+      if (payload.kind === "new") { node = make(payload.type); if (payload.type === "Inline") node.props.wrap = false; }
+      else if (payload.kind === "asset") node = make("Image", { src: payload.src, alt: payload.label });
+      else if (payload.kind === "tool") node = toolNode(payload.tool, null);
+      else if (payload.kind === "move") moving = payload.id;
+      var made = null;
+      change(function (d) {
+        var n = node;
+        if (moving) {
+          var at = locate(d, moving);
+          if (fixedSpot(at)) return null;
+          at.parent.children.splice(at.index, 1);
+          n = at.node;
+          ["x", "y", "position", "anchor", "offset"].forEach(function (k) { delete n.style[k]; });
+        }
+        if (!n) return null;
+        var band = joinsFlow(n.type);
+        var f = makeFrame(band ? "Frame " + (d.frames.length + 1) : nameOf(n), "desktop", true);
+        f.x = Math.round(hit.x);
+        f.y = Math.round(hit.y);
+        if (!band) f.bare = true;
+        f.root.children = [n];
+        d.frames.push(f);
+        d.active = f.id;
+        made = n.id;
+        return n.id;
+      }, (moving ? "Moved " : "Added ") + payload.label + " onto the canvas");
+      return made;
+    };
+
     var startDrag = function (ev, payload) {
       if (ev.button !== undefined && ev.button !== 0) return;
       if (ev.shiftKey || ev.metaKey || ev.ctrlKey) return;
       var target = ev.currentTarget;
       try { target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
-      dragRef.current = { payload: payload, x: ev.clientX, y: ev.clientY, active: false, id: ev.pointerId };
+      dragRef.current = { payload: payload, x: ev.clientX, y: ev.clientY, active: false, id: ev.pointerId, ghost: null };
       var move = function (mv) {
         var dr = dragRef.current;
         if (!dr || mv.pointerId !== dr.id) return;
         if (!dr.active) {
           if (Math.abs(mv.clientX - dr.x) + Math.abs(mv.clientY - dr.y) < 6) return;
           dr.active = true;
+          dr.ghost = ghostFor(dr.payload);
         }
         mv.preventDefault();
         dragMove(mv.clientX, mv.clientY);
@@ -2138,7 +2308,8 @@
               var at = locate(docRef.current, id);
               if (!at) return;
               if (at.node.type === "Slot") return;
-              dragRef.current = { payload: { kind: "move", id: id, label: nameOf(at.node) }, active: true };
+              var pl = { kind: "move", id: id, label: nameOf(at.node) };
+              dragRef.current = { payload: pl, active: true, ghost: ghostFor(pl) };
               if (selRef.current.indexOf(id) < 0) select([id]);
             }),
             dragMove: on(function (fid, x, y) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y); }),
@@ -2206,7 +2377,7 @@
         if (rendered.current[f.id] === key) return;
         rendered.current[f.id] = key;
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap }, root: f.root }, { preview: preview, hug: f.hug });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -2305,7 +2476,7 @@
     var pick = function (id, additive, deep, from, fid) {
       if (from === "canvas") releaseFocus();
       if (fid && fid !== docRef.current.active) { activate(fid); additive = false; }
-      if (!id || id === "root") { if (!additive) select([]); return; }
+      if (!id || id === "root") { if (!additive) select([]); setFrameOn(true); return; }
       var cur = selRef.current;
       if (additive) {
         select(cur.indexOf(id) >= 0 ? cur.filter(function (x) { return x !== id; }) : cur.concat([id]));
@@ -2475,7 +2646,7 @@
        only while nothing else has focus. */
     var keyRef = useRef(function () { return false; });
     keyRef.current = function (ev) {
-      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open)) return false;
+      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open) || (newRef.current && newRef.current.open)) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -2500,10 +2671,18 @@
       if (ev.shiftKey && !mod && ev.code === "Digit1") { fitAll(); return true; }
       if (ev.shiftKey && !mod && ev.code === "Digit2") { showFrame(docRef.current.active); return true; }
       if (ev.key === "Enter") { (ev.shiftKey ? actions.out : actions.into)(); return true; }
-      if (ev.key === "Escape") { select([]); return true; }
+      if (ev.key === "Escape") { if (!selRef.current.length) setFrameOn(false); select([]); return true; }
+      /* Paste: in this page, the paste event brings what the system clipboard
+         holds; from a frame, the builder's own clipboard. */
+      if (mod && key === "v" && !ev.shiftKey) {
+        if (t && t.ownerDocument !== document) { if (clip.current) pasteNodes(clip.current.nodes); return true; }
+        return false;
+      }
       if (ev.key === "F2") { actions.rename(); return true; }
       if (!selRef.current.length) return false;
       if (mod && key === "g") { (ev.shiftKey ? actions.ungroup : actions.group)(); return true; }
+      if (mod && (key === "c" || key === "x") && !ev.shiftKey) { copySelection(key === "x"); return true; }
+      if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
       if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
       if (mod && key === "d") { actions.duplicate(); return true; }
       if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
@@ -2540,9 +2719,16 @@
     var setSize = function (w, h) {
       change(function (d) {
         var f = active(d);
-        if (w !== undefined) f.width = side(w, MAX_WIDTH, f.width);
+        var ratio = f.height / f.width;
+        if (w !== undefined) {
+          f.width = side(w, MAX_WIDTH, f.width);
+          if (f.lock && h === undefined) { f.height = side(Math.round(f.width * ratio), MAX_HEIGHT, f.height); f.hug = false; }
+        }
         /* Typing a height fixes it. */
-        if (h !== undefined) { f.height = side(h, MAX_HEIGHT, f.height); f.hug = false; }
+        if (h !== undefined) {
+          f.height = side(h, MAX_HEIGHT, f.height); f.hug = false;
+          if (f.lock && w === undefined) f.width = side(Math.round(f.height / ratio), MAX_WIDTH, f.width);
+        }
         return undefined;
       });
     };
@@ -2565,6 +2751,25 @@
         [].concat(ids).forEach(function (id) { var at = locate(d, id); if (!at) return; any = true; if (value === undefined || value === "") delete at.node.style[key]; else at.node.style[key] = value; });
         return any ? undefined : null;
       });
+    };
+    /* Freeform to structured: what sat loose on the page goes into a Group,
+       top to bottom, and keeps the system's colours only. */
+    var setMode = function (mode) {
+      change(function (d) {
+        var f = active(d);
+        if ((f.mode || "free") === mode) return null;
+        f.mode = mode;
+        if (mode !== "structured") return undefined;
+        delete f.canvas;
+        var loose = [];
+        var kept = [];
+        f.root.children.forEach(function (c) { if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c); else loose.push(c); });
+        loose.sort(function (a, b) { return ((a.style.y || 0) - (b.style.y || 0)) || ((a.style.x || 0) - (b.style.x || 0)); });
+        (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; } (n.children || []).forEach(unfree); })(f.root);
+        if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
+        f.root.children = kept;
+        return [];
+      }, mode === "structured" ? "Structured: everything is in Groups now" : "Freeform: place things anywhere");
     };
     var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
@@ -2625,13 +2830,132 @@
       },
     };
 
+    /* The code for what's selected: one button is just that button, a
+       frame (nothing inside it picked) is the whole screen. */
     var openCode = function () {
       var f = api();
       if (!f) return;
-      var fr = active(docRef.current);
-      setCode(f.jsx({ page: fr, root: fr.root }, fr.name));
+      var d = docRef.current;
+      var fr = active(d);
+      var picked = selRef.current.map(function (id) { return locate(d, id); }).filter(Boolean).map(function (a) { return a.node; });
+      var parts = [];
+      picked.forEach(function (n) { if (n.type === "Slot") parts = parts.concat(n.children); else parts.push(n); });
+      if (parts.length && f.jsxNodes) {
+        var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
+        setCodeTitle(title);
+        setCode(f.jsxNodes(parts, parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts"));
+      } else {
+        setCodeTitle(fr.name);
+        setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: fr.root }, fr.name));
+      }
       var dlg = dialogRef.current;
       if (dlg && dlg.showModal) dlg.showModal();
+    };
+
+    /* A frame as a picture, downloaded: PNG keeps transparency, JPEG is
+       smaller and fills it white. */
+    var exportImage = function (fid, type) {
+      var a = api(fid);
+      var f = frameById(docRef.current, fid);
+      if (!a || !a.snapshot || !f) return;
+      announce("Making the " + (type === "jpeg" ? "JPG" : "PNG") + "…");
+      a.snapshot(type).then(function (url) {
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = (f.name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "frame") + (type === "jpeg" ? ".jpg" : ".png");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        announce("Downloaded " + link.download);
+      }, function (err) { announce((err && err.message) || "Couldn't make the picture."); });
+    };
+
+    /* Copy, cut and paste: layers go onto the builder's own clipboard (and
+       the system one, as JSON), and paste into whichever frame is active, into
+       the selection or after it. */
+    var CLIP_MARK = "dovetail-builder-nodes";
+    var copySelection = function (cut) {
+      var d = docRef.current;
+      var spots = selRef.current.map(function (id) { return locate(d, id); }).filter(function (at) { return at && !fixedSpot(at); });
+      if (!spots.length) return false;
+      var nodes = spots.map(function (at) { return copy(at.node); });
+      clip.current = { nodes: nodes, from: d.active };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(JSON.stringify({ kind: CLIP_MARK, nodes: withoutUploads({ frames: [{ root: { children: nodes } }] }).doc.frames[0].root.children })).catch(function () { /* the builder's own copy still works */ });
+      var what = nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers";
+      if (cut) change(function (dd) { return ops.remove(dd, spots.map(function (at) { return at.node.id; })); }, "Cut " + what);
+      else announce("Copied " + what);
+      return true;
+    };
+    var pasteNodes = function (raw) {
+      var nodes = (raw || []).map(function (n) { return cleanNode(JSON.parse(JSON.stringify(n)), null); }).filter(Boolean).map(fresh);
+      if (!nodes.length) return false;
+      var d = docRef.current;
+      var t = target();
+      var fid = d.active;
+      var fr = active(d);
+      var same = clip.current && clip.current.from === fid;
+      var made = [];
+      change(function (dd) {
+        var at = t.index;
+        nodes.forEach(function (n) {
+          if (t.parent !== "root" || fr.mode === "structured" || fr.bare) { delete n.style.x; delete n.style.y; }
+          else if (same && isFree(n.style)) { n.style.x = Math.min(FREE_MAX, n.style.x + 4); n.style.y = Math.min(FREE_MAX, n.style.y + 4); }
+          if (ops.insert(dd, t.parent, at, n, fid)) { made.push(n.id); at++; }
+        });
+        return made.length ? made : null;
+      }, "Pasted " + (nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers") + " into " + fr.name);
+      if (same && clip.current) clip.current = { nodes: clip.current.nodes.map(function (n) { var c = copy(n); if (isFree(c.style)) { c.style.x += 4; c.style.y += 4; } return c; }), from: fid };
+      return made.length > 0;
+    };
+    /* Text pasted from elsewhere: the builder's own JSON for layers. */
+    useEffect(function () {
+      var onPaste = function (ev) {
+        var t = ev.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+        if (!(mountEl.contains(t) || t === document.body)) return;
+        var text = ev.clipboardData ? ev.clipboardData.getData("text/plain") : "";
+        var data = null;
+        try { data = JSON.parse(text); } catch (err) { data = null; }
+        if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) { ev.preventDefault(); pasteRef.current(data.nodes); }
+        else if (clip.current) { ev.preventDefault(); pasteRef.current(clip.current.nodes); }
+      };
+      document.addEventListener("paste", onPaste);
+      return function () { document.removeEventListener("paste", onPaste); };
+    }, []);
+    var pasteRef = useRef(pasteNodes); pasteRef.current = pasteNodes;
+
+    /* Text one step up or down its type scale: a Heading through its sizes
+       into display, a Text through its variants. */
+    var TYPE_SCALE = {
+      Heading: { prop: "size", steps: ["heading-xs", "heading-sm", "heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"] },
+      Text: { prop: "variant", steps: ["fine", "small", "body", "lead"] },
+    };
+    var HEADING_DEFAULT = { 1: "heading-xl", 2: "heading-lg", 3: "heading-md", 4: "heading-sm", 5: "heading-xs", 6: "heading-xs" };
+    var stepType = function (by) {
+      var d = docRef.current;
+      var nodes = selRef.current.map(function (id) { return locate(d, id); }).filter(Boolean).map(function (a) { return a.node; });
+      if (!nodes.length || !nodes.every(function (n) { return TYPE_SCALE[n.type]; })) return false;
+      var said = null;
+      change(function (dd) {
+        var any = false;
+        nodes.forEach(function (n0) {
+          var at = locate(dd, n0.id);
+          var sc = TYPE_SCALE[n0.type];
+          var base = scalars[n0.type] || {};
+          var cur = at.node.props[sc.prop] || base[sc.prop];
+          if (!cur && n0.type === "Heading") cur = HEADING_DEFAULT[Number(at.node.props.level || base.level || 2)] || "heading-lg";
+          var i = sc.steps.indexOf(cur);
+          if (i < 0) i = sc.steps.indexOf(n0.type === "Text" ? "body" : "heading-lg");
+          var j = Math.max(0, Math.min(sc.steps.length - 1, i + by));
+          if (j === i) return;
+          at.node.props[sc.prop] = sc.steps[j];
+          any = true;
+          said = said || words(cur || "") + " to " + words(sc.steps[j]).replace(/-/g, " ");
+        });
+        return any ? undefined : null;
+      }, null);
+      announce(said ? said.replace(/-/g, " ") : by > 0 ? "Already the largest size" : "Already the smallest size");
+      return true;
     };
 
     var share = function () {
@@ -2642,7 +2966,27 @@
       }, function () { window.prompt("Copy this link", url); });
     };
 
+    /* New: a free canvas, a structured page, or a template. */
+    var openNew = function () {
+      setNewView("pick");
+      var dlg = newRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    };
+    var closeNew = function () { var dlg = newRef.current; if (dlg && dlg.open) dlg.close(); };
+    var newFrame = function (mode) {
+      closeNew();
+      var d = docRef.current;
+      var structured = mode === "structured";
+      var f = makeFrame((structured ? "Page " : "Canvas ") + (d.frames.length + 1), "desktop", structured);
+      f.mode = structured ? "structured" : "free";
+      /* A structured page starts with a Group to put things in. */
+      if (structured) { var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" }); g.name = "Content"; f.root.children = [g]; }
+      change(function (dd) { dd.frames.push(f); dd.active = f.id; return []; }, "Added " + f.name + (structured ? ": a structured page. Everything goes in Groups." : ": a free canvas. Place things anywhere."));
+      setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
+    };
+
     var startFrom = function (id) {
+      closeNew();
       if (id === "import") { openImport(); return; }
       var s = STARTERS.filter(function (x) { return x[0] === id; })[0];
       if (!s) return;
@@ -2719,12 +3063,15 @@
           { value: "duplicate", label: "Duplicate frame", icon: "copy" },
           { value: "rename", label: "Rename", icon: "pencil" },
           { value: "fit", label: "Zoom to frame", icon: "fit" },
+          { value: "png", label: "Export as PNG", icon: "image" },
+          { value: "jpeg", label: "Export as JPG", icon: "image" },
           { value: "delete", label: "Delete frame", icon: "trash", disabled: doc.frames.length < 2, danger: true },
         ],
         onChange: function (v) {
           if (v === "duplicate") frameOps.duplicate(f.id);
           if (v === "rename") setRenaming({ id: "frame:" + f.id, where: where });
           if (v === "fit") { activate(f.id); showFrame(f.id); }
+          if (v === "png" || v === "jpeg") exportImage(f.id, v);
           if (v === "delete") frameOps.remove(f.id);
         } });
     };
@@ -2750,6 +3097,7 @@
       var ctx = contextOf(nodes.map(function (n) { return n.type; }));
       var order = def.section === "size" ? ctx.size : def.section === "spacing" ? ctx.space : null;
       var list = def.options.slice();
+      if (order) list = list.filter(function (o) { return !o.family || SHARED_FAMILY[o.family] || order.indexOf(o.family) >= 0 || o.value === value; });
       if (order && list.some(function (o) { return o.family; })) {
         var rank = function (o) { var i = order.indexOf(o.family); return i < 0 ? order.length : i; };
         list = list.map(function (o, i) { return { o: o, i: i }; }).sort(function (a, b) { return rank(a.o) - rank(b.o) || a.i - b.i; }).map(function (x) { return x.o; });
@@ -2968,7 +3316,11 @@
             onChange: function (ev) { var v = ev.target.value.trim(); set(v && MEDIA_URL.test(v) ? v : undefined); } }));
         return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: /^data:/.test(src) ? "Uploaded file" : null }, control);
       }
-      if (p.kind === "enum") {
+      if (p.kind === "enum" && p.name === "tone") {
+        var toneMap = TEXT_TYPES[first.type] ? TONE_TEXT : TONE_FILL;
+        control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, placeholder: "Default", preview: "color", className: "bd-dd-field bd-dd-swatch",
+          options: p.options.map(function (o) { var t = toneMap[o]; return { value: o, label: ENUM_LABEL[o] || String(o), hint: t || "Takes its colour from around it", tokens: t ? [t] : [] }; }) });
+      } else if (p.kind === "enum") {
         var icons = ENUM_ICONS[p.name];
         if (icons && p.options.every(function (o) { return icons[o]; })) {
           control = e(Segmented, { labelledBy: id, value: current, onChange: set, options: p.options.map(function (o) { return { value: o, label: ENUM_LABEL[o] || words(o), icon: icons[o] }; }) });
@@ -3035,7 +3387,22 @@
       add("Image", null, { src: it.src, alt: it.name });
       announce("Added " + it.name + " to " + frame.name);
     };
+    /* Content opens on a card for each kind; a card opens its gallery. */
     var contentPanel = function () {
+      if (!libTab) {
+        return e("div", { className: "bd-content" },
+          e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+          e("ul", { className: "bd-kinds", role: "list" }, LIB_TABS.map(function (t) {
+            var items = t[0] === "video" ? [] : library[t[0]];
+            var note = t[0] === "video" ? "Coming soon" : t[0] === "icons" ? (items.length ? items.length + " of yours, and the icon library" : "The icon library, and yours") : items.length ? items.length + (items.length === 1 ? " item" : " items") : "Nothing yet";
+            return e("li", { key: t[0] }, e("button", { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function () { setLibTab(t[0]); } },
+              e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items.length
+                ? items.slice(0, 3).map(function (it) { return e("img", { key: it.id, src: it.src, alt: "", draggable: false }); })
+                : e(Icon, { name: t[2] })),
+              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note)),
+              e(Icon, { name: "right", className: "bd-kind-chev" })));
+          })));
+      }
       var kind = libTab;
       var items = kind === "video" ? [] : library[kind];
       var fileId = "bd-lib-file";
@@ -3045,10 +3412,9 @@
         onDragOver: function (ev) { if (kind !== "video") { ev.preventDefault(); ev.currentTarget.classList.add("is-drop"); } },
         onDragLeave: function (ev) { ev.currentTarget.classList.remove("is-drop"); },
         onDrop: function (ev) { ev.preventDefault(); ev.currentTarget.classList.remove("is-drop"); if (kind !== "video") addToLibrary(kind, ev.dataTransfer.files); } },
-        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
-        e("div", { className: "bd-content-tabs" },
-          e(Segmented, { label: "Kind of content", wide: true, value: kind, onChange: function (v) { if (v) setLibTab(v); },
-            options: LIB_TABS.map(function (t) { return { value: t[0], label: t[1], title: t[0] === "video" ? "Video: coming soon" : t[1] }; }) })),
+        e("div", { className: "bd-panel-head bd-gallery-head" },
+          e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { setLibTab(null); } }, e(Icon, { name: "left" })),
+          e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function (t) { return t[0] === kind; })[0][1])),
         kind === "icons" ? e("section", { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
           e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
           e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
@@ -3126,7 +3492,7 @@
           return e("li", { key: n },
             e("button", {
               type: "button", className: "bd-tile", "data-type": n, "aria-label": "Add " + n, title: meta.blurb ? n + ": " + meta.blurb : n,
-              onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n }); },
+              onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") }); },
               onClick: function () { if (!justDragged.current) add(n); },
             },
               e(Thumb, { type: n, wide: meta.group === "blocks" }),
@@ -3144,91 +3510,159 @@
         var at = locate(doc, id);
         if (at) at.path.slice(1, -1).forEach(function (n) { if (!isOpen(n)) opens[n.id] = isContainer(n.type) ? "del" : false; });
       });
+      if (selection.length && openFrames[doc.active] === false) setOpenFrames(function (m) { var nx = Object.assign({}, m); nx[doc.active] = true; return nx; });
       if (!Object.keys(opens).length) return;
       setCollapsed(function (c) { var n = Object.assign({}, c); Object.keys(opens).forEach(function (id) { if (opens[id] === "del") delete n[id]; else n[id] = false; }); return n; });
     }, [selection]);
     var isRenaming = function (id, where) { return !!renaming && renaming.id === id && renaming.where === where; };
 
-    /* Every frame is a row; the active one opens onto its layers. */
+    /* Every frame is a row that folds open onto its layers; the active one
+       starts open. A component folds open onto what it's made of: its slots,
+       which hold real layers, and its own parts, which are set through its
+       props and so are shown but can't be picked. */
+    var frameIsOpen = function (f) { return openFrames[f.id] !== undefined ? openFrames[f.id] : f.id === doc.active; };
+    var isOwner = function (n) { var m = META[n.type]; return !!m && !m.builder && !isContainer(n.type); };
+    var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
+    var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
+    var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
+    var foldAll = function (open) {
+      var fo = {};
+      doc.frames.forEach(function (f) { fo[f.id] = open; });
+      setOpenFrames(fo);
+      var c = {};
+      everyNode(function (n) { if (!n.children && !isOwner(n)) return; if (isOwner(n)) { if (open) c[n.id] = false; } else if (!open) c[n.id] = true; });
+      setCollapsed(c);
+      announce(open ? "Every layer expanded" : "Every layer collapsed");
+    };
     var layersPanel = function () {
       var q = layerQuery.trim().toLowerCase();
-      var rows = [];
-      var keep = null;
-      if (q) {
-        keep = {};
-        (function walk(n, path) {
-          (n.children || []).forEach(function (c) {
-            var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
-            if (hit) { keep[c.id] = true; path.forEach(function (p) { keep[p] = true; }); }
-            if (c.children) walk(c, path.concat([c.id]));
-          });
-        })(frame.root, []);
-      }
-      (function walk(n, depth) {
-        (n.children || []).forEach(function (c) {
-          if (keep && !keep[c.id]) return;
-          rows.push({ n: c, depth: depth });
-          if (c.children && (q || isOpen(c))) walk(c, depth + 1);
-        });
-      })(frame.root, 1);
       var toggle = function (id) {
         var at = locate(doc, id);
         var owner = at && !isContainer(at.node.type);
         setCollapsed(function (c) { var n = Object.assign({}, c); if (owner) { if (n[id] === false) delete n[id]; else n[id] = false; } else if (n[id]) delete n[id]; else n[id] = true; return n; });
       };
-      var nodeRow = function (r) {
+      var rowsFor = function (f) {
+        var keep = null;
+        if (q) {
+          keep = {};
+          (function walk(n, path) {
+            (n.children || []).forEach(function (c) {
+              var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
+              if (hit) { keep[c.id] = true; path.forEach(function (x) { keep[x] = true; }); }
+              if (c.children) walk(c, path.concat([c.id]));
+            });
+          })(f.root, []);
+        }
+        var rows = [];
+        var walk = function (n, depth) {
+          (n.children || []).forEach(function (c) {
+            if (keep && !keep[c.id]) return;
+            rows.push({ n: c, depth: depth });
+            if (!(q || isOpen(c))) return;
+            if (isOwner(c) && !q) walkOwner(c, depth + 1);
+            else if (c.children) walk(c, depth + 1);
+          });
+        };
+        var walkOwner = function (c, depth) {
+          var slots = (c.children || []).filter(function (k) { return k.type === "Slot"; });
+          var placed = {};
+          var tree = anatomyOf(f.id, c.id) || [];
+          var seq0 = 0;
+          (function parts(list, d) {
+            list.forEach(function (it) {
+              if (it.slot) {
+                var sl = slots.filter(function (x) { return x.id === it.slot; })[0];
+                if (!sl || placed[sl.id]) return;
+                placed[sl.id] = true;
+                rows.push({ n: sl, depth: d });
+                if (isOpen(sl)) walk(sl, d + 1);
+                return;
+              }
+              rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + (seq0++) });
+              parts(it.children || [], d + 1);
+            });
+          })(tree, depth);
+          slots.forEach(function (sl) { if (placed[sl.id]) return; rows.push({ n: sl, depth: depth }); if (isOpen(sl)) walk(sl, depth + 1); });
+        };
+        walk(f.root, 1);
+        return rows;
+      };
+      var partRow = function (r) {
+        var it = r.part;
+        return e("div", {
+          key: r.key, className: "bd-layer is-part", role: "treeitem", "aria-level": r.depth + 1, "aria-disabled": "true",
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
+          title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector",
+        },
+          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+          e("span", { className: "bd-layer-main is-static" },
+            e(Icon, { name: PART_ICON[it.kind] || "component" }),
+            e("span", { className: "bd-layer-name" }, it.kind),
+            it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
+      };
+      var nodeRow = function (f, r) {
+        if (r.part) return partRow(r);
         var n = r.n;
+        var mine = f.id === doc.active;
         var text = labelOf(n);
-        var on = selection.indexOf(n.id) >= 0;
-        var open = isOpen(n) || !!q;
+        var on = mine && selection.indexOf(n.id) >= 0;
+        var owner = isOwner(n);
+        var open = isOpen(n) || (!!q && !owner);
+        var folds = !!n.children || owner;
         var renameable = n.type === "Group";
         return e("div", {
-          key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === frame.id && hover.id === n.id && "is-hover"),
-          "data-layer": n.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
-          "aria-expanded": n.children ? String(open) : undefined,
+          key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+          "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
+          "aria-expanded": folds ? String(open) : undefined,
           style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-          onPointerEnter: function () { setHover({ f: frame.id, id: n.id }); },
+          onPointerEnter: function () { setHover({ f: f.id, id: n.id }); },
           onPointerLeave: function () { setHover(null); },
         },
-          n.children ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + n.type, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
+          folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : undefined, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
             : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
           e("button", {
             type: "button", className: "bd-layer-main",
-            onClick: function (ev) { if (!justDragged.current) pick(n.id, ev.shiftKey || ev.metaKey || ev.ctrlKey, false, "layers"); },
-            onDoubleClick: function () { if (renameable) setRenaming({ id: n.id, where: "layer" }); },
-            onPointerDown: function (ev) { if (ev.pointerType === "mouse" && n.type !== "Slot") startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
+            onClick: function (ev) { if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id); },
+            onDoubleClick: function () { if (renameable && mine) setRenaming({ id: n.id, where: "layer" }); },
+            onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot") startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
           },
             e(Icon, { name: typeIcon(n.type) }),
-            renameable && isRenaming(n.id, "layer")
+            renameable && mine && isRenaming(n.id, "layer")
               ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
               : e("span", { className: "bd-layer-name" }, nameOf(n)),
             text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
       };
       return e("div", { className: "bd-layers-panel" },
-        e(SearchField, { label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }),
+        e("div", { className: "bd-layers-head" },
+          e(SearchField, { label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }),
+          e("button", { type: "button", className: "bd-act bd-act-ghost", title: "Expand everything", "aria-label": "Expand everything", onClick: function () { foldAll(true); } }, e(Icon, { name: "expandAll" })),
+          e("button", { type: "button", className: "bd-act bd-act-ghost", title: "Collapse everything", "aria-label": "Collapse everything", onClick: function () { foldAll(false); } }, e(Icon, { name: "collapseAll" }))),
         e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
           doc.frames.map(function (f) {
             var on = f.id === doc.active;
+            var open = frameIsOpen(f) || !!q;
             var head = e("div", {
-              key: "frame-" + f.id, className: cx("bd-layer bd-layer-frame", on && !sel && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
+              key: "frame-" + f.id, className: cx("bd-layer bd-layer-frame", on && !sel && frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
               "data-layer": on ? "root" : undefined, "data-frame-row": f.id, role: "treeitem", "aria-level": 1,
-              "aria-selected": String(on && !sel), "aria-expanded": String(on),
+              "aria-selected": String(on && !sel && frameOn), "aria-expanded": String(open),
             },
-              e("span", { className: cx("bd-layer-twisty", on && "is-open"), "aria-hidden": true }, e(Icon, { name: "right" })),
+              e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + f.name,
+                onClick: function () { setOpenFrames(function (m) { var nx = Object.assign({}, m); nx[f.id] = !open; return nx; }); } }, e(Icon, { name: "right" })),
               e("button", {
                 type: "button", className: "bd-layer-main", title: on ? "Double-click to rename" : "Show " + f.name,
                 onClick: function () { frameOps.pick(f.id, true); },
                 onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "layer" }); },
               },
-                e(Icon, { name: "frame" }),
+                e(Icon, { name: f.bare ? "component" : "frame" }),
                 isRenaming("frame:" + f.id, "layer")
                   ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function (v) { frameOps.rename(f.id, v); } })
                   : e("span", { className: "bd-layer-name" }, f.name),
-                e("span", { className: "bd-layer-text" }, sizeText(f))));
-            if (!on) return head;
+                e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : sizeText(f))));
+            if (!open) return head;
+            var rows = rowsFor(f);
             return e(React.Fragment, { key: "frame-" + f.id },
               head,
-              rows.length ? rows.map(nodeRow) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets."));
+              rows.length ? rows.map(function (r) { return nodeRow(f, r); }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets."));
           }),
           listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null));
     };
@@ -3300,8 +3734,37 @@
       var shadowValues = nodes.map(function (n) { return n.style.elevation || ""; });
       var darkValues = nodes.map(function (n) { return !!n.style.dark; });
       var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
+      var free = frame.mode !== "structured";
+      var fills = nodes.map(function (n) { return n.style.fill || ""; }), inks = nodes.map(function (n) { return n.style.color || ""; });
+      var fillHex = same(fills) ? fills[0] : "", inkHex = same(inks) ? inks[0] : "";
+      /* A custom colour, in a free frame only: a swatch that opens the picker. */
+      var picker = function (key, value, label, clears) {
+        return e("label", { className: cx("bd-canvas-custom", value && "is-on"), title: label },
+          e("span", { className: "bd-canvas-chip", style: value ? { background: value } : undefined, "aria-hidden": true }),
+          e("span", { className: "visually-hidden" }, label),
+          e("input", { type: "color", className: "bd-canvas-input", value: value || "#ffffff",
+            onChange: function (ev) { var v = ev.target.value; if (!HEX.test(v)) return; var patch = {}; patch[key] = v.toLowerCase(); if (clears) patch[clears] = undefined; setStyles(ids, patch); } }));
+      };
+      var blendValues = nodes.map(function (n) { return n.style.blend || ""; });
+      var invValues = nodes.map(function (n) { return n.style.invert === "on"; });
+      var lid = "bd-layer-" + first.id;
       return [
-        sec("fill", "Fill", [extra || null, tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" })], null, styled(nodes, ["surface"])),
+        sec("fill", "Fill", [extra || null,
+          free ? e("div", { key: "fillrow", className: "bd-canvas-row" },
+            tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: fillHex ? "Custom colour" : "None", className: "bd-dd-field bd-dd-swatch", onChange: function (v) { setStyles(ids, { surface: v || undefined, fill: undefined }); } }),
+            picker("fill", fillHex, "Custom fill colour", "surface"))
+            : tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" }),
+          free ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
+            e("div", { className: "bd-canvas-row" },
+              picker("color", inkHex, "Custom text colour"),
+              inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyle(ids, "color", undefined); } }, "Use the system's") : null)) : null,
+        ], null, styled(nodes, ["surface", "fill", "color"])),
+        sec("layer", "Layer", [
+          e(Field, { key: "blend", id: lid, label: "Blend mode", hint: "How it mixes with what's under it" },
+            tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-field", noPreview: true })),
+          e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips a picture or icon to its negative" },
+            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })),
+        ], null, styled(nodes, ["blend", "invert"])),
         sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
           hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
             : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),
@@ -3325,7 +3788,7 @@
     var positionRows = function (nodes) {
       var ids = nodes.map(function (n) { return n.id; });
       /* Placed freely on the frame: where, in pixels of the smallest inset step. */
-      if (nodes.every(function (n) { return isFree(n.style); })) {
+      if (frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); })) {
         var unit = pxMap["padding|2xs"] || 4;
         var xs = nodes.map(function (n) { return n.style.x; }), ys = nodes.map(function (n) { return n.style.y; });
         var fid2 = "bd-free-" + nodes[0].id;
@@ -3369,8 +3832,8 @@
             e(Field, { key: "mode", id: "bd-fr-mode", label: "Mode" },
               e(Segmented, { labelledBy: "bd-fr-mode", wide: true, value: frame.dark ? "dark" : "light", onChange: function (v) { setFrame("dark", v === "dark"); },
                 options: [{ value: "light", label: "Light", picture: e(React.Fragment, null, e(Icon, { name: "sun" }), "Light") }, { value: "dark", label: "Dark", picture: e(React.Fragment, null, e(Icon, { name: "moon" }), "Dark") }] })),
-            e(Field, { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : null },
-              e("div", { className: "bd-canvas-row" },
+            e(Field, { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : frame.mode === "structured" ? "A structured page takes the system's surfaces only." : null },
+              e("div", { className: "bd-canvas-row" + (frame.mode === "structured" && !frame.canvas ? " is-tokens" : "") },
                 e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.canvas ? "" : frame.surface, placeholder: "Custom", preview: "color", className: "bd-dd-field bd-dd-swatch",
                   onChange: function (v) { change(function (d) { var f = active(d); f.surface = v || "base"; delete f.canvas; return undefined; }); }, options: surfaceOptions }),
                 e("label", { className: cx("bd-canvas-custom", frame.canvas && "is-on"), title: "A custom canvas colour" },
@@ -3379,7 +3842,10 @@
                   e("input", { type: "color", className: "bd-canvas-input", value: frame.canvas || "#ffffff",
                     onChange: function (ev) { var v = ev.target.value; if (/^#[0-9a-f]{6}$/i.test(v)) setFrame("canvas", v.toLowerCase()); } })))),
           ])]
-        : [          sec("frame-flow", "Page layout", [
+        : [          sec("frame-mode", "Kind", e(Field, { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
+            e(Segmented, { labelledBy: "bd-fr-kind", wide: true, value: frame.mode === "structured" ? "structured" : "free", onChange: function (v) { if (v) setMode(v); },
+              options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }] }))),
+          sec("frame-flow", "Page layout", [
             e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
               e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
             e(Field, { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
@@ -3400,6 +3866,8 @@
             e("div", { className: "bd-size-row" },
               e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function (v) { setSize(v, undefined); } }),
               e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : undefined, onChange: function (v) { setSize(undefined, v); } }),
+              e("button", { type: "button", className: "bd-act bd-act-sm", "aria-pressed": String(!!frame.lock), title: frame.lock ? "Proportions kept: width and height change together" : "Constrain proportions", "aria-label": "Constrain proportions",
+                onClick: function () { change(function (d) { var f = active(d); if (f.lock) delete f.lock; else { f.lock = true; if (f.hug) { f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); f.hug = false; } } return undefined; }, frame.lock ? "Width and height change on their own" : "Width and height keep their proportions"); } }, e(Icon, { name: "chain" })),
               e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function () { setSize(frame.height, frame.width); } }, e(Icon, { name: "rotate" }))),
             e(Segmented, { label: "Height", wide: true, value: frame.hug ? "hug" : "fixed",
               onChange: function (v) { change(function (d) { var f = active(d); f.hug = v === "hug"; if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height); return undefined; }); },
@@ -3532,8 +4000,7 @@
     var zoomText = Math.round(cam.z * 100) + "%";
 
     var toolbar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
-      e(Dropdown, { menu: true, label: "Start from a layout", placeholder: "Start from", compact: true, className: "bd-start",
-        options: STARTERS.map(function (s) { return { value: s[0], label: s[1] }; }).concat([{ value: "import", label: "Paste a layout…", icon: "upload", hint: "JSON or a builder link" }]), onChange: startFrom }),
+      e("button", { type: "button", className: "bd-act bd-start", title: "New: a free canvas, a structured page or a template", "aria-label": "New", "aria-haspopup": "dialog", onClick: openNew }, e(Icon, { name: "plus" })),
       e("span", { className: "bd-tool-group" },
         e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
         e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))),
@@ -3667,6 +4134,14 @@
         var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
         var w = edge === "b" ? start.w : Math.max(MIN_SIDE, Math.min(MAX_WIDTH, snapSide(start.w + dx, VIEW_W, f.hug, 16 / z)));
         var h = edge === "r" ? null : Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, snapSide(start.h + dy, VIEW_H, f.hug, 16 / z)));
+        /* Proportions kept: the edge pulled leads, the other side follows. */
+        if (f.lock) {
+          var k = start.h / start.w;
+          if (edge === "b") w = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(h / k)));
+          else if (edge === "r") h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, Math.round(w * k)));
+          else if (Math.abs(dx) >= Math.abs(dy)) { w = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(start.w + dx))); h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, Math.round(w * k))); }
+          else { h = Math.max(MIN_SIDE, Math.min(MAX_HEIGHT, Math.round(start.h + dy))); w = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(h / k))); }
+        }
         cur = { fid: f.id, w: w, h: h };
         setResizing(cur);
       };
@@ -3693,6 +4168,48 @@
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", onCancel);
     };
+    /* A frame's name drags it anywhere on the canvas. It keeps its spot from
+       then on, and so do the others, so moving one doesn't shuffle the rest. */
+    var startFrameMove = function (ev, f) {
+      if (ev.button !== 0 || ev.pointerType === "touch") return;
+      var b = layoutRef.current.boxes[f.id];
+      if (!b) return;
+      var z = camRef.current.z;
+      var start = { x: ev.clientX, y: ev.clientY, bx: b.x, by: b.y };
+      var cur = null, moved = false;
+      var move = function (mv) {
+        var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
+        if (!moved && Math.abs(dx) + Math.abs(dy) < 4 / z) return;
+        moved = true;
+        cur = { fid: f.id, x: Math.round(start.bx + dx), y: Math.round(start.by + dy) };
+        setMovingFrame(cur);
+      };
+      var up = function (ok) {
+        return function () {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", onUp);
+          window.removeEventListener("pointercancel", onCancel);
+          setMovingFrame(null);
+          if (!ok || !cur) return;
+          justDragged.current = true;
+          setTimeout(function () { justDragged.current = false; }, 60);
+          var done = cur;
+          var boxesNow = layoutRef.current.boxes;
+          change(function (d) {
+            d.frames.forEach(function (fr) { if (typeof fr.x !== "number" && boxesNow[fr.id]) { fr.x = Math.round(boxesNow[fr.id].x); fr.y = Math.round(boxesNow[fr.id].y); } });
+            var fr2 = frameById(d, done.fid);
+            if (!fr2) return null;
+            fr2.x = done.x; fr2.y = done.y;
+            d.active = done.fid;
+            return undefined;
+          }, "Moved " + f.name);
+        };
+      };
+      var onUp = up(true), onCancel = up(false);
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
+    };
     var sizeName = function (w, h) {
       var p = PRESETS.filter(function (x) { return x.width === w && (h == null || x.height === h); })[0];
       return w + " × " + (h == null ? "hug" : h) + (p ? " · " + p.label : "");
@@ -3700,7 +4217,7 @@
     var resizers = e("div", { className: "bd-resizers", "aria-hidden": true },
       doc.frames.map(function (f) {
         var b = boxes[f.id];
-        if (!b) return null;
+        if (!b || f.bare) return null;
         var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
         var r = resizing && resizing.fid === f.id ? resizing : null;
         return e(React.Fragment, { key: f.id },
@@ -3714,8 +4231,10 @@
     var frameSrc = mountEl.getAttribute("data-frame");
     var anyReady = doc.frames.some(function (f) { return ready[f.id]; });
 
+    var stageDark = stageColor && (function (h) { var r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b2 = parseInt(h.slice(5, 7), 16); return (0.2126 * r + 0.7152 * g + 0.0722 * b2) / 255 < 0.5; })(stageColor);
     var stage = e("div", {
-      className: cx("bd-stage", drag && "is-dragging", (space || panning || tool === "hand") && "is-panning", preview && "is-preview"), ref: stageRef,
+      className: cx("bd-stage", drag && "is-dragging", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"), ref: stageRef,
+      style: stageColor ? { backgroundColor: stageColor } : undefined,
       onPointerDown: function (ev) {
         if (!isBackground(ev.target) && !spaceRef.current && ev.button !== 1) return;
         if (ev.button === 2) return;
@@ -3728,7 +4247,7 @@
       onPointerUp: function (ev) {
         if (!gest.current.pts[ev.pointerId]) return;
         var moved = gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
-        if (!moved && isBackground(ev.target) && !spaceRef.current) { select([]); if (editRef.current) editDone(true); }
+        if (!moved && isBackground(ev.target) && !spaceRef.current) { select([]); setFrameOn(false); if (editRef.current) editDone(true); }
       },
       onPointerCancel: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
     },
@@ -3736,7 +4255,7 @@
         doc.frames.map(function (f) {
           var b = boxes[f.id];
           return e("iframe", {
-            key: f.id, className: cx("bd-frame", f.id === doc.active && "is-active"),
+            key: f.id, className: cx("bd-frame", f.id === doc.active && "is-active", f.bare && "is-bare"),
             ref: function (el) { if (el) frameEls.current[f.id] = el; else delete frameEls.current[f.id]; },
             title: "Frame " + f.name + ", " + f.width + " by " + Math.round(b.h) + " pixels", src: frameSrc,
             onLoad: function () { frameReady(f.id); },
@@ -3747,22 +4266,24 @@
         doc.frames.map(function (f) {
           var b = boxes[f.id];
           var on = f.id === doc.active;
+          if (f.bare) return null;
           return e("div", {
-            key: f.id, className: cx("bd-flabel", on && "is-current", on && !sel && "is-selected"),
+            key: f.id, className: cx("bd-flabel", on && "is-current", on && !sel && frameOn && "is-selected"),
             style: { left: cam.x + b.x * cam.z + "px", top: cam.y + b.y * cam.z + "px", maxWidth: Math.max(80, b.w * cam.z) + "px" },
           },
             isRenaming("frame:" + f.id, "label")
               ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-flabel-name", onChange: function (v) { frameOps.rename(f.id, v); } })
               : e("button", {
-                type: "button", className: "bd-flabel-btn", title: f.name + ", " + sizeText(f) + ". Double-click to rename.",
-                onClick: function () { frameOps.pick(f.id); },
+                type: "button", className: "bd-flabel-btn", title: f.name + ", " + sizeText(f) + ". Drag to move it, double-click to rename.",
+                onPointerDown: function (ev) { startFrameMove(ev, f); },
+                onClick: function () { if (!justDragged.current) frameOps.pick(f.id); },
                 onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "label" }); },
               }, e("span", { className: "bd-flabel-name" }, f.name)),
             e("span", { className: "bd-flabel-size" }, sizeText(f)),
             on && !preview ? frameMenu(f, "label") : null);
         })),
       e("div", { className: "bd-marks", "aria-hidden": true },
-        !preview && boxes[frame.id] ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+        !preview && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && frameOn && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
         !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
         !preview ? marks.sel.map(function (m) {
           var at = locate(doc, m.id);
@@ -3827,6 +4348,33 @@
               style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))));
     };
 
+    var NEW_KINDS = [
+      ["free", "Freeform canvas", "frame", "Place anything anywhere and give it any colour. For social posts, mockups and trying ideas."],
+      ["structured", "Structured page", "layout", "Everything sits in Groups that lay out with flex, like auto layout. Tokens only, so it's ready to become code."],
+      ["template", "Template", "blocks", "Start from a ready-made page or a pasted layout."],
+    ];
+    var newDialog = function () {
+      return e("dialog", { className: "bd-code bd-new", ref: newRef, "aria-labelledby": "bd-new-title", onClose: function () { setNewView("pick"); } },
+        e("div", { className: "bd-code-head" },
+          e("div", { className: "bd-code-intro" },
+            newView === "template" ? e("button", { type: "button", className: "bd-btn bd-btn-sm bd-new-back", onClick: function () { setNewView("pick"); } }, e(Icon, { name: "left" }), "Back") : null,
+            e("h2", { id: "bd-new-title" }, newView === "template" ? "Start from a template" : "New"),
+            e("p", { className: "bd-inspect-sub" }, newView === "template" ? "A template replaces every frame. Undo brings your work back." : "A canvas or a page goes beside your frames.")),
+          e("div", { className: "bd-code-actions" },
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: closeNew }, e(Icon, { name: "close" })))),
+        newView === "template"
+          ? e("ul", { className: "bd-new-list", role: "list" }, STARTERS.map(function (st) {
+              return e("li", { key: st[0] }, e("button", { type: "button", className: "bd-new-item", onClick: function () { startFrom(st[0]); } }, e(Icon, { name: st[0] === "blank" ? "frame" : "file" }), e("span", null, st[1])));
+            }).concat([e("li", { key: "import" }, e("button", { type: "button", className: "bd-new-item", onClick: function () { startFrom("import"); } }, e(Icon, { name: "upload" }), e("span", null, "Paste a layout…"), e("span", { className: "bd-new-hint" }, "JSON or a builder link")))]))
+          : e("div", { className: "bd-new-kinds" }, NEW_KINDS.map(function (k) {
+              return e("button", { key: k[0], type: "button", className: "bd-new-kind", "data-kind": k[0],
+                onClick: function () { if (k[0] === "template") setNewView("template"); else newFrame(k[0]); } },
+                e("span", { className: "bd-new-pic", "aria-hidden": true }, e(Icon, { name: k[2] })),
+                e("span", { className: "bd-new-name" }, k[1]),
+                e("span", { className: "bd-new-note" }, k[3]));
+            })));
+    };
+
     var importDialog = function () {
       var read = readLayout(importText);
       var ok = read && !read.error;
@@ -3857,8 +4405,36 @@
             e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function () { importLayout("replace"); } }, "Replace all frames"))));
     };
 
+    /* Nothing picked, not even a frame: the builder's own settings. */
+    var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
+    var builderInspector = function () {
+      var bid = "bd-stage-bg";
+      return e("div", { className: "bd-inspect" },
+        e("div", { className: "bd-inspect-head" },
+          e("div", { className: "bd-head-row" }, e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "panels" }), "Canvas")),
+          e("p", { className: "bd-inspect-sub" }, "The builder's own settings. Select a frame, or something in one, to change that instead.")),
+        e("div", { className: "bd-ipanel" },
+          sec("builder-canvas", "Canvas", [
+            e(Field, { key: "bg", id: bid, label: "Background", hint: stageColor ? "Behind every frame. It isn't part of any design." : "The builder's default, behind every frame." },
+              e("div", { className: "bd-canvas-row" },
+                e(Segmented, { labelledBy: bid, className: "bd-seg-pics bd-stage-swatches", value: STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }) ? stageColor : null,
+                  onChange: function (v) { setStageColor(v || ""); },
+                  options: STAGE_SWATCHES.map(function (x) { return { value: x[0], label: x[1], picture: e("span", { className: cx("bd-stage-chip", !x[0] && "is-default"), style: x[0] ? { background: x[0] } : undefined }) }; }) }),
+                e("label", { className: cx("bd-canvas-custom", stageColor && !STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }) && "is-on"), title: "Any colour" },
+                  e("span", { className: "bd-canvas-chip", style: stageColor ? { background: stageColor } : undefined, "aria-hidden": true }),
+                  e("span", { className: "visually-hidden" }, "Custom background colour"),
+                  e("input", { type: "color", className: "bd-canvas-input", value: stageColor || "#e7e7ea", onChange: function (ev) { var v = ev.target.value; if (HEX.test(v)) setStageColor(v.toLowerCase()); } })))),
+          ]),
+          sec("builder-frames", "Frames", [
+            e("p", { key: "n", className: "bd-sec-empty" }, doc.frames.filter(function (f) { return !f.bare; }).length + " frames, " + doc.frames.filter(function (f) { return f.bare; }).length + " loose objects. Drag something off a frame to leave it loose on the canvas."),
+            e("div", { key: "acts", className: "bd-media-actions" },
+              e("button", { type: "button", className: "bd-btn", onClick: openNew }, e(Icon, { name: "plus" }), "New…"),
+              e("button", { type: "button", className: "bd-btn", onClick: fitAll }, e(Icon, { name: "fit" }), "Zoom to fit")),
+          ])));
+    };
     var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
-      : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes) : frameInspector();
+      : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes)
+      : frameOn ? frameInspector() : builderInspector();
     var slot = wide ? document.getElementById("app-toolbar") : null;
 
     return e(React.Fragment, null,
@@ -3880,18 +4456,24 @@
               : e("div", { className: "bd-config-dock", ref: dockRef }))),
         e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
-      drag ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
+      drag && drag.ghost ? (function () {
+        var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
+        var x = drag.spot ? drag.spot.x : drag.x - grab.x * z, y = drag.spot ? drag.spot.y : drag.y - grab.y * z;
+        return e("div", { className: "bd-ghost-el", style: { left: x + "px", top: y + "px", width: g.w * z + "px", height: g.h * z + "px" }, "aria-hidden": true },
+          e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } }));
+      })() : drag ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
       e("dialog", { className: "bd-code", ref: dialogRef, "aria-labelledby": "bd-code-title" },
         e("div", { className: "bd-code-head" },
           e("div", { className: "bd-code-intro" },
-            e("h2", { id: "bd-code-title" }, "Code: " + frame.name),
+            e("h2", { id: "bd-code-title" }, "Code: " + (codeTitle || frame.name)),
             e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own.")),
           e("div", { className: "bd-code-actions" },
             e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { copyText(code).then(function () { announce("Code copied"); }); } }, e(Icon, { name: "copy" }), "Copy"),
-            e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: (frame.name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download"),
+            e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download"),
             e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
             e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
+      newDialog(),
       importDialog(),
       playDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));

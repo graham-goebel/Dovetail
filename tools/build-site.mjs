@@ -2211,6 +2211,14 @@ const module = (css) => fam("layout", tokenOption("module", ["--dt-layout-module
 const spaceOpts2 = (axis, css) => BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-${axis}-${o}`], css(cssVar(`--dt-space-${axis}-${o}`)))));
 /* A pinned or floating item's distance from the edges it's pinned to. */
 const OFFSET = "var(--bd-offset, 0)";
+const BRAND_FILL = new Set(["brand", "brand-muted", "brand-secondary", "brand-secondary-muted"]);
+const onFill = (fg) => ({
+  color: fg,
+  "--dt-text-primary": fg,
+  "--dt-text-headline": fg,
+  "--dt-text-secondary": `color-mix(in oklab, ${fg} 88%, transparent)`,
+  "--dt-text-tertiary": `color-mix(in oklab, ${fg} 76%, transparent)`,
+});
 const BUILDER_TOKENS = {
   /* Where an item sits across its parent's flow: CSS keywords, no values. */
   self: { label: "Align self", section: "position", preview: "text",
@@ -2234,9 +2242,20 @@ const BUILDER_TOKENS = {
     ].map(([v, css, label]) => tokenOption(v, [], css, label)) },
   offset: { label: "Offset", section: "position", preview: "space",
     options: BUILDER_SPACE.map((o) => fam("inset", tokenOption(o, [`--dt-space-inset-${o}`], { "--bd-offset": inset(o) }))) },
+  /* A brand fill re-points the text roles on itself, the way Section's tones
+     do, so a Heading or Text inside it reads on the fill without a prop. */
   surface: { label: "Fill", section: "appearance", preview: "color",
-    options: ["base", "subtle", "raised", "sunken", "brand-muted", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
-      .map((o) => tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
+    options: ["base", "subtle", "raised", "sunken", "brand", "brand-muted", "brand-secondary", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
+      .map((o) => BRAND_FILL.has(o)
+        ? tokenOption(o, [`--dt-surface-${o}`, `--dt-text-on-${o}`], Object.assign({ background: cssVar(`--dt-surface-${o}`) }, onFill(cssVar(`--dt-text-on-${o}`))))
+        : tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
+  /* How a layer mixes with what's under it, and an inverted picture: CSS
+     keywords and a filter, no values. */
+  blend: { label: "Blend mode", section: "appearance", preview: "text",
+    options: ["multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]
+      .map((o) => tokenOption(o, [], { mixBlendMode: o }, o.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase()))) },
+  invert: { label: "Invert", section: "appearance", preview: "text",
+    options: [tokenOption("on", [], { filter: "invert(1)" }, "Inverted")] },
   border: { label: "Border", section: "appearance", preview: "color", sides: ["borderTop", "borderRight", "borderBottom", "borderLeft"], options: borderOpts("border") },
   borderTop: { label: "Border top", section: "appearance", preview: "color", side: "top", options: borderOpts("borderTop") },
   borderRight: { label: "Border right", section: "appearance", preview: "color", side: "right", options: borderOpts("borderRight") },
@@ -2454,6 +2473,11 @@ function buildBuilderFormat(meta, groups, tokens) {
     `| ${code("surface")} | the page fill: ${list(tokens.surface.options.map((o) => o.value))} | ${code("base")} |`,
     `| ${code("spacing")} | layout character: ${list(["tight", "balanced", "open"])} | page default |`,
     `| ${code("gap")} | space between top-level blocks: ${list(BUILDER_ROOT_GAPS)} | none |`,
+    `| ${code("mode")} | ${code("free")}: items may sit anywhere on it and take custom colours; ${code("structured")}: everything sits in Groups, in the flow, with tokens only | ${code("free")} |`,
+    `| ${code("canvas")} | a custom page colour, ${code("#rrggbb")}, in a free frame | none |`,
+    `| ${code("lock")} | ${code("true")}: width and height keep their proportions | ${code("false")} |`,
+    `| ${code("x")}, ${code("y")} | where the frame sits on the canvas, in pixels; leave them out to line frames up side by side | side by side |`,
+    `| ${code("bare")} | ${code("true")}: a loose object on the canvas, with no frame around it, as wide as what's in it | ${code("false")} |`,
     `| ${code("root")} | ${code("{ \"children\": [ ...nodes ] }")} | empty |`,
     ``,
     `Device sizes: ${BUILDER_FRAMES.map((f) => `${f.label} ${f.width} × ${f.height}`).join(", ")}.`,
@@ -2466,7 +2490,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `- ${code("type")}: a component from the list below.`,
     `- ${code("props")}: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a ${code("?")} marks one you may leave out), and "a list of text" an array of strings. A component's text is ${code("props.children")}. Leave a prop out to keep the sample content the builder starts it with.`,
-    `- ${code("style")}: keys from the style table, each set to one of its option names. Never a CSS value.`,
+    `- ${code("style")}: keys from the style table, each set to one of its option names. Never a CSS value, with three exceptions in a free frame: ${code("x")} and ${code("y")} place a top-level item (whole steps of ${code("--dt-space-inset-2xs")}), and ${code("fill")} and ${code("color")} take a custom ${code("#rrggbb")} background and text colour.`,
     `- ${code("children")}: an array of nodes, only on containers: ${list(containers)}.`,
     `- On any other component, ${code("children")} may hold its slots instead: ${code('{ "type": "Slot", "props": { "name": "actions" }, "children": [ ...nodes ] }')}. A slot stands for one of the component's element props (a hero's ${code("actions")} or ${code("media")}, marked "a slot" below). What's in it renders into that prop and exports as JSX in it. Leave a slot out to keep the sample's own content.`,
     `- ${code("name")}: a label for a container, shown in the layers.`,
@@ -2505,8 +2529,8 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `## What doesn't carry over`,
     ``,
-    `- Raw values: pixels, colours, custom CSS or class names. Use the style keys.`,
-    `- Free positions. Everything sits in the flow of its container.`,
+    `- Raw values: pixels, custom CSS or class names, and colours outside a free frame. Use the style keys.`,
+    `- Free positions inside a container or in a structured frame. Those sit in the flow.`,
     `- React elements in props that aren't slots (a popover's trigger, an icon). The component keeps its sample content there.`,
     `- Handlers, state and data mapped into lists.`,
     ``
