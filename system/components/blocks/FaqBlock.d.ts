@@ -13,6 +13,8 @@ export interface FaqBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   lead?: React.ReactNode;
   /** A link to support, under the lead. */
   actions?: React.ReactNode;

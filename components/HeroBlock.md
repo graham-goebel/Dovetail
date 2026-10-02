@@ -28,6 +28,9 @@ The top of a page. `split` sets the copy beside a picture and stacks them on a p
 ### Stacking blocks
 Blocks are Sections, so a page is a list of them. Alternate `tone` (base, subtle, base, brand) so one band ends where the next begins, keep one `HeroBlock` at the top and one `CtaBlock` at the end, and let everything between be the argument. Pass `dark` to scope dark mode to a single block.
 
+### Title size
+Set `titleSize` to move the title along the type scale, from `display-lg` down to `heading-md`. It defaults to `display-sm`. Only its size changes: the heading level stays what the block renders.
+
 ### Tokens
 Reads the section, typography and card tokens through `Section`, `Heading` and `Text`; it has none of its own. Retheme it by retheming those.
 
@@ -45,6 +48,8 @@ export interface HeroBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "display-sm" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   /** One or two sentences under the title. */
   lead?: React.ReactNode;
   /** The primary and secondary buttons. */
@@ -90,8 +95,8 @@ import { BlockHeader } from "./BlockHeader.jsx";
 /* The top of a page. Split puts the copy beside a picture and stacks them on
    a phone; centred puts the copy over the picture; a background image turns
    the whole block into a photo band with the copy on a scrim. */
-export function HeroBlock({ eyebrow, title, lead, actions, media, background, layout = "split", tone = "base", dark, texture, spacing = "default", width = "default", children, ...rest }) {
-  const header = <BlockHeader eyebrow={eyebrow} title={title} lead={lead} actions={actions} level={1} size="display-sm" align={layout === "centered" || background ? (layout === "centered" ? "center" : "start") : "start"} />;
+export function HeroBlock({ eyebrow, title, titleSize = "display-sm", lead, actions, media, background, layout = "split", tone = "base", dark, texture, spacing = "default", width = "default", children, ...rest }) {
+  const header = <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} actions={actions} level={1} align={layout === "centered" || background ? (layout === "centered" ? "center" : "start") : "start"} />;
   if (background) {
     return (
       <Section media={background} align={layout === "centered" ? "center" : "bottom"} dark={dark} spacing={spacing} width={width} {...rest}>

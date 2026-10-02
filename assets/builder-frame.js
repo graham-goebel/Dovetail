@@ -520,8 +520,12 @@
       if (type === "dblclick") { host().edit(id); return; }
       if (type !== "click") return;
       if (swallowClick) { swallowClick = false; return; }
+      /* A component's own heading, pressed: the component, with its title
+         as the part to change. */
+      var hd = w && ev.target.closest ? ev.target.closest("h1, h2, h3, h4, h5, h6") : null;
+      var part = hd && w.contains(hd) && hd.closest("[data-bf-id]") === w ? "title" : null;
       /* Shift adds to the selection; Cmd or Ctrl goes straight to the text. */
-      host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey);
+      host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey, part);
     }, true);
   });
   /* A pan or a pinch: every finger while editing, the middle button, a drag
@@ -1022,6 +1026,21 @@
       where.appendChild(box);
       var out = probes.map(function (p) { return p ? Math.round(p.getBoundingClientRect().width * 10) / 10 : null; });
       box.remove();
+      return out;
+    },
+    /* What each colour token comes to here, in this frame's theme, so the
+       builder's fixed chrome can show the configured colours. */
+    colors: function (tokens) {
+      var where = mount.firstElementChild || document.body;
+      var probes = tokens.map(function (t) {
+        var p = document.createElement("div");
+        p.style.cssText = "position:absolute;width:0;height:0;visibility:hidden;pointer-events:none";
+        p.style.backgroundColor = "var(" + t + ")";
+        where.appendChild(p);
+        return p;
+      });
+      var out = probes.map(function (p) { return getComputedStyle(p).backgroundColor; });
+      probes.forEach(function (p) { p.remove(); });
       return out;
     },
     /* The large control size in pixels, which drawn shapes snap to. */

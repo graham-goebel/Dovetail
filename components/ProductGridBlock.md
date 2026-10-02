@@ -49,6 +49,9 @@ A page section with a header over a responsive grid of `ProductCard`s. Reach for
 ### Composition
 A `Section` holding a `BlockHeader` and a `<ul>` of `ProductCard`s, each rendered as the list item (`as="li"`). Each entry of `products` is spread into a `ProductCard`, so every `ProductCard` prop is available (`badge`, `swatches`, `soldOut`, `action`, `onQuickAdd`, `ratio`, `layout`); `id` is the React key and is not passed on. Stack it with other blocks: it takes the same `tone`, `dark`, `texture`, `spacing` and `width` props as every block.
 
+### Title size
+Set `titleSize` to move the title along the type scale, from `display-lg` down to `heading-md`. It defaults to `heading-lg`. Only its size changes: the heading level stays what the block renders.
+
 ### Tokens
 Has none of its own. The gap between the header and the grid is `--dt-layout-module-gap`, so the Configure sheet's module spacing reaches it; the grid gaps are `--dt-space-stack-lg` and `--dt-space-inline-md`. The cards read the `--dt-card-*` and `--dt-product-*` tokens through `ProductCard`.
 
@@ -81,6 +84,8 @@ export interface ProductGridBlockProps extends Omit<React.HTMLAttributes<HTMLEle
   eyebrow?: React.ReactNode;
   /** The block's heading. */
   title?: React.ReactNode;
+  /** The title's type size, on the system's heading and display scale. @default "heading-lg" */
+  titleSize?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md";
   /** One or two sentences under the title. */
   lead?: React.ReactNode;
   /** The products, each spread into a ProductCard rendered as a list item. Give every one an href so the card is a link. */
@@ -139,7 +144,7 @@ const GAP = "var(--dt-space-inline-md)";
    screen; each track is at least a share of the row and at least MIN_CARD,
    so the grid gives up columns as the width runs out and lands on two on a
    phone. */
-export function ProductGridBlock({ eyebrow, title, lead, products = [], columns = 4, action, emptyState, level = 2, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
+export function ProductGridBlock({ eyebrow, title, titleSize = "heading-lg", lead, products = [], columns = 4, action, emptyState, level = 2, tone = "base", dark, texture, spacing = "default", width = "default", ...rest }) {
   const n = [2, 3, 4].includes(columns) ? columns : 4;
   const hasHeader = !!(eyebrow || title || lead || action);
   return (
@@ -147,7 +152,7 @@ export function ProductGridBlock({ eyebrow, title, lead, products = [], columns 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-module-gap)" }}>
         {hasHeader && (
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", columnGap: "var(--dt-space-inline-lg)", rowGap: "var(--dt-space-stack-sm)" }}>
-            {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} lead={lead} level={level} style={{ flex: "1 1 auto", minWidth: 0 }} />}
+            {(eyebrow || title || lead) && <BlockHeader eyebrow={eyebrow} title={title} size={titleSize} lead={lead} level={level} style={{ flex: "1 1 auto", minWidth: 0 }} />}
             {action && <div style={{ flex: "none", display: "flex", alignItems: "center", gap: "var(--dt-space-inline-sm)" }}>{action}</div>}
           </div>
         )}

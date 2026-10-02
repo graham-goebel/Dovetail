@@ -141,6 +141,7 @@
   var MEDIA_TYPES = { Image: 1, Video: 1, Cover: 1, Media: 1, Figure: 1, AspectRatio: 1, ProductGallery: 1, SocialPost: 1 };
   var BAND_TYPES = { Group: 1, Section: 1, Stack: 1, Inline: 1, Grid: 1, Card: 1, Prose: 1 };
   var TEXT_TYPES = { Text: 1, Heading: 1, Quote: 1, Code: 1, Link: 1 };
+  var PICTURE_TYPES = { Image: 1, Figure: 1, Cover: 1 };
   function contextOf(types) {
     var t = types.length && types.every(function (x) { return x === types[0]; }) ? types[0] : null;
     var m = t && META[t];
@@ -168,13 +169,13 @@
   /* The Content panel's library: images, illustrations and icons kept in this
      browser, to drag onto the canvas or pick for an image. */
   var LIB_KEY = "dovetail-builder-library";
-  var LIB_KINDS = ["images", "illustrations", "icons"];
+  var LIB_KINDS = ["images", "illustrations", "icons", "video"];
   function loadLibrary() {
     var raw = storage(function (s) { return JSON.parse(s.getItem(LIB_KEY) || "null"); }) || {};
     var out = {};
     LIB_KINDS.forEach(function (k) {
       out[k] = (Array.isArray(raw[k]) ? raw[k] : []).filter(function (it) {
-        return it && typeof it.id === "string" && typeof it.name === "string" && typeof it.src === "string" && /^data:image\//.test(it.src);
+        return it && typeof it.id === "string" && typeof it.name === "string" && typeof it.src === "string" && (k === "video" ? /^data:video\//.test(it.src) : /^data:image\//.test(it.src));
       }).map(function (it) { return { id: it.id, name: it.name.slice(0, 80), src: it.src, original: typeof it.original === "string" && /^data:image\//.test(it.original) ? it.original : undefined }; });
     });
     return out;
@@ -183,6 +184,16 @@
      transparency; an illustration fits 1200px as PNG; an SVG stays as drawn. */
   function readForLibrary(file, kind) {
     return new Promise(function (resolve, reject) {
+      /* A clip is kept as it is, if it's small enough to stay in this browser. */
+      if (kind === "video") {
+        if (!/^video\//.test(file.type)) { reject(new Error(file.name + " isn't a video.")); return; }
+        if (file.size > MEDIA_LIMIT) { reject(new Error(file.name + " is over 1.5 MB. Use a shorter or smaller clip, or a URL on a Video.")); return; }
+        var vr = new FileReader();
+        vr.onerror = function () { reject(new Error("Couldn't read " + file.name + ".")); };
+        vr.onload = function () { resolve(String(vr.result)); };
+        vr.readAsDataURL(file);
+        return;
+      }
       if (!/^image\//.test(file.type)) { reject(new Error(file.name + " isn't an image.")); return; }
       if (kind === "icons" && file.type !== "image/svg+xml") { reject(new Error("Icons are SVG files.")); return; }
       var reader = new FileReader();
@@ -234,6 +245,26 @@
     ["content", "Content", "Images, illustrations and icons", "folder"],
     ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
   ];
+
+  /* The system's text styles, largest first, for the inspector's Styles. */
+  var TEXT_STYLES = [
+    ["display-lg", "Display large"], ["display-md", "Display medium"], ["display-sm", "Display small"],
+    ["heading-xl", "Heading XL"], ["heading-lg", "Heading large"], ["heading-md", "Heading medium"], ["heading-sm", "Heading small"], ["heading-xs", "Heading XS"],
+    ["body-lg", "Body large"], ["body-md", "Body"], ["body-sm", "Body small"], ["label-md", "Label"], ["eyebrow", "Eyebrow"], ["code-md", "Code"],
+  ];
+
+  /* Each kind of layer's icon in Layers and the inspector; a kind with none
+     of its own takes its category's. */
+  var TYPE_ICON = {
+    Slot: "slot", Group: "group", Stack: "column", Inline: "row", Grid: "gridView", Section: "layout", Card: "card", Divider: "minus", Shape: "square",
+    Heading: "heading", Text: "type", Quote: "quote", Code: "code", Prose: "file", Link: "link",
+    Image: "image", Video: "video", Cover: "cover", Media: "media", Figure: "figure", AspectRatio: "fit",
+    Button: "cursor", IconButton: "cursor", ButtonGroup: "cursor",
+    Avatar: "user", AvatarGroup: "user", Badge: "tag", Tag: "tag", Stat: "chart", Table: "table", List: "list", Accordion: "accordion",
+    Alert: "megaphone", Banner: "megaphone", Callout: "megaphone", Progress: "chart", Spinner: "rotate", Thinking: "wand",
+    Navbar: "nav", Tabs: "nav", Breadcrumbs: "nav", BottomNav: "nav", Sidebar: "panels", AppShell: "panels",
+  };
+  var GROUP_TYPE_ICON = { forms: "form", navigation: "nav", feedback: "bell", commerce: "bag", chat: "chat", blocks: "blocks", content: "file", display: "component", actions: "cursor" };
 
   /* Each category's icon in the assets panel. */
   var GROUP_ICON = {
@@ -807,9 +838,87 @@
     exportOut: ["M12 15V3", "m7 8 5-5 5 5", "M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"],
     variable: ["M8 4c-2 2.5-3 5-3 8s1 5.5 3 8", "M16 4c2 2.5 3 5 3 8s-1 5.5-3 8", "m9.5 9 5 6", "m14.5 9-5 6"],
     shapes: ["M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M13 13h8v8h-8z", "M7 14l4 7H3z"],
+    card: ["M4 5h16v14H4z", "M4 10h16", "M7 14h6"],
   };
+  /* Heroicons outline, 24px, drawn at stroke 1.5 (MIT, Copyright (c) Tailwind Labs, Inc.;
+     see assets/vendor/heroicons-LICENSE.txt). The builder's own drawings
+     above fill the gaps: alignment, rows and columns, shapes and type. */
+  var HERO = {
+    undo: ["M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"],
+    redo: ["m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"],
+    down: ["m19.5 8.25-7.5 7.5-7.5-7.5"],
+    up: ["m4.5 15.75 7.5-7.5 7.5 7.5"],
+    left: ["M15.75 19.5 8.25 12l7.5-7.5"],
+    right: ["m8.25 4.5 7.5 7.5-7.5 7.5"],
+    chain: ["M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"],
+    layers2: ["M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"],
+    copy: ["M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"],
+    trash: ["m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"],
+    code: ["M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"],
+    link: ["M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"],
+    eye: ["M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z","M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"],
+    plus: ["M12 4.5v15m7.5-7.5h-15"],
+    close: ["M6 18 18 6M6 6l12 12"],
+    search: ["m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"],
+    check: ["m4.5 12.75 6 6 9-13.5"],
+    alert: ["M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"],
+    phone: ["M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"],
+    tablet: ["M10.5 19.5h3m-6.75 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-15a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 4.5v15a2.25 2.25 0 0 0 2.25 2.25Z"],
+    desktop: ["M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25"],
+    sun: ["M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"],
+    moon: ["M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"],
+    gridView: ["M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"],
+    listView: ["M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"],
+    component: ["m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"],
+    group: ["M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z"],
+    wrap: ["M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6"],
+    detach: ["m7.848 8.25 1.536.887M7.848 8.25a3 3 0 1 1-5.196-3 3 3 0 0 1 5.196 3Zm1.536.887a2.165 2.165 0 0 1 1.083 1.839c.005.351.054.695.14 1.024M9.384 9.137l2.077 1.199M7.848 15.75l1.536-.887m-1.536.887a3 3 0 1 1-5.196 3 3 3 0 0 1 5.196-3Zm1.536-.887a2.165 2.165 0 0 0 1.083-1.838c.005-.352.054-.695.14-1.025m-1.223 2.863 2.077-1.199m0-3.328a4.323 4.323 0 0 1 2.068-1.379l5.325-1.628a4.5 4.5 0 0 1 2.48-.044l.803.215-7.794 4.5m-2.882-1.664A4.33 4.33 0 0 0 10.607 12m3.736 0 7.794 4.5-.802.215a4.5 4.5 0 0 1-2.48-.043l-5.326-1.629a4.324 4.324 0 0 1-2.068-1.379M14.343 12l-2.882 1.664"],
+    more: ["M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"],
+    zoomIn: ["m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"],
+    upload: ["M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"],
+    pencil: ["m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"],
+    layout: ["M3 8.25V18a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 18V8.25m-18 0V6a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6ZM7.5 6h.008v.008H7.5V6Zm2.25 0h.008v.008H9.75V6Z"],
+    form: ["m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"],
+    image: ["m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"],
+    compass: ["M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"],
+    bell: ["M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"],
+    file: ["M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"],
+    bag: ["M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"],
+    chat: ["M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"],
+    blocks: ["M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122"],
+    hand: ["M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 0 1 3.15 0V15M6.9 7.575a1.575 1.575 0 1 0-3.15 0v8.175a6.75 6.75 0 0 0 6.75 6.75h2.018a5.25 5.25 0 0 0 3.712-1.538l1.732-1.732a5.25 5.25 0 0 0 1.538-3.712l.003-2.024a.668.668 0 0 1 .198-.471 1.575 1.575 0 1 0-2.228-2.228 3.818 3.818 0 0 0-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0 1 16.35 15m.002 0h-.002"],
+    minus: ["M5 12h14"],
+    heading: ["M2.243 4.493v7.5m0 0v7.502m0-7.501h10.5m0-7.5v7.5m0 0v7.501m4.501-8.627 2.25-1.5v10.126m0 0h-2.25m2.25 0h2.25"],
+    video: ["m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"],
+    star: ["M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"],
+    fit: ["M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"],
+    rotate: ["M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"],
+    sliders: ["M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"],
+    folder: ["M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"],
+    play: ["M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"],
+    wand: ["M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"],
+    pipette: ["m15 11.25 1.5 1.5.75-.75V8.758l2.276-.61a3 3 0 1 0-3.675-3.675l-.61 2.277H12l-.75.75 1.5 1.5M15 11.25l-8.47 8.47c-.34.34-.8.53-1.28.53s-.94.19-1.28.53l-.97.97-.75-.75.97-.97c.34-.34.53-.8.53-1.28s.19-.94.53-1.28L12.75 9M15 11.25 12.75 9"],
+    exportOut: ["M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15"],
+    variable: ["M4.745 3A23.933 23.933 0 0 0 3 12c0 3.183.62 6.22 1.745 9M19.5 3c.967 2.78 1.5 5.817 1.5 9s-.533 6.22-1.5 9M8.25 8.885l1.444-.89a.75.75 0 0 1 1.105.402l2.402 7.206a.75.75 0 0 0 1.104.401l1.445-.889m-8.25.75.213.09a1.687 1.687 0 0 0 2.062-.617l4.45-6.676a1.688 1.688 0 0 1 2.062-.618l.213.09"],
+    panels: ["M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"],
+    cursor: ["M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672Zm-7.518-.267A8.25 8.25 0 1 1 20.25 10.5M8.288 14.212A5.25 5.25 0 1 1 17.25 10.5"],
+    list: ["M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"],
+    table: ["M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5"],
+    nav: ["M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"],
+    user: ["M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"],
+    tag: ["M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z","M6 6h.008v.008H6V6Z"],
+    chart: ["M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"],
+    quote: ["M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"],
+    megaphone: ["M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 0 0 1.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 0 1 0 3.46"],
+    accordion: ["M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"],
+    slot: ["M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"],
+    swatch: ["M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"],
+    brush: ["M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"],
+    shapes: ["m21 7.5-2.25-1.313M21 7.5v2.25m0-2.25-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3 2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75 2.25-1.313M12 21.75V19.5m0 2.25-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25"],
+  };
+  Object.keys(HERO).forEach(function (k) { PATHS[k] = HERO[k]; });
   function Icon(props) {
-    return e("svg", { className: cx("bd-ic", props.className), viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" },
+    return e("svg", { className: cx("bd-ic", props.className), viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" },
       (PATHS[props.name] || PATHS.box).map(function (d, i) { return e("path", { key: i, d: d }); }));
   }
 
@@ -1018,16 +1127,16 @@
 
     var place = function () {
       var r = btn.current.getBoundingClientRect();
-      var width = Math.max(r.width, props.narrow ? 140 : 200);
+      var width = Math.max(r.width, props.narrow ? 188 : 248);
       var below = window.innerHeight - r.bottom - 12;
       var above = r.top - 12;
-      var want = Math.min(340, options.length * 44 + 12);
+      var want = Math.min(480, options.length * 48 + 16);
       var up = below < want && above > below;
       var left = props.alignEnd ? r.right - width : r.left;
       setPos({
         left: Math.max(8, Math.min(left, window.innerWidth - width - 8)), width: width,
         top: up ? undefined : r.bottom + 4, bottom: up ? window.innerHeight - r.top + 4 : undefined,
-        maxHeight: Math.max(96, Math.min(want, up ? above : below)),
+        maxHeight: Math.max(160, Math.min(want, up ? above : below)),
       });
       return r;
     };
@@ -1317,7 +1426,7 @@
   /* A search box with a clear button. Escape clears it too. */
   function SearchField(props) {
     var input = useRef(null);
-    return e("div", { className: "bd-search" },
+    return e("div", { className: cx("bd-search", props.className) },
       e(Icon, { name: "search" }),
       e("input", {
         ref: input, type: "search", "aria-label": props.label, placeholder: props.placeholder, value: props.value,
@@ -1441,6 +1550,10 @@
     var doc = docState[0], setDoc = docState[1];
     var selState = useState([]);
     var selection = selState[0], setSelection = selState[1];
+    /* A component's own part being changed, like a block's title: { id, part }. */
+    var partState = useState(null);
+    var part = partState[0], setPart = partState[1];
+    var partRef = useRef(part); partRef.current = part;
     var hoverState = useState(null);
     var hover = hoverState[0], setHover = hoverState[1];
     var leftState = useState(prefs.left === "layers" || prefs.left === "content" || prefs.left === "configure" ? prefs.left : "assets");
@@ -1455,6 +1568,8 @@
     var query = queryState[0], setQuery = queryState[1];
     var layerQueryState = useState("");
     var layerQuery = layerQueryState[0], setLayerQuery = layerQueryState[1];
+    var contentQueryState = useState("");
+    var contentQuery = contentQueryState[0], setContentQuery = contentQueryState[1];
     var categoryState = useState(prefs.category);
     var category = categoryState[0], setCategory = categoryState[1];
     var assetKindState = useState(prefs.kind);
@@ -1465,6 +1580,8 @@
     var tabByType = tabsState[0], setTabByType = tabsState[1];
     var pxState = useState({});
     var pxMap = pxState[0], setPxMap = pxState[1];
+    var tintState = useState({});
+    var tints = tintState[0], setTints = tintState[1];
     var themeStampState = useState(0);
     var themeStamp = themeStampState[0], setThemeStamp = themeStampState[1];
     var closedState = useState(prefs.closed);
@@ -1559,6 +1676,7 @@
        builder's own settings. */
     var frameOnState = useState(true);
     var frameOn = frameOnState[0], setFrameOn = frameOnState[1];
+    var frameOnRef = useRef(frameOn); frameOnRef.current = frameOn;
     var stageColorState = useState(prefs.stage || "");
     var stageColor = stageColorState[0], setStageColor = stageColorState[1];
     var openFramesState = useState({});
@@ -1566,8 +1684,10 @@
     var codeTitleState = useState("");
     var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
     var newRef = useRef(null);
-    var newViewState = useState("pick");
-    var newView = newViewState[0], setNewView = newViewState[1];
+    var newBtnRef = useRef(null);
+    var newOpenState = useState(null);
+    var newOpen = newOpenState[0], setNewOpen = newOpenState[1];
+    var newOpenRef = useRef(null); newOpenRef.current = newOpen;
     var clip = useRef(null);
     var layout = layoutOf(doc, heights, resizing, widths, movingFrame);
     var boxes = layout.boxes;
@@ -1591,6 +1711,8 @@
     var dialogRef = useRef(null);
     var importRef = useRef(null);
     var rightRef = useRef(null);
+    var leftPanelRef = useRef(null);
+    var hidePanelsRef = useRef(false);
     var slotTpl = useRef({});
     var dockRef = useRef(null);
 
@@ -1638,6 +1760,7 @@
       var next = ids.filter(function (x) { return x && x !== "root"; });
       selRef.current = next;
       setSelection(next);
+      setPart(function (p) { return p && next.length === 1 && next[0] === p.id ? p : null; });
       if (next.length) setFrameOn(true);
     }, []);
 
@@ -1779,28 +1902,38 @@
       var wx = (sx - c.x) / c.z, wy = (sy - c.y) / c.z;
       setCam({ x: sx - wx * z, y: sy - wy * z, z: z });
     };
-    var zoomTo = function (z) { zoomAt(boxRef.current.w / 2, boxRef.current.h / 2, z); };
+    /* The floating panels cover the canvas's edges; what's left open between
+       them is where frames are fitted and centred. */
+    var insets = function () {
+      var st = stageRef.current, lp = leftPanelRef.current, rp = rightRef.current;
+      if (!st || !wide || hidePanelsRef.current) return { l: 0, r: 0 };
+      var sr = st.getBoundingClientRect();
+      var l = lp && lp.offsetParent ? Math.max(0, lp.getBoundingClientRect().right - sr.left) : 0;
+      var r = rp && rp.offsetParent ? Math.max(0, sr.right - rp.getBoundingClientRect().left) : 0;
+      return { l: l, r: r };
+    };
+    var zoomTo = function (z) { var ins = insets(); zoomAt(ins.l + (boxRef.current.w - ins.l - ins.r) / 2, boxRef.current.h / 2, z); };
     var zoomStep = function (dir) {
       var z = camRef.current.z;
       var next = dir > 0 ? ZOOM_STEPS.filter(function (s) { return s > z + 0.001; })[0] : ZOOM_STEPS.filter(function (s) { return s < z - 0.001; }).pop();
       if (next) zoomTo(next);
     };
     var fitAll = function () {
-      var L = layoutRef.current, W = boxRef.current.w, H = boxRef.current.h;
+      var L = layoutRef.current, ins = insets(), W = boxRef.current.w - ins.l - ins.r, H = boxRef.current.h;
       if (!W || !L.width) return;
       var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / L.width, (H - STAGE_PAD * 2 - LABEL_ROOM) / L.height));
-      setCam({ x: (W - L.width * z) / 2 - L.left * z, y: Math.max(STAGE_PAD + LABEL_ROOM, (H - L.height * z + LABEL_ROOM) / 2) - L.top * z, z: z });
+      setCam({ x: ins.l + (W - L.width * z) / 2 - L.left * z, y: Math.max(STAGE_PAD + LABEL_ROOM, (H - L.height * z + LABEL_ROOM) / 2) - L.top * z, z: z });
     };
     var fitWidth = function () {
-      var L = layoutRef.current, W = boxRef.current.w;
+      var L = layoutRef.current, ins = insets(), W = boxRef.current.w - ins.l - ins.r;
       if (!W || !L.width) return;
       var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / L.width));
-      setCam({ x: (W - L.width * z) / 2 - L.left * z, y: STAGE_PAD + LABEL_ROOM - L.top * z, z: z });
+      setCam({ x: ins.l + (W - L.width * z) / 2 - L.left * z, y: STAGE_PAD + LABEL_ROOM - L.top * z, z: z });
     };
     /* A frame across the stage's width, from its top (or centred when it's
        short enough to fit). keep: never zoom in to do it. */
     var showFrame = function (fid, keep) {
-      var b = layoutRef.current.boxes[fid], W = boxRef.current.w, H = boxRef.current.h;
+      var b = layoutRef.current.boxes[fid], ins = insets(), W = boxRef.current.w - ins.l - ins.r, H = boxRef.current.h;
       if (!b || !W) return;
       var z = Math.min(1, (W - STAGE_PAD * 2) / b.w);
       if (keep) z = Math.min(camRef.current.z, z);
@@ -1808,7 +1941,7 @@
       /* A frame that hugs its content may still grow, so it starts at its top. */
       var f = frameById(docRef.current, fid);
       var fits = !(f && f.hug) && b.h * z <= H - STAGE_PAD * 2 - LABEL_ROOM;
-      setCam({ x: (W - b.w * z) / 2 - b.x * z, y: (fits ? (H - b.h * z + LABEL_ROOM) / 2 : STAGE_PAD + LABEL_ROOM) - b.y * z, z: z });
+      setCam({ x: ins.l + (W - b.w * z) / 2 - b.x * z, y: (fits ? (H - b.h * z + LABEL_ROOM) / 2 : STAGE_PAD + LABEL_ROOM) - b.y * z, z: z });
     };
     var showFrameRef = useRef(showFrame); showFrameRef.current = showFrame;
 
@@ -2195,6 +2328,11 @@
       /* Cmd or Ctrl over a component: the one from the tile takes its place. */
       if (dr.payload.kind === "new") dr.payload.swap = !!(dr.mods && dr.mods.swap);
       if (dr.payload.swap) { dr.hit = swapTarget(x, y); setDrag({ label: "Swap for " + dr.payload.label, x: x, y: y, ghost: null, spot: null }); showSwap(dr.hit); return; }
+      /* A picture or clip over something that shows one fills it instead. */
+      if (dr.payload.kind === "asset") {
+        var mt = mediaTarget(x, y, dr.payload.media);
+        if (mt) { dr.hit = mt; setDrag({ label: "Fill " + mt.name, x: x, y: y, ghost: null, spot: null }); showSwap(mt); autoscroll(x, y); return; }
+      }
       var hit = resolve(x, y, dr.payload);
       dr.hit = hit;
       var spot = null;
@@ -2243,6 +2381,12 @@
       setTimeout(function () { justDragged.current = false; }, 60);
       var hit = dr.hit;
       if (dr.payload.swap) { if (commitIt && hit) swapNode(hit.id, dr.payload.type, hit.fid); return; }
+      if (hit && hit.where === "media") {
+        if (!commitIt) return;
+        var mp = hit;
+        change(function (d) { d.active = mp.fid; var at = locate(d, mp.id); if (!at) return null; at.node.props[mp.prop] = dr.payload.src; return mp.id; }, mp.name + " shows " + dr.payload.label);
+        return;
+      }
       /* A frame or page dragged from the tool bar lands anywhere on the canvas. */
       if (commitIt && dr.payload.kind === "tool" && (dr.payload.tool === "frame" || dr.payload.tool === "page")) {
         var sr = stageRef.current && stageRef.current.getBoundingClientRect();
@@ -2253,7 +2397,11 @@
       if (hit.where === "loose") { placeLoose(dr.payload, hit); return; }
       var fid = hit.frame || docRef.current.active;
       if (dr.payload.kind === "tool") { placeTool(dr.payload.tool, hit); return; }
-      if (dr.payload.kind === "asset") { add("Image", { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }, { src: dr.payload.src, alt: dr.payload.label }); return; }
+      if (dr.payload.kind === "asset") {
+        var where = { parent: hit.parent, index: hit.index, frame: fid, free: hit.free };
+        if (dr.payload.media === "video") add("Video", where, { src: dr.payload.src }); else add("Image", where, { src: dr.payload.src, alt: dr.payload.label });
+        return;
+      }
       if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
       /* Moved on its frame's canvas: it keeps its place in the list and takes
          the new position; from inside a stack, it comes out onto the canvas. */
@@ -2355,6 +2503,31 @@
       }
       return last ? { id: last, fid: d.active } : null;
     };
+    /* Which media prop of a layer takes a picture or a clip: a Video's clip
+       is its src and a picture its poster; everything else takes pictures. */
+    var mediaPropFor = function (type, media) {
+      var m = META[type];
+      if (!m) return null;
+      var props = m.props.filter(function (p) { return p.kind === "media"; }).map(function (p) { return p.name; });
+      if (!props.length) return null;
+      if (type === "Video") return media === "video" ? "src" : props.indexOf("poster") >= 0 ? "poster" : null;
+      return media === "video" ? null : props[0];
+    };
+    /* The nearest layer under the pointer that shows a picture or clip. */
+    var mediaTarget = function (x, y, media) {
+      var at = frameAt(x, y);
+      if (!at) return null;
+      var d = docRef.current, f = api(at.fid), z = camRef.current.z;
+      var id = f && f.pick ? f.pick((x - at.r.left) / z, (y - at.r.top) / z) : null;
+      while (id && id !== "root") {
+        var a = locate(d, id, at.fid);
+        if (!a) break;
+        var prop = mediaPropFor(a.node.type, media || "image");
+        if (prop) return { where: "media", id: id, fid: at.fid, prop: prop, name: nameOf(a.node) };
+        id = a.parent ? a.parent.id : null;
+      }
+      return null;
+    };
     var showSwap = function (hit) {
       setListDrop(null);
       var a = hit && api(hit.fid);
@@ -2400,7 +2573,7 @@
     var placeLoose = function (payload, hit) {
       var node = null, moving = null;
       if (payload.kind === "new") { node = make(payload.type); if (payload.type === "Inline") node.props.wrap = false; }
-      else if (payload.kind === "asset") node = make("Image", { src: payload.src, alt: payload.label });
+      else if (payload.kind === "asset") node = payload.media === "video" ? make("Video", { src: payload.src }) : make("Image", { src: payload.src, alt: payload.label });
       else if (payload.kind === "tool") node = toolNode(payload.tool, null);
       else if (payload.kind === "move") moving = payload.id;
       var made = null;
@@ -2489,7 +2662,7 @@
           return {
             ready: on(function (fid) { readyRef.current(fid); }),
             selection: on(function (fid) { if (docRef.current.active !== fid) return null; var s = selRef.current; return s.length ? s[s.length - 1] : null; }),
-            pick: on(function (fid, id, additive, deep) { pickRef.current(id, additive, deep, "canvas", fid); }),
+            pick: on(function (fid, id, additive, deep, part) { pickRef.current(id, additive, deep, "canvas", fid, part); }),
             edit: on(function (fid, id) { if (docRef.current.active !== fid) activateRef.current(fid); beginEditRef.current(id); }),
             hover: on(function (fid, id) {
               var h = hoverRef.current;
@@ -2602,10 +2775,17 @@
           if (v) { keys.push(k + "|" + o.value); values.push(v); }
         });
       });
+      TEXT_STYLES.forEach(function (t) { keys.push("text|" + t[0]); values.push("var(--dt-text-" + t[0] + "-size)"); });
       var got = a.measure(values);
       var map = {};
       keys.forEach(function (k, i) { if (got[i] != null && got[i] >= 0) map[k] = got[i]; });
       setPxMap(map);
+      if (a.colors) {
+        var toks = DATA.tokens.surface.options.map(function (o) { return o.tokens[0]; }).filter(Boolean);
+        var cs = a.colors(toks), tm = {};
+        toks.forEach(function (t, i) { tm[t] = cs[i]; });
+        setTints(tm);
+      }
     }, [ready[doc.active], doc.active, frame.spacing, frame.width, themeStamp]);
     useEffect(function () {
       var bump = function () { setThemeStamp(function (n) { return n + 1; }); };
@@ -2671,16 +2851,27 @@
     /* Shift adds to the selection; Cmd or Ctrl selects and goes straight to
        the text. A click on nothing clears it. A click in another frame makes
        that frame active first. */
-    var pick = function (id, additive, deep, from, fid) {
+    var pick = function (id, additive, deep, from, fid, part) {
       if (from === "canvas") releaseFocus();
-      if (fid && fid !== docRef.current.active) { activate(fid); additive = false; }
-      if (!id || id === "root") { if (!additive) select([]); setFrameOn(true); return; }
+      var other = fid && fid !== docRef.current.active;
+      if (other) { activate(fid); additive = false; }
+      /* A press on a frame's empty canvas lets go of whatever was selected,
+         frame included; with nothing selected, it picks the frame. */
+      if (!id || id === "root") {
+        if (additive) return;
+        var had = selRef.current.length > 0 || (frameOnRef.current && !other);
+        select([]);
+        setFrameOn(from === "canvas" ? !had : true);
+        return;
+      }
       var cur = selRef.current;
       if (additive) {
         select(cur.indexOf(id) >= 0 ? cur.filter(function (x) { return x !== id; }) : cur.concat([id]));
         return;
       }
       select([id]);
+      var at0 = locate(docRef.current, id);
+      setPart(part && at0 && hasTitlePart(at0.node.type) ? { id: id, part: part } : null);
       if (deep) { setTimeout(function () { beginEditRef.current(id); }, 0); return; }
       if (from === "canvas" && mql("(max-width: 900px)")) {
         var at = locate(docRef.current, id);
@@ -2844,7 +3035,7 @@
        only while nothing else has focus. */
     var keyRef = useRef(function () { return false; });
     keyRef.current = function (ev) {
-      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open) || (newRef.current && newRef.current.open)) return false;
+      if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open) || newOpenRef.current) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -3133,6 +3324,9 @@
 
     /* Text one step up or down its type scale: a Heading through its sizes
        into display, a Text through its variants. */
+    /* A block's title: its text and its size, set through the block's props. */
+    var TITLE_STEPS = ["heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"];
+    var hasTitlePart = function (type) { var m = META[type]; return !!m && m.props.some(function (p) { return p.name === "titleSize"; }); };
     var TYPE_SCALE = {
       Heading: { prop: "size", steps: ["heading-xs", "heading-sm", "heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"] },
       Text: { prop: "variant", steps: ["fine", "small", "body", "lead"] },
@@ -3140,6 +3334,18 @@
     var HEADING_DEFAULT = { 1: "heading-xl", 2: "heading-lg", 3: "heading-md", 4: "heading-sm", 5: "heading-xs", 6: "heading-xs" };
     var stepType = function (by) {
       var d = docRef.current;
+      var pt = partRef.current;
+      if (pt && selRef.current.length === 1 && selRef.current[0] === pt.id) {
+        var pat = locate(d, pt.id);
+        if (!pat) return false;
+        var tdef = META[pat.node.type].props.filter(function (p) { return p.name === "titleSize"; })[0];
+        var tcur = pat.node.props.titleSize || (tdef && tdef.default) || "heading-lg";
+        var ti = TITLE_STEPS.indexOf(tcur), tj = Math.max(0, Math.min(TITLE_STEPS.length - 1, (ti < 0 ? 1 : ti) + by));
+        if (tj === ti) { announce(by > 0 ? "Already the largest size" : "Already the smallest size"); return true; }
+        setProp([pt.id], "titleSize", TITLE_STEPS[tj]);
+        announce("Title " + tcur.replace(/-/g, " ") + " to " + TITLE_STEPS[tj].replace(/-/g, " "));
+        return true;
+      }
       var nodes = selRef.current.map(function (id) { return locate(d, id); }).filter(Boolean).map(function (a) { return a.node; });
       if (!nodes.length || !nodes.every(function (n) { return TYPE_SCALE[n.type]; })) return false;
       var said = null;
@@ -3182,13 +3388,29 @@
       }, function () { window.prompt("Copy this link", url); });
     };
 
-    /* New: a free canvas, a structured page, or a template. */
-    var openNew = function () {
-      setNewView("pick");
-      var dlg = newRef.current;
-      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    /* New: a menu under the + button, not a dialog over the work. A free
+       canvas, a structured page, a template (as new frames or into the
+       active one), a pasted layout, or starting over. */
+    var openNew = function (from) {
+      var b = (from && from.getBoundingClientRect ? from : newBtnRef.current);
+      var r = b ? b.getBoundingClientRect() : { left: 16, bottom: 56 };
+      setNewOpen({ left: Math.max(8, Math.min(r.left, window.innerWidth - 408)), top: r.bottom + 6 });
     };
-    var closeNew = function () { var dlg = newRef.current; if (dlg && dlg.open) dlg.close(); };
+    var closeNew = function () { setNewOpen(null); };
+    useEffect(function () {
+      if (!newOpen) return undefined;
+      var first = newRef.current && newRef.current.querySelector("button");
+      if (first) first.focus({ preventScroll: true });
+      var away = function (ev) {
+        if (newRef.current && newRef.current.contains(ev.target)) return;
+        if (newBtnRef.current && newBtnRef.current.contains(ev.target)) return;
+        setNewOpen(null);
+      };
+      var key = function (ev) { if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setNewOpen(null); if (newBtnRef.current) newBtnRef.current.focus(); } };
+      document.addEventListener("pointerdown", away, true);
+      document.addEventListener("keydown", key, true);
+      return function () { document.removeEventListener("pointerdown", away, true); document.removeEventListener("keydown", key, true); };
+    }, [!!newOpen]);
     var newFrame = function (mode) {
       closeNew();
       var d = docRef.current;
@@ -3201,13 +3423,14 @@
       setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
     };
 
+    /* Starting over, or a pasted layout. Templates add; only this replaces. */
     var startFrom = function (id) {
       closeNew();
       if (id === "import") { openImport(); return; }
       var s = STARTERS.filter(function (x) { return x[0] === id; })[0];
       if (!s) return;
       var has = docRef.current.frames.some(function (f) { return f.root.children.length; });
-      if (has && !window.confirm("Replace every frame with the " + s[1].toLowerCase() + "? Undo brings your work back.")) return;
+      if (has && !window.confirm("Start over with a blank frame? Every frame goes; undo brings your work back.")) return;
       storage(function (st) { st.setItem(BACKUP_KEY, JSON.stringify(docRef.current)); });
       var next = s[2]();
       commit(next, null, "Started from " + s[1] + ". Undo to go back.");
@@ -3264,11 +3487,10 @@
       return typeof text === "string" || typeof text === "number" ? String(text) : "";
     };
     var typeIcon = function (type) {
-      if (type === "Slot") return "blocks";
-      if (type === "Group") return "group";
-      if (type === "Shape") return "square";
-      if (isContainer(type)) return "box";
-      return "component";
+      if (TYPE_ICON[type]) return TYPE_ICON[type];
+      var g = META[type] && META[type].group;
+      if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
+      return isContainer(type) ? "box" : "component";
     };
     var nodesOf = function (ids) { return ids.map(function (id) { return locate(doc, id); }).filter(Boolean).map(function (a) { return a.node; }); };
     var same = function (values) { return values.every(function (v) { return JSON.stringify(v) === JSON.stringify(values[0]); }); };
@@ -3341,7 +3563,7 @@
       var ids0 = nodes.map(function (n) { return n.id; });
       return e(Dropdown, {
         labelledBy: id || undefined, label: opts.label || def.label, value: value, mixed: mixed, mixedLabel: opts.mixedLabel, options: options,
-        preview: opts.noPreview ? null : def.preview, compact: opts.compact, narrow: opts.compact, prefix: opts.prefix, className: opts.className,
+        preview: opts.noPreview ? null : def.preview, compact: opts.compact, narrow: opts.compact, prefix: opts.prefix, className: opts.className, icon: opts.icon, iconOnly: opts.iconOnly, alignEnd: opts.alignEnd,
         title: (opts.label || def.label) + (order ? ": suggestions for " + ctx.name + " first" : ""),
         onScrub: opts.scrub ? function (v, first) { scrubStyle(ids0, key, v, first); } : undefined, scrubFrom: opts.scrub ? measureFor : undefined,
         onChange: opts.onChange || function (v) { if (v === "__fixed") fixSize(key, nodes); else setStyle(ids0, key, v); },
@@ -3625,35 +3847,53 @@
         return null;
       });
     };
-    var insertAsset = function (it) {
-      add("Image", null, { src: it.src, alt: it.name });
+    var insertAsset = function (it, clip) {
+      if (clip) add("Video", null, { src: it.src });
+      else add("Image", null, { src: it.src, alt: it.name });
       announce("Added " + it.name + " to " + frame.name);
     };
     /* Content opens on a card for each kind; a card opens its gallery. */
     var contentPanel = function () {
+      var q0 = contentQuery.trim().toLowerCase();
+      if (!libTab && q0) {
+        var hits = [];
+        LIB_KINDS.forEach(function (k) { library[k].forEach(function (it) { if (it.name.toLowerCase().indexOf(q0) >= 0) hits.push({ kind: k, it: it }); }); });
+        return e("div", { className: "bd-content" },
+          e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Results"), e("span", { className: "bd-count" }, hits.length)),
+          hits.length ? e("ul", { className: "bd-lib", role: "list" }, hits.map(function (h) {
+            var clip = h.kind === "video";
+            return e("li", { key: h.it.id, className: "bd-lib-item" },
+              e("button", { type: "button", className: "bd-lib-thumb", title: h.it.name + ": drag onto a frame, or press to add",
+                onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip ? "video" : "image" }); },
+                onClick: function () { if (!justDragged.current) insertAsset(h.it, clip); } },
+                clip ? e("video", { src: h.it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: h.it.src, alt: "", draggable: false })),
+              e("span", { className: "bd-lib-name" }, h.it.name));
+          })) : e("p", { className: "bd-empty-note" }, "Nothing in your content matches."));
+      }
       if (!libTab) {
         return e("div", { className: "bd-content" },
           e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
           e("ul", { className: "bd-kinds", role: "list" }, LIB_TABS.map(function (t) {
-            var items = t[0] === "video" ? [] : library[t[0]];
-            var note = t[0] === "video" ? "Coming soon" : t[0] === "icons" ? (items.length ? items.length + " of yours, and the icon library" : "The icon library, and yours") : items.length ? items.length + (items.length === 1 ? " item" : " items") : "Nothing yet";
+            var items = library[t[0]];
+            var note = t[0] === "icons" ? (items.length ? items.length + " of yours, and the icon library" : "The icon library, and yours") : items.length ? items.length + (items.length === 1 ? " item" : " items") : "Nothing yet";
             return e("li", { key: t[0] }, e("button", { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function () { setLibTab(t[0]); } },
               e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items.length
-                ? items.slice(0, 3).map(function (it) { return e("img", { key: it.id, src: it.src, alt: "", draggable: false }); })
+                ? items.slice(0, 3).map(function (it) { return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false }); })
                 : e(Icon, { name: t[2] })),
               e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note)),
               e(Icon, { name: "right", className: "bd-kind-chev" })));
           })));
       }
       var kind = libTab;
-      var items = kind === "video" ? [] : library[kind];
+      var cq = contentQuery.trim().toLowerCase();
+      var items = library[kind].filter(function (it) { return !cq || it.name.toLowerCase().indexOf(cq) >= 0; });
       var fileId = "bd-lib-file";
       var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
       var icons = (window.DovetailConfigure && window.DovetailConfigure.icons) || {};
       return e("div", { className: "bd-content",
-        onDragOver: function (ev) { if (kind !== "video") { ev.preventDefault(); ev.currentTarget.classList.add("is-drop"); } },
+        onDragOver: function (ev) { ev.preventDefault(); ev.currentTarget.classList.add("is-drop"); },
         onDragLeave: function (ev) { ev.currentTarget.classList.remove("is-drop"); },
-        onDrop: function (ev) { ev.preventDefault(); ev.currentTarget.classList.remove("is-drop"); if (kind !== "video") addToLibrary(kind, ev.dataTransfer.files); } },
+        onDrop: function (ev) { ev.preventDefault(); ev.currentTarget.classList.remove("is-drop"); addToLibrary(kind, ev.dataTransfer.files); } },
         e("div", { className: "bd-panel-head bd-gallery-head" },
           e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { setLibTab(null); } }, e(Icon, { name: "left" })),
           e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function (t) { return t[0] === kind; })[0][1])),
@@ -3667,36 +3907,34 @@
                 onClick: function () { if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) { window.DovetailConfigurePanel.setIconLib(k); setThemeStamp(function (n) { return n + 1; }); } } },
                 e("span", { className: "bd-iconlib-name" }, info.label), e("span", { className: "bd-iconlib-note" }, info.note));
             }))) : null,
-        kind === "video"
-          ? e("div", { className: "bd-empty" }, e(Icon, { name: "video" }), e("p", null, "Video is coming soon. For now, add a Video component from Assets and give it a file or a URL."))
-          : e("section", { className: "bd-content-sec", "aria-label": "Your " + kind },
+        e("section", { className: "bd-content-sec", "aria-label": "Your " + kind },
               kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
               e("div", { className: "bd-content-add" },
-                e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind)),
-                e("input", { id: fileId, type: "file", multiple: true, className: "visually-hidden", accept: kind === "icons" ? "image/svg+xml,.svg" : "image/*",
+                e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind === "video" ? "clips" : kind)),
+                e("input", { id: fileId, type: "file", multiple: true, className: "visually-hidden", accept: kind === "icons" ? "image/svg+xml,.svg" : kind === "video" ? "video/*" : "image/*",
                   onChange: function (ev) { var f = ev.target.files; addToLibrary(kind, f); ev.target.value = ""; } }),
                 e("span", { className: "bd-content-note" }, "or drop files here")),
               libBusy ? e("p", { className: "bd-content-busy", role: "status" }, libBusy) : null,
               items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function (it) {
                 return e("li", { key: it.id, className: "bd-lib-item" },
-                  e("button", { type: "button", className: "bd-lib-thumb", title: it.name + ": drag onto a frame, or press to add",
-                    onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name }); },
-                    onClick: function () { if (!justDragged.current) insertAsset(it); } },
-                    e("img", { src: it.src, alt: "", draggable: false })),
+                  e("button", { type: "button", className: "bd-lib-thumb", title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
+                    onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" }); },
+                    onClick: function () { if (!justDragged.current) insertAsset(it, kind === "video"); } },
+                    kind === "video" ? e("video", { src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: it.src, alt: "", draggable: false })),
                   e("span", { className: "bd-lib-name" }, it.name),
                   e(Dropdown, { menu: true, label: "Actions for " + it.name, icon: "more", compact: true, narrow: true, className: "bd-dd-icon bd-lib-menu",
                     options: [{ value: "insert", label: "Add to " + frame.name, icon: "plus" }]
-                      .concat(kind !== "icons" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : [])
+                      .concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : [])
                       .concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : [])
                       .concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
                     onChange: function (v) {
-                      if (v === "insert") insertAsset(it);
+                      if (v === "insert") insertAsset(it, kind === "video");
                       else if (v === "cut") cutBackground(it.src).then(function (url) { if (url) libUpdate(kind, it.id, { src: url, original: it.original || it.src }); });
                       else if (v === "restore") libUpdate(kind, it.id, { src: it.original, original: undefined });
                       else if (v === "delete") libUpdate(kind, it.id, { removed: true });
                     } }));
               })) : e("div", { className: "bd-empty" }, e(Icon, { name: LIB_TABS.filter(function (t) { return t[0] === kind; })[0][2] }),
-                e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : "Upload " + kind + " to reuse them: drag one onto a frame, or pick it for an Image."))));
+                e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : kind === "video" ? "Upload clips up to 1.5 MB to reuse them: drag one onto a frame, or onto a Video to fill it." : "Upload " + kind + " to reuse them: drag one onto a frame, or onto a picture to fill it."))));
     };
 
     /* Assets open on five kinds: primitives to build with, the system's
@@ -3707,7 +3945,7 @@
       ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
       ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
       ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
-      ["templates", "Templates", "file", "Ready-made pages to add beside your frames"],
+      ["templates", "Templates", "file", "Ready-made pages, as new frames or into one"],
     ];
     var KIND_GROUPS = { primitives: ["layout", "typography"], blocks: ["blocks"] };
     var groupsOf = function (kind) {
@@ -3781,11 +4019,32 @@
         }));
     };
 
-    /* A template's frames go beside yours; nothing is replaced. */
-    var addTemplate = function (id) {
+    /* A template never replaces anything: its frames go beside yours, or
+       (into) what's on its page goes at the end of the active frame. */
+    var addTemplate = function (id, into) {
       var st = STARTERS.filter(function (x) { return x[0] === id; })[0];
       if (!st) return;
+      closeNew();
       var incoming = st[2]().frames;
+      if (into) {
+        var fid = docRef.current.active;
+        var dest = frameById(docRef.current, fid);
+        var made = [];
+        change(function (d) {
+          var f = frameById(d, fid);
+          if (!f) return null;
+          incoming.forEach(function (src) {
+            (src.root.children || []).forEach(function (c) {
+              var n = fresh(c);
+              if (f.bare || f.mode === "structured" || !joinsFlow(n.type)) { delete n.style.x; delete n.style.y; }
+              if (ops.insert(d, "root", f.root.children.length, n, fid)) made.push(n.id);
+            });
+          });
+          d.active = fid;
+          return made.length ? made : null;
+        }, "Added the " + st[1].toLowerCase() + " to " + (dest ? dest.name : "the frame"));
+        return;
+      }
       var first = null;
       change(function (d) {
         incoming.forEach(function (f) {
@@ -3805,17 +4064,19 @@
     };
     var templatesPanel = function () {
       return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) {
-        var n = st[2]().frames.length;
         return e("li", { key: st[0] },
-          e("button", { type: "button", className: "bd-kind", "data-template": st[0], onClick: function () { addTemplate(st[0]); }, title: "Add the " + st[1].toLowerCase() + " beside your frames" },
+          e("div", { className: "bd-kind bd-tpl-card", "data-template": st[0] },
             e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
-            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1]), e("span", { className: "bd-kind-note" }, n + (n === 1 ? " frame" : " frames") + ", added beside yours"))));
+            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
+            e("span", { className: "bd-tpl-acts" },
+              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-new", onClick: function () { addTemplate(st[0]); }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function () { addTemplate(st[0], true); }, title: "At the end of " + frame.name }, "Into " + frame.name))));
       }));
     };
 
     var assetsPanel = function () {
       var q = query.trim().toLowerCase();
-      var head = e(SearchField, { label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery });
+      var head = null;
       if (q) {
         var found = [];
         DATA.groups.forEach(function (g) {
@@ -3890,15 +4151,6 @@
     var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
     var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
     var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
-    var foldAll = function (open) {
-      var fo = {};
-      doc.frames.forEach(function (f) { fo[f.id] = open; });
-      setOpenFrames(fo);
-      var c = {};
-      everyNode(function (n) { if (!n.children && !isOwner(n)) return; if (isOwner(n)) { if (open) c[n.id] = false; } else if (!open) c[n.id] = true; });
-      setCollapsed(c);
-      announce(open ? "Every layer expanded" : "Every layer collapsed");
-    };
     var layersPanel = function () {
       var q = layerQuery.trim().toLowerCase();
       var toggle = function (id) {
@@ -3952,8 +4204,16 @@
         walk(f.root, 1);
         return rows;
       };
-      var partRow = function (r) {
+      var partRow = function (r, f) {
         var it = r.part;
+        if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
+          var onPart = part && part.id === r.owner.id && f.id === doc.active;
+          return e("div", { key: r.key, className: cx("bd-layer is-part is-pickable", onPart && "is-current"), role: "treeitem", "aria-level": r.depth + 1, "aria-selected": String(!!onPart),
+            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" } },
+            e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+            e("button", { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function () { pick(r.owner.id, false, false, "layers", f.id, "title"); } },
+              e(Icon, { name: "heading" }), e("span", { className: "bd-layer-name" }, "Title"), it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
+        }
         return e("div", {
           key: r.key, className: "bd-layer is-part", role: "treeitem", "aria-level": r.depth + 1, "aria-disabled": "true",
           style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
@@ -3966,7 +4226,7 @@
             it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
       };
       var nodeRow = function (f, r) {
-        if (r.part) return partRow(r);
+        if (r.part) return partRow(r, f);
         var n = r.n;
         var mine = f.id === doc.active;
         var text = labelOf(n);
@@ -3998,10 +4258,6 @@
             text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
       };
       return e("div", { className: "bd-layers-panel" },
-        e("div", { className: "bd-layers-head" },
-          e(SearchField, { label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }),
-          e("button", { type: "button", className: "bd-act bd-act-ghost", title: "Expand everything", "aria-label": "Expand everything", onClick: function () { foldAll(true); } }, e(Icon, { name: "expandAll" })),
-          e("button", { type: "button", className: "bd-act bd-act-ghost", title: "Collapse everything", "aria-label": "Collapse everything", onClick: function () { foldAll(false); } }, e(Icon, { name: "collapseAll" }))),
         e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
           doc.frames.map(function (f) {
             var on = f.id === doc.active;
@@ -4110,22 +4366,31 @@
       var blendValues = nodes.map(function (n) { return n.style.blend || ""; });
       var invValues = nodes.map(function (n) { return n.style.invert === "on"; });
       var lid = "bd-layer-" + first.id;
+      /* Text colour is for text; inverting is for pictures. */
+      var textOnly = nodes.every(function (n) { return TEXT_TYPES[n.type]; });
+      var picturesOnly = nodes.every(function (n) { return PICTURE_TYPES[n.type]; });
+      var blendNow = same(blendValues) ? blendValues[0] : null;
+      var blendOpt = blendNow ? DATA.tokens.blend.options.filter(function (o) { return o.value === blendNow; })[0] : null;
+      var darkOn = same(darkValues) && darkValues[0];
+      var darkToggle = headAction("moon", darkOn ? "Dark band: everything inside resolves dark. Press for inherit." : "Make this a dark band", function () { setStyle(ids, "dark", darkOn ? undefined : true); }, !!darkOn);
       return [
         sec("fill", "Fill", [extra || null,
           free ? e("div", { key: "fillrow", className: "bd-canvas-row" },
             tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: fillHex ? "Custom colour" : "None", className: "bd-dd-field bd-dd-swatch", onChange: function (v) { setStyles(ids, { surface: v || undefined, fill: undefined }); } }),
             picker("fill", fillHex, "Custom fill colour", "surface"))
             : tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" }),
-          free ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
+          free && textOnly ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
             e("div", { className: "bd-canvas-row" },
               picker("color", inkHex, "Custom text colour"),
               inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyle(ids, "color", undefined); } }, "Use the system's") : null)) : null,
-        ], null, styled(nodes, ["surface", "fill", "color"])),
+        ], darkToggle, styled(nodes, ["surface", "fill", "color", "dark"])),
         sec("layer", "Layer", [
-          e(Field, { key: "blend", id: lid, label: "Blend mode", hint: "How it mixes with what's under it" },
-            tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-field", noPreview: true })),
-          e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips a picture or icon to its negative" },
-            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })),
+          e("div", { key: "blend", className: "bd-blend-row" },
+            e("span", { className: "bd-field-label", id: lid }, "Blend"),
+            e("span", { className: "bd-blend-now" }, blendNow === null ? "Mixed" : blendOpt ? blendOpt.label || blendOpt.value : "Normal"),
+            tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true })),
+          picturesOnly ? e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
+            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })) : null,
         ], null, styled(nodes, ["blend", "invert"])),
         sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
           hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
@@ -4138,9 +4403,6 @@
             e(Segmented, { labelledBy: sid, wide: true, clearable: true, className: "bd-seg-pics", value: same(shadowValues) ? shadowValues[0] || undefined : null, onChange: function (v) { setStyle(ids, "elevation", v); },
               options: DATA.tokens.elevation.options.map(function (o) { return { value: o.value, label: "Elevation " + o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }) }; }) })),
         ], null, styled(nodes, ["radius", "elevation"])),
-        sec("mode", "Mode", e(Field, { id: mid, label: "Colour mode", hint: darkValues[0] && same(darkValues) ? "Adds the dark class: everything inside resolves dark." : null },
-          e(Segmented, { labelledBy: mid, wide: true, value: same(darkValues) ? (darkValues[0] ? "dark" : "inherit") : null, onChange: function (v) { setStyle(ids, "dark", v === "dark" ? true : undefined); },
-            options: [{ value: "inherit", label: "Inherit" }, { value: "dark", label: "Dark band" }] })), null, styled(nodes, ["dark"])),
       ];
     };
 
@@ -4221,9 +4483,6 @@
       var current = pickTab(have);
       var body = current === "appearance"
         ? [sec("frame-look", "Frame", [
-            e(Field, { key: "mode", id: "bd-fr-mode", label: "Mode" },
-              e(Segmented, { labelledBy: "bd-fr-mode", wide: true, value: frame.dark ? "dark" : "light", onChange: function (v) { setFrame("dark", v === "dark"); },
-                options: [{ value: "light", label: "Light", picture: e(React.Fragment, null, e(Icon, { name: "sun" }), "Light") }, { value: "dark", label: "Dark", picture: e(React.Fragment, null, e(Icon, { name: "moon" }), "Dark") }] })),
             e(Field, { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : frame.mode === "structured" ? "A structured page takes the system's surfaces only." : null },
               e("div", { className: "bd-canvas-row" + (frame.mode === "structured" && !frame.canvas ? " is-tokens" : "") },
                 e(Dropdown, { labelledBy: "bd-pg-surface", value: frame.canvas ? "" : frame.surface, placeholder: "Custom", preview: "color", className: "bd-dd-field bd-dd-swatch",
@@ -4247,7 +4506,11 @@
           e("div", { className: "bd-head-row" },
             e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "frame" }),
               e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame.id, "title"), onChange: function (v) { frameOps.rename(frame.id, v); } })),
-            e("div", { className: "bd-head-actions" }, frameMenu(frame, "title"))),
+            e("div", { className: "bd-head-actions" },
+              e("button", { type: "button", className: "bd-act bd-act-ghost bd-mode-toggle", "aria-pressed": String(!!frame.dark), "aria-label": "Dark mode",
+                title: frame.dark ? "Dark: press for light" : "Light: press for dark", onClick: function () { setFrame("dark", !frame.dark, frame.name + (frame.dark ? " is light" : " is dark")); } },
+                e(Icon, { name: frame.dark ? "moon" : "sun" })),
+              frameMenu(frame, "title"))),
           e("p", { className: "bd-inspect-sub" }, (frame.hug ? "Hugs its content" : "A fixed screen") + ". Select something in it to change that instead."),
           /* A frame's size is always in view: the first thing a frame or page needs. */
           e("div", { className: "bd-frame-size-head" },
@@ -4307,9 +4570,44 @@
           node.children.length ? e("button", { type: "button", className: "bd-btn", onClick: function () { change(function (d) { var s2 = locate(d, node.id); if (!s2) return null; s2.node.children = []; return node.id; }, words(node.props.name) + " emptied"); } }, e(Icon, { name: "trash" }), "Empty it") : null)));
     };
 
+    /* A block's title, picked on the canvas or in Layers: its text and its
+       size, which are the block's own props. */
+    var partInspector = function (node) {
+      var at = locate(doc, node.id);
+      var spec = META[node.type].props.filter(function (p) { return p.name === "titleSize"; })[0];
+      var base = scalars[node.type] || {};
+      var cur = node.props.titleSize || spec.default;
+      var text = typeof node.props.title === "string" ? node.props.title : typeof base.title === "string" ? base.title : "";
+      var tid = "bd-part-text-" + node.id, sid = "bd-part-size-" + node.id;
+      var styleName = function (v) { var t = TEXT_STYLES.filter(function (x) { return x[0] === v; })[0]; return t ? t[1] : v; };
+      return e("div", { className: "bd-inspect" },
+        e("div", { className: "bd-inspect-head" },
+          at ? e("nav", { className: "bd-crumbs", "aria-label": "Selection path" },
+            at.path.map(function (n) {
+              return e(React.Fragment, { key: n.id },
+                n.type === "Root" ? null : e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
+                e("button", { type: "button", className: "bd-crumb", onClick: function () { setPart(null); select(n.id === "root" ? [] : [n.id]); } }, n.type === "Root" ? frame.name : nameOf(n)));
+            }),
+            e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
+            e("span", { className: "bd-crumb", "aria-current": "true" }, "Title")) : null,
+          e("div", { className: "bd-head-row" },
+            e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "heading" }), "Title"),
+            e("div", { className: "bd-head-actions" }, headAction("left", "Back to " + nameOf(node), function () { setPart(null); }))),
+          e("p", { className: "bd-inspect-sub" }, "The heading " + nameOf(node) + " draws. Its words and size are the block's own props; Shift+Up and Shift+Down step the size.")),
+        e("div", { className: "bd-ipanel" },
+          sec("part-title", "Text style", [
+            e(Field, { key: "size", id: sid, label: "Size", hint: "--dt-text-" + cur + "-size" },
+              e(Dropdown, { labelledBy: sid, value: cur, className: "bd-dd-field", onChange: function (v) { setProp([node.id], "titleSize", v === spec.default ? undefined : v); },
+                options: spec.options.map(function (o) { var px = pxMap["text|" + o]; return { value: o, label: styleName(o), px: px != null ? Math.round(px) : null, short: (px != null ? Math.round(px) + " " : "") + styleName(o), hint: o + (o === spec.default ? " · the default" : "") }; }) })),
+            e(Field, { key: "text", id: tid, label: "Words", hint: "Double-click it on the canvas to type in place" },
+              e("input", { className: "bd-input", type: "text", "aria-labelledby": tid, value: text, onChange: function (ev) { setProp([node.id], "title", ev.target.value); } })),
+          ], null, node.props.titleSize !== undefined)));
+    };
+
     var nodeInspector = function (nodes) {
       var first = nodes[0];
       var many = nodes.length > 1;
+      if (!many && part && part.id === first.id && hasTitlePart(first.type)) return partInspector(first);
       var sameType = nodes.every(function (n) { return n.type === first.type; });
       var meta = sameType ? META[first.type] || { props: [] } : { props: [] };
       var base = scalars[first.type] || {};
@@ -4388,10 +4686,11 @@
       ? "Saved in this browser" + (saved.at ? " at " + saved.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "") + ". It stays when you reload or come back."
       : "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
     var hidePanels = wide && (bare || preview);
+    hidePanelsRef.current = hidePanels;
     var zoomText = Math.round(cam.z * 100) + "%";
 
     var toolbar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
-      e("button", { type: "button", className: "bd-act bd-start", title: "New: a free canvas, a structured page or a template", "aria-label": "New", "aria-haspopup": "dialog", onClick: openNew }, e(Icon, { name: "plus" })),
+      e("button", { type: "button", ref: newBtnRef, className: "bd-act bd-start", title: "New: a free canvas, a structured page or a template", "aria-label": "New", "aria-haspopup": "dialog", "aria-expanded": String(!!newOpen), onClick: function (ev) { if (newOpen) closeNew(); else openNew(ev.currentTarget); } }, e(Icon, { name: "plus" })),
       e("span", { className: "bd-tool-group" },
         e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
         e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))),
@@ -4706,7 +5005,7 @@
             on && !preview ? frameMenu(f, "label") : null);
         })),
       e("div", { className: "bd-marks", "aria-hidden": true },
-        !preview && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && frameOn && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+        !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
         !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
         !preview ? marks.sel.map(function (m) {
           var at = locate(doc, m.id);
@@ -4719,7 +5018,7 @@
             isMain ? e("span", {
               className: "bd-mark-tag", title: "Drag to move",
               onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
-            }, nameOf(at.node)) : null);
+            }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null);
         }) : null,
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
         marks.drop && marks.drop.box ? e("div", { className: cx("bd-mark-box", marks.drop.swap && "is-swap"), style: marks.drop.box }) : null,
@@ -4740,7 +5039,6 @@
       !preview ? resizers : null,
       !preview ? tools : null,
       edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
-      wide && bare && !preview ? e("button", { type: "button", className: "bd-float", onClick: actions.panels, title: "Show panels (Tab)" }, e(Icon, { name: "panels" }), "Show panels") : null,
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
 
@@ -4774,30 +5072,29 @@
     };
 
     var NEW_KINDS = [
-      ["free", "Freeform canvas", "frame", "Place anything anywhere and give it any colour. For social posts, mockups and trying ideas."],
-      ["structured", "Structured page", "layout", "Everything sits in Groups that lay out with flex, like auto layout. Tokens only, so it's ready to become code."],
-      ["template", "Template", "blocks", "Start from a ready-made page or a pasted layout."],
+      ["free", "Freeform canvas", "frame", "Anything anywhere, any colour"],
+      ["structured", "Structured page", "layout", "Groups and tokens, ready for code"],
     ];
-    var newDialog = function () {
-      return e("dialog", { className: "bd-code bd-new", ref: newRef, "aria-labelledby": "bd-new-title", onClose: function () { setNewView("pick"); } },
-        e("div", { className: "bd-code-head" },
-          e("div", { className: "bd-code-intro" },
-            newView === "template" ? e("button", { type: "button", className: "bd-btn bd-btn-sm bd-new-back", onClick: function () { setNewView("pick"); } }, e(Icon, { name: "left" }), "Back") : null,
-            e("h2", { id: "bd-new-title" }, newView === "template" ? "Start from a template" : "New"),
-            e("p", { className: "bd-inspect-sub" }, newView === "template" ? "A template replaces every frame. Undo brings your work back." : "A canvas or a page goes beside your frames.")),
-          e("div", { className: "bd-code-actions" },
-            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: closeNew }, e(Icon, { name: "close" })))),
-        newView === "template"
-          ? e("ul", { className: "bd-new-list", role: "list" }, STARTERS.map(function (st) {
-              return e("li", { key: st[0] }, e("button", { type: "button", className: "bd-new-item", onClick: function () { startFrom(st[0]); } }, e(Icon, { name: st[0] === "blank" ? "frame" : "file" }), e("span", null, st[1])));
-            }).concat([e("li", { key: "import" }, e("button", { type: "button", className: "bd-new-item", onClick: function () { startFrom("import"); } }, e(Icon, { name: "upload" }), e("span", null, "Paste a layout…"), e("span", { className: "bd-new-hint" }, "JSON or a builder link")))]))
-          : e("div", { className: "bd-new-kinds" }, NEW_KINDS.map(function (k) {
-              return e("button", { key: k[0], type: "button", className: "bd-new-kind", "data-kind": k[0],
-                onClick: function () { if (k[0] === "template") setNewView("template"); else newFrame(k[0]); } },
-                e("span", { className: "bd-new-pic", "aria-hidden": true }, e(Icon, { name: k[2] })),
-                e("span", { className: "bd-new-name" }, k[1]),
-                e("span", { className: "bd-new-note" }, k[3]));
-            })));
+    var newMenu = function () {
+      if (!newOpen) return null;
+      return ReactDOM.createPortal(e("div", { className: "bd-newmenu", ref: newRef, role: "dialog", "aria-label": "New", style: { left: newOpen.left, top: newOpen.top } },
+        e("p", { className: "bd-newmenu-h" }, "New"),
+        e("div", { className: "bd-newmenu-kinds" }, NEW_KINDS.map(function (k) {
+          return e("button", { key: k[0], type: "button", className: "bd-new-kind", "data-kind": k[0], onClick: function () { newFrame(k[0]); } },
+            e("span", { className: "bd-new-pic", "aria-hidden": true }, e(Icon, { name: k[2] })),
+            e("span", { className: "bd-new-text" }, e("span", { className: "bd-new-name" }, k[1]), e("span", { className: "bd-new-note" }, k[3])));
+        })),
+        e("p", { className: "bd-newmenu-h" }, "Templates"),
+        e("ul", { className: "bd-new-list", role: "list" }, STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) {
+          return e("li", { key: st[0], className: "bd-new-tpl", "data-template": st[0] },
+            e(Icon, { name: "file" }),
+            e("span", { className: "bd-new-tpl-name" }, st[1]),
+            e("button", { type: "button", className: "bd-new-add", title: "As a new frame beside yours", onClick: function () { addTemplate(st[0]); } }, "New frame"),
+            e("button", { type: "button", className: "bd-new-into", title: "At the end of " + frame.name, onClick: function () { addTemplate(st[0], true); } }, "Into frame"));
+        })),
+        e("div", { className: "bd-newmenu-foot" },
+          e("button", { type: "button", className: "bd-new-item", "data-new": "import", onClick: function () { startFrom("import"); } }, e(Icon, { name: "upload" }), e("span", null, "Paste a layout…")),
+          e("button", { type: "button", className: "bd-new-item is-danger", "data-new": "blank", onClick: function () { startFrom("blank"); } }, e(Icon, { name: "trash" }), e("span", null, "Start over with a blank frame")))), document.body);
     };
 
     var importDialog = function () {
@@ -4847,19 +5144,52 @@
                   options: STAGE_SWATCHES.map(function (x) { return { value: x[0], label: x[1], picture: e("span", { className: cx("bd-stage-chip", !x[0] && "is-default"), style: x[0] ? { background: x[0] } : undefined }) }; }) }),
                 e(ColorPick, { value: STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }) ? "" : stageColor, on: !!stageColor && !STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }), label: "Custom background colour", fallback: stageColor || "#e7e7ea", onChange: setStageColor }))),
           ]),
-          sec("builder-frames", "Frames", [
-            e("p", { key: "n", className: "bd-sec-empty" }, doc.frames.filter(function (f) { return !f.bare; }).length + " frames, " + doc.frames.filter(function (f) { return f.bare; }).length + " loose objects. Drag something off a frame to leave it loose on the canvas."),
-            e("ul", { key: "list", className: "bd-frame-items", role: "list", "aria-label": "Frames" }, doc.frames.map(function (f) {
-              var n = componentsOf(f).length;
-              return e("li", { key: f.id },
-                e("button", { type: "button", className: "bd-frame-item", title: "Select " + f.name, onClick: function () { frameOps.pick(f.id, true); } },
-                  e(Icon, { name: f.bare ? "component" : "frame" }),
-                  e("span", { className: "bd-frame-item-name" }, f.name),
-                  e("span", { className: "bd-layer-text" }, (f.bare ? "Loose" : sizeText(f)) + " · " + n + (n === 1 ? " component" : " components"))));
-            })),
+          /* Nothing selected: what the system offers, rather than a list of
+             frames (Layers has those). */
+          sec("builder-vars", "Variables", [
+            e("div", { key: "colour", className: "bd-sys-row" },
+              e("span", { className: "bd-sys-label" }, "Colour"),
+              e("div", { className: "bd-sys-swatches" }, DATA.tokens.surface.options.slice(0, 16).map(function (o) {
+                return e("span", { key: o.value, className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" }, title: o.value + " · " + o.tokens[0] });
+              }))),
+            e("div", { key: "space", className: "bd-sys-row" },
+              e("span", { className: "bd-sys-label" }, "Spacing"),
+              e("div", { className: "bd-sys-scale" }, DATA.tokens.padding.options.filter(function (o) { return !o.family || o.family === "inset"; }).slice(0, 8).map(function (o) {
+                var px = pxMap["padding|" + o.value];
+                return e("span", { key: o.value, className: "bd-sys-step", title: o.tokens.join(" · ") }, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(64, Math.round(px)) + "px" : "8px" } }), e("span", null, (px != null ? Math.round(px) + " " : "") + o.value));
+              }))),
+            e("div", { key: "radius", className: "bd-sys-row" },
+              e("span", { className: "bd-sys-label" }, "Radius"),
+              e("div", { className: "bd-sys-chips" }, DATA.tokens.radius.options.map(function (o) {
+                return e("span", { key: o.value, className: "bd-sys-chip", title: o.tokens[0] }, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value);
+              }))),
             e("div", { key: "acts", className: "bd-media-actions" },
-              e("button", { type: "button", className: "bd-btn", onClick: openNew }, e(Icon, { name: "plus" }), "New…"),
-              e("button", { type: "button", className: "bd-btn", onClick: fitAll }, e(Icon, { name: "fit" }), "Zoom to fit")),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("assets"); setAssetKind("variables"); } }, e(Icon, { name: "variable" }), "Apply from Assets"),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("configure"); } }, e(Icon, { name: "sliders" }), "Change in Configure")),
+          ]),
+          sec("builder-prims", "Primitives", [
+            e("p", { key: "n", className: "bd-sec-empty" }, "Press one to add it to " + frame.name + ", or drag it onto the canvas."),
+            e("div", { key: "grid", className: "bd-sys-prims" }, DATA.groups.filter(function (g) { return g.id === "layout" || g.id === "typography"; }).reduce(function (a, g) { return a.concat(g.items); }, []).filter(function (n) { return !placeable || placeable[n]; }).map(function (n) {
+              return e("button", { key: n, type: "button", className: "bd-sys-prim", "data-type": n, title: (META[n].blurb ? n + ": " + META[n].blurb : n),
+                onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n }); },
+                onClick: function () { if (!justDragged.current) add(n); } }, e(Icon, { name: typeIcon(n) }), e("span", null, n));
+            })),
+          ]),
+          sec("builder-styles", "Styles", [
+            e("div", { key: "text", className: "bd-sys-row" },
+              e("span", { className: "bd-sys-label" }, "Text"),
+              e("ul", { className: "bd-sys-type", role: "list" }, TEXT_STYLES.map(function (t) {
+                var px = pxMap["text|" + t[0]];
+                return e("li", { key: t[0], title: "--dt-text-" + t[0] + "-size" },
+                  e("span", { className: "bd-sys-ag", style: { fontFamily: "var(--dt-text-" + t[0] + "-family)", fontWeight: "var(--dt-text-" + t[0] + "-weight)" }, "aria-hidden": true }, "Ag"),
+                  e("span", { className: "bd-sys-type-name" }, t[1]),
+                  e("span", { className: "bd-sys-type-px" }, px != null ? Math.round(px) : ""));
+              }))),
+            e("div", { key: "fx", className: "bd-sys-row" },
+              e("span", { className: "bd-sys-label" }, "Shadow"),
+              e("div", { className: "bd-sys-chips" }, DATA.tokens.elevation.options.map(function (o) {
+                return e("span", { key: o.value, className: "bd-sys-chip", title: o.tokens[0] }, e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }), o.value);
+              }))),
           ])));
     };
     var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
@@ -4875,15 +5205,19 @@
             t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
         })),
       e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane },
-        e("aside", { className: "bd-left", "aria-label": "Assets, layers, content and configure", hidden: hidePanels || undefined },
+        e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, layers, content and configure", hidden: hidePanels || undefined },
           e("div", { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
             RAIL.map(function (r) {
               return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === r[0]), "aria-controls": "bd-left-body", title: r[2],
                 onClick: function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
             })),
           e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
-            left === "assets" ? assetsPanel() : left === "layers" ? layersPanel() : left === "content" ? contentPanel()
-              : e("div", { className: "bd-config-dock", ref: dockRef }))),
+            left === "configure" ? e("div", { className: "bd-config-dock", ref: dockRef })
+              : e(React.Fragment, null,
+                e("div", { className: "bd-left-main" }, left === "assets" ? assetsPanel() : left === "layers" ? layersPanel() : contentPanel()),
+                left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
+                  : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery })
+                  : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })))),
         e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
       drag && drag.ghost ? (function () {
@@ -4905,7 +5239,7 @@
             e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
             e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
-      newDialog(),
+      newMenu(),
       importDialog(),
       playDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
