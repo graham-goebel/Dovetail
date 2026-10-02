@@ -103,6 +103,9 @@
     "components/display/Card.d.ts",
     "components/display/Card.jsx",
     "components/display/Card.md",
+    "components/display/Carousel.d.ts",
+    "components/display/Carousel.jsx",
+    "components/display/Carousel.md",
     "components/display/Code.d.ts",
     "components/display/Code.jsx",
     "components/display/Code.md",
@@ -379,6 +382,7 @@
     "components/chat/QuickReplies.jsx",
     "components/chat/QuickReplies.md",
     "tokens/component/chat.css",
+    "tokens/component/carousel.css",
     "components/commerce/ProductCard.d.ts",
     "components/commerce/ProductCard.jsx",
     "components/commerce/ProductCard.md",
@@ -514,6 +518,9 @@
     },
     {
       "name": "Card"
+    },
+    {
+      "name": "Carousel"
     },
     {
       "name": "Code"
@@ -742,8 +749,7 @@
     },
     {
       "name": "ModifierGroup"
-    }
-,
+    },
     {
       "name": "CartLine"
     },

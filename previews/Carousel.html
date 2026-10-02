@@ -1,0 +1,174 @@
+<!-- @dsCard group="Display" height=3300 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+<script>(function () {
+  var failures = [];
+  window.DT_ASSET_FAILURES = failures;
+  window.DT_ASSETS = new Promise(function (r) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { r(failures); }); else r(failures); });
+
+})();
+</script>
+
+
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
+</head><body><div id="root"></div>
+
+
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+  var NEED = ["Carousel", "Section", "ProductCard", "Card"];
+  /* Flat product shots as inline SVG, so the card fetches no photos. */
+  function art(bg, fg) {
+    var svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='" + bg + "'/>" +
+      "<ellipse cx='48' cy='77' rx='24' ry='4' fill='#000' opacity='.08'/><path d='M64 43h5a8 8 0 0 1 0 16h-5' fill='none' stroke='" + fg + "' stroke-width='5'/><rect x='30' y='34' width='36' height='43' rx='5' fill='" + fg + "'/></svg>";
+    return "data:image/svg+xml," + encodeURIComponent(svg);
+  }
+  var PRODUCTS = [
+    ["Stoneware mug", "Fern glaze", 24, "#e9e4dc", "#5b7a6a"],
+    ["Stoneware mug", "Harbour glaze", 24, "#e4e7ee", "#3d5a80"],
+    ["Tall jug", "Terracotta", 38, "#efe3dc", "#b5654a"],
+    ["Espresso cup", "Ink", 16, "#e6e6e6", "#2b2d33"],
+    ["Serving bowl", "Oat", 42, "#efe9dd", "#a8926b"],
+    ["Stoneware mug", "Sea-green", 24, "#e1ece8", "#4f8a78"],
+  ];
+  function products() {
+    return PRODUCTS.map(function (p, i) {
+      return e(NS.ProductCard, { key: "p" + i, name: p[0], subtitle: p[1], price: p[2], locale: "en-GB", currency: "GBP", image: { src: art(p[3], p[4]), alt: "" } });
+    });
+  }
+  /* Colour tiles named for the surface they sit on. */
+  var TILES = [
+    ["Fern", "var(--dt-surface-brand)", "var(--dt-text-on-brand)"],
+    ["Harbour", "var(--dt-surface-brand-secondary)", "var(--dt-text-on-brand-secondary)"],
+    ["Clay", "var(--dt-surface-brand-muted)", "var(--dt-text-primary)"],
+    ["Ink", "var(--dt-surface-inverse)", "var(--dt-text-inverse)"],
+    ["Moss", "var(--dt-surface-action)", "var(--dt-text-on-action)"],
+    ["Paper", "var(--dt-surface-raised)", "var(--dt-text-primary)"],
+    ["Sand", "var(--dt-surface-subtle)", "var(--dt-text-primary)"],
+  ];
+  function tiles(count) {
+    return TILES.slice(0, count || TILES.length).map(function (t) {
+      return e("div", { key: t[0], style: {
+        display: "grid", placeItems: "end start", padding: "var(--dt-space-inset-sm)", background: t[1], color: t[2],
+        fontFamily: "var(--dt-font-family-sans)", fontSize: "var(--dt-text-label-md-size)", fontWeight: "var(--dt-font-weight-semibold)",
+      } }, t[0]);
+    });
+  }
+  var QUOTES = [
+    ["It sat on the shelf for a year before I used it every day.", "Mara, Leeds"],
+    ["The glaze survives the dishwasher, which nothing else I own does.", "Jon, Bristol"],
+    ["I bought one mug and came back for the set.", "Priya, Glasgow"],
+    ["Heavier than it looks, in the best way.", "Tom, Cardiff"],
+  ];
+  function quotes() {
+    return QUOTES.map(function (q, i) {
+      return e(NS.Card, { key: "q" + i, eyebrow: q[1], title: "“" + q[0] + "”" });
+    });
+  }
+  var WORDS = ["Kiln Club", "Field Notes", "Oat & Co", "Northbound", "Harbour", "Slow Table", "Ferment"];
+  function words() {
+    return WORDS.map(function (w) {
+      return e("div", { key: w, style: {
+        display: "grid", placeItems: "center", background: "var(--dt-surface-raised)", color: "var(--dt-text-secondary)",
+        fontFamily: "var(--dt-font-family-sans)", fontSize: "var(--dt-text-label-md-size)", fontWeight: "var(--dt-font-weight-semibold)",
+      } }, w);
+    });
+  }
+  function Controlled() {
+    var st = React.useState(2), v = st[0], set = st[1];
+    return e("div", { style: { display: "grid", gap: "var(--dt-space-stack-sm)" } },
+      e(NS.Carousel, { label: "Glazes, controlled", layout: "focus", drive: "manual", value: v, onChange: set, ratio: "16:9" }, tiles(6)),
+      e("p", { style: { margin: 0, fontFamily: "var(--dt-font-family-mono)", fontSize: "var(--dt-text-body-xs-size)", color: "var(--dt-text-tertiary)" } },
+        "value = " + v + " · " + TILES[v][0]));
+  }
+  function Page() {
+    return e(Shelf, { name: "Carousel", summary: "Items moving on a path, on springs: a ring, a row, a stack that shuffles, a grid that trades places. Any component can be an item, and time, a person or the page's scroll can drive it.", props: [
+        { name: "label", type: "string", required: true, notes: "Accessible name of the carousel region." },
+        { name: "children", type: "ReactNode", required: true, notes: "One child per item, any component. Give each a key." },
+        { name: "layout", type: '"stack" | "grid" | "ring" | "arc" | "coverflow" | "fan" | "focus" | "wave" | "marquee" | "taper" | "scatter"', default: '"ring"', notes: "Changing it morphs from one layout to the next." },
+        { name: "drive", type: '"auto" | "manual" | "both" | "scroll"', default: '"auto"', notes: "both hands over to a person and resumes 2.5s after they let go. scroll pins it while the page moves it." },
+        { name: "feel", type: '"flow" | "glide" | "spring"', notes: "Defaults to the layout's own." },
+        { name: "expression", type: '"none" | "calm" | "lively" | "playful"', default: '"lively"', notes: "Ripple, lean and float. Scaled by --dt-carousel-expression." },
+        { name: "pace / spread / depth", type: "number", default: "1" },
+        { name: "reverse", type: "boolean", default: "false" },
+        { name: "itemRatio", type: '"square" | "portrait" | "landscape" | number', default: '"square"' },
+        { name: "itemSize", type: "number", default: "1" },
+        { name: "ratio / height", type: '"4:3" | "16:9" | "1:1" | "3:4" | "21:9" | number / string', default: '"4:3"' },
+        { name: "value / onChange", type: "number / (index) => void", notes: "Controlled item in focus." },
+        { name: "defaultIndex", type: "number", default: "0" },
+        { name: "paused", type: "boolean", notes: "Holds it still; hides the built-in pause button." },
+        { name: "focusOnly", type: "boolean", notes: "Only the item in focus is live. Off for grid, wave, marquee and taper." },
+        { name: "entrance", type: "boolean", default: "true", notes: "Items spring out of a pile as it comes into view." },
+        { name: "controls", type: '"auto" | "full" | "none"', default: '"auto"' },
+        { name: "pauseLabel / playLabel / previousLabel / nextLabel", type: "string" },
+        { name: "itemLabel", type: "(n, total) => string", default: '"3 of 7"' },
+      ], guidance: [
+        "Use it for a set of 4 to 10 things that should feel alive on a marketing page. When everything must be read, use Grid or List; for one product's photos, ProductGallery.",
+        "Each item fills a frame of itemRatio that is a size container, so content sized in cqw scales with it. Content brings its own surface.",
+        "Only the item in focus is interactive: the rest are inert, and a tap brings them forward. Grid and the drifting rows keep every item live.",
+        "The stage is one tab stop. Arrow keys move it and a person's moves are announced. Auto pauses on hover, keyboard focus and a held touch; the pause button stops it for good.",
+        "On touch a sideways swipe moves it and a fling carries on; a vertical swipe scrolls the page.",
+        "Under reduced motion nothing moves by itself, steps are instant, and the entrance and expression are off.",
+        "drive=\"scroll\" renders its own tall track and pins the stage: give it the full width of a page section. It isn't shown here because a card doesn't scroll.",
+      ] },
+      e(Specimen, { label: "coverflow, drive both, portrait items: products", bg: "var(--dt-surface-base)" },
+        e(NS.Carousel, { label: "Autumn collection", layout: "coverflow", drive: "both", itemRatio: "portrait", ratio: "16:9" }, products())),
+      e(Specimen, { label: "stack, manual, full controls: quotes", bg: "var(--dt-surface-base)" },
+        e(NS.Carousel, { label: "What people say", layout: "stack", drive: "manual", controls: "full", itemRatio: "portrait", ratio: "4:3" }, quotes())),
+      e(Specimen, { label: "grid, auto: trades places on each step", bg: "var(--dt-surface-base)" },
+        e(NS.Carousel, { label: "Glazes in a grid", layout: "grid", ratio: "16:9" }, tiles())),
+      e(Specimen, { label: "ring, playful, spread 1.2", bg: "var(--dt-surface-base)" },
+        e(NS.Carousel, { label: "Glazes on a ring", layout: "ring", expression: "playful", spread: 1.2, ratio: "16:9" }, tiles())),
+      e(Specimen, { label: "marquee, calm: names", bg: "var(--dt-surface-base)" },
+        e(NS.Carousel, { label: "Stockists", layout: "marquee", expression: "calm", itemRatio: "landscape", ratio: "21:9" }, words())),
+      e(Specimen, { label: "scatter, glide; and focus, manual, controlled", bg: "var(--dt-surface-base)" },
+        e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "var(--dt-space-inline-lg)" } },
+          e(NS.Carousel, { label: "Glazes, scattered", layout: "scatter", ratio: "16:9" }, tiles()),
+          e(Controlled))),
+      e(Specimen, { label: "In a dark band: fan, wave", bg: "var(--dt-surface-base)" },
+        e(NS.Section, { dark: true, spacing: "compact", width: "full", style: { borderRadius: "var(--dt-radius-container)" } },
+          e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "var(--dt-space-inline-lg)" } },
+            e(NS.Carousel, { label: "Glazes, fanned (dark)", layout: "fan", itemRatio: "portrait", ratio: "16:9" }, tiles(6)),
+            e(NS.Carousel, { label: "Glazes on a wave (dark)", layout: "wave", drive: "both", ratio: "16:9" }, tiles())))));
+  }
+  /* Self-contained bootstrap: waits for the bundle and the card kit, and
+     says why in the card if either never arrives. */
+  var startedAt = Date.now();
+  function explain(gaps) {
+    var el = document.getElementById("root");
+    if (!el) return;
+    el.innerHTML =
+      '<div role="alert" style="max-width:64ch;margin:40px auto;padding:20px 24px;border:1px solid #d4d4d8;' +
+      'border-radius:8px;background:#fff;font:14px/1.6 ui-sans-serif,system-ui,sans-serif;color:#3f3f46">' +
+      '<strong style="display:block;margin-bottom:6px;color:#18181b">This card could not load the design system</strong>' +
+      (gaps.length ? "Missing from the bundle: <code>" + gaps.join(", ") + "</code>. A hard reload clears a cached copy." : "<code>card-kit.js</code> did not load.") +
+      "</div>";
+  }
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var gaps = NEED.filter(function (n) { return !NS[n]; });
+    if (!gaps.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) return explain(gaps);
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

@@ -149,6 +149,22 @@
     Card: function () {
       return e(NS.Card, { eyebrow: "Plan", title: "Team", description: "Five editors, unlimited invoices." });
     },
+    Carousel: function () {
+      var tiles = [
+        ["Fern", "var(--dt-surface-brand)", "var(--dt-text-on-brand)"],
+        ["Harbour", "var(--dt-surface-brand-secondary)", "var(--dt-text-on-brand-secondary)"],
+        ["Clay", "var(--dt-surface-brand-muted)", "var(--dt-text-primary)"],
+        ["Ink", "var(--dt-surface-inverse)", "var(--dt-text-inverse)"],
+        ["Moss", "var(--dt-surface-action)", "var(--dt-text-on-action)"],
+      ];
+      return e("div", { style: { width: "100%", maxWidth: 260 } }, e(NS.Carousel, { label: "Glazes", layout: "coverflow", itemRatio: "portrait", ratio: "16:9" },
+        tiles.map(function (t) {
+          return e("div", { key: t[0], style: {
+            display: "grid", placeItems: "end start", padding: "var(--dt-space-inset-xs)", background: t[1], color: t[2],
+            fontFamily: "var(--dt-font-family-sans)", fontSize: "var(--dt-text-label-md-size)", fontWeight: "var(--dt-font-weight-semibold)",
+          } }, t[0]);
+        })));
+    },
     Badge: function () {
       return e(NS.Inline, { gap: "xs" }, e(NS.Badge, { tone: "primary" }, "Accent"), e(NS.Badge, { tone: "success", dot: true }, "Live"));
     },

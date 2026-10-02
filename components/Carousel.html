@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carousel · Dovetail</title>
+<meta name="description" content="Items moving on a path: a ring, a row, a stack that shuffles, a grid that trades places. Reach for it when a set of things should feel alive on a marketing page: a collection, proof, a run of features. Any component can be an item.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=d9dedf4566">
+<link rel="stylesheet" href="../assets/site.css?v=80956e1e94">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
+  try {
+    var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">Carousel</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+    <li><a href="../builder.html">Builder</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Carousel.html" aria-current="page">Carousel</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">Carousel</li></ol></nav>
+<h1>Carousel</h1>
+<p class="lede">Items moving on a path: a ring, a row, a stack that shuffles, a grid that trades places. Reach for it when a set of things should feel alive on a marketing page: a collection, proof, a run of features. Any component can be an item.</p>
+<p class="meta">
+  <span class="pill">Display</span>
+  
+  <a href="../system/components/display/Carousel.jsx">Carousel.jsx</a>
+  <a href="../system/components/display/Carousel.d.ts">Carousel.d.ts</a>
+  <a href="../system/components/display/Carousel.md">Carousel.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="Carousel" data-props="[{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Accessible name of the carousel region, e.g&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The items, one child per item&quot;},{&quot;name&quot;:&quot;drive&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;manual&quot;,&quot;both&quot;,&quot;scroll&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;note&quot;:&quot;What moves it&quot;},{&quot;name&quot;:&quot;feel&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;flow&quot;,&quot;glide&quot;,&quot;spring&quot;],&quot;default&quot;:null,&quot;note&quot;:&quot;How it moves&quot;},{&quot;name&quot;:&quot;expression&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;calm&quot;,&quot;lively&quot;,&quot;playful&quot;],&quot;default&quot;:&quot;lively&quot;,&quot;note&quot;:&quot;Secondary motion as one dial: how much items ripple (follow at different rates), lean and stretch with speed, and drift &quot;},{&quot;name&quot;:&quot;pace&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;1&quot;,&quot;note&quot;:&quot;Multiplies the layout&#39;s speed under auto&quot;},{&quot;name&quot;:&quot;spread&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;1&quot;,&quot;note&quot;:&quot;How widely the layout spreads: the ring&#39;s size, a row&#39;s spacing, the fan&#39;s opening, the wave&#39;s height&quot;},{&quot;name&quot;:&quot;depth&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;1&quot;,&quot;note&quot;:&quot;How strong depth is on ring, coverflow and focus: size and fade toward the back, and how far coverflow&#39;s items turn&quot;},{&quot;name&quot;:&quot;reverse&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;false&quot;,&quot;note&quot;:&quot;Runs the other way.&quot;},{&quot;name&quot;:&quot;itemSize&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;1&quot;,&quot;note&quot;:&quot;Multiplies the item size the layout would choose.&quot;},{&quot;name&quot;:&quot;height&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;A fixed stage height, any CSS length&quot;},{&quot;name&quot;:&quot;value&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The item in focus, for a controlled carousel: changing it brings that item forward.&quot;},{&quot;name&quot;:&quot;defaultIndex&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;0&quot;,&quot;note&quot;:&quot;The item an uncontrolled carousel starts on.&quot;},{&quot;name&quot;:&quot;paused&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Holds an auto carousel still&quot;},{&quot;name&quot;:&quot;focusOnly&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Whether only the item in focus is interactive&quot;},{&quot;name&quot;:&quot;entrance&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;true&quot;,&quot;note&quot;:&quot;Items spring out of a pile as the carousel comes into view, and gather up again when it leaves&quot;},{&quot;name&quot;:&quot;controls&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;full&quot;,&quot;none&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;note&quot;:&quot;The controls, in a row under the items at the end&quot;},{&quot;name&quot;:&quot;pauseLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Pause&quot;,&quot;note&quot;:&quot;Accessible name of the pause button.&quot;},{&quot;name&quot;:&quot;playLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Play&quot;,&quot;note&quot;:&quot;Accessible name of the pause button while paused.&quot;},{&quot;name&quot;:&quot;previousLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Previous item&quot;,&quot;note&quot;:&quot;Accessible name of the previous button.&quot;},{&quot;name&quot;:&quot;nextLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Next item&quot;,&quot;note&quot;:&quot;Accessible name of the next button.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="Carousel props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/Carousel.html?v=263014e4ef&amp;b=99e92a132d" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/Carousel.html?v=263014e4ef&amp;b=99e92a132d" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>Carousel is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { Carousel } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>Items moving on a path: a ring, a row, a stack that shuffles, a grid that trades places. Reach for it when a set of things should feel alive on a marketing page: a collection, proof, a run of features. Any component can be an item.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A handful of things (4 to 10) should be seen as a set, with motion carrying the eye from one to the next.</li><li>A page section should respond to scroll: <code>drive=&quot;scroll&quot;</code> pins the carousel while the page moves it.</li><li>People should be able to play with it: click an item forward, drag, fling, swipe.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>The content must all be read. Motion hides things; use <code>Grid</code> or <code>List</code>.</li><li>It's one product's photos. Use <code>ProductGallery</code>, which has thumbnails and no motion.</li><li>The items are steps in a process. Use <code>Stepper</code>.</li><li>It would be the only way to reach something important. Out-of-focus items are not interactive by default.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>&lt;Carousel label=&quot;Autumn collection&quot; layout=&quot;coverflow&quot; drive=&quot;both&quot; itemRatio=&quot;portrait&quot;&gt;
+  {products.map((p) =&gt; &lt;ProductCard key={p.id} {...p} /&gt;)}
+&lt;/Carousel&gt;
+
+&lt;Carousel label=&quot;What people say&quot; layout=&quot;stack&quot; drive=&quot;scroll&quot; itemRatio=&quot;portrait&quot;&gt;
+  {quotes.map((q) =&gt; &lt;Card key={q.id}&gt;{q.text}&lt;/Card&gt;)}
+&lt;/Carousel&gt;</code></pre>
+<h3 id="layouts">Layouts</h3>
+<div class="table-wrap"><table><thead><tr><th>layout</th><th>What it does</th><th>Good for</th></tr></thead><tbody><tr><td><code>stack</code></td><td>The front card is thrown off in an arc and slips to the back</td><td>One at a time: quotes, offers</td></tr><tr><td><code>grid</code></td><td>A grid whose items trade places on each step</td><td>A collection at a glance, with life</td></tr><tr><td><code>ring</code></td><td>A tilted orbit; depth sets size and fade</td><td>A small set, playful</td></tr><tr><td><code>arc</code></td><td>Items climb a diagonal, growing, then dissolve</td><td>Hero motion, launches</td></tr><tr><td><code>coverflow</code></td><td>A 3D row; the focused item faces you</td><td>Products, covers</td></tr><tr><td><code>fan</code></td><td>A spread hand of cards; the focused one lifts</td><td>Cards, offers</td></tr><tr><td><code>focus</code></td><td>A row that swells in the middle</td><td>Features, people</td></tr><tr><td><code>wave</code></td><td>A row riding a sine curve</td><td>Logos, tags, playful proof</td></tr><tr><td><code>marquee</code></td><td>A steady drift at one size</td><td>Logos, proof</td></tr><tr><td><code>taper</code></td><td>A drift that grows as it comes toward you</td><td>Ambient motion</td></tr><tr><td><code>scatter</code></td><td>A scattered field; one item rises to the middle at a time</td><td>Moodboards, mixed media</td></tr></tbody></table></div>
+<p>Changing <code>layout</code> morphs: each item travels from where it was, a beat after the one before.</p>
+<h3 id="drive-and-feel">Drive and feel</h3>
+<ul><li><code>drive</code>: <code>auto</code> moves on its own; <code>manual</code> only when a person moves it; <code>both</code> hands over to a person and resumes 2.5 seconds after they let go; <code>scroll</code> follows the page.</li><li><code>feel</code>: <code>flow</code> drifts and follows a finger closely; <code>glide</code> holds on each item and eases to the next; <code>spring</code> overshoots and settles. Each layout picks a sensible one.</li><li><code>expression</code>: <code>none</code>, <code>calm</code>, <code>lively</code> or <code>playful</code>. How much the items ripple, lean with speed and drift at rest.</li><li><code>pace</code>, <code>spread</code>, <code>depth</code>, <code>reverse</code>, <code>itemSize</code>: finer control.</li></ul>
+<h3 id="composition">Composition</h3>
+<ul><li>Each child is one item. It fills a frame of <code>itemRatio</code> that is a size container, so content sized in <code>cqw</code> scales with the item. Give children keys.</li><li>Content brings its own surface; the frame adds only <code>--dt-carousel-item-radius</code> and <code>--dt-carousel-item-shadow</code>.</li><li>Put it in a <code>Section</code> or a block. Under <code>drive=&quot;scroll&quot;</code> it renders its own tall track: give it the full width.</li></ul>
+<h3 id="tokens">Tokens</h3>
+<ul><li>Motion: <code>--dt-carousel-flow-stiffness</code>, <code>--dt-carousel-flow-damping</code>, <code>--dt-carousel-glide-stiffness</code>, <code>--dt-carousel-glide-damping</code>, <code>--dt-carousel-spring-stiffness</code>, <code>--dt-carousel-spring-damping</code>, <code>--dt-carousel-pace</code>, <code>--dt-carousel-expression</code>, <code>--dt-carousel-perspective</code>, <code>--dt-carousel-scroll-step</code>. Read once when it mounts; a context can set <code>--dt-carousel-expression: 0.5</code> to calm every carousel in it.</li><li>Items: <code>--dt-carousel-item-radius</code> (<code>--dt-radius-container</code>), <code>--dt-carousel-item-shadow</code> (<code>--dt-elevation-2</code>).</li><li>Controls (a row under the items, at the end): <code>--dt-carousel-control-surface</code> (<code>--dt-surface-glass-strong</code>), <code>--dt-carousel-control-border</code> (<code>--dt-border-glass</code>), <code>--dt-carousel-control-text</code> (<code>--dt-text-primary</code>), <code>--dt-carousel-control-size</code> (<code>--dt-size-control-md</code>); repeated under <code>.dark</code>.</li><li>Set by the component, not for theming: <code>--dt-carousel-item-width</code> and <code>--dt-carousel-item-height</code>.</li></ul>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>A region with <code>aria-roledescription=&quot;carousel&quot;</code> and the required <code>label</code>. Each item is a group with <code>aria-roledescription=&quot;slide&quot;</code>, named by <code>itemLabel</code> (&quot;3 of 7&quot;); the one in focus has <code>aria-current</code>.</li><li>The stage is one tab stop. Arrow keys move it; a person's moves are announced politely. Under <code>auto</code> and <code>both</code> it pauses on hover, on keyboard focus and while a touch is held.</li><li>Moving content needs a way to stop it: the built-in pause button does this. With <code>controls=&quot;none&quot;</code> on an auto carousel, pass <code>paused</code> from a control of your own.</li><li>Only the item in focus is interactive (<code>focusOnly</code>); the others are inert, so a tap brings them forward instead of pressing something half-seen. Grid and the drifting rows keep every item live.</li><li>Under <code>prefers-reduced-motion</code> nothing moves by itself, steps are instant, the entrance is skipped and expression is off. Dragging, the arrow keys and scrolling still step it.</li><li>Touch: a sideways swipe moves it and a fling carries on; a mostly vertical swipe scrolls the page. It never takes the page's scroll away.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li>4 to 10 items. Fewer looks sparse on a path; more turns a ring into a blur.</li><li>Keep each item's content short enough to read while it moves: a title, a line, one action.</li><li><code>label</code> names the set (&quot;Autumn collection&quot;), not the component (&quot;Carousel&quot;).</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>Carousel.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+export type CarouselLayout =
+  | &quot;stack&quot; | &quot;grid&quot; | &quot;ring&quot; | &quot;arc&quot; | &quot;coverflow&quot; | &quot;fan&quot;
+  | &quot;focus&quot; | &quot;wave&quot; | &quot;marquee&quot; | &quot;taper&quot; | &quot;scatter&quot;;
+
+/**
+ * Items moving on a path: a ring, a row, a stack that shuffles, a grid that
+ * trades places. Any component can be an item. The motion runs on springs and
+ * can be driven by time, by the person (click, drag, swipe, arrow keys), or by
+ * the page's scroll.
+ */
+export interface CarouselProps extends Omit&lt;React.HTMLAttributes&lt;HTMLElement&gt;, &quot;children&quot; | &quot;onChange&quot;&gt; {
+  /** Accessible name of the carousel region, e.g. &quot;Autumn collection&quot;. Required: a screen reader announces it with &quot;carousel&quot;. */
+  label: string;
+  /** The items, one child per item. Any component; each fills an item frame that is a size container, so content sized in `cqw` scales with it. Give each a `key`. */
+  children: React.ReactNode;
+  /**
+   * The path the items travel. stack: the front card is thrown off and slips to the back.
+   * grid: a grid whose items trade places on each step. ring: a tilted orbit. arc: a
+   * diagonal climb. coverflow: a 3D row, the focused item facing you. fan: a spread hand of
+   * cards. focus: a row that swells in the middle. wave: a row riding a sine curve.
+   * marquee: a steady drift. taper: a drift that grows as it comes toward you. scatter: a
+   * scattered field, one item rising to the middle at a time. Changing it morphs from one
+   * layout to the next. @default &quot;ring&quot;
+   */
+  layout?: CarouselLayout;
+  /**
+   * What moves it. auto: on its own, pausing on hover, keyboard focus and a held touch.
+   * manual: only the person moves it, by clicking an item, dragging, swiping or the arrow
+   * keys. both: auto, but a person can take over and it resumes 2.5 seconds after they let
+   * go. scroll: the page's scroll position moves it; the carousel pins while a track of
+   * `--dt-carousel-scroll-step` per item scrolls past. @default &quot;auto&quot;
+   */
+  drive?: &quot;auto&quot; | &quot;manual&quot; | &quot;both&quot; | &quot;scroll&quot;;
+  /**
+   * How it moves. flow: drifts continuously and follows a finger closely. glide: holds on
+   * each item, then eases to the next. spring: like glide, with an overshoot. The springs
+   * are the `--dt-carousel-*-stiffness` and `-damping` tokens. Defaults to the layout's
+   * own feel (glide for stack, grid, coverflow, fan, focus and scatter; flow for the rest).
+   */
+  feel?: &quot;flow&quot; | &quot;glide&quot; | &quot;spring&quot;;
+  /**
+   * Secondary motion as one dial: how much items ripple (follow at different rates), lean
+   * and stretch with speed, and drift at rest. Scaled by `--dt-carousel-expression`; none
+   * under reduced motion. @default &quot;lively&quot;
+   */
+  expression?: &quot;none&quot; | &quot;calm&quot; | &quot;lively&quot; | &quot;playful&quot;;
+  /** Multiplies the layout's speed under auto. Also scaled by `--dt-carousel-pace`. @default 1 */
+  pace?: number;
+  /** How widely the layout spreads: the ring's size, a row's spacing, the fan's opening, the wave's height. 0.6 to 1.4 reads well. @default 1 */
+  spread?: number;
+  /** How strong depth is on ring, coverflow and focus: size and fade toward the back, and how far coverflow's items turn. 0 is flat. @default 1 */
+  depth?: number;
+  /** Runs the other way. @default false */
+  reverse?: boolean;
+  /** Each item's shape: square, portrait (3:4), landscape (4:3), or a width / height number. @default &quot;square&quot; */
+  itemRatio?: &quot;square&quot; | &quot;portrait&quot; | &quot;landscape&quot; | number;
+  /** Multiplies the item size the layout would choose. @default 1 */
+  itemSize?: number;
+  /** The stage's shape, a ratio keyword or a width / height number. Ignored when `height` is set. @default &quot;4:3&quot; */
+  ratio?: &quot;4:3&quot; | &quot;16:9&quot; | &quot;1:1&quot; | &quot;3:4&quot; | &quot;21:9&quot; | number;
+  /** A fixed stage height, any CSS length. Wins over `ratio`. */
+  height?: string;
+  /** The item in focus, for a controlled carousel: changing it brings that item forward. */
+  value?: number;
+  /** The item an uncontrolled carousel starts on. @default 0 */
+  defaultIndex?: number;
+  /** Called with the index of the item in focus whenever it changes, by any cause. */
+  onChange?: (index: number) =&gt; void;
+  /** Holds an auto carousel still. Pass it when you provide your own pause control; the built-in one is then hidden. */
+  paused?: boolean;
+  /**
+   * Whether only the item in focus is interactive. Out-of-focus items can't be tabbed to or
+   * pressed, so a tap on one brings it forward. Defaults to true, except for grid, wave,
+   * marquee and taper, which keep every item live.
+   */
+  focusOnly?: boolean;
+  /** Items spring out of a pile as the carousel comes into view, and gather up again when it leaves. Off under reduced motion. @default true */
+  entrance?: boolean;
+  /**
+   * The controls, in a row under the items at the end. auto: a pause button when it moves on its own, and
+   * previous and next when a person drives it. full: all three. none: no controls; an auto
+   * carousel must then get a pause control of yours through `paused`. @default &quot;auto&quot;
+   */
+  controls?: &quot;auto&quot; | &quot;full&quot; | &quot;none&quot;;
+  /** Accessible name of the pause button. @default &quot;Pause&quot; */
+  pauseLabel?: string;
+  /** Accessible name of the pause button while paused. @default &quot;Play&quot; */
+  playLabel?: string;
+  /** Accessible name of the previous button. @default &quot;Previous item&quot; */
+  previousLabel?: string;
+  /** Accessible name of the next button. @default &quot;Next item&quot; */
+  nextLabel?: string;
+  /** Names each item for assistive technology, and is announced when a person moves the carousel. @default (n, total) =&gt; `${n} of ${total}` */
+  itemLabel?: (n: number, total: number) =&gt; string;
+}
+
+export declare function Carousel(props: CarouselProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>Carousel.jsx</code> resolves, read from the source: 16 component, 7 semantic, 2 undeclared. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:Carousel">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>none</strong> Referenced by the source but declared by no tier, so it resolves to nothing.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-carousel-control-border"><th scope="row"><span class="token-cell"><code>--dt-carousel-control-border</code><button type="button" class="graph-btn" data-graph="--dt-carousel-control-border" title="Show what --dt-carousel-control-border connects to" aria-label="Graph for --dt-carousel-control-border"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-glass)</code></td></tr><tr id="uses-dt-carousel-control-size"><th scope="row"><span class="token-cell"><code>--dt-carousel-control-size</code><button type="button" class="graph-btn" data-graph="--dt-carousel-control-size" title="Show what --dt-carousel-control-size connects to" aria-label="Graph for --dt-carousel-control-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-control-md)</code></td></tr><tr id="uses-dt-carousel-control-surface"><th scope="row"><span class="token-cell"><code>--dt-carousel-control-surface</code><button type="button" class="graph-btn" data-graph="--dt-carousel-control-surface" title="Show what --dt-carousel-control-surface connects to" aria-label="Graph for --dt-carousel-control-surface"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-glass-strong)</code></td></tr><tr id="uses-dt-carousel-control-text"><th scope="row"><span class="token-cell"><code>--dt-carousel-control-text</code><button type="button" class="graph-btn" data-graph="--dt-carousel-control-text" title="Show what --dt-carousel-control-text connects to" aria-label="Graph for --dt-carousel-control-text"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-carousel-expression"><th scope="row"><span class="token-cell"><code>--dt-carousel-expression</code><button type="button" class="graph-btn" data-graph="--dt-carousel-expression" title="Show what --dt-carousel-expression connects to" aria-label="Graph for --dt-carousel-expression"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>1</code></td></tr><tr id="uses-dt-carousel-flow-damping"><th scope="row"><span class="token-cell"><code>--dt-carousel-flow-damping</code><button type="button" class="graph-btn" data-graph="--dt-carousel-flow-damping" title="Show what --dt-carousel-flow-damping connects to" aria-label="Graph for --dt-carousel-flow-damping"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>1</code></td></tr><tr id="uses-dt-carousel-flow-stiffness"><th scope="row"><span class="token-cell"><code>--dt-carousel-flow-stiffness</code><button type="button" class="graph-btn" data-graph="--dt-carousel-flow-stiffness" title="Show what --dt-carousel-flow-stiffness connects to" aria-label="Graph for --dt-carousel-flow-stiffness"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>70</code></td></tr><tr id="uses-dt-carousel-glide-damping"><th scope="row"><span class="token-cell"><code>--dt-carousel-glide-damping</code><button type="button" class="graph-btn" data-graph="--dt-carousel-glide-damping" title="Show what --dt-carousel-glide-damping connects to" aria-label="Graph for --dt-carousel-glide-damping"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>1</code></td></tr><tr id="uses-dt-carousel-glide-stiffness"><th scope="row"><span class="token-cell"><code>--dt-carousel-glide-stiffness</code><button type="button" class="graph-btn" data-graph="--dt-carousel-glide-stiffness" title="Show what --dt-carousel-glide-stiffness connects to" aria-label="Graph for --dt-carousel-glide-stiffness"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>42</code></td></tr><tr id="uses-dt-carousel-item-radius"><th scope="row"><span class="token-cell"><code>--dt-carousel-item-radius</code><button type="button" class="graph-btn" data-graph="--dt-carousel-item-radius" title="Show what --dt-carousel-item-radius connects to" aria-label="Graph for --dt-carousel-item-radius"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-radius-container)</code></td></tr><tr id="uses-dt-carousel-item-shadow"><th scope="row"><span class="token-cell"><code>--dt-carousel-item-shadow</code><button type="button" class="graph-btn" data-graph="--dt-carousel-item-shadow" title="Show what --dt-carousel-item-shadow connects to" aria-label="Graph for --dt-carousel-item-shadow"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-elevation-2)</code></td></tr><tr id="uses-dt-carousel-pace"><th scope="row"><span class="token-cell"><code>--dt-carousel-pace</code><button type="button" class="graph-btn" data-graph="--dt-carousel-pace" title="Show what --dt-carousel-pace connects to" aria-label="Graph for --dt-carousel-pace"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>1</code></td></tr><tr id="uses-dt-carousel-perspective"><th scope="row"><span class="token-cell"><code>--dt-carousel-perspective</code><button type="button" class="graph-btn" data-graph="--dt-carousel-perspective" title="Show what --dt-carousel-perspective connects to" aria-label="Graph for --dt-carousel-perspective"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>1100px</code></td></tr><tr id="uses-dt-carousel-scroll-step"><th scope="row"><span class="token-cell"><code>--dt-carousel-scroll-step</code><button type="button" class="graph-btn" data-graph="--dt-carousel-scroll-step" title="Show what --dt-carousel-scroll-step connects to" aria-label="Graph for --dt-carousel-scroll-step"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>46vh</code></td></tr><tr id="uses-dt-carousel-spring-damping"><th scope="row"><span class="token-cell"><code>--dt-carousel-spring-damping</code><button type="button" class="graph-btn" data-graph="--dt-carousel-spring-damping" title="Show what --dt-carousel-spring-damping connects to" aria-label="Graph for --dt-carousel-spring-damping"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>0.36</code></td></tr><tr id="uses-dt-carousel-spring-stiffness"><th scope="row"><span class="token-cell"><code>--dt-carousel-spring-stiffness</code><button type="button" class="graph-btn" data-graph="--dt-carousel-spring-stiffness" title="Show what --dt-carousel-spring-stiffness connects to" aria-label="Graph for --dt-carousel-spring-stiffness"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>130</code></td></tr><tr id="uses-dt-backdrop-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-backdrop-glass"><code>--dt-backdrop-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-backdrop-glass" title="Show what --dt-backdrop-glass connects to" aria-label="Graph for --dt-backdrop-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>saturate(1.6) blur(var(--dt-blur-glass))</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-motion-enter"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-motion-enter"><code>--dt-motion-enter</code></a><button type="button" class="graph-btn" data-graph="--dt-motion-enter" title="Show what --dt-motion-enter connects to" aria-label="Graph for --dt-motion-enter"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-duration-200) var(--dt-easing-decelerate)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-icon-sm"><th scope="row"><span class="token-cell"><code>--dt-size-icon-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-sm" title="Show what --dt-size-icon-sm connects to" aria-label="Graph for --dt-size-icon-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-carousel-item-height"><th scope="row"><span class="token-cell"><code>--dt-carousel-item-height</code><button type="button" class="graph-btn" data-graph="--dt-carousel-item-height" title="Show what --dt-carousel-item-height connects to" aria-label="Graph for --dt-carousel-item-height"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr><tr id="uses-dt-carousel-item-width"><th scope="row"><span class="token-cell"><code>--dt-carousel-item-width</code><button type="button" class="graph-btn" data-graph="--dt-carousel-item-width" title="Show what --dt-carousel-item-width connects to" aria-label="Graph for --dt-carousel-item-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>none</td><td><span class="token-undefined">not declared</span></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { VisuallyHidden } from &quot;../primitives/VisuallyHidden.jsx&quot;;
+
+/* ---------------------------------------------------------------- maths */
+
+const lerp = (a, b, t) =&gt; a + (b - a) * t;
+const clamp = (v, a, b) =&gt; Math.max(a, Math.min(b, v));
+const mod = (a, n) =&gt; ((a % n) + n) % n;
+/* Signed distance from a to 0 round a loop of n: -n/2 to n/2. */
+const wrap = (a, n) =&gt; mod(a + n / 2, n) - n / 2;
+/* A stable pseudo-random number in 0..1 for an index. */
+const hash = (i) =&gt; { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const smooth = (t) =&gt; t * t * (3 - 2 * t);
+const backOut = (t, c = 1.25) =&gt; 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2);
+const glideEase = (t) =&gt; (t &lt; 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/* Integrates m.pos toward target as a damped spring, in small fixed steps so
+   a long frame can't make it blow up. */
+function spring(m, target, k, zeta, dt) {
+  const c = 2 * zeta * Math.sqrt(k), n = Math.max(1, Math.ceil(dt * 120)), h = dt / n;
+  for (let i = 0; i &lt; n; i++) { m.vel += (k * (target - m.pos) - c * m.vel) * h; m.pos += m.vel * h; }
+}
+
+/* Springs approach their target forever; once within a hair, arrive. */
+function settle(m, target) {
+  if (Math.abs(target - m.pos) &lt; 0.0015 &amp;&amp; Math.abs(m.vel) &lt; 0.01) { m.pos = target; m.vel = 0; return true; }
+  return false;
+}
+
+/* Under drive=&quot;scroll&quot;, Glide and Spring step: hold on each item, then move. */
+function shape(raw, feel) {
+  if (feel === &quot;flow&quot;) return raw;
+  const f = Math.floor(raw), t = raw - f, u = clamp((t - 0.2) / 0.6, 0, 1);
+  return f + (feel === &quot;spring&quot; ? backOut(u, 1.70158) : glideEase(u));
+}
+
+/* The grid's shuffles: step k is a seeded shuffle of the cells, step 0 is
+   reading order. */
+const PERMS = new Map();
+function perm(k, n) {
+  const key = k + &quot;|&quot; + n;
+  if (PERMS.has(key)) return PERMS.get(key);
+  const a = Array.from({ length: n }, (_, i) =&gt; i);
+  if (k !== 0) {
+    let seed = (k * 9973 + n * 131) &gt;&gt;&gt; 0;
+    const rnd = () =&gt; {
+      seed = (seed + 0x6d2b79f5) &gt;&gt;&gt; 0;
+      let t = seed;
+      t = Math.imul(t ^ (t &gt;&gt;&gt; 15), t | 1);
+      t ^= t + Math.imul(t ^ (t &gt;&gt;&gt; 7), t | 61);
+      return ((t ^ (t &gt;&gt;&gt; 14)) &gt;&gt;&gt; 0) / 4294967296;
+    };
+    for (let j = n - 1; j &gt; 0; j--) { const r = Math.floor(rnd() * (j + 1)); [a[j], a[r]] = [a[r], a[j]]; }
+  }
+  if (PERMS.size &gt; 400) PERMS.clear();
+  PERMS.set(key, a);
+  return a;
+}
+function cellXY(slot, g, n) {
+  const row = Math.floor(slot / g.cols), col = slot % g.cols;
+  const inRow = row === g.rows - 1 ? n - g.cols * (g.rows - 1) : g.cols;
+  return { x: (col - (inRow - 1) / 2) * g.cell, y: (row - (g.rows - 1) / 2) * g.cell };
+}
+
+/* --------------------------------------------------------------- layouts
+
+   A layout is either a path, pose(p, g): where one item sits at p of its way
+   round (0 to 1), the items spread evenly along it; or a placement,
+   at(i, pos, g, n, dir): where item i sits when the carousel is at pos.
+   geom() sizes it to the stage. zk scales depth so every layout can share one
+   camera; drag is +1 when dragging right moves forward. */
+
+const LAYOUTS = {
+  stack: {
+    stepEvery: 2.6, drag: 1, feel: &quot;glide&quot;, noLean: true, span: -1,
+    geom: (w, h, n, k, s0) =&gt; ({ s: s0, w, h }),
+    at(i, pI, g, n, dr) {
+      const f = Math.floor(pI), t = pI - f, k = mod(i - f, n);
+      if (k === 0) {
+        return { x: dr * g.w * 0.46 * t, y: g.h * 0.05 - Math.sin(Math.PI * Math.min(1, t * 1.1)) * g.h * 0.09, z: (n + 2) * 5, sc: 1 + 0.03 * Math.sin(Math.PI * t), o: 1 - clamp((t - 0.6) / 0.4, 0, 1), r: dr * 18 * t };
+      }
+      const r = k - t;
+      const q = { x: 0, y: g.h * 0.05 - r * g.h * 0.055, z: (n - r) * 5, sc: 1 - r * 0.075, o: clamp((4.3 - r) / 1.3, 0, 1), r: 0 };
+      if (k === n - 1) q.o *= clamp(t * 3, 0, 1);
+      return q;
+    },
+  },
+  grid: {
+    stepEvery: 2.4, drag: 1, feel: &quot;glide&quot;, noLean: true, allLive: true, tap: &quot;step&quot;,
+    geom(w, h, n, k) {
+      const cols = Math.max(2, Math.ceil(Math.sqrt(n * (w / h) * 0.9))), rows = Math.ceil(n / cols);
+      const cell = Math.min((w * 0.88 * k) / cols, (h * 0.84) / rows);
+      return { s: cell * 0.84, cols, rows, cell };
+    },
+    at(i, pI, g, n, dr) {
+      const t = dr * pI, f = Math.floor(t), u = t - f, st = 0.35;
+      const ui = smooth(clamp((u - st * (n &gt; 1 ? i / (n - 1) : 0)) / (1 - st), 0, 1));
+      const A = cellXY(perm(f, n)[i], g, n), B = cellXY(perm(f + 1, n)[i], g, n), lift = Math.sin(Math.PI * ui);
+      return { x: lerp(A.x, B.x, ui), y: lerp(A.y, B.y, ui) - lift * g.cell * 0.18, z: lift * 80, sc: 1 + 0.12 * lift, o: 1, r: lift * (hash(i + f * 7) - 0.5) * 24 };
+    },
+  },
+  ring: {
+    zk: 1, loop: 16, focusP: 0.25, drag: -1, depth: &quot;ring&quot;, feel: &quot;flow&quot;,
+    geom: (w, h, n, k) =&gt; ({ s: Math.min(w * 0.15, h * 0.25), rx: w * 0.38 * k, ry: h * 0.2 * k }),
+    pose(p, g) {
+      const a = p * Math.PI * 2, sn = Math.sin(a), x0 = Math.cos(a) * g.rx, y0 = sn * g.ry, f = -0.22, d = (sn + 1) / 2;
+      return { x: x0 * Math.cos(f) - y0 * Math.sin(f), y: x0 * Math.sin(f) + y0 * Math.cos(f), z: (d - 1) * 300, sc: 0.6 + 0.4 * d, o: 0.3 + 0.7 * d, r: 0 };
+    },
+  },
+  arc: {
+    zk: 0.12, loop: 14, focusP: 0.72, drag: 1, feel: &quot;flow&quot;,
+    geom: (w, h, n, k) =&gt; ({ s: Math.min(w * 0.2, h * 0.3), w: w * k, h: h * k }),
+    pose: (p, g) =&gt; ({ x: lerp(-g.w * 0.42, g.w * 0.42, p), y: lerp(g.h * 0.28, -g.h * 0.26, p) - Math.sin(Math.PI * p) * g.h * 0.1, z: p * 200, sc: 0.25 + 0.95 * Math.pow(p, 1.4), o: Math.min(1, p * 6, (1 - p) * 6), r: (p - 0.5) * 40 }),
+  },
+  coverflow: {
+    zk: 1, loop: 14, focusP: 0.5, drag: -1, depth: &quot;cover&quot;, feel: &quot;glide&quot;,
+    geom: (w, h, n, k) =&gt; ({ s: Math.min(w * 0.26, h * 0.5), k, n }),
+    pose(p, g) {
+      const d = (0.5 - p) * g.n, ad = Math.abs(d), sd = d &lt; 0 ? -1 : 1;
+      return { x: sd * (Math.min(ad, 1) * g.s * 0.78 + Math.max(0, ad - 1) * g.s * 0.34) * g.k, y: 0, z: -Math.min(ad, 1) * g.s * 0.9 - Math.max(0, ad - 1) * 24, sc: 1, o: clamp((g.n / 2 - ad) * 1.2, 0, 1), r: 0, ry: -clamp(d, -1, 1) * 58 };
+    },
+  },
+  fan: {
+    zk: 1, loop: 14, focusP: 0.5, drag: -1, feel: &quot;glide&quot;,
+    geom: (w, h, n, k) =&gt; ({ s: Math.min(w * 0.2, h * 0.36), R: h * 1.25, k, n, h }),
+    pose(p, g) {
+      const d = (0.5 - p) * g.n, a = (d * 11 * g.k * Math.PI) / 180, lift = Math.exp(-d * d * 1.4);
+      return { x: Math.sin(a) * g.R, y: g.R * (1 - Math.cos(a)) - lift * g.h * 0.08 + g.h * 0.06, z: lift * 60 - Math.abs(d) * 6, sc: 1 + 0.1 * lift, o: clamp((g.n / 2 - Math.abs(d)) * 1.5, 0, 1), r: (a * 180) / Math.PI };
+    },
+  },
+  focus: {
+    zk: 0.12, loop: 14, focusP: 0.5, drag: -1, depth: &quot;focus&quot;, feel: &quot;glide&quot;,
+    geom: (w, h, n, k) =&gt; ({ s: Math.min(w * 0.17, h * 0.34), half: w * 0.62 * k }),
+    pose(p, g) {
+      const x = lerp(g.half, -g.half, p), d = x / (g.half * 0.48), k = Math.exp(-d * d);
+      return { x, y: 0, z: k * 100, sc: 0.35 + 0.95 * k, o: Math.min(1, (1 - Math.abs(x) / g.half) * 3.4), r: 0 };
+    },
+  },
+  wave: {
+    zk: 0.12, loop: 13, focusP: 0.5, drag: -1, feel: &quot;flow&quot;, allLive: true,
+    geom: (w, h, n, k) =&gt; { const half = w * 0.62; return { s: Math.min((half * 2) / n * 0.78, h * 0.36), half, amp: h * 0.15 * k }; },
+    pose(p, g) {
+      const x = lerp(g.half, -g.half, p), ph = p * Math.PI * 3;
+      return { x, y: Math.sin(ph) * g.amp, z: (Math.sin(ph) + 1) * 30, sc: 1, o: Math.min(1, (1 - Math.abs(x) / g.half) * 5), r: -Math.cos(ph) * 14 };
+    },
+  },
+  marquee: {
+    zk: 0, loop: 12, focusP: 0.5, drag: -1, feel: &quot;flow&quot;, allLive: true,
+    geom: (w, h, n, k) =&gt; { const half = w * 0.62 * k; return { s: Math.min((half * 2) / n * 0.82, h * 0.46), half }; },
+    pose(p, g) {
+      const x = lerp(g.half, -g.half, p);
+      return { x, y: 0, z: 0, sc: 1, o: Math.min(1, (1 - Math.abs(x) / g.half) * 5), r: 0 };
+    },
+  },
+  taper: {
+    zk: 0.12, loop: 12, focusP: 0.5, drag: -1, feel: &quot;flow&quot;, allLive: true,
+    geom: (w, h, n, k) =&gt; { const half = w * 0.62 * k; return { s: Math.min((half * 2) / n * 0.9, h * 0.5), half }; },
+    pose(p, g) {
+      const x = lerp(g.half, -g.half, p), u = (x + g.half) / (g.half * 2);
+      return { x, y: 0, z: (1 - u) * 100, sc: 0.18 + 1.02 * Math.pow(1 - u, 1.2), o: Math.min(1, (1 - Math.abs(x) / g.half) * 5), r: 0 };
+    },
+  },
+  scatter: {
+    loop: 18, drag: -1, feel: &quot;glide&quot;,
+    geom: (w, h, n, k) =&gt; ({ s: Math.min(w * 0.17, h * 0.3), w, h, k }),
+    at(i, pI, g, n, dr) {
+      const t = dr * pI, ang = i * 2.39996323 + t * 0.35, rr = Math.sqrt((i + 0.5) / n);
+      const hx = Math.cos(ang) * rr * g.w * 0.4 * g.k, hy = Math.sin(ang) * rr * g.h * 0.36 * g.k;
+      const sz = 0.45 + 0.6 * hash(i), rot = (hash(i + 7) - 0.5) * 50 + t * 12 * (hash(i + 3) - 0.5);
+      const d = wrap(i - t, n), f = Math.exp(-d * d * 1.6);
+      return { x: hx * (1 - f), y: hy * (1 - f), z: f * 120 + sz * 20, sc: lerp(sz * 0.8, 1.5, f), o: lerp(0.85, 1, f), r: rot * (1 - f) };
+    },
+  },
+};
+
+/* Secondary motion as one dial. ripple: items follow at different rates, so
+   a move travels along them; lean: they tilt and stretch with speed; float:
+   they drift a little at rest. Scaled by --dt-carousel-expression. */
+const EXPRESSION = {
+  none: { ripple: 0, lean: 0, float: 0 },
+  calm: { ripple: 0.2, lean: 0.5, float: 0.12 },
+  lively: { ripple: 0.35, lean: 1, float: 0.3 },
+  playful: { ripple: 0.6, lean: 1.6, float: 0.5 },
+};
+
+const RATIOS = { square: 1, portrait: 4 / 3, landscape: 3 / 4 };
+const STAGES = { &quot;4:3&quot;: &quot;4 / 3&quot;, &quot;16:9&quot;: &quot;16 / 9&quot;, &quot;1:1&quot;: &quot;1 / 1&quot;, &quot;3:4&quot;: &quot;3 / 4&quot;, &quot;21:9&quot;: &quot;21 / 9&quot; };
+const KEYS = [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;, &quot;sc&quot;, &quot;o&quot;, &quot;r&quot;, &quot;ry&quot;, &quot;sx&quot;, &quot;sy&quot;];
+
+/* ---------------------------------------------------------------- ticker
+
+   One requestAnimationFrame loop for every carousel on the page, asleep
+   whenever none of them is moving. */
+const engines = new Set();
+let raf = 0, lastT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  let busy = false;
+  engines.forEach((en) =&gt; { if (en.step(dt)) busy = true; });
+  raf = busy ? requestAnimationFrame(frame) : 0;
+}
+function wake() {
+  if (!raf &amp;&amp; typeof requestAnimationFrame !== &quot;undefined&quot;) { lastT = performance.now(); raf = requestAnimationFrame(frame); }
+}
+
+function readNumber(style, name, fallback) {
+  const v = parseFloat(style.getPropertyValue(name));
+  return Number.isFinite(v) ? v : fallback;
+}
+
+/* ---------------------------------------------------------------- engine
+
+   Owns the motion. It moves the item wrappers directly, so React renders the
+   items once and the animation never re-renders them. One master position
+   (in items) chases a target on a spring; each item follows the master with
+   its own stiffness (ripple). get() returns the current settings. */
+function createEngine(stage, field, get, callbacks) {
+  let items = [], n = 0, F = [], last = [];
+  let g = null, w = 0, h = 0, s0 = 0;
+  let L = LAYOUTS[get().layout] || LAYOUTS.ring;
+  const M = { pos: 0, vel: 0 };
+  let T = 0, flowing = false, idle = 0, autoTimer = 0, scrollRaw = null, active = -1, clock = 0, morph = null;
+  let drag = null, dragTarget = 0, ptr = null, held = false, holdTimer = 0, visible = true;
+  let introT = 1, introDir = 0;
+
+  const css = getComputedStyle(stage);
+  const FEEL = {
+    flow: { k: readNumber(css, &quot;--dt-carousel-flow-stiffness&quot;, 70), z: readNumber(css, &quot;--dt-carousel-flow-damping&quot;, 1) },
+    glide: { k: readNumber(css, &quot;--dt-carousel-glide-stiffness&quot;, 42), z: readNumber(css, &quot;--dt-carousel-glide-damping&quot;, 1) },
+    spring: { k: readNumber(css, &quot;--dt-carousel-spring-stiffness&quot;, 130), z: readNumber(css, &quot;--dt-carousel-spring-damping&quot;, 0.36) },
+  };
+  const tokenPace = readNumber(css, &quot;--dt-carousel-pace&quot;, 1);
+  const tokenExpression = readNumber(css, &quot;--dt-carousel-expression&quot;, 1);
+
+  const dirv = () =&gt; (get().reverse ? -1 : 1);
+  const feelOf = () =&gt; get().feel || L.feel;
+  const stagger = () =&gt; Math.min(0.045, 0.5 / Math.max(1, n));
+  const span = () =&gt; (L.span === -1 ? n - 1 : n);
+  const allLive = () =&gt; { const fo = get().focusOnly; return fo === undefined ? !!L.allLive : !fo; };
+
+  function measure() {
+    w = field.clientWidth; h = field.clientHeight;
+    if (!w || !h || !n) return false;
+    const s = get(), rhw = s.itemRatio;
+    /* Every layout shares one base item size and scales from it, so a change
+       of layout can morph size too. */
+    s0 = Math.min(w * 0.4, h * 0.6 * (rhw &gt; 1 ? 1.3 / rhw : 1)) * s.itemSize;
+    g = L.geom(w, h, n, s.spread, s0);
+    g.m = g.s / s0;
+    field.style.setProperty(&quot;--dt-carousel-item-width&quot;, s0.toFixed(1) + &quot;px&quot;);
+    field.style.setProperty(&quot;--dt-carousel-item-height&quot;, (s0 * rhw).toFixed(1) + &quot;px&quot;);
+    return true;
+  }
+  const activeIndex = () =&gt; (n ? mod(Math.round(dirv() * M.pos), n) : 0);
+
+  function poseOf(i, pI, s, dr) {
+    let q;
+    if (L.at) { q = L.at(i, pI, g, n, dr); q.sc *= g.m; }
+    else {
+      const p = mod(L.focusP + (dr * pI - i) / n, 1), dk = s.depth;
+      q = L.pose(p, g);
+      q.sc *= g.m; q.z *= L.zk;
+      if (L.depth) {
+        q.sc = g.m * (1 + (q.sc / g.m - 1) * dk); q.z *= dk;
+        if (q.ry) q.ry *= dk;
+        if (L.depth === &quot;ring&quot;) q.o = clamp(1 - (1 - q.o) * dk, 0, 1);
+      }
+    }
+    if (q.ry === undefined) q.ry = 0;
+    return q;
+  }
+
+  function expression() {
+    const s = get(), base = EXPRESSION[s.expression] || EXPRESSION.lively, k = s.reduced ? 0 : tokenExpression;
+    return { ripple: base.ripple * k, lean: base.lean * k, float: base.float * k };
+  }
+
+  function render() {
+    if (!g) return;
+    const s = get(), ex = expression(), dr = dirv(), stg = stagger();
+    for (let i = 0; i &lt; n; i++) {
+      const v = F[i].vel, q = poseOf(i, F[i].pos, s, dr);
+      if (!L.noLean) q.r += clamp(L.drag * dr * v * 4 * ex.lean, -16, 16);
+      const stretch = Math.min(0.14, Math.abs(v) * 0.022 * ex.lean);
+      q.sx = 1 + stretch; q.sy = 1 - stretch * 0.55;
+      q.y += Math.sin(clock * 1.1 + i * 1.9) * s0 * 0.03 * ex.float * g.m;
+      q.r += Math.sin(clock * 0.8 + i * 2.3) * 1.4 * ex.float;
+      /* A change of layout: each item travels from where it was, a beat
+         after the one before it. */
+      if (morph &amp;&amp; morph.from[i]) {
+        const mt = glideEase(clamp((morph.t * morph.D - i * 0.035) / 0.8, 0, 1)), b = morph.from[i];
+        KEYS.forEach((key) =&gt; { q[key] = lerp(b[key], q[key], mt); });
+      }
+      last[i] = Object.assign({}, q);
+      /* The entrance: from a pile in the middle, each item springs out to
+         its place in turn. */
+      if (introT &lt; 1) {
+        const D = 0.75 + stg * (n - 1), ti = clamp((introT * D - i * stg) / 0.75, 0, 1), e = backOut(ti);
+        const pile = { x: 0, y: h * 0.08, z: 0, sc: q.sc * 0.2, r: (hash(i) - 0.5) * 60, ry: 0, sx: 1, sy: 1 };
+        [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;, &quot;sc&quot;, &quot;r&quot;, &quot;ry&quot;, &quot;sx&quot;, &quot;sy&quot;].forEach((key) =&gt; { q[key] = lerp(pile[key], q[key], e); });
+        q.o *= clamp(ti * 2.2, 0, 1);
+      }
+      const el = items[i];
+      el.style.transform = `translate3d(${q.x.toFixed(1)}px,${q.y.toFixed(1)}px,${q.z.toFixed(1)}px) rotateY(${q.ry.toFixed(1)}deg) rotate(${q.r.toFixed(1)}deg) scale(${(q.sc * q.sx).toFixed(3)},${(q.sc * q.sy).toFixed(3)})`;
+      el.style.opacity = q.o.toFixed(3);
+    }
+    const ai = activeIndex();
+    if (ai !== active) {
+      active = ai;
+      const live = allLive();
+      items.forEach((el, i) =&gt; {
+        if (i === ai) el.setAttribute(&quot;aria-current&quot;, &quot;true&quot;); else el.removeAttribute(&quot;aria-current&quot;);
+        /* Only the item in focus is live: the rest can't be tabbed to or
+           pressed, so a tap on them brings them forward instead. */
+        const slot = el.firstElementChild;
+        if (slot) slot.inert = !live &amp;&amp; i !== ai;
+      });
+      callbacks.active(ai, lastCause);
+      lastCause = &quot;auto&quot;;
+    }
+  }
+  let lastCause = &quot;auto&quot;;
+
+  function touch() { flowing = false; autoTimer = 0; idle = get().drive === &quot;both&quot; ? 2.5 : 0; lastCause = &quot;user&quot;; wake(); }
+  function go(delta) {
+    const base = flowing || Math.abs(T - M.pos) &gt; 1.5 ? Math.round(M.pos) : Math.round(T);
+    T = base + delta;
+    touch();
+  }
+  function focusItem(i) {
+    if (L.span === -1) { const d = mod(i - Math.round(M.pos), n); T = Math.round(M.pos) + (d &gt; n / 2 ? d - n : d); }
+    else { const base = dirv() * M.pos, delta = wrap(i - base, n); T = (base + delta) * dirv(); }
+    touch();
+  }
+
+  function step(dt) {
+    if (!n || (!g &amp;&amp; !measure())) return false;
+    const s = get(), rm = s.reduced, feel = feelOf();
+    let busy = false;
+    clock += dt;
+    if (rm &amp;&amp; introT &lt; 1) { introT = 1; introDir = 0; }
+    if (morph) { morph.t += dt / morph.D; if (morph.t &gt;= 1) morph = null; else busy = true; }
+    if (introDir !== 0) {
+      const D = 0.75 + stagger() * (n - 1);
+      introT = clamp(introT + (introDir * dt * (introDir &lt; 0 ? 1.8 : 1)) / D, 0, 1);
+      if ((introDir &gt; 0 &amp;&amp; introT &gt;= 1) || (introDir &lt; 0 &amp;&amp; introT &lt;= 0)) introDir = 0; else busy = true;
+    }
+
+    if (s.drive === &quot;scroll&quot;) {
+      if (scrollRaw !== null) T = shape(scrollRaw, feel);
+      if (rm) { M.pos = T; M.vel = 0; }
+      else {
+        const f = FEEL[feel], k = feel === &quot;flow&quot; ? f.k * 2.1 : feel === &quot;glide&quot; ? f.k * 1.4 : f.k;
+        spring(M, T, k, feel === &quot;spring&quot; ? Math.min(1, f.z + 0.04) : f.z, dt);
+      }
+      if (!settle(M, T)) busy = true;
+    } else if (drag &amp;&amp; drag.moved) {
+      spring(M, dragTarget, 420, 1, dt);
+      busy = true;
+    } else {
+      if (idle &gt; 0) { idle -= dt; busy = true; }
+      const settled = Math.abs(T - M.pos) &lt; 0.02 &amp;&amp; Math.abs(M.vel) &lt; 0.08;
+      const autoOn = s.drive !== &quot;manual&quot; &amp;&amp; !s.paused &amp;&amp; !held &amp;&amp; !drag &amp;&amp; visible &amp;&amp; !rm &amp;&amp; idle &lt;= 0 &amp;&amp; introT &gt;= 1 &amp;&amp; (settled || flowing);
+      const rate = s.pace * tokenPace;
+      if (autoOn &amp;&amp; feel === &quot;flow&quot;) {
+        const speed = (L.stepEvery ? 1 / L.stepEvery : n / L.loop) * rate;
+        flowing = true;
+        M.vel += (speed - M.vel) * (1 - Math.exp(-5 * dt));
+        M.pos += M.vel * dt;
+        T = M.pos;
+        busy = true;
+      } else {
+        /* Leaving a drift: a paused loop coasts to rest where it is; in
+           manual it settles on a whole item. */
+        if (flowing) { flowing = false; T = s.drive === &quot;manual&quot; ? Math.round(M.pos + M.vel * 0.3) : M.pos + M.vel * 0.3; }
+        if (s.drive === &quot;manual&quot; &amp;&amp; !drag &amp;&amp; Math.abs(T - Math.round(T)) &gt; 0.001) T = Math.round(T);
+        if (autoOn) {
+          autoTimer += dt;
+          if (autoTimer &gt;= (L.stepEvery || L.loop / n) / rate) { autoTimer = 0; T = Math.round(T) + 1; }
+          busy = true;
+        }
+        if (rm) { M.pos = T; M.vel = 0; }
+        else { const f = FEEL[feel]; spring(M, T, f.k, f.z, dt); }
+        if (!settle(M, T)) busy = true;
+      }
+    }
+
+    /* Followers: each item chases the master with its own stiffness. */
+    const rip = expression().ripple;
+    for (let i = 0; i &lt; n; i++) {
+      const fi = F[i];
+      if (rip &lt; 0.01) { fi.pos = M.pos; fi.vel = M.vel; }
+      else {
+        spring(fi, M.pos, 170 * (1 - rip * 0.75 * (n &gt; 1 ? i / (n - 1) : 0)), 0.85, dt);
+        if (!settle(fi, M.pos)) busy = true;
+      }
+    }
+    if (visible &amp;&amp; expression().float &gt; 0) busy = true;
+    render();
+    return busy;
+  }
+
+  /* Pointer and touch. A press catches a moving carousel; a sideways drag
+     scrubs it and a fling carries on; a mostly vertical swipe is left to the
+     page. A touch held still pauses it until it lifts. */
+  const unit = () =&gt; (L.span === -1 ? Math.max(80, w * 0.28) : Math.max(60, w * 0.16));
+  function down(e) {
+    const s = get();
+    if (s.drive === &quot;scroll&quot; || (e.button !== undefined &amp;&amp; e.button &gt; 0)) return;
+    if (e.target.closest &amp;&amp; e.target.closest(&quot;[data-carousel-control]&quot;)) return;
+    const touchy = e.pointerType &amp;&amp; e.pointerType !== &quot;mouse&quot;;
+    ptr = { x: e.clientX, y: e.clientY };
+    clearTimeout(holdTimer);
+    if (touchy) holdTimer = setTimeout(() =&gt; { if (ptr &amp;&amp; !(drag &amp;&amp; drag.moved)) { held = true; field.style.scale = &quot;0.97&quot;; wake(); } }, 320);
+    if (s.drive === &quot;auto&quot;) return;
+    drag = { x: e.clientX, y: e.clientY, pos0: M.pos, moved: false, touch: touchy, item: e.target.closest ? e.target.closest(&quot;[data-carousel-item]&quot;) : null };
+    T = M.pos; flowing = false;
+  }
+  function move(e) {
+    if (ptr &amp;&amp; !held &amp;&amp; Math.hypot(e.clientX - ptr.x, e.clientY - ptr.y) &gt; 10) clearTimeout(holdTimer);
+    if (!drag) return;
+    let dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (!drag.moved) {
+      const th = drag.touch ? 10 : 6;
+      if (Math.abs(dy) &gt; th &amp;&amp; Math.abs(dy) &gt; Math.abs(dx)) { drag = null; wake(); return; }
+      if (Math.abs(dx) &lt;= th) return;
+      drag.moved = true; drag.x = e.clientX; drag.pos0 = M.pos; dragTarget = M.pos;
+      stage.style.cursor = &quot;grabbing&quot;;
+      try { stage.setPointerCapture(e.pointerId); } catch (err) { /* capture is a nicety */ }
+      dx = 0;
+    }
+    dragTarget = drag.pos0 + (L.drag * dirv() * dx) / unit();
+    wake();
+  }
+  function up() {
+    clearTimeout(holdTimer);
+    const wasHeld = held;
+    held = false; ptr = null; field.style.scale = &quot;&quot;;
+    if (!drag) { if (wasHeld) idle = Math.max(idle, 0.5); wake(); return; }
+    const d = drag;
+    drag = null; stage.style.cursor = &quot;&quot;;
+    if (d.moved) T = Math.round(M.pos + clamp(M.vel, -10, 10) * (d.touch ? 0.34 : 0.28));
+    else if (!wasHeld &amp;&amp; d.item) {
+      if (L.tap === &quot;step&quot;) { T = Math.round(M.pos); go(1); return; }
+      focusItem(Number(d.item.getAttribute(&quot;data-carousel-item&quot;)));
+      return;
+    } else T = Math.round(M.pos);
+    touch();
+  }
+  function cancel() {
+    clearTimeout(holdTimer); held = false; ptr = null; field.style.scale = &quot;&quot;; stage.style.cursor = &quot;&quot;;
+    if (drag) { drag = null; T = Math.round(M.pos); touch(); }
+  }
+  stage.addEventListener(&quot;pointerdown&quot;, down);
+  stage.addEventListener(&quot;pointermove&quot;, move);
+  stage.addEventListener(&quot;pointerup&quot;, up);
+  stage.addEventListener(&quot;pointercancel&quot;, cancel);
+
+  /* Play the entrance as the carousel comes into view and gather the items
+     back up when it leaves, so it plays again next time. Out of view it also
+     stops moving by itself. */
+  let io = null;
+  if (typeof IntersectionObserver !== &quot;undefined&quot;) {
+    io = new IntersectionObserver((entries) =&gt; {
+      entries.forEach((en) =&gt; {
+        const r = en.intersectionRatio, s = get();
+        visible = en.isIntersecting;
+        if (s.entrance &amp;&amp; !s.reduced) {
+          if (r &gt;= 0.3 &amp;&amp; introDir !== 1 &amp;&amp; introT &lt; 1) introDir = 1;
+          else if (r &lt; 0.08 &amp;&amp; introT &gt; 0) introDir = -1;
+        }
+        wake();
+      });
+    }, { threshold: [0, 0.08, 0.3, 0.6] });
+    io.observe(stage);
+  }
+  let ro = null;
+  if (typeof ResizeObserver !== &quot;undefined&quot;) {
+    ro = new ResizeObserver(() =&gt; { if (measure()) { render(); wake(); } });
+    ro.observe(field);
+  }
+
+  const api = {
+    step,
+    setItems(els) {
+      items = els; n = els.length;
+      F = els.map(() =&gt; ({ pos: M.pos, vel: 0 }));
+      last = els.map(() =&gt; null);
+      morph = null; active = -1;
+      if (n &amp;&amp; get().entrance &amp;&amp; !get().reduced &amp;&amp; io &amp;&amp; introT &gt;= 1 &amp;&amp; !api.started) introT = 0;
+      api.started = true;
+      if (measure()) render();
+      wake();
+    },
+    setLayout(name) {
+      const next = LAYOUTS[name] || LAYOUTS.ring;
+      if (next === L) return;
+      morph = last.every(Boolean) ? { from: last.map((q) =&gt; Object.assign({}, q)), t: 0, D: 0.8 + 0.035 * (n - 1) } : null;
+      L = next; active = -1; measure(); wake();
+    },
+    sync() { if (measure()) render(); wake(); },
+    go,
+    focus(i) { if (n) focusItem(mod(i, n)); },
+    /* Straight to an item, with no travel: where the carousel starts. */
+    jump(i) {
+      if (!n) return;
+      focusItem(mod(i, n));
+      M.pos = T; M.vel = 0; idle = 0; lastCause = &quot;auto&quot;;
+      F.forEach((f) =&gt; { f.pos = T; f.vel = 0; });
+      if (measure()) render();
+    },
+    replay() { if (!get().reduced) { introT = 0; introDir = 1; wake(); } },
+    scrollTo(v) { scrollRaw = v; wake(); },
+    span,
+    active: () =&gt; active,
+    position: () =&gt; M.pos,
+    destroy() {
+      engines.delete(api);
+      clearTimeout(holdTimer);
+      stage.removeEventListener(&quot;pointerdown&quot;, down);
+      stage.removeEventListener(&quot;pointermove&quot;, move);
+      stage.removeEventListener(&quot;pointerup&quot;, up);
+      stage.removeEventListener(&quot;pointercancel&quot;, cancel);
+      if (io) io.disconnect();
+      if (ro) ro.disconnect();
+    },
+  };
+  engines.add(api);
+  return api;
+}
+
+/* ----------------------------------------------------------------- hooks */
+
+const useIsoLayoutEffect = typeof window !== &quot;undefined&quot; &amp;&amp; window.document ? React.useLayoutEffect : React.useEffect;
+
+function useReducedMotion() {
+  const query = &quot;(prefers-reduced-motion: reduce)&quot;;
+  const [reduced, setReduced] = React.useState(false);
+  React.useEffect(() =&gt; {
+    if (typeof window === &quot;undefined&quot; || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const on = () =&gt; setReduced(mq.matches);
+    on();
+    if (mq.addEventListener) mq.addEventListener(&quot;change&quot;, on); else mq.addListener(on);
+    return () =&gt; { if (mq.removeEventListener) mq.removeEventListener(&quot;change&quot;, on); else mq.removeListener(on); };
+  }, []);
+  return reduced;
+}
+
+/* ------------------------------------------------------------- controls */
+
+const ICONS = {
+  pause: &quot;M9 5v14M15 5v14&quot;,
+  play: &quot;M8 5.5v13l10-6.5z&quot;,
+  prev: &quot;m15 18-6-6 6-6&quot;,
+  next: &quot;m9 18 6-6-6-6&quot;,
+};
+function Glyph({ name }) {
+  return (
+    &lt;svg
+      viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;
+      fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;2&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot;
+      style={{ display: &quot;block&quot;, width: &quot;var(--dt-size-icon-sm)&quot;, height: &quot;var(--dt-size-icon-sm)&quot; }}
+    &gt;
+      &lt;path d={ICONS[name]} /&gt;
+    &lt;/svg&gt;
+  );
+}
+const CONTROL = {
+  display: &quot;grid&quot;, placeItems: &quot;center&quot;, padding: 0, margin: 0,
+  width: &quot;var(--dt-carousel-control-size)&quot;, height: &quot;var(--dt-carousel-control-size)&quot;,
+  borderRadius: &quot;var(--dt-radius-pill)&quot;,
+  border: &quot;var(--dt-border-width-default) solid var(--dt-carousel-control-border)&quot;,
+  background: &quot;var(--dt-carousel-control-surface)&quot;, color: &quot;var(--dt-carousel-control-text)&quot;,
+  WebkitBackdropFilter: &quot;var(--dt-backdrop-glass)&quot;, backdropFilter: &quot;var(--dt-backdrop-glass)&quot;,
+  cursor: &quot;pointer&quot;,
+};
+
+/* ------------------------------------------------------------- component */
+
+export function Carousel({
+  label,
+  children,
+  layout = &quot;ring&quot;,
+  drive = &quot;auto&quot;,
+  feel,
+  expression = &quot;lively&quot;,
+  pace = 1,
+  spread = 1,
+  depth = 1,
+  reverse = false,
+  itemRatio = &quot;square&quot;,
+  itemSize = 1,
+  ratio = &quot;4:3&quot;,
+  height,
+  value,
+  defaultIndex = 0,
+  onChange,
+  paused,
+  focusOnly,
+  entrance = true,
+  controls = &quot;auto&quot;,
+  pauseLabel = &quot;Pause&quot;,
+  playLabel = &quot;Play&quot;,
+  previousLabel = &quot;Previous item&quot;,
+  nextLabel = &quot;Next item&quot;,
+  itemLabel = (n, total) =&gt; `${n} of ${total}`,
+  style,
+  ...rest
+}) {
+  const list = React.Children.toArray(children).filter(Boolean);
+  const total = list.length;
+  const signature = list.map((c, i) =&gt; (c.key != null ? c.key : i)).join(&quot;|&quot;);
+  const stageRef = React.useRef(null);
+  const fieldRef = React.useRef(null);
+  const trackRef = React.useRef(null);
+  const itemRefs = React.useRef([]);
+  const engineRef = React.useRef(null);
+  const reduced = useReducedMotion();
+  const [userPaused, setUserPaused] = React.useState(false);
+  const [hovered, setHovered] = React.useState(false);
+  const [keyFocus, setKeyFocus] = React.useState(false);
+  const [announce, setAnnounce] = React.useState(&quot;&quot;);
+
+  const rhw = typeof itemRatio === &quot;number&quot; ? 1 / itemRatio : RATIOS[itemRatio] || 1;
+  const moves = drive === &quot;auto&quot; || drive === &quot;both&quot;;
+
+  /* What the engine reads every frame. Kept in a ref so a prop change never
+     restarts the motion. */
+  const settings = React.useRef({});
+  settings.current = {
+    layout, drive, feel, expression, pace, spread, depth, reverse, itemRatio: rhw, itemSize, focusOnly, entrance, reduced,
+    paused: !!paused || userPaused || (moves &amp;&amp; (hovered || keyFocus)),
+  };
+  const changeRef = React.useRef(onChange);
+  changeRef.current = onChange;
+  const reported = React.useRef(null);
+  const labelRef = React.useRef(itemLabel);
+  labelRef.current = itemLabel;
+
+  useIsoLayoutEffect(() =&gt; {
+    const en = createEngine(stageRef.current, fieldRef.current, () =&gt; settings.current, {
+      active(i, cause) {
+        /* The first report is where it starts, not a change. */
+        if (reported.current === null || reported.current === i) { reported.current = i; return; }
+        reported.current = i;
+        if (changeRef.current) changeRef.current(i);
+        if (cause === &quot;user&quot;) setAnnounce(labelRef.current(i + 1, itemRefs.current.filter(Boolean).length));
+      },
+    });
+    engineRef.current = en;
+    return () =&gt; { en.destroy(); engineRef.current = null; };
+  }, []);
+
+  /* Items, whenever the children change. The first set starts where
+     defaultIndex (or value) says. */
+  const started = React.useRef(false);
+  useIsoLayoutEffect(() =&gt; {
+    const en = engineRef.current;
+    if (!en) return;
+    const els = itemRefs.current.slice(0, total).filter(Boolean);
+    en.setItems(els);
+    if (!started.current &amp;&amp; els.length) {
+      started.current = true;
+      const first = typeof value === &quot;number&quot; ? value : defaultIndex;
+      if (first) en.jump(first);
+    }
+  }, [signature]);
+
+  React.useEffect(() =&gt; { if (engineRef.current) engineRef.current.setLayout(layout); }, [layout]);
+  React.useEffect(() =&gt; { if (engineRef.current) engineRef.current.sync(); });
+
+  /* A controlled index brings that item forward. */
+  React.useEffect(() =&gt; {
+    const en = engineRef.current;
+    if (en &amp;&amp; typeof value === &quot;number&quot; &amp;&amp; total &amp;&amp; en.active() !== ((value % total) + total) % total) en.focus(value);
+  }, [value, total]);
+
+  /* drive=&quot;scroll&quot;: the page's scroll through the track sets the position. */
+  React.useEffect(() =&gt; {
+    if (drive !== &quot;scroll&quot;) return undefined;
+    const onScroll = () =&gt; {
+      const en = engineRef.current, track = trackRef.current;
+      if (!en || !track) return;
+      const r = track.getBoundingClientRect(), totalPx = Math.max(1, r.height - window.innerHeight);
+      en.scrollTo(clamp(-r.top / totalPx, 0, 1) * en.span());
+    };
+    onScroll();
+    window.addEventListener(&quot;scroll&quot;, onScroll, { passive: true });
+    window.addEventListener(&quot;resize&quot;, onScroll);
+    return () =&gt; { window.removeEventListener(&quot;scroll&quot;, onScroll); window.removeEventListener(&quot;resize&quot;, onScroll); };
+  }, [drive, total]);
+
+  const onKeyDown = (e) =&gt; {
+    const en = engineRef.current;
+    if (!en || drive === &quot;scroll&quot; || e.target !== e.currentTarget) return;
+    if (e.key === &quot;ArrowRight&quot; || e.key === &quot;ArrowDown&quot;) { en.go(1); e.preventDefault(); }
+    else if (e.key === &quot;ArrowLeft&quot; || e.key === &quot;ArrowUp&quot;) { en.go(-1); e.preventDefault(); }
+  };
+  /* Keyboard focus pauses it; the focus a tap or click leaves behind
+     doesn't, or one tap on a tablet would pause it for good. */
+  const onFocus = (e) =&gt; {
+    let kb = true;
+    try { kb = e.target.matches(&quot;:focus-visible&quot;); } catch (err) { kb = true; }
+    if (kb) setKeyFocus(true);
+  };
+  const onBlur = (e) =&gt; { if (!e.currentTarget.contains(e.relatedTarget)) setKeyFocus(false); };
+
+  const showPause = controls !== &quot;none&quot; &amp;&amp; moves &amp;&amp; !reduced &amp;&amp; paused === undefined;
+  const showSteps = controls === &quot;full&quot; || (controls === &quot;auto&quot; &amp;&amp; (drive === &quot;manual&quot; || drive === &quot;both&quot;));
+
+  const stage = (
+    &lt;div
+      role=&quot;region&quot;
+      aria-roledescription=&quot;carousel&quot;
+      aria-label={label}
+      tabIndex={drive === &quot;scroll&quot; ? undefined : 0}
+      onKeyDown={onKeyDown}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      onPointerEnter={(e) =&gt; { if (e.pointerType === &quot;mouse&quot;) setHovered(true); }}
+      onPointerLeave={() =&gt; setHovered(false)}
+      style={{ position: &quot;relative&quot;, display: &quot;grid&quot;, gap: &quot;var(--dt-space-stack-xs)&quot;, width: &quot;100%&quot;, ...(drive === &quot;scroll&quot; ? null : style) }}
+      {...(drive === &quot;scroll&quot; ? null : rest)}
+    &gt;
+      &lt;div
+        ref={stageRef}
+        style={{
+          position: &quot;relative&quot;, width: &quot;100%&quot;, overflow: &quot;hidden&quot;, isolation: &quot;isolate&quot;,
+          aspectRatio: height ? undefined : STAGES[ratio] || (typeof ratio === &quot;number&quot; ? String(ratio) : &quot;4 / 3&quot;),
+          height: height || undefined,
+          maxHeight: drive === &quot;scroll&quot; ? &quot;80svh&quot; : undefined,
+          touchAction: drive === &quot;manual&quot; || drive === &quot;both&quot; ? &quot;pan-y&quot; : undefined,
+          cursor: drive === &quot;manual&quot; || drive === &quot;both&quot; ? &quot;grab&quot; : undefined,
+          WebkitTapHighlightColor: &quot;transparent&quot;,
+        }}
+      &gt;
+        &lt;div
+          ref={fieldRef}
+          style={{
+            position: &quot;absolute&quot;, inset: 0, pointerEvents: &quot;none&quot;,
+            transformStyle: &quot;preserve-3d&quot;, perspective: &quot;var(--dt-carousel-perspective)&quot;,
+            transition: &quot;scale var(--dt-motion-enter)&quot;,
+          }}
+        &gt;
+          {list.map((child, i) =&gt; (
+            &lt;div
+              key={child.key != null ? child.key : i}
+              ref={(el) =&gt; { itemRefs.current[i] = el; }}
+              data-carousel-item={i}
+              role=&quot;group&quot;
+              aria-roledescription=&quot;slide&quot;
+              aria-label={itemLabel(i + 1, total)}
+              style={{
+                position: &quot;absolute&quot;, left: &quot;50%&quot;, top: &quot;50%&quot;,
+                width: &quot;var(--dt-carousel-item-width)&quot;, height: &quot;var(--dt-carousel-item-height)&quot;,
+                marginLeft: &quot;calc(var(--dt-carousel-item-width) / -2)&quot;, marginTop: &quot;calc(var(--dt-carousel-item-height) / -2)&quot;,
+                borderRadius: &quot;var(--dt-carousel-item-radius)&quot;, boxShadow: &quot;var(--dt-carousel-item-shadow)&quot;,
+                backfaceVisibility: &quot;hidden&quot;, willChange: &quot;transform, opacity&quot;,
+                userSelect: &quot;none&quot;, WebkitUserSelect: &quot;none&quot;, WebkitTouchCallout: &quot;none&quot;, pointerEvents: &quot;auto&quot;,
+              }}
+            &gt;
+              &lt;div style={{ position: &quot;absolute&quot;, inset: 0, overflow: &quot;hidden&quot;, borderRadius: &quot;inherit&quot;, containerType: &quot;size&quot;, display: &quot;grid&quot; }}&gt;
+                {child}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+      &lt;/div&gt;
+      {/* The controls sit under the items, at the end, so they never cover
+          what's moving, however small the carousel. */}
+      {(showPause || showSteps) &amp;&amp; (
+        &lt;div data-carousel-control=&quot;&quot; style={{ display: &quot;flex&quot;, justifyContent: &quot;flex-end&quot;, gap: &quot;var(--dt-space-inline-xs)&quot; }}&gt;
+          {showSteps &amp;&amp; (
+            &lt;button type=&quot;button&quot; aria-label={previousLabel} style={CONTROL} onClick={() =&gt; engineRef.current &amp;&amp; engineRef.current.go(-1)}&gt;
+              &lt;Glyph name=&quot;prev&quot; /&gt;
+            &lt;/button&gt;
+          )}
+          {showSteps &amp;&amp; (
+            &lt;button type=&quot;button&quot; aria-label={nextLabel} style={CONTROL} onClick={() =&gt; engineRef.current &amp;&amp; engineRef.current.go(1)}&gt;
+              &lt;Glyph name=&quot;next&quot; /&gt;
+            &lt;/button&gt;
+          )}
+          {showPause &amp;&amp; (
+            &lt;button type=&quot;button&quot; aria-label={userPaused ? playLabel : pauseLabel} style={CONTROL} onClick={() =&gt; setUserPaused((v) =&gt; !v)}&gt;
+              &lt;Glyph name={userPaused ? &quot;play&quot; : &quot;pause&quot;} /&gt;
+            &lt;/button&gt;
+          )}
+        &lt;/div&gt;
+      )}
+      &lt;VisuallyHidden aria-live=&quot;polite&quot; aria-atomic=&quot;true&quot;&gt;{announce}&lt;/VisuallyHidden&gt;
+    &lt;/div&gt;
+  );
+
+  if (drive !== &quot;scroll&quot;) return stage;
+  /* A pinned stage inside a tall track: the page scrolls past it while it
+     stays put and moves. */
+  return (
+    &lt;div
+      ref={trackRef}
+      style={{ position: &quot;relative&quot;, height: `calc(100svh + ${Math.max(1, total)} * var(--dt-carousel-scroll-step))`, ...style }}
+      {...rest}
+    &gt;
+      &lt;div style={{ position: &quot;sticky&quot;, top: 0, height: &quot;100svh&quot;, display: &quot;flex&quot;, alignItems: &quot;center&quot; }}&gt;
+        {stage}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>Carousel also appears on the display reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#displaydetail">DisplayDetail</a></li><li><a href="../showcase/detail.html#surfacesdetail">SurfacesDetail</a></li></ul>
+</section>
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#layouts">Layouts</a></li>
+    <li class="nested"><a href="#drive-and-feel">Drive and feel</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">Carousel</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="Carousel.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="Carousel.md" download="Carousel.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="Carousel.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { Carousel } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/display/Carousel.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy Carousel.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/display/Carousel.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View Carousel.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/display/Carousel.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy Carousel.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/display/Carousel.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View Carousel.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FCarousel.md%3A%20the%20%22Carousel%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="Carousel" data-md="Carousel.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=99e92a132d" defer></script>
+<script src="../assets/specimens.js?v=2912f31e98" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=d7b1473cd7" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=e86531a11f" defer></script>
+<script src="../assets/theme.js?v=1cdcf319a6" defer></script>
+<script src="../assets/site.js?v=544ba24909" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

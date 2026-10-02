@@ -2394,8 +2394,10 @@ const BUILDER_COLUMN_WIDTHS = [3, 4, 5, 6].map((n) => ({ value: `calc(var(--dt-s
 const BUILDER_ROOT_GAPS = ["related", "group", "block", "section"];
 /* Components the builder arranges children inside. */
 const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
-/* Fixed to the viewport when open, or invisible by design: nothing to place. */
-const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
+/* Fixed to the viewport when open, or invisible by design: nothing to place.
+   Carousel holds its own items and needs editing of its own (items laid out
+   flat while you work, moving in Play), so it waits for builder support. */
+const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer", "Carousel"]);
 /* The inspector's tabs: how a component looks, how it lays out, and what it
    says. Every other prop is content. */
 const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "titleSize", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio"];
