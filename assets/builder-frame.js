@@ -337,7 +337,7 @@
     html.classList.toggle("bf-bare-doc", !!opts.bare);
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
-    root.render(e(Painted, null, e("div", { className: cls.join(" "), "data-layout": page.spacing || undefined, "data-bf-id": "root", style: style }, kids)));
+    root.render(e(Painted, null, e("div", { className: cls.join(" "), "data-layout": page.spacing || undefined, "data-type-scale": page.typeScale === "social" ? "social" : undefined, "data-bf-id": "root", style: style }, kids)));
   }
 
   /* ---------------------------------------------------------- geometry */
@@ -748,7 +748,7 @@
     if (tree.root.children.some(function (c) { return isFree(c.style); })) rootStyle.push("position: \"relative\"");
     if (page.gap && ROOT_GAP[page.gap]) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
     var cls = page.dark ? "dark" : "";
-    var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
+    var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + (page.typeScale === "social" ? ' data-type-scale="social"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
     return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
       "export function " + fn + "() {\n  return (\n    <div" + rootAttrs + ">\n" + kids.join("\n") + (kids.length ? "\n" : "") + "    </div>\n  );\n}\n";

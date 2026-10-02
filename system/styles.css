@@ -38,5 +38,6 @@
 @import "tokens/contexts/context-product.css";
 @import "tokens/contexts/context-marketing.css";
 @import "tokens/contexts/context-social.css";
+@import "tokens/contexts/type-scale.css";
 
 @import "tokens/base.css";

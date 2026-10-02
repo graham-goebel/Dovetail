@@ -150,6 +150,37 @@ parts. At the balanced character they are the space axes themselves, so a contex
 `--dt-layout-scale` multiplies every layer in `Stack` and `Inline` (1 on a page), which is how a social
 artboard drawn at 1080px keeps its proportions.
 
+### Type scale
+
+A social post is authored on a 1080px artboard and read in a feed about 390px wide, so at about a
+third of its size. Type sized for a page all but disappears there. Set `data-type-scale="social"` on
+the artboard and every text role grows for it:
+
+| Roles | Factor | Display large / body on a 1080 post | Seen in a feed |
+| --- | --- | --- | --- |
+| body, label, eyebrow, code | 2.5x | body 40px | about 15px |
+| heading | 2.75x | heading large 91px | about 33px |
+| display | 3x | display large 207px | about 75px |
+
+The logic, so another scale can follow it:
+
+1. **Readable at the size it's seen.** Body near 15px, metadata no smaller than 12px and headlines from
+   30px up after the artboard shrinks. At a third of the size, that is about two and a half times the
+   page sizes.
+2. **A steeper ladder for headings.** A feed is scanned, not read, so the headline has to win at a
+   glance. Headings grow more than body and display more again. Display large to body goes from
+   about 4.3 times on a page to about 5.2 times.
+3. **Rhythm kept.** Line heights move with their sizes and tracking stays, so each role keeps its
+   proportions at the larger size.
+4. **Space follows type.** `--dt-layout-scale` takes the body factor, so `Stack` and `Inline` gaps keep
+   their proportion to the words.
+
+The factors are tokens (`--dt-type-scale-body`, `--dt-type-scale-heading`, `--dt-type-scale-display`)
+declared with every role in `tokens/contexts/type-scale.css`. The roles are declared again there
+because a custom property resolves where it's declared. The page's context doesn't carry into a scaled
+region. Families, weights and tracking still follow the theme. `SocialPost` keeps its own artboard
+roles (`--dt-text-artboard-*`).
+
 ### Size
 
 Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32.

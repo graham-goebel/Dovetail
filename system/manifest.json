@@ -310,6 +310,7 @@
     "tokens/component/table.css",
     "tokens/contexts/context-marketing.css",
     "tokens/contexts/context-product.css",
+    "tokens/contexts/type-scale.css",
     "tokens/dovetail.tokens.json",
     "tokens/primitive/color.css",
     "tokens/primitive/dimension.css",
