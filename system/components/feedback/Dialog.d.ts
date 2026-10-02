@@ -13,6 +13,8 @@ export interface DialogProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   footer?: React.ReactNode;
   /** @default "md" */
   size?: "sm" | "md" | "lg";
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
   /** Accessible name for a dialog with no visible title. */
   label?: string;
   children?: React.ReactNode;

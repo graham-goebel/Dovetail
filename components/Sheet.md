@@ -50,6 +50,9 @@ A sheet opened from another keeps the reader's place with a back arrow:
 - **Actions.** `actions` float as chips along the bottom edge over a fade, scrolling sideways when they don't fit. Mark at most one `primary`. Use `footer` instead for a row of Buttons.
 - **Dismissal.** The close button, Escape, the scrim, or on touch a drag down from the top of the sheet all call `onClose` with the reason. A drag right calls `onBack`. The sheet never closes itself: set `open` in response.
 
+### Surfaces
+`surface="glass"` or `"glass-strong"` re-points the sheet's surface (`--dt-dialog-bg`) to glass, and blurs what's behind the sheet and its sticky header.
+
 ### Tokens
 Shares the overlay tokens with Dialog: `--dt-dialog-bg`, `--dt-dialog-fg`, `--dt-dialog-radius`, `--dt-dialog-scrim`, `--dt-dialog-width-sm|md|lg` and `--dt-dialog-max-height`. Its own are `--dt-sheet-inset` (the gap to a phone's edges), `--dt-sheet-top-gap` (the page left showing above it), `--dt-sheet-padding`, `--dt-sheet-button-size`, `--dt-sheet-button-bg` and `--dt-sheet-shadow`.
 
@@ -117,6 +120,8 @@ export interface SheetProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
   footer?: React.ReactNode;
   /** Width on a wide screen, from `--dt-dialog-width-*`. Phones always use the full width less the inset. @default "md" */
   size?: "sm" | "md" | "lg";
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
   /** Accessible name when there is no title. */
   label?: string;
   children?: React.ReactNode;
@@ -144,6 +149,8 @@ export declare function Sheet(props: SheetProps): React.JSX.Element | null;
 | `--dt-sheet-padding` | component | `var(--dt-space-inset-xl)` |
 | `--dt-sheet-shadow` | component | `var(--dt-elevation-4)` |
 | `--dt-sheet-top-gap` | component | `var(--dt-space-stack-2xl)` |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
+| `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-radius-pill` | semantic | `var(--dt-radius-raw-full)` |
 | `--dt-size-control-md` | semantic | `var(--dt-dim-10)` |
@@ -158,6 +165,8 @@ export declare function Sheet(props: SheetProps): React.JSX.Element | null;
 | `--dt-space-stack-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-stack-lg` | semantic | `var(--dt-dim-6)` |
 | `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-surface-glass` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)` |
+| `--dt-surface-glass-strong` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent)` |
 | `--dt-text-body-md-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-md-line` | semantic | `var(--dt-line-height-md)` |
 | `--dt-text-body-md-size` | semantic | `var(--dt-font-size-md)` |
@@ -230,6 +239,11 @@ const roundButton = {
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/* Glass re-points the sheet's surface token, so its header and footer
+   follow, and blurs what's behind each of them. */
+const GLASS_BG = { glass: "var(--dt-surface-glass)", "glass-strong": "var(--dt-surface-glass-strong)" };
+const BLUR = { backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" };
+
 export function Sheet({
   open,
   onClose,
@@ -241,6 +255,7 @@ export function Sheet({
   actions,
   footer,
   size = "md",
+  surface = "raised",
   label,
   children,
   style,
@@ -397,6 +412,7 @@ export function Sheet({
           borderRadius: "var(--dt-dialog-radius)",
           boxShadow: "var(--dt-sheet-shadow)",
           outline: "none",
+          ...(GLASS_BG[surface] ? { "--dt-dialog-bg": GLASS_BG[surface], "--dt-dialog-border-color": "var(--dt-border-glass)", ...BLUR } : null),
           ...style,
         }}
         {...rest}
@@ -409,6 +425,7 @@ export function Sheet({
           padding: "var(--dt-space-inset-md) var(--dt-space-inset-sm) var(--dt-space-inset-xs)",
           background: "var(--dt-dialog-bg)",
           boxShadow: "0 var(--dt-border-width-default) 0 color-mix(in oklab, var(--dt-dialog-border-color) calc(var(--dt-sheet-p, 0) * 100%), transparent)",
+          ...(GLASS_BG[surface] ? BLUR : null),
         }}>
           {onBack ? (
             <button type="button" data-sheet-lead onClick={onBack} aria-label="Back" style={roundButton}><Icon d={BACK} /></button>

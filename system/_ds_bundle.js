@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"43addfe26287","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"9a8c4d097a7a","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"6f57ebb686e2","components/feedback/Drawer.jsx":"5fff24c8b883","components/feedback/Popover.jsx":"614d3c96529a","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"87172dc5acb0","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"66f2fdee895a","components/forms/Field.jsx":"29b5e0fa7688","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"c60c12fd6807","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"95433f4ec1b7","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"7ddf7d78adb0","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"21b9aac170ff","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"a0f22b401b3a","components/commerce/BasketBar.jsx":"8f8b5b631062"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"43addfe26287","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"17a32e0902cc","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"e2125883f0ea","components/feedback/Drawer.jsx":"7b91df7fb6eb","components/feedback/Popover.jsx":"5d1b67df4b0d","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"2761bb6db4d2","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"66f2fdee895a","components/forms/Field.jsx":"29b5e0fa7688","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"c60c12fd6807","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"567b42a6cb81","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"856dd7dbc78c","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"9cfb062e8282","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"1f2f5d9c11bd","components/blocks/FaqBlock.jsx":"6870da8ead72","components/blocks/FeatureGridBlock.jsx":"cc752875aeb7","components/blocks/HeroBlock.jsx":"605dcad31d3d","components/blocks/SplitBlock.jsx":"b8f83338e2e9","components/blocks/StatsBlock.jsx":"b7fa8f195084","components/blocks/TestimonialBlock.jsx":"78757064cfec","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"a0f22b401b3a","components/commerce/BasketBar.jsx":"8f8b5b631062"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -1067,6 +1067,19 @@ const TONES = {
     bg: "var(--dt-surface-info-subtle)",
     fg: "var(--dt-text-info)",
     bd: "var(--dt-border-info)"
+  },
+  /* Brand: subtle is the page's own surface with the brand as the text and
+     edge, so it holds on a brand fill as well as on the page; solid is the
+     brand fill itself. */
+  brand: {
+    bg: "var(--dt-surface-base)",
+    fg: "var(--dt-text-brand)",
+    bd: "var(--dt-border-brand)"
+  },
+  "brand-secondary": {
+    bg: "var(--dt-surface-base)",
+    fg: "var(--dt-text-brand-secondary)",
+    bd: "var(--dt-border-brand-secondary)"
   }
 };
 function Badge({
@@ -1085,16 +1098,20 @@ function Badge({
     success: "var(--dt-surface-success)",
     warning: "var(--dt-surface-warning)",
     danger: "var(--dt-surface-danger)",
-    info: "var(--dt-surface-info)"
-  }[tone];
+    info: "var(--dt-surface-info)",
+    brand: "var(--dt-surface-brand)",
+    "brand-secondary": "var(--dt-surface-brand-secondary)"
+  }[tone] || "var(--dt-surface-inverse)";
   const solidFg = {
     neutral: "var(--dt-text-inverse)",
     primary: "var(--dt-text-on-action)",
     success: "var(--dt-text-on-success)",
     warning: "var(--dt-text-on-warning)",
     danger: "var(--dt-text-on-danger)",
-    info: "var(--dt-text-on-info)"
-  }[tone];
+    info: "var(--dt-text-on-info)",
+    brand: "var(--dt-text-on-brand)",
+    "brand-secondary": "var(--dt-text-on-brand-secondary)"
+  }[tone] || "var(--dt-text-inverse)";
   return /*#__PURE__*/React.createElement("span", {
     style: {
       display: "inline-flex",
@@ -2167,6 +2184,24 @@ function useModalFocus(open, panel, onClose) {
     };
   }, [open, panel]);
 }
+
+/* Glass: the dialog's surface let through, blurred, for a dialog over a
+   picture or a busy screen. It re-points the dialog's own tokens, so every
+   part of it follows. */
+const GLASS = {
+  glass: {
+    "--dt-dialog-bg": "var(--dt-surface-glass)",
+    "--dt-dialog-border-color": "var(--dt-border-glass)",
+    backdropFilter: "var(--dt-backdrop-glass)",
+    WebkitBackdropFilter: "var(--dt-backdrop-glass)"
+  },
+  "glass-strong": {
+    "--dt-dialog-bg": "var(--dt-surface-glass-strong)",
+    "--dt-dialog-border-color": "var(--dt-border-glass)",
+    backdropFilter: "var(--dt-backdrop-glass)",
+    WebkitBackdropFilter: "var(--dt-backdrop-glass)"
+  }
+};
 function Dialog({
   open,
   onClose,
@@ -2174,6 +2209,7 @@ function Dialog({
   description,
   footer,
   size = "md",
+  surface = "raised",
   label,
   style,
   children,
@@ -2224,6 +2260,7 @@ function Dialog({
       borderRadius: "var(--dt-dialog-radius)",
       padding: "var(--dt-dialog-padding)",
       boxShadow: "var(--dt-dialog-elevation)",
+      ...(GLASS[surface] || null),
       ...style
     }
   }, /*#__PURE__*/React.createElement("button", {
@@ -2291,6 +2328,18 @@ Object.assign(__ds_scope, { useModalFocus, Dialog });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Dialog.jsx", error: String((e && e.message) || e) }); }
 // components/feedback/Drawer.jsx
 try { (() => {
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = {
+  glass: "var(--dt-surface-glass)",
+  "glass-strong": "var(--dt-surface-glass-strong)"
+};
+/* A brand fill brings the text, links, borders and buttons that read on it,
+   the same declarations a brand Section uses. */
+const FILLS = {
+  brand: true,
+  "brand-muted": true
+};
 function Drawer({
   open,
   onClose,
@@ -2299,6 +2348,7 @@ function Drawer({
   footer,
   side = "right",
   width = 380,
+  surface = "raised",
   label,
   style,
   ...rest
@@ -2308,6 +2358,9 @@ function Drawer({
   __ds_scope.useModalFocus(open, panel, onClose);
   if (!open) return null;
   const horizontal = side === "left" || side === "right";
+  const fill = FILLS[surface] ? __ds_scope.fillTone(surface) : null;
+  const glass = GLASS[surface];
+  const edge = glass ? "var(--dt-border-glass)" : "var(--dt-border-subtle)";
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
@@ -2342,9 +2395,15 @@ function Drawer({
       boxSizing: "border-box",
       background: "var(--dt-surface-raised)",
       color: "var(--dt-text-primary)",
+      ...(fill || {}),
+      ...(glass ? {
+        background: glass,
+        backdropFilter: "var(--dt-backdrop-glass)",
+        WebkitBackdropFilter: "var(--dt-backdrop-glass)"
+      } : null),
       boxShadow: "var(--dt-elevation-4)",
-      borderLeft: side === "right" ? "var(--dt-border-width-default) solid var(--dt-border-subtle)" : "none",
-      borderRight: side === "left" ? "var(--dt-border-width-default) solid var(--dt-border-subtle)" : "none",
+      borderLeft: side === "right" ? `var(--dt-border-width-default) solid ${edge}` : "none",
+      borderRight: side === "left" ? `var(--dt-border-width-default) solid ${edge}` : "none",
       borderTopLeftRadius: side === "bottom" ? "var(--dt-radius-overlay)" : 0,
       borderTopRightRadius: side === "bottom" ? "var(--dt-radius-overlay)" : 0,
       ...style
@@ -2357,7 +2416,7 @@ function Drawer({
       justifyContent: "space-between",
       gap: "var(--dt-space-inline-sm)",
       padding: "var(--dt-space-inset-md)",
-      borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderBottom: `var(--dt-border-width-default) solid ${edge}`,
       flex: "none"
     }
   }, /*#__PURE__*/React.createElement("span", {
@@ -2397,7 +2456,7 @@ function Drawer({
       justifyContent: "flex-end",
       gap: "var(--dt-space-inline-sm)",
       padding: "var(--dt-space-inset-md)",
-      borderTop: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      borderTop: `var(--dt-border-width-default) solid ${edge}`,
       flex: "none"
     }
   }, footer)));
@@ -2406,6 +2465,12 @@ Object.assign(__ds_scope, { Drawer });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/feedback/Drawer.jsx", error: String((e && e.message) || e) }); }
 // components/feedback/Popover.jsx
 try { (() => {
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = {
+  glass: "var(--dt-surface-glass)",
+  "glass-strong": "var(--dt-surface-glass-strong)"
+};
 function Popover({
   trigger,
   children,
@@ -2414,6 +2479,7 @@ function Popover({
   placement = "bottom-start",
   label,
   width = 260,
+  surface = "raised",
   style,
   ...rest
 }) {
@@ -2479,9 +2545,11 @@ function Popover({
       zIndex: 30,
       width,
       boxSizing: "border-box",
-      background: "var(--dt-surface-raised)",
+      background: GLASS[surface] || "var(--dt-surface-raised)",
       color: "var(--dt-text-primary)",
-      border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      backdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+      WebkitBackdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+      border: `var(--dt-border-width-default) solid ${GLASS[surface] ? "var(--dt-border-glass)" : "var(--dt-border-subtle)"}`,
       borderRadius: "var(--dt-radius-overlay)",
       boxShadow: "var(--dt-elevation-3)",
       padding: "var(--dt-space-inset-md)",
@@ -2639,6 +2707,13 @@ const TONES = {
     fg: "var(--dt-text-danger)"
   }
 };
+
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = {
+  glass: "var(--dt-surface-glass)",
+  "glass-strong": "var(--dt-surface-glass-strong)"
+};
 function Toast({
   tone = "neutral",
   title,
@@ -2647,6 +2722,7 @@ function Toast({
   action,
   onDismiss,
   dismissLabel = "Dismiss",
+  surface = "raised",
   style,
   ...rest
 }) {
@@ -2659,8 +2735,10 @@ function Toast({
       alignItems: "flex-start",
       gap: "var(--dt-space-inline-sm)",
       padding: "var(--dt-space-inset-sm) var(--dt-space-inset-md)",
-      background: "var(--dt-surface-raised)",
+      background: GLASS[surface] || "var(--dt-surface-raised)",
       color: "var(--dt-text-primary)",
+      backdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+      WebkitBackdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
       border: `var(--dt-border-width-default) solid ${t.bd}`,
       borderRadius: "var(--dt-radius-overlay)",
       boxShadow: "var(--dt-elevation-3)",
@@ -3706,6 +3784,16 @@ Object.assign(__ds_scope, { Breadcrumbs });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/Breadcrumbs.jsx", error: String((e && e.message) || e) }); }
 // components/navigation/Navbar.jsx
 try { (() => {
+/* The bar's surface. A brand fill re-points the text, links, the current
+   link's mark and the buttons on it, the same way a brand Section does, and
+   the menu that opens on a narrow screen takes the same fill. Glass lets the
+   page show through, blurred, for a bar over a picture or a sticky header. */
+const MENU_SURFACE = {
+  base: "raised",
+  glass: "glass-strong",
+  brand: "brand",
+  "brand-muted": "brand-muted"
+};
 function MenuIcon() {
   return /*#__PURE__*/React.createElement("svg", {
     viewBox: "0 0 24 24",
@@ -3745,6 +3833,7 @@ function Navbar({
   label = "Main",
   sticky = false,
   collapseBelow = 640,
+  surface = "base",
   style,
   ...rest
 }) {
@@ -3754,6 +3843,8 @@ function Navbar({
     setOpen(false);
     if (onNavigate) onNavigate(id);
   };
+  const fill = surface === "brand" || surface === "brand-muted" ? __ds_scope.fillTone(surface) : null;
+  const glass = surface === "glass";
   return /*#__PURE__*/React.createElement("nav", {
     "aria-label": label,
     style: {
@@ -3762,7 +3853,13 @@ function Navbar({
       gap: "var(--dt-space-inline-lg)",
       padding: "var(--dt-space-inset-sm) var(--dt-space-inset-lg)",
       background: "var(--dt-surface-base)",
-      borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      ...(fill || {}),
+      ...(glass ? {
+        background: "var(--dt-surface-glass)",
+        backdropFilter: "var(--dt-backdrop-glass)",
+        WebkitBackdropFilter: "var(--dt-backdrop-glass)"
+      } : null),
+      borderBottom: `var(--dt-border-width-default) solid ${glass ? "var(--dt-border-glass)" : "var(--dt-border-subtle)"}`,
       position: sticky ? "sticky" : "static",
       top: 0,
       zIndex: sticky ? "var(--dt-z-sticky)" : undefined,
@@ -3842,7 +3939,8 @@ function Navbar({
     side: "right",
     title: "Menu",
     label: label + " menu",
-    footer: actions
+    footer: actions,
+    surface: MENU_SURFACE[surface] || "raised"
   }, /*#__PURE__*/React.createElement("ul", {
     style: {
       listStyle: "none",
@@ -5316,8 +5414,40 @@ function buttonsIn(lead, follow) {
     out[`--dt-button-${variant}-bg-hover`] = `var(${role}-hover)`;
     out[`--dt-button-${variant}-bg-active`] = `var(${role}-active)`;
     out[`--dt-button-${variant}-fg`] = `var(--dt-text-on-action-${hue})`;
-    out[`--dt-button-${variant}-border`] = "var(--dt-color-transparent)";
+    out[`--dt-button-${variant}-border`] = "transparent";
   });
+  return out;
+}
+/* On a strong brand fill the brand can't be the button too: a primary (or
+   brand) Button turns to the fill's own text colour with the fill as its
+   label, a secondary one is outlined in that text colour, and a ghost one
+   reads in it. Links, borders, the selected mark and the focus ring move to
+   the text colour as well, so nothing on the fill disappears into it. */
+function onStrong(fg, fill) {
+  const mix = (a, pct, b) => `color-mix(in oklab, ${a} ${pct}%, ${b})`;
+  const out = {
+    "--dt-text-link": fg,
+    "--dt-border-subtle": mix(fg, 18, "transparent"),
+    "--dt-border-default": mix(fg, 32, "transparent"),
+    "--dt-border-selected": fg,
+    "--dt-focus-ring-color": fg,
+    "--dt-focus-ring-offset-color": fill
+  };
+  ["primary", "brand", "brand-secondary"].forEach(v => {
+    out[`--dt-button-${v}-bg`] = fg;
+    out[`--dt-button-${v}-bg-hover`] = mix(fg, 88, fill);
+    out[`--dt-button-${v}-bg-active`] = mix(fg, 76, fill);
+    out[`--dt-button-${v}-fg`] = fill;
+    out[`--dt-button-${v}-border`] = "transparent";
+  });
+  out["--dt-button-secondary-bg"] = "transparent";
+  out["--dt-button-secondary-bg-hover"] = mix(fg, 12, "transparent");
+  out["--dt-button-secondary-bg-active"] = mix(fg, 20, "transparent");
+  out["--dt-button-secondary-fg"] = fg;
+  out["--dt-button-secondary-border"] = mix(fg, 55, "transparent");
+  out["--dt-button-ghost-bg-hover"] = mix(fg, 12, "transparent");
+  out["--dt-button-ghost-bg-active"] = mix(fg, 20, "transparent");
+  out["--dt-button-ghost-fg"] = fg;
   return out;
 }
 const TONES = {
@@ -5329,7 +5459,8 @@ const TONES = {
   },
   brand: {
     background: "var(--dt-surface-brand)",
-    ...onFill("var(--dt-text-on-brand)")
+    ...onFill("var(--dt-text-on-brand)"),
+    ...onStrong("var(--dt-text-on-brand)", "var(--dt-surface-brand)")
   },
   "brand-muted": {
     background: "var(--dt-surface-brand-muted)",
@@ -5338,7 +5469,8 @@ const TONES = {
   },
   secondary: {
     background: "var(--dt-surface-brand-secondary)",
-    ...onFill("var(--dt-text-on-brand-secondary)")
+    ...onFill("var(--dt-text-on-brand-secondary)"),
+    ...onStrong("var(--dt-text-on-brand-secondary)", "var(--dt-surface-brand-secondary)")
   },
   "secondary-muted": {
     background: "var(--dt-surface-brand-secondary-muted)",
@@ -5346,6 +5478,17 @@ const TONES = {
     ...buttonsIn("brand-secondary", "brand")
   }
 };
+TONES["brand-secondary"] = TONES.secondary;
+TONES["brand-secondary-muted"] = TONES["secondary-muted"];
+
+/* A brand fill's background and every role that has to follow it: text,
+   links, borders, focus and buttons. Section uses it for its tones; other
+   bands that take a brand fill (Navbar, the open menu in Drawer) use the same
+   declarations, so a Button reads the same on every brand fill. Unknown
+   tones give the base surface. */
+function fillTone(tone) {
+  return TONES[tone] || TONES.base;
+}
 function scrimImage(scrim, align) {
   if (scrim === "none") return "none";
   if (scrim === "solid" || align === "center") return "var(--dt-scrim-full, var(--dt-surface-scrim))";
@@ -5425,7 +5568,7 @@ function Section({
     }
   }, children));
 }
-Object.assign(__ds_scope, { Section });
+Object.assign(__ds_scope, { fillTone, Section });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/primitives/Section.jsx", error: String((e && e.message) || e) }); }
 // components/feedback/Thinking.jsx
 try { (() => {
@@ -6715,6 +6858,17 @@ const roundButton = {
   color: "var(--dt-dialog-fg)"
 };
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/* Glass re-points the sheet's surface token, so its header and footer
+   follow, and blurs what's behind each of them. */
+const GLASS_BG = {
+  glass: "var(--dt-surface-glass)",
+  "glass-strong": "var(--dt-surface-glass-strong)"
+};
+const BLUR = {
+  backdropFilter: "var(--dt-backdrop-glass)",
+  WebkitBackdropFilter: "var(--dt-backdrop-glass)"
+};
 function Sheet({
   open,
   onClose,
@@ -6726,6 +6880,7 @@ function Sheet({
   actions,
   footer,
   size = "md",
+  surface = "raised",
   label,
   children,
   style,
@@ -6960,6 +7115,11 @@ function Sheet({
       borderRadius: "var(--dt-dialog-radius)",
       boxShadow: "var(--dt-sheet-shadow)",
       outline: "none",
+      ...(GLASS_BG[surface] ? {
+        "--dt-dialog-bg": GLASS_BG[surface],
+        "--dt-dialog-border-color": "var(--dt-border-glass)",
+        ...BLUR
+      } : null),
       ...style
     },
     ...rest
@@ -6975,7 +7135,8 @@ function Sheet({
       margin: "0 calc(-1 * var(--dt-space-inset-sm))",
       padding: "var(--dt-space-inset-md) var(--dt-space-inset-sm) var(--dt-space-inset-xs)",
       background: "var(--dt-dialog-bg)",
-      boxShadow: "0 var(--dt-border-width-default) 0 color-mix(in oklab, var(--dt-dialog-border-color) calc(var(--dt-sheet-p, 0) * 100%), transparent)"
+      boxShadow: "0 var(--dt-border-width-default) 0 color-mix(in oklab, var(--dt-dialog-border-color) calc(var(--dt-sheet-p, 0) * 100%), transparent)",
+      ...(GLASS_BG[surface] ? BLUR : null)
     }
   }, onBack ? /*#__PURE__*/React.createElement("button", {
     type: "button",

@@ -50,6 +50,8 @@ export interface SheetProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
   footer?: React.ReactNode;
   /** Width on a wide screen, from `--dt-dialog-width-*`. Phones always use the full width less the inset. @default "md" */
   size?: "sm" | "md" | "lg";
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
   /** Accessible name when there is no title. */
   label?: string;
   children?: React.ReactNode;

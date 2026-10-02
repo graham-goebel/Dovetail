@@ -7,13 +7,19 @@ const TONES = {
   danger: { bd: "var(--dt-border-danger)", fg: "var(--dt-text-danger)" },
 };
 
-export function Toast({ tone = "neutral", title, children, icon, action, onDismiss, dismissLabel = "Dismiss", style, ...rest }) {
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = { glass: "var(--dt-surface-glass)", "glass-strong": "var(--dt-surface-glass-strong)" };
+
+export function Toast({ tone = "neutral", title, children, icon, action, onDismiss, dismissLabel = "Dismiss", surface = "raised", style, ...rest }) {
   const t = TONES[tone] || TONES.neutral;
   return (
     <div role={tone === "danger" ? "alert" : "status"} aria-live={tone === "danger" ? "assertive" : "polite"} style={{
       display: "flex", alignItems: "flex-start", gap: "var(--dt-space-inline-sm)",
       padding: "var(--dt-space-inset-sm) var(--dt-space-inset-md)",
-      background: "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
+      background: GLASS[surface] || "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
+      backdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+      WebkitBackdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
       border: `var(--dt-border-width-default) solid ${t.bd}`,
       borderRadius: "var(--dt-radius-overlay)", boxShadow: "var(--dt-elevation-3)",
       minWidth: 260, maxWidth: 420, boxSizing: "border-box", ...style,

@@ -129,6 +129,7 @@ function Page() {
                 { name: "onNavigate", type: "(id: string) => void", notes: "When set, clicks are intercepted and routed here." },
                 { name: "actions", type: "ReactNode", notes: "Right-hand slot for buttons, search, or an Avatar." },
                 { name: "sticky", type: "boolean", default: "false" },
+                { name: "surface", type: '"base" | "glass" | "brand" | "brand-muted"', default: '"base"', notes: "The bar's fill. The menu it opens on a narrow screen matches it." },
             ], guidance: [
                 "Five links or fewer. A navbar is a shortlist, not a sitemap.",
                 "One primary action in actions, at most. Two filled buttons means neither is primary.",
@@ -138,7 +139,12 @@ function Page() {
             React.createElement(Specimen, { bg: "var(--dt-surface-base)" },
                 React.createElement(Navbar, { brand: React.createElement("span", { style: { fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-body-lg-size)" } }, "Northwind"), current: navId, onNavigate: setNavId, links: [{ id: "product", label: "Product" }, { id: "pricing", label: "Pricing" }, { id: "docs", label: "Docs" }, { id: "company", label: "Company" }], actions: React.createElement(Inline, { gap: "xs", align: "center" },
                         React.createElement(Button, { size: "sm", variant: "ghost" }, "Sign in"),
-                        React.createElement(Button, { size: "sm" }, "Start free")), style: { borderRadius: "var(--dt-radius-container)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } }))),
+                        React.createElement(Button, { size: "sm" }, "Start free")), style: { borderRadius: "var(--dt-radius-container)", border: "var(--dt-border-width-default) solid var(--dt-border-subtle)" } })),
+            ["brand", "brand-muted", "glass"].map((surface) => React.createElement(Specimen, { key: surface, label: 'surface="' + surface + '"', bg: surface === "glass" ? "var(--dt-surface-brand-gradient, var(--dt-surface-brand))" : "var(--dt-surface-base)" },
+                React.createElement(Navbar, { surface: surface, brand: React.createElement("span", { style: { fontWeight: "var(--dt-font-weight-semibold)", fontSize: "var(--dt-text-body-lg-size)" } }, "Northwind"), current: navId, onNavigate: setNavId, links: [{ id: "product", label: "Product" }, { id: "pricing", label: "Pricing" }, { id: "docs", label: "Docs" }], actions: React.createElement(Inline, { gap: "xs", align: "center" },
+                        React.createElement(Badge, { tone: "brand" }, "New"),
+                        React.createElement(Button, { size: "sm", variant: "ghost" }, "Sign in"),
+                        React.createElement(Button, { size: "sm" }, "Start free")), style: { borderRadius: "var(--dt-radius-container)" } })))),
         React.createElement(Shelf, { name: "Sidebar", summary: "Persistent vertical navigation for products with more destinations than a Navbar can hold.", props: [
                 { name: "sections", type: "SidebarSection[]", required: true, notes: "Optional title plus items of id, label, icon, trailing." },
                 { name: "current", type: "string" },

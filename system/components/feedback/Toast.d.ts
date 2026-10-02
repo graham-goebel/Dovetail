@@ -4,6 +4,8 @@ import * as React from "react";
 export interface ToastProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** @default "neutral" */
   tone?: "neutral" | "success" | "warning" | "danger";
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
   title?: React.ReactNode;
   children?: React.ReactNode;
   icon?: React.ReactNode;

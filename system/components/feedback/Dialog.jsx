@@ -39,7 +39,15 @@ export function useModalFocus(open, panel, onClose) {
   }, [open, panel]);
 }
 
-export function Dialog({ open, onClose, title, description, footer, size = "md", label, style, children, ...rest }) {
+/* Glass: the dialog's surface let through, blurred, for a dialog over a
+   picture or a busy screen. It re-points the dialog's own tokens, so every
+   part of it follows. */
+const GLASS = {
+  glass: { "--dt-dialog-bg": "var(--dt-surface-glass)", "--dt-dialog-border-color": "var(--dt-border-glass)", backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" },
+  "glass-strong": { "--dt-dialog-bg": "var(--dt-surface-glass-strong)", "--dt-dialog-border-color": "var(--dt-border-glass)", backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" },
+};
+
+export function Dialog({ open, onClose, title, description, footer, size = "md", surface = "raised", label, style, children, ...rest }) {
   const panel = React.useRef(null);
   const titleId = React.useId();
   const descriptionId = React.useId();
@@ -75,6 +83,7 @@ export function Dialog({ open, onClose, title, description, footer, size = "md",
           borderRadius: "var(--dt-dialog-radius)",
           padding: "var(--dt-dialog-padding)",
           boxShadow: "var(--dt-dialog-elevation)",
+          ...(GLASS[surface] || null),
           ...style,
         }}
       >

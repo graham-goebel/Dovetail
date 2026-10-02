@@ -31,6 +31,7 @@
 function Page() {
     const [open, setOpen] = React.useState(false);
     const [danger, setDanger] = React.useState(false);
+    const [glass, setGlass] = React.useState(false);
     const [filters, setFilters] = React.useState(["Open"]);
     function toggle(t) { setFilters(v => v.includes(t) ? v.filter(x => x !== t) : [...v, t]); }
     return (React.createElement(React.Fragment, null,
@@ -58,7 +59,7 @@ function Page() {
                 React.createElement("div", { style: { maxWidth: 300 } },
                     React.createElement(Card, { media: React.createElement(AspectRatio, { ratio: "16/9", style: { background: "var(--dt-surface-sunken)" } }), eyebrow: "Guide", title: "Migrating to tokens", description: "Replace literal values one screen at a time and let the lint tell you the scope." })))),
         React.createElement(Shelf, { name: "Badge", summary: "Small non-interactive label for status or metadata.", props: [
-                { name: "tone", type: '"neutral" | "primary" | "success" | "warning" | "danger" | "info"', default: '"neutral"' },
+                { name: "tone", type: '"neutral" | "primary" | "success" | "warning" | "danger" | "info" | "brand" | "brand-secondary"', default: '"neutral"', notes: "brand: subtle is white with brand text, solid is the brand fill." },
                 { name: "variant", type: '"subtle" | "solid"', default: '"subtle"', notes: "solid is a filled chip for high emphasis." },
                 { name: "dot", type: "boolean", notes: "Leading status dot." },
             ], guidance: [
@@ -83,7 +84,19 @@ function Page() {
                     React.createElement(Badge, { variant: "solid", tone: "danger" }, "Past due"),
                     React.createElement(Badge, { dot: true, tone: "success" }, "Live"),
                     React.createElement(Badge, { dot: true, tone: "warning" }, "Syncing"),
-                    React.createElement(Badge, { dot: true, tone: "danger" }, "Failed")))),
+                    React.createElement(Badge, { dot: true, tone: "danger" }, "Failed"))),
+            React.createElement(Specimen, { label: "Brand, on the page and on a brand fill", bg: "var(--dt-surface-base)" },
+                React.createElement(Stack, { gap: "sm" },
+                    React.createElement(Inline, { gap: "sm", wrap: true },
+                        React.createElement(Badge, { tone: "brand" }, "Members"),
+                        React.createElement(Badge, { tone: "brand", variant: "solid" }, "New"),
+                        React.createElement(Badge, { tone: "brand-secondary" }, "Launch"),
+                        React.createElement(Badge, { tone: "brand-secondary", variant: "solid" }, "Beta")),
+                    React.createElement("div", { "data-surface": "brand", style: { padding: "var(--dt-space-inset-md)", borderRadius: "var(--dt-radius-container)" } },
+                        React.createElement(Inline, { gap: "sm", wrap: true, align: "center" },
+                            React.createElement(Badge, { tone: "brand" }, "Members"),
+                            React.createElement(Button, { size: "sm" }, "Join"),
+                            React.createElement(Button, { size: "sm", variant: "secondary" }, "Learn more")))))),
         React.createElement(Shelf, { name: "Tag", summary: "Interactive chip: a filter that toggles, or an entered value that can be removed.", props: [
                 { name: "selected", type: "boolean", notes: "Sets aria-pressed when the tag is clickable." },
                 { name: "onRemove", type: "() => void", notes: "Renders a remove button." },
@@ -124,6 +137,7 @@ function Page() {
                 { name: "description", type: "ReactNode", notes: "Supporting line below the title." },
                 { name: "footer", type: "ReactNode", notes: "Right-aligned. Put the confirming action last." },
                 { name: "size", type: '"sm" | "md" | "lg"', default: '"md"' },
+                { name: "surface", type: '"raised" | "glass" | "glass-strong"', default: '"raised"', notes: "Glass lets the screen behind show through, blurred." },
             ], guidance: [
                 "A dialog stops everything. If the user could reasonably finish reading it later, it is an Alert or a Toast.",
                 "The confirming action goes last, on the right. Destructive confirmations name the act — Delete project, not Yes.",
@@ -133,7 +147,9 @@ function Page() {
             React.createElement(Specimen, { bg: "var(--dt-surface-base)" },
                 React.createElement(Inline, { gap: "sm" },
                     React.createElement(Button, { size: "sm", variant: "secondary", onClick: () => setOpen(true) }, "Open dialog"),
-                    React.createElement(Button, { size: "sm", variant: "danger", onClick: () => setDanger(true) }, "Destructive confirm")),
+                    React.createElement(Button, { size: "sm", variant: "danger", onClick: () => setDanger(true) }, "Destructive confirm"),
+                    React.createElement(Button, { size: "sm", variant: "secondary", onClick: () => setGlass(true) }, "Glass dialog")),
+                React.createElement(Dialog, { open: glass, onClose: () => setGlass(false), surface: "glass", title: "Share this board", description: "Anyone with the link can view it.", footer: React.createElement(Button, { size: "sm", onClick: () => setGlass(false) }, "Copy link") }),
                 React.createElement(Dialog, { open: open, onClose: () => setOpen(false), title: "Invite members", description: "They will get an email with a link to join this workspace.", footer: React.createElement(React.Fragment, null,
                         React.createElement(Button, { size: "sm", variant: "secondary", onClick: () => setOpen(false) }, "Cancel"),
                         React.createElement(Button, { size: "sm", onClick: () => setOpen(false) }, "Send invites")) },

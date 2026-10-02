@@ -134,7 +134,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 
 - **Avatar**: A person at a glance. Props: `name` (text), `size` (one of `xs`, `sm`, `md`, `lg`, `xl`; default `md`), `shape` (one of `circle`, `square`; default `circle`), `status` (one of `online`, `busy`, `away`, `offline`).
 - **AvatarGroup**: Who is involved. Props: `max` (number; default `4`), `size` (one of `xs`, `sm`, `md`, `lg`, `xl`; default `md`), `label` (text), `people` (a list of { name, src? }).
-- **Badge**: A status label. Props: `tone` (one of `neutral`, `primary`, `success`, `warning`, `danger`, `info`; default `neutral`), `variant` (one of `subtle`, `solid`; default `subtle`), `dot` (boolean).
+- **Badge**: A status label. Props: `tone` (one of `neutral`, `primary`, `success`, `warning`, `danger`, `info`, `brand`, `brand-secondary`; default `neutral`), `variant` (one of `subtle`, `solid`; default `subtle`), `dot` (boolean).
 - **Code**: Literal text. Props: `block` (boolean; default `false`), `label` (text).
 - **EmptyState**: Nothing here yet. Props: `title` (text), `description` (text), `icon` (text), `action` (text), `secondaryAction` (text), `size` (one of `sm`, `md`; default `md`).
 - **List**: Rows of records. Props: `divided` (boolean; default `true`), `interactive` (boolean; default `false`), `label` (text), `items` (a list of { id?, title, description?, leading?, trailing? }).
@@ -146,7 +146,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 ### Navigation
 
 - **Breadcrumbs**: Where you are. Props: `label` (text; default `Breadcrumb`), `separator` (text; default `/`), `items` (a list of { label, href? }).
-- **Navbar**: Top navigation. Props: `brand` (text), `current` (text), `actions` (a slot), `label` (text; default `Main`), `sticky` (boolean; default `false`), `links` (a list of { id, label, href? }).
+- **Navbar**: Top navigation. Props: `brand` (text), `current` (text), `actions` (a slot), `label` (text; default `Main`), `sticky` (boolean; default `false`), `surface` (one of `base`, `glass`, `brand`, `brand-muted`; default `base`), `links` (a list of { id, label, href? }).
 - **Pagination**: Page through results. Props: `page` (number), `totalPages` (number), `label` (text; default `Pagination`).
 - **Sidebar**: Side navigation. Props: `current` (text), `header` (text), `footer` (a slot), `label` (text; default `Sections`).
 - **Stepper**: Steps in a task. Props: `current` (number), `orientation` (one of `horizontal`, `vertical`; default `horizontal`), `label` (text; default `Progress`), `steps` (a list of { id?, label, description? }).
@@ -159,7 +159,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 
 - **Alert**: An inline message. Props: `tone` (one of `info`, `success`, `warning`, `danger`; default `info`), `title` (text), `action` (text).
 - **Banner**: A page-wide message. Props: `tone` (one of `info`, `success`, `warning`, `danger`; default `info`), `title` (text), `icon` (text), `action` (text), `dismissLabel` (text; default `Dismiss`).
-- **Popover**: Anchored detail. Props: `trigger` (text), `open` (boolean), `placement` (one of `bottom-start`, `bottom-end`, `top-start`, `top-end`; default `bottom-start`), `label` (text).
+- **Popover**: Anchored detail. Props: `trigger` (text), `open` (boolean), `placement` (one of `bottom-start`, `bottom-end`, `top-start`, `top-end`; default `bottom-start`), `label` (text), `surface` (one of `raised`, `glass`, `glass-strong`; default `raised`).
 - **Progress**: How much is done. Props: `value` (number), `max` (number; default `100`), `label` (text), `showValue` (boolean; default `false`), `tone` (one of `primary`, `success`, `warning`, `danger`; default `primary`), `size` (one of `sm`, `md`, `lg`; default `md`).
 - **Spinner**: Please wait. Props: `size` (one of `sm`, `md`, `lg`; default `md`), `label` (text; default `Loading`), `inline` (boolean; default `false`).
 - **Tooltip**: Names a control. Props: `content` (text), `placement` (one of `top`, `bottom`, `left`, `right`; default `top`), `delay` (number; default `200`).

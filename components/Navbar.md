@@ -18,6 +18,18 @@ Top-level navigation for marketing pages and product shells with few destination
   neither is primary.
 - Do not put the current page's own section links here. Those are Tabs.
 
+### Surfaces
+`surface` sets the bar's fill, and the menu that opens on a narrow screen takes the same one.
+- `base` (default): the page surface with a subtle bottom border.
+- `brand`: the strong brand fill. Text, links, the current link's mark and the buttons in `actions` turn to `--dt-text-on-brand`; a primary `Button` turns light with the brand as its label, the same as on a brand `Section`.
+- `brand-muted`: the pale tint. Text keeps the brand's ink (`--dt-text-on-brand-muted`), and a primary `Button` takes the brand colour.
+- `glass`: the page shows through, blurred. Use it for a sticky bar over a picture or a long page.
+
+```jsx
+<Navbar surface="brand" brand="Kiln & Co." links={links} current="shop"
+  actions={<><Badge tone="brand">New</Badge><Button size="sm">Sign in</Button></>} />
+```
+
 ### Tradeoffs
 
 Horizontal bars run out of room fast. Below `collapseBelow` (640px by default) the link
@@ -57,6 +69,8 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
    * the row at every width. @default 640
    */
   collapseBelow?: number;
+  /** The bar's fill. "brand" is the strong brand fill: text, links, the current link's mark and buttons on it turn to --dt-text-on-brand, and a primary Button turns light with brand text. "brand-muted" is the pale tint: text keeps the brand's ink and buttons take the brand colours. "glass" lets the page show through, blurred. The menu that opens on a narrow screen takes the same fill. @default "base" */
+  surface?: "base" | "glass" | "brand" | "brand-muted";
 }
 
 export declare function Navbar(props: NavbarProps): React.JSX.Element;
@@ -66,6 +80,8 @@ export declare function Navbar(props: NavbarProps): React.JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
+| `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-border-selected` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
@@ -79,6 +95,7 @@ export declare function Navbar(props: NavbarProps): React.JSX.Element;
 | `--dt-space-inset-lg` | semantic | `var(--dt-dim-6)` |
 | `--dt-space-inset-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-surface-base` | semantic | `var(--dt-color-white)` |
+| `--dt-surface-glass` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)` |
 | `--dt-text-label-lg-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-label-lg-size` | semantic | `var(--dt-font-size-md)` |
 | `--dt-text-label-md-family` | semantic | `var(--dt-font-family-secondary)` |
@@ -93,6 +110,13 @@ export declare function Navbar(props: NavbarProps): React.JSX.Element;
 ```jsx
 import React from "react";
 import { Drawer } from "../feedback/Drawer.jsx";
+import { fillTone } from "../primitives/Section.jsx";
+
+/* The bar's surface. A brand fill re-points the text, links, the current
+   link's mark and the buttons on it, the same way a brand Section does, and
+   the menu that opens on a narrow screen takes the same fill. Glass lets the
+   page show through, blurred, for a bar over a picture or a sticky header. */
+const MENU_SURFACE = { base: "raised", glass: "glass-strong", brand: "brand", "brand-muted": "brand-muted" };
 
 function MenuIcon() {
   return (
@@ -120,16 +144,20 @@ function useNarrow(below) {
   );
 }
 
-export function Navbar({ brand, links = [], actions, current, onNavigate, label = "Main", sticky = false, collapseBelow = 640, style, ...rest }) {
+export function Navbar({ brand, links = [], actions, current, onNavigate, label = "Main", sticky = false, collapseBelow = 640, surface = "base", style, ...rest }) {
   const narrow = useNarrow(collapseBelow) && links.length > 0;
   const [open, setOpen] = React.useState(false);
   const go = (id) => { setOpen(false); if (onNavigate) onNavigate(id); };
+  const fill = surface === "brand" || surface === "brand-muted" ? fillTone(surface) : null;
+  const glass = surface === "glass";
   return (
     <nav aria-label={label} style={{
       display: "flex", alignItems: "center", gap: "var(--dt-space-inline-lg)",
       padding: "var(--dt-space-inset-sm) var(--dt-space-inset-lg)",
       background: "var(--dt-surface-base)",
-      borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      ...(fill || {}),
+      ...(glass ? { background: "var(--dt-surface-glass)", backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" } : null),
+      borderBottom: `var(--dt-border-width-default) solid ${glass ? "var(--dt-border-glass)" : "var(--dt-border-subtle)"}`,
       position: sticky ? "sticky" : "static", top: 0, zIndex: sticky ? "var(--dt-z-sticky)" : undefined, ...style,
     }} {...rest}>
       {brand && <span style={{ display: "flex", alignItems: "center", flex: "none" }}>{brand}</span>}
@@ -170,7 +198,7 @@ export function Navbar({ brand, links = [], actions, current, onNavigate, label 
         ><MenuIcon /></button>
       )}
       {narrow && (
-        <Drawer open={open} onClose={() => setOpen(false)} side="right" title="Menu" label={label + " menu"} footer={actions}>
+        <Drawer open={open} onClose={() => setOpen(false)} side="right" title="Menu" label={label + " menu"} footer={actions} surface={MENU_SURFACE[surface] || "raised"}>
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" }}>
             {links.map(l => {
               const on = l.id === current;

@@ -21,10 +21,15 @@ A small, non-interactive label. Badges report state; they never do anything.
 <Badge tone="success" dot>Active</Badge>
 <Badge tone="danger">Past due</Badge>
 <Badge tone="primary" variant="solid">New</Badge>
+<Badge tone="brand">Members</Badge>
+<Badge tone="brand" variant="solid">New</Badge>
 ```
 
 ### Variants
 `subtle` (default) for status in dense lists. `solid` sparingly: one solid badge draws the eye, five do not.
+
+### Brand
+`tone="brand"` (and `"brand-secondary"`) is for marks that belong to the brand rather than a status: New, Members, a launch. `subtle` is the page's own surface with the brand as text and edge, so it reads on the page and on a brand fill alike, such as a brand `Navbar`. `solid` is the brand fill with `--dt-text-on-brand`.
 
 ### Accessibility
 Colour never carries the meaning alone; the text does. `dot` is decorative and aria-hidden.
@@ -39,8 +44,8 @@ import * as React from "react";
 
 /** Small non-interactive label for status or metadata. */
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  /** @default "neutral" */
-  tone?: "neutral" | "primary" | "success" | "warning" | "danger" | "info";
+  /** brand and brand-secondary are the brand colours: subtle is the page's surface with brand text and edge (it holds on a brand fill too), solid is the brand fill with --dt-text-on-brand. @default "neutral" */
+  tone?: "neutral" | "primary" | "success" | "warning" | "danger" | "info" | "brand" | "brand-secondary";
   /** subtle is tinted with a border; solid is a filled chip for high emphasis. @default "subtle" */
   variant?: "subtle" | "solid";
   /** Leading status dot. */
@@ -55,6 +60,8 @@ export declare function Badge(props: BadgeProps): React.JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-border-brand` | semantic | `var(--dt-color-primary-200)` |
+| `--dt-border-brand-secondary` | semantic | `var(--dt-color-secondary-200)` |
 | `--dt-border-danger` | semantic | `var(--dt-color-red-200)` |
 | `--dt-border-default` | semantic | `var(--dt-color-neutral-200)` |
 | `--dt-border-info` | semantic | `var(--dt-color-cyan-200)` |
@@ -66,6 +73,9 @@ export declare function Badge(props: BadgeProps): React.JSX.Element;
 | `--dt-space-inline-2xs` | semantic | `var(--dt-dim-1)` |
 | `--dt-space-inset-xs` | semantic | `var(--dt-dim-2)` |
 | `--dt-surface-action` | semantic | `var(--dt-color-neutral-900)` |
+| `--dt-surface-base` | semantic | `var(--dt-color-white)` |
+| `--dt-surface-brand` | semantic | `var(--dt-color-primary-600)` |
+| `--dt-surface-brand-secondary` | semantic | `var(--dt-color-secondary-600)` |
 | `--dt-surface-danger` | semantic | `var(--dt-color-red-600)` |
 | `--dt-surface-danger-subtle` | semantic | `var(--dt-color-red-050)` |
 | `--dt-surface-info` | semantic | `var(--dt-color-cyan-600)` |
@@ -77,6 +87,8 @@ export declare function Badge(props: BadgeProps): React.JSX.Element;
 | `--dt-surface-sunken` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-surface-warning` | semantic | `var(--dt-color-amber-500)` |
 | `--dt-surface-warning-subtle` | semantic | `var(--dt-color-amber-050)` |
+| `--dt-text-brand` | semantic | `var(--dt-color-primary-700)` |
+| `--dt-text-brand-secondary` | semantic | `var(--dt-color-secondary-700)` |
 | `--dt-text-danger` | semantic | `var(--dt-color-red-800)` |
 | `--dt-text-info` | semantic | `var(--dt-color-cyan-900)` |
 | `--dt-text-inverse` | semantic | `var(--dt-color-neutral-050)` |
@@ -84,6 +96,8 @@ export declare function Badge(props: BadgeProps): React.JSX.Element;
 | `--dt-text-label-sm-line` | semantic | `var(--dt-line-height-xs)` |
 | `--dt-text-label-sm-size` | semantic | `var(--dt-font-size-xs)` |
 | `--dt-text-on-action` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-brand` | semantic | `var(--dt-color-white)` |
+| `--dt-text-on-brand-secondary` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-danger` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-info` | semantic | `var(--dt-color-white)` |
 | `--dt-text-on-selected` | semantic | `var(--dt-color-neutral-900)` |
@@ -106,13 +120,18 @@ const TONES = {
   warning: { bg: "var(--dt-surface-warning-subtle)", fg: "var(--dt-text-warning)", bd: "var(--dt-border-warning)" },
   danger: { bg: "var(--dt-surface-danger-subtle)", fg: "var(--dt-text-danger)", bd: "var(--dt-border-danger)" },
   info: { bg: "var(--dt-surface-info-subtle)", fg: "var(--dt-text-info)", bd: "var(--dt-border-info)" },
+  /* Brand: subtle is the page's own surface with the brand as the text and
+     edge, so it holds on a brand fill as well as on the page; solid is the
+     brand fill itself. */
+  brand: { bg: "var(--dt-surface-base)", fg: "var(--dt-text-brand)", bd: "var(--dt-border-brand)" },
+  "brand-secondary": { bg: "var(--dt-surface-base)", fg: "var(--dt-text-brand-secondary)", bd: "var(--dt-border-brand-secondary)" },
 };
 
 export function Badge({ tone = "neutral", variant = "subtle", dot = false, children, style, ...rest }) {
   const t = TONES[tone] || TONES.neutral;
   const solid = variant === "solid";
-  const solidBg = { neutral: "var(--dt-surface-inverse)", primary: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)", info: "var(--dt-surface-info)" }[tone];
-  const solidFg = { neutral: "var(--dt-text-inverse)", primary: "var(--dt-text-on-action)", success: "var(--dt-text-on-success)", warning: "var(--dt-text-on-warning)", danger: "var(--dt-text-on-danger)", info: "var(--dt-text-on-info)" }[tone];
+  const solidBg = { neutral: "var(--dt-surface-inverse)", primary: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)", info: "var(--dt-surface-info)", brand: "var(--dt-surface-brand)", "brand-secondary": "var(--dt-surface-brand-secondary)" }[tone] || "var(--dt-surface-inverse)";
+  const solidFg = { neutral: "var(--dt-text-inverse)", primary: "var(--dt-text-on-action)", success: "var(--dt-text-on-success)", warning: "var(--dt-text-on-warning)", danger: "var(--dt-text-on-danger)", info: "var(--dt-text-on-info)", brand: "var(--dt-text-on-brand)", "brand-secondary": "var(--dt-text-on-brand-secondary)" }[tone] || "var(--dt-text-inverse)";
   return (
     <span
       style={{

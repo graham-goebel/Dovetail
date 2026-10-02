@@ -17,6 +17,9 @@ a small form. Opens on click, closes on outside click or Escape.
 - Keep it to one job. A popover with tabs inside it should be a Drawer or a Dialog.
 - Do not nest popovers. The second one traps focus behind the first.
 
+### Surfaces
+`surface="glass"` (or `"glass-strong"`, which lets less through) lets what's behind show through, blurred. Use it over a picture or a busy screen; keep `raised` (default) over plain content, where glass only costs contrast.
+
 ### Tradeoffs
 
 Popovers stay anchored to their trigger, which keeps context but constrains size. Once
@@ -42,6 +45,8 @@ export interface PopoverProps extends React.HTMLAttributes<HTMLSpanElement> {
   label: string;
   /** @default 260 */
   width?: number | string;
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
 }
 
 export declare function Popover(props: PopoverProps): React.JSX.Element;
@@ -51,11 +56,15 @@ export declare function Popover(props: PopoverProps): React.JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
+| `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-border-width-default` | semantic | `var(--dt-dim-hair)` |
 | `--dt-elevation-3` | semantic | `var(--dt-shadow-raw-3)` |
 | `--dt-radius-overlay` | semantic | `var(--dt-radius-raw-24)` |
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
+| `--dt-surface-glass` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)` |
+| `--dt-surface-glass-strong` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent)` |
 | `--dt-surface-raised` | semantic | `var(--dt-color-white)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
@@ -67,7 +76,11 @@ export declare function Popover(props: PopoverProps): React.JSX.Element;
 ```jsx
 import React from "react";
 
-export function Popover({ trigger, children, open: controlled, onOpenChange, placement = "bottom-start", label, width = 260, style, ...rest }) {
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = { glass: "var(--dt-surface-glass)", "glass-strong": "var(--dt-surface-glass-strong)" };
+
+export function Popover({ trigger, children, open: controlled, onOpenChange, placement = "bottom-start", label, width = 260, surface = "raised", style, ...rest }) {
   const [uncontrolled, setUncontrolled] = React.useState(false);
   const open = controlled != null ? controlled : uncontrolled;
   const setOpen = v => { if (controlled == null) setUncontrolled(v); onOpenChange && onOpenChange(v); };
@@ -94,8 +107,10 @@ export function Popover({ trigger, children, open: controlled, onOpenChange, pla
       {open && (
         <div role="dialog" aria-label={label} style={{
           position: "absolute", ...pos, zIndex: 30, width, boxSizing: "border-box",
-          background: "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
-          border: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+          background: GLASS[surface] || "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
+          backdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+          WebkitBackdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+          border: `var(--dt-border-width-default) solid ${GLASS[surface] ? "var(--dt-border-glass)" : "var(--dt-border-subtle)"}`,
           borderRadius: "var(--dt-radius-overlay)", boxShadow: "var(--dt-elevation-3)",
           padding: "var(--dt-space-inset-md)",
           fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)",
