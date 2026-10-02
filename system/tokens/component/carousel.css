@@ -1,0 +1,48 @@
+/* TIER 3 — CAROUSEL
+   Items moving on a path: a ring, a row, a stack, a grid that shuffles. The
+   motion is springs, so its tokens are spring settings rather than durations:
+   a stiffness (how hard it pulls toward the target) and a damping ratio (1
+   settles without overshoot, under 1 bounces). The component reads them once
+   when it mounts, so a theme or a context can calm or liven every carousel at
+   once. Colour aliases are repeated under .dark, like every component tier, so
+   the controls stay legible inside a dark band. */
+
+:root {
+  /* The three feels. flow drifts and follows a finger closely; glide holds on
+     each item and eases into the next; spring overshoots and settles. */
+  --dt-carousel-flow-stiffness: 70; /* @kind other */
+  --dt-carousel-flow-damping: 1; /* @kind other */
+  --dt-carousel-glide-stiffness: 42; /* @kind other */
+  --dt-carousel-glide-damping: 1; /* @kind other */
+  --dt-carousel-spring-stiffness: 130; /* @kind other */
+  --dt-carousel-spring-damping: 0.36; /* @kind other */
+
+  /* Pace: a multiplier on every layout's own speed. */
+  --dt-carousel-pace: 1; /* @kind other */
+  /* Secondary motion (ripple, lean and float) is scaled by this. 0 turns it
+     off everywhere; a calmer product context might set 0.5. */
+  --dt-carousel-expression: 1; /* @kind other */
+
+  /* The camera: how strongly depth shrinks what's further back. */
+  --dt-carousel-perspective: 1100px; /* @kind other */
+
+  /* How far the page scrolls per item when drive="scroll". */
+  --dt-carousel-scroll-step: 46vh; /* @kind other */
+
+  /* Items: their corners and lift. Content inside brings its own surface. */
+  --dt-carousel-item-radius: var(--dt-radius-container);
+  --dt-carousel-item-shadow: var(--dt-elevation-2);
+
+  /* The pause, previous and next controls, in a row under the items. Glass,
+     so they sit as easily on a photo band as on the page. */
+  --dt-carousel-control-surface: var(--dt-surface-glass-strong);
+  --dt-carousel-control-border: var(--dt-border-glass);
+  --dt-carousel-control-text: var(--dt-text-primary);
+  --dt-carousel-control-size: var(--dt-size-control-md);
+}
+
+.dark {
+  --dt-carousel-control-surface: var(--dt-surface-glass-strong);
+  --dt-carousel-control-border: var(--dt-border-glass);
+  --dt-carousel-control-text: var(--dt-text-primary);
+}

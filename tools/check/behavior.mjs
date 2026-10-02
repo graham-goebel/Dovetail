@@ -79,6 +79,12 @@
         whose button toggles aria-expanded and shows its panel; the email
         field has autocomplete="email"; choosing a delivery option calls
         onDeliveryChange with its id.
+      - Carousel: a region named by label with "carousel" as its role
+        description; each item is a named slide and one is aria-current;
+        only that item's content is live (the rest inert); ArrowRight and
+        Next move it, call onChange and are announced; the live item's
+        button presses; Pause holds an auto carousel still and Play
+        resumes it; under reduced motion it no longer moves by itself.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -134,6 +140,7 @@ const PAGE = `<!doctype html>
 <div id="chat-kit-root"></div>
 <div id="foodkit-root"></div>
 <div id="store-checkout-root"></div>
+<div id="carousel-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -399,6 +406,25 @@ function StoreCheckout() {
 }
 createRoot(document.getElementById("store-checkout-root")).render(h(StoreCheckout));
 window.__storeReady = true;
+</script>
+<script type="module">
+/* Carousel: a manual, controlled one and an auto one, on their own root. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { Carousel } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__carousel = { changes: [], pressed: [] };
+const tile = (n) => h("div", { key: "t" + n, style: { display: "grid", placeItems: "center", background: "var(--dt-surface-raised)" } },
+  h("button", { type: "button", onClick: () => window.__carousel.pressed.push(n) }, "Tile " + n));
+function CarouselApp() {
+  const [index, setIndex] = React.useState(0);
+  return h("div", { style: { width: "640px" } },
+    h(Carousel, { label: "Test carousel", layout: "coverflow", drive: "manual", entrance: false, value: index,
+      onChange: (i) => { window.__carousel.changes.push(i); setIndex(i); } }, [1, 2, 3, 4, 5].map(tile)),
+    h(Carousel, { label: "Test auto carousel", layout: "marquee", drive: "auto", entrance: false, expression: "none" }, [1, 2, 3, 4].map(tile)));
+}
+createRoot(document.getElementById("carousel-root")).render(h(CarouselApp));
+window.__carouselReady = true;
 </script>
 </body></html>
 `;
@@ -1100,6 +1126,68 @@ try {
     const group = await page.getByRole("group", { name: "Store delivery", exact: true }).count();
     expect(group === 1, "the delivery options should be a group named by its legend");
     ok('choosing a delivery option calls onDeliveryChange("store-express"); the options are grouped by their legend');
+  });
+
+  await step("Carousel: named slides, only the focused one live, keyboard and buttons move it, pause holds it", async () => {
+    await page.waitForFunction(() => window.__carouselReady === true);
+    const car = page.locator('[aria-roledescription="carousel"][aria-label="Test carousel"]');
+    await car.scrollIntoViewIfNeeded();
+    const state = () => car.evaluate((el) => {
+      const slides = [...el.querySelectorAll('[aria-roledescription="slide"]')];
+      return {
+        names: slides.map((s) => s.getAttribute("aria-label")),
+        current: slides.findIndex((s) => s.getAttribute("aria-current") === "true"),
+        live: slides.map((s) => !s.querySelector("button").closest("[inert]")),
+      };
+    });
+    const settle = () => page.waitForTimeout(1400);
+    await settle();
+    let st = await state();
+    expect(st.names.join("|") === "1 of 5|2 of 5|3 of 5|4 of 5|5 of 5", `slides should be named "1 of 5"…, got ${st.names.join("|")}`);
+    expect(st.current === 0, `the first slide should be aria-current, got ${st.current}`);
+    expect(st.live.filter(Boolean).length === 1 && st.live[0], `only the current slide's content should be live, got ${JSON.stringify(st.live)}`);
+    ok('a region named "Test carousel", five slides "1 of 5"…, the first aria-current and the only live one');
+    await car.focus();
+    await page.keyboard.press("ArrowRight");
+    await settle();
+    st = await state();
+    expect(st.current === 1 && st.live[1] && !st.live[0], `ArrowRight should move focus to the second slide and make it live, got current ${st.current}`);
+    const live = await car.locator('[aria-live="polite"]').textContent();
+    expect(live === "2 of 5", `the live region should read "2 of 5", got ${JSON.stringify(live)}`);
+    await car.getByRole("button", { name: "Next item", exact: true }).click();
+    await settle();
+    st = await state();
+    const changes = await page.evaluate(() => window.__carousel.changes.slice());
+    expect(st.current === 2 && changes.join(",") === "1,2", `Next should move to the third slide and onChange should have seen 1, 2; got current ${st.current}, changes ${changes.join(",")}`);
+    ok('ArrowRight and Next move it, onChange sees 1 then 2, and the move is announced "2 of 5"');
+    await car.getByRole("button", { name: "Tile 3", exact: true }).click();
+    const pressed = await page.evaluate(() => window.__carousel.pressed.slice());
+    expect(pressed.join(",") === "3", `the live slide's button should press, got ${pressed.join(",")}`);
+    ok("the live slide's own button presses");
+    const auto = page.locator('[aria-roledescription="carousel"][aria-label="Test auto carousel"]');
+    await auto.scrollIntoViewIfNeeded();
+    await page.mouse.move(2, 2);
+    const first = () => auto.evaluate((el) => el.querySelector('[aria-roledescription="slide"]').style.transform);
+    const a0 = await first(); await page.waitForTimeout(500); const a1 = await first();
+    expect(a0 !== a1, "an auto carousel should move by itself");
+    await auto.getByRole("button", { name: "Pause", exact: true }).click();
+    await page.mouse.move(2, 2);
+    await page.waitForTimeout(900);
+    const p0 = await first(); await page.waitForTimeout(500); const p1 = await first();
+    expect(p0 === p1, "after Pause it should hold still");
+    await auto.getByRole("button", { name: "Play", exact: true }).click();
+    await page.mouse.move(2, 2);
+    await page.waitForTimeout(700);
+    const r0 = await first(); await page.waitForTimeout(400); const r1 = await first();
+    expect(r0 !== r1, "after Play it should move again");
+    ok("an auto carousel moves by itself; Pause (renamed Play) holds it still and Play resumes it");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.waitForTimeout(600);
+    const m0 = await first(); await page.waitForTimeout(500); const m1 = await first();
+    const pauseShown = await auto.getByRole("button", { name: "Pause", exact: true }).count();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    expect(m0 === m1 && pauseShown === 0, `under reduced motion it should not move by itself or offer Pause, moved ${m0 !== m1}, pause ${pauseShown}`);
+    ok("under reduced motion it holds still and drops the Pause button");
   });
 
   await step("page errors", () => {

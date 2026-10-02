@@ -32,6 +32,7 @@
 @import "tokens/component/social.css";
 @import "tokens/component/commerce.css";
 @import "tokens/component/chat.css";
+@import "tokens/component/carousel.css";
 
 /* Contexts come last: they retune semantic and component tokens, and at equal
    specificity source order decides. */
