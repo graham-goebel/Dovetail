@@ -14,6 +14,9 @@ the user just took.
 - `danger` announces assertively and should not auto-dismiss. Everything else can.
 - Never stack more than three. Collapse the rest into a count.
 
+## Surfaces
+`surface="glass"` or `"glass-strong"` for a toast over a picture or a busy screen. The tone still sets its edge and icon.
+
 ## Tradeoffs
 
 Toasts are easy to miss: they appear away from the point of action and vanish. For

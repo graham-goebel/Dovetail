@@ -17,6 +17,9 @@ a Popover and less interruption than a full page.
 - It sits at `--dt-z-overlay`, above every sticky role, so a fixed page header never
   floats over the drawer's own scrim. Do not lower a header's z-index to make room.
 
+## Surfaces
+`surface` sets the panel's fill: `raised` (default), `glass` or `glass-strong` (what's behind shows through, blurred), or `brand` and `brand-muted`. The brand fills bring the text, links, borders and buttons that read on them, the same as a brand `Section`; `Navbar` passes its own surface down so the menu it opens matches the bar.
+
 ## Tradeoffs
 
 Drawers preserve page context but cover a third of the screen and trap focus. For tasks

@@ -8,7 +8,17 @@
 
    Text keeps its ordinary roles, so a tinted page is still ink on a pale
    ground. For a band that also re-colours its text from the brand, which is
-   the fixed-card pattern, use Section tone="brand-muted" instead.
+   the fixed-card pattern, use Section tone="brand-muted" instead. Buttons do
+   follow the tint, as they do on a brand-muted Section: a primary Button
+   takes the brand colour and a secondary one the secondary brand colour.
+
+   data-surface="brand" is the strong fill for a whole page or region. Text,
+   links, borders, the selected mark and the focus ring move to
+   --dt-text-on-brand; a primary (or brand) Button turns to that colour with
+   the fill as its label, a secondary one is outlined, a ghost one reads in
+   it. These are the same declarations Section tone="brand" sets, so a Button
+   reads the same on every brand fill. The button half of each lives with the
+   button's own tokens, in component/button.css.
 
    Custom properties resolve where they are declared, so this is declared on the
    region itself, after the dark theme, and a tinted region that is also .dark
@@ -21,4 +31,19 @@
   --dt-focus-ring-offset-color: var(--dt-surface-base);
   background: var(--dt-surface-base);
   color: var(--dt-text-primary);
+}
+
+[data-surface="brand"] {
+  --dt-text-primary: var(--dt-text-on-brand);
+  --dt-text-headline: var(--dt-text-on-brand);
+  --dt-text-secondary: color-mix(in oklab, var(--dt-text-on-brand) 88%, transparent);
+  --dt-text-tertiary: color-mix(in oklab, var(--dt-text-on-brand) 76%, transparent);
+  --dt-text-link: var(--dt-text-on-brand);
+  --dt-border-subtle: color-mix(in oklab, var(--dt-text-on-brand) 18%, transparent);
+  --dt-border-default: color-mix(in oklab, var(--dt-text-on-brand) 32%, transparent);
+  --dt-border-selected: var(--dt-text-on-brand);
+  --dt-focus-ring-color: var(--dt-text-on-brand);
+  --dt-focus-ring-offset-color: var(--dt-surface-brand);
+  background: var(--dt-surface-brand);
+  color: var(--dt-text-on-brand);
 }

@@ -30,7 +30,7 @@ A tone is a surface and the text roles that go on it. The `brand` tone follows C
 
 The `-muted` tones also re-point the buttons inside them. On `brand-muted`, a primary `Button` takes the brand colour and a secondary one the secondary brand colour; on `secondary-muted` the two swap. Each uses the brand-coloured action roles, so its text passes on it.
 
-On a `brand` fill the primary button and the fill are the same colour. Use a secondary or ghost button there, or a `-muted` tone.
+On a full fill (`brand`, `secondary`) the brand can't be the button too, so the section turns its buttons around. A primary or brand `Button` takes `--dt-text-on-brand` as its fill and the brand as its label; a secondary one is outlined in the text colour; a ghost one reads in it. Links, `--dt-border-subtle` and `-default`, the selected mark and the focus ring move to the text colour as well. `Navbar` and `Drawer` use the same declarations for their brand surfaces, and `data-surface="brand"` does the same for a page or any region.
 
 ## Dark and photo bands
 `dark` puts the `dark` class on the section, so the semantic tier and the component tier both re-resolve as dark inside it while the rest of the page stays light. A `media` band is scoped dark by default. Its text reads `--dt-text-on-scrim`, which stays light in both modes, because a scrim over a photograph is dark whatever the page is doing.

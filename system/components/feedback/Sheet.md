@@ -44,6 +44,9 @@ A sheet opened from another keeps the reader's place with a back arrow:
 - **Actions.** `actions` float as chips along the bottom edge over a fade, scrolling sideways when they don't fit. Mark at most one `primary`. Use `footer` instead for a row of Buttons.
 - **Dismissal.** The close button, Escape, the scrim, or on touch a drag down from the top of the sheet all call `onClose` with the reason. A drag right calls `onBack`. The sheet never closes itself: set `open` in response.
 
+## Surfaces
+`surface="glass"` or `"glass-strong"` re-points the sheet's surface (`--dt-dialog-bg`) to glass, and blurs what's behind the sheet and its sticky header.
+
 ## Tokens
 Shares the overlay tokens with Dialog: `--dt-dialog-bg`, `--dt-dialog-fg`, `--dt-dialog-radius`, `--dt-dialog-scrim`, `--dt-dialog-width-sm|md|lg` and `--dt-dialog-max-height`. Its own are `--dt-sheet-inset` (the gap to a phone's edges), `--dt-sheet-top-gap` (the page left showing above it), `--dt-sheet-padding`, `--dt-sheet-button-size`, `--dt-sheet-button-bg` and `--dt-sheet-shadow`.
 

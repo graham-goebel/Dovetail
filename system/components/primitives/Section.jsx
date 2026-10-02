@@ -34,18 +34,61 @@ function buttonsIn(lead, follow) {
     out[`--dt-button-${variant}-bg-hover`] = `var(${role}-hover)`;
     out[`--dt-button-${variant}-bg-active`] = `var(${role}-active)`;
     out[`--dt-button-${variant}-fg`] = `var(--dt-text-on-action-${hue})`;
-    out[`--dt-button-${variant}-border`] = "var(--dt-color-transparent)";
+    out[`--dt-button-${variant}-border`] = "transparent";
   });
+  return out;
+}
+/* On a strong brand fill the brand can't be the button too: a primary (or
+   brand) Button turns to the fill's own text colour with the fill as its
+   label, a secondary one is outlined in that text colour, and a ghost one
+   reads in it. Links, borders, the selected mark and the focus ring move to
+   the text colour as well, so nothing on the fill disappears into it. */
+function onStrong(fg, fill) {
+  const mix = (a, pct, b) => `color-mix(in oklab, ${a} ${pct}%, ${b})`;
+  const out = {
+    "--dt-text-link": fg,
+    "--dt-border-subtle": mix(fg, 18, "transparent"),
+    "--dt-border-default": mix(fg, 32, "transparent"),
+    "--dt-border-selected": fg,
+    "--dt-focus-ring-color": fg,
+    "--dt-focus-ring-offset-color": fill,
+  };
+  ["primary", "brand", "brand-secondary"].forEach((v) => {
+    out[`--dt-button-${v}-bg`] = fg;
+    out[`--dt-button-${v}-bg-hover`] = mix(fg, 88, fill);
+    out[`--dt-button-${v}-bg-active`] = mix(fg, 76, fill);
+    out[`--dt-button-${v}-fg`] = fill;
+    out[`--dt-button-${v}-border`] = "transparent";
+  });
+  out["--dt-button-secondary-bg"] = "transparent";
+  out["--dt-button-secondary-bg-hover"] = mix(fg, 12, "transparent");
+  out["--dt-button-secondary-bg-active"] = mix(fg, 20, "transparent");
+  out["--dt-button-secondary-fg"] = fg;
+  out["--dt-button-secondary-border"] = mix(fg, 55, "transparent");
+  out["--dt-button-ghost-bg-hover"] = mix(fg, 12, "transparent");
+  out["--dt-button-ghost-bg-active"] = mix(fg, 20, "transparent");
+  out["--dt-button-ghost-fg"] = fg;
   return out;
 }
 const TONES = {
   base: { background: "var(--dt-surface-base)" },
   subtle: { background: "var(--dt-surface-subtle)" },
-  brand: { background: "var(--dt-surface-brand)", ...onFill("var(--dt-text-on-brand)") },
+  brand: { background: "var(--dt-surface-brand)", ...onFill("var(--dt-text-on-brand)"), ...onStrong("var(--dt-text-on-brand)", "var(--dt-surface-brand)") },
   "brand-muted": { background: "var(--dt-surface-brand-muted)", ...onFill("var(--dt-text-on-brand-muted)"), ...buttonsIn("brand", "brand-secondary") },
-  secondary: { background: "var(--dt-surface-brand-secondary)", ...onFill("var(--dt-text-on-brand-secondary)") },
+  secondary: { background: "var(--dt-surface-brand-secondary)", ...onFill("var(--dt-text-on-brand-secondary)"), ...onStrong("var(--dt-text-on-brand-secondary)", "var(--dt-surface-brand-secondary)") },
   "secondary-muted": { background: "var(--dt-surface-brand-secondary-muted)", ...onFill("var(--dt-text-on-brand-secondary-muted)"), ...buttonsIn("brand-secondary", "brand") },
 };
+TONES["brand-secondary"] = TONES.secondary;
+TONES["brand-secondary-muted"] = TONES["secondary-muted"];
+
+/* A brand fill's background and every role that has to follow it: text,
+   links, borders, focus and buttons. Section uses it for its tones; other
+   bands that take a brand fill (Navbar, the open menu in Drawer) use the same
+   declarations, so a Button reads the same on every brand fill. Unknown
+   tones give the base surface. */
+export function fillTone(tone) {
+  return TONES[tone] || TONES.base;
+}
 
 function scrimImage(scrim, align) {
   if (scrim === "none") return "none";

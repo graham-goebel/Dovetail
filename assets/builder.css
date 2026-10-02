@@ -508,6 +508,8 @@ html.bd-configure-docked .configure-open-btn {
   color: var(--dt-text-tertiary);
 }
 
+/* Menus, the tool bar and its trays are glass, like the system's own
+   overlays (surface="glass-strong"): the canvas shows through, blurred. */
 .bd-dd-list {
   position: fixed;
   z-index: var(--dt-z-toast);
@@ -516,9 +518,11 @@ html.bd-configure-docked .configure-open-btn {
   padding: var(--dt-space-inset-2xs);
   overflow-y: auto;
   list-style: none;
-  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border: var(--dt-border-width-default) solid var(--dt-border-glass);
   border-radius: var(--dt-radius-overlay);
-  background: var(--dt-surface-overlay);
+  background: var(--dt-surface-glass-strong);
+  -webkit-backdrop-filter: var(--dt-backdrop-glass);
+  backdrop-filter: var(--dt-backdrop-glass);
   color: var(--dt-text-primary);
   box-shadow: var(--dt-elevation-3);
   font-size: var(--dt-font-size-sm);
@@ -1409,9 +1413,11 @@ span.bd-layer-twisty.is-open .bd-ic {
   gap: 6px;
   max-width: calc(100% - 16px);
   padding: 6px;
-  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border: var(--dt-border-width-default) solid var(--dt-border-glass);
   border-radius: var(--dt-radius-container);
-  background: var(--dt-surface-overlay);
+  background: var(--dt-surface-glass-strong);
+  -webkit-backdrop-filter: var(--dt-backdrop-glass);
+  backdrop-filter: var(--dt-backdrop-glass);
   box-shadow: var(--dt-elevation-3);
   transform: translateX(-50%);
 }
@@ -1493,9 +1499,11 @@ span.bd-layer-twisty.is-open .bd-ic {
   max-width: calc(100vw - 32px);
   padding: 6px;
   overflow-x: auto;
-  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border: var(--dt-border-width-default) solid var(--dt-border-glass);
   border-radius: var(--dt-radius-container);
-  background: var(--dt-surface-overlay);
+  background: var(--dt-surface-glass-strong);
+  -webkit-backdrop-filter: var(--dt-backdrop-glass);
+  backdrop-filter: var(--dt-backdrop-glass);
   box-shadow: var(--dt-elevation-3);
   opacity: 0;
   pointer-events: none;

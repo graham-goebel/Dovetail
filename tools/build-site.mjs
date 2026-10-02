@@ -2211,7 +2211,41 @@ const module = (css) => fam("layout", tokenOption("module", ["--dt-layout-module
 const spaceOpts2 = (axis, css) => BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-${axis}-${o}`], css(cssVar(`--dt-space-${axis}-${o}`)))));
 /* A pinned or floating item's distance from the edges it's pinned to. */
 const OFFSET = "var(--bd-offset, 0)";
+/* The same declarations Section's brand tones set (Section.jsx, fillTone):
+   text on the fill, and buttons that read on it. A strong fill turns its
+   primary and brand buttons to the fill's text colour; a pale one gives its
+   buttons the brand colours. */
 const BRAND_FILL = new Set(["brand", "brand-muted", "brand-secondary", "brand-secondary-muted"]);
+const mixIn = (a, pct, b) => `color-mix(in oklab, ${a} ${pct}%, ${b})`;
+const onStrong = (fg, fill) => {
+  const out = {
+    "--dt-text-link": fg, "--dt-border-subtle": mixIn(fg, 18, "transparent"), "--dt-border-default": mixIn(fg, 32, "transparent"),
+    "--dt-border-selected": fg, "--dt-focus-ring-color": fg, "--dt-focus-ring-offset-color": fill,
+  };
+  for (const v of ["primary", "brand", "brand-secondary"]) {
+    Object.assign(out, { [`--dt-button-${v}-bg`]: fg, [`--dt-button-${v}-bg-hover`]: mixIn(fg, 88, fill), [`--dt-button-${v}-bg-active`]: mixIn(fg, 76, fill), [`--dt-button-${v}-fg`]: fill, [`--dt-button-${v}-border`]: "transparent" });
+  }
+  return Object.assign(out, {
+    "--dt-button-secondary-bg": "transparent", "--dt-button-secondary-bg-hover": mixIn(fg, 12, "transparent"), "--dt-button-secondary-bg-active": mixIn(fg, 20, "transparent"),
+    "--dt-button-secondary-fg": fg, "--dt-button-secondary-border": mixIn(fg, 55, "transparent"),
+    "--dt-button-ghost-bg-hover": mixIn(fg, 12, "transparent"), "--dt-button-ghost-bg-active": mixIn(fg, 20, "transparent"), "--dt-button-ghost-fg": fg,
+  });
+};
+const buttonsIn = (lead, follow) => {
+  const out = {};
+  for (const [variant, hue] of [["primary", lead], ["secondary", follow]]) {
+    const role = `--dt-surface-action-${hue}`;
+    Object.assign(out, { [`--dt-button-${variant}-bg`]: cssVar(role), [`--dt-button-${variant}-bg-hover`]: cssVar(`${role}-hover`), [`--dt-button-${variant}-bg-active`]: cssVar(`${role}-active`),
+      [`--dt-button-${variant}-fg`]: cssVar(`--dt-text-on-action-${hue}`), [`--dt-button-${variant}-border`]: "transparent" });
+  }
+  return out;
+};
+const FILL_BUTTONS = {
+  brand: () => onStrong(cssVar("--dt-text-on-brand"), cssVar("--dt-surface-brand")),
+  "brand-secondary": () => onStrong(cssVar("--dt-text-on-brand-secondary"), cssVar("--dt-surface-brand-secondary")),
+  "brand-muted": () => buttonsIn("brand", "brand-secondary"),
+  "brand-secondary-muted": () => buttonsIn("brand-secondary", "brand"),
+};
 const onFill = (fg) => ({
   color: fg,
   "--dt-text-primary": fg,
@@ -2247,7 +2281,7 @@ const BUILDER_TOKENS = {
   surface: { label: "Fill", section: "appearance", preview: "color",
     options: ["base", "subtle", "raised", "sunken", "brand", "brand-muted", "brand-secondary", "brand-secondary-muted", "success-subtle", "warning-subtle", "danger-subtle", "info-subtle"]
       .map((o) => BRAND_FILL.has(o)
-        ? tokenOption(o, [`--dt-surface-${o}`, `--dt-text-on-${o}`], Object.assign({ background: cssVar(`--dt-surface-${o}`) }, onFill(cssVar(`--dt-text-on-${o}`))))
+        ? tokenOption(o, [`--dt-surface-${o}`, `--dt-text-on-${o}`], Object.assign({ background: cssVar(`--dt-surface-${o}`) }, onFill(cssVar(`--dt-text-on-${o}`)), FILL_BUTTONS[o]()))
         : tokenOption(o, [`--dt-surface-${o}`], { background: cssVar(`--dt-surface-${o}`) })) },
   /* How a layer mixes with what's under it, and an inverted picture: CSS
      keywords and a filter, no values. */

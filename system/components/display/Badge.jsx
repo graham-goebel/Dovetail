@@ -7,13 +7,18 @@ const TONES = {
   warning: { bg: "var(--dt-surface-warning-subtle)", fg: "var(--dt-text-warning)", bd: "var(--dt-border-warning)" },
   danger: { bg: "var(--dt-surface-danger-subtle)", fg: "var(--dt-text-danger)", bd: "var(--dt-border-danger)" },
   info: { bg: "var(--dt-surface-info-subtle)", fg: "var(--dt-text-info)", bd: "var(--dt-border-info)" },
+  /* Brand: subtle is the page's own surface with the brand as the text and
+     edge, so it holds on a brand fill as well as on the page; solid is the
+     brand fill itself. */
+  brand: { bg: "var(--dt-surface-base)", fg: "var(--dt-text-brand)", bd: "var(--dt-border-brand)" },
+  "brand-secondary": { bg: "var(--dt-surface-base)", fg: "var(--dt-text-brand-secondary)", bd: "var(--dt-border-brand-secondary)" },
 };
 
 export function Badge({ tone = "neutral", variant = "subtle", dot = false, children, style, ...rest }) {
   const t = TONES[tone] || TONES.neutral;
   const solid = variant === "solid";
-  const solidBg = { neutral: "var(--dt-surface-inverse)", primary: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)", info: "var(--dt-surface-info)" }[tone];
-  const solidFg = { neutral: "var(--dt-text-inverse)", primary: "var(--dt-text-on-action)", success: "var(--dt-text-on-success)", warning: "var(--dt-text-on-warning)", danger: "var(--dt-text-on-danger)", info: "var(--dt-text-on-info)" }[tone];
+  const solidBg = { neutral: "var(--dt-surface-inverse)", primary: "var(--dt-surface-action)", success: "var(--dt-surface-success)", warning: "var(--dt-surface-warning)", danger: "var(--dt-surface-danger)", info: "var(--dt-surface-info)", brand: "var(--dt-surface-brand)", "brand-secondary": "var(--dt-surface-brand-secondary)" }[tone] || "var(--dt-surface-inverse)";
+  const solidFg = { neutral: "var(--dt-text-inverse)", primary: "var(--dt-text-on-action)", success: "var(--dt-text-on-success)", warning: "var(--dt-text-on-warning)", danger: "var(--dt-text-on-danger)", info: "var(--dt-text-on-info)", brand: "var(--dt-text-on-brand)", "brand-secondary": "var(--dt-text-on-brand-secondary)" }[tone] || "var(--dt-text-inverse)";
   return (
     <span
       style={{

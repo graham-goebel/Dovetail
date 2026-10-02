@@ -48,6 +48,11 @@ const roundButton = {
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/* Glass re-points the sheet's surface token, so its header and footer
+   follow, and blurs what's behind each of them. */
+const GLASS_BG = { glass: "var(--dt-surface-glass)", "glass-strong": "var(--dt-surface-glass-strong)" };
+const BLUR = { backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" };
+
 export function Sheet({
   open,
   onClose,
@@ -59,6 +64,7 @@ export function Sheet({
   actions,
   footer,
   size = "md",
+  surface = "raised",
   label,
   children,
   style,
@@ -215,6 +221,7 @@ export function Sheet({
           borderRadius: "var(--dt-dialog-radius)",
           boxShadow: "var(--dt-sheet-shadow)",
           outline: "none",
+          ...(GLASS_BG[surface] ? { "--dt-dialog-bg": GLASS_BG[surface], "--dt-dialog-border-color": "var(--dt-border-glass)", ...BLUR } : null),
           ...style,
         }}
         {...rest}
@@ -227,6 +234,7 @@ export function Sheet({
           padding: "var(--dt-space-inset-md) var(--dt-space-inset-sm) var(--dt-space-inset-xs)",
           background: "var(--dt-dialog-bg)",
           boxShadow: "0 var(--dt-border-width-default) 0 color-mix(in oklab, var(--dt-dialog-border-color) calc(var(--dt-sheet-p, 0) * 100%), transparent)",
+          ...(GLASS_BG[surface] ? BLUR : null),
         }}>
           {onBack ? (
             <button type="button" data-sheet-lead onClick={onBack} aria-label="Back" style={roundButton}><Icon d={BACK} /></button>

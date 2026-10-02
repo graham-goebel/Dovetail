@@ -1,5 +1,12 @@
 import React from "react";
 import { Drawer } from "../feedback/Drawer.jsx";
+import { fillTone } from "../primitives/Section.jsx";
+
+/* The bar's surface. A brand fill re-points the text, links, the current
+   link's mark and the buttons on it, the same way a brand Section does, and
+   the menu that opens on a narrow screen takes the same fill. Glass lets the
+   page show through, blurred, for a bar over a picture or a sticky header. */
+const MENU_SURFACE = { base: "raised", glass: "glass-strong", brand: "brand", "brand-muted": "brand-muted" };
 
 function MenuIcon() {
   return (
@@ -27,16 +34,20 @@ function useNarrow(below) {
   );
 }
 
-export function Navbar({ brand, links = [], actions, current, onNavigate, label = "Main", sticky = false, collapseBelow = 640, style, ...rest }) {
+export function Navbar({ brand, links = [], actions, current, onNavigate, label = "Main", sticky = false, collapseBelow = 640, surface = "base", style, ...rest }) {
   const narrow = useNarrow(collapseBelow) && links.length > 0;
   const [open, setOpen] = React.useState(false);
   const go = (id) => { setOpen(false); if (onNavigate) onNavigate(id); };
+  const fill = surface === "brand" || surface === "brand-muted" ? fillTone(surface) : null;
+  const glass = surface === "glass";
   return (
     <nav aria-label={label} style={{
       display: "flex", alignItems: "center", gap: "var(--dt-space-inline-lg)",
       padding: "var(--dt-space-inset-sm) var(--dt-space-inset-lg)",
       background: "var(--dt-surface-base)",
-      borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)",
+      ...(fill || {}),
+      ...(glass ? { background: "var(--dt-surface-glass)", backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" } : null),
+      borderBottom: `var(--dt-border-width-default) solid ${glass ? "var(--dt-border-glass)" : "var(--dt-border-subtle)"}`,
       position: sticky ? "sticky" : "static", top: 0, zIndex: sticky ? "var(--dt-z-sticky)" : undefined, ...style,
     }} {...rest}>
       {brand && <span style={{ display: "flex", alignItems: "center", flex: "none" }}>{brand}</span>}
@@ -77,7 +88,7 @@ export function Navbar({ brand, links = [], actions, current, onNavigate, label 
         ><MenuIcon /></button>
       )}
       {narrow && (
-        <Drawer open={open} onClose={() => setOpen(false)} side="right" title="Menu" label={label + " menu"} footer={actions}>
+        <Drawer open={open} onClose={() => setOpen(false)} side="right" title="Menu" label={label + " menu"} footer={actions} surface={MENU_SURFACE[surface] || "raised"}>
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column" }}>
             {links.map(l => {
               const on = l.id === current;

@@ -11,6 +11,9 @@ a small form. Opens on click, closes on outside click or Escape.
 - Keep it to one job. A popover with tabs inside it should be a Drawer or a Dialog.
 - Do not nest popovers. The second one traps focus behind the first.
 
+## Surfaces
+`surface="glass"` (or `"glass-strong"`, which lets less through) lets what's behind show through, blurred. Use it over a picture or a busy screen; keep `raised` (default) over plain content, where glass only costs contrast.
+
 ## Tradeoffs
 
 Popovers stay anchored to their trigger, which keeps context but constrains size. Once

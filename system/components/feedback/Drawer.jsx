@@ -1,12 +1,23 @@
 import React from "react";
 import { useModalFocus } from "./Dialog.jsx";
+import { fillTone } from "../primitives/Section.jsx";
 
-export function Drawer({ open, onClose, title, children, footer, side = "right", width = 380, label, style, ...rest }) {
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = { glass: "var(--dt-surface-glass)", "glass-strong": "var(--dt-surface-glass-strong)" };
+/* A brand fill brings the text, links, borders and buttons that read on it,
+   the same declarations a brand Section uses. */
+const FILLS = { brand: true, "brand-muted": true };
+
+export function Drawer({ open, onClose, title, children, footer, side = "right", width = 380, surface = "raised", label, style, ...rest }) {
   const panel = React.useRef(null);
   const titleId = React.useId();
   useModalFocus(open, panel, onClose);
   if (!open) return null;
   const horizontal = side === "left" || side === "right";
+  const fill = FILLS[surface] ? fillTone(surface) : null;
+  const glass = GLASS[surface];
+  const edge = glass ? "var(--dt-border-glass)" : "var(--dt-border-subtle)";
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: "var(--dt-z-overlay)", display: "flex", justifyContent: side === "right" ? "flex-end" : "flex-start", alignItems: side === "bottom" ? "flex-end" : "stretch" }}>
       <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "var(--dt-surface-scrim, rgba(0,0,0,0.4))" }} />
@@ -22,9 +33,11 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
           width: horizontal ? width : "100%", height: horizontal ? "100%" : "auto",
           maxHeight: "100%", maxWidth: "100%", boxSizing: "border-box",
           background: "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
+          ...(fill || {}),
+          ...(glass ? { background: glass, backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" } : null),
           boxShadow: "var(--dt-elevation-4)",
-          borderLeft: side === "right" ? "var(--dt-border-width-default) solid var(--dt-border-subtle)" : "none",
-          borderRight: side === "left" ? "var(--dt-border-width-default) solid var(--dt-border-subtle)" : "none",
+          borderLeft: side === "right" ? `var(--dt-border-width-default) solid ${edge}` : "none",
+          borderRight: side === "left" ? `var(--dt-border-width-default) solid ${edge}` : "none",
           borderTopLeftRadius: side === "bottom" ? "var(--dt-radius-overlay)" : 0,
           borderTopRightRadius: side === "bottom" ? "var(--dt-radius-overlay)" : 0,
           ...style,
@@ -34,7 +47,7 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
         {title && (
           <header style={{
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--dt-space-inline-sm)",
-            padding: "var(--dt-space-inset-md)", borderBottom: "var(--dt-border-width-default) solid var(--dt-border-subtle)", flex: "none",
+            padding: "var(--dt-space-inset-md)", borderBottom: `var(--dt-border-width-default) solid ${edge}`, flex: "none",
           }}>
             <span id={titleId} style={{ fontFamily: "var(--dt-text-heading-xs-family)", fontSize: "var(--dt-text-heading-xs-size)", fontWeight: "var(--dt-font-weight-semibold)" }}>{title}</span>
             <button type="button" onClick={onClose} aria-label="Close" style={{
@@ -46,7 +59,7 @@ export function Drawer({ open, onClose, title, children, footer, side = "right",
         )}
         <div style={{ flex: 1, overflowY: "auto", padding: "var(--dt-space-inset-md)", fontFamily: "var(--dt-text-body-sm-family)", fontSize: "var(--dt-text-body-sm-size)", lineHeight: "var(--dt-text-body-sm-line)" }}>{children}</div>
         {footer && (
-          <footer style={{ display: "flex", justifyContent: "flex-end", gap: "var(--dt-space-inline-sm)", padding: "var(--dt-space-inset-md)", borderTop: "var(--dt-border-width-default) solid var(--dt-border-subtle)", flex: "none" }}>{footer}</footer>
+          <footer style={{ display: "flex", justifyContent: "flex-end", gap: "var(--dt-space-inline-sm)", padding: "var(--dt-space-inset-md)", borderTop: `var(--dt-border-width-default) solid ${edge}`, flex: "none" }}>{footer}</footer>
         )}
       </div>
     </div>

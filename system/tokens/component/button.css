@@ -112,3 +112,50 @@
   --dt-button-disabled-fg: var(--dt-text-on-action-disabled);
   --dt-button-disabled-border: var(--dt-color-transparent);
 }
+
+/* Buttons on a brand fill. On the pale tint (data-surface="brand-muted") the
+   primary takes the brand colour and the secondary the secondary brand
+   colour. On the strong fill (data-surface="brand") the brand can't be the
+   button too: a primary or brand Button turns to --dt-text-on-brand with the
+   fill as its label, a secondary one is outlined, a ghost one reads in it.
+   Section's brand tones, Navbar's brand surfaces and the menu they open set
+   the same values (Section.jsx, fillTone). After the .dark block, so a
+   region that is also .dark keeps these. */
+[data-surface="brand-muted"] {
+  --dt-button-primary-bg: var(--dt-surface-action-brand);
+  --dt-button-primary-bg-hover: var(--dt-surface-action-brand-hover);
+  --dt-button-primary-bg-active: var(--dt-surface-action-brand-active);
+  --dt-button-primary-fg: var(--dt-text-on-action-brand);
+  --dt-button-primary-border: transparent;
+  --dt-button-secondary-bg: var(--dt-surface-action-brand-secondary);
+  --dt-button-secondary-bg-hover: var(--dt-surface-action-brand-secondary-hover);
+  --dt-button-secondary-bg-active: var(--dt-surface-action-brand-secondary-active);
+  --dt-button-secondary-fg: var(--dt-text-on-action-brand-secondary);
+  --dt-button-secondary-border: transparent;
+}
+
+[data-surface="brand"] {
+  --dt-button-primary-bg: var(--dt-text-on-brand);
+  --dt-button-primary-bg-hover: color-mix(in oklab, var(--dt-text-on-brand) 88%, var(--dt-surface-brand));
+  --dt-button-primary-bg-active: color-mix(in oklab, var(--dt-text-on-brand) 76%, var(--dt-surface-brand));
+  --dt-button-primary-fg: var(--dt-surface-brand);
+  --dt-button-primary-border: transparent;
+  --dt-button-brand-bg: var(--dt-text-on-brand);
+  --dt-button-brand-bg-hover: color-mix(in oklab, var(--dt-text-on-brand) 88%, var(--dt-surface-brand));
+  --dt-button-brand-bg-active: color-mix(in oklab, var(--dt-text-on-brand) 76%, var(--dt-surface-brand));
+  --dt-button-brand-fg: var(--dt-surface-brand);
+  --dt-button-brand-border: transparent;
+  --dt-button-brand-secondary-bg: var(--dt-text-on-brand);
+  --dt-button-brand-secondary-bg-hover: color-mix(in oklab, var(--dt-text-on-brand) 88%, var(--dt-surface-brand));
+  --dt-button-brand-secondary-bg-active: color-mix(in oklab, var(--dt-text-on-brand) 76%, var(--dt-surface-brand));
+  --dt-button-brand-secondary-fg: var(--dt-surface-brand);
+  --dt-button-brand-secondary-border: transparent;
+  --dt-button-secondary-bg: transparent;
+  --dt-button-secondary-bg-hover: color-mix(in oklab, var(--dt-text-on-brand) 12%, transparent);
+  --dt-button-secondary-bg-active: color-mix(in oklab, var(--dt-text-on-brand) 20%, transparent);
+  --dt-button-secondary-fg: var(--dt-text-on-brand);
+  --dt-button-secondary-border: color-mix(in oklab, var(--dt-text-on-brand) 55%, transparent);
+  --dt-button-ghost-bg-hover: color-mix(in oklab, var(--dt-text-on-brand) 12%, transparent);
+  --dt-button-ghost-bg-active: color-mix(in oklab, var(--dt-text-on-brand) 20%, transparent);
+  --dt-button-ghost-fg: var(--dt-text-on-brand);
+}

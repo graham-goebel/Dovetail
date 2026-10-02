@@ -27,6 +27,8 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
    * the row at every width. @default 640
    */
   collapseBelow?: number;
+  /** The bar's fill. "brand" is the strong brand fill: text, links, the current link's mark and buttons on it turn to --dt-text-on-brand, and a primary Button turns light with brand text. "brand-muted" is the pale tint: text keeps the brand's ink and buttons take the brand colours. "glass" lets the page show through, blurred. The menu that opens on a narrow screen takes the same fill. @default "base" */
+  surface?: "base" | "glass" | "brand" | "brand-muted";
 }
 
 export declare function Navbar(props: NavbarProps): React.JSX.Element;

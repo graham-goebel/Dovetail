@@ -25,6 +25,13 @@ A modal that interrupts. Every dialog costs the user their place, so open one on
 />
 ```
 
+## Surfaces
+`surface="glass"` or `"glass-strong"` lets the screen behind show through, blurred. It re-points `--dt-dialog-bg` and `--dt-dialog-border-color` to the glass roles, so every part of the dialog follows. The scrim still dims the page; glass reads best over a picture or a colourful screen.
+
+```jsx
+<Dialog open={open} onClose={close} title="Share" surface="glass">…</Dialog>
+```
+
 ## Accessibility
 `role="dialog"` with `aria-modal`, named by `title` (`aria-labelledby`) and described by `description`. A dialog with no visible title needs `label`. When it opens, focus moves into the panel; Tab and Shift+Tab stay inside it; the page behind stops scrolling. Escape, the scrim and the close button close it, and focus returns to whatever opened it.
 

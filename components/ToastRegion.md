@@ -20,6 +20,9 @@ the user just took.
 - `danger` announces assertively and should not auto-dismiss. Everything else can.
 - Never stack more than three. Collapse the rest into a count.
 
+### Surfaces
+`surface="glass"` or `"glass-strong"` for a toast over a picture or a busy screen. The tone still sets its edge and icon.
+
 ### Tradeoffs
 
 Toasts are easy to miss: they appear away from the point of action and vanish. For
@@ -34,6 +37,8 @@ import * as React from "react";
 export interface ToastProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   /** @default "neutral" */
   tone?: "neutral" | "success" | "warning" | "danger";
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
   title?: React.ReactNode;
   children?: React.ReactNode;
   icon?: React.ReactNode;
@@ -61,6 +66,7 @@ export declare function ToastRegion(props: ToastRegionProps): React.JSX.Element;
 
 | Token | Tier | Declared as |
 | --- | --- | --- |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
 | `--dt-border-danger` | semantic | `var(--dt-color-red-200)` |
 | `--dt-border-default` | semantic | `var(--dt-color-neutral-200)` |
 | `--dt-border-success` | semantic | `var(--dt-color-green-200)` |
@@ -75,6 +81,8 @@ export declare function ToastRegion(props: ToastRegionProps): React.JSX.Element;
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-inset-sm` | semantic | `var(--dt-dim-3)` |
 | `--dt-space-stack-xs` | semantic | `var(--dt-dim-2)` |
+| `--dt-surface-glass` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)` |
+| `--dt-surface-glass-strong` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent)` |
 | `--dt-surface-raised` | semantic | `var(--dt-color-white)` |
 | `--dt-text-body-md-size` | semantic | `var(--dt-font-size-md)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
@@ -102,13 +110,19 @@ const TONES = {
   danger: { bd: "var(--dt-border-danger)", fg: "var(--dt-text-danger)" },
 };
 
-export function Toast({ tone = "neutral", title, children, icon, action, onDismiss, dismissLabel = "Dismiss", style, ...rest }) {
+/* Glass: the overlay surface let through, blurred, for a panel over a
+   picture or a busy screen. Always paired with the backdrop filter. */
+const GLASS = { glass: "var(--dt-surface-glass)", "glass-strong": "var(--dt-surface-glass-strong)" };
+
+export function Toast({ tone = "neutral", title, children, icon, action, onDismiss, dismissLabel = "Dismiss", surface = "raised", style, ...rest }) {
   const t = TONES[tone] || TONES.neutral;
   return (
     <div role={tone === "danger" ? "alert" : "status"} aria-live={tone === "danger" ? "assertive" : "polite"} style={{
       display: "flex", alignItems: "flex-start", gap: "var(--dt-space-inline-sm)",
       padding: "var(--dt-space-inset-sm) var(--dt-space-inset-md)",
-      background: "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
+      background: GLASS[surface] || "var(--dt-surface-raised)", color: "var(--dt-text-primary)",
+      backdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
+      WebkitBackdropFilter: GLASS[surface] ? "var(--dt-backdrop-glass)" : undefined,
       border: `var(--dt-border-width-default) solid ${t.bd}`,
       borderRadius: "var(--dt-radius-overlay)", boxShadow: "var(--dt-elevation-3)",
       minWidth: 260, maxWidth: 420, boxSizing: "border-box", ...style,

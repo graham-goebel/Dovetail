@@ -31,6 +31,13 @@ A modal that interrupts. Every dialog costs the user their place, so open one on
 />
 ```
 
+### Surfaces
+`surface="glass"` or `"glass-strong"` lets the screen behind show through, blurred. It re-points `--dt-dialog-bg` and `--dt-dialog-border-color` to the glass roles, so every part of the dialog follows. The scrim still dims the page; glass reads best over a picture or a colourful screen.
+
+```jsx
+<Dialog open={open} onClose={close} title="Share" surface="glass">…</Dialog>
+```
+
 ### Accessibility
 `role="dialog"` with `aria-modal`, named by `title` (`aria-labelledby`) and described by `description`. A dialog with no visible title needs `label`. When it opens, focus moves into the panel; Tab and Shift+Tab stay inside it; the page behind stops scrolling. Escape, the scrim and the close button close it, and focus returns to whatever opened it.
 
@@ -58,6 +65,8 @@ export interface DialogProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   footer?: React.ReactNode;
   /** @default "md" */
   size?: "sm" | "md" | "lg";
+  /** "glass" lets what's behind show through, blurred (--dt-surface-glass with --dt-backdrop-glass); "glass-strong" lets less through. Use over a picture or a busy screen. @default "raised" */
+  surface?: "raised" | "glass" | "glass-strong";
   /** Accessible name for a dialog with no visible title. */
   label?: string;
   children?: React.ReactNode;
@@ -83,6 +92,8 @@ export declare function Dialog(props: DialogProps): React.JSX.Element | null;
 | `--dt-dialog-width-lg` | component | `720px` |
 | `--dt-dialog-width-md` | component | `520px` |
 | `--dt-dialog-width-sm` | component | `400px` |
+| `--dt-backdrop-glass` | semantic | `saturate(1.6) blur(var(--dt-blur-glass))` |
+| `--dt-border-glass` | semantic | `color-mix(in oklab, var(--dt-text-primary) 10%, transparent)` |
 | `--dt-radius-control` | semantic | `var(--dt-radius-raw-8)` |
 | `--dt-size-control-sm` | semantic | `var(--dt-dim-8)` |
 | `--dt-space-inline-xs` | semantic | `var(--dt-dim-2)` |
@@ -90,6 +101,8 @@ export declare function Dialog(props: DialogProps): React.JSX.Element | null;
 | `--dt-space-inset-md` | semantic | `var(--dt-dim-4)` |
 | `--dt-space-inset-xl` | semantic | `var(--dt-dim-8)` |
 | `--dt-space-stack-xs` | semantic | `var(--dt-dim-2)` |
+| `--dt-surface-glass` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)` |
+| `--dt-surface-glass-strong` | semantic | `color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent)` |
 | `--dt-text-body-sm-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-body-sm-line` | semantic | `var(--dt-line-height-sm)` |
 | `--dt-text-body-sm-size` | semantic | `var(--dt-font-size-sm)` |
@@ -145,7 +158,15 @@ export function useModalFocus(open, panel, onClose) {
   }, [open, panel]);
 }
 
-export function Dialog({ open, onClose, title, description, footer, size = "md", label, style, children, ...rest }) {
+/* Glass: the dialog's surface let through, blurred, for a dialog over a
+   picture or a busy screen. It re-points the dialog's own tokens, so every
+   part of it follows. */
+const GLASS = {
+  glass: { "--dt-dialog-bg": "var(--dt-surface-glass)", "--dt-dialog-border-color": "var(--dt-border-glass)", backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" },
+  "glass-strong": { "--dt-dialog-bg": "var(--dt-surface-glass-strong)", "--dt-dialog-border-color": "var(--dt-border-glass)", backdropFilter: "var(--dt-backdrop-glass)", WebkitBackdropFilter: "var(--dt-backdrop-glass)" },
+};
+
+export function Dialog({ open, onClose, title, description, footer, size = "md", surface = "raised", label, style, children, ...rest }) {
   const panel = React.useRef(null);
   const titleId = React.useId();
   const descriptionId = React.useId();
@@ -181,6 +202,7 @@ export function Dialog({ open, onClose, title, description, footer, size = "md",
           borderRadius: "var(--dt-dialog-radius)",
           padding: "var(--dt-dialog-padding)",
           boxShadow: "var(--dt-dialog-elevation)",
+          ...(GLASS[surface] || null),
           ...style,
         }}
       >
