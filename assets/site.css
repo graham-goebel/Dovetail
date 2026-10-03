@@ -2072,6 +2072,21 @@ body.file-viewer-open {
   border-color: var(--dt-text-success);
 }
 
+/* Open in builder sits at the foot of a JSX example, apart from Copy, with
+   room left under the code so a one-line example doesn't put them together. */
+.code-wrap:has(.open-btn) > pre {
+  padding-bottom: calc(var(--dt-size-control-xs) + 2 * var(--dt-space-inset-sm));
+}
+
+/* Open in builder sits at the foot of a JSX example, apart from Copy. */
+.open-btn {
+  top: auto;
+  bottom: var(--dt-space-inset-sm);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 /* Touch has no hover. */
 @media (hover: none) {
   .copy-btn {

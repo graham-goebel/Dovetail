@@ -95,7 +95,28 @@
         });
       });
       wrap.appendChild(button);
+      openInBuilder(wrap, pre);
     });
+  }
+
+  /* A JSX example with components in it opens on a builder canvas, as a new
+     frame beside whatever is there. The builder reads the JSX itself and says
+     what it couldn't bring in. */
+  function openInBuilder(wrap, pre) {
+    if (pre.getAttribute("data-lang") !== "jsx" || pre.hasAttribute("data-source")) return;
+    var code = pre.querySelector("code");
+    var text = code ? code.textContent : pre.textContent;
+    if (!/<[A-Z][\w.]*[\s/>]/.test(text)) return;
+    var home = document.querySelector(".wordmark");
+    var root = home ? home.getAttribute("href").replace(/index\.html$/, "") : "";
+    var bytes = new TextEncoder().encode(text);
+    var bin = "";
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    var link = document.createElement("a");
+    link.className = "copy-btn open-btn";
+    link.href = root + "builder.html#jsx=" + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    link.textContent = "Open in builder";
+    wrap.appendChild(link);
   }
 
   /* The async clipboard needs a secure context, which a site opened from a file
