@@ -18,4 +18,3 @@ visual: false
 - Only the item in focus is interactive unless `focusOnly` says otherwise.
 - A pause button shows whenever it moves on its own. Under reduced motion nothing moves by itself.
 - The spring settings, pace and expression are `--dt-carousel-*` tokens, so a theme or context can calm every carousel at once.
-- The builder doesn't offer `Carousel` yet.

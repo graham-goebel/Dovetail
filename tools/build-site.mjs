@@ -1768,6 +1768,9 @@ function allTypes() {
   return typeIndex;
 }
 function resolveIndexed(type) {
+  /* A named union (export type CarouselLayout = "stack" | …) reads as itself. */
+  const alias = /^[A-Z]\w*$/.test(type) && new RegExp(`export type ${type}\\s*=\\s*([^;]+);`).exec(allTypes());
+  if (alias) return alias[1].replace(/\s+/g, " ").trim();
   const m = /^(\w+)\["(\w+)"\]$/.exec(type);
   if (!m) return type;
   const body = interfaceBody(allTypes(), m[1]);
@@ -2394,14 +2397,18 @@ const BUILDER_COLUMN_WIDTHS = [3, 4, 5, 6].map((n) => ({ value: `calc(var(--dt-s
 const BUILDER_ROOT_GAPS = ["related", "group", "block", "section"];
 /* Components the builder arranges children inside. */
 const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
-/* Fixed to the viewport when open, or invisible by design: nothing to place.
-   Carousel holds its own items and needs editing of its own (items laid out
-   flat while you work, moving in Play), so it waits for builder support. */
-const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer", "Carousel"]);
+/* Components whose children are their items: containers too, but they stay in
+   their own category rather than joining Layout. */
+const BUILDER_ITEM_HOLDERS = ["Carousel"];
+/* Fixed to the viewport when open, or invisible by design: nothing to place. */
+const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
+/* Props a component takes from its app, never set by hand on a page: a
+   carousel's controlled index and its outside pause. */
+const BUILDER_APP_ONLY = { Carousel: ["value", "paused"] };
 /* The inspector's tabs: how a component looks, how it lays out, and what it
    says. Every other prop is content. */
-const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "titleSize", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio"];
-const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky"];
+const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "titleSize", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio", "drive", "feel", "expression", "pace", "entrance", "focusOnly"];
+const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky", "itemRatio", "itemSize", "spread", "depth"];
 /* Stack, Inline and Grid type align and justify as CSS keywords. */
 const BUILDER_KEYWORDS = {
   align: ["flex-start", "center", "flex-end", "stretch"],
@@ -2602,9 +2609,10 @@ function buildBuilder() {
        control here: the inspector would be handing out raw values. Enums keep
        their names (Section's width is a token scale). children has its own
        Text field. */
-    let props = playgroundProps(c).filter((p) => p.name !== "children" &&
+    const appOnly = BUILDER_APP_ONLY[c.name] || [];
+    let props = playgroundProps(c).filter((p) => p.name !== "children" && !appOnly.includes(p.name) &&
       !(p.kind !== "enum" && !(p.kind === "node" && p.name === "media") && /^(minHeight|minColumnWidth|media|href|src|poster|background\w*|collapseBelow|width|height|maxRows|position|imagePosition|stickyTop|radius|measure|htmlFor|labelId|messageId)$/.test(p.name)));
-    props = props.concat(builderExtraProps(c, new Set(playgroundProps(c).map((p) => p.name))));
+    props = props.concat(builderExtraProps(c, new Set(playgroundProps(c).map((p) => p.name).concat(appOnly))));
     props = props.map((p) => (BUILDER_KEYWORDS[p.name] && !p.options ? { ...p, kind: "enum", options: BUILDER_KEYWORDS[p.name] } : p));
     /* align and justify are CSSProperties types, which playgroundProps skips. */
     const src = c.types ? read(path.join(ROOT, c.types)) : "";
@@ -2620,7 +2628,7 @@ function buildBuilder() {
     meta[c.name] = {
       blurb: NAV_BLURB[c.name] || String(c.summary || "").replace(/[`*_]/g, "").split(". ")[0],
       group: c.group,
-      container: BUILDER_CONTAINERS.includes(c.name),
+      container: BUILDER_CONTAINERS.includes(c.name) || BUILDER_ITEM_HOLDERS.includes(c.name),
       href: `components/${c.name}.html`,
       props,
     };

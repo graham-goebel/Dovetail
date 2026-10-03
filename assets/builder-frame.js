@@ -40,7 +40,7 @@
 
   /* Components whose children the reader arranges. Their specimen's own
      children are dropped; the tree supplies new ones. */
-  var CONTAINERS = { Root: true, Group: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true, Slot: true };
+  var CONTAINERS = { Root: true, Group: true, Section: true, Stack: true, Inline: true, Grid: true, Card: true, Slot: true, Carousel: true };
 
   var DATA = window.DovetailBuilderData || { tokens: {} };
   var STYLE_KEYS = Object.keys(DATA.tokens);
@@ -268,6 +268,7 @@
       return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: shapeStyle(node), role: "presentation" }));
     }
+    if (node.type === "Carousel" && !opts.preview) return carouselBoard(node);
     var Comp = NS[node.type];
     if (!Comp) return e("div", { key: node.id, className: "bf-error", "data-bf-id": node.id }, "Unknown component " + node.type);
     var p = propsOf(node);
@@ -287,6 +288,27 @@
     var el = kids === undefined ? e(Comp, p) : e(Comp, p, kids);
     return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": node.type, "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
       e(Guard, { stamp: stamp, name: node.type }, el));
+  }
+
+  /* A Carousel while editing: its items flat, in frames of its item shape, so
+     each can be selected and dropped between. Play renders the real one. */
+  var ITEM_SHAPE = { square: "1 / 1", portrait: "3 / 4", landscape: "4 / 3" };
+  function carouselBoard(node) {
+    var p = propsOf(node);
+    var items = flowOf(node);
+    var shape = typeof p.itemRatio === "number" && p.itemRatio > 0 ? String(p.itemRatio) : ITEM_SHAPE[p.itemRatio] || ITEM_SHAPE.square;
+    var size = typeof p.itemSize === "number" && p.itemSize > 0 ? Math.max(0.5, Math.min(2, p.itemSize)) : 1;
+    var dark = node.style && node.style.dark;
+    return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Carousel", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
+      e("div", { className: "bf-carousel-board" + (dark ? " dark" : ""), style: Object.assign({ "--bf-carousel-size": size }, styleFor(node.style) || {}), role: "group", "aria-label": (p.label || "Carousel") + ", laid flat while editing" },
+        e("div", { className: "bf-carousel-head" },
+          e("strong", null, p.label || "Carousel"),
+          e("span", null, (p.layout || "ring") + " · " + items.length + (items.length === 1 ? " item" : " items")),
+          e("span", { className: "bf-carousel-hint" }, "Moves in Play")),
+        e("div", { className: "bf-carousel-items", "data-bf-items": node.id },
+          items.length
+            ? items.map(function (c) { return e("div", { key: c.id, className: "bf-carousel-item", style: { aspectRatio: shape } }, renderNode(c, node.id)); })
+            : empty(node.id))));
   }
 
   var current = null;
@@ -379,6 +401,7 @@
     if (!entry) return null;
     var w = wrapper(id);
     if (!w) return null;
+    if (entry.node.type === "Carousel" && !opts.preview) return w.querySelector('[data-bf-items="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
     var kids0 = entry.node.type === "Slot" ? entry.node.children || [] : flowOf(entry.node);
     var first = kids0.length ? wrapper(kids0[0].id) : w.querySelector('[data-bf-slot="' + id + '"]');
     if (!first) return null;
