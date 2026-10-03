@@ -12,13 +12,14 @@ Dovetail is a white-label design system (`system/`) with a static documentation 
 
 ```sh
 npm ci                 # once per checkout
-npm run build          # tools/build-bundle.mjs, then tools/build-site.mjs
+npm run build          # tools/build-bundle.mjs, tools/build-builder.mjs, then tools/build-site.mjs
 npm run check          # must pass before you push
 ```
 
 - Never hand-edit generated files:
   - the site pages: `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html`, `builder.html`;
   - `system/components/bundle.js` and `system/_ds_bundle.js`;
+  - `assets/builder.js`, bundled from the modules in `assets/builder/` (edit those);
   - `system/templates/_support/card-kit.js`;
   - `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js`, `assets/builder-data.js`, `assets/builder-layouts.md` and `llms.txt`;
   - the style block and app script of `previews/MarketingKit.html` and `previews/DashboardKit.html`. Edit `system/kits/` instead.

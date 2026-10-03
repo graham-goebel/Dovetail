@@ -11,11 +11,13 @@ How to get set up, make a change, and get it merged when several people (and the
 | `system/tokens/` | CSS custom properties in three tiers, plus `tokens.json` / `dovetail.tokens.json` | hand |
 | `previews/` | One live card per component or foundation, embedded on the site | hand (the build patches a few lines) |
 | `assets/` | The site's own CSS and JS, including the Configure panel (`theme.js`) | hand |
+| `assets/builder/` | The builder's modules: `model/` (the document, cleaning, paste), `ui/` (controls), `app/` (the app). `tools/build-builder.mjs` bundles them into `assets/builder.js` | hand |
+| `tools/check/unit/` | Fast unit tests for the builder's model (`npm run check:unit`) | hand |
 | `tools/` | Build scripts and checks | hand |
 | `changes/` | Pending changelog entries, one per change | hand |
 | `examples/` | Sites built with Dovetail, as stretch tests | hand |
 | `index.html`, `components/`, `foundations/`, `showcase/`, `guide/`, `tokens.html`, `downloads.html`, `builder.html` | The documentation site | **generated** |
-| `system/components/bundle.js`, `system/_ds_bundle.js`, `system/templates/_support/card-kit.js`, `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js`, `assets/builder-data.js`, `assets/builder-layouts.md`, `llms.txt` | Build output | **generated** |
+| `system/components/bundle.js`, `system/_ds_bundle.js`, `system/templates/_support/card-kit.js`, `assets/configure-data.js`, `assets/graph-data.js`, `assets/search-data.js`, `assets/builder.js`, `assets/builder-data.js`, `assets/builder-layouts.md`, `llms.txt` | Build output | **generated** |
 | The `<style>` block and app script of `previews/MarketingKit.html` and `previews/DashboardKit.html` | Compiled from the templates in `system/kits/` | **generated** |
 
 **Never edit a generated file by hand.** Change its source and run `npm run build`.
@@ -25,7 +27,7 @@ How to get set up, make a change, and get it merged when several people (and the
 You need Node 22 or newer.
 
 ```sh
-npm ci                               # build tools (Babel) and the browser checks (Playwright)
+npm ci                               # build tools (Babel, esbuild) and the browser checks (Playwright)
 npx playwright install chromium      # once, for npm run check:browser
 npm run serve                        # the site at http://localhost:8099
 ```
@@ -37,7 +39,7 @@ npm run serve                        # the site at http://localhost:8099
 3. **Make the change**, then rebuild and check:
 
    ```sh
-   npm run build     # bundle, card kit and site
+   npm run build     # bundle, card kit, builder and site
    npm run check     # generated files current, changelog entries valid, every card and page loads cleanly
    ```
 

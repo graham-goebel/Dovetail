@@ -39,6 +39,9 @@ jobs:
       - name: Changelog entries are valid
         run: node tools/changelog.mjs --check
 
+      - name: The builder's model passes its unit tests
+        run: npm run check:unit
+
       - name: Every component renders on the server
         run: npm run check:ssr
 
