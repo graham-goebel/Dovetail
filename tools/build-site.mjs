@@ -2401,7 +2401,7 @@ const BUILDER_CONTAINERS = ["Group", "Section", "Stack", "Inline", "Grid", "Card
    their own category rather than joining Layout. */
 const BUILDER_ITEM_HOLDERS = ["Carousel"];
 /* Fixed to the viewport when open, or invisible by design: nothing to place. */
-const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
+const BUILDER_SKIP = new Set(["Dialog", "Drawer", "Sheet", "MenuSheet", "ToastRegion", "Toast", "VisuallyHidden", "Spacer"]);
 /* Props a component takes from its app, never set by hand on a page: a
    carousel's controlled index and its outside pause. */
 const BUILDER_APP_ONLY = { Carousel: ["value", "paused"] };

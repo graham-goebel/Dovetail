@@ -85,6 +85,13 @@
         Next move it, call onChange and are announced; the live item's
         button presses; Pause holds an auto carousel still and Play
         resumes it; under reduced motion it no longer moves by itself.
+      - MenuSheet: opens as a dialog named by label with focus inside; a
+        layer shows its path and the footer is only Search and Close; the
+        path goes back and focus returns to the entry that opened the
+        layer; a filter layer's chips narrow its list; search finds an
+        item by a keyword, announces the count, and Escape leaves search
+        before it closes; Tab stays inside; choosing an item calls
+        onSelect and closes with "select", and focus returns to the opener.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -141,6 +148,7 @@ const PAGE = `<!doctype html>
 <div id="foodkit-root"></div>
 <div id="store-checkout-root"></div>
 <div id="carousel-root"></div>
+<div id="menu-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -425,6 +433,36 @@ function CarouselApp() {
 }
 createRoot(document.getElementById("carousel-root")).render(h(CarouselApp));
 window.__carouselReady = true;
+</script>
+<script type="module">
+/* MenuSheet: opened from a button, with a list layer, a filter layer and search. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { MenuSheet } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__menu = { closes: [], selects: [] };
+const ITEMS = [
+  { label: "Shop", items: [
+    { label: "Stoneware mug", href: "#mug", description: "Six glazes" },
+    { label: "Serving bowl", href: "#bowl", description: "Oat glaze", keywords: "dish" },
+  ] },
+  { label: "Range", display: "filter", items: [
+    { label: "Cups", items: [{ label: "Espresso cup", href: "#espresso" }] },
+    { label: "Jugs", items: [{ label: "Tall jug", href: "#jug" }, { label: "Small jug", href: "#small" }] },
+  ] },
+  { label: "Visit", href: "#visit", current: true },
+];
+function MenuApp() {
+  const [open, setOpen] = React.useState(false);
+  const btn = React.useRef(null);
+  return h("div", null,
+    h("button", { type: "button", ref: btn, onClick: () => setOpen(true) }, "Open test menu"),
+    h(MenuSheet, { open, label: "Test menu", anchor: btn, items: ITEMS, home: { label: "Home", href: "#home" },
+      onClose: (why) => { window.__menu.closes.push(why); setOpen(false); },
+      onSelect: (item, e) => { e.preventDefault(); window.__menu.selects.push(item.label); } }));
+}
+createRoot(document.getElementById("menu-root")).render(h(MenuApp));
+window.__menuReady = true;
 </script>
 </body></html>
 `;
@@ -1188,6 +1226,78 @@ try {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     expect(m0 === m1 && pauseShown === 0, `under reduced motion it should not move by itself or offer Pause, moved ${m0 !== m1}, pause ${pauseShown}`);
     ok("under reduced motion it holds still and drops the Pause button");
+  });
+
+  await step("MenuSheet: a named dialog, layers with a path back, filters, search, a kept focus and the reasons it closes", async () => {
+    await page.waitForFunction(() => window.__menuReady === true);
+    const opener = page.getByRole("button", { name: "Open test menu", exact: true });
+    await opener.scrollIntoViewIfNeeded();
+    await opener.click();
+    const dialog = page.getByRole("dialog", { name: "Test menu" });
+    await dialog.waitFor();
+    await page.waitForTimeout(700);
+    const inside = () => dialog.evaluate((el) => el.contains(document.activeElement));
+    expect(await inside(), "focus should move into the menu when it opens");
+    expect(await dialog.locator('[aria-current="page"]').textContent() === "Visit", "the current entry should carry aria-current=\"page\"");
+    ok('opens as a dialog named "Test menu" with focus inside, and Visit is aria-current="page"');
+
+    await dialog.getByRole("button", { name: "Shop", exact: true }).click();
+    await page.waitForTimeout(500);
+    const path = await dialog.locator("nav").first().textContent();
+    expect(/Test menu\s*\/\s*Shop/.test(path), `a layer should show its path, got ${JSON.stringify(path)}`);
+    const foot = await dialog.locator(":scope > div:last-child button").evaluateAll((b) => b.map((x) => x.getAttribute("aria-label")));
+    expect(foot.join("|") === "Search|Close menu", `the footer should hold only Search and Close, got ${foot.join("|")}`);
+    expect(await dialog.getByRole("link", { name: /Serving bowl/ }).count() === 1, "the Shop layer should list its entries");
+    await dialog.getByRole("button", { name: "Test menu", exact: true }).click();
+    await page.waitForTimeout(500);
+    const back = await page.evaluate(() => document.activeElement && document.activeElement.textContent);
+    expect(back === "Shop", `going back should put focus on the entry that opened the layer, got ${JSON.stringify(back)}`);
+    ok('the Shop layer reads "Test menu / Shop" with only Search and Close below; the path goes back and focus lands on Shop');
+
+    await dialog.getByRole("button", { name: "Range", exact: true }).click();
+    await page.waitForTimeout(500);
+    const rows = () => dialog.locator("[data-menu-list] a").allTextContents();
+    expect((await rows()).length === 3, "a filter layer should list every group's entries under All");
+    await dialog.getByRole("button", { name: /^Jugs/ }).click();
+    const jugs = await rows();
+    expect(jugs.length === 2 && jugs.every((t) => /jug/i.test(t)) && await dialog.getByRole("button", { name: /^Jugs/ }).getAttribute("aria-pressed") === "true", `the Jugs chip should narrow the list to jugs and be pressed, got ${jugs}`);
+    ok("a filter layer lists all three entries, and the Jugs chip narrows it to two and is pressed");
+
+    await dialog.getByRole("button", { name: "Search", exact: true }).click();
+    const field = dialog.getByRole("searchbox");
+    await field.waitFor();
+    expect(await field.evaluate((el) => el === document.activeElement), "the search field should take focus");
+    await field.fill("dish");
+    await page.waitForTimeout(200);
+    const found = await dialog.locator("a[data-menu-index]").allTextContents();
+    const said = await dialog.locator('[aria-live="polite"]').textContent();
+    expect(found.length === 1 && /Serving bowl/.test(found[0]) && said === "1 result", `"dish" should find Serving bowl by its keyword and say "1 result", got ${found} / ${JSON.stringify(said)}`);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+    expect(await dialog.count() === 1 && await dialog.getByRole("searchbox").count() === 0, "Escape should leave search, not close the menu");
+    ok('search finds Serving bowl by its keyword "dish" and says "1 result"; Escape leaves search and the menu stays');
+
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Shift+Tab");
+    expect(await inside(), "Tab should stay inside the menu");
+    await dialog.getByRole("button", { name: "Test menu", exact: true }).click();
+    await page.waitForTimeout(400);
+    await dialog.getByRole("link", { name: "Visit", exact: true }).click();
+    await dialog.waitFor({ state: "detached" });
+    let log = await page.evaluate(() => window.__menu);
+    expect(log.selects.join(",") === "Visit" && log.closes.join(",") === "select", `choosing Visit should call onSelect then close with "select", got ${JSON.stringify(log)}`);
+    expect(await opener.evaluate((el) => el === document.activeElement), "focus should return to the button that opened it");
+    ok('Tab stays inside; choosing Visit calls onSelect and closes with "select", and focus returns to the opener');
+
+    await opener.click();
+    await dialog.waitFor();
+    await page.waitForTimeout(300);
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "detached" });
+    log = await page.evaluate(() => window.__menu);
+    expect(log.closes.join(",") === "select,escape", `Escape should close it with "escape", got ${log.closes}`);
+    ok('reopened, Escape closes it with "escape"');
   });
 
   await step("page errors", () => {

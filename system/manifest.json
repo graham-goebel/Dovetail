@@ -202,6 +202,9 @@
     "components/navigation/Breadcrumbs.d.ts",
     "components/navigation/Breadcrumbs.jsx",
     "components/navigation/Breadcrumbs.md",
+    "components/navigation/MenuSheet.d.ts",
+    "components/navigation/MenuSheet.jsx",
+    "components/navigation/MenuSheet.md",
     "components/navigation/Navbar.d.ts",
     "components/navigation/Navbar.jsx",
     "components/navigation/Navbar.md",
@@ -383,6 +386,7 @@
     "components/chat/QuickReplies.md",
     "tokens/component/chat.css",
     "tokens/component/carousel.css",
+    "tokens/component/menu-sheet.css",
     "components/commerce/ProductCard.d.ts",
     "components/commerce/ProductCard.jsx",
     "components/commerce/ProductCard.md",
@@ -608,6 +612,9 @@
     },
     {
       "name": "Breadcrumbs"
+    },
+    {
+      "name": "MenuSheet"
     },
     {
       "name": "Navbar"

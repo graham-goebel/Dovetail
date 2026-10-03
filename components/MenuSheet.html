@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MenuSheet · Dovetail</title>
+<meta name="description" content="A site or app menu as one sheet: sections set large, a layer per section that slides in from the side, and search in the footer beside close. It grows out of the button that opened it and shrinks back into it. This is the menu the Dovetail site uses on a phone.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=d2e228029f">
+<link rel="stylesheet" href="../assets/site.css?v=622fcf58f5">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
+  try {
+    var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">MenuSheet</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+    <li><a href="../builder.html">Builder</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Carousel.html">Carousel</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/MenuSheet.html" aria-current="page">MenuSheet</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">MenuSheet</li></ol></nav>
+<h1>MenuSheet</h1>
+<p class="lede">A site or app menu as one sheet: sections set large, a layer per section that slides in from the side, and search in the footer beside close. It grows out of the button that opened it and shrinks back into it. This is the menu the Dovetail site uses on a phone.</p>
+<p class="meta">
+  <span class="pill">Navigation</span>
+  
+  <a href="../system/components/navigation/MenuSheet.jsx">MenuSheet.jsx</a>
+  <a href="../system/components/navigation/MenuSheet.d.ts">MenuSheet.d.ts</a>
+  <a href="../system/components/navigation/MenuSheet.md">MenuSheet.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="MenuSheet" data-props="[{&quot;name&quot;:&quot;open&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;Whether the sheet is open.&quot;},{&quot;name&quot;:&quot;label&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Menu&quot;,&quot;note&quot;:&quot;The menu&#39;s name: the dialog&#39;s accessible name and the first step of the path.&quot;},{&quot;name&quot;:&quot;search&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;true&quot;,&quot;note&quot;:&quot;Shows search in the footer.&quot;},{&quot;name&quot;:&quot;surface&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;raised&quot;,&quot;glass&quot;,&quot;glass-strong&quot;],&quot;default&quot;:&quot;raised&quot;,&quot;note&quot;:&quot;The sheet&#39;s surface&quot;},{&quot;name&quot;:&quot;searchLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Search&quot;,&quot;note&quot;:&quot;Accessible name of the search button, and the path&#39;s name while searching.&quot;},{&quot;name&quot;:&quot;searchPlaceholder&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Search&quot;,&quot;note&quot;:&quot;The search field&#39;s placeholder and accessible name.&quot;},{&quot;name&quot;:&quot;closeLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Close menu&quot;,&quot;note&quot;:&quot;Accessible name of the close button.&quot;},{&quot;name&quot;:&quot;closeSearchLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;Close search&quot;,&quot;note&quot;:&quot;Accessible name of the button that leaves search.&quot;},{&quot;name&quot;:&quot;linksLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;More&quot;,&quot;note&quot;:&quot;Accessible name of the row of `links`.&quot;},{&quot;name&quot;:&quot;allLabel&quot;,&quot;kind&quot;:&quot;text&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;All&quot;,&quot;note&quot;:&quot;The filter chip that shows every group.&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="MenuSheet props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/MenuSheet.html?v=ef9ebd0d2d&amp;b=405de00e12" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/MenuSheet.html?v=ef9ebd0d2d&amp;b=405de00e12" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>MenuSheet is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { MenuSheet } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A site or app menu as one sheet: sections set large, a layer per section that slides in from the side, and search in the footer beside close. It grows out of the button that opened it and shrinks back into it. This is the menu the Dovetail site uses on a phone.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A site or app has more places than a tab bar can hold, and on a phone they should all be one tap from a menu button.</li><li>Sections have pages under them, and people should be able to look inside a section without leaving the menu.</li><li>People should be able to search from the same place they browse.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>There are five places or fewer that people move between all the time. Use <code>BottomNav</code> or <code>Tabs</code>.</li><li>The navigation should stay on screen beside the content on a wide screen. Use <code>Sidebar</code>, and open the MenuSheet only on a phone.</li><li>It's a task or a form. Use <code>Sheet</code> or <code>Dialog</code>.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>const button = useRef(null);
+const [open, setOpen] = useState(false);
+
+&lt;span ref={button}&gt;&lt;IconButton label=&quot;Menu&quot; onClick={() =&gt; setOpen(true)}&gt;&lt;MenuIcon /&gt;&lt;/IconButton&gt;&lt;/span&gt;
+&lt;MenuSheet
+  open={open}
+  onClose={() =&gt; setOpen(false)}
+  anchor={button}
+  home={{ label: &quot;Home&quot;, href: &quot;/&quot; }}
+  items={[
+    { label: &quot;Shop&quot;, items: [
+      { label: &quot;Mugs&quot;, href: &quot;/mugs&quot;, description: &quot;Stoneware, made to order&quot; },
+      { label: &quot;Bowls&quot;, href: &quot;/bowls&quot;, description: &quot;Nesting sets&quot; },
+    ] },
+    { label: &quot;Journal&quot;, display: &quot;cards&quot;, items: posts },
+    { label: &quot;Visit&quot;, href: &quot;/visit&quot;, current: true },
+  ]}
+  links={[{ label: &quot;Gift cards&quot;, href: &quot;/gift&quot; }]}
+/&gt;</code></pre>
+<h3 id="layers">Layers</h3>
+<ul><li>An entry with <code>items</code> opens a layer. The path at the top (&quot;Menu / Shop&quot;) goes back, and so does a swipe right.</li><li>A layer's <code>display</code> sets its layout:<ul><li><code>list</code>: rows. An entry with entries of its own shows a count and opens a further layer.</li><li><code>cards</code>: two up, with the first across the full width.</li><li><code>filter</code>: each entry is a group. The groups become filter chips over one list.</li></ul></li><li>Mark the page you're on with <code>current</code>. It gets <code>aria-current=&quot;page&quot;</code> and a dot.</li></ul>
+<h3 id="search">Search</h3>
+<ul><li>Search and close sit in the footer, the same on every layer, with close where the menu button was.</li><li>Search turns the footer into a field fixed to the bottom of the sheet, above the keyboard on a phone. Results fill the sheet above it.</li><li>By default it looks through every entry in <code>items</code> and describes each by the sections above it. Pass <code>searchItems</code> for a different set, or <code>onSearch</code> to search your own way.</li><li>Enter takes the first result. Escape, or the field's own close, goes back to the menu.</li></ul>
+<h3 id="composition">Composition</h3>
+<ul><li>Give it the button that opens it as <code>anchor</code>, so it grows out of that button. Without one it rises from the bottom.</li><li><code>onSelect</code> hears every choice. Use it to route in an app; links still navigate unless you prevent it.</li><li><code>home</code> takes an item or your own element for the top right.</li></ul>
+<h3 id="tokens">Tokens</h3>
+<ul><li>Sheet: <code>--dt-menu-sheet-bg</code>, <code>--dt-menu-sheet-fg</code>, <code>--dt-menu-sheet-muted</code>, <code>--dt-menu-sheet-divider</code>, <code>--dt-menu-sheet-scrim</code>, <code>--dt-menu-sheet-radius</code>, <code>--dt-menu-sheet-shadow</code>, <code>--dt-menu-sheet-inset</code>, <code>--dt-menu-sheet-top-gap</code>, <code>--dt-menu-sheet-padding</code>, <code>--dt-menu-sheet-width</code>.</li><li>Parts: <code>--dt-menu-sheet-fill</code>, <code>--dt-menu-sheet-chip-on-bg</code>, <code>--dt-menu-sheet-chip-on-fg</code>, <code>--dt-menu-sheet-link-size</code>, <code>--dt-menu-sheet-control-size</code>.</li><li>Motion, read when it opens: <code>--dt-menu-sheet-open</code>, <code>--dt-menu-sheet-close</code>, <code>--dt-menu-sheet-layer</code>, <code>--dt-menu-sheet-travel</code>, <code>--dt-menu-sheet-ease</code>.</li><li>Colours are repeated under <code>.dark</code>.</li></ul>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>A modal dialog named by <code>label</code>. Focus moves into it, Tab stays inside, and focus returns to the opener on close. The page behind doesn't scroll.</li><li>The path is a <code>nav</code>, with the current step marked <code>aria-current=&quot;location&quot;</code>. Going back puts focus on the entry that opened the layer.</li><li>Search announces the number of results politely as you type.</li><li>Escape leaves search first, then closes.</li><li>Under <code>prefers-reduced-motion</code> nothing grows, slides or fades. Swipes still work.</li><li>Touch: a drag down from the top closes it and a drag right in a layer goes back. Both follow the finger and settle back if let go early.</li></ul>
+<h3 id="content">Content</h3>
+<ul><li>Keep top-level labels to one or two words. They're set large and don't wrap.</li><li>A layer reads best with a short description per entry: what it is, not what it does.</li><li><code>label</code> names the menu (&quot;Menu&quot;), and it's the first step of the path.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>MenuSheet.d.ts</code>.</p>
+  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+
+/** One entry in a menu: a link, an action, or a section with entries of its own. */
+export interface MenuSheetItem {
+  /** What the entry says. */
+  label: string;
+  /** Where it goes. An entry with an `href` renders as a link. */
+  href?: string;
+  /** A line under the label, in a layer and in search results. */
+  description?: string;
+  /** A small icon, shown in a tile ahead of a row, in a card, or ahead of a link chip. Decorative: the label names it. */
+  icon?: React.ReactNode;
+  /** Marks the page you're on, with `aria-current=&quot;page&quot;` and a dot. */
+  current?: boolean;
+  /** Entries under this one. Choosing it opens a layer that slides in, with a path back. */
+  items?: MenuSheetItem[];
+  /**
+   * How a layer lays its entries out. list: rows, and an entry with entries of its own shows a
+   * count and opens a further layer. cards: two up, the first across the full width. filter:
+   * each entry is a group, shown as a filter chip over one list of every group's entries.
+   * @default &quot;list&quot;
+   */
+  display?: &quot;list&quot; | &quot;cards&quot; | &quot;filter&quot;;
+  /** Accessible name of a filter layer's chip row. @default &quot;Filter&quot; */
+  filterLabel?: string;
+  /** More words search should match, such as synonyms. Not shown. */
+  keywords?: string;
+  /** Called when the entry is chosen, before the sheet closes. With an `href`, the link still navigates unless you prevent it. */
+  onSelect?: (event: React.MouseEvent | React.KeyboardEvent) =&gt; void;
+}
+
+/**
+ * A site or app menu as one sheet: sections as big links, a layer per section that slides in
+ * with a path back, and search in its footer beside close. It grows out of the button that
+ * opened it and shrinks back into it. On a phone it rises from the bottom, inset from the
+ * edges; on a wide screen it opens as a panel.
+ */
+export interface MenuSheetProps extends Omit&lt;React.HTMLAttributes&lt;HTMLDivElement&gt;, &quot;onSelect&quot;&gt; {
+  /** Whether the sheet is open. */
+  open: boolean;
+  /** Called when it should close, with why: the close button, Escape, the scrim, a swipe down, or an entry chosen. */
+  onClose: (reason: &quot;close&quot; | &quot;escape&quot; | &quot;scrim&quot; | &quot;swipe&quot; | &quot;select&quot;) =&gt; void;
+  /** The top level, set large. An entry with `items` opens a layer. */
+  items: MenuSheetItem[];
+  /** Smaller links under the top level, as chips: downloads, a changelog, an external tool. */
+  links?: MenuSheetItem[];
+  /** The menu's name: the dialog's accessible name and the first step of the path. @default &quot;Menu&quot; */
+  label?: string;
+  /** A link at the top right of every layer, such as Home. Pass an item, or your own element. */
+  home?: MenuSheetItem | React.ReactElement;
+  /** Shows search in the footer. @default true */
+  search?: boolean;
+  /** What search looks through. Defaults to every entry you can go to in `items`, described by the sections above it. */
+  searchItems?: MenuSheetItem[];
+  /** Your own search: return the entries that match the query. Wins over `searchItems`. */
+  onSearch?: (query: string) =&gt; MenuSheetItem[];
+  /** Called with any entry chosen, after its own `onSelect`. Use it to route in an app. */
+  onSelect?: (item: MenuSheetItem, event: React.MouseEvent | React.KeyboardEvent) =&gt; void;
+  /** The button that opened it. The sheet grows out of it and shrinks back into it when it sits over the sheet; otherwise it rises. */
+  anchor?: React.RefObject&lt;HTMLElement&gt;;
+  /** The sheet's surface. Glass blurs what's behind it. @default &quot;raised&quot; */
+  surface?: &quot;raised&quot; | &quot;glass&quot; | &quot;glass-strong&quot;;
+  /** Accessible name of the search button, and the path's name while searching. @default &quot;Search&quot; */
+  searchLabel?: string;
+  /** The search field's placeholder and accessible name. @default &quot;Search&quot; */
+  searchPlaceholder?: string;
+  /** Accessible name of the close button. @default &quot;Close menu&quot; */
+  closeLabel?: string;
+  /** Accessible name of the button that leaves search. @default &quot;Close search&quot; */
+  closeSearchLabel?: string;
+  /** Accessible name of the row of `links`. @default &quot;More&quot; */
+  linksLabel?: string;
+  /** The filter chip that shows every group. @default &quot;All&quot; */
+  allLabel?: string;
+  /** What search says when nothing matches. @default (q) =&gt; `Nothing matches “${q}”.` */
+  emptyLabel?: (query: string) =&gt; string;
+  /** Announced politely as results change. @default (n) =&gt; `${n} results` */
+  resultsLabel?: (count: number) =&gt; string;
+}
+
+export declare function MenuSheet(props: MenuSheetProps): React.JSX.Element | null;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>MenuSheet.jsx</code> resolves, read from the source: 22 component, 38 semantic, 2 primitive. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:MenuSheet">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li><li><strong>primitive</strong> Raw values. A component reading one directly is a deliberate exception.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-dialog-max-height"><th scope="row"><span class="token-cell"><code>--dt-dialog-max-height</code><button type="button" class="graph-btn" data-graph="--dt-dialog-max-height" title="Show what --dt-dialog-max-height connects to" aria-label="Graph for --dt-dialog-max-height"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>85vh</code></td></tr><tr id="uses-dt-menu-sheet-bg"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-bg</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-bg" title="Show what --dt-menu-sheet-bg connects to" aria-label="Graph for --dt-menu-sheet-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-overlay)</code></td></tr><tr id="uses-dt-menu-sheet-chip-on-bg"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-chip-on-bg</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-chip-on-bg" title="Show what --dt-menu-sheet-chip-on-bg connects to" aria-label="Graph for --dt-menu-sheet-chip-on-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-action)</code></td></tr><tr id="uses-dt-menu-sheet-chip-on-fg"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-chip-on-fg</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-chip-on-fg" title="Show what --dt-menu-sheet-chip-on-fg connects to" aria-label="Graph for --dt-menu-sheet-chip-on-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-on-action)</code></td></tr><tr id="uses-dt-menu-sheet-close"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-close</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-close" title="Show what --dt-menu-sheet-close connects to" aria-label="Graph for --dt-menu-sheet-close"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>440ms</code></td></tr><tr id="uses-dt-menu-sheet-control-size"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-control-size</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-control-size" title="Show what --dt-menu-sheet-control-size connects to" aria-label="Graph for --dt-menu-sheet-control-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-size-control-lg)</code></td></tr><tr id="uses-dt-menu-sheet-divider"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-divider</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-divider" title="Show what --dt-menu-sheet-divider connects to" aria-label="Graph for --dt-menu-sheet-divider"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-menu-sheet-ease"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-ease</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-ease" title="Show what --dt-menu-sheet-ease connects to" aria-label="Graph for --dt-menu-sheet-ease"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>cubic-bezier(0.2, 0.85, 0.25, 1)</code></td></tr><tr id="uses-dt-menu-sheet-fg"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-fg</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-fg" title="Show what --dt-menu-sheet-fg connects to" aria-label="Graph for --dt-menu-sheet-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-primary)</code></td></tr><tr id="uses-dt-menu-sheet-fill"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-fill</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-fill" title="Show what --dt-menu-sheet-fill connects to" aria-label="Graph for --dt-menu-sheet-fill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-sunken)</code></td></tr><tr id="uses-dt-menu-sheet-inset"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-inset</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-inset" title="Show what --dt-menu-sheet-inset connects to" aria-label="Graph for --dt-menu-sheet-inset"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-xs)</code></td></tr><tr id="uses-dt-menu-sheet-layer"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-layer</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-layer" title="Show what --dt-menu-sheet-layer connects to" aria-label="Graph for --dt-menu-sheet-layer"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>360ms</code></td></tr><tr id="uses-dt-menu-sheet-link-size"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-link-size</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-link-size" title="Show what --dt-menu-sheet-link-size connects to" aria-label="Graph for --dt-menu-sheet-link-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-display-sm-size)</code></td></tr><tr id="uses-dt-menu-sheet-muted"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-muted</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-muted" title="Show what --dt-menu-sheet-muted connects to" aria-label="Graph for --dt-menu-sheet-muted"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-tertiary)</code></td></tr><tr id="uses-dt-menu-sheet-open"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-open</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-open" title="Show what --dt-menu-sheet-open connects to" aria-label="Graph for --dt-menu-sheet-open"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>500ms</code></td></tr><tr id="uses-dt-menu-sheet-padding"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-padding</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-padding" title="Show what --dt-menu-sheet-padding connects to" aria-label="Graph for --dt-menu-sheet-padding"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-lg)</code></td></tr><tr id="uses-dt-menu-sheet-radius"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-radius</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-radius" title="Show what --dt-menu-sheet-radius connects to" aria-label="Graph for --dt-menu-sheet-radius"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-radius-overlay)</code></td></tr><tr id="uses-dt-menu-sheet-scrim"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-scrim</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-scrim" title="Show what --dt-menu-sheet-scrim connects to" aria-label="Graph for --dt-menu-sheet-scrim"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-dialog-scrim)</code></td></tr><tr id="uses-dt-menu-sheet-shadow"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-shadow</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-shadow" title="Show what --dt-menu-sheet-shadow connects to" aria-label="Graph for --dt-menu-sheet-shadow"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-elevation-4)</code></td></tr><tr id="uses-dt-menu-sheet-top-gap"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-top-gap</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-top-gap" title="Show what --dt-menu-sheet-top-gap connects to" aria-label="Graph for --dt-menu-sheet-top-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-stack-2xl)</code></td></tr><tr id="uses-dt-menu-sheet-travel"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-travel</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-travel" title="Show what --dt-menu-sheet-travel connects to" aria-label="Graph for --dt-menu-sheet-travel"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>40px</code></td></tr><tr id="uses-dt-menu-sheet-width"><th scope="row"><span class="token-cell"><code>--dt-menu-sheet-width</code><button type="button" class="graph-btn" data-graph="--dt-menu-sheet-width" title="Show what --dt-menu-sheet-width connects to" aria-label="Graph for --dt-menu-sheet-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-dialog-width-sm)</code></td></tr><tr id="uses-dt-backdrop-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-backdrop-glass"><code>--dt-backdrop-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-backdrop-glass" title="Show what --dt-backdrop-glass connects to" aria-label="Graph for --dt-backdrop-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>saturate(1.6) blur(var(--dt-blur-glass))</code></td></tr><tr id="uses-dt-border-width-default"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-default"><code>--dt-border-width-default</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-default" title="Show what --dt-border-width-default connects to" aria-label="Graph for --dt-border-width-default"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair)</code></td></tr><tr id="uses-dt-border-width-strong"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-border-width-strong"><code>--dt-border-width-strong</code></a><button type="button" class="graph-btn" data-graph="--dt-border-width-strong" title="Show what --dt-border-width-strong connects to" aria-label="Graph for --dt-border-width-strong"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-hair-2)</code></td></tr><tr id="uses-dt-motion-micro"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-motion-micro"><code>--dt-motion-micro</code></a><button type="button" class="graph-btn" data-graph="--dt-motion-micro" title="Show what --dt-motion-micro connects to" aria-label="Graph for --dt-motion-micro"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-duration-100) var(--dt-easing-standard)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-16)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-control" title="Show what --dt-radius-control connects to" aria-label="Graph for --dt-radius-control"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-size-control-lg"><th scope="row"><span class="token-cell"><code>--dt-size-control-lg</code><button type="button" class="graph-btn" data-graph="--dt-size-control-lg" title="Show what --dt-size-control-lg connects to" aria-label="Graph for --dt-size-control-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-12)</code></td></tr><tr id="uses-dt-size-control-md"><th scope="row"><span class="token-cell"><code>--dt-size-control-md</code><button type="button" class="graph-btn" data-graph="--dt-size-control-md" title="Show what --dt-size-control-md connects to" aria-label="Graph for --dt-size-control-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-10)</code></td></tr><tr id="uses-dt-size-control-sm"><th scope="row"><span class="token-cell"><code>--dt-size-control-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-control-sm" title="Show what --dt-size-control-sm connects to" aria-label="Graph for --dt-size-control-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-8)</code></td></tr><tr id="uses-dt-size-control-xs"><th scope="row"><span class="token-cell"><code>--dt-size-control-xs</code><button type="button" class="graph-btn" data-graph="--dt-size-control-xs" title="Show what --dt-size-control-xs connects to" aria-label="Graph for --dt-size-control-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-size-icon-md"><th scope="row"><span class="token-cell"><code>--dt-size-icon-md</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-md" title="Show what --dt-size-icon-md connects to" aria-label="Graph for --dt-size-icon-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-5)</code></td></tr><tr id="uses-dt-size-icon-sm"><th scope="row"><span class="token-cell"><code>--dt-size-icon-sm</code><button type="button" class="graph-btn" data-graph="--dt-size-icon-sm" title="Show what --dt-size-icon-sm connects to" aria-label="Graph for --dt-size-icon-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-md"><code>--dt-space-inline-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-md" title="Show what --dt-space-inline-md connects to" aria-label="Graph for --dt-space-inline-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inline-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-sm"><code>--dt-space-inline-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-sm" title="Show what --dt-space-inline-sm connects to" aria-label="Graph for --dt-space-inline-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inline-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inline-xs"><code>--dt-space-inline-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inline-xs" title="Show what --dt-space-inline-xs connects to" aria-label="Graph for --dt-space-inline-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-inset-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-2xs"><code>--dt-space-inset-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-2xs" title="Show what --dt-space-inset-2xs connects to" aria-label="Graph for --dt-space-inset-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-inset-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-md"><code>--dt-space-inset-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-md" title="Show what --dt-space-inset-md connects to" aria-label="Graph for --dt-space-inset-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-inset-sm"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-sm"><code>--dt-space-inset-sm</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-sm" title="Show what --dt-space-inset-sm connects to" aria-label="Graph for --dt-space-inset-sm"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-3)</code></td></tr><tr id="uses-dt-space-inset-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-inset-xs"><code>--dt-space-inset-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-inset-xs" title="Show what --dt-space-inset-xs connects to" aria-label="Graph for --dt-space-inset-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-space-stack-2xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-2xs"><code>--dt-space-stack-2xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-2xs" title="Show what --dt-space-stack-2xs connects to" aria-label="Graph for --dt-space-stack-2xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-1)</code></td></tr><tr id="uses-dt-space-stack-lg"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-lg"><code>--dt-space-stack-lg</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-lg" title="Show what --dt-space-stack-lg connects to" aria-label="Graph for --dt-space-stack-lg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-6)</code></td></tr><tr id="uses-dt-space-stack-md"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-md"><code>--dt-space-stack-md</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-md" title="Show what --dt-space-stack-md connects to" aria-label="Graph for --dt-space-stack-md"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-4)</code></td></tr><tr id="uses-dt-space-stack-xs"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-space-stack-xs"><code>--dt-space-stack-xs</code></a><button type="button" class="graph-btn" data-graph="--dt-space-stack-xs" title="Show what --dt-space-stack-xs connects to" aria-label="Graph for --dt-space-stack-xs"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-dim-2)</code></td></tr><tr id="uses-dt-surface-glass"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-glass"><code>--dt-surface-glass</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-glass" title="Show what --dt-surface-glass connects to" aria-label="Graph for --dt-surface-glass"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-surface-overlay) 72%, transparent)</code></td></tr><tr id="uses-dt-surface-glass-strong"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-glass-strong"><code>--dt-surface-glass-strong</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-glass-strong" title="Show what --dt-surface-glass-strong connects to" aria-label="Graph for --dt-surface-glass-strong"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>color-mix(in oklab, var(--dt-surface-overlay) 88%, transparent)</code></td></tr><tr id="uses-dt-text-body-lg-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-lg-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-lg-size" title="Show what --dt-text-body-lg-size connects to" aria-label="Graph for --dt-text-body-lg-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-lg)</code></td></tr><tr id="uses-dt-text-body-md-family"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-family</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-family" title="Show what --dt-text-body-md-family connects to" aria-label="Graph for --dt-text-body-md-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-body-md-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-line" title="Show what --dt-text-body-md-line connects to" aria-label="Graph for --dt-text-body-md-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-md)</code></td></tr><tr id="uses-dt-text-body-md-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-md-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-md-size" title="Show what --dt-text-body-md-size connects to" aria-label="Graph for --dt-text-body-md-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-md)</code></td></tr><tr id="uses-dt-text-body-sm-line"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-line</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-line" title="Show what --dt-text-body-sm-line connects to" aria-label="Graph for --dt-text-body-sm-line"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-line-height-sm)</code></td></tr><tr id="uses-dt-text-body-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-sm-size" title="Show what --dt-text-body-sm-size connects to" aria-label="Graph for --dt-text-body-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-sm)</code></td></tr><tr id="uses-dt-text-body-xs-size"><th scope="row"><span class="token-cell"><code>--dt-text-body-xs-size</code><button type="button" class="graph-btn" data-graph="--dt-text-body-xs-size" title="Show what --dt-text-body-xs-size connects to" aria-label="Graph for --dt-text-body-xs-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-xs)</code></td></tr><tr id="uses-dt-text-display-sm-family"><th scope="row"><span class="token-cell"><code>--dt-text-display-sm-family</code><button type="button" class="graph-btn" data-graph="--dt-text-display-sm-family" title="Show what --dt-text-display-sm-family connects to" aria-label="Graph for --dt-text-display-sm-family"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-family-sans)</code></td></tr><tr id="uses-dt-text-display-sm-tracking"><th scope="row"><span class="token-cell"><code>--dt-text-display-sm-tracking</code><button type="button" class="graph-btn" data-graph="--dt-text-display-sm-tracking" title="Show what --dt-text-display-sm-tracking connects to" aria-label="Graph for --dt-text-display-sm-tracking"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-tracking-tighter)</code></td></tr><tr id="uses-dt-text-heading-sm-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-sm-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-sm-size" title="Show what --dt-text-heading-sm-size connects to" aria-label="Graph for --dt-text-heading-sm-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-xl)</code></td></tr><tr id="uses-dt-text-heading-xs-size"><th scope="row"><span class="token-cell"><code>--dt-text-heading-xs-size</code><button type="button" class="graph-btn" data-graph="--dt-text-heading-xs-size" title="Show what --dt-text-heading-xs-size connects to" aria-label="Graph for --dt-text-heading-xs-size"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-font-size-lg)</code></td></tr><tr id="uses-dt-z-dialog"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-z-dialog"><code>--dt-z-dialog</code></a><button type="button" class="graph-btn" data-graph="--dt-z-dialog" title="Show what --dt-z-dialog connects to" aria-label="Graph for --dt-z-dialog"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>400</code></td></tr><tr id="uses-dt-font-weight-medium"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-medium"><code>--dt-font-weight-medium</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-medium" title="Show what --dt-font-weight-medium connects to" aria-label="Graph for --dt-font-weight-medium"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>500</code></td></tr><tr id="uses-dt-font-weight-regular"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-font-weight-regular"><code>--dt-font-weight-regular</code></a><button type="button" class="graph-btn" data-graph="--dt-font-weight-regular" title="Show what --dt-font-weight-regular connects to" aria-label="Graph for --dt-font-weight-regular"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>primitive</td><td><code>400</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+import { useModalFocus } from &quot;../feedback/Dialog.jsx&quot;;
+import { VisuallyHidden } from &quot;../primitives/VisuallyHidden.jsx&quot;;
+
+/* A site or app menu as one sheet. Sections are big links; a section with
+   pages under it opens a layer that slides in from the side, with a path
+   (&quot;Menu / Components&quot;) that goes back. A layer can be a list, cards, or a
+   list with filter chips. Search sits in the footer beside close, and turns
+   the footer into a field with results in the sheet above it. It grows out
+   of the button that opened it and shrinks back into it; on touch a drag
+   down closes it and a drag right goes back.
+
+   Styles are inline and read tokens. Motion runs through the Web Animations
+   API, reads its timing from the --dt-menu-sheet-* tokens once per opening,
+   and stops for reduced motion. */
+
+const NARROW = &quot;(max-width: 699px)&quot;;
+const FALLBACK_EASE = &quot;cubic-bezier(.2,.85,.25,1)&quot;;
+const useIsoLayoutEffect = typeof document !== &quot;undefined&quot; ? React.useLayoutEffect : React.useEffect;
+
+/* False while server rendering and hydrating, so the markup matches what the
+   server sent. */
+function useMedia(query) {
+  const subscribe = React.useCallback((sync) =&gt; {
+    if (!window.matchMedia) return () =&gt; {};
+    const m = window.matchMedia(query);
+    if (m.addEventListener) m.addEventListener(&quot;change&quot;, sync);
+    else m.addListener(sync);
+    return () =&gt; (m.removeEventListener ? m.removeEventListener(&quot;change&quot;, sync) : m.removeListener(sync));
+  }, [query]);
+  return React.useSyncExternalStore(subscribe, () =&gt; !!window.matchMedia &amp;&amp; window.matchMedia(query).matches, () =&gt; false);
+}
+
+const PATHS = {
+  search: [&quot;M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z&quot;, &quot;m20.5 20.5-5-5&quot;],
+  close: [&quot;M6 6l12 12&quot;, &quot;M18 6 6 18&quot;],
+  next: [&quot;m9 5.5 6.5 6.5L9 18.5&quot;],
+};
+const Glyph = ({ name, size = &quot;var(--dt-size-icon-md)&quot; }) =&gt; (
+  &lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; strokeWidth=&quot;1.75&quot; strokeLinecap=&quot;round&quot; strokeLinejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot; style={{ width: size, height: size, display: &quot;block&quot;, flex: &quot;none&quot; }}&gt;
+    {PATHS[name].map((p) =&gt; &lt;path key={p} d={p} /&gt;)}
+  &lt;/svg&gt;
+);
+
+/* &quot;500ms&quot; or &quot;0.5s&quot; as milliseconds. */
+function ms(value, fallback) {
+  const n = parseFloat(value);
+  if (!isFinite(n)) return fallback;
+  return /ms\s*$/.test(value) ? n : /s\s*$/.test(value) ? n * 1000 : n;
+}
+function readMotion(el) {
+  const cs = getComputedStyle(el);
+  const v = (name) =&gt; cs.getPropertyValue(name).trim();
+  return {
+    open: ms(v(&quot;--dt-menu-sheet-open&quot;), 500),
+    close: ms(v(&quot;--dt-menu-sheet-close&quot;), 440),
+    layer: ms(v(&quot;--dt-menu-sheet-layer&quot;), 360),
+    travel: parseFloat(v(&quot;--dt-menu-sheet-travel&quot;)) || 40,
+    ease: v(&quot;--dt-menu-sheet-ease&quot;) || FALLBACK_EASE,
+  };
+}
+
+/* A clip that shows only the part of `box` covered by `r`, rounded. */
+function clipTo(r, box, round) {
+  return `inset(${r.top - box.top}px ${box.right - r.right}px ${box.bottom - r.bottom}px ${r.left - box.left}px round ${round})`;
+}
+
+/* The items of the layer a path of indices leads to, and the nodes on the way. */
+function walk(items, stack) {
+  const trail = [];
+  let list = items;
+  for (const i of stack) {
+    const node = list &amp;&amp; list[i];
+    if (!node || !node.items) break;
+    trail.push(node);
+    list = node.items;
+  }
+  return { trail, node: trail[trail.length - 1] || null, list: list || [] };
+}
+
+/* Every item a person can go to, with the sections above it, for search. */
+function flatten(items, path = [], out = []) {
+  (items || []).forEach((it) =&gt; {
+    if (it.items &amp;&amp; it.items.length) flatten(it.items, path.concat(it.label), out);
+    else if (it.href || it.onSelect) out.push({ item: it, path });
+  });
+  return out;
+}
+
+function matches(entries, query) {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return entries;
+  const hits = entries.filter(({ item, path }) =&gt; {
+    const text = [item.label, item.description, item.keywords, path.join(&quot; &quot;)].filter(Boolean).join(&quot; &quot;).toLowerCase();
+    return words.every((w) =&gt; text.indexOf(w) &gt;= 0);
+  });
+  const whole = words.join(&quot; &quot;);
+  const at = (e) =&gt; { const i = String(e.item.label).toLowerCase().indexOf(whole); return i &lt; 0 ? 99 : i; };
+  return hits.slice().sort((a, b) =&gt; at(a) - at(b));
+}
+
+const reset = { appearance: &quot;none&quot;, border: 0, background: &quot;none&quot;, font: &quot;inherit&quot;, color: &quot;inherit&quot;, textAlign: &quot;left&quot;, cursor: &quot;pointer&quot;, textDecoration: &quot;none&quot; };
+const roundButton = {
+  ...reset, flex: &quot;none&quot;, display: &quot;grid&quot;, placeItems: &quot;center&quot;, padding: 0,
+  width: &quot;var(--dt-menu-sheet-control-size)&quot;, height: &quot;var(--dt-menu-sheet-control-size)&quot;,
+  borderRadius: &quot;var(--dt-radius-pill)&quot;, color: &quot;var(--dt-menu-sheet-fg)&quot;,
+};
+const small = { display: &quot;block&quot;, overflow: &quot;hidden&quot;, whiteSpace: &quot;nowrap&quot;, textOverflow: &quot;ellipsis&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, lineHeight: &quot;var(--dt-text-body-sm-line)&quot;, color: &quot;var(--dt-menu-sheet-muted)&quot; };
+const dot = &lt;span aria-hidden=&quot;true&quot; style={{ display: &quot;inline-block&quot;, width: &quot;0.4em&quot;, height: &quot;0.4em&quot;, marginInlineEnd: &quot;var(--dt-space-inline-xs)&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot;, background: &quot;var(--dt-menu-sheet-fg)&quot;, verticalAlign: &quot;middle&quot; }} /&gt;;
+const tile = (icon, big) =&gt; icon ? (
+  &lt;span aria-hidden=&quot;true&quot; style={{
+    display: &quot;grid&quot;, placeItems: &quot;center&quot;, flex: &quot;none&quot;,
+    width: big ? &quot;var(--dt-size-control-lg)&quot; : &quot;var(--dt-size-control-md)&quot;,
+    height: big ? &quot;var(--dt-size-control-lg)&quot; : &quot;var(--dt-size-control-md)&quot;,
+    borderRadius: &quot;var(--dt-radius-control)&quot;, background: &quot;var(--dt-menu-sheet-fill)&quot;, color: &quot;var(--dt-menu-sheet-fg)&quot;,
+  }}&gt;{icon}&lt;/span&gt;
+) : null;
+
+const GLASS_BG = { glass: &quot;var(--dt-surface-glass)&quot;, &quot;glass-strong&quot;: &quot;var(--dt-surface-glass-strong)&quot; };
+const BLUR = { backdropFilter: &quot;var(--dt-backdrop-glass)&quot;, WebkitBackdropFilter: &quot;var(--dt-backdrop-glass)&quot; };
+
+export function MenuSheet({
+  open,
+  onClose,
+  items = [],
+  links,
+  label = &quot;Menu&quot;,
+  home,
+  search = true,
+  searchItems,
+  onSearch,
+  onSelect,
+  anchor,
+  surface = &quot;raised&quot;,
+  searchLabel = &quot;Search&quot;,
+  searchPlaceholder = &quot;Search&quot;,
+  closeLabel = &quot;Close menu&quot;,
+  closeSearchLabel = &quot;Close search&quot;,
+  linksLabel = &quot;More&quot;,
+  allLabel = &quot;All&quot;,
+  emptyLabel = (q) =&gt; `Nothing matches “${q}”.`,
+  resultsLabel = (n) =&gt; (n === 1 ? &quot;1 result&quot; : `${n} results`),
+  style,
+  ...rest
+}) {
+  const narrow = useMedia(NARROW);
+  const reduce = useMedia(&quot;(prefers-reduced-motion: reduce)&quot;);
+  const [mounted, setMounted] = React.useState(!!open);
+  const [stack, setStack] = React.useState([]);
+  const [query, setQuery] = React.useState(null);
+  const [filter, setFilter] = React.useState(&quot;all&quot;);
+  const panel = React.useRef(null);
+  const scrim = React.useRef(null);
+  const content = React.useRef(null);
+  const field = React.useRef(null);
+  const motion = React.useRef(null);
+  const move = React.useRef(null); // what the next paint animates: { dir } or { swap }
+  const swiped = React.useRef(false);
+  const opener = React.useRef([]); // the index that opened each layer, to return focus to it
+  const searching = query !== null;
+
+  const close = React.useCallback((why) =&gt; { onClose &amp;&amp; onClose(why); }, [onClose]);
+
+  /* Mount on open, starting at the top; on close, play the exit and unmount. */
+  useIsoLayoutEffect(() =&gt; {
+    if (open) {
+      setStack([]);
+      setQuery(null);
+      setFilter(&quot;all&quot;);
+      opener.current = [];
+      swiped.current = false;
+      setMounted(true);
+      return undefined;
+    }
+    if (!mounted) return undefined;
+    const el = panel.current;
+    if (!el || reduce || !el.animate) { setMounted(false); return undefined; }
+    const m = motion.current || readMotion(el);
+    const box = el.getBoundingClientRect();
+    const a = anchor &amp;&amp; anchor.current ? anchor.current.getBoundingClientRect() : null;
+    let anim;
+    if (swiped.current) {
+      anim = el.animate([{ transform: getComputedStyle(el).transform }, { transform: &quot;translateY(100%)&quot; }], { duration: 240, easing: &quot;ease-in&quot;, fill: &quot;forwards&quot; });
+    } else if (a &amp;&amp; a.width &amp;&amp; inside(a, box)) {
+      Array.prototype.forEach.call(el.children, (c) =&gt; c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: &quot;forwards&quot; }));
+      anim = el.animate([{ clipPath: clipTo(box, box, getComputedStyle(el).borderTopLeftRadius) }, { clipPath: clipTo(a, box, a.height / 2 + &quot;px&quot;) }], { duration: m.close, easing: m.ease, fill: &quot;forwards&quot; });
+    } else {
+      anim = el.animate(narrow ? [{ transform: &quot;none&quot; }, { transform: &quot;translateY(100%)&quot; }] : [{ opacity: 1, transform: &quot;none&quot; }, { opacity: 0, transform: &quot;translateY(16px) scale(.98)&quot; }], { duration: narrow ? 280 : 200, easing: &quot;cubic-bezier(.5,0,.9,.6)&quot;, fill: &quot;forwards&quot; });
+    }
+    if (scrim.current) scrim.current.animate([{ opacity: 1 }, { opacity: 0 }], { duration: swiped.current ? 240 : m.close, fill: &quot;forwards&quot; });
+    anim.onfinish = () =&gt; setMounted(false);
+    return () =&gt; { anim.onfinish = null; };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Entry: grow out of the anchor when it sits over the sheet, or rise. */
+  useIsoLayoutEffect(() =&gt; {
+    if (!open || !mounted) return;
+    const el = panel.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    if (reduce || !el.animate) return;
+    /* An opening that interrupts a closing starts from a clean slate. */
+    [el, scrim.current].concat(Array.prototype.slice.call(el.children)).forEach((n) =&gt; n &amp;&amp; n.getAnimations &amp;&amp; n.getAnimations().forEach((x) =&gt; x.cancel()));
+    const m = (motion.current = readMotion(el));
+    const box = el.getBoundingClientRect();
+    const a = anchor &amp;&amp; anchor.current ? anchor.current.getBoundingClientRect() : null;
+    if (a &amp;&amp; a.width &amp;&amp; inside(a, box)) {
+      el.animate([{ clipPath: clipTo(a, box, a.height / 2 + &quot;px&quot;) }, { clipPath: clipTo(box, box, getComputedStyle(el).borderTopLeftRadius) }], { duration: m.open, easing: m.ease });
+    } else {
+      el.animate(narrow ? [{ transform: &quot;translateY(100%)&quot; }, { transform: &quot;none&quot; }] : [{ opacity: 0, transform: &quot;translateY(24px) scale(.98)&quot; }, { opacity: 1, transform: &quot;none&quot; }], { duration: narrow ? m.open * 0.85 : m.open * 0.6, easing: m.ease });
+    }
+    if (content.current) content.current.animate([{ opacity: 0, transform: &quot;translateY(22px)&quot; }, { opacity: 1, transform: &quot;none&quot; }], { duration: m.open, delay: m.open * 0.3, easing: m.ease, fill: &quot;backwards&quot; });
+    if (scrim.current) scrim.current.animate([{ opacity: 0 }, { opacity: 1 }], { duration: m.open * 0.8, easing: &quot;ease-out&quot; });
+  }, [open, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Focus in, Tab kept inside, Escape (out of search first), a still page. */
+  useModalFocus(!!open &amp;&amp; mounted, panel, () =&gt; (searching ? leaveSearch() : close(&quot;escape&quot;)));
+
+  /* Each new layer or the search swap eases in; focus goes to its first item,
+     or back to the row that opened the layer we left. */
+  const view = searching ? &quot;search&quot; : stack.join(&quot;.&quot;);
+  useIsoLayoutEffect(() =&gt; {
+    const step = move.current;
+    move.current = null;
+    if (!mounted || !step) return;
+    const el = content.current;
+    if (el) {
+      el.style.transform = &quot;&quot;;
+      if (panel.current) panel.current.scrollTop = 0;
+      const m = motion.current || (panel.current ? readMotion(panel.current) : null);
+      if (m &amp;&amp; !reduce &amp;&amp; el.animate) {
+        const from = step.swap ? &quot;translateY(10px)&quot; : `translateX(${step.dir * m.travel}px)`;
+        el.animate([{ opacity: 0, transform: from }, { opacity: 1, transform: &quot;none&quot; }], { duration: m.layer, easing: m.ease });
+      }
+    }
+    if (step.swap === &quot;in&quot;) { if (field.current) field.current.focus({ preventScroll: true }); return; }
+    const coarse = window.matchMedia &amp;&amp; window.matchMedia(&quot;(pointer: coarse)&quot;).matches;
+    if (coarse || !el) return;
+    const target = step.back != null ? el.querySelector(`[data-menu-index=&quot;${step.back}&quot;]`) : el.querySelector(&quot;[data-menu-index]&quot;);
+    if (target) target.focus({ preventScroll: true });
+  }, [view, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Focus the first item when it opens, so the keyboard starts in the menu. */
+  React.useEffect(() =&gt; {
+    if (!open || !mounted) return;
+    const coarse = window.matchMedia &amp;&amp; window.matchMedia(&quot;(pointer: coarse)&quot;).matches;
+    const first = content.current &amp;&amp; content.current.querySelector(&quot;[data-menu-index]&quot;);
+    if (first &amp;&amp; !coarse) first.focus({ preventScroll: true });
+  }, [open, mounted]);
+
+  const push = (i) =&gt; {
+    opener.current = opener.current.concat(i);
+    move.current = { dir: 1 };
+    setFilter(&quot;all&quot;);
+    setStack((s) =&gt; s.concat(i));
+  };
+  const goTo = (depth) =&gt; {
+    if (depth &gt;= stack.length) return;
+    const back = opener.current[depth];
+    opener.current = opener.current.slice(0, depth);
+    move.current = { dir: -1, back };
+    setFilter(&quot;all&quot;);
+    setStack((s) =&gt; s.slice(0, depth));
+  };
+  const enterSearch = () =&gt; {
+    move.current = { swap: &quot;in&quot; };
+    setQuery(&quot;&quot;);
+  };
+  function leaveSearch() {
+    move.current = { swap: &quot;out&quot; };
+    setQuery(null);
+  }
+
+  const choose = (item, e) =&gt; {
+    if (item.onSelect) item.onSelect(e);
+    if (onSelect) onSelect(item, e);
+    close(&quot;select&quot;);
+  };
+
+  /* Touch: down from the top closes, right in a layer goes back. */
+  const drag = React.useRef(null);
+  const onTouchStart = (e) =&gt; {
+    if (e.touches.length !== 1 || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { drag.current = null; return; }
+    const t = e.touches[0];
+    drag.current = { x: t.clientX, y: t.clientY, t: Date.now(), top: panel.current.scrollTop &lt;= 0, axis: null, dx: 0, dy: 0 };
+  };
+  const onTouchMove = (e) =&gt; {
+    const d = drag.current;
+    if (!d) return;
+    const t = e.touches[0];
+    d.dx = t.clientX - d.x;
+    d.dy = t.clientY - d.y;
+    if (!d.axis) {
+      if (d.top &amp;&amp; d.dy &gt; 8 &amp;&amp; d.dy &gt; Math.abs(d.dx)) d.axis = &quot;y&quot;;
+      else if (stack.length &amp;&amp; !searching &amp;&amp; d.dx &gt; 10 &amp;&amp; d.dx &gt; Math.abs(d.dy) * 1.3) d.axis = &quot;x&quot;;
+      else { if (Math.abs(d.dx) &gt; 14 || d.dy &lt; -6) drag.current = null; return; }
+    }
+    if (d.axis === &quot;y&quot;) panel.current.style.transform = `translateY(${Math.max(0, d.dy)}px)`;
+    else if (content.current) content.current.style.transform = `translateX(${Math.max(0, d.dx)}px)`;
+  };
+  const onTouchEnd = () =&gt; {
+    const d = drag.current;
+    drag.current = null;
+    if (!d || !d.axis) return;
+    const el = panel.current;
+    const ms0 = Math.max(1, Date.now() - d.t);
+    const settle = (node) =&gt; {
+      if (!node) return;
+      node.style.transition = &quot;transform .22s cubic-bezier(.2,.8,.2,1)&quot;;
+      node.style.transform = &quot;&quot;;
+      setTimeout(() =&gt; { node.style.transition = &quot;&quot;; }, 240);
+    };
+    if (d.axis === &quot;y&quot;) {
+      if (d.dy &gt; Math.min(140, el.offsetHeight * 0.3) || (d.dy / ms0 &gt; 0.6 &amp;&amp; d.dy &gt; 30)) {
+        swiped.current = true;
+        close(&quot;swipe&quot;);
+      } else settle(el);
+    } else if (d.dx &gt; Math.min(110, el.offsetWidth * 0.28) || (d.dx / ms0 &gt; 0.5 &amp;&amp; d.dx &gt; 40)) {
+      goTo(stack.length - 1);
+    } else settle(content.current);
+  };
+
+  if (!mounted) return null;
+
+  const { trail, node, list } = walk(items, stack);
+  const entries = searching ? (onSearch ? (onSearch(query) || []).map((it) =&gt; ({ item: it, path: [] })) : matches(searchItems ? searchItems.map((it) =&gt; ({ item: it, path: [] })) : flatten(items), query)) : [];
+
+  /* One way to draw a link or a button for an item; data-menu-index lets
+     focus find it again. */
+  const itemEl = ({ item, index, styleOf, opens }, children) =&gt; {
+    const props = {
+      key: index,
+      &quot;data-menu-index&quot;: index,
+      &quot;aria-current&quot;: item.current ? &quot;page&quot; : undefined,
+      style: styleOf,
+    };
+    if (opens) return &lt;button type=&quot;button&quot; {...props} onClick={() =&gt; push(index)}&gt;{children}&lt;/button&gt;;
+    if (item.href) return &lt;a href={item.href} {...props} onClick={(e) =&gt; choose(item, e)}&gt;{children}&lt;/a&gt;;
+    return &lt;button type=&quot;button&quot; {...props} onClick={(e) =&gt; choose(item, e)}&gt;{children}&lt;/button&gt;;
+  };
+
+  const row = (item, index, extra) =&gt; {
+    const opens = !!(item.items &amp;&amp; item.items.length) &amp;&amp; !extra;
+    return (
+      itemEl({ item, index, opens, styleOf: {
+        ...reset, display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-md)&quot;, width: &quot;100%&quot;, minWidth: 0,
+        padding: opens &amp;&amp; item.icon ? &quot;var(--dt-space-inset-md) 0&quot; : &quot;var(--dt-space-inset-sm) 0&quot;,
+        borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-menu-sheet-divider)&quot;,
+        color: &quot;var(--dt-menu-sheet-fg)&quot;,
+      } }, &lt;&gt;
+        {tile(item.icon, opens)}
+        &lt;span style={{ flex: 1, minWidth: 0 }}&gt;
+          &lt;b style={{ display: &quot;block&quot;, fontWeight: &quot;var(--dt-font-weight-regular)&quot;, fontSize: opens &amp;&amp; item.icon ? &quot;var(--dt-text-heading-sm-size)&quot; : &quot;var(--dt-text-body-lg-size)&quot;, lineHeight: &quot;var(--dt-text-body-md-line)&quot; }}&gt;
+            {item.label}{item.current &amp;&amp; !(extra || item.description) ? &lt;&gt; {dot}&lt;/&gt; : null}
+          &lt;/b&gt;
+          {extra || item.description ? &lt;span style={small}&gt;{item.current ? dot : null}{extra || item.description}&lt;/span&gt; : null}
+        &lt;/span&gt;
+        {opens ? (
+          &lt;span style={{ flex: &quot;none&quot;, minWidth: &quot;var(--dt-size-control-xs)&quot;, padding: &quot;var(--dt-space-inset-2xs) var(--dt-space-inset-xs)&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot;, background: &quot;var(--dt-menu-sheet-fill)&quot;, color: &quot;var(--dt-menu-sheet-muted)&quot;, fontSize: &quot;var(--dt-text-body-xs-size)&quot;, textAlign: &quot;center&quot; }}&gt;{item.items.length}&lt;/span&gt;
+        ) : null}
+      &lt;/&gt;)
+    );
+  };
+
+  let body;
+  if (searching) {
+    const groups = [];
+    entries.forEach((en) =&gt; {
+      const g = en.path[0] || label;
+      let at = groups.find((x) =&gt; x.label === g);
+      if (!at) groups.push((at = { label: g, rows: [] }));
+      at.rows.push(en);
+    });
+    let n = 0;
+    body = entries.length ? groups.map((g) =&gt; (
+      &lt;section key={g.label} aria-label={g.label}&gt;
+        {groups.length &gt; 1 ? &lt;p style={{ ...small, margin: &quot;var(--dt-space-stack-md) 0 0&quot; }}&gt;{g.label}&lt;/p&gt; : null}
+        {g.rows.map((en) =&gt; row(en.item, n++, en.item.description || en.path.join(&quot; · &quot;) || undefined))}
+      &lt;/section&gt;
+    )) : &lt;p style={{ margin: &quot;var(--dt-space-stack-lg) 0&quot;, color: &quot;var(--dt-menu-sheet-muted)&quot; }}&gt;{emptyLabel(query.trim())}&lt;/p&gt;;
+  } else if (!node) {
+    body = (
+      &lt;&gt;
+        &lt;nav aria-label={label} style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;
+          {list.map((it, i) =&gt; (
+            itemEl({ item: it, index: i, opens: !!(it.items &amp;&amp; it.items.length), styleOf: {
+              ...reset, display: &quot;block&quot;, width: &quot;100%&quot;, padding: &quot;var(--dt-space-inset-xs) 0&quot;,
+              borderBottom: &quot;var(--dt-border-width-default) solid var(--dt-menu-sheet-divider)&quot;,
+              color: it.current ? &quot;var(--dt-menu-sheet-muted)&quot; : &quot;var(--dt-menu-sheet-fg)&quot;,
+            } }, &lt;&gt;
+              &lt;span style={{ display: &quot;block&quot;, fontFamily: &quot;var(--dt-text-display-sm-family)&quot;, fontSize: &quot;var(--dt-menu-sheet-link-size)&quot;, fontWeight: &quot;var(--dt-font-weight-regular)&quot;, letterSpacing: &quot;var(--dt-text-display-sm-tracking)&quot;, lineHeight: 1.1, whiteSpace: &quot;nowrap&quot;, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot; }}&gt;{it.label}&lt;/span&gt;
+              {it.description ? &lt;span style={{ ...small, marginTop: &quot;var(--dt-space-stack-2xs)&quot; }}&gt;{it.description}&lt;/span&gt; : null}
+            &lt;/&gt;)
+          ))}
+        &lt;/nav&gt;
+        {links &amp;&amp; links.length ? (
+          &lt;nav aria-label={linksLabel} style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, marginTop: &quot;var(--dt-space-stack-md)&quot; }}&gt;
+            {links.map((it, i) =&gt; (
+              itemEl({ item: it, index: list.length + i, styleOf: {
+                ...reset, display: &quot;inline-flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;,
+                minHeight: &quot;var(--dt-size-control-md)&quot;, padding: &quot;0 var(--dt-space-inset-md)&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot;,
+                background: &quot;var(--dt-menu-sheet-fill)&quot;, color: &quot;var(--dt-menu-sheet-fg)&quot;, fontSize: &quot;var(--dt-text-body-md-size)&quot;,
+              } }, &lt;&gt;{it.icon}{it.label}&lt;/&gt;)
+            ))}
+          &lt;/nav&gt;
+        ) : null}
+      &lt;/&gt;
+    );
+  } else if (node.display === &quot;cards&quot;) {
+    body = (
+      &lt;div style={{ display: &quot;grid&quot;, gridTemplateColumns: &quot;repeat(2, minmax(0, 1fr))&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, paddingTop: &quot;var(--dt-space-stack-2xs)&quot; }}&gt;
+        {list.map((it, i) =&gt; (
+          itemEl({ item: it, index: i, styleOf: {
+            ...reset, display: &quot;flex&quot;, flexDirection: i === 0 ? &quot;row&quot; : &quot;column&quot;, alignItems: i === 0 ? &quot;center&quot; : &quot;flex-start&quot;,
+            gap: &quot;var(--dt-space-inline-sm)&quot;, minWidth: 0, gridColumn: i === 0 ? &quot;1 / -1&quot; : undefined,
+            padding: &quot;var(--dt-space-inset-md)&quot;, borderRadius: &quot;var(--dt-radius-container)&quot;,
+            background: &quot;var(--dt-menu-sheet-fill)&quot;, color: &quot;var(--dt-menu-sheet-fg)&quot;,
+            boxShadow: it.current ? &quot;inset 0 0 0 var(--dt-border-width-strong) var(--dt-menu-sheet-fg)&quot; : undefined,
+          } }, &lt;&gt;
+            {it.icon ? &lt;span aria-hidden=&quot;true&quot; style={{ display: &quot;block&quot;, flex: &quot;none&quot; }}&gt;{it.icon}&lt;/span&gt; : null}
+            &lt;span style={{ minWidth: 0 }}&gt;
+              &lt;b style={{ display: &quot;block&quot;, fontWeight: &quot;var(--dt-font-weight-medium)&quot;, fontSize: i === 0 ? &quot;var(--dt-text-heading-xs-size)&quot; : &quot;var(--dt-text-body-md-size)&quot;, lineHeight: 1.25 }}&gt;{it.label}&lt;/b&gt;
+              {it.description ? &lt;span style={{ ...small, whiteSpace: &quot;normal&quot;, marginTop: &quot;var(--dt-space-stack-2xs)&quot; }}&gt;{it.description}&lt;/span&gt; : null}
+            &lt;/span&gt;
+          &lt;/&gt;)
+        ))}
+      &lt;/div&gt;
+    );
+  } else if (node.display === &quot;filter&quot;) {
+    const groups = list.filter((g) =&gt; g.items &amp;&amp; g.items.length);
+    const shown = groups.reduce((out, g, gi) =&gt; (filter === &quot;all&quot; || filter === String(gi) ? out.concat(g.items.map((it) =&gt; ({ it, g }))) : out), []);
+    const total = groups.reduce((n, g) =&gt; n + g.items.length, 0);
+    const chip = (id, text, n) =&gt; (
+      &lt;button key={id} type=&quot;button&quot; aria-pressed={filter === id} onClick={() =&gt; {
+        setFilter(id);
+        const el = content.current &amp;&amp; content.current.querySelector(&quot;[data-menu-list]&quot;);
+        const m = motion.current;
+        if (el &amp;&amp; m &amp;&amp; !reduce &amp;&amp; el.animate) requestAnimationFrame(() =&gt; el.animate([{ opacity: 0, transform: &quot;translateY(8px)&quot; }, { opacity: 1, transform: &quot;none&quot; }], { duration: m.layer * 0.8, easing: m.ease }));
+      }} style={{
+        ...reset, flex: &quot;none&quot;, display: &quot;inline-flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;,
+        minHeight: &quot;var(--dt-size-control-sm)&quot;, padding: &quot;0 var(--dt-space-inset-sm)&quot;, borderRadius: &quot;var(--dt-radius-pill)&quot;, whiteSpace: &quot;nowrap&quot;,
+        border: &quot;var(--dt-border-width-default) solid &quot; + (filter === id ? &quot;var(--dt-menu-sheet-chip-on-bg)&quot; : &quot;var(--dt-menu-sheet-divider)&quot;),
+        background: filter === id ? &quot;var(--dt-menu-sheet-chip-on-bg)&quot; : &quot;transparent&quot;,
+        color: filter === id ? &quot;var(--dt-menu-sheet-chip-on-fg)&quot; : &quot;var(--dt-menu-sheet-fg)&quot;,
+        fontSize: &quot;var(--dt-text-body-sm-size)&quot;,
+        transition: &quot;background var(--dt-motion-micro), color var(--dt-motion-micro), border-color var(--dt-motion-micro)&quot;,
+      }}&gt;{text}&lt;span style={{ opacity: 0.7, fontSize: &quot;var(--dt-text-body-xs-size)&quot;, fontVariantNumeric: &quot;tabular-nums&quot; }}&gt;{n}&lt;/span&gt;&lt;/button&gt;
+    );
+    body = (
+      &lt;&gt;
+        &lt;div role=&quot;toolbar&quot; aria-label={node.filterLabel || &quot;Filter&quot;} style={{
+          display: &quot;flex&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, overflowX: &quot;auto&quot;, scrollbarWidth: &quot;none&quot;,
+          margin: &quot;var(--dt-space-stack-2xs) calc(-1 * var(--dt-menu-sheet-padding))&quot;,
+          padding: &quot;var(--dt-space-inset-2xs) var(--dt-menu-sheet-padding)&quot;,
+        }}&gt;
+          {chip(&quot;all&quot;, allLabel, total)}
+          {groups.map((g, gi) =&gt; chip(String(gi), g.label, g.items.length))}
+        &lt;/div&gt;
+        &lt;div data-menu-list style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;
+          {shown.map(({ it }, i) =&gt; row(it, i, it.description || undefined))}
+        &lt;/div&gt;
+      &lt;/&gt;
+    );
+  } else {
+    body = &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;{list.map((it, i) =&gt; row(it, i))}&lt;/div&gt;;
+  }
+
+  const crumb = searching ? [searchLabel] : [label].concat(trail.map((t) =&gt; t.label));
+  const homeEl = home &amp;&amp; React.isValidElement(home) ? home : home &amp;&amp; home.href ? (
+    &lt;a href={home.href} aria-current={home.current ? &quot;page&quot; : undefined} onClick={(e) =&gt; choose(home, e)} style={{ ...reset, flex: &quot;none&quot;, padding: &quot;var(--dt-space-inset-xs) 0&quot;, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, color: home.current ? &quot;var(--dt-menu-sheet-fg)&quot; : &quot;var(--dt-menu-sheet-muted)&quot; }}&gt;{home.label || &quot;Home&quot;}&lt;/a&gt;
+  ) : null;
+
+  const glassBg = GLASS_BG[surface];
+
+  return (
+    &lt;div style={{ position: &quot;fixed&quot;, inset: 0, zIndex: &quot;var(--dt-z-dialog)&quot;, display: &quot;flex&quot;, alignItems: narrow ? &quot;flex-end&quot; : &quot;center&quot;, justifyContent: &quot;center&quot; }}&gt;
+      &lt;div ref={scrim} onClick={() =&gt; close(&quot;scrim&quot;)} style={{ position: &quot;absolute&quot;, inset: 0, background: &quot;var(--dt-menu-sheet-scrim)&quot; }} /&gt;
+      &lt;div
+        ref={panel}
+        role=&quot;dialog&quot;
+        aria-modal=&quot;true&quot;
+        aria-label={label}
+        tabIndex={-1}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
+        style={{
+          position: &quot;relative&quot;, boxSizing: &quot;border-box&quot;, display: &quot;flex&quot;, flexDirection: &quot;column&quot;,
+          width: narrow ? &quot;calc(100% - 2 * var(--dt-menu-sheet-inset))&quot; : &quot;min(calc(100% - 2 * var(--dt-menu-sheet-inset)), var(--dt-menu-sheet-width))&quot;,
+          height: narrow ? &quot;calc(100% - var(--dt-menu-sheet-top-gap) - env(safe-area-inset-top, 0px))&quot; : &quot;min(calc(100% - 2 * var(--dt-menu-sheet-top-gap)), var(--dt-dialog-max-height))&quot;,
+          marginBottom: narrow ? &quot;calc(var(--dt-menu-sheet-inset) + env(safe-area-inset-bottom, 0px))&quot; : 0,
+          padding: &quot;var(--dt-menu-sheet-padding) var(--dt-menu-sheet-padding) 0&quot;,
+          overflowX: &quot;hidden&quot;, overflowY: &quot;auto&quot;, overscrollBehavior: &quot;contain&quot;,
+          borderRadius: &quot;var(--dt-menu-sheet-radius)&quot;,
+          background: &quot;var(--dt-menu-sheet-bg)&quot;, color: &quot;var(--dt-menu-sheet-fg)&quot;,
+          boxShadow: &quot;var(--dt-menu-sheet-shadow)&quot;, outline: &quot;none&quot;,
+          fontFamily: &quot;var(--dt-text-body-md-family)&quot;, fontSize: &quot;var(--dt-text-body-md-size)&quot;, lineHeight: &quot;var(--dt-text-body-md-line)&quot;,
+          ...(glassBg ? { &quot;--dt-menu-sheet-bg&quot;: glassBg, ...BLUR } : null),
+          ...style,
+        }}
+        {...rest}
+      &gt;
+        &lt;div ref={content} style={{ flex: &quot;1 0 auto&quot;, display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;
+          &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;, paddingBottom: &quot;var(--dt-space-stack-xs)&quot; }}&gt;
+            &lt;nav aria-label={`${label} path`} style={{ flex: 1, minWidth: 0 }}&gt;
+              &lt;p style={{ display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;, margin: 0, fontSize: &quot;var(--dt-text-body-sm-size)&quot;, color: &quot;var(--dt-menu-sheet-muted)&quot; }}&gt;
+                {crumb.map((c, i) =&gt; i === crumb.length - 1 ? (
+                  &lt;span key={i} aria-current=&quot;location&quot; style={{ color: &quot;var(--dt-menu-sheet-fg)&quot; }}&gt;{c}&lt;/span&gt;
+                ) : (
+                  &lt;React.Fragment key={i}&gt;
+                    &lt;button type=&quot;button&quot; onClick={() =&gt; goTo(i)} style={{
+                      ...reset, padding: &quot;var(--dt-space-inset-xs) 0&quot;, margin: &quot;calc(-1 * var(--dt-space-inset-xs)) 0&quot;, color: &quot;var(--dt-menu-sheet-muted)&quot;,
+                      textDecoration: &quot;underline&quot;, textDecorationColor: &quot;var(--dt-menu-sheet-divider)&quot;, textUnderlineOffset: &quot;0.25em&quot;,
+                    }}&gt;{c}&lt;/button&gt;
+                    &lt;span aria-hidden=&quot;true&quot; style={{ opacity: 0.5 }}&gt;/&lt;/span&gt;
+                  &lt;/React.Fragment&gt;
+                ))}
+              &lt;/p&gt;
+            &lt;/nav&gt;
+            {homeEl}
+          &lt;/div&gt;
+          &lt;div style={{ flex: &quot;1 0 auto&quot; }}&gt;{body}&lt;/div&gt;
+        &lt;/div&gt;
+
+        {searching ? &lt;VisuallyHidden aria-live=&quot;polite&quot;&gt;{entries.length ? resultsLabel(entries.length) : emptyLabel(query.trim())}&lt;/VisuallyHidden&gt; : null}
+
+        &lt;div style={{
+          position: &quot;sticky&quot;, bottom: 0, zIndex: 2, flex: &quot;none&quot;,
+          display: &quot;flex&quot;, alignItems: &quot;center&quot;, justifyContent: &quot;space-between&quot;, gap: &quot;var(--dt-space-inline-sm)&quot;,
+          margin: &quot;var(--dt-space-stack-md) calc(-1 * var(--dt-menu-sheet-padding)) 0&quot;,
+          padding: &quot;var(--dt-space-inset-sm) var(--dt-space-inset-sm) calc(var(--dt-space-inset-sm) + env(safe-area-inset-bottom, 0px))&quot;,
+          background: &quot;linear-gradient(to top, var(--dt-menu-sheet-bg) 68%, transparent)&quot;,
+        }}&gt;
+          {searching ? (
+            &lt;label style={{
+              flex: 1, minWidth: 0, display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-space-inline-xs)&quot;,
+              height: &quot;var(--dt-menu-sheet-control-size)&quot;, padding: &quot;0 var(--dt-space-inset-2xs) 0 var(--dt-space-inset-md)&quot;,
+              borderRadius: &quot;var(--dt-radius-pill)&quot;, background: &quot;var(--dt-menu-sheet-fill)&quot;, color: &quot;var(--dt-menu-sheet-muted)&quot;,
+            }}&gt;
+              &lt;Glyph name=&quot;search&quot; size=&quot;var(--dt-size-icon-sm)&quot; /&gt;
+              &lt;input
+                ref={field}
+                type=&quot;text&quot;
+                role=&quot;searchbox&quot;
+                inputMode=&quot;search&quot;
+                value={query}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+                autoComplete=&quot;off&quot;
+                enterKeyHint=&quot;search&quot;
+                onChange={(e) =&gt; setQuery(e.target.value)}
+                onKeyDown={(e) =&gt; {
+                  if (e.key !== &quot;Enter&quot;) return;
+                  /* Enter takes the first result, through its own link or button. */
+                  const first = content.current &amp;&amp; content.current.querySelector(&quot;[data-menu-index]&quot;);
+                  if (!first) return;
+                  e.preventDefault();
+                  first.click();
+                }}
+                style={{ flex: 1, minWidth: 0, border: 0, outline: &quot;none&quot;, background: &quot;transparent&quot;, color: &quot;var(--dt-menu-sheet-fg)&quot;, font: &quot;inherit&quot;, fontSize: &quot;max(16px, var(--dt-text-body-md-size))&quot; }}
+              /&gt;
+              &lt;button type=&quot;button&quot; onClick={leaveSearch} aria-label={closeSearchLabel} style={{ ...roundButton, width: &quot;var(--dt-size-control-sm)&quot;, height: &quot;var(--dt-size-control-sm)&quot;, background: &quot;var(--dt-menu-sheet-bg)&quot; }}&gt;
+                &lt;Glyph name=&quot;close&quot; size=&quot;var(--dt-size-icon-sm)&quot; /&gt;
+              &lt;/button&gt;
+            &lt;/label&gt;
+          ) : (
+            &lt;&gt;
+              {search ? (
+                &lt;button type=&quot;button&quot; onClick={enterSearch} aria-label={searchLabel} style={roundButton}&gt;&lt;Glyph name=&quot;search&quot; /&gt;&lt;/button&gt;
+              ) : &lt;span /&gt;}
+              &lt;button type=&quot;button&quot; onClick={() =&gt; close(&quot;close&quot;)} aria-label={closeLabel} style={roundButton}&gt;&lt;Glyph name=&quot;close&quot; /&gt;&lt;/button&gt;
+            &lt;/&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function inside(a, box) {
+  const x = a.left + a.width / 2;
+  const y = a.top + a.height / 2;
+  return x &gt;= box.left &amp;&amp; x &lt;= box.right &amp;&amp; y &gt;= box.top &amp;&amp; y &lt;= box.bottom;
+}</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="in-context">In context</h2>
+  <p>MenuSheet also appears on the navigation reference cards, alongside the rest of its family.</p>
+  <ul><li><a href="../showcase/detail.html#navigationdetail">NavigationDetail</a></li></ul>
+</section>
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#layers">Layers</a></li>
+    <li class="nested"><a href="#search">Search</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li class="nested"><a href="#content">Content</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+    <li><a href="#in-context">In context</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">MenuSheet</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="MenuSheet.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="MenuSheet.md" download="MenuSheet.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="MenuSheet.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { MenuSheet } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/navigation/MenuSheet.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy MenuSheet.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/navigation/MenuSheet.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View MenuSheet.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/navigation/MenuSheet.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy MenuSheet.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/navigation/MenuSheet.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View MenuSheet.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FMenuSheet.md%3A%20the%20%22MenuSheet%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="MenuSheet" data-md="MenuSheet.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=405de00e12" defer></script>
+<script src="../assets/specimens.js?v=91dfe50eff" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=59b117cee2" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=105c15bc1c" defer></script>
+<script src="../assets/theme.js?v=1cdcf319a6" defer></script>
+<script src="../assets/site.js?v=544ba24909" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

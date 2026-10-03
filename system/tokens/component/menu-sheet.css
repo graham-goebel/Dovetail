@@ -1,0 +1,54 @@
+/* TIER 3 — MENU SHEET
+   A site or app menu as one sheet: sections as big links, a layer per
+   section that slides in from the side, and search in its footer. It grows
+   out of the button that opened it and shrinks back into it. Colour aliases
+   are repeated under .dark, like every component tier, so it reads inside a
+   dark band. The motion values are read once when it opens. */
+
+:root {
+  /* The sheet. */
+  --dt-menu-sheet-bg: var(--dt-surface-overlay);
+  --dt-menu-sheet-fg: var(--dt-text-primary);
+  --dt-menu-sheet-muted: var(--dt-text-tertiary);
+  --dt-menu-sheet-divider: var(--dt-border-subtle);
+  --dt-menu-sheet-scrim: var(--dt-dialog-scrim);
+  --dt-menu-sheet-radius: var(--dt-radius-overlay);
+  --dt-menu-sheet-shadow: var(--dt-elevation-4);
+  /* How far it sits in from the screen's edges on a phone, how much of the
+     page shows above it, and its padding. */
+  --dt-menu-sheet-inset: var(--dt-space-inset-xs);
+  --dt-menu-sheet-top-gap: var(--dt-space-stack-2xl);
+  --dt-menu-sheet-padding: var(--dt-space-inset-lg);
+  /* Its width on a wide screen, where it opens as a panel. */
+  --dt-menu-sheet-width: var(--dt-dialog-width-sm);
+
+  /* Fills: the link chips, icon tiles, cards and the search field. */
+  --dt-menu-sheet-fill: var(--dt-surface-sunken);
+  /* The chosen filter chip. */
+  --dt-menu-sheet-chip-on-bg: var(--dt-surface-action);
+  --dt-menu-sheet-chip-on-fg: var(--dt-text-on-action);
+
+  /* The top level: sections set large. */
+  --dt-menu-sheet-link-size: var(--dt-text-display-sm-size);
+  /* Search and close in the footer, and the round buttons. */
+  --dt-menu-sheet-control-size: var(--dt-size-control-lg);
+
+  /* Motion. Opening grows the sheet out of its button; a layer slides in by
+     the travel distance; search crossfades. The ease is fast out of the gate
+     and long to settle, so things arrive rather than stop. */
+  --dt-menu-sheet-open: 500ms; /* @kind other */
+  --dt-menu-sheet-close: 440ms; /* @kind other */
+  --dt-menu-sheet-layer: 360ms; /* @kind other */
+  --dt-menu-sheet-travel: 40px; /* @kind other */
+  --dt-menu-sheet-ease: cubic-bezier(0.2, 0.85, 0.25, 1); /* @kind other */
+}
+
+.dark {
+  --dt-menu-sheet-bg: var(--dt-surface-overlay);
+  --dt-menu-sheet-fg: var(--dt-text-primary);
+  --dt-menu-sheet-muted: var(--dt-text-tertiary);
+  --dt-menu-sheet-divider: var(--dt-border-subtle);
+  --dt-menu-sheet-fill: var(--dt-surface-sunken);
+  --dt-menu-sheet-chip-on-bg: var(--dt-surface-action);
+  --dt-menu-sheet-chip-on-fg: var(--dt-text-on-action);
+}

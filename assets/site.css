@@ -3845,8 +3845,10 @@ body.search-open {
     color: var(--dt-text-tertiary);
   }
 
+  /* The crumb is the way back, so its tap target is taller than its text. */
   .crumb-up {
-    padding: 0;
+    padding: 11px 0;
+    margin: -11px 0;
     border: 0;
     background: none;
     color: var(--dt-text-tertiary);
@@ -3964,7 +3966,7 @@ body.search-open {
     cursor: pointer;
   }
 
-  /* Back and close in a footer; close sits where the menu button was. */
+  /* Search and close in a footer; close sits where the menu button was. */
   .mfoot {
     position: sticky;
     bottom: 0;
@@ -4101,30 +4103,6 @@ body.search-open {
 
   .mchips::-webkit-scrollbar {
     display: none;
-  }
-
-  /* Footer: three slots, so search can sit left or in the middle. */
-  .mfoot {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-  }
-
-  .mf-l {
-    justify-self: start;
-  }
-
-  .mf-c {
-    justify-self: center;
-  }
-
-  .mf-r {
-    justify-self: end;
-  }
-
-  .mf-l:empty,
-  .mf-c:empty {
-    display: block;
-    width: 50px;
   }
 
   /* Search: the footer becomes a field fixed to the bottom of the sheet. */
