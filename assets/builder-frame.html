@@ -60,6 +60,28 @@
     font-size: var(--dt-text-body-xs-size);
   }
   .bf-editing * { cursor: default; }
+  /* A Carousel while editing: its items laid flat in a row, so each can be
+     selected, edited and dropped between. Play shows the moving carousel. */
+  .bf-carousel-board {
+    display: grid; gap: var(--dt-space-stack-xs); min-width: 0;
+    padding: var(--dt-space-inset-sm);
+    border: var(--dt-border-width-default) dashed var(--dt-border-default);
+    border-radius: var(--dt-radius-container);
+    background: var(--dt-surface-sunken);
+  }
+  .bf-carousel-head {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--dt-space-inline-xs);
+    color: var(--dt-text-secondary);
+    font-size: var(--dt-text-body-xs-size); line-height: var(--dt-text-body-xs-line);
+  }
+  .bf-carousel-head strong { color: var(--dt-text-primary); font-weight: var(--dt-font-weight-semibold); }
+  .bf-carousel-head .bf-carousel-hint { margin-inline-start: auto; color: var(--dt-text-tertiary); }
+  .bf-carousel-items { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--dt-space-inline-sm); min-width: 0; }
+  .bf-carousel-item {
+    position: relative; flex: 0 0 auto; width: min(100%, calc(8rem * var(--bf-carousel-size, 1)));
+    display: grid; overflow: hidden; container-type: size;
+    border-radius: var(--dt-carousel-item-radius); box-shadow: var(--dt-carousel-item-shadow);
+  }
 </style>
 </head>
 <body>

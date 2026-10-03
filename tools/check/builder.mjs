@@ -1472,6 +1472,74 @@ try {
     await page.close();
   });
 
+  await step("Carousel: its items lie flat while editing, take drops and edits, export as children, and move in Play", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const carousel = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "Carousel"));
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await page.locator(".bd-search-dock input").fill("Carousel");
+    await page.locator('.bd-tile[data-type="Carousel"]').click();
+    await page.locator(".bd-search-dock .bd-search-clear").click();
+    await frame().waitForSelector(".bf-carousel-board");
+    let c = await carousel();
+    expect(c.children.length === 5 && c.children.every((k) => k.type === "Cover"), `a new Carousel arrives with five Covers to move, got ${c.children.map((k) => k.type)}`);
+    const flat = await frame().evaluate(() => ({ items: document.querySelectorAll(".bf-carousel-item").length, covers: document.querySelectorAll('.bf-carousel-item [data-bf-type="Cover"]').length, live: document.querySelectorAll("[data-carousel-item]").length, head: document.querySelector(".bf-carousel-head").textContent }));
+    expect(flat.items === 5 && flat.covers === 5 && flat.live === 0 && /coverflow · 5 items/.test(flat.head), `while editing, the items lie flat with nothing moving, got ${JSON.stringify(flat)}`);
+    ok(`a Carousel added to the frame brings five Covers, laid flat in a row ("${flat.head}")`);
+
+    const at = await canvasPoint(page, '.bf-carousel-item:nth-child(2) [data-bf-type="Cover"]');
+    await page.mouse.click(at.x, at.y);
+    await page.waitForFunction(() => /Cover/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const crumbs = await page.locator(".bd-crumbs").first().textContent();
+    expect(/Carousel.*Cover/.test(crumbs), `the item's path runs through the Carousel, got ${crumbs}`);
+    ok("an item is picked on the canvas like any layer, inside its Carousel");
+
+    await pickLayer(page, "Carousel");
+    await page.waitForFunction(() => /Carousel/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Layout");
+    await choose(page, "Layout", "ring");
+    await frame().waitForFunction(() => /ring · 5 items/.test(document.querySelector(".bf-carousel-head").textContent));
+    await tab(page, "Appearance");
+    expect(await page.locator(".bd-right .bd-field", { hasText: "Pace" }).first().locator(".bd-dd").count() === 1, "Pace is a set of steps, not a number box");
+    await choose(page, "Pace", "1.5×");
+    c = await carousel();
+    expect(c.props.layout === "ring" && c.props.pace === 1.5, `layout and pace are set, got ${JSON.stringify(c.props)}`);
+    expect(!(await labels(page)).some((l) => /^(Value|Paused)$/.test(l)), "value and paused, which an app drives, aren't offered");
+    ok("its Layout tab sets ring, Pace steps to 1.5×, and value and paused aren't offered");
+
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await frame().waitForFunction(() => document.querySelectorAll(".bf-carousel-item").length === 6);
+    c = await carousel();
+    expect(c.children[5].type === "Heading", `with the Carousel selected, a Heading goes in as a sixth item, got ${c.children.map((k) => k.type)}`);
+    const spot = await frame().evaluate((id) => {
+      const r = document.querySelectorAll(".bf-carousel-item")[1].getBoundingClientRect();
+      const d = window.BuilderFrame.drop(r.left + 6, r.top + r.height / 2, null);
+      return d && { parent: d.parent === id, index: d.index, upright: !!d.line && d.line.width === 0 };
+    }, c.id);
+    expect(spot && spot.parent && spot.index === 1 && spot.upright, `a drop between two items lands in the Carousel between them, on an upright line, got ${JSON.stringify(spot)}`);
+    ok("a component added with the Carousel selected becomes an item, and a drop between items lands between them");
+
+    await release(page);
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(/<Carousel[^>]*layout="ring"[^>]*>\s*<Cover[^]*<Heading[^]*<\/Carousel>/.test(code) && /import \{[^}]*Carousel[^}]*\}/.test(code), `the export writes the items as the Carousel's children, got ${code.slice(0, 200)}`);
+    ok("Code writes <Carousel layout=\"ring\" …> with its Covers and the Heading inside");
+
+    await page.locator("[aria-label='Play']").first().click();
+    await page.locator(".bd-play[open]").waitFor();
+    await page.waitForFunction(() => { const i = document.querySelector(".bd-play iframe"); return i && i.contentDocument && i.contentDocument.querySelectorAll("[data-carousel-item]").length === 6; });
+    const live = await page.evaluate(() => { const d = document.querySelector(".bd-play iframe").contentDocument; return { region: d.querySelectorAll('[aria-roledescription="carousel"]').length, board: d.querySelectorAll(".bf-carousel-board").length }; });
+    expect(live.region === 1 && live.board === 0, `Play renders the real carousel, got ${JSON.stringify(live)}`);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-play"));
+    ok("Play renders the real Carousel with all six items, not the flat board");
+    await page.close();
+  });
+
   await step("Layouts from elsewhere: the reference's example opens whole, and a pasted layout lists what it left out", async () => {
     const md = fs.readFileSync(path.join(ROOT, "assets/builder-layouts.md"), "utf8");
     const m = /\]\(https:\/\/[^)]*builder\.html(#b=[\w-]+)\)/.exec(md);

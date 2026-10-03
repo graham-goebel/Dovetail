@@ -271,9 +271,18 @@
     Image: "image", Video: "video", Cover: "cover", Media: "media", Figure: "figure", AspectRatio: "fit",
     Button: "cursor", IconButton: "cursor", ButtonGroup: "cursor",
     Avatar: "user", AvatarGroup: "user", Badge: "tag", Tag: "tag", Stat: "chart", Table: "table", List: "list", Accordion: "accordion",
-    Alert: "megaphone", Banner: "megaphone", Callout: "megaphone", Progress: "chart", Spinner: "rotate", Thinking: "wand",
+    Alert: "megaphone", Banner: "megaphone", Callout: "megaphone", Progress: "chart", Spinner: "rotate", Thinking: "wand", Carousel: "rotate",
     Navbar: "nav", Tabs: "nav", Breadcrumbs: "nav", BottomNav: "nav", Sidebar: "panels", AppShell: "panels",
   };
+  /* Carousel's dials as steps, rather than any number: the range that reads well. */
+  var CAROUSEL_STEPS = {
+    pace: [[0.5, "Slow"], [0.75, ""], [1, "Its own pace"], [1.5, ""], [2, "Fast"]],
+    spread: [[0.6, "Tight"], [0.8, ""], [1, "Its own spread"], [1.2, ""], [1.4, "Wide"]],
+    depth: [[0, "Flat"], [0.5, ""], [1, "Its own depth"], [1.5, "Deep"]],
+    itemSize: [[0.75, "Smaller"], [1, "Its own size"], [1.25, ""], [1.5, "Larger"]],
+  };
+  /* A Carousel arrives with items to move: Covers waiting for a picture. */
+  var CAROUSEL_ITEMS = [["Fern", "Spring"], ["Tide", "Summer"], ["Clay", "Autumn"], ["Ink", "Winter"], ["Moss", "All year"]];
   var GROUP_TYPE_ICON = { forms: "form", navigation: "nav", feedback: "bell", commerce: "bag", chat: "chat", blocks: "blocks", content: "file", display: "component", actions: "cursor" };
 
   /* Each category's icon in the assets panel. */
@@ -295,6 +304,7 @@
   function make(type, props, children, style) {
     var n = { id: uid(), type: type, props: props || {}, style: style || {} };
     if (isContainer(type)) n.children = children || [];
+    if (type === "Carousel" && !children) n.children = CAROUSEL_ITEMS.map(function (it) { return make("Cover", { ratio: "3:4", eyebrow: it[1], title: it[0], alt: it[0] + " collection" }); });
     return n;
   }
 
@@ -3967,6 +3977,12 @@
         return e(Field, { key: p.name, id: id, label: label, note: p.note, inline: true }, e(Switch, { labelledBy: id, value: !!current, mixed: mixed, onChange: set }));
       } else if (p.kind === "number" && first.type === "Grid" && p.name === "columns") {
         control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, options: [1, 2, 3, 4, 5, 6].map(function (n) { return { value: n, label: n + (n === 1 ? " column" : " columns") }; }) });
+      } else if (p.kind === "number" && first.type === "Carousel" && p.name === "defaultIndex") {
+        var count0 = Math.max(1, Math.min.apply(null, nodes.map(function (n) { return (n.children || []).filter(function (c) { return c.type !== "Slot"; }).length || 1; })));
+        control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, options: Array.from({ length: count0 }, function (_, i) { return { value: i, label: "Item " + (i + 1) }; }) });
+      } else if (p.kind === "number" && first.type === "Carousel" && CAROUSEL_STEPS[p.name]) {
+        control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, placeholder: "Default",
+          options: CAROUSEL_STEPS[p.name].map(function (st) { return { value: st[0], label: st[0] + "×", hint: st[1] }; }) });
       } else if (p.kind === "number") {
         control = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current == null ? "" : String(current), onChange: function (ev) { set(ev.target.value === "" ? undefined : Number(ev.target.value)); } });
       } else if (p.kind === "text" || (p.kind === "node" && typeof base[p.name] === "string")) {
