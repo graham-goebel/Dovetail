@@ -1,6 +1,6 @@
 # Dovetail
 
-> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and 109 React components that never name a colour. Brand arrives last, as a theme file of token overrides.
+> A white-label design system: a strict three-tier token contract (primitive, semantic, component), a 4px grid, and 110 React components that never name a colour. Brand arrives last, as a theme file of token overrides.
 
 Link `system/styles.css` for every token and base style; put `class="dark"` on an element to scope dark mode to it. Components are React (inline styles read from tokens) in `system/components/<family>/`, each with a `.md` guide, a `.d.ts` props contract and the `.jsx` source. Read a component's guide before using it: it holds the rules the types cannot.
 
@@ -85,6 +85,7 @@ Read-only presentation of data that already exists. They render what they are gi
 Moving between places, and showing where you are. Each one takes the current location as a prop rather than reading the URL, so they suit any router.
 
 - [Breadcrumbs](https://graham-goebel.github.io/Dovetail/system/components/navigation/Breadcrumbs.md): Tells the user where they are in a nested structure and gives them one click back up. ([props](https://graham-goebel.github.io/Dovetail/system/components/navigation/Breadcrumbs.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/navigation/Breadcrumbs.jsx))
+- [MenuSheet](https://graham-goebel.github.io/Dovetail/system/components/navigation/MenuSheet.md): A site or app menu as one sheet: sections set large, a layer per section that slides in from the side, and search in the footer beside close. It grows out of the button that opened it and shrinks back into it. This is the menu the Dovetail site uses on a phone. ([props](https://graham-goebel.github.io/Dovetail/system/components/navigation/MenuSheet.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/navigation/MenuSheet.jsx))
 - [Navbar](https://graham-goebel.github.io/Dovetail/system/components/navigation/Navbar.md): Top-level navigation for marketing pages and product shells with few destinations. ([props](https://graham-goebel.github.io/Dovetail/system/components/navigation/Navbar.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/navigation/Navbar.jsx))
 - [Pagination](https://graham-goebel.github.io/Dovetail/system/components/navigation/Pagination.md): Moves through a result set one page at a time. Use it when the user needs a stable ([props](https://graham-goebel.github.io/Dovetail/system/components/navigation/Pagination.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/navigation/Pagination.jsx))
 - [Sidebar](https://graham-goebel.github.io/Dovetail/system/components/navigation/Sidebar.md): Persistent navigation for products with more destinations than a Navbar can hold. ([props](https://graham-goebel.github.io/Dovetail/system/components/navigation/Sidebar.d.ts), [source](https://graham-goebel.github.io/Dovetail/system/components/navigation/Sidebar.jsx))

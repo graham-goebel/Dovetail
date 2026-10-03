@@ -4,12 +4,13 @@
    out of the menu button: sections as big links, and a section with pages
    under it pushes a layer ("Menu / Components") that slides in from the
    right; Components filters its list with Gainer-style chips, and Templates
-   opens on its three kinds, each a layer of its own. Guide is cards. Home is a round button
-   at the top right of every layer. Back, search
-   and close sit in a footer, close exactly where the menu button was, so the
-   button that opened the menu also shuts it. Search turns the footer into a
-   field fixed to the sheet, with results in the sheet above it. A swipe down
-   closes, a swipe right goes back.
+   opens on its three kinds, each a layer of its own. Guide is cards. Home is
+   at the top right of every layer, and the crumb ("Menu / Components") goes
+   back. Search and close sit in a footer, the same on every layer, close
+   exactly where the menu button was, so the button that opened the menu also
+   shuts it. Search turns the footer into a field fixed to the sheet, with
+   results in the sheet above it. A swipe down closes, a swipe right goes back.
+   system/components/navigation/MenuSheet.jsx is this menu as a component.
 
    The tree is window.DovetailNav, generated with the search index by
    tools/build-site.mjs. On a wide screen none of this shows: the header and
@@ -34,7 +35,6 @@
 
   var ICONS = {
     next: '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
-    back: '<path d="M19.5 12h-15"/><path d="m10.5 6-6 6 6 6"/>',
     x: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
     search: '<path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/>',
   };
@@ -176,16 +176,13 @@
     return '<a class="mp-home" href="' + esc(ROOT + u) + '"' + (here(u) ? ' aria-current="page"' : "") + ">Home</a>";
   }
 
-  /* Back on the left when there is somewhere to go back to, and search in
-     the middle; without a back arrow, search takes the left. Close is always
-     on the right, where the menu button was. */
+  /* Search on the left and close on the right, the same on every layer, so
+     the footer never shifts as you go deeper. Back is the crumb above, or a
+     swipe right. Close sits where the menu button was. */
   function footHtml() {
-    var back = stack.length > 1 ? '<button type="button" class="msh-x" data-back aria-label="Back">' + ic("back") + "</button>" : "";
-    var find = '<button type="button" class="msh-x" data-find aria-label="Search components and pages">' + ic("search") + "</button>";
     return '<div class="mfoot">' +
-      '<span class="mf-l">' + (back || find) + "</span>" +
-      '<span class="mf-c">' + (back ? find : "") + "</span>" +
-      '<span class="mf-r"><button type="button" class="msh-x" data-close aria-label="Close menu">' + ic("x") + "</button></span></div>";
+      '<button type="button" class="msh-x" data-find aria-label="Search components and pages">' + ic("search") + "</button>" +
+      '<button type="button" class="msh-x" data-close aria-label="Close menu">' + ic("x") + "</button></div>";
   }
 
   /* Components: a chip per family above one list, like Gainer's filters. */
@@ -231,8 +228,6 @@
     });
     var find = box.querySelector("[data-find]");
     if (find) find.onclick = enterSearch;
-    var back = box.querySelector("[data-back]");
-    if (back) back.onclick = pop;
     box.querySelector("[data-close]").onclick = function () { close(); };
     if (dir && !reduce) {
       box.classList.remove("snext", "sprev");
@@ -241,7 +236,7 @@
       clearTimeout(box._nv);
       box._nv = setTimeout(function () { box.classList.remove("snext", "sprev"); }, 420);
     }
-    var focus = box.querySelector("[data-back]") || box.querySelector(".big-link, .mrow, .mcard");
+    var focus = box.querySelector(".crumb-up:last-of-type") || box.querySelector(".big-link, .mrow, .mcard");
     if (focus && !window.matchMedia("(pointer: coarse)").matches) focus.focus({ preventScroll: true });
   }
 

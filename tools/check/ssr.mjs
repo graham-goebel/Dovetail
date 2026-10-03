@@ -12,7 +12,7 @@
 // anything renders.)
 //
 // Each component renders from its live specimen. Where there is none (the
-// page-section blocks, Dialog, Drawer, Sheet, ToastRegion, VisuallyHidden: see
+// page-section blocks, Dialog, Drawer, Sheet, MenuSheet, ToastRegion, VisuallyHidden: see
 // the header of assets/specimens.js), FALLBACKS below holds a small hand-written element
 // with honest minimal props. A component with neither fails the check, so a
 // new component can't slip past it.
@@ -72,6 +72,7 @@ const FALLBACKS = {
   Dialog: () => e(NS.Dialog, { open: true, onClose: noop, title: "Delete draft", description: "This can't be undone." }, "The draft and its comments are removed."),
   Drawer: () => e(NS.Drawer, { open: true, onClose: noop, title: "Filters" }, "Filter options."),
   Sheet: () => e(NS.Sheet, { open: true, onClose: noop, title: "Share route" }, "Choose who can see this route."),
+  MenuSheet: () => e(NS.MenuSheet, { open: true, onClose: noop, label: "Menu", items: [{ label: "Shop", items: [{ label: "Mugs", href: "/mugs" }] }, { label: "Visit", href: "/visit", current: true }], links: [{ label: "Gift cards", href: "/gift" }] }),
   ToastRegion: () => e(NS.ToastRegion, null, e(NS.Toast, { title: "Saved" }, "Your changes are live.")),
   VisuallyHidden: () => e(NS.VisuallyHidden, null, "Skip to content"),
   /* Page sections: the specimens skip them because they are full-width. */

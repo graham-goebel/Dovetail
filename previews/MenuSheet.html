@@ -1,0 +1,137 @@
+<!-- @dsCard group="Navigation" height=1500 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
+</head><body><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+
+  /* A small icon set for the rows, drawn here so the card fetches nothing. */
+  function glyph(d) {
+    return e("svg", { viewBox: "0 0 24 24", width: 20, height: 20, fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true }, e("path", { d: d }));
+  }
+  var CUP = glyph("M6 8h10v7a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4V8Zm10 2h1.5a2.5 2.5 0 0 1 0 5H16");
+  var BOWL = glyph("M3 11h18a9 9 0 0 1-18 0Zm6 9h6");
+  var JUG = glyph("M8 4h7l-1 4 3 3v6a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3v-6l2-3-1-4Z");
+  var BOOK = glyph("M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Zm0 14a2 2 0 0 1 2-2h11");
+
+  var ITEMS = [
+    { label: "Shop", display: "filter", filterLabel: "Filter by kind", items: [
+      { label: "Mugs", items: [
+        { label: "Stoneware mug", href: "#mug", description: "Six glazes, made to order", keywords: "cup coffee tea" },
+        { label: "Espresso cup", href: "#espresso", description: "A small one, in Ink" },
+        { label: "Tall mug", href: "#tall", description: "For a long morning" },
+      ] },
+      { label: "Bowls", items: [
+        { label: "Serving bowl", href: "#serving", description: "Oat glaze, 28cm" },
+        { label: "Nesting set", href: "#nesting", description: "Three that stack" },
+      ] },
+      { label: "Jugs", items: [
+        { label: "Tall jug", href: "#jug", description: "Terracotta, a litre" },
+      ] },
+    ] },
+    { label: "Journal", display: "cards", items: [
+      { label: "How a glaze is made", href: "#glaze", description: "From ash to the kiln, in eight steps", icon: BOOK },
+      { label: "Firing day", href: "#firing", description: "Twelve hours at the kiln" },
+      { label: "On clay", href: "#clay", description: "Why we dig our own" },
+      { label: "Care guide", href: "#care", description: "Keep a glaze bright" },
+    ] },
+    { label: "Studio", items: [
+      { label: "Mugs", icon: CUP, items: [{ label: "Workshop: throw a mug", href: "#throw" }, { label: "Open studio", href: "#open" }] },
+      { label: "Bowls", icon: BOWL, items: [{ label: "Workshop: a nesting set", href: "#set" }] },
+      { label: "Jugs", icon: JUG, items: [{ label: "Workshop: handles", href: "#handles" }] },
+    ] },
+    { label: "Visit", href: "#visit", current: true },
+  ];
+  var LINKS = [{ label: "Gift cards", href: "#gift" }, { label: "Stockists", href: "#stockists" }];
+
+  var MENU_ICON = e("svg", { viewBox: "0 0 24 24", width: 22, height: 22, fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round", "aria-hidden": true }, e("path", { d: "M4 8h16M4 16h16" }));
+
+  /* A phone: a transformed box, so the sheet's fixed position is the
+     phone's, not the card's. */
+  function Phone(props) {
+    var btn = React.useRef(null);
+    var st = React.useState(false), open = st[0], set = st[1];
+    return e("div", { style: { display: "grid", justifyItems: "center", gap: "var(--dt-space-stack-xs)" } },
+      e("div", { className: props.dark ? "dark" : undefined, style: {
+        position: "relative", transform: "translateZ(0)", overflow: "hidden", width: "min(100%, 390px)", height: 760,
+        borderRadius: "var(--dt-radius-overlay)", border: "var(--dt-border-width-default) solid var(--dt-border-default)",
+        background: "var(--dt-surface-base)", color: "var(--dt-text-primary)", fontFamily: "var(--dt-font-family-sans)",
+      } },
+        e("div", { style: { padding: "var(--dt-space-inset-xl) var(--dt-space-inset-lg)" } },
+          e(NS.Text, { variant: "eyebrow", tone: "tertiary" }, "Kiln & Co"),
+          e(NS.Heading, { level: 3, size: "display-sm" }, "Visit the studio"),
+          e(NS.Text, { tone: "secondary" }, "Open Thursday to Sunday. Press the menu button at the bottom right.")),
+        e("div", { ref: btn, style: { position: "absolute", right: "var(--dt-space-inset-md)", bottom: "var(--dt-space-inset-md)" } },
+          e("button", { type: "button", "aria-label": "Menu", "aria-haspopup": "dialog", onClick: function () { set(true); }, style: {
+            appearance: "none", border: 0, cursor: "pointer", display: "grid", placeItems: "center",
+            width: "var(--dt-size-control-lg)", height: "var(--dt-size-control-lg)", borderRadius: "var(--dt-radius-pill)",
+            background: "var(--dt-surface-action)", color: "var(--dt-text-on-action)", boxShadow: "var(--dt-elevation-3)",
+          } }, MENU_ICON)),
+        e(NS.MenuSheet, { open: open, onClose: function () { set(false); }, anchor: btn, items: ITEMS, links: LINKS, home: { label: "Home", href: "#home" }, surface: props.surface,
+          onSelect: function (item, ev) { if (ev && ev.preventDefault) ev.preventDefault(); } })),
+      e(NS.Text, { variant: "small", tone: "tertiary" }, props.caption));
+  }
+
+  function Page() {
+    return e(Shelf, { name: "MenuSheet", summary: "A site or app menu as one sheet: sections set large, a layer per section that slides in with a path back, and search in the footer beside close. It grows out of the button that opened it.", props: [
+        { name: "open / onClose", type: 'boolean / (reason: "close" | "escape" | "scrim" | "swipe" | "select") => void', required: true },
+        { name: "items", type: "MenuSheetItem[]", required: true, notes: "The top level, set large. An item with items opens a layer." },
+        { name: "MenuSheetItem", type: "{ label, href?, description?, icon?, current?, items?, display?, keywords?, onSelect? }", notes: 'display: "list" | "cards" | "filter" for the layer it opens.' },
+        { name: "links", type: "MenuSheetItem[]", notes: "Smaller links under the top level, as chips." },
+        { name: "label", type: "string", default: '"Menu"', notes: "The dialog's name and the first step of the path." },
+        { name: "home", type: "MenuSheetItem | ReactElement", notes: "Top right of every layer." },
+        { name: "search", type: "boolean", default: "true", notes: "Search in the footer, beside close." },
+        { name: "searchItems / onSearch", type: "MenuSheetItem[] / (query) => MenuSheetItem[]", notes: "Defaults to every entry in items, described by its sections." },
+        { name: "onSelect", type: "(item, event) => void", notes: "Hears every choice; route in an app." },
+        { name: "anchor", type: "RefObject<HTMLElement>", notes: "The button it grows out of and shrinks back into." },
+        { name: "surface", type: '"raised" | "glass" | "glass-strong"', default: '"raised"' },
+        { name: "searchLabel / searchPlaceholder / closeLabel / closeSearchLabel / linksLabel / allLabel", type: "string" },
+        { name: "emptyLabel / resultsLabel", type: "(query) => string / (count) => string" },
+      ], guidance: [
+        "Use it when there are more places than a tab bar holds and, on a phone, they should all be one tap from a menu button. With five or fewer places people move between all the time, use BottomNav or Tabs.",
+        "The footer is the same on every layer: search on the left, close on the right where the menu button was. Back is the path at the top, or a swipe right.",
+        "A layer can be a list, cards, or a list under filter chips. An entry with entries of its own shows a count and opens a further layer.",
+        "Search looks through every entry by default and describes each by its sections. Enter takes the first result; Escape leaves search, then closes.",
+        "A modal dialog: focus moves in, Tab stays inside and returns to the opener on close, and the page behind holds still. Going back puts focus on the entry that opened the layer.",
+        "Under reduced motion nothing grows, slides or fades. Swipes still work.",
+      ] },
+      e(Specimen, { label: "In a phone: open it from the button", bg: "var(--dt-surface-subtle)" },
+        e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "var(--dt-space-inline-xl)" } },
+          e(Phone, { caption: "Raised, light" }),
+          e(Phone, { dark: true, surface: "glass-strong", caption: "Glass, inside a dark band" }))));
+  }
+
+  var startedAt = Date.now();
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var need = ["MenuSheet", "Text", "Heading"].filter(function (n) { return !NS[n]; });
+    if (!need.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) {
+      document.getElementById("root").textContent = "This card could not load " + (need.join(", ") || "card-kit.js") + ". A hard reload clears a cached copy.";
+      return;
+    }
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

@@ -554,6 +554,7 @@
     Dialog: "Opens over the page, so it is shown on its own card.",
     Drawer: "Slides in over the page, so it is shown on its own card.",
     Sheet: "Rises over the page, so it is shown on its own card.",
+    MenuSheet: "Grows out of a menu button over the page, so it is shown on its own card.",
     HeroBlock: "A full-width page section, so it is shown on its own card.",
     FeatureGridBlock: "A full-width page section, so it is shown on its own card.",
     SplitBlock: "A full-width page section, so it is shown on its own card.",
