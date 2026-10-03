@@ -1577,12 +1577,86 @@ try {
 
     await startFrom(ex.page, "Paste a layout");
     await ex.page.locator(".bd-import-text").fill("not a layout");
-    expect(/isn't JSON or a builder link/.test(await ex.page.locator(".bd-import-report").textContent()) && await ex.page.locator(".bd-import-actions .bd-btn-primary").isDisabled(), "text that isn't a layout is refused");
+    expect(/isn't JSON, JSX or a builder link/.test(await ex.page.locator(".bd-import-report").textContent()) && await ex.page.locator(".bd-import-actions .bd-btn-primary").isDisabled(), "text that isn't a layout is refused");
     await ex.page.locator(".bd-import-text").fill(JSON.stringify(saved));
     await ex.page.locator(".bd-import-actions .bd-btn", { hasText: "Replace all frames" }).click();
     await ex.page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     ok("text that isn't a layout is refused, and a saved layout pasted back replaces the frames");
     await ex.page.close();
+  });
+
+  await step("JSX: pasted from anywhere, opened from a docs example, and the Code dialog's own export pasted back", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    /* A component's empty slots are the builder's own, filled in once it lands. */
+    const shape = (n) => { const kids = (n.children || []).filter((c) => c.type !== "Slot" || (c.children || []).length); return n.type + (kids.length ? "(" + kids.map(shape).join(",") + ")" : ""); };
+    await startFrom(page, "Paste a layout");
+    const jsx = `import { Section, Stack, Heading, Text, Button } from "@dovetail-ds/react";
+
+<Section tone="subtle" width="narrow">
+  <Stack gap="md">
+    <Heading level={2} size="heading-lg">Workshops</Heading>
+    <Text tone="secondary">Throw a mug, glaze it, take it home.</Text>
+    <div style={{ display: "flex", flexDirection: "row", gap: "var(--dt-space-inline-sm)", padding: "var(--dt-space-inset-md)", width: "320px" }}>
+      <Button variant="brand" onClick={() => book()}>Book a place</Button>
+      <Button variant="secondary" {...more}>See dates</Button>
+    </div>
+    <HeroBlock title="Kiln days" actions={<><Button>Shop</Button></>} />
+    <Carousel label="Glazes">{glazes.map((g) => <Cover key={g.id} title={g.name} />)}</Carousel>
+    <Sparkle />
+  </Stack>
+</Section>`;
+    await page.locator(".bd-import-text").fill("```jsx\n" + jsx + "\n```");
+    const report = await page.locator(".bd-import-report").textContent();
+    for (const bit of ["onClick is a handler", "spreads props from code", "width: \"320px\" isn't a token", "came in as 5 sample Cover", "<Sparkle> isn't something the builder places"]) expect(report.includes(bit), `the report should say ${bit}, got: ${report}`);
+    await page.locator(".bd-import-actions .bd-btn-primary").click();
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    let d = await saved();
+    const pastedFrame = d.frames[1];
+    const sec = pastedFrame.root.children[0];
+    expect(shape(sec) === "Section(Stack(Heading,Text,Group(Button,Button),HeroBlock(Slot(Button)),Carousel(Cover,Cover,Cover,Cover,Cover)))", `the JSX should come in as its tree, got ${shape(sec)}`);
+    const [heading, , group, hero] = sec.children[0].children;
+    expect(heading.props.level === "2" || heading.props.level === 2, `level={2} should become the level option, got ${JSON.stringify(heading.props)}`);
+    expect(heading.props.children === "Workshops" && group.props.direction === "row" && group.props.gap === "sm" && group.style.padding === "md", `text, the div's flex and its token padding should come in, got ${JSON.stringify([heading.props, group])}`);
+    expect(hero.children[0].props.name === "actions" && hero.children[0].children[0].props.children === "Shop", "the actions={<>…</>} slot should hold its Button");
+    await frame(1).waitForFunction(() => [...document.querySelectorAll("button")].some((b) => b.textContent === "Book a place"));
+    ok("pasted JSX with an import line in a fence comes in as Section › Stack › Heading, Text, a Group from the <div>, a HeroBlock with its actions slot and a Carousel of five sample Covers; the handler, the spread, a raw width and an unknown tag are listed");
+
+    await page.locator(".bd-export").click();
+    await page.locator(".bd-code-pre code").waitFor();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    await startFrom(page, "Paste a layout");
+    await page.locator(".bd-import-text").fill(code);
+    const back = await page.locator(".bd-import-report").textContent();
+    expect(/Everything in it comes in/.test(back), `the Code dialog's JSX should paste back whole, got: ${back}`);
+    await page.locator(".bd-import-actions .bd-btn-primary").click();
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 3);
+    d = await saved();
+    /* The export writes a component's default parts out (the hero's picture),
+       so they come back as layers; the tree around them is what must match. */
+    const flow = (n) => { const kids = (n.children || []).filter((c) => c.type !== "Slot"); return n.type + (kids.length ? "(" + kids.map(flow).join(",") + ")" : ""); };
+    expect(flow(d.frames[2].root) === flow(d.frames[1].root), `the round trip should give the same tree, got ${flow(d.frames[2].root)} vs ${flow(d.frames[1].root)}`);
+    ok("the Code dialog's JSX for that frame pastes back with nothing left out, as the same tree");
+    await page.close();
+
+    const docs = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    watch(docs);
+    /* Some work already saved in this browser, which the example joins. */
+    await docs.goto(server.origin + "/builder.html");
+    await docs.waitForFunction(() => !!localStorage.getItem("dovetail-builder"));
+    await docs.goto(server.origin + "/components/Carousel.html");
+    const btn = docs.locator(".open-btn").first();
+    const where = await docs.$$eval(".open-btn", (b) => b.map((x) => x.parentNode.querySelector("pre").getAttribute("data-lang")));
+    expect(where.length >= 1 && where.every((l) => l === "jsx"), `only JSX examples with components carry Open in builder, got ${where}`);
+    await btn.click();
+    await docs.waitForSelector(".bd-assets", { state: "attached" });
+    await docs.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames.some((f) => f.name === "Example"); });
+    const ex = await docs.evaluate(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder")); const f = d.frames.find((x) => x.id === d.active); return { name: f.name, kids: f.root.children.map((c) => c.type + ":" + (c.children || []).length), frames: d.frames.length, hash: location.hash }; });
+    expect(ex.name === "Example" && ex.kids.join(",") === "Carousel:5,Carousel:5" && ex.frames > 1 && ex.hash === "", `the example should open as a new, active frame beside the saved ones with sample items, got ${JSON.stringify(ex)}`);
+    await docs.waitForFunction(() => /Added the example as a new frame/.test(document.querySelector('.visually-hidden[role="status"]')?.textContent || ""));
+    ok("Open in builder on the Carousel page adds the example as an active frame beside the saved ones, two Carousels of five sample items, and says what it filled in");
+    await docs.close();
   });
 
   await step("Share links open what they encode, and nothing the inspector can't set", async () => {

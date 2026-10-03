@@ -7,7 +7,7 @@
 <meta name="description" content="The top of a product page: a ProductGallery on the left and a buy box on the right with the name, price, rating, description, variant pickers, quantity, a full-width add button and collapsible details. The two stack on a narrow screen, gallery first.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="../system/styles.css?v=d2e228029f">
-<link rel="stylesheet" href="../assets/site.css?v=622fcf58f5">
+<link rel="stylesheet" href="../assets/site.css?v=155271ec65">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after.
@@ -148,7 +148,7 @@ const [qty, setQty] = React.useState(1);
 <section class="prose">
   <h2 id="props">Props</h2>
   <p class="muted">The typed contract, from <code>ProductDetailBlock.d.ts</code>.</p>
-  <pre class="code" data-lang="ts"><code>import * as React from &quot;react&quot;;
+  <pre class="code" data-lang="ts" data-source="system/components/blocks/ProductDetailBlock.d.ts"><code>import * as React from &quot;react&quot;;
 import type { ProductGalleryImage } from &quot;../commerce/ProductGallery&quot;;
 import type { VariantPickerProps } from &quot;../commerce/VariantPicker&quot;;
 
@@ -240,7 +240,7 @@ export declare function ProductDetailBlock(props: ProductDetailBlockProps): Reac
 <section class="prose">
   <h2 id="source">Source</h2>
   <p class="muted">React only, no dependencies, every value a token.</p>
-  <pre class="code" data-lang="jsx"><code>import React from &quot;react&quot;;
+  <pre class="code" data-lang="jsx" data-source="system/components/blocks/ProductDetailBlock.jsx"><code>import React from &quot;react&quot;;
 import { Section } from &quot;../primitives/Section.jsx&quot;;
 import { Stack } from &quot;../primitives/Stack.jsx&quot;;
 import { Heading } from &quot;../typography/Heading.jsx&quot;;
@@ -427,7 +427,7 @@ export function ProductDetailBlock({
 <script src="../assets/search.js?v=50ed93a581" defer></script>
 <script src="../assets/menu.js?v=105c15bc1c" defer></script>
 <script src="../assets/theme.js?v=1cdcf319a6" defer></script>
-<script src="../assets/site.js?v=544ba24909" defer></script>
+<script src="../assets/site.js?v=94c1c9b8f0" defer></script>
 <script src="../assets/graph.js?v=3907d13676" defer></script>
 </body>
 </html>
