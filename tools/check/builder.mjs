@@ -939,6 +939,19 @@ try {
     expect(hero.children.filter((c) => c.type === "Slot").length === 2, "the slots survive a reload");
     ok("the slots and what's in them survive a reload");
 
+    /* Reopened with its slots already filled, the sample is still there to put back. */
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    const twisty = page.locator('.bd-layer-twisty[aria-label="Expand HeroBlock"]').first();
+    if (await twisty.count()) await twisty.click();
+    await page.locator('.bd-layer[data-layer]:has(.bd-layer-name:text-is("Actions")) .bd-layer-main').first().click();
+    await page.waitForFunction(() => /Actions/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator(".bd-right .bd-btn", { hasText: "Empty it" }).click();
+    await frame().waitForFunction(() => ![...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
+    await page.locator(".bd-right .bd-btn", { hasText: "Put the sample back" }).click();
+    await frame().waitForFunction(() => [...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
+    ok("after a reload, Put the sample back still fills the Actions slot");
+    await page.keyboard.press("Escape");
+
     await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
     /* The list can still be settling (a component's parts fill in once its
        frame answers), so the hero's row is measured again just before the drop. */

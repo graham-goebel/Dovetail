@@ -15,3 +15,4 @@ The Builder page (`builder.html`) keeps projects, each with its own canvas.
 - **Versions** are kept every 10 minutes while you work and before starting over, pasting a layout over yours or restoring, 30 per project. You can also keep one yourself. Restoring a version is a step undo can take back.
 - A share link opens as a new project instead of replacing your work. An example from the docs still joins the project you last had open.
 - Work saved before projects moves into a project of its own the first time the builder opens, with its backup kept as a version, and the Content library moves too.
+- **Put the sample back** on a component's slot works in a project reopened with its slots already filled. Before, it emptied the slot.

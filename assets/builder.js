@@ -5350,23 +5350,30 @@
     };
     var readyRef = useRef(frameReady);
     readyRef.current = frameReady;
+    var slotFrame = function() {
+      var a = null;
+      doc.frames.forEach(function(f) {
+        if (!a && ready[f.id]) a = api(f.id);
+      });
+      return a && a.slots ? a : null;
+    };
+    var slotSample = function(type) {
+      if (slotTpl.current[type] === void 0) {
+        var a = slotFrame();
+        if (!a) return [];
+        try {
+          slotTpl.current[type] = a.slots(type) || [];
+        } catch (err) {
+          slotTpl.current[type] = [];
+        }
+      }
+      return slotTpl.current[type];
+    };
     useEffect(function() {
       var any = null;
-      var first = null;
-      doc.frames.forEach(function(f) {
-        if (!first && ready[f.id]) first = api(f.id);
-      });
-      if (first && first.slots) {
-        var tpl = function(type) {
-          if (slotTpl.current[type] === void 0) {
-            try {
-              slotTpl.current[type] = first.slots(type) || [];
-            } catch (err) {
-              slotTpl.current[type] = [];
-            }
-          }
-          return slotTpl.current[type];
-        };
+      var first = slotFrame();
+      if (first) {
+        var tpl = slotSample;
         var wants = function(n) {
           var m = META[n.type];
           return !!m && !m.builder && !hasSlots(n) && tpl(n.type).length > 0;
@@ -6430,7 +6437,7 @@
     };
     var projectsRef = useRef(null);
     var versionsRef = useRef(null);
-    var projListState = useState([]);
+    var projListState = useState(null);
     var projList = projListState[0], setProjList = projListState[1];
     var projQueryState = useState("");
     var projQuery = projQueryState[0], setProjQuery = projQueryState[1];
@@ -6480,6 +6487,7 @@
       setProjQuery("");
       setRenaming(null);
       setConfirmDel(null);
+      setProjList(null);
       refreshProjects();
       setShown("projects");
       var dlg = projectsRef.current;
@@ -6556,7 +6564,7 @@
     };
     var deleteProject = function(id) {
       setConfirmDel(null);
-      var gone = projList.filter(function(p) {
+      var gone = (projList || []).filter(function(p) {
         return p.id === id;
       })[0];
       store.deleteProject(id).then(refreshProjects).then(function(list) {
@@ -6655,7 +6663,7 @@
     };
     var projectsDialog = function() {
       var q = projQuery.trim().toLowerCase();
-      var list = projList.filter(function(p) {
+      var list = (projList || []).filter(function(p) {
         return !q || p.name.toLowerCase().indexOf(q) >= 0;
       });
       var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function() {
@@ -6769,7 +6777,7 @@
               } }, e(Icon, { name: "trash" }))
             )
           );
-        })) : e("p", { className: "bd-sec-empty bd-projects-empty" }, q ? "No project is called that." : "No projects yet.")
+        })) : e("p", { className: "bd-sec-empty bd-projects-empty", "aria-busy": projList ? void 0 : "true" }, !projList ? "Loading projects…" : q ? "No project is called that." : "No projects yet.")
       );
     };
     var versionsDialog = function() {
@@ -9239,7 +9247,7 @@
       var takes = slotTakes(owner.type, node.props.name);
       var spec = slotSpec(owner.type, node.props.name);
       var refill = function() {
-        var tpl = (slotTpl.current[owner.type] || []).filter(function(t) {
+        var tpl = slotSample(owner.type).filter(function(t) {
           return t.name === node.props.name;
         })[0];
         change(function(d) {
