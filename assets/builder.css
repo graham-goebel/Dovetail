@@ -1271,6 +1271,54 @@ button.bd-layer-twisty.is-open .bd-ic {
   font-weight: var(--dt-font-weight-medium);
 }
 
+/* The eye and lock at the end of a row: shown on hover, or while set. */
+.bd-layer-flags {
+  display: inline-flex;
+  flex: none;
+  gap: 1px;
+  margin-left: auto;
+  padding-right: var(--dt-space-inset-2xs);
+  opacity: 0;
+}
+
+.bd-layer:hover .bd-layer-flags,
+.bd-layer:focus-within .bd-layer-flags,
+.bd-layer-flags.is-set {
+  opacity: 1;
+}
+
+.bd-layer-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-xs);
+  height: var(--dt-size-control-xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  cursor: pointer;
+}
+
+.bd-layer-flag:hover,
+.bd-layer-flag.is-on {
+  color: var(--dt-text-primary);
+}
+
+.bd-layer-flag .bd-ic {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+}
+
+.bd-layer.is-hidden .bd-layer-main {
+  opacity: 0.45;
+}
+
+.bd-mark-sel.is-locked {
+  outline-style: dashed;
+}
+
 .bd-layer-text {
   min-width: 0;
   overflow: hidden;

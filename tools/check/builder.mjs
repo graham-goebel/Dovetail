@@ -2870,6 +2870,47 @@ try {
     const kept = await node();
     expect(sizes.w.includes(kept.style.w) && sizes.h.includes(kept.style.height), `Shift on a corner sets both width and height tokens, got ${kept.style.w} × ${kept.style.height}`);
     ok(`handles resize to tokens: ${grown.style.w} wide, then the left edge moved it, then a Shift corner gave ${kept.style.w} × ${kept.style.height}`);
+
+    /* Hide and lock. Gamma hidden: gone from the canvas and the code, dim in
+       Layers, back with the eye. Beta locked: a canvas press passes it by,
+       arrows don't move it, no handles; Layers still picks it. */
+    const flag = async (id) => { const n = (await free()).root.children.find((c) => c.id === id); return { hide: !!n.hide, lock: !!n.lock, x: n.style.x }; };
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    await release(page);
+    await page.keyboard.press("Control+Shift+KeyH");
+    expect((await poll(() => flag("hc"), (v) => v.hide)).hide, "Ctrl+Shift+H hides the Heading");
+    await frames(page)[1].waitForFunction(() => !document.querySelector('[data-bf-id="hc"]'));
+    await page.evaluate(() => window.__builder.select([]));
+    await page.waitForTimeout(100);
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(!/Gamma/.test(code) && /Alpha/.test(code), "the hidden Heading stays out of the exported code while the Buttons are in it");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    const gammaRow = page.locator('.bd-layer[data-layer="hc"]');
+    expect(await gammaRow.evaluate((r) => r.classList.contains("is-hidden")), "its layer row is dimmed");
+    await gammaRow.locator(".bd-layer-flag[aria-label^='Show']").click();
+    expect(!(await poll(() => flag("hc"), (v) => !v.hide)).hide, "the eye on the row shows it again");
+    await frames(page)[1].waitForSelector('[data-bf-id="hc"]');
+    await page.evaluate(() => window.__builder.select(["bb"]));
+    await page.keyboard.press("Control+Shift+KeyL");
+    expect((await poll(() => flag("bb"), (v) => v.lock)).lock, "Ctrl+Shift+L locks Beta");
+    expect(await page.locator(".bd-mark-sel .bd-handle").count() === 0 && await page.locator(".bd-mark-sel.is-locked").count() === 1, "a locked layer has no handles and a dashed outline");
+    const xBefore = (await flag("bb")).x;
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+    expect((await flag("bb")).x === xBefore, "arrows don't move a locked layer");
+    await page.evaluate(() => window.__builder.select([]));
+    const bbAt = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
+    await page.mouse.click(bbAt.x, bbAt.y);
+    await page.waitForTimeout(200);
+    expect(!(await page.evaluate(() => window.__builder.selection())).includes("bb"), "a press on the canvas passes a locked layer by");
+    await page.locator('.bd-layer[data-layer="bb"] .bd-layer-main').click();
+    await page.waitForTimeout(150);
+    expect((await page.evaluate(() => window.__builder.selection())).join() === "bb", "Layers still picks it");
+    await page.locator('.bd-layer[data-layer="bb"] .bd-layer-flag[aria-label^="Unlock"]').click();
+    expect(!(await poll(() => flag("bb"), (v) => !v.lock)).lock, "the lock on the row unlocks it");
+    ok("hide takes a layer off the canvas and out of the code; lock keeps the canvas and the arrows off it; the row's eye and lock turn both back");
     await page.close();
   });
 

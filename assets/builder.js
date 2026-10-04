@@ -1714,7 +1714,7 @@
     /* A free object moved by whole steps; stays within the canvas's range. */
     shift: function(doc, id, dx, dy) {
       var at = locate(doc, id);
-      if (fixed(at) || !isFree(at.node.style)) return null;
+      if (fixed(at) || at.node.lock || !isFree(at.node.style)) return null;
       var st = at.node.style;
       var x = Math.max(0, Math.min(FREE_MAX, st.x + dx)), y = Math.max(0, Math.min(FREE_MAX, st.y + dy));
       if (x === st.x && y === st.y) return null;
@@ -1891,6 +1891,8 @@
     });
     var out = { id: typeof n.id === "string" && /^[\w-]{1,40}$/.test(n.id) ? n.id : uid(), type: n.type, props, style };
     if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
+    if (n.lock === true) out.lock = true;
+    if (n.hide === true) out.hide = true;
     var seenSlot0 = {};
     var slotChild = function(c) {
       if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot0[c.props.name]) return false;
@@ -3603,6 +3605,9 @@
     distributeH: ["M4 4v16", "M20 4v16", "M9 8h6v8H9z"],
     distributeV: ["M4 4h16", "M4 20h16", "M8 9h8v6H8z"],
     tidy: ["M4 4h7v7H4z", "M13 4h7v7h-7z", "M4 13h7v7H4z", "M13 13h7v7h-7z"],
+    eyeOff: ["M3 3l18 18", "M10.6 10.6a2 2 0 0 0 2.8 2.8", "M9.9 5.2A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9", "M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7c1.4 0 2.7-.3 3.9-.8"],
+    lock: ["M6 11h12v9H6z", "M9 11V8a3 3 0 0 1 6 0v3"],
+    lockOpen: ["M6 11h12v9H6z", "M9 11V8a3 3 0 0 1 5.8-1"],
     justifyCenter: ["M12 4v16", "M5 8h4v8H5z", "M15 8h4v8h-4z"],
     justifyEnd: ["M20 4v16", "M7 8h4v8H7z", "M13 8h4v8h-4z"],
     justifyBetween: ["M4 4v16", "M20 4v16", "M6 8h4v8H6z", "M14 8h4v8h-4z"],
@@ -6657,7 +6662,7 @@
               if (docRef.current.active !== fid) activateRef.current(fid);
               var at = locate(docRef.current, id);
               if (!at) return;
-              if (at.node.type === "Slot") return;
+              if (at.node.type === "Slot" || at.node.lock) return;
               if (alt) {
                 var copyId = null;
                 change(function(d) {
@@ -7291,6 +7296,46 @@
           return any ? ids : null;
         });
       },
+      /* Locked: left alone on the canvas (it still answers in Layers).
+         Hidden: not drawn and not exported. Each toggles the selection. */
+      lock: function() {
+        var ids = selRef.current.slice();
+        if (!ids.length) return;
+        var d = docRef.current, on = ids.some(function(id) {
+          var at = locate(d, id);
+          return at && !at.node.lock;
+        });
+        change(function(dd) {
+          var any = false;
+          ids.forEach(function(id) {
+            var at = locate(dd, id);
+            if (!at || at.node.type === "Slot") return;
+            any = true;
+            if (on) at.node.lock = true;
+            else delete at.node.lock;
+          });
+          return any ? ids : null;
+        }, on ? ids.length > 1 ? "Locked " + ids.length : "Locked" : ids.length > 1 ? "Unlocked " + ids.length : "Unlocked");
+      },
+      hide: function() {
+        var ids = selRef.current.slice();
+        if (!ids.length) return;
+        var d = docRef.current, on = ids.some(function(id) {
+          var at = locate(d, id);
+          return at && !at.node.hide;
+        });
+        change(function(dd) {
+          var any = false;
+          ids.forEach(function(id) {
+            var at = locate(dd, id);
+            if (!at || at.node.type === "Slot") return;
+            any = true;
+            if (on) at.node.hide = true;
+            else delete at.node.hide;
+          });
+          return any ? ids : null;
+        }, on ? ids.length > 1 ? "Hidden " + ids.length : "Hidden" : ids.length > 1 ? "Shown " + ids.length : "Shown");
+      },
       /* Everything at the top of the active frame. */
       selectAll: function() {
         var f = active(docRef.current);
@@ -7543,6 +7588,14 @@
         actions.duplicate();
         return true;
       }
+      if (mod && ev.shiftKey && (key === "h" || ev.code === "KeyH")) {
+        actions.hide();
+        return true;
+      }
+      if (mod && ev.shiftKey && (key === "l" || ev.code === "KeyL")) {
+        actions.lock();
+        return true;
+      }
       if ((ev.altKey || mod) && ev.key === "ArrowUp") {
         actions.up();
         return true;
@@ -7673,6 +7726,15 @@
         });
         return any ? void 0 : null;
       });
+    };
+    var flagLayer = function(id, fid, key) {
+      change(function(d) {
+        var at = locate(d, id, fid);
+        if (!at) return null;
+        if (at.node[key]) delete at.node[key];
+        else at.node[key] = true;
+        return void 0;
+      }, null);
     };
     var setStyle = function(ids, key, value) {
       change(function(d) {
@@ -11094,7 +11156,7 @@
           "div",
           {
             key: n.id,
-            className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+            className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
             "data-layer": mine ? n.id : void 0,
             "data-frame-row": mine ? void 0 : f.id,
             "data-depth": r.depth,
@@ -11125,7 +11187,7 @@
                 if (renameable && mine) setRenaming({ id: n.id, where: "layer" });
               },
               onPointerDown: function(ev) {
-                if (mine && ev.pointerType === "mouse" && n.type !== "Slot") startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
+                if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
               }
             },
             e(Icon, { name: typeIcon(n.type) }),
@@ -11134,7 +11196,33 @@
               setName(n.id, v === "Group" ? "" : v);
             } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
             text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null
-          )
+          ),
+          n.type !== "Slot" ? e(
+            "span",
+            { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
+            e("button", {
+              type: "button",
+              className: cx("bd-layer-flag", n.hide && "is-on"),
+              "aria-pressed": String(!!n.hide),
+              "aria-label": (n.hide ? "Show " : "Hide ") + nameOf(n),
+              title: n.hide ? "Hidden: press to show (Ctrl+Shift+H)" : "Hide (Ctrl+Shift+H)",
+              onClick: function(ev) {
+                ev.stopPropagation();
+                flagLayer(n.id, f.id, "hide");
+              }
+            }, e(Icon, { name: n.hide ? "eyeOff" : "eye" })),
+            e("button", {
+              type: "button",
+              className: cx("bd-layer-flag", n.lock && "is-on"),
+              "aria-pressed": String(!!n.lock),
+              "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n),
+              title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
+              onClick: function(ev) {
+                ev.stopPropagation();
+                flagLayer(n.id, f.id, "lock");
+              }
+            }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))
+          ) : null
         );
       };
       return e(
@@ -12011,7 +12099,18 @@
                   return t !== first.type && (placeable == null || placeable[t] || t === "Group");
                 }).map(function(t) {
                   return { value: "turn:" + t, label: "Turn into " + t, icon: typeIcon(t) };
-                }).concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }]) : []).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]),
+                }).concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }]) : []).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]).concat([
+                  { value: "hide", label: nodes.every(function(n) {
+                    return n.hide;
+                  }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function(n) {
+                    return n.hide;
+                  }) ? "eye" : "eyeOff" },
+                  { value: "lock", label: nodes.every(function(n) {
+                    return n.lock;
+                  }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function(n) {
+                    return n.lock;
+                  }) ? "lockOpen" : "lock" }
+                ]),
                 onChange: function(v) {
                   if (v === "group") actions.group();
                   else if (v === "ungroup") actions.ungroup();
@@ -12020,6 +12119,8 @@
                   else if (v === "detach") actions.detach();
                   else if (v === "link") share(first.id);
                   else if (v === "component") openComponent();
+                  else if (v === "hide") actions.hide();
+                  else if (v === "lock") actions.lock();
                 }
               })
             )
@@ -12727,10 +12828,10 @@
           if (!at) return null;
           var isMain = m.id === sel && !edit;
           var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
-          var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" ? isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
+          var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
           return e(
             "div",
-            { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+            { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
             isMain ? e("span", {
               className: "bd-mark-tag",
               title: "Drag to move",

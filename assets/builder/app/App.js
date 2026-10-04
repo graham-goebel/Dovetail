@@ -1490,7 +1490,7 @@ function App(props) {
             if (docRef.current.active !== fid) activateRef.current(fid);
             var at = locate(docRef.current, id);
             if (!at) return;
-            if (at.node.type === "Slot") return;
+            if (at.node.type === "Slot" || at.node.lock) return;
             /* Alt-drag: a copy is made where the original is, and it's the
                copy that moves, so the original stays put. */
             if (alt) {
@@ -1970,6 +1970,20 @@ function App(props) {
         return any ? ids : null;
       });
     },
+    /* Locked: left alone on the canvas (it still answers in Layers).
+       Hidden: not drawn and not exported. Each toggles the selection. */
+    lock: function () {
+      var ids = selRef.current.slice();
+      if (!ids.length) return;
+      var d = docRef.current, on = ids.some(function (id) { var at = locate(d, id); return at && !at.node.lock; });
+      change(function (dd) { var any = false; ids.forEach(function (id) { var at = locate(dd, id); if (!at || at.node.type === "Slot") return; any = true; if (on) at.node.lock = true; else delete at.node.lock; }); return any ? ids : null; }, on ? (ids.length > 1 ? "Locked " + ids.length : "Locked") : (ids.length > 1 ? "Unlocked " + ids.length : "Unlocked"));
+    },
+    hide: function () {
+      var ids = selRef.current.slice();
+      if (!ids.length) return;
+      var d = docRef.current, on = ids.some(function (id) { var at = locate(d, id); return at && !at.node.hide; });
+      change(function (dd) { var any = false; ids.forEach(function (id) { var at = locate(dd, id); if (!at || at.node.type === "Slot") return; any = true; if (on) at.node.hide = true; else delete at.node.hide; }); return any ? ids : null; }, on ? (ids.length > 1 ? "Hidden " + ids.length : "Hidden") : (ids.length > 1 ? "Shown " + ids.length : "Shown"));
+    },
     /* Everything at the top of the active frame. */
     selectAll: function () {
       var f = active(docRef.current);
@@ -2098,6 +2112,8 @@ function App(props) {
     if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
     if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
     if (mod && key === "d") { actions.duplicate(); return true; }
+    if (mod && ev.shiftKey && (key === "h" || ev.code === "KeyH")) { actions.hide(); return true; }
+    if (mod && ev.shiftKey && (key === "l" || ev.code === "KeyL")) { actions.lock(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowDown") { actions.down(); return true; }
     /* Align and distribute, as Figma has them: Alt and a letter. */
@@ -2173,6 +2189,15 @@ function App(props) {
       [].concat(ids).forEach(function (id) { var at = locate(d, id); if (!at) return; any = true; if (value === undefined) delete at.node.props[key]; else at.node.props[key] = value; });
       return any ? undefined : null;
     });
+  };
+  /* The eye and lock on a layer row, on any frame's row. */
+  var flagLayer = function (id, fid, key) {
+    change(function (d) {
+      var at = locate(d, id, fid);
+      if (!at) return null;
+      if (at.node[key]) delete at.node[key]; else at.node[key] = true;
+      return undefined;
+    }, null);
   };
   var setStyle = function (ids, key, value) {
     change(function (d) {
@@ -4259,7 +4284,7 @@ function App(props) {
       var folds = !!n.children || owner;
       var renameable = n.type === "Group";
       return e("div", {
-        key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+        key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
         "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
         "aria-expanded": folds ? String(open) : undefined,
         style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
@@ -4272,13 +4297,18 @@ function App(props) {
           type: "button", className: "bd-layer-main",
           onClick: function (ev) { if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id); },
           onDoubleClick: function () { if (renameable && mine) setRenaming({ id: n.id, where: "layer" }); },
-          onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot") startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
+          onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
         },
           e(Icon, { name: typeIcon(n.type) }),
           renameable && mine && isRenaming(n.id, "layer")
             ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
             : e("span", { className: "bd-layer-name" }, nameOf(n)),
-          text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
+          text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
+        n.type !== "Slot" ? e("span", { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
+          e("button", { type: "button", className: cx("bd-layer-flag", n.hide && "is-on"), "aria-pressed": String(!!n.hide), "aria-label": (n.hide ? "Show " : "Hide ") + nameOf(n), title: n.hide ? "Hidden: press to show (Ctrl+Shift+H)" : "Hide (Ctrl+Shift+H)",
+            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "hide"); } }, e(Icon, { name: n.hide ? "eyeOff" : "eye" })),
+          e("button", { type: "button", className: cx("bd-layer-flag", n.lock && "is-on"), "aria-pressed": String(!!n.lock), "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n), title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
+            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "lock"); } }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))) : null);
     };
     return e("div", { className: "bd-layers-panel" },
       e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
@@ -4655,7 +4685,9 @@ function App(props) {
                   : [])
                 .concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : [])
                 .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : [])
-                .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]),
+                .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }])
+                .concat([{ value: "hide", label: nodes.every(function (n) { return n.hide; }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function (n) { return n.hide; }) ? "eye" : "eyeOff" },
+                  { value: "lock", label: nodes.every(function (n) { return n.lock; }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function (n) { return n.lock; }) ? "lockOpen" : "lock" }]),
               onChange: function (v) {
                 if (v === "group") actions.group();
                 else if (v === "ungroup") actions.ungroup();
@@ -4664,6 +4696,8 @@ function App(props) {
                 else if (v === "detach") actions.detach();
                 else if (v === "link") share(first.id);
                 else if (v === "component") openComponent();
+                else if (v === "hide") actions.hide();
+                else if (v === "lock") actions.lock();
               } }))),
         many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
           : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
@@ -5167,8 +5201,8 @@ function App(props) {
         /* At the top of the stage, or of its frame (where the frame's name
            sits), the tag goes inside the box. */
         var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
-        var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" ? (isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW) : null;
-        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+        var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? (isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW) : null;
+        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
           isMain ? e("span", {
             className: "bd-mark-tag", title: "Drag to move",
             onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },

@@ -258,14 +258,17 @@
 
   function renderNode(node, parentId) {
     index[node.id] = { node: node, parent: parentId };
+    /* Hidden: known to the index (so Layers can find it) but not drawn. */
+    if (node.hide) return null;
+    var lock = node.lock ? "" : undefined;
     if (node.type === "Group") {
       var gp = node.props || {};
       var gkids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
-      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", "data-bf-free": isFree(node.style) ? "" : undefined, "data-bf-locked": lock, style: { display: "contents" } },
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: Object.assign(groupStyle(gp), styleFor(node.style) || {}) }, gkids));
     }
     if (node.type === "Shape") {
-      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", "data-bf-free": isFree(node.style) ? "" : undefined, "data-bf-locked": lock, style: { display: "contents" } },
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: shapeStyle(node), role: "presentation" }));
     }
     if (node.type === "Carousel" && !opts.preview) return carouselBoard(node);
@@ -286,7 +289,7 @@
       kids = own.length ? own.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
     }
     var el = kids === undefined ? e(Comp, p) : e(Comp, p, kids);
-    return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": node.type, "data-bf-free": isFree(node.style) ? "" : undefined, style: { display: "contents" } },
+    return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": node.type, "data-bf-free": isFree(node.style) ? "" : undefined, "data-bf-locked": lock, style: { display: "contents" } },
       e(Guard, { stamp: stamp, name: node.type }, el));
   }
 
@@ -507,9 +510,15 @@
     return null;
   }
 
-  function pick(x, y) {
-    var el = document.elementFromPoint(x, y);
+  /* The layer an element belongs to; a locked one passes the press up to
+     the first unlocked layer around it. */
+  function layerOf(el) {
     var w = el && el.closest ? el.closest("[data-bf-id]") : null;
+    while (w && w.hasAttribute("data-bf-locked")) w = w.parentElement && w.parentElement.closest ? w.parentElement.closest("[data-bf-id]") : null;
+    return w;
+  }
+  function pick(x, y) {
+    var w = layerOf(document.elementFromPoint(x, y));
     return w ? w.getAttribute("data-bf-id") : null;
   }
 
@@ -548,7 +557,7 @@
       ev.preventDefault();
       ev.stopPropagation();
       if (!host()) return;
-      var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+      var w = layerOf(ev.target);
       var id = w ? w.getAttribute("data-bf-id") : "root";
       /* The text right under the pointer, so that piece of it is what's typed into. */
       if (type === "dblclick") { host().edit(id, textAt(ev.clientX, ev.clientY, w)); return; }
@@ -571,7 +580,7 @@
   var hold = null;
   var HOLD_MS = 450;
   function onBackground(ev) {
-    var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+    var w = layerOf(ev.target);
     return !w || w.getAttribute("data-bf-id") === "root";
   }
   function panning(ev) {
@@ -618,7 +627,7 @@
       return;
     }
     if (ev.button !== 0 || ev.pointerType === "touch" || ev.shiftKey || ev.metaKey || ev.ctrlKey || !host()) return;
-    var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+    var w = layerOf(ev.target);
     var id = w ? w.getAttribute("data-bf-id") : null;
     if (!id || id === "root" || !index[id]) return;
     var sel = host().selection();
@@ -800,8 +809,15 @@
     return kids ? open + ">" + kids + "</" + tag + ">" : open + " />";
   }
 
+  /* Hidden layers, and what's in them, stay out of the code. */
+  function shown(node) {
+    if (!node || node.hide) return null;
+    if (!node.children) return node;
+    return Object.assign({}, node, { children: node.children.map(shown).filter(Boolean) });
+  }
   function jsx(tree, name) {
     var used = new Set();
+    tree = Object.assign({}, tree, { root: shown(tree.root) || tree.root });
     var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
     var page = tree.page || {};
     if (page.bare) return jsxNodes(tree.root.children, name);
@@ -825,6 +841,7 @@
     var used = new Set();
     var fn = String(name || "Part").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "P$&") || "Part";
     var unfree = function (c) { var o = Object.assign({}, c, { style: Object.assign({}, c.style) }); delete o.style.x; delete o.style.y; return o; };
+    nodes = nodes.map(shown).filter(Boolean);
     var many = nodes.length !== 1;
     var kids = nodes.map(function (c) { return block(unfree(c), used, many ? "      " : "    "); });
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
