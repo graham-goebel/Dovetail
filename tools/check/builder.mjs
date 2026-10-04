@@ -2189,6 +2189,63 @@ try {
     await page.close();
   });
 
+  await step("Pages: folders, and dragging a page to a new place", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
+    const names = () => page.locator(".bd-pages .bd-page-name").allTextContents();
+    /* The rows as they read: [ marks a folder, * a page inside one. */
+    const rows = () => page.evaluate(() => [...document.querySelectorAll(".bd-pages [data-row]")].map((r) => (r.classList.contains("bd-folder") ? "[" : "") + r.querySelector(".bd-page-name, .bd-folder-name").textContent + (r.classList.contains("is-nested") ? "*" : "")).join());
+    const meta = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.project())));
+    const gripOf = async (name) => { const g = await page.locator(".bd-page", { hasText: name }).locator(".bd-page-grip").boundingBox(); return { x: g.x + g.width / 2, y: g.y + g.height / 2 }; };
+    await rail("Pages").click();
+    await page.locator('.bd-pages-panel [aria-label="Add a page"]').click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-pages .bd-page").length === 2);
+    await page.locator('.bd-pages-panel [aria-label="Add a page"]').click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-pages .bd-page").length === 3);
+    expect((await names()).join() === "Page 1,Page 2,Page 3", `three pages to start, got ${await names()}`);
+    const first = await page.locator(".bd-page", { hasText: "Page 1" }).boundingBox();
+    await drag(page, await gripOf("Page 3"), { x: first.x + 60, y: first.y + 3 });
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-pages .bd-page-name")].map((x) => x.textContent).join() === "Page 3,Page 1,Page 2");
+    ok("dragging Page 3 by its grip above Page 1 puts the pages in that order");
+
+    await page.locator('.bd-pages-panel [aria-label="New folder"]').click();
+    await page.locator("input.bd-folder-name").waitFor();
+    await page.keyboard.press("Control+a");
+    await page.keyboard.type("Marketing");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-folder-name")].some((x) => x.textContent === "Marketing"));
+    await page.locator(".bd-page", { hasText: "Page 2" }).locator(".bd-page-menu").click();
+    await option(page, "Move to Marketing").click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-page.is-nested").length === 1);
+    expect(await rows() === "Page 3,Page 1,[Marketing,Page 2*", `the page sits under the folder, got ${await rows()}`);
+    const head = await page.locator(".bd-folder", { hasText: "Marketing" }).boundingBox();
+    await drag(page, await gripOf("Page 1"), { x: head.x + head.width / 2, y: head.y + head.height / 2 });
+    await page.waitForFunction(() => document.querySelectorAll(".bd-page.is-nested").length === 2);
+    expect(await rows() === "Page 3,[Marketing,Page 2*,Page 1*", `a page dropped on the folder goes in at its end, got ${await rows()}`);
+    await page.locator(".bd-folder .bd-folder-twisty").click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-page.is-nested").length === 0);
+    expect(await rows() === "Page 3,[Marketing", `a closed folder hides its pages, got ${await rows()}`);
+    ok("New folder makes Marketing; Move to from a page's menu and a drop on the folder both put pages in it; closing it hides them");
+
+    await page.evaluate(() => window.__builder.flush());
+    await page.reload();
+    await page.waitForFunction(() => !!window.__builder && window.__builder.project().folders);
+    await rail("Pages").click();
+    expect(await rows() === "Page 3,[Marketing" && (await meta()).folders.length === 1, `the folder, closed, is back after a reload, got ${await rows()}`);
+    await page.locator(".bd-folder .bd-folder-twisty").click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-page.is-nested").length === 2);
+    await page.locator(".bd-page", { hasText: "Page 2" }).locator(".bd-page-menu").click();
+    await option(page, "Out of the folder").click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-page.is-nested").length === 1);
+    expect(await rows() === "Page 3,[Marketing,Page 1*,Page 2", `Out of the folder puts the page after it, got ${await rows()}`);
+    await page.locator(".bd-folder .bd-page-menu").click();
+    await option(page, /^Delete folder/).click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-folder").length === 0);
+    expect(await rows() === "Page 3,Page 1,Page 2", `deleting the folder leaves its pages where they were, got ${await rows()}`);
+    ok("the folder survives a reload; Out of the folder and Delete folder leave the pages in place");
+    await page.close();
+  });
+
   await step("The project's own system: with nothing selected, variables, primitives and styles are the ones the project uses", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const clickStage = async () => {

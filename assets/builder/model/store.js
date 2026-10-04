@@ -25,6 +25,26 @@ function docKey(id, page) { return !page || page === MAIN ? id : id + ":" + page
 function pagesOf(meta) {
   return meta && Array.isArray(meta.pages) && meta.pages.length ? meta.pages : [{ id: MAIN, name: "Page 1" }];
 }
+/* Folders group pages: a page names its folder, and a folder's pages sit
+   together in the list. A folder with no pages yet is listed after them. */
+function foldersOf(meta) {
+  return meta && Array.isArray(meta.folders) ? meta.folders : [];
+}
+function cleanFolder(f) {
+  if (!f || typeof f !== "object" || typeof f.id !== "string" || !/^[\w-]{1,40}$/.test(f.id)) return null;
+  var name = String(f.name || "").trim().slice(0, 60) || "Folder";
+  return f.open === false ? { id: f.id, name: name, open: false } : { id: f.id, name: name };
+}
+/* The list as top-level items: a loose page, or a folder's run of pages. */
+function itemsOf(pages) {
+  var items = [];
+  pages.forEach(function (p) {
+    var last = items[items.length - 1];
+    if (p.folder && last && last.folder === p.folder) last.pages.push(p);
+    else items.push({ folder: p.folder || null, pages: [p] });
+  });
+  return items;
+}
 /* The page a project opens on: the one last open, or its first. */
 function pageOf(meta) {
   var pages = pagesOf(meta);
@@ -152,12 +172,15 @@ function makeStore(b) {
       });
     },
     /* Pages. Each returns the project as it is after. */
-    addPage: function (id, name, doc, after) {
+    addPage: function (id, name, doc, after, folder) {
       return b.get("projects", id).then(function (meta) {
         if (!meta) return null;
         var pages = pagesOf(meta).slice();
         var page = { id: "pg" + uid(), name: (name || "Page " + (pages.length + 1)).slice(0, 60) };
         var at = pages.findIndex(function (p) { return p.id === after; });
+        /* A page added after one in a folder goes in the folder too. */
+        var fold = folder !== undefined ? folder : at >= 0 ? pages[at].folder : null;
+        if (fold && foldersOf(meta).some(function (f) { return f.id === fold; })) page.folder = fold;
         pages.splice(at >= 0 ? at + 1 : pages.length, 0, page);
         meta.pages = pages;
         tally(meta, page.id, count(doc));
@@ -169,7 +192,7 @@ function makeStore(b) {
       return b.get("projects", id).then(function (meta) {
         if (!meta) return null;
         var named = String(name || "").trim().slice(0, 60);
-        meta.pages = pagesOf(meta).map(function (p) { return p.id === pageId && named ? { id: p.id, name: named } : p; });
+        meta.pages = pagesOf(meta).map(function (p) { return p.id === pageId && named ? Object.assign({}, p, { name: named }) : p; });
         return b.put("projects", meta).then(function () { return meta; });
       });
     },
@@ -189,6 +212,80 @@ function makeStore(b) {
         var from = pagesOf(got[0]).filter(function (p) { return p.id === pageId; })[0];
         if (!got[0] || !from || !got[1]) return null;
         return api.addPage(id, from.name + " copy", got[1], pageId);
+      });
+    },
+    /* A page put at a place in the list, in a folder or out of one. index
+       counts the list without the page itself. */
+    placePage: function (id, pageId, index, folderId) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var pages = pagesOf(meta).slice();
+        var at = pages.findIndex(function (p) { return p.id === pageId; });
+        if (at < 0) return meta;
+        var page = Object.assign({}, pages.splice(at, 1)[0]);
+        if (folderId && foldersOf(meta).some(function (f) { return f.id === folderId; })) page.folder = folderId; else delete page.folder;
+        var to = Math.max(0, Math.min(pages.length, Math.round(Number(index)) || 0));
+        pages.splice(to, 0, page);
+        meta.pages = pages;
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    addFolder: function (id, name) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var folders = foldersOf(meta).slice();
+        var folder = { id: "fd" + uid(), name: String(name || "Folder " + (folders.length + 1)).trim().slice(0, 60) || "Folder" };
+        folders.push(folder);
+        meta.folders = folders;
+        return b.put("projects", meta).then(function () { return { meta: meta, folder: folder }; });
+      });
+    },
+    renameFolder: function (id, folderId, name) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var named = String(name || "").trim().slice(0, 60);
+        meta.folders = foldersOf(meta).map(function (f) { return f.id === folderId && named ? Object.assign({}, f, { name: named }) : f; });
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    /* Open or closed; closed hides its pages in the list. */
+    foldFolder: function (id, folderId, open) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        meta.folders = foldersOf(meta).map(function (f) { if (f.id !== folderId) return f; var n = Object.assign({}, f); if (open) delete n.open; else n.open = false; return n; });
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    /* A folder and the pages in it move as one past the loose page or
+       folder beside them. */
+    moveFolder: function (id, folderId, by) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var items = itemsOf(pagesOf(meta));
+        var at = items.findIndex(function (it) { return it.folder === folderId; }), to = at + by;
+        if (at < 0 || to < 0 || to >= items.length) return meta;
+        items.splice(to, 0, items.splice(at, 1)[0]);
+        meta.pages = [].concat.apply([], items.map(function (it) { return it.pages; }));
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    /* The pages stay, loose, where they were. */
+    deleteFolder: function (id, folderId) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        meta.folders = foldersOf(meta).filter(function (f) { return f.id !== folderId; });
+        meta.pages = pagesOf(meta).map(function (p) { if (p.folder !== folderId) return p; var n = Object.assign({}, p); delete n.folder; return n; });
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    /* The whole list of folders, as a copy or a file gives it. */
+    setFolders: function (id, folders) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var ok = (Array.isArray(folders) ? folders : []).map(cleanFolder).filter(Boolean).slice(0, 50);
+        meta.folders = ok;
+        meta.pages = pagesOf(meta).map(function (p) { if (!p.folder || ok.some(function (f) { return f.id === p.folder; })) return p; var n = Object.assign({}, p); delete n.folder; return n; });
+        return b.put("projects", meta).then(function () { return meta; });
       });
     },
     /* A project keeps at least one page. */
@@ -251,8 +348,8 @@ function makeStore(b) {
           return api.createProject(src.name + " copy", docs[0], src).then(function (meta) {
             return api.renamePage(meta.id, MAIN, pages[0].name);
           }).then(function (meta) {
-            var steps = Promise.resolve(meta);
-            pages.slice(1).forEach(function (p, i) { steps = steps.then(function () { return api.addPage(meta.id, p.name, docs[i + 1] || emptyDoc()); }); });
+            var steps = api.setFolders(meta.id, foldersOf(src)).then(function () { return pages[0].folder ? api.placePage(meta.id, MAIN, 0, pages[0].folder) : meta; });
+            pages.slice(1).forEach(function (p, i) { steps = steps.then(function () { return api.addPage(meta.id, p.name, docs[i + 1] || emptyDoc(), undefined, p.folder || null); }); });
             return steps.then(function () { return src.thumb ? api.setThumb(meta.id, src.thumb, src.thumbSet) : b.get("projects", meta.id); });
           });
         });
@@ -382,4 +479,4 @@ function ago(t) {
   return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 }
 
-export { openStore, makeStore, localBackend, ago, settingsOf, pagesOf, pageOf, MAIN, VERSIONS_MAX, VERSION_EVERY };
+export { openStore, makeStore, localBackend, ago, settingsOf, pagesOf, pageOf, foldersOf, itemsOf, MAIN, VERSIONS_MAX, VERSION_EVERY };

@@ -6,7 +6,7 @@ import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.
 import { readLayout } from "../model/paste.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
-import { ago, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
+import { ago, foldersOf, itemsOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
@@ -2420,6 +2420,13 @@ function App(props) {
      being left first; its history waits for it to come back. */
   var renamingPageState = useState(null);
   var renamingPage = renamingPageState[0], setRenamingPage = renamingPageState[1];
+  var renamingFolderState = useState(null);
+  var renamingFolder = renamingFolderState[0], setRenamingFolder = renamingFolderState[1];
+  /* A page on the move in the list: where it is, and where it would land. */
+  var pageDragState = useState(null);
+  var pageDrag = pageDragState[0], setPageDrag = pageDragState[1];
+  var pageDragRef = useRef(null);
+  var pagesListRef = useRef(null);
   var confirmPageState = useState(null);
   var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
   var takeMeta = function (meta) {
@@ -2464,6 +2471,31 @@ function App(props) {
     store.renamePage(projectRef.current.id, pg, name).then(takeMeta);
   };
   var movePage = function (pg, by) { store.movePage(projectRef.current.id, pg, by).then(takeMeta); };
+  var placePage = function (pg, index, folderId) { return store.placePage(projectRef.current.id, pg, index, folderId).then(takeMeta); };
+  /* Where the list ends for a folder: after its last page, counted without
+     the page on the move. */
+  var endOfFolder = function (fid, except) {
+    var pages = pagesOf(projectRef.current).filter(function (p) { return p.id !== except; });
+    var last = -1;
+    pages.forEach(function (p, i) { if (p.folder === fid) last = i; });
+    return last >= 0 ? last + 1 : pages.length;
+  };
+  var addFolder = function () {
+    var meta = projectRef.current;
+    var taken = foldersOf(meta).map(function (f) { return f.name; });
+    var n = taken.length + 1, name = "Folder " + n;
+    while (taken.indexOf(name) >= 0) name = "Folder " + (++n);
+    store.addFolder(meta.id, name).then(function (got) {
+      if (!got) return;
+      takeMeta(got.meta);
+      setRenamingFolder(got.folder.id);
+      announce("Added " + name + ". Drag pages into it, or use a page's menu.");
+    });
+  };
+  var renameFolder = function (fid, name) { setRenamingFolder(null); if (!name) return; store.renameFolder(projectRef.current.id, fid, name).then(takeMeta); };
+  var foldFolder = function (fid, open) { store.foldFolder(projectRef.current.id, fid, open).then(takeMeta); };
+  var moveFolder = function (fid, by) { store.moveFolder(projectRef.current.id, fid, by).then(takeMeta); };
+  var deleteFolder = function (fid) { store.deleteFolder(projectRef.current.id, fid).then(function (m) { takeMeta(m); announce("Removed the folder. Its pages stay."); }); };
   var duplicatePage = function (pg) {
     flush().then(function () { return store.duplicatePage(projectRef.current.id, pg); }).then(function (got) {
       if (!got) return null;
@@ -2496,8 +2528,8 @@ function App(props) {
     }).then(function (got) {
       if (!got || !got[1][0]) return;
       /* Every page, in order; doc is the first, for files read before pages. */
-      var pages = pagesOf(got[0]).map(function (p, i) { return { name: p.name, doc: got[1][i] }; }).filter(function (p) { return p.doc; });
-      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 2, name: got[0].name, savedAt: new Date().toISOString(), doc: pages[0].doc, pages: pages, stage: got[0].stage, theme: got[0].theme });
+      var pages = pagesOf(got[0]).map(function (p, i) { return { name: p.name, doc: got[1][i], folder: p.folder || undefined }; }).filter(function (p) { return p.doc; });
+      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 2, name: got[0].name, savedAt: new Date().toISOString(), doc: pages[0].doc, pages: pages, folders: foldersOf(got[0]), stage: got[0].stage, theme: got[0].theme });
       var link = document.createElement("a");
       link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
       link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
@@ -2519,13 +2551,14 @@ function App(props) {
       var given = (Array.isArray(data.pages) && data.pages.length ? data.pages : [{ name: "Page 1", doc: data.doc }]).slice(0, 50)
         .filter(function (p) { return p && p.doc && typeof p.doc === "object"; });
       if (!given.length) { announce(file.name + " isn't a Dovetail project file."); return; }
-      var pages = given.map(function (p, i) { return { name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "Page " + (i + 1), doc: clean(p.doc, dropped) }; });
+      var pages = given.map(function (p, i) { return { name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "Page " + (i + 1), doc: clean(p.doc, dropped), folder: typeof p.folder === "string" ? p.folder : null }; });
       var d = pages[0].doc;
       var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
       /* Its pages, canvas colour and theme come along, cleaned like anything else that comes in. */
       captureThumb().then(flush).then(function () { return store.createProject(name, d, { stage: data.stage, theme: data.theme }); }).then(function (meta) {
-        var steps = store.renamePage(meta.id, pageOf(meta), pages[0].name);
-        pages.slice(1).forEach(function (p) { steps = steps.then(function () { return store.addPage(meta.id, p.name, p.doc); }); });
+        var steps = store.setFolders(meta.id, data.folders).then(function () { return store.renamePage(meta.id, pageOf(meta), pages[0].name); })
+          .then(function () { return pages[0].folder ? store.placePage(meta.id, pageOf(meta), 0, pages[0].folder) : null; });
+        pages.slice(1).forEach(function (p) { steps = steps.then(function () { return store.addPage(meta.id, p.name, p.doc, undefined, p.folder); }); });
         return steps.then(function () { return store.getProject(meta.id); });
       }).then(function (meta) {
         switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
@@ -3645,39 +3678,168 @@ function App(props) {
   var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
   var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
   var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
+  /* The pages as rows: a folder, then the pages in it (unless it's closed),
+     and loose pages where they fall. A folder with nothing in it yet comes
+     last. */
+  var pageRows = function () {
+    var byId = {};
+    foldersOf(project).forEach(function (f) { byId[f.id] = f; });
+    var rows = [], seen = {};
+    itemsOf(pagesOf(project)).forEach(function (it) {
+      var f = it.folder ? byId[it.folder] : null;
+      if (!f) { it.pages.forEach(function (p) { rows.push({ kind: "page", page: p, folder: null }); }); return; }
+      var open = f.open !== false;
+      if (!seen[f.id]) { rows.push({ kind: "folder", folder: f, open: open, count: it.pages.length }); seen[f.id] = true; }
+      if (open) it.pages.forEach(function (p) { rows.push({ kind: "page", page: p, folder: f.id }); });
+    });
+    foldersOf(project).forEach(function (f) { if (!seen[f.id]) rows.push({ kind: "folder", folder: f, open: f.open !== false, count: 0 }); });
+    return rows;
+  };
+  /* Where a page on the move would land, from the pointer: a slot between
+     rows, or a folder itself. The slot gives a place in the list and the
+     folder it joins; after a folder's last page, a pointer tucked in means
+     the folder, out at the edge means after it. */
+  var pageDropAt = function (x, y) {
+    var list = pagesListRef.current;
+    var dr = pageDragRef.current;
+    if (!list || !dr) return null;
+    var rows = dr.rows;
+    var els = Array.prototype.slice.call(list.querySelectorAll("[data-row]"));
+    var pages = pagesOf(projectRef.current).filter(function (p) { return p.id !== dr.id; });
+    var at = function (pid) { var i = pages.findIndex(function (p) { return p.id === pid; }); return i < 0 ? pages.length : i; };
+    var listBox = list.getBoundingClientRect();
+    var firstOf = function (fid) { var p = pages.filter(function (q) { return q.folder === fid; })[0]; return p ? at(p.id) : pages.length; };
+    var slot = els.length, into = null;
+    for (var i = 0; i < els.length; i++) {
+      var b = els[i].getBoundingClientRect();
+      var row = rows[i];
+      if (row.kind === "folder" && y >= b.top + b.height * 0.25 && y <= b.bottom - b.height * 0.25) { into = row.folder.id; slot = i; break; }
+      if (y < b.top + b.height / 2) { slot = i; break; }
+    }
+    if (into) return { into: into, index: endOfFolder(into, dr.id), folder: into, line: null };
+    var before = rows[slot], prev = rows[slot - 1];
+    var tucked = x > listBox.left + 28;
+    var folder = null, index;
+    if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
+      folder = before.folder; index = at(before.page.id);
+    } else if (prev && ((prev.kind === "page" && prev.folder) || (prev.kind === "folder" && !prev.open && prev.count)) && tucked) {
+      folder = prev.kind === "page" ? prev.folder : prev.folder.id; index = endOfFolder(folder, dr.id);
+    } else if (prev && prev.kind === "page" && prev.folder) {
+      folder = null; index = endOfFolder(prev.folder, dr.id);
+    } else if (before && before.kind === "page") {
+      folder = null; index = at(before.page.id);
+    } else if (before && before.kind === "folder") {
+      folder = null; index = before.count ? firstOf(before.folder.id) : pages.length;
+    } else {
+      folder = null; index = pages.length;
+    }
+    var edge = slot < els.length ? els[slot].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
+    return { into: null, index: index, folder: folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
+  };
+  /* The grip starts the move: a few pixels on, the page follows the pointer
+     and a line shows where it would land. */
+  var gripDown = function (p) {
+    return function (ev) {
+      if (ev.button !== undefined && ev.button !== 0) return;
+      ev.preventDefault();
+      var el = ev.currentTarget;
+      try { el.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      pageDragRef.current = { id: p.id, name: p.name, pointer: ev.pointerId, x0: ev.clientX, y0: ev.clientY, live: false, rows: pageRows(), drop: null };
+      var move = function (mv) {
+        var dr = pageDragRef.current;
+        if (!dr || mv.pointerId !== dr.pointer) return;
+        if (!dr.live) { if (Math.abs(mv.clientX - dr.x0) + Math.abs(mv.clientY - dr.y0) < 4) return; dr.live = true; }
+        dr.drop = pageDropAt(mv.clientX, mv.clientY);
+        setPageDrag({ id: dr.id, name: dr.name, x: mv.clientX, y: mv.clientY, drop: dr.drop });
+      };
+      var end = function (up) {
+        var dr = pageDragRef.current;
+        if (!dr || (up && up.pointerId !== dr.pointer)) return;
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", end);
+        window.removeEventListener("pointercancel", cancel);
+        pageDragRef.current = null;
+        setPageDrag(null);
+        if (dr.live && dr.drop) {
+          var fname = dr.drop.folder ? (foldersOf(projectRef.current).filter(function (f) { return f.id === dr.drop.folder; })[0] || {}).name : null;
+          placePage(dr.id, dr.drop.index, dr.drop.folder).then(function () { announce("Moved " + dr.name + (fname ? " into " + fname : "")); });
+        }
+      };
+      var cancel = function () { pageDragRef.current = null; setPageDrag(null); window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); window.removeEventListener("pointercancel", cancel); };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", end);
+      window.addEventListener("pointercancel", cancel);
+    };
+  };
   var pagesPanel = function () {
-    var list = pagesOf(project);
+    var rows = pageRows();
+    var folders = foldersOf(project);
+    var items = itemsOf(pagesOf(project));
+    var drop = pageDrag && pageDrag.drop;
+    var folderRow = function (r, i) {
+      var f = r.folder;
+      var itemAt = items.findIndex(function (it) { return it.folder === f.id; });
+      return e("li", { key: "f" + f.id, className: cx("bd-folder", !r.open && "is-closed", drop && drop.into === f.id && "is-drop"), "data-row": i, "data-folder": f.id },
+        e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, onClick: function () { foldFolder(f.id, !r.open); } }, e(Icon, { name: r.open ? "down" : "right" })),
+        renamingFolder === f.id
+          ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function (v) { renameFolder(f.id, v); } })
+          : e("button", { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function () { foldFolder(f.id, !r.open); }, onDoubleClick: function () { setRenamingFolder(f.id); } },
+            e(Icon, { name: "folder" }), e("span", { className: "bd-folder-name" }, f.name), e("span", { className: "bd-folder-count" }, r.count || "")),
+        e(Dropdown, { menu: true, label: "Actions for " + f.name, placeholder: "Folder", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
+          options: [{ value: "rename", label: "Rename", icon: "pencil" }]
+            .concat(itemAt > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
+            .concat(itemAt >= 0 && itemAt < items.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : [])
+            .concat([{ value: "delete", label: "Delete folder (the pages stay)", icon: "trash" }]),
+          onChange: function (v) {
+            if (v === "rename") setRenamingFolder(f.id);
+            else if (v === "up") moveFolder(f.id, -1);
+            else if (v === "down") moveFolder(f.id, 1);
+            else if (v === "delete") deleteFolder(f.id);
+          } }));
+    };
+    var pageRow = function (r, i) {
+      var p = r.page, on = p.id === pageId;
+      var list = pagesOf(project), idx = list.findIndex(function (x) { return x.id === p.id; });
+      return e("li", { key: p.id, className: cx("bd-page", on && "is-current", r.folder && "is-nested", pageDrag && pageDrag.id === p.id && "is-moving"), "data-row": i },
+        e("button", { type: "button", className: "bd-page-grip", "aria-label": "Move " + p.name + ": drag it, or use its menu", title: "Drag to move", onPointerDown: gripDown(p) }, e(Icon, { name: "grip" })),
+        renamingPage === p.id
+          ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function (v) { renamePage(p.id, v); } })
+          : e("button", { type: "button", className: "bd-page-open", "aria-current": on ? "page" : undefined, title: "Double-click to rename",
+            onClick: function () { openPage(p.id); }, onDoubleClick: function () { setRenamingPage(p.id); } },
+            e(Icon, { name: "file" }), e("span", { className: "bd-page-name" }, p.name)),
+        confirmPage === p.id
+          ? e("span", { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + p.name },
+            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function () { deletePage(p.id); } }, "Delete"),
+            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setConfirmPage(null); } }, "Keep"))
+          : e(Dropdown, { menu: true, label: "Actions for " + p.name, placeholder: "Page", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
+            options: [
+              { value: "rename", label: "Rename", icon: "pencil" },
+              { value: "duplicate", label: "Duplicate", icon: "copy" },
+            ].concat(idx > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
+              .concat(idx < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : [])
+              .concat(folders.filter(function (f) { return f.id !== r.folder; }).map(function (f) { return { value: "into:" + f.id, label: "Move to " + f.name, icon: "folder" }; }))
+              .concat(r.folder ? [{ value: "out", label: "Out of the folder", icon: "detach" }] : [])
+              .concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
+            onChange: function (v) {
+              if (v === "rename") setRenamingPage(p.id);
+              else if (v === "duplicate") duplicatePage(p.id);
+              else if (v === "up") movePage(p.id, -1);
+              else if (v === "down") movePage(p.id, 1);
+              else if (v === "out") placePage(p.id, endOfFolder(r.folder, p.id), null);
+              else if (v.indexOf("into:") === 0) placePage(p.id, endOfFolder(v.slice(5), p.id), v.slice(5));
+              else if (v === "delete") setConfirmPage(p.id);
+            } }));
+    };
     return e("div", { className: "bd-pages-panel" },
       e("div", { className: "bd-panel-head" },
         e("h2", { className: "bd-panel-title" }, "Pages"),
-        e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" }))),
-      e("ul", { className: "bd-pages", role: "list" }, list.map(function (p, i) {
-        var on = p.id === pageId;
-        return e("li", { key: p.id, className: cx("bd-page", on && "is-current") },
-          renamingPage === p.id
-            ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function (v) { renamePage(p.id, v); } })
-            : e("button", { type: "button", className: "bd-page-open", "aria-current": on ? "page" : undefined, title: "Double-click to rename",
-              onClick: function () { openPage(p.id); }, onDoubleClick: function () { setRenamingPage(p.id); } },
-              e(Icon, { name: "file" }), e("span", { className: "bd-page-name" }, p.name)),
-          confirmPage === p.id
-            ? e("span", { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + p.name },
-              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function () { deletePage(p.id); } }, "Delete"),
-              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setConfirmPage(null); } }, "Keep"))
-            : e(Dropdown, { menu: true, label: "Actions for " + p.name, placeholder: "Page", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
-              options: [
-                { value: "rename", label: "Rename", icon: "pencil" },
-                { value: "duplicate", label: "Duplicate", icon: "copy" },
-              ].concat(i > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
-                .concat(i < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : [])
-                .concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
-              onChange: function (v) {
-                if (v === "rename") setRenamingPage(p.id);
-                else if (v === "duplicate") duplicatePage(p.id);
-                else if (v === "up") movePage(p.id, -1);
-                else if (v === "down") movePage(p.id, 1);
-                else if (v === "delete") setConfirmPage(p.id);
-              } }));
-      })));
+        e("span", { className: "bd-panel-acts" },
+          e("button", { type: "button", className: "bd-act", "aria-label": "New folder", title: "New folder", onClick: addFolder }, e(Icon, { name: "folder" })),
+          e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" })))),
+      e("ul", { className: cx("bd-pages", pageDrag && "is-dragging"), role: "list", ref: pagesListRef },
+        rows.map(function (r, i) { return r.kind === "folder" ? folderRow(r, i) : pageRow(r, i); }),
+        drop && drop.line ? e("li", { className: cx("bd-page-drop", drop.line.depth && "is-nested"), "aria-hidden": true, style: { top: drop.line.top + "px" } }) : null),
+      pageDrag ? e("div", { className: "bd-ghost", style: { left: pageDrag.x + "px", top: pageDrag.y + "px" }, "aria-hidden": true }, pageDrag.name) : null);
   };
 
   var layersPanel = function () {

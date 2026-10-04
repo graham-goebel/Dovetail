@@ -4,7 +4,7 @@
 import "./setup.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { makeStore, localBackend, pagesOf, pageOf, MAIN, VERSIONS_MAX } from "../../../assets/builder/model/store.js";
+import { makeStore, localBackend, pagesOf, pageOf, foldersOf, itemsOf, MAIN, VERSIONS_MAX } from "../../../assets/builder/model/store.js";
 import { make, makeFrame } from "../../../assets/builder/model/tree.js";
 
 const doc = (name = "Home") => { const f = makeFrame(name, "desktop"); f.root.children = [make("Heading", { children: name })]; return { frames: [f], active: f.id }; };
@@ -123,4 +123,39 @@ test("pages: a project saved before pages is one page, and copies and deletes ta
   await s.deleteProject(a.id);
   assert.equal(await s.loadDoc(a.id, p2), null, "deleting a project takes every page");
   assert.equal(await s.loadDoc(a.id), null);
+});
+
+test("pages: folders group pages, which move between and within them", async () => {
+  const s = fresh();
+  const a = await s.createProject("Kiln site", doc("Home"));
+  const about = (await s.addPage(a.id, "About", doc("About"))).page.id;
+  const shop = (await s.addPage(a.id, "Shop", doc("Shop"))).page.id;
+  const made = await s.addFolder(a.id, "Marketing");
+  const fid = made.folder.id;
+  assert.deepEqual(foldersOf(made.meta).map((f) => f.name), ["Marketing"], "a folder is added, open");
+  let m = await s.placePage(a.id, about, 0, fid);
+  assert.deepEqual(pagesOf(m).map((p) => p.name + (p.folder ? "/" + p.folder : "")), ["About/" + fid, "Page 1", "Shop"], "a page goes first, into the folder");
+  m = await s.placePage(a.id, shop, 1, fid);
+  assert.deepEqual(pagesOf(m).map((p) => p.name), ["About", "Shop", "Page 1"]);
+  assert.deepEqual(itemsOf(pagesOf(m)).map((it) => (it.folder || "loose") + ":" + it.pages.length), [fid + ":2", "loose:1"], "the folder's pages sit together as one item");
+  m = await s.placePage(a.id, shop, 99, "nope");
+  assert.deepEqual(pagesOf(m).map((p) => p.name + (p.folder ? "/f" : "")), ["About/f", "Page 1", "Shop"], "an index past the end goes last; an unknown folder means loose");
+  m = await s.renamePage(a.id, about, "Story");
+  assert.equal(pagesOf(m)[0].folder, fid, "renaming keeps the folder");
+  const inFolder = await s.addPage(a.id, "Press", doc("Press"), about);
+  assert.equal(inFolder.page.folder, fid, "a page added after one in a folder joins it");
+  m = await s.moveFolder(a.id, fid, 1);
+  assert.deepEqual(pagesOf(m).map((p) => p.name), ["Page 1", "Story", "Press", "Shop"], "a folder moves past the loose page beside it, pages together");
+  m = await s.foldFolder(a.id, fid, false);
+  assert.equal(foldersOf(m)[0].open, false, "a folder closes");
+  m = await s.renameFolder(a.id, fid, "Brand");
+  assert.equal(foldersOf(m)[0].name, "Brand");
+  const copy = await s.duplicateProject(a.id);
+  assert.deepEqual(foldersOf(copy).map((f) => f.name), ["Brand"], "a copy of the project keeps the folder");
+  assert.deepEqual(pagesOf(copy).map((p) => p.name + (p.folder ? "/f" : "")), ["Page 1", "Story/f", "Press/f", "Shop"], "and which pages are in it");
+  m = await s.deleteFolder(a.id, fid);
+  assert.deepEqual(foldersOf(m), []);
+  assert.deepEqual(pagesOf(m).map((p) => p.name + (p.folder ? "/f" : "")), ["Page 1", "Story", "Press", "Shop"], "deleting a folder leaves its pages where they were, loose");
+  m = await s.setFolders(a.id, [{ id: "x1", name: "Given" }, { id: "bad id", name: "No" }, null]);
+  assert.deepEqual(foldersOf(m), [{ id: "x1", name: "Given" }], "setFolders keeps only well-formed folders");
 });

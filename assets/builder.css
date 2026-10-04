@@ -4440,6 +4440,174 @@ input.bd-page-name {
   padding-right: var(--dt-space-inset-2xs);
 }
 
+/* Folders in the list: a twisty, the name and how many pages. The pages in
+   an open folder sit a step in. */
+.bd-panel-acts {
+  display: inline-flex;
+  gap: var(--dt-space-inline-2xs);
+}
+
+.bd-pages {
+  position: relative;
+}
+
+.bd-folder {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--dt-size-control-sm);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-folder:hover {
+  background: var(--dt-surface-raised);
+}
+
+.bd-folder.is-drop {
+  background: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+.bd-folder-twisty {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-sm);
+  height: var(--dt-size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  cursor: pointer;
+}
+
+.bd-folder-twisty .bd-ic {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+}
+
+.bd-folder-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
+  min-height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-xs) 0 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-folder-open:focus-visible,
+.bd-folder-twisty:focus-visible,
+.bd-page-grip:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-folder-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+input.bd-folder-name {
+  flex: 1;
+  min-width: 0;
+  height: var(--dt-size-control-sm);
+}
+
+.bd-folder-count {
+  margin-left: auto;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-regular);
+}
+
+.bd-folder:hover .bd-page-menu,
+.bd-folder:focus-within .bd-page-menu {
+  opacity: 1;
+}
+
+.bd-page.is-nested {
+  margin-left: var(--dt-space-inset-md);
+}
+
+/* The grip moves a page. It shows on hover, and always where there is no
+   hover; it takes the touch, so the list still scrolls from anywhere else. */
+.bd-page-grip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  opacity: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.bd-page-grip .bd-ic {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+}
+
+.bd-page:hover .bd-page-grip,
+.bd-page:focus-within .bd-page-grip,
+.bd-page.is-current .bd-page-grip {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .bd-page-grip {
+    opacity: 1;
+  }
+}
+
+.bd-page.is-moving {
+  opacity: 0.4;
+}
+
+.bd-pages.is-dragging {
+  cursor: grabbing;
+}
+
+.bd-pages.is-dragging .bd-page-open,
+.bd-pages.is-dragging .bd-folder-open {
+  cursor: grabbing;
+}
+
+/* Where the page would land: a line across the list, stepped in for a
+   place inside a folder. */
+.bd-page-drop {
+  position: absolute;
+  right: var(--dt-space-inset-xs);
+  left: var(--dt-space-inset-xs);
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--dt-focus-ring-color);
+  pointer-events: none;
+}
+
+.bd-page-drop.is-nested {
+  left: calc(var(--dt-space-inset-xs) + var(--dt-space-inset-md));
+}
+
 /* Versions of the project on screen, newest first. */
 .bd-versions {
   height: min(640px, calc(100dvh - 48px));
