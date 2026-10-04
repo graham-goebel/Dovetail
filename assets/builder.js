@@ -5855,9 +5855,9 @@
             pick: on(function(fid, id, additive, deep, part2) {
               pickRef.current(id, additive, deep, "canvas", fid, part2);
             }),
-            edit: on(function(fid, id) {
+            edit: on(function(fid, id, text) {
               if (docRef.current.active !== fid) activateRef.current(fid);
-              beginEditRef.current(id);
+              beginEditRef.current(id, text);
             }),
             hover: on(function(fid, id) {
               var h = hoverRef.current;
@@ -6176,21 +6176,61 @@
     };
     var pickRef = useRef(pick);
     pickRef.current = pick;
-    var beginEdit = function(id) {
+    var textSource = function(node, text, f) {
+      var want = String(text || "").trim();
+      if (!want) return null;
+      var base = scalars[node.type] || {};
+      var keys = Object.keys(node.props).concat(Object.keys(base));
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (k === "children" && isContainer(node.type)) continue;
+        var v = typeof node.props[k] === "string" ? node.props[k] : node.props[k] === void 0 && typeof base[k] === "string" ? base[k] : null;
+        if (v !== null && v.trim() === want) return { prop: k, value: v };
+      }
+      var meta = META[node.type];
+      var lists = meta ? meta.props.filter(function(p) {
+        return p.kind === "list";
+      }) : [];
+      for (var j = 0; j < lists.length; j++) {
+        var spec = lists[j];
+        var own = Array.isArray(node.props[spec.name]) ? node.props[spec.name] : null;
+        var items = own || (f && f.listSample ? f.listSample(node.type, spec.name) : null);
+        if (!Array.isArray(items)) continue;
+        for (var n = 0; n < items.length; n++) {
+          var item = items[n];
+          if (spec.of === "text") {
+            if (String(item).trim() === want) return { prop: spec.name, index: n, value: String(item), sample: own ? null : items };
+            continue;
+          }
+          var fields = (spec.fields || []).filter(function(x) {
+            return x.kind === "text";
+          });
+          for (var q = 0; q < fields.length; q++) {
+            var fv = item && item[fields[q].name];
+            if (typeof fv === "string" && fv.trim() === want) return { prop: spec.name, index: n, field: fields[q].name, value: fv, sample: own ? null : items };
+          }
+        }
+      }
+      return null;
+    };
+    var beginEdit = function(id, text) {
       var at = locate(docRef.current, id);
       var f = api();
       if (!at || !f) return;
-      var prop = textPropOf(at.node);
-      if (!prop) {
-        select([id]);
-        return;
+      var src = text ? textSource(at.node, text, f) : null;
+      if (!src) {
+        var prop = textPropOf(at.node);
+        if (!prop) {
+          select([id]);
+          return;
+        }
+        var base = scalars[at.node.type] || {};
+        src = { prop, value: typeof at.node.props[prop] === "string" ? at.node.props[prop] : String(base[prop] || "") };
       }
-      var base = scalars[at.node.type] || {};
-      var value = typeof at.node.props[prop] === "string" ? at.node.props[prop] : String(base[prop] || "");
-      var t = f.textRect(id, value);
+      var t = f.textRect(id, src.value);
       if (!t) return;
       select([id]);
-      setEdit({ id, prop, value, before: value, base: docRef.current, box: toStage(t.rect), font: t.font });
+      setEdit(Object.assign({ id, before: src.value, base: docRef.current, box: toStage(t.rect), font: t.font }, src));
       if (mql("(max-width: 900px)")) setPane("canvas");
     };
     var beginEditRef = useRef(beginEdit);
@@ -6202,7 +6242,16 @@
       quiet(function(d) {
         var at = locate(d, ed.id);
         if (!at) return null;
-        at.node.props[ed.prop] = value;
+        if (ed.index === void 0) {
+          at.node.props[ed.prop] = value;
+          return void 0;
+        }
+        if (!Array.isArray(at.node.props[ed.prop])) at.node.props[ed.prop] = JSON.parse(JSON.stringify(ed.sample || []));
+        var list = at.node.props[ed.prop];
+        if (ed.index >= list.length) return null;
+        if (ed.field) list[ed.index][ed.field] = value;
+        else list[ed.index] = value;
+        return void 0;
       });
     };
     var editDone = function(keep) {

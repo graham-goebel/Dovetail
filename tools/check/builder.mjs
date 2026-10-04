@@ -2108,6 +2108,48 @@ try {
     await page.close();
   });
 
+  await step("Edit in place: any text on the canvas, including an item of a component's list, is typed into where it is", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const grid = (d) => d.frames[0].root.children.find((c) => c.type === "FeatureGridBlock");
+    /* A point on a piece of text in the active frame, in the page. */
+    const textPoint = (text) => page.evaluate((text) => {
+      const iframe = document.querySelector("iframe.bd-frame.is-active");
+      const doc = iframe.contentDocument;
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = walker.nextNode())) if (n.textContent.trim() === text) break;
+      if (!n) return null;
+      n.parentElement.scrollIntoView({ block: "center" });
+      const r = doc.createRange(); r.selectNodeContents(n);
+      const b = r.getBoundingClientRect(), box = iframe.getBoundingClientRect(), s = box.width / parseFloat(iframe.style.width);
+      return { x: box.left + (b.left + Math.min(b.width / 2, 20)) * s, y: box.top + (b.top + b.height / 2) * s };
+    }, text);
+    await frame().waitForSelector('[data-bf-type="FeatureGridBlock"]');
+    expect(!grid(await saved()).props.items, "the feature grid starts on its sample items");
+    const first = await frame().evaluate(() => { const w = document.querySelector('[data-bf-type="FeatureGridBlock"]'); const hs = w.querySelectorAll("h3, h4"); return hs[0] ? hs[0].textContent.trim() : null; });
+    expect(first, "the grid shows its items' titles");
+    await page.locator(".bd-flabel.is-current .bd-flabel-name").click();
+    await page.keyboard.press("Shift+Digit2");
+    await page.waitForTimeout(300);
+    const at = await textPoint(first);
+    expect(at, `the title "${first}" is on the canvas`);
+    await page.mouse.dblclick(at.x, at.y);
+    await page.locator(".bd-inline").waitFor();
+    expect(await page.locator(".bd-inline").inputValue() === first, `the editor opens on the item's title, got ${await page.locator(".bd-inline").inputValue()}`);
+    await page.keyboard.press("Control+a");
+    await page.keyboard.type("Fired three times");
+    await page.keyboard.press("Enter");
+    await frame().waitForFunction(() => document.body.textContent.includes("Fired three times"));
+    const items = grid(await saved()).props.items;
+    expect(Array.isArray(items) && items[0].title === "Fired three times" && items.length >= 3 && items[1].title, `the item's title changes in the grid's own list, the rest kept, got ${JSON.stringify(items && items.map((x) => x.title))}`);
+    ok(`double-clicking "${first}" in the feature grid types into that item's title, which becomes "Fired three times" in the grid's own items`);
+    await page.keyboard.press("Control+z");
+    await frame().waitForFunction((t) => document.body.textContent.includes(t) && !document.body.textContent.includes("Fired three times"), first);
+    ok("undo puts the sample title back");
+    await page.close();
+  });
+
   await step("Changes: undo takes back only your own steps, and a change from elsewhere stays", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     await page.waitForFunction(() => window.__builder && window.__builder.doc().frames[0].root.children.length > 1);
