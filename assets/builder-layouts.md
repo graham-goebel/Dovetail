@@ -77,11 +77,11 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle or 
 | `borderLeft` | Border left | `subtle`, `default`, `strong`, `brand` |
 | `radius` | Radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
 | `elevation` | Shadow | `0`, `1`, `2`, `3`, `4`, `5` |
-| `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
-| `paddingTop` | Padding top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
-| `paddingRight` | Padding right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
-| `paddingBottom` | Padding bottom | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
-| `paddingLeft` | Padding left | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module` |
+| `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module-sm`, `module`, `module-lg`, `module-xl` |
+| `paddingTop` | Padding top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module`, `module-sm`, `module-lg`, `module-xl` |
+| `paddingRight` | Padding right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module`, `gutter`, `module-inset` |
+| `paddingBottom` | Padding bottom | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module`, `module-sm`, `module-lg`, `module-xl` |
+| `paddingLeft` | Padding left | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module`, `gutter`, `module-inset` |
 | `margin` | Margin | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
 | `marginTop` | Margin top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
 | `marginRight` | Margin right | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section` |
@@ -98,7 +98,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 
 ### Layout
 
-- **Group** (container): A flex group of anything. Props: `direction` (one of `row`, `column`; default `row`), `gap` (one of `none`, `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`; default `sm`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`; default `stretch`), `justify` (one of `flex-start`, `center`, `flex-end`, `space-between`; default `flex-start`), `wrap` (boolean; default `false`).
+- **Group** (container): A flex group of anything. Props: `direction` (one of `row`, `column`; default `row`), `gap` (one of `none`, `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`; default `sm`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`; default `stretch`), `justify` (one of `flex-start`, `center`, `flex-end`, `space-between`; default `flex-start`), `wrap` (boolean; default `false`).
 - **Shape**: A rectangle or ellipse, painted with tokens. Props: `shape` (one of `rectangle`, `ellipse`; default `rectangle`).
 - **Section** (container): A page band. Props: `width` (one of `narrow`, `default`, `wide`, `full`; default `default`), `tone` (one of `base`, `subtle`, `brand`, `brand-muted`, `secondary`, `secondary-muted`; default `base`), `dark` (boolean), `texture` (boolean; default `false`), `spacing` (one of `none`, `sm`, `md`, `lg`, `xl`, `default`, `compact`; default `default`), `spacingTop` (one of `none`, `sm`, `md`, `lg`, `xl`), `spacingBottom` (one of `none`, `sm`, `md`, `lg`, `xl`), `bleed` (one of `full`, `inset`; default `full`), `scrim` (one of `gradient`, `solid`, `none`; default `gradient`), `align` (one of `top`, `center`, `bottom`; default `bottom`).
 - **Stack** (container): A vertical column. Props: `gap` (one of `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`; default `md`), `layer` (one of `related`, `group`, `block`, `section`, `eyebrow`, `subcopy`, `paragraph`), `spacing` (one of `tight`, `balanced`, `open`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`), `justify` (one of `flex-start`, `center`, `flex-end`, `space-between`).

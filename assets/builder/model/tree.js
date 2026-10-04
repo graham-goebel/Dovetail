@@ -383,6 +383,9 @@ function cleanFrame(f, i, report) {
   base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
   base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
   if (f.typeScale === "social") base.typeScale = "social";
+  /* The page's column and gutter, re-pointed for this frame. */
+  if (f.pageWidth === "narrow" || f.pageWidth === "wide") base.pageWidth = f.pageWidth;
+  if (f.gutter === "wide" || f.gutter === "none") base.gutter = f.gutter;
   /* A frame may give its nodes as root.children or straight as children. */
   var kids = f.root && Array.isArray(f.root.children) ? f.root.children : Array.isArray(f.children) ? f.children : [];
   base.root.children = kids.map(function (c) { return cleanNode(c, report); }).filter(Boolean);

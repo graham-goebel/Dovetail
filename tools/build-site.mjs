@@ -2214,6 +2214,17 @@ const insetOpts = (css) => BUILDER_SPACE.map((o) => fam("inset", tokenOption(o, 
 const layerOpts = (axis, css) => LAYERS.map((o) => fam("layout", tokenOption(o, [`--dt-layout-${axis}-${o}`], css(cssVar(`--dt-layout-${axis}-${o}`)), `layout ${o}`)));
 const layerBoth = (cssFor) => LAYERS.map((o) => fam("layout", tokenOption(o, [`--dt-layout-stack-${o}`, `--dt-layout-inline-${o}`], cssFor(cssVar(`--dt-layout-stack-${o}`), cssVar(`--dt-layout-inline-${o}`)), `layout ${o}`)));
 const module = (css) => fam("layout", tokenOption("module", ["--dt-layout-module-padding"], css(cssVar("--dt-layout-module-padding")), "module padding"));
+/* A band's padding: a module padding step above and below, and the page
+   gutter at the sides, which is how a Section pads itself. md is "module",
+   by its older name. */
+const MODULE_STEPS = [["sm", "module-sm"], ["md", "module"], ["lg", "module-lg"], ["xl", "module-xl"]];
+const bandPad = () => MODULE_STEPS.map(([step, v]) => fam("layout", tokenOption(v, [`--dt-layout-module-padding-${step}`, "--dt-layout-page-gutter"],
+  { paddingBlock: cssVar(`--dt-layout-module-padding-${step}`), paddingInline: cssVar("--dt-layout-page-gutter") }, `section ${step}`)));
+const stepPad = (prop) => MODULE_STEPS.filter(([step]) => step !== "md").map(([step, v]) => fam("layout", tokenOption(v, [`--dt-layout-module-padding-${step}`], { [prop]: cssVar(`--dt-layout-module-padding-${step}`) }, `module ${step}`)));
+const sidePad = (prop) => [
+  fam("layout", tokenOption("gutter", ["--dt-layout-page-gutter"], { [prop]: cssVar("--dt-layout-page-gutter") }, "page gutter")),
+  fam("layout", tokenOption("module-inset", ["--dt-layout-module-inset"], { [prop]: cssVar("--dt-layout-module-inset") }, "module inset")),
+];
 const spaceOpts2 = (axis, css) => BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-${axis}-${o}`], css(cssVar(`--dt-space-${axis}-${o}`)))));
 /* A pinned or floating item's distance from the edges it's pinned to. */
 const OFFSET = "var(--bd-offset, 0)";
@@ -2314,11 +2325,11 @@ const BUILDER_TOKENS = {
      reads the stack scale above and below and the inline scale left and
      right, or the same layers. */
   padding: { label: "Padding", section: "spacing", preview: "space", sides: ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"],
-    options: insetOpts((v) => ({ padding: v })).concat(layerBoth((b, i) => ({ paddingBlock: b, paddingInline: i })), [module((v) => ({ padding: v }))]) },
-  paddingTop: { label: "Padding top", section: "spacing", preview: "space", side: "top", options: insetOpts((v) => ({ paddingTop: v })).concat(layerOpts("stack", (v) => ({ paddingTop: v })), [module((v) => ({ paddingTop: v }))]) },
-  paddingRight: { label: "Padding right", section: "spacing", preview: "space", side: "right", options: insetOpts((v) => ({ paddingRight: v })).concat(layerOpts("inline", (v) => ({ paddingRight: v })), [module((v) => ({ paddingRight: v }))]) },
-  paddingBottom: { label: "Padding bottom", section: "spacing", preview: "space", side: "bottom", options: insetOpts((v) => ({ paddingBottom: v })).concat(layerOpts("stack", (v) => ({ paddingBottom: v })), [module((v) => ({ paddingBottom: v }))]) },
-  paddingLeft: { label: "Padding left", section: "spacing", preview: "space", side: "left", options: insetOpts((v) => ({ paddingLeft: v })).concat(layerOpts("inline", (v) => ({ paddingLeft: v })), [module((v) => ({ paddingLeft: v }))]) },
+    options: insetOpts((v) => ({ padding: v })).concat(layerBoth((b, i) => ({ paddingBlock: b, paddingInline: i })), bandPad()) },
+  paddingTop: { label: "Padding top", section: "spacing", preview: "space", side: "top", options: insetOpts((v) => ({ paddingTop: v })).concat(layerOpts("stack", (v) => ({ paddingTop: v })), [module((v) => ({ paddingTop: v }))], stepPad("paddingTop")) },
+  paddingRight: { label: "Padding right", section: "spacing", preview: "space", side: "right", options: insetOpts((v) => ({ paddingRight: v })).concat(layerOpts("inline", (v) => ({ paddingRight: v })), [module((v) => ({ paddingRight: v }))], sidePad("paddingRight")) },
+  paddingBottom: { label: "Padding bottom", section: "spacing", preview: "space", side: "bottom", options: insetOpts((v) => ({ paddingBottom: v })).concat(layerOpts("stack", (v) => ({ paddingBottom: v })), [module((v) => ({ paddingBottom: v }))], stepPad("paddingBottom")) },
+  paddingLeft: { label: "Padding left", section: "spacing", preview: "space", side: "left", options: insetOpts((v) => ({ paddingLeft: v })).concat(layerOpts("inline", (v) => ({ paddingLeft: v })), [module((v) => ({ paddingLeft: v }))], sidePad("paddingLeft")) },
   margin: { label: "Margin", section: "spacing", preview: "space", sides: ["marginTop", "marginRight", "marginBottom", "marginLeft"],
     options: BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-stack-${o}`, `--dt-space-inline-${o}`], { marginBlock: cssVar(`--dt-space-stack-${o}`), marginInline: cssVar(`--dt-space-inline-${o}`) })))
       .concat(layerBoth((b, i) => ({ marginBlock: b, marginInline: i }))) },
@@ -2330,7 +2341,10 @@ const BUILDER_TOKENS = {
     options: [
       fam("fit", tokenOption("hug", [], { width: "fit-content" }, "Hug contents")),
       fam("fit", tokenOption("fill", [], { width: "100%" }, "Fill")),
-      ...["narrow", "default", "wide"].map((o) => fam("container", tokenOption(o, [`--dt-size-container-${o}`], { width: "100%", maxWidth: cssVar(`--dt-size-container-${o}`), marginInline: "auto" }, `container ${o}`))),
+      /* The page column: what Section reads, so a Group lines up with the
+         bands around it, and Configure's Page width moves them together. */
+      ...[["narrow", "--dt-layout-page-width-narrow", "page narrow"], ["default", "--dt-layout-page-width", "page"], ["wide", "--dt-layout-page-width-wide", "page wide"]]
+        .map(([o, t, name]) => fam("container", tokenOption(o, [t], { width: "100%", maxWidth: cssVar(t), marginInline: "auto" }, name))),
       ...sizeOpts("width", ["control", "icon", "avatar"]),
       ...media("width", [["media-min", "--dt-size-media-min", "media-min"], ["artboard", "--dt-size-artboard-width", "artboard width"]]),
       ...stepOpts("width"),
@@ -2378,7 +2392,7 @@ const BUILDER_GROUP = {
   href: null,
   props: [
     { name: "direction", kind: "enum", options: ["row", "column"], default: "row", note: "Side by side or stacked", tab: "layout" },
-    { name: "gap", kind: "enum", options: ["none"].concat(BUILDER_SPACE), default: "sm", note: "From the inline scale in a row, the stack scale in a column", tab: "layout" },
+    { name: "gap", kind: "enum", options: ["none"].concat(BUILDER_SPACE, LAYERS), default: "sm", note: "From the inline scale in a row, the stack scale in a column; or a layout layer (related, group, block, section), which moves with the layout's character", tab: "layout" },
     { name: "align", kind: "enum", options: ["flex-start", "center", "flex-end", "stretch"], default: "stretch", note: "Cross axis", tab: "layout" },
     { name: "justify", kind: "enum", options: ["flex-start", "center", "flex-end", "space-between"], default: "flex-start", note: "Main axis", tab: "layout" },
     { name: "wrap", kind: "boolean", default: "false", note: "Let items wrap onto a new line", tab: "layout" },
@@ -2414,7 +2428,7 @@ const BUILDER_APP_ONLY = { Carousel: ["value", "paused"] };
 /* The inspector's tabs: how a component looks, how it lays out, and what it
    says. Every other prop is content. */
 const BUILDER_APPEARANCE_PROPS = ["tone", "dark", "texture", "surface", "variant", "size", "titleSize", "scrim", "radius", "shape", "weight", "underline", "translucent", "dense", "zebra", "divided", "dot", "fit", "ratio", "drive", "feel", "expression", "pace", "entrance", "focusOnly"];
-const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky", "itemRatio", "itemSize", "spread", "depth"];
+const BUILDER_LAYOUT_PROPS = ["direction", "width", "spacing", "spacingTop", "spacingBottom", "bleed", "layer", "gap", "columns", "track", "align", "justify", "wrap", "orientation", "layout", "labelPosition", "placement", "fullWidth", "reverse", "block", "sticky", "itemRatio", "itemSize", "spread", "depth"];
 /* Stack, Inline and Grid type align and justify as CSS keywords. */
 const BUILDER_KEYWORDS = {
   align: ["flex-start", "center", "flex-end", "stretch"],

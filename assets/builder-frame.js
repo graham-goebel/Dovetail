@@ -47,12 +47,16 @@
 
   /* Group's gap: the inline scale in a row, the stack scale in a column. */
   var GROUP_GAP = { row: "--dt-space-inline-", column: "--dt-space-stack-" };
+  var GROUP_LAYERS = { related: 1, group: 1, block: 1, section: 1 };
   function groupStyle(p) {
     var dir = p.direction === "column" ? "column" : "row";
     /* Relative, so anything floating inside it floats over the group. */
     var st = { position: "relative", display: "flex", flexDirection: dir, flexWrap: p.wrap === true ? "wrap" : "nowrap", alignItems: p.align || "stretch", justifyContent: p.justify || "flex-start" };
     var gap = p.gap || "sm";
-    if (gap !== "none") st.gap = "var(" + GROUP_GAP[dir] + gap + ")";
+    /* A layout layer moves with the layout's character; a step of the space
+       scale stays put. */
+    if (GROUP_LAYERS[gap]) st.gap = "var(--dt-layout-" + (dir === "row" ? "inline" : "stack") + "-" + gap + ")";
+    else if (gap !== "none") st.gap = "var(" + GROUP_GAP[dir] + gap + ")";
     return st;
   }
 
@@ -78,10 +82,16 @@
   var HEX = /^#[0-9a-f]{6}$/i;
   /* The page's fill: a surface option's own declarations, so a brand fill
      brings the text roles that read on it; or a custom colour. */
+  var PAGE_WIDTHS = { narrow: "var(--dt-layout-page-width-narrow)", wide: "var(--dt-layout-page-width-wide)" };
+  var PAGE_GUTTERS = { wide: "var(--dt-space-gutter-wide)", none: "0" };
   function pageStyle(page) {
     var o = (DATA.tokens.surface ? DATA.tokens.surface.options : []).filter(function (x) { return x.value === (page.surface || "base"); })[0];
     var st = Object.assign({ color: "var(--dt-text-primary)" }, o ? o.css : { background: "var(--dt-surface-base)" });
     if (HEX.test(page.canvas || "")) st.background = page.canvas;
+    /* This page's column and gutter, re-pointed for everything inside it:
+       Sections, blocks, and Groups set to the page width. */
+    if (PAGE_WIDTHS[page.pageWidth]) st["--dt-layout-page-width"] = PAGE_WIDTHS[page.pageWidth];
+    if (PAGE_GUTTERS[page.gutter]) st["--dt-layout-page-gutter"] = PAGE_GUTTERS[page.gutter];
     return st;
   }
   function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
@@ -912,7 +922,7 @@
     if (!name) return null;
     var kids = [].concat(fromElement(el.props.children) || []);
     /* Detach takes layout apart into Groups; a slot keeps the component the sample used. */
-    if ((name === "Inline" || name === "Stack") && !keepLayout) return n("Group", { direction: name === "Inline" ? "row" : "column", gap: el.props.gap || "sm", align: el.props.align, justify: el.props.justify }, kids);
+    if ((name === "Inline" || name === "Stack") && !keepLayout) return n("Group", { direction: name === "Inline" ? "row" : "column", gap: (GROUP_LAYERS[el.props.layer] && el.props.layer) || el.props.gap || "sm", align: el.props.align, justify: el.props.justify }, kids);
     var props = plain(el.props);
     if (typeof el.props.children === "string") props.children = el.props.children;
     return CONTAINERS[name] ? n(name, props, kids) : n(name, props);
@@ -920,8 +930,8 @@
   var section = function (b, kids) { return n("Section", plain({ tone: b.tone, dark: b.dark, texture: b.texture, spacing: b.spacing, width: b.width }), kids); };
   var header = function (b, size) { return [text(b.eyebrow, { variant: "eyebrow" }), heading(b.title, size || "display-sm"), text(b.lead, { variant: "lead", tone: "secondary" })]; };
   var RECIPES = {
-    Stack: function (b, node) { return n("Group", { direction: "column", gap: b.gap || "md", align: b.align, justify: b.justify }, node.children, node.style); },
-    Inline: function (b, node) { return n("Group", { direction: "row", gap: b.gap || "sm", align: b.align || "center", justify: b.justify, wrap: b.wrap !== false }, node.children, node.style); },
+    Stack: function (b, node) { return n("Group", { direction: "column", gap: (GROUP_LAYERS[b.layer] && b.layer) || b.gap || "md", align: b.align, justify: b.justify }, node.children, node.style); },
+    Inline: function (b, node) { return n("Group", { direction: "row", gap: (GROUP_LAYERS[b.layer] && b.layer) || b.gap || "sm", align: b.align || "center", justify: b.justify, wrap: b.wrap !== false }, node.children, node.style); },
     Card: function (b, node) {
       return n("Group", { direction: "column", gap: "xs" },
         [text(b.eyebrow, { variant: "eyebrow" }), heading(b.title, "heading-md"), text(b.description, { tone: "secondary" })].concat(node.children || [], [].concat(fromElement(b.footer) || [])),
