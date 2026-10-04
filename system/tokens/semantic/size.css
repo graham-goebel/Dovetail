@@ -12,6 +12,11 @@
   --dt-size-control-md: var(--dt-dim-10);  /* 40 — the default */
   --dt-size-control-lg: var(--dt-dim-12);  /* 48 — primary CTAs, touch-first */
 
+  /* The step of the size grid: whole multiples of it size a box drawn on a
+     canvas, so it snaps to the system without borrowing a control's name.
+     It is the large control height, and moves with it. */
+  --dt-size-step: var(--dt-size-control-lg);
+
   --dt-size-icon-xs: var(--dt-dim-3);      /* 12 */
   --dt-size-icon-sm: var(--dt-dim-4);      /* 16 */
   --dt-size-icon-md: var(--dt-dim-5);      /* 20 — the default */

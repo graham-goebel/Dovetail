@@ -196,7 +196,7 @@ roles (`--dt-text-artboard-*`).
 ### Size
 
 Control heights on the 4px grid: 24 / 32 / 40 / 48. Icon sizes 12 / 16 / 20 / 24 / 32.
-`--dt-size-touch-target` (44px) is the minimum hit area on touch surfaces.
+`--dt-size-touch-target` (44px) is the minimum hit area on touch surfaces. `--dt-size-step` is the step of the size grid: a box drawn on a canvas is a whole multiple of it. It is the large control height and moves with it, but reads as what it is for.
 
 ### Shape
 

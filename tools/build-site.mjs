@@ -2202,8 +2202,9 @@ const SIZE_SET = {
   avatar: ["xs", "sm", "md", "lg", "xl"].map((s) => [`avatar-${s}`, `--dt-size-avatar-${s}`, `avatar-${s}`]),
 };
 const sizeOpts = (prop, sets) => sets.flatMap((set) => SIZE_SET[set].map(([v, t, name]) => fam(set, tokenOption(v, [t], { [prop]: cssVar(t) }, name))));
-const stepOpts = (prop, steps = BUILDER_STEPS) => steps.map((n) => fam("step", tokenOption(`x${n}`, ["--dt-size-control-lg"], { [prop]: `calc(${cssVar("--dt-size-control-lg")} * ${n})` }, `control-lg × ${n}`)));
-const media = (prop, list) => list.map(([v, t, name]) => fam("media", tokenOption(v, [t], { [prop]: cssVar(t) }, name)));
+const stepOpts = (prop, steps = BUILDER_STEPS) => steps.map((n) => fam("step", tokenOption(`x${n}`, ["--dt-size-step"], { [prop]: `calc(${cssVar("--dt-size-step")} * ${n})` }, `step × ${n}`)));
+/* Artboard sizes are their own family: they only suit a social frame. */
+const media = (prop, list) => list.map(([v, t, name]) => fam(/^artboard/.test(v) ? "artboard" : "media", tokenOption(v, [t], { [prop]: cssVar(t) }, name)));
 const HEIGHT_MEDIA = [["media-min", "--dt-size-media-min", "media-min"], ["artboard-square", "--dt-size-artboard-square", "artboard square"],
   ["artboard-portrait", "--dt-size-artboard-portrait", "artboard portrait"], ["artboard-story", "--dt-size-artboard-story", "artboard story"]];
 /* Spacing: the inset scale for padding and the stack and inline scales for
@@ -2213,17 +2214,17 @@ const LAYERS = ["related", "group", "block", "section"];
 const insetOpts = (css) => BUILDER_SPACE.map((o) => fam("inset", tokenOption(o, [`--dt-space-inset-${o}`], css(inset(o)))));
 const layerOpts = (axis, css) => LAYERS.map((o) => fam("layout", tokenOption(o, [`--dt-layout-${axis}-${o}`], css(cssVar(`--dt-layout-${axis}-${o}`)), `layout ${o}`)));
 const layerBoth = (cssFor) => LAYERS.map((o) => fam("layout", tokenOption(o, [`--dt-layout-stack-${o}`, `--dt-layout-inline-${o}`], cssFor(cssVar(`--dt-layout-stack-${o}`), cssVar(`--dt-layout-inline-${o}`)), `layout ${o}`)));
-const module = (css) => fam("layout", tokenOption("module", ["--dt-layout-module-padding"], css(cssVar("--dt-layout-module-padding")), "module padding"));
+const module = (css) => fam("band", tokenOption("module", ["--dt-layout-module-padding"], css(cssVar("--dt-layout-module-padding")), "module padding"));
 /* A band's padding: a module padding step above and below, and the page
    gutter at the sides, which is how a Section pads itself. md is "module",
    by its older name. */
 const MODULE_STEPS = [["sm", "module-sm"], ["md", "module"], ["lg", "module-lg"], ["xl", "module-xl"]];
-const bandPad = () => MODULE_STEPS.map(([step, v]) => fam("layout", tokenOption(v, [`--dt-layout-module-padding-${step}`, "--dt-layout-page-gutter"],
+const bandPad = () => MODULE_STEPS.map(([step, v]) => fam("band", tokenOption(v, [`--dt-layout-module-padding-${step}`, "--dt-layout-page-gutter"],
   { paddingBlock: cssVar(`--dt-layout-module-padding-${step}`), paddingInline: cssVar("--dt-layout-page-gutter") }, `section ${step}`)));
-const stepPad = (prop) => MODULE_STEPS.filter(([step]) => step !== "md").map(([step, v]) => fam("layout", tokenOption(v, [`--dt-layout-module-padding-${step}`], { [prop]: cssVar(`--dt-layout-module-padding-${step}`) }, `module ${step}`)));
+const stepPad = (prop) => MODULE_STEPS.filter(([step]) => step !== "md").map(([step, v]) => fam("band", tokenOption(v, [`--dt-layout-module-padding-${step}`], { [prop]: cssVar(`--dt-layout-module-padding-${step}`) }, `module ${step}`)));
 const sidePad = (prop) => [
-  fam("layout", tokenOption("gutter", ["--dt-layout-page-gutter"], { [prop]: cssVar("--dt-layout-page-gutter") }, "page gutter")),
-  fam("layout", tokenOption("module-inset", ["--dt-layout-module-inset"], { [prop]: cssVar("--dt-layout-module-inset") }, "module inset")),
+  fam("band", tokenOption("gutter", ["--dt-layout-page-gutter"], { [prop]: cssVar("--dt-layout-page-gutter") }, "page gutter")),
+  fam("band", tokenOption("module-inset", ["--dt-layout-module-inset"], { [prop]: cssVar("--dt-layout-module-inset") }, "module inset")),
 ];
 const spaceOpts2 = (axis, css) => BUILDER_SPACE.map((o) => fam("space", tokenOption(o, [`--dt-space-${axis}-${o}`], css(cssVar(`--dt-space-${axis}-${o}`)))));
 /* A pinned or floating item's distance from the edges it's pinned to. */

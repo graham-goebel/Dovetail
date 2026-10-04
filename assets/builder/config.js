@@ -90,10 +90,9 @@ TOOLBAR.forEach(function (t) {
   });
 });
 var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
-/* Size families every layer may use; the rest (control, icon, avatar and
-   media sizes) belong to the components they're named for, and only show
-   when one of those is selected. */
-var SHARED_FAMILY = { fit: 1, container: 1, step: 1, inset: 1, space: 1, layout: 1 };
+/* No family is shared by every layer any more: scopeOf says which suit a
+   selection, and optionAllowed which options of a style key it may take. */
+var SHARED_FAMILY = {};
 /* A tone's colour, for its swatch: a surface for a fill, a text role for
    type. A tone with no colour of its own (inherit) has none. */
 var TONE_FILL = {
@@ -109,27 +108,73 @@ var TONE_TEXT = {
 };
 /* Token families, and which suit what's selected, first. */
 var FAMILY_LABEL = {
-  fit: "Resizing", control: "Controls", icon: "Icons", avatar: "Avatars", media: "Media", container: "Containers",
-  step: "Steps of control-lg", inset: "Inset", space: "Stack and inline", layout: "Layout layers",
+  fit: "Resizing", control: "Controls", icon: "Icons", avatar: "Avatars", media: "Media", artboard: "Artboards", container: "Page column",
+  step: "Steps of the size grid", inset: "Inset", space: "Stack and inline", layout: "Layout layers", band: "Sections and page",
 };
 var CONTROL_TYPES = { Badge: 1, Tag: 1, Pagination: 1, QuantityStepper: 1, PromoCode: 1, FulfilmentToggle: 1, VariantPicker: 1, Rating: 1 };
 var MEDIA_TYPES = { Image: 1, Video: 1, Cover: 1, Media: 1, Figure: 1, AspectRatio: 1, ProductGallery: 1, SocialPost: 1 };
 var BAND_TYPES = { Group: 1, Section: 1, Stack: 1, Inline: 1, Grid: 1, Card: 1, Prose: 1 };
 var TEXT_TYPES = { Text: 1, Heading: 1, Quote: 1, Code: 1, Link: 1 };
 var PICTURE_TYPES = { Image: 1, Figure: 1, Cover: 1 };
-function contextOf(types) {
-  var t = types.length && types.every(function (x) { return x === types[0]; }) ? types[0] : null;
-  var m = t && META[t];
-  var name = t ? t : "these items";
-  if (t === "Avatar" || t === "AvatarGroup") return { name: name, size: ["avatar", "fit", "step"], space: ["inset"] };
-  if (t === "Icon" || t === "IconButton") return { name: name, size: ["icon", "control", "fit", "step"], space: ["inset", "space"] };
-  if (t === "Shape") return { name: name, size: ["step", "icon", "control"], space: ["inset", "space"] };
-  if (t && (CONTROL_TYPES[t] || (m && (m.group === "actions" || m.group === "forms")))) return { name: name, size: ["control", "fit", "step"], space: ["inset", "space"] };
-  if (t && MEDIA_TYPES[t]) return { name: name, size: ["media", "container", "fit", "step"], space: ["inset", "space"] };
-  if (t && (BAND_TYPES[t] || (m && m.group === "blocks"))) return { name: name, size: ["fit", "container", "media", "step"], space: ["layout", "inset", "space"] };
-  if (t && TEXT_TYPES[t]) return { name: name, size: ["fit", "container", "step"], space: ["inset", "space", "layout"] };
-  return { name: name, size: ["fit", "container", "step", "control"], space: ["inset", "space", "layout"] };
+/* What kind of layer a type is, for the tokens that suit it. A container
+   at the top of a frame is a band, as a Section is. */
+function roleOf(t, top) {
+  var m = META[t];
+  if (t === "Avatar" || t === "AvatarGroup") return "avatar";
+  if (t === "Icon" || t === "IconButton") return "icon";
+  if (t === "Shape") return "shape";
+  if (CONTROL_TYPES[t] || (m && (m.group === "actions" || m.group === "forms"))) return "control";
+  if (MEDIA_TYPES[t]) return "media";
+  if (t === "Section" || (m && m.group === "blocks")) return "band";
+  if (BAND_TYPES[t]) return top && t !== "Card" && t !== "Prose" ? "band" : "container";
+  if (TEXT_TYPES[t]) return "text";
+  return "element";
 }
+/* The families each role may use, most suited first. Control, icon and
+   avatar sizes only reach their own components; section padding, the page
+   gutter and the layout layers only reach containers and bands. */
+var ROLE_FAMILIES = {
+  avatar: { size: ["avatar", "fit", "step"], space: ["inset"] },
+  icon: { size: ["icon", "control", "fit", "step"], space: ["inset", "space"] },
+  shape: { size: ["step", "icon", "control", "fit"], space: ["inset", "space"] },
+  control: { size: ["control", "fit", "step"], space: ["inset", "space"] },
+  media: { size: ["media", "artboard", "container", "fit", "step"], space: ["inset", "space"] },
+  band: { size: ["fit", "container", "media", "artboard", "step"], space: ["band", "layout", "inset", "space"] },
+  container: { size: ["fit", "container", "media", "artboard", "step"], space: ["layout", "band", "inset", "space"] },
+  text: { size: ["fit", "container", "step"], space: ["space", "inset"] },
+  element: { size: ["fit", "container", "step"], space: ["inset", "space"] },
+};
+/* The families that suit a selection: what all its layers have in common.
+   opts.top: every layer sits at the top of its frame. opts.social: the
+   frame is a social artboard, the only place artboard sizes belong. */
+function scopeOf(types, opts) {
+  opts = opts || {};
+  var one = types.length && types.every(function (x) { return x === types[0]; }) ? types[0] : null;
+  var lists = types.map(function (t) { return ROLE_FAMILIES[roleOf(t, opts.top)]; });
+  var common = function (axis) {
+    if (!lists.length) return ROLE_FAMILIES.element[axis].slice();
+    return lists[0][axis].filter(function (f) {
+      return (f !== "artboard" || opts.social) && lists.every(function (l) { return l[axis].indexOf(f) >= 0; });
+    });
+  };
+  return { name: one || "these items", role: one ? roleOf(one, opts.top) : null, size: common("size"), space: common("space") };
+}
+/* Whether a style key's option suits a scope. A page width never sizes a
+   height, and a module padding step (the room above and below a band)
+   never pads a side. Keys outside size and spacing take every option. */
+var HEIGHT_KEYS = { height: 1, h: 1 };
+var SIDE_KEYS = { paddingLeft: 1, paddingRight: 1, marginLeft: 1, marginRight: 1 };
+function optionAllowed(key, o, scope) {
+  var def = DATA.tokens[key];
+  if (!def || (def.section !== "size" && def.section !== "spacing")) return true;
+  if (!o.family) return true;
+  if (HEIGHT_KEYS[key] && o.family === "container") return false;
+  if (SIDE_KEYS[key] && /^module($|-(sm|lg|xl)$)/.test(o.value)) return false;
+  var list = def.section === "size" ? scope.size : scope.space;
+  return list.indexOf(o.family) >= 0;
+}
+/* The older name, for callers that only want the ordered families. */
+function contextOf(types, opts) { return scopeOf(types, opts); }
 /* The tab that suits a layer when it's selected: its words for text and
    media, its look for a shape, its layout for a container or a frame. */
 function smartTab(type) {
@@ -253,4 +298,4 @@ function isContainer(type) { return type === "Root" || !!(META[type] && META[typ
 function mql(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
 function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
 
-export { BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
+export { HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
