@@ -1718,10 +1718,8 @@
   ];
 
   // assets/builder/model/share.js
-  function loadLibrary() {
-    var raw = storage(function(s) {
-      return JSON.parse(s.getItem(LIB_KEY) || "null");
-    }) || {};
+  function loadLibrary(saved) {
+    var raw = saved && typeof saved === "object" ? saved : {};
     var out = {};
     LIB_KINDS.forEach(function(k) {
       out[k] = (Array.isArray(raw[k]) ? raw[k] : []).filter(function(it) {
@@ -1772,72 +1770,87 @@
     }) });
     return { doc: d, dropped };
   }
-  function initialDoc() {
+  function readHash() {
     var jx = /^#jsx=([\w-]+)$/.exec(location.hash);
     if (jx) {
       try {
         window.history.replaceState(null, "", location.pathname + location.search);
       } catch (err) {
       }
-      var src = null;
       try {
         var bin = atob(jx[1].replace(/-/g, "+").replace(/_/g, "/"));
         var bytes = new Uint8Array(bin.length);
         for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
-        src = new TextDecoder().decode(bytes);
+        return { kind: "jsx", src: new TextDecoder().decode(bytes) };
       } catch (err) {
-        src = null;
+        return { kind: "jsx", src: null };
       }
-      var read = src ? readLayout(src) : null;
-      if (read && read.doc) {
-        var mine = storage(function(s) {
-          return s.getItem(STORE_KEY);
-        });
-        var base = null;
-        if (mine) {
-          try {
-            base = clean(JSON.parse(mine));
-          } catch (err) {
-            base = null;
-          }
-        }
-        var added = read.doc.frames.map(function(f2) {
-          var c = copy(f2);
-          c.id = uid();
-          c.name = "Example";
-          return c;
-        });
-        if (base) {
-          base.frames = base.frames.concat(added).slice(-24);
-          base.active = added[0].id;
-        } else base = { frames: added, active: added[0].id };
-        return { doc: base, from: "jsx", dropped: read.report };
-      }
-      return { doc: emptyDoc(), from: "jsx", dropped: [], error: read && read.error ? read.error : "That example couldn't be read." };
     }
     var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40})*)$/.exec(location.hash);
     if (m) {
-      var shared = decode(m[1]);
-      if (shared) {
-        var dropped = [];
-        var d = clean(shared, dropped);
-        var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]);
-        if (f && frameById(d, f[1])) d.active = f[1];
-        return { doc: d, from: "link", dropped, focus: n ? n[1] : null };
-      }
+      var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]);
+      return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null };
     }
-    var saved = storage(function(s) {
-      return s.getItem(STORE_KEY);
-    });
-    if (saved) {
-      try {
-        return { doc: clean(JSON.parse(saved)), from: "saved" };
-      } catch (err) {
-      }
-    }
+    return null;
+  }
+  function starterDoc() {
     var first = STARTERS[0][2]();
     if (mql("(max-width: 900px)")) first.frames[0].width = PRESET.phone.width;
-    return { doc: first, from: "starter" };
+    return first;
+  }
+  function openStart(store) {
+    var hash = readHash();
+    return store.listProjects().then(function(projects) {
+      var last = store.lastOpened();
+      var pick = projects.filter(function(p) {
+        return p.id === last;
+      })[0] || projects[0] || null;
+      var current2 = function() {
+        return pick ? store.loadDoc(pick.id).then(function(doc) {
+          return doc ? { project: pick, doc } : null;
+        }) : Promise.resolve(null);
+      };
+      var fresh2 = function(name, doc, extra) {
+        return store.createProject(name, doc).then(function(meta) {
+          return Object.assign({ project: meta, doc }, extra);
+        });
+      };
+      if (hash && hash.kind === "link" && hash.data) {
+        var dropped = [];
+        var d = clean(hash.data, dropped);
+        if (hash.frame && frameById(d, hash.frame)) d.active = hash.frame;
+        return fresh2(d.frames.length === 1 ? d.frames[0].name : "Shared layout", d, { from: "link", dropped, focus: hash.node });
+      }
+      if (hash && hash.kind === "jsx") {
+        var read = hash.src ? readLayout(hash.src) : null;
+        return current2().then(function(cur) {
+          if (!read || !read.doc) {
+            var err = read && read.error ? read.error : "That example couldn't be read.";
+            return cur ? Object.assign(cur, { from: "jsx", dropped: [], error: err }) : fresh2("Untitled", starterDoc(), { from: "jsx", dropped: [], error: err });
+          }
+          var added = read.doc.frames.map(function(f) {
+            var c = copy(f);
+            c.id = uid();
+            c.name = "Example";
+            return c;
+          });
+          if (!cur) return fresh2("Examples", { frames: added, active: added[0].id }, { from: "jsx", dropped: read.report });
+          var base = copy(cur.doc);
+          base.frames = base.frames.concat(added).slice(-24);
+          base.active = added[0].id;
+          return { project: cur.project, doc: base, from: "jsx", dropped: read.report };
+        });
+      }
+      return current2().then(function(cur) {
+        return cur ? Object.assign(cur, { from: "saved" }) : fresh2("Untitled", starterDoc(), { from: "starter" });
+      });
+    }).then(function(init) {
+      store.setLastOpened(init.project.id);
+      return store.loadLibrary().then(function(lib) {
+        init.library = loadLibrary(lib);
+        return init;
+      });
+    });
   }
   function loadPrefs() {
     var p = storage(function(s) {
@@ -2447,6 +2460,378 @@
       })(f.root);
     });
     return { doc, report, layers };
+  }
+
+  // assets/builder/model/store.js
+  var DB_NAME = "dovetail-builder";
+  var DB_VERSION = 1;
+  var VERSIONS_MAX = 30;
+  var VERSION_EVERY = 10 * 60 * 1e3;
+  var LAST_KEY = "dovetail-builder-last";
+  var FALLBACK_KEY = "dovetail-builder-store";
+  function idb() {
+    return new Promise(function(resolve) {
+      var done = false;
+      var finish = function(db) {
+        if (!done) {
+          done = true;
+          resolve(db);
+        }
+      };
+      setTimeout(function() {
+        finish(null);
+      }, 4e3);
+      try {
+        if (!window.indexedDB) {
+          finish(null);
+          return;
+        }
+        var req = window.indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = function() {
+          var db = req.result;
+          if (!db.objectStoreNames.contains("projects")) db.createObjectStore("projects", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("versions")) db.createObjectStore("versions", { keyPath: "key", autoIncrement: true }).createIndex("project", "project");
+          if (!db.objectStoreNames.contains("library")) db.createObjectStore("library", { keyPath: "id" });
+        };
+        req.onsuccess = function() {
+          finish(req.result);
+        };
+        req.onerror = function() {
+          finish(null);
+        };
+        req.onblocked = function() {
+          finish(null);
+        };
+      } catch (err) {
+        finish(null);
+      }
+    });
+  }
+  function idbBackend(db) {
+    var run = function(store, mode, fn) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(store, mode);
+        var out;
+        tx.oncomplete = function() {
+          resolve(out);
+        };
+        tx.onerror = function() {
+          reject(tx.error);
+        };
+        tx.onabort = function() {
+          reject(tx.error || new Error("The save was stopped."));
+        };
+        var req = fn(tx.objectStore(store));
+        if (req) req.onsuccess = function() {
+          out = req.result;
+        };
+      });
+    };
+    return {
+      kind: "indexeddb",
+      get: function(store, key) {
+        return run(store, "readonly", function(s) {
+          return s.get(key);
+        });
+      },
+      all: function(store) {
+        return run(store, "readonly", function(s) {
+          return s.getAll();
+        });
+      },
+      put: function(store, value) {
+        return run(store, "readwrite", function(s) {
+          return s.put(value);
+        });
+      },
+      del: function(store, key) {
+        return run(store, "readwrite", function(s) {
+          return s.delete(key);
+        });
+      },
+      byIndex: function(store, index, key) {
+        return run(store, "readonly", function(s) {
+          return s.index(index).getAll(key);
+        });
+      }
+    };
+  }
+  function localBackend() {
+    var read = function() {
+      return storage(function(s) {
+        return JSON.parse(s.getItem(FALLBACK_KEY) || "null");
+      }) || { projects: {}, docs: {}, versions: {}, library: {}, seq: 0 };
+    };
+    var write = function(data) {
+      var ok = storage(function(s) {
+        s.setItem(FALLBACK_KEY, JSON.stringify(data));
+        return true;
+      });
+      return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
+    };
+    var keyOf = function(store, value) {
+      return store === "versions" ? value.key : value.id;
+    };
+    return {
+      kind: "localstorage",
+      get: function(store, key) {
+        var d = read();
+        return Promise.resolve(d[store][key]);
+      },
+      all: function(store) {
+        var d = read();
+        return Promise.resolve(Object.keys(d[store]).map(function(k) {
+          return d[store][k];
+        }));
+      },
+      put: function(store, value) {
+        var d = read();
+        var v = JSON.parse(JSON.stringify(value));
+        if (store === "versions" && v.key === void 0) v.key = ++d.seq;
+        d[store][keyOf(store, v)] = v;
+        return write(d).then(function() {
+          return keyOf(store, v);
+        });
+      },
+      del: function(store, key) {
+        var d = read();
+        delete d[store][key];
+        return write(d);
+      },
+      byIndex: function(store, index, key) {
+        var d = read();
+        return Promise.resolve(Object.keys(d[store]).map(function(k) {
+          return d[store][k];
+        }).filter(function(v) {
+          return v[index] === key;
+        }));
+      }
+    };
+  }
+  function openStore() {
+    return idb().then(function(db) {
+      var b = db ? idbBackend(db) : localBackend();
+      var store = makeStore(b);
+      return store.migrate().then(function() {
+        return store;
+      });
+    });
+  }
+  function makeStore(b) {
+    var now = function() {
+      return Date.now();
+    };
+    var count = function(doc) {
+      return doc && Array.isArray(doc.frames) ? doc.frames.length : 0;
+    };
+    var lastVersionAt = {};
+    var api = {
+      kind: b.kind,
+      listProjects: function() {
+        return b.all("projects").then(function(list) {
+          return (list || []).sort(function(x, y) {
+            return y.updatedAt - x.updatedAt;
+          });
+        });
+      },
+      getProject: function(id) {
+        return b.get("projects", id);
+      },
+      loadDoc: function(id) {
+        return b.get("docs", id).then(function(rec) {
+          return rec ? clean(rec.doc) : null;
+        });
+      },
+      /* A new project, opened next; its first version is where it started. */
+      createProject: function(name, doc) {
+        var meta = { id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null };
+        return b.put("projects", meta).then(function() {
+          return b.put("docs", { id: meta.id, doc });
+        }).then(function() {
+          return meta;
+        });
+      },
+      /* The document, and the project's edited time and frame count. Every so
+         often the save is also kept as a version. */
+      saveDoc: function(id, doc) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) throw new Error("That project is gone.");
+          meta.updatedAt = now();
+          meta.frames = count(doc);
+          return b.put("docs", { id, doc }).then(function() {
+            return b.put("projects", meta);
+          }).then(function() {
+            var last = lastVersionAt[id] || meta.createdAt;
+            if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc, "Autosave");
+          }).then(function() {
+            return meta;
+          });
+        });
+      },
+      renameProject: function(id, name) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          meta.name = String(name || "").trim().slice(0, 80) || meta.name;
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      setThumb: function(id, thumb) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          meta.thumb = thumb;
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      duplicateProject: function(id) {
+        return Promise.all([b.get("projects", id), api.loadDoc(id)]).then(function(got) {
+          if (!got[0] || !got[1]) return null;
+          return api.createProject(got[0].name + " copy", got[1]).then(function(meta) {
+            return got[0].thumb ? api.setThumb(meta.id, got[0].thumb) : meta;
+          });
+        });
+      },
+      deleteProject: function(id) {
+        return api.listVersions(id).then(function(vs) {
+          return Promise.all(vs.map(function(v) {
+            return b.del("versions", v.key);
+          }));
+        }).then(function() {
+          return b.del("docs", id);
+        }).then(function() {
+          return b.del("projects", id);
+        });
+      },
+      /* Versions: newest first, at most VERSIONS_MAX a project. */
+      addVersion: function(id, doc, label) {
+        lastVersionAt[id] = now();
+        return b.put("versions", { project: id, at: now(), label: label || "Saved", frames: count(doc), doc }).then(function() {
+          return api.listVersions(id);
+        }).then(function(vs) {
+          return Promise.all(vs.slice(VERSIONS_MAX).map(function(v) {
+            return b.del("versions", v.key);
+          }));
+        });
+      },
+      listVersions: function(id) {
+        return b.byIndex("versions", "project", id).then(function(vs) {
+          return (vs || []).sort(function(x, y) {
+            return y.at - x.at || y.key - x.key;
+          });
+        });
+      },
+      loadVersion: function(key) {
+        return b.get("versions", key).then(function(v) {
+          return v ? clean(v.doc) : null;
+        });
+      },
+      /* The Content library. Without IndexedDB it stays where it always was. */
+      loadLibrary: function() {
+        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
+          return JSON.parse(s.getItem(LIB_KEY) || "null");
+        }));
+        return b.get("library", "library").then(function(rec) {
+          return rec ? rec.value : null;
+        });
+      },
+      saveLibrary: function(value) {
+        if (b.kind !== "indexeddb") {
+          var ok = storage(function(s) {
+            s.setItem(LIB_KEY, JSON.stringify(value));
+            return true;
+          });
+          return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
+        }
+        return b.put("library", { id: "library", value });
+      },
+      lastOpened: function() {
+        return storage(function(s) {
+          return s.getItem(LAST_KEY);
+        });
+      },
+      setLastOpened: function(id) {
+        storage(function(s) {
+          s.setItem(LAST_KEY, id);
+        });
+      },
+      /* Work saved before projects: the layout and its backup become a
+         project (with the backup as a version), and the Content library moves
+         across. The old entries are removed once they're safely copied. */
+      migrate: function() {
+        var raw = storage(function(s) {
+          return s.getItem(STORE_KEY);
+        });
+        var backup = storage(function(s) {
+          return s.getItem(BACKUP_KEY);
+        });
+        var lib = storage(function(s) {
+          return s.getItem(LIB_KEY);
+        });
+        var steps = Promise.resolve();
+        if (raw) {
+          steps = steps.then(function() {
+            var doc;
+            try {
+              doc = clean(JSON.parse(raw));
+            } catch (err) {
+              return null;
+            }
+            var name = doc.frames.length === 1 ? doc.frames[0].name : "My layout";
+            return api.createProject(name, doc).then(function(meta) {
+              var more = Promise.resolve();
+              if (backup) {
+                try {
+                  more = api.addVersion(meta.id, clean(JSON.parse(backup)), "Before projects");
+                } catch (err) {
+                  more = Promise.resolve();
+                }
+              }
+              return more.then(function() {
+                api.setLastOpened(meta.id);
+              });
+            });
+          }).then(function() {
+            storage(function(s) {
+              s.removeItem(STORE_KEY);
+              s.removeItem(BACKUP_KEY);
+            });
+          });
+        }
+        if (lib && b.kind === "indexeddb") {
+          steps = steps.then(function() {
+            var value;
+            try {
+              value = JSON.parse(lib);
+            } catch (err) {
+              return null;
+            }
+            return api.saveLibrary(value).then(function() {
+              storage(function(s) {
+                s.removeItem(LIB_KEY);
+              });
+            });
+          });
+        }
+        return steps.catch(function() {
+        });
+      }
+    };
+    return api;
+  }
+  function ago(t) {
+    var s = Math.max(0, Math.round((Date.now() - t) / 1e3));
+    if (s < 45) return "Just now";
+    var m = Math.round(s / 60);
+    if (m < 60) return m + (m === 1 ? " minute ago" : " minutes ago");
+    var h = Math.round(m / 60);
+    if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
+    var d = Math.round(h / 24);
+    if (d < 14) return d + (d === 1 ? " day ago" : " days ago");
+    return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
   }
 
   // assets/builder/ui/icons.js
@@ -3556,13 +3941,19 @@
   // assets/builder/app/App.js
   var HISTORY_MAX = 200;
   setAutoFreeze(true);
-  function App() {
-    var init = useMemo(initialDoc, []);
+  function App(props) {
+    var init = props.init;
+    var store = props.store;
     var prefs = useMemo(loadPrefs, []);
     var docState = useState(function() {
       return freeze(init.doc, true);
     });
     var doc = docState[0], setDoc = docState[1];
+    var projectState = useState(init.project);
+    var project = projectState[0], setProject = projectState[1];
+    var projectRef = useRef(project);
+    projectRef.current = project;
+    var lastSaved = useRef(init.from === "saved" ? doc : null);
     var selState = useState([]);
     var selection = selState[0], setSelection = selState[1];
     var partState = useState(null);
@@ -3748,8 +4139,10 @@
         document.documentElement.classList.remove("bd-configure-docked");
       };
     }, []);
-    var libState = useState(loadLibrary);
+    var libState = useState(init.library);
     var library = libState[0], setLibrary = libState[1];
+    var libRef = useRef(library);
+    libRef.current = library;
     var libTabState = useState(null);
     var libTab = libTabState[0], setLibTab = libTabState[1];
     var libBusyState = useState(null);
@@ -3760,11 +4153,9 @@
         libFirst.current = false;
         return;
       }
-      var ok = storage(function(s) {
-        s.setItem(LIB_KEY, JSON.stringify(library));
-        return true;
+      store.saveLibrary(library).catch(function() {
+        announce("This browser is out of room for content. Remove something, or use smaller files.");
       });
-      if (!ok) announce("This browser is out of room for content. Remove something, or use smaller files.");
     }, [library]);
     var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
     useEffect(function() {
@@ -3875,13 +4266,44 @@
       }));
       announce("Redone");
     }, [announce, select]);
+    var saving = useRef({ busy: false, next: null, done: Promise.resolve() });
+    var persist = useCallback(function(pid, d) {
+      var q = saving.current;
+      q.next = { pid, doc: d };
+      if (q.busy) return q.done;
+      q.busy = true;
+      var loop = function() {
+        var job = q.next;
+        q.next = null;
+        if (!job) {
+          q.busy = false;
+          return Promise.resolve();
+        }
+        return store.saveDoc(job.pid, job.doc).then(function() {
+          setSaved({ ok: true, at: /* @__PURE__ */ new Date() });
+        }, function() {
+          setSaved({ ok: false, at: null });
+        }).then(loop);
+      };
+      q.done = loop();
+      return q.done;
+    }, []);
+    var flush = function() {
+      return saving.current.done;
+    };
     useEffect(function() {
-      var ok = storage(function(s) {
-        s.setItem(STORE_KEY, JSON.stringify(doc));
-        return true;
-      });
-      setSaved({ ok: !!ok, at: /* @__PURE__ */ new Date() });
+      if (doc === lastSaved.current) return;
+      persist(projectRef.current.id, doc);
     }, [doc]);
+    useEffect(function() {
+      window.__builder = { doc: function() {
+        return docRef.current;
+      }, project: function() {
+        return projectRef.current;
+      }, library: function() {
+        return libRef.current;
+      }, flush, store };
+    }, []);
     useEffect(function() {
       storage(function(s) {
         s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left, stage: stageColor }));
@@ -4623,14 +5045,14 @@
     var mediaPropFor = function(type, media) {
       var m = META[type];
       if (!m) return null;
-      var props = m.props.filter(function(p) {
+      var props2 = m.props.filter(function(p) {
         return p.kind === "media";
       }).map(function(p) {
         return p.name;
       });
-      if (!props.length) return null;
-      if (type === "Video") return media === "video" ? "src" : props.indexOf("poster") >= 0 ? "poster" : null;
-      return media === "video" ? null : props[0];
+      if (!props2.length) return null;
+      if (type === "Video") return media === "video" ? "src" : props2.indexOf("poster") >= 0 ? "poster" : null;
+      return media === "video" ? null : props2[0];
     };
     var mediaTarget = function(x, y, media) {
       var at = frameAt(x, y);
@@ -4928,23 +5350,30 @@
     };
     var readyRef = useRef(frameReady);
     readyRef.current = frameReady;
+    var slotFrame = function() {
+      var a = null;
+      doc.frames.forEach(function(f) {
+        if (!a && ready[f.id]) a = api(f.id);
+      });
+      return a && a.slots ? a : null;
+    };
+    var slotSample = function(type) {
+      if (slotTpl.current[type] === void 0) {
+        var a = slotFrame();
+        if (!a) return [];
+        try {
+          slotTpl.current[type] = a.slots(type) || [];
+        } catch (err) {
+          slotTpl.current[type] = [];
+        }
+      }
+      return slotTpl.current[type];
+    };
     useEffect(function() {
       var any = null;
-      var first = null;
-      doc.frames.forEach(function(f) {
-        if (!first && ready[f.id]) first = api(f.id);
-      });
-      if (first && first.slots) {
-        var tpl = function(type) {
-          if (slotTpl.current[type] === void 0) {
-            try {
-              slotTpl.current[type] = first.slots(type) || [];
-            } catch (err) {
-              slotTpl.current[type] = [];
-            }
-          }
-          return slotTpl.current[type];
-        };
+      var first = slotFrame();
+      if (first) {
+        var tpl = slotSample;
         var wants = function(n) {
           var m = META[n.type];
           return !!m && !m.builder && !hasSlots(n) && tpl(n.type).length > 0;
@@ -5211,7 +5640,7 @@
       if (isContainer(at.node.type)) return { parent: at.node.id, index: at.node.children.length };
       return { parent: at.parent.id, index: at.index + 1 };
     };
-    var add = function(type, where, props) {
+    var add = function(type, where, props2) {
       var t = where || target();
       var fid = t.frame || docRef.current.active;
       var pAt = locate(docRef.current, t.parent, fid);
@@ -5226,7 +5655,7 @@
         }
       }
       var n = make(type);
-      if (props) Object.assign(n.props, props);
+      if (props2) Object.assign(n.props, props2);
       if (t.free) {
         n.style.x = t.free.x;
         n.style.y = t.free.y;
@@ -5370,7 +5799,7 @@
       return false;
     });
     keyRef.current = function(ev) {
-      if (dialogRef.current && dialogRef.current.open || importRef.current && importRef.current.open || playRef.current && playRef.current.open || compRef.current && compRef.current.open || newOpenRef.current) return false;
+      if (dialogRef.current && dialogRef.current.open || importRef.current && importRef.current.open || projectsRef.current && projectsRef.current.open || versionsRef.current && versionsRef.current.open || playRef.current && playRef.current.open || compRef.current && compRef.current.open || newOpenRef.current) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -6006,6 +6435,390 @@
         showFrameRef.current(f.id, true);
       }, 0);
     };
+    var projectsRef = useRef(null);
+    var versionsRef = useRef(null);
+    var projListState = useState(null);
+    var projList = projListState[0], setProjList = projListState[1];
+    var projQueryState = useState("");
+    var projQuery = projQueryState[0], setProjQuery = projQueryState[1];
+    var renamingState = useState(null);
+    var renaming = renamingState[0], setRenaming = renamingState[1];
+    var confirmState = useState(null);
+    var confirmDel = confirmState[0], setConfirmDel = confirmState[1];
+    var versionsState = useState([]);
+    var versions = versionsState[0], setVersions = versionsState[1];
+    var shownState = useState(null);
+    var shown = shownState[0], setShown = shownState[1];
+    var importFileRef = useRef(null);
+    var refreshProjects = function() {
+      return store.listProjects().then(function(list) {
+        setProjList(list);
+        return list;
+      });
+    };
+    var captureThumb = function() {
+      var pid = projectRef.current.id;
+      var a = api(docRef.current.active);
+      if (!a || !a.snapshot) return Promise.resolve();
+      return a.snapshot("jpeg").then(function(url) {
+        return new Promise(function(resolve2) {
+          var img = new Image();
+          img.onload = function() {
+            var w = Math.min(480, img.naturalWidth), h = Math.round(img.naturalHeight * w / img.naturalWidth);
+            var c = document.createElement("canvas");
+            c.width = w;
+            c.height = Math.min(h, Math.round(w * 1.25));
+            var g = c.getContext("2d");
+            g.drawImage(img, 0, 0, w, h);
+            resolve2(c.toDataURL("image/jpeg", 0.72));
+          };
+          img.onerror = function() {
+            resolve2(null);
+          };
+          img.src = url;
+        });
+      }).then(function(thumb) {
+        return thumb ? store.setThumb(pid, thumb) : null;
+      }).catch(function() {
+        return null;
+      });
+    };
+    var openProjects = function() {
+      setProjQuery("");
+      setRenaming(null);
+      setConfirmDel(null);
+      setProjList(null);
+      refreshProjects();
+      setShown("projects");
+      var dlg = projectsRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+      captureThumb().then(refreshProjects);
+    };
+    var closeProjects = function() {
+      var dlg = projectsRef.current;
+      if (dlg && dlg.open) dlg.close();
+    };
+    var switchTo = function(meta, d, message) {
+      var next = freeze(d, true);
+      history.current = { past: [], future: [] };
+      setEdit(null);
+      select([]);
+      lastSaved.current = next;
+      projectRef.current = meta;
+      setProject(meta);
+      store.setLastOpened(meta.id);
+      docRef.current = next;
+      setDoc(next);
+      closeProjects();
+      if (message) announce(message);
+      setTimeout(function() {
+        showFrameRef.current(next.active);
+      }, 0);
+    };
+    var openProject = function(meta) {
+      if (meta.id === projectRef.current.id) {
+        closeProjects();
+        return;
+      }
+      captureThumb().then(flush).then(function() {
+        return store.loadDoc(meta.id);
+      }).then(function(d) {
+        if (!d) {
+          announce("That project couldn't be opened.");
+          return;
+        }
+        switchTo(meta, d, "Opened " + meta.name);
+      });
+    };
+    var newProject = function(starterId) {
+      var s = starterId ? STARTERS.filter(function(x) {
+        return x[0] === starterId;
+      })[0] : null;
+      var d = s ? s[2]() : emptyDoc();
+      var name = s ? s[1] : "Untitled";
+      captureThumb().then(flush).then(function() {
+        return store.createProject(name, d);
+      }).then(function(meta) {
+        switchTo(meta, d, "Made a new project, " + name);
+      });
+    };
+    var renameProject = function(id, name) {
+      setRenaming(null);
+      if (!name) return;
+      store.renameProject(id, name).then(function(meta) {
+        if (!meta) return;
+        if (id === projectRef.current.id) {
+          projectRef.current = meta;
+          setProject(meta);
+        }
+        refreshProjects();
+      });
+    };
+    var duplicateProject = function(id) {
+      flush().then(function() {
+        return store.duplicateProject(id);
+      }).then(function(meta) {
+        if (meta) announce("Made a copy, " + meta.name);
+        refreshProjects();
+      });
+    };
+    var deleteProject = function(id) {
+      setConfirmDel(null);
+      var gone = (projList || []).filter(function(p) {
+        return p.id === id;
+      })[0];
+      store.deleteProject(id).then(refreshProjects).then(function(list) {
+        announce("Deleted " + (gone ? gone.name : "the project"));
+        if (id !== projectRef.current.id) return;
+        if (list.length) store.loadDoc(list[0].id).then(function(d2) {
+          switchTo(list[0], d2 || emptyDoc(), "Opened " + list[0].name);
+        });
+        else {
+          var d = starterDoc();
+          store.createProject("Untitled", d).then(function(meta) {
+            switchTo(meta, d, "Made a new project");
+            refreshProjects();
+          });
+        }
+      });
+    };
+    var PROJECT_FORMAT = "dovetail-project";
+    var exportProject = function(id) {
+      flush().then(function() {
+        return Promise.all([store.getProject(id), store.loadDoc(id)]);
+      }).then(function(got) {
+        if (!got[0] || !got[1]) return;
+        var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: got[1] });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
+        link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function() {
+          URL.revokeObjectURL(link.href);
+        }, 4e3);
+        announce("Downloaded " + link.download);
+      });
+    };
+    var importProject = function(file) {
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function() {
+        var data;
+        try {
+          data = JSON.parse(String(reader.result));
+        } catch (err) {
+          announce(file.name + " isn't a Dovetail project file.");
+          return;
+        }
+        if (!data || data.format !== PROJECT_FORMAT || !data.doc) {
+          announce(file.name + " isn't a Dovetail project file.");
+          return;
+        }
+        var dropped = [];
+        var d = clean(data.doc, dropped);
+        var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
+        captureThumb().then(flush).then(function() {
+          return store.createProject(name, d);
+        }).then(function(meta) {
+          switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
+          refreshProjects();
+        });
+      };
+      reader.readAsText(file);
+    };
+    var openVersions = function() {
+      flush().then(function() {
+        return store.listVersions(projectRef.current.id);
+      }).then(function(vs) {
+        setVersions(vs);
+        setShown("versions");
+        var dlg = versionsRef.current;
+        if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+      });
+    };
+    var keepVersion = function() {
+      store.addVersion(projectRef.current.id, docRef.current, "Saved by you").then(function() {
+        return store.listVersions(projectRef.current.id);
+      }).then(function(vs) {
+        setVersions(vs);
+        announce("Kept this version");
+      });
+    };
+    var restoreVersion = function(v) {
+      store.loadVersion(v.key).then(function(d) {
+        if (!d) {
+          announce("That version couldn't be opened.");
+          return;
+        }
+        store.addVersion(projectRef.current.id, docRef.current, "Before restoring");
+        var dlg = versionsRef.current;
+        if (dlg && dlg.open) dlg.close();
+        commit(d, null, "Restored the version from " + new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) + ". Undo to go back.");
+        setTimeout(function() {
+          showFrameRef.current(d.active);
+        }, 0);
+      });
+    };
+    var projectsDialog = function() {
+      var q = projQuery.trim().toLowerCase();
+      var list = (projList || []).filter(function(p) {
+        return !q || p.name.toLowerCase().indexOf(q) >= 0;
+      });
+      var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function() {
+        setConfirmDel(null);
+        setRenaming(null);
+        setShown(null);
+      } };
+      if (shown !== "projects") return e("dialog", dialogProps);
+      return e(
+        "dialog",
+        dialogProps,
+        e(
+          "div",
+          { className: "bd-code-head" },
+          e(
+            "div",
+            { className: "bd-code-intro" },
+            e("h2", { id: "bd-projects-title" }, "Projects"),
+            e("p", { className: "bd-inspect-sub" }, "Each project has its own canvas, saved in this browser. Download one as a file to move it or keep a copy.")
+          ),
+          e(
+            "div",
+            { className: "bd-code-actions" },
+            e(
+              "label",
+              { className: "bd-btn", title: "Open a .dovetail file as a new project" },
+              e(Icon, { name: "upload" }),
+              "Open file",
+              e("input", {
+                ref: importFileRef,
+                type: "file",
+                className: "visually-hidden",
+                accept: ".dovetail,application/json",
+                onChange: function(ev) {
+                  var f = ev.target.files && ev.target.files[0];
+                  ev.target.value = "";
+                  importProject(f);
+                }
+              })
+            ),
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: closeProjects }, e(Icon, { name: "close" }))
+          )
+        ),
+        e(
+          "div",
+          { className: "bd-projects-bar" },
+          e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function() {
+            newProject(null);
+          } }, e(Icon, { name: "plus" }), "New project"),
+          e(
+            "span",
+            { className: "bd-projects-tpl", role: "group", "aria-label": "New project from a template" },
+            STARTERS.filter(function(st) {
+              return st[0] !== "blank";
+            }).map(function(st) {
+              return e("button", { key: st[0], type: "button", className: "bd-btn bd-chip", onClick: function() {
+                newProject(st[0]);
+              }, title: "A new project from the " + st[1] + " template" }, st[1]);
+            })
+          ),
+          e(SearchField, { className: "bd-projects-search", label: "Search projects", placeholder: "Search projects", value: projQuery, onChange: setProjQuery })
+        ),
+        list.length ? e("ul", { className: "bd-projects-grid", role: "list" }, list.map(function(p) {
+          var current2 = p.id === project.id;
+          return e(
+            "li",
+            { key: p.id, className: cx("bd-proj", current2 && "is-current"), "data-project": p.id },
+            e(
+              "button",
+              { type: "button", className: "bd-proj-open", onClick: function() {
+                openProject(p);
+              }, "aria-label": "Open " + p.name + (current2 ? ", open now" : "") },
+              e(
+                "span",
+                { className: "bd-proj-thumb", "aria-hidden": "true" },
+                p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" })
+              )
+            ),
+            e(
+              "div",
+              { className: "bd-proj-info" },
+              renaming === p.id ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "Project name", startEditing: true, onChange: function(v) {
+                renameProject(p.id, v);
+              } }) : e("span", { className: "bd-proj-name" }, p.name),
+              e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + ago(p.updatedAt) + " · " + p.frames + (p.frames === 1 ? " frame" : " frames"))
+            ),
+            confirmDel === p.id ? e(
+              "div",
+              { className: "bd-proj-confirm", role: "group", "aria-label": "Delete " + p.name },
+              e("span", null, "Delete for good?"),
+              e("button", { type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+                deleteProject(p.id);
+              } }, "Delete"),
+              e("button", { type: "button", className: "bd-btn", onClick: function() {
+                setConfirmDel(null);
+              } }, "Keep")
+            ) : e(
+              "span",
+              { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
+              e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function() {
+                setRenaming(p.id);
+              } }, e(Icon, { name: "pencil" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Duplicate " + p.name, title: "Duplicate", onClick: function() {
+                duplicateProject(p.id);
+              } }, e(Icon, { name: "copy" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Download " + p.name, title: "Download as a file", onClick: function() {
+                exportProject(p.id);
+              } }, e(Icon, { name: "exportOut" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Delete " + p.name, title: "Delete", onClick: function() {
+                setConfirmDel(p.id);
+              } }, e(Icon, { name: "trash" }))
+            )
+          );
+        })) : e("p", { className: "bd-sec-empty bd-projects-empty", "aria-busy": projList ? void 0 : "true" }, !projList ? "Loading projects…" : q ? "No project is called that." : "No projects yet.")
+      );
+    };
+    var versionsDialog = function() {
+      var dialogProps = { className: "bd-code bd-versions", ref: versionsRef, "aria-labelledby": "bd-versions-title", onClose: function() {
+        setShown(null);
+      } };
+      if (shown !== "versions") return e("dialog", dialogProps);
+      return e(
+        "dialog",
+        dialogProps,
+        e(
+          "div",
+          { className: "bd-code-head" },
+          e(
+            "div",
+            { className: "bd-code-intro" },
+            e("h2", { id: "bd-versions-title" }, "Versions of " + project.name),
+            e("p", { className: "bd-inspect-sub" }, "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.")
+          ),
+          e(
+            "div",
+            { className: "bd-code-actions" },
+            e("button", { type: "button", className: "bd-btn", onClick: keepVersion }, e(Icon, { name: "plus" }), "Keep this version"),
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
+              versionsRef.current.close();
+            } }, e(Icon, { name: "close" }))
+          )
+        ),
+        versions.length ? e("ul", { className: "bd-versions-list", role: "list" }, versions.map(function(v) {
+          return e(
+            "li",
+            { key: v.key, className: "bd-version" },
+            e("span", { className: "bd-version-when" }, new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })),
+            e("span", { className: "bd-version-what" }, v.label + " · " + v.frames + (v.frames === 1 ? " frame" : " frames")),
+            e("button", { type: "button", className: "bd-btn", onClick: function() {
+              restoreVersion(v);
+            } }, "Restore")
+          );
+        })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now.")
+      );
+    };
     var startFrom = function(id) {
       closeNew();
       if (id === "import") {
@@ -6020,9 +6833,7 @@
         return f.root.children.length;
       });
       if (has2 && !window.confirm("Start over with a blank frame? Every frame goes; undo brings your work back.")) return;
-      storage(function(st) {
-        st.setItem(BACKUP_KEY, JSON.stringify(docRef.current));
-      });
+      store.addVersion(projectRef.current.id, docRef.current, "Before starting over");
       var next = s[2]();
       commit(next, null, "Started from " + s[1] + ". Undo to go back.");
       setTimeout(function() {
@@ -6253,9 +7064,7 @@
       if (dlg) dlg.close();
       var dropped = read.report.length ? " " + read.report.length + (read.report.length === 1 ? " thing was" : " things were") + " left out." : "";
       if (mode === "replace") {
-        storage(function(st) {
-          st.setItem(BACKUP_KEY, JSON.stringify(docRef.current));
-        });
+        store.addVersion(projectRef.current.id, docRef.current, "Before a pasted layout");
         commit(read.doc, null, "Opened the pasted layout. Undo to go back." + dropped);
         setTimeout(function() {
           showFrameRef.current(read.doc.active);
@@ -8438,7 +9247,7 @@
       var takes = slotTakes(owner.type, node.props.name);
       var spec = slotSpec(owner.type, node.props.name);
       var refill = function() {
-        var tpl = (slotTpl.current[owner.type] || []).filter(function(t) {
+        var tpl = slotSample(owner.type).filter(function(t) {
           return t.name === node.props.name;
         })[0];
         change(function(d) {
@@ -8740,6 +9549,36 @@
     var toolbar = e(
       "div",
       { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
+      e(
+        "span",
+        { className: "bd-project" },
+        e("button", { type: "button", className: "bd-act", title: "All projects", "aria-label": "Projects", "aria-haspopup": "dialog", onClick: openProjects }, e(Icon, { name: "folder" })),
+        e(Renamable, { className: "bd-project-name", value: project.name, label: "Project name", hint: "Double-click to rename this project", focusable: true, onChange: function(v) {
+          renameProject(project.id, v);
+        } }),
+        e(Dropdown, {
+          menu: true,
+          label: "Project actions",
+          placeholder: "Project",
+          icon: "down",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          className: "bd-dd-icon bd-project-menu",
+          options: [
+            { value: "projects", label: "All projects", icon: "folder" },
+            { value: "versions", label: "Versions", icon: "rotate" },
+            { value: "duplicate", label: "Duplicate", icon: "copy" },
+            { value: "export", label: "Download file", icon: "exportOut" }
+          ],
+          onChange: function(v) {
+            if (v === "projects") openProjects();
+            else if (v === "versions") openVersions();
+            else if (v === "duplicate") duplicateProject(project.id);
+            else if (v === "export") exportProject(project.id);
+          }
+        })
+      ),
       e("button", { type: "button", ref: newBtnRef, className: "bd-act bd-start", title: "New: a free canvas, a structured page or a template", "aria-label": "New", "aria-haspopup": "dialog", "aria-expanded": String(!!newOpen), onClick: function(ev) {
         if (newOpen) closeNew();
         else openNew(ev.currentTarget);
@@ -9718,6 +10557,8 @@
       ),
       newMenu(),
       importDialog(),
+      projectsDialog(),
+      versionsDialog(),
       componentDialog(),
       playDialog(),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say)
@@ -9796,7 +10637,13 @@
   // assets/builder/main.js
   if (mountEl && window.DovetailBuilderData && window.React && window.ReactDOM) {
     installTips();
-    mountEl.textContent = "";
-    ReactDOM.createRoot(mountEl).render(e(App));
+    openStore().then(function(store) {
+      return openStart(store).then(function(init) {
+        mountEl.textContent = "";
+        ReactDOM.createRoot(mountEl).render(e(App, { init, store }));
+      });
+    }).catch(function(err) {
+      mountEl.textContent = "The builder couldn't open: " + (err && err.message ? err.message : err) + ". Reload to try again.";
+    });
   }
 })();

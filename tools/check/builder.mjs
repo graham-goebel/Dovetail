@@ -74,6 +74,7 @@
    Chromium comes from Playwright; set CHROMIUM_PATH to use a local binary. */
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -81,13 +82,26 @@ import { serve } from "./serve.mjs";
 
 let failures = 0;
 const ok = (m) => console.log(`  ok    ${m}`);
-const fail = (m) => { failures++; console.log(`  FAIL  ${m}`); };
+let stepNow = "";
+/* On GitHub Actions a failure is also an annotation, so it reads from the
+   checks page without opening the log. */
+const fail = (m) => {
+  failures++;
+  console.log(`  FAIL  ${m}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Builder check::${(stepNow + ": " + m).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`);
+};
 const expect = (cond, m) => { if (!cond) throw new Error(m); };
 /* ONLY=<text> runs just the steps whose title has it, to work on one. */
 async function step(title, fn) {
   if (process.env.ONLY && !title.includes(process.env.ONLY) && title !== "page errors") return;
   console.log(title);
-  try { await fn(); } catch (err) { if (process.env.DEBUG) console.log(err); fail(String(err && err.message ? err.message : err).split("\n")[0]); }
+  stepNow = title;
+  try { await fn(); } catch (err) {
+    if (process.env.DEBUG) console.log(err);
+    /* A timeout doesn't say which wait it was; the line in this file does. */
+    const at = /builder\.mjs:(\d+)/.exec((err && err.stack) || "");
+    fail(String(err && err.message ? err.message : err).split("\n")[0] + (at && /Timeout/.test(String(err && err.message)) ? ` (line ${at[1]})` : ""));
+  }
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -113,6 +127,8 @@ async function open(viewport, { hash = "", store = null } = {}) {
   page.setDefaultTimeout(8000);
   watch(page);
   await page.goto(server.origin + "/builder.html");
+  /* Let the first visit finish making its project before the reload below. */
+  await page.waitForFunction(() => !!window.__builder);
   await page.evaluate((store) => { localStorage.clear(); if (store) for (const k in store) localStorage.setItem(k, store[k]); }, store);
   if (hash) await page.goto(server.origin + "/builder.html" + hash);
   await page.reload();
@@ -352,7 +368,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg)").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -434,6 +450,7 @@ try {
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => document.querySelector(".bd-flabel.is-current .bd-flabel-name")?.textContent === "Frame 1" && /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     ok("a click in the other frame makes it active and selects what was clicked");
+    await page.evaluate(() => window.__builder && window.__builder.flush());
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
@@ -541,7 +558,7 @@ try {
     const tag = await page.locator(".bd-mark-tag").boundingBox();
     const empty = await canvasPoint(page, '[data-bf-slot="root"]', "center", 1);
     await drag(page, { x: tag.x + 6, y: tag.y + 6 }, empty);
-    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     expect(saved.frames[1].root.children.map((c) => c.name || c.type).join() === "Proof" && !saved.frames[0].root.children.some((c) => c.name === "Proof"), "the Group moves from the first frame to the second");
     await frame(1).waitForSelector('[data-bf-type="Group"] [data-bf-type="StatsBlock"]');
     expect(await page.locator(".bd-flabel.is-current .bd-flabel-name").textContent() === "Frame 2", "the frame it landed in becomes active");
@@ -551,7 +568,7 @@ try {
 
   await step("Tools add primitives straight away, and land where they are dropped", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     expect(await page.locator(".bd-tools-row > .bd-tool").count() === 4, "one Select/Hand button and three groups in the bar, with no shapes");
@@ -625,7 +642,7 @@ try {
 
   await step("The bar's nav button, trays that drag and close, smart tabs, context sizes, pinning, tooltips and brand buttons", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const current = () => page.locator(".bd-itab[aria-selected=true]").textContent();
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
@@ -740,7 +757,7 @@ try {
 
   await step("The rail, Configure in the panel, Content with background removal, edge resizing, a canvas colour, override dots, Shift spacing and Play", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
     const tabs = await page.$$eval(".bd-rail .bd-tab", (b) => b.map((x) => x.textContent));
@@ -768,7 +785,7 @@ try {
     await page.locator(".bd-lib-menu").first().click();
     await option(page, "Remove background").click();
     await page.waitForFunction(() => /Background removed/.test(document.querySelector('.visually-hidden[role="status"]')?.textContent || ""), null, { timeout: 10000 });
-    const lib = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder-library")));
+    const lib = await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.library())));
     expect(lib.images.length === 1 && lib.images[0].original && /^data:image\/png/.test(lib.images[0].src), "the cut-out replaces the picture and keeps the original");
     const corner = await page.evaluate((src) => new Promise((res) => { const i = new Image(); i.onload = () => { const c = document.createElement("canvas"); c.width = i.width; c.height = i.height; const x = c.getContext("2d"); x.drawImage(i, 0, 0); res([x.getImageData(2, 2, 1, 1).data[3], x.getImageData(i.width / 2, i.height / 2, 1, 1).data[3]]); }; i.src = src; }), lib.images[0].src);
     expect(corner[0] === 0 && corner[1] === 255, `the backdrop is clear and the subject solid, got alpha ${corner}`);
@@ -850,9 +867,9 @@ try {
 
   await step("Slots: a block's own buttons are picked on the canvas, changed, and exported in its prop", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const heroOf = (d) => d.frames[0].root.children.find((c) => c.type === "HeroBlock");
-    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); const h = d && d.frames[0].root.children.find((c) => c.type === "HeroBlock"); return h && h.children && h.children.some((c) => c.type === "Slot"); });
+    await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); const h = d && d.frames[0].root.children.find((c) => c.type === "HeroBlock"); return h && h.children && h.children.some((c) => c.type === "Slot"); });
     let hero = heroOf(await saved());
     const names = hero.children.map((c) => c.props.name);
     expect(names.includes("actions") && names.includes("media"), `the hero's slots come from its types, got ${names}`);
@@ -914,12 +931,26 @@ try {
     expect(!JSON.stringify(slot).includes('"Heading"') && kids[kids.indexOf("HeroBlock") + 1] === "Heading", `a Heading, which Actions doesn't take, goes after the hero instead, got ${kids}`);
     ok("something a slot doesn't take goes after the component instead");
 
+    await page.evaluate(() => window.__builder && window.__builder.flush());
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await frame().waitForFunction(() => [...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
     hero = heroOf(await saved());
     expect(hero.children.filter((c) => c.type === "Slot").length === 2, "the slots survive a reload");
     ok("the slots and what's in them survive a reload");
+
+    /* Reopened with its slots already filled, the sample is still there to put back. */
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    const twisty = page.locator('.bd-layer-twisty[aria-label="Expand HeroBlock"]').first();
+    if (await twisty.count()) await twisty.click();
+    await page.locator('.bd-layer[data-layer]:has(.bd-layer-name:text-is("Actions")) .bd-layer-main').first().click();
+    await page.waitForFunction(() => /Actions/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator(".bd-right .bd-btn", { hasText: "Empty it" }).click();
+    await frame().waitForFunction(() => ![...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
+    await page.locator(".bd-right .bd-btn", { hasText: "Put the sample back" }).click();
+    await frame().waitForFunction(() => [...document.querySelectorAll("button")].some((x) => /Shop the collection/.test(x.textContent)));
+    ok("after a reload, Put the sample back still fills the Actions slot");
+    await page.keyboard.press("Escape");
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
     /* The list can still be settling (a component's parts fill in once its
@@ -946,7 +977,7 @@ try {
 
   await step("Lists: a block's items edit one by one, add, move and go, and export as its prop", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const items = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "FaqBlock").props.items);
+    const items = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].root.children.find((c) => c.type === "FaqBlock").props.items);
     const labelsNow = () => page.locator(".bd-list-label").allTextContents();
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
@@ -986,14 +1017,15 @@ try {
     const href = page.locator(".bd-list-item.is-open .bd-list-field", { hasText: "Href" }).locator("input");
     await href.fill("");
     await href.pressSequentially("https://example.com/shop");
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href === "https://example.com/shop");
+    await page.waitForFunction(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href === "https://example.com/shop");
     await href.fill("javascript:alert(1)");
     expect(await href.getAttribute("aria-invalid") === "true", "an unsafe link shows as invalid");
-    const kept = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href);
+    const kept = await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href);
     expect(kept === "https://example.com/shop", `an unsafe link isn't kept, got ${kept}`);
     await page.locator(".bd-search-dock .bd-search-clear").click();
     ok("a Navbar link's href types in a letter at a time, and javascript: shows invalid and isn't kept");
 
+    await page.evaluate(() => window.__builder && window.__builder.flush());
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => /Do the mugs survive a dishwasher\?/.test(document.querySelector("iframe.bd-frame")?.contentDocument?.body?.textContent || ""));
@@ -1003,7 +1035,7 @@ try {
 
   await step("v8: New (freeform, structured, template), clipboard, selection code, type scale, loose objects, builder settings, parts in layers, export and the inspector's additions", async () => {
     const { page } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const lastFrame = async () => { const d = await saved(); return d.frames[d.frames.length - 1]; };
     const pickFrame = async (name) => {
       await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
@@ -1011,7 +1043,7 @@ try {
       await page.waitForTimeout(150);
     };
     const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
-    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children[0].children; });
+    await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames[0].root.children[0].children; });
 
     await page.locator(".bd-start").click();
     expect((await page.locator(".bd-new-kind .bd-new-name").allTextContents()).join(",") === "Freeform canvas,Structured page" && await page.locator(".bd-newmenu .bd-new-tpl").count() >= 3 && await page.locator("dialog[open]").count() === 0, "New opens a menu, not a dialog: a freeform canvas, a structured page, and the templates");
@@ -1107,11 +1139,11 @@ try {
 
     const firstFrame = async () => (await saved()).frames[0];
     await page.locator("[aria-label='Constrain proportions']").click();
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].lock === true);
+    await page.waitForFunction(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].lock === true);
     const before = await firstFrame();
     await page.locator("input[aria-label='Frame width']").fill(String(Math.round(before.width / 2)));
     await page.keyboard.press("Enter");
-    await page.waitForFunction((w) => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].width !== w, before.width);
+    await page.waitForFunction((w) => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].width !== w, before.width);
     const after = await firstFrame();
     expect(after.lock && !after.hug && Math.abs(after.height - Math.round(before.height / 2)) <= 1, `with proportions kept, half the width halves the height: ${before.width}×${before.height} to ${after.width}×${after.height}`);
     ok(`Constrain proportions: ${before.width} × ${before.height} became ${after.width} × ${after.height}`);
@@ -1156,11 +1188,11 @@ try {
 
   await step("v9: Export on the right, a frame's components, thin outlines, a colour picker, Fixed and scrubbed sizes, swap, copy a frame, layer links, glass New, variables and templates", async () => {
     const { page } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
     /* What's saved lands a beat after a change; wait for it rather than race it. */
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
-    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children.length; });
+    await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames[0].root.children.length; });
 
     const bar = await page.locator("#app-toolbar .bd-toolbar").boundingBox();
     const exp = await page.locator(".bd-export").boundingBox();
@@ -1187,7 +1219,7 @@ try {
     const sizing = await page.$$eval(".bd-dd-list .bd-dd-opt-label", (o) => o.map((x) => x.textContent));
     expect(["Auto", "Hug contents", "Fill container", "Fixed"].every((x) => sizing.includes(x)), `Width offers Auto, Hug contents, Fill container and Fixed, got ${sizing.slice(0, 6).join(", ")}`);
     await option(page, /^Fixed$/).click();
-    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder")); let b = null; (function w(x) { (x.children || []).forEach((c) => { if (!b && c.type === "Button") b = c; w(c); }); })(d.frames[0].root); return b && b.style.w && !/^(hug|fill)$/.test(b.style.w); });
+    await page.waitForFunction(() => { const d = JSON.parse(JSON.stringify(window.__builder.doc())); let b = null; (function w(x) { (x.children || []).forEach((c) => { if (!b && c.type === "Button") b = c; w(c); }); })(d.frames[0].root); return b && b.style.w && !/^(hug|fill)$/.test(b.style.w); });
     const fixedW = findIn((await saved()).frames[0].root, "Button").style.w;
     ok(`Width offers Hug contents, Fill container and Fixed; Fixed holds the Button at ${fixedW}`);
 
@@ -1246,6 +1278,8 @@ try {
     const after = await poll(async () => (await saved()).frames, (fs) => fs.length === before + 1);
     expect(after.length === before + 1 && typeof after[1].x === "number" && /copy$/.test(after[1].name), `Cmd-Shift-drag on a frame's name drops a copy where it's let go, got ${JSON.stringify(after.map((f) => [f.name, f.x, f.y]))}`);
     ok(`Cmd-Shift-dragging the frame dropped ${after[1].name} at ${after[1].x}, ${after[1].y}`);
+    /* The copy renders its own Badge; click that one once it's there. */
+    await page.waitForFunction(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; const last = fs[fs.length - 1]; try { return !!last.contentDocument.querySelector('[data-bf-type="Badge"]'); } catch (err) { return false; } });
     { const at = await canvasPoint(page, '[data-bf-type="Badge"]', "center", await page.evaluate(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; return fs.map((f, i) => (f.contentDocument.querySelector('[data-bf-type="Badge"]') ? i : -1)).filter((i) => i >= 0).pop(); })); await page.mouse.click(at.x, at.y); }
     await page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
 
@@ -1281,9 +1315,9 @@ try {
     const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
     const library = JSON.stringify({ images: [{ id: "lib1", name: "Dot", src: PNG }], illustrations: [], icons: [], video: [] });
     const { page } = await open({ width: 1440, height: 900 }, { store: { "dovetail-builder-library": library } });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
-    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children.length; });
+    await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames[0].root.children.length; });
 
     const panel = await page.evaluate(() => { const l = document.querySelector(".bd-left"), st = document.querySelector(".bd-stage"); const lr = l.getBoundingClientRect(), sr = st.getBoundingClientRect(); return { radius: parseFloat(getComputedStyle(l).borderTopLeftRadius), inset: lr.left, under: sr.left <= lr.left && sr.right >= document.querySelector(".bd-right").getBoundingClientRect().right }; });
     expect(panel.radius > 0 && panel.inset > 0 && panel.under, `the panels float over the canvas, inset and rounded, got ${JSON.stringify(panel)}`);
@@ -1368,10 +1402,10 @@ try {
 
   await step("v11: rows for the system, no component list on a frame, social type, any freeform size, structured auto layout, corners and shadow on demand, local components, a theater", async () => {
     const { page } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
-    await page.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames[0].root.children.length; });
+    await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames[0].root.children.length; });
 
     { const sb = await stageBox(page); await page.mouse.click(sb.x + sb.width / 2, sb.y + 8); }
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -1429,11 +1463,14 @@ try {
     expect(btn.style.radius && btn.style.elevation && await page.locator('.bd-right [aria-label="Remove the corners"]').count() === 1, `+ adds a radius and a shadow, got ${JSON.stringify(btn.style)}`);
     ok(`Corners and Shadow show None until +; pressing them gives the Button radius ${btn.style.radius} and elevation ${btn.style.elevation}`);
 
-    await page.evaluate((id) => {
-      const d = JSON.parse(localStorage.getItem("dovetail-builder"));
+    /* A layout saved with a raw colour on the Button, as an older or edited save might hold. */
+    await page.evaluate(async (id) => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
       (function w(x) { (x.children || []).forEach((c) => { if (c.id === id) c.style.fill = "#ff0000"; w(c); }); })(d.frames[0].root);
-      localStorage.setItem("dovetail-builder", JSON.stringify(d));
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
     }, btn.id);
+    await page.evaluate(() => window.__builder && window.__builder.flush());
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await frames(page)[0].waitForFunction(() => !!window.BuilderFrame);
@@ -1448,7 +1485,7 @@ try {
     await page.locator(".bd-comp-name").fill("Shop button");
     await page.locator(".bd-comp-dlg .bd-btn-primary").click();
     await page.waitForFunction(() => !document.querySelector(".bd-comp-dlg[open]"));
-    const lib = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder-library") || "{}"));
+    const lib = await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.library() || {})));
     const mine = (lib.components || [])[0];
     expect(mine && mine.name === "Shop button" && mine.tokens.length && !mine.node.style.fill, `the component saves with its tokens and no custom fill, got ${JSON.stringify(mine && { name: mine.name, tokens: mine.tokens, style: mine.node.style })}`);
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
@@ -1474,7 +1511,7 @@ try {
 
   await step("Carousel: its items lie flat while editing, take drops and edits, export as children, and move in Play", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const carousel = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")).frames[0].root.children.find((c) => c.type === "Carousel"));
+    const carousel = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].root.children.find((c) => c.type === "Carousel"));
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await page.locator(".bd-search-dock input").fill("Carousel");
@@ -1569,7 +1606,7 @@ try {
     await ex.page.locator(".bd-import-actions .bd-btn-primary").click();
     await ex.page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     await ex.frame(1).waitForFunction(() => document.querySelectorAll('[data-bf-type="Card"]').length === 2 && [...document.querySelectorAll('[data-bf-type="Text"]')].some((t) => t.textContent === "Billed monthly."));
-    const saved = await ex.page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = await ex.page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     expect(saved.frames.length === 2 && saved.frames[0].name === "Launch" && saved.frames[1].name === "Pasted", "the pasted frame sits beside the example's");
     const group = saved.frames[1].root.children[1];
     expect(JSON.stringify(group.style) === JSON.stringify({ padding: "lg" }) && group.children.length === 2, `only token styles and known components come in, got ${JSON.stringify(group)}`);
@@ -1587,7 +1624,7 @@ try {
 
   await step("JSX: pasted from anywhere, opened from a docs example, and the Code dialog's own export pasted back", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
-    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     /* A component's empty slots are the builder's own, filled in once it lands. */
     const shape = (n) => { const kids = (n.children || []).filter((c) => c.type !== "Slot" || (c.children || []).length); return n.type + (kids.length ? "(" + kids.map(shape).join(",") + ")" : ""); };
     await startFrom(page, "Paste a layout");
@@ -1644,19 +1681,115 @@ try {
     watch(docs);
     /* Some work already saved in this browser, which the example joins. */
     await docs.goto(server.origin + "/builder.html");
-    await docs.waitForFunction(() => !!localStorage.getItem("dovetail-builder"));
+    await docs.waitForFunction(() => !!window.__builder);
     await docs.goto(server.origin + "/components/Carousel.html");
     const btn = docs.locator(".open-btn").first();
     const where = await docs.$$eval(".open-btn", (b) => b.map((x) => x.parentNode.querySelector("pre").getAttribute("data-lang")));
     expect(where.length >= 1 && where.every((l) => l === "jsx"), `only JSX examples with components carry Open in builder, got ${where}`);
     await btn.click();
     await docs.waitForSelector(".bd-assets", { state: "attached" });
-    await docs.waitForFunction(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder") || "null"); return d && d.frames.some((f) => f.name === "Example"); });
-    const ex = await docs.evaluate(() => { const d = JSON.parse(localStorage.getItem("dovetail-builder")); const f = d.frames.find((x) => x.id === d.active); return { name: f.name, kids: f.root.children.map((c) => c.type + ":" + (c.children || []).length), frames: d.frames.length, hash: location.hash }; });
+    await docs.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames.some((f) => f.name === "Example"); });
+    const ex = await docs.evaluate(() => { const d = JSON.parse(JSON.stringify(window.__builder.doc())); const f = d.frames.find((x) => x.id === d.active); return { name: f.name, kids: f.root.children.map((c) => c.type + ":" + (c.children || []).length), frames: d.frames.length, hash: location.hash }; });
     expect(ex.name === "Example" && ex.kids.join(",") === "Carousel:5,Carousel:5" && ex.frames > 1 && ex.hash === "", `the example should open as a new, active frame beside the saved ones with sample items, got ${JSON.stringify(ex)}`);
     await docs.waitForFunction(() => /Added the example as a new frame/.test(document.querySelector('.visually-hidden[role="status"]')?.textContent || ""));
     ok("Open in builder on the Carousel page adds the example as an active frame beside the saved ones, two Carousels of five sample items, and says what it filled in");
     await docs.close();
+  });
+
+  await step("Projects: each its own canvas, renamed, switched, duplicated, deleted, versioned, downloaded and opened again", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const doc = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const proj = () => page.evaluate(() => window.__builder.project());
+    const types = (d) => d.frames.map((f) => f.root.children.map((c) => c.type).join("+")).join(" | ");
+    const cards = () => page.locator(".bd-projects .bd-proj .bd-proj-name").allTextContents();
+    /* Switching projects replaces the canvas's frames; wait for the new one. */
+    const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
+    const openHome = async () => { await page.locator('.bd-toolbar [aria-label="Projects"]').click(); await page.locator(".bd-projects[open] .bd-proj").first().waitFor(); };
+
+    expect(await page.locator(".bd-project-name").textContent() === "Untitled" && /HeroBlock/.test(types(await doc())), "a first visit opens one project, Untitled, on the landing page");
+    await page.locator(".bd-project-name").dblclick();
+    await page.locator("input.bd-project-name").fill("Kiln site");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => window.__builder.project().name === "Kiln site");
+    const first = await proj();
+    ok("a first visit opens Untitled on the landing page; double-clicking its name in the bar renames it Kiln site");
+
+    await openHome();
+    const listed = await cards(), meta0 = await page.locator(".bd-proj.is-current .bd-proj-meta").textContent();
+    expect(listed.join() === "Kiln site" && /Open now/.test(meta0), `the home lists the one project, marked open now, got ${listed} / ${meta0}`);
+    await page.locator(".bd-projects .bd-btn-primary", { hasText: "New project" }).click();
+    await page.waitForFunction((id) => window.__builder.project().id !== id && !document.querySelector(".bd-projects[open]"), first.id);
+    await ready();
+    expect(await page.locator(".bd-project-name").textContent() === "Untitled" && types(await doc()) === "", "New project opens a blank canvas of its own");
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    expect(await page.locator('.bd-toolbar [aria-label="Undo"]').isEnabled(), "an edit can be undone");
+    ok("New project opens a blank canvas, and a Heading goes onto it");
+
+    await openHome();
+    expect((await cards()).length === 2, "two projects now");
+    await page.locator(".bd-proj", { hasText: "Kiln site" }).locator(".bd-proj-open").click();
+    await page.waitForFunction((id) => window.__builder.project().id === id, first.id);
+    await ready();
+    await frame().waitForSelector('[data-bf-type="HeroBlock"]');
+    expect(/HeroBlock/.test(types(await doc())) && !/Heading/.test(types(await doc())) && await page.locator('.bd-toolbar [aria-label="Undo"]').isDisabled(), "Kiln site opens as it was, with a fresh history");
+    ok("opening Kiln site from the home brings its own canvas back, with nothing to undo from the other project");
+
+    await openHome();
+    await page.locator('.bd-proj [aria-label="Duplicate Kiln site"]').click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-projects .bd-proj").length === 3);
+    expect((await cards()).includes("Kiln site copy"), "Duplicate makes Kiln site copy");
+    await page.locator('.bd-proj [aria-label="Delete Kiln site copy"]').click();
+    await page.locator(".bd-proj-confirm .bd-btn-danger").click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-projects .bd-proj").length === 2);
+    await page.locator(".bd-projects-search input").fill("kiln");
+    expect((await cards()).join() === "Kiln site", "search narrows the list");
+    await page.locator('.bd-projects [aria-label="Close"]').click();
+    await page.waitForFunction(() => !document.querySelector(".bd-projects[open]"));
+    ok("Duplicate makes Kiln site copy, Delete asks first and removes it, and search narrows the list");
+
+    await page.locator(".bd-project-menu").click();
+    await option(page, "Versions").click();
+    await page.locator(".bd-versions[open]").waitFor();
+    await page.locator(".bd-versions .bd-btn", { hasText: "Keep this version" }).click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-versions .bd-version").length === 1);
+    await page.keyboard.press("Escape");
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Text"]').click();
+    await page.waitForFunction(() => JSON.stringify(window.__builder.doc()).includes('"type":"Text"'));
+    await page.locator(".bd-project-menu").click();
+    await option(page, "Versions").click();
+    await page.locator(".bd-versions .bd-version").first().locator(".bd-btn", { hasText: "Restore" }).click();
+    await page.waitForFunction(() => !JSON.stringify(window.__builder.doc()).includes('"type":"Text"'));
+    await page.keyboard.press("Control+z");
+    await page.waitForFunction(() => JSON.stringify(window.__builder.doc()).includes('"type":"Text"'));
+    ok("a kept version restores the canvas without the Text added since, and undo takes the restore back");
+
+    const [dl] = await Promise.all([page.waitForEvent("download"), (async () => { await page.locator(".bd-project-menu").click(); await option(page, "Download file").click(); })()]);
+    const file = path.join(os.tmpdir(), "kiln-site-" + Date.now() + ".dovetail");
+    await dl.saveAs(file);
+    const data = JSON.parse(fs.readFileSync(file, "utf8"));
+    expect(data.format === "dovetail-project" && data.name === "Kiln site" && /HeroBlock/.test(types(data.doc)) && dl.suggestedFilename() === "Kiln-site.dovetail", `Download file writes the project, got ${dl.suggestedFilename()} ${JSON.stringify({ format: data.format, name: data.name })}`);
+    await openHome();
+    await page.locator(".bd-projects input[type=file]").setInputFiles(file);
+    await page.waitForFunction((id) => window.__builder.project().id !== id && window.__builder.project().name === "Kiln site", first.id);
+    const imported = await proj();
+    await page.evaluate(() => window.__builder.flush());
+    await page.reload();
+    await page.waitForFunction(() => !!window.__builder);
+    expect((await proj()).id === imported.id && /HeroBlock/.test(types(await doc())), "a reload opens the last project again");
+    fs.unlinkSync(file);
+    ok("Download file saves Kiln-site.dovetail; Open file brings it back as a new project, and a reload reopens it");
+    await page.close();
+
+    const legacy = { frames: [{ id: "old", name: "My old page", width: 1280, height: 800, hug: true, root: { id: "root", type: "Root", props: {}, style: {}, children: [{ id: "h1", type: "Heading", props: { children: "Saved before projects" }, style: {} }] } }], active: "old" };
+    const moved = await open({ width: 1440, height: 900 }, { store: { "dovetail-builder": JSON.stringify(legacy) } });
+    await moved.frame().waitForFunction(() => document.body.textContent.includes("Saved before projects"));
+    const left = await moved.page.evaluate(() => ({ name: window.__builder.project().name, old: localStorage.getItem("dovetail-builder") }));
+    expect(left.name === "My old page" && left.old === null, `work saved before projects moves into a project of its own, got ${JSON.stringify(left)}`);
+    ok("a layout saved before projects opens as its own project, My old page, and the old entry is cleared");
+    await moved.page.close();
   });
 
   await step("Share links open what they encode, and nothing the inspector can't set", async () => {
@@ -1675,7 +1808,7 @@ try {
     const hash = "#b=" + Buffer.from(JSON.stringify(doc)).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const shared = await open({ width: 1280, height: 900 }, { hash });
     await shared.frame().waitForSelector('[data-bf-type="Button"]');
-    const saved = await shared.page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder")));
+    const saved = await shared.page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const f = saved.frames[0];
     const [button, grid, group, img1, img2] = f.root.children;
     expect(f.name === "Shared" && f.width === 768 && f.hug === true && f.dark === true && f.gap === "block" && f.context === undefined && f.size === undefined, `an older frame comes through as its preset's width, hugging its content, without a context, got ${JSON.stringify({ ...f, root: undefined })}`);
