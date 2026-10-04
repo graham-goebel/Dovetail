@@ -4936,3 +4936,143 @@ input.bd-folder-name {
 .bd-tpl-card .bd-kind-text {
   padding-top: var(--dt-space-stack-2xs);
 }
+
+/* ------------------------------------------------------------- account */
+
+/* The rail's tabs, then the Account button at the far end. */
+.bd-rail-tabs {
+  display: flex;
+  flex-direction: inherit;
+  gap: inherit;
+  min-width: 0;
+}
+
+.bd-rail-account {
+  margin-top: auto;
+}
+
+.bd-rail-account.is-in .bd-ic {
+  color: var(--dt-text-link);
+}
+
+.bd-acct {
+  width: min(440px, calc(100vw - 32px));
+  height: fit-content;
+  max-height: calc(100dvh - 48px);
+}
+
+.bd-acct .bd-code-head {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.bd-acct .bd-code-intro {
+  flex: 1 1 auto;
+}
+
+.bd-acct-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-sm);
+  padding: var(--dt-space-inset-md);
+  overflow-y: auto;
+}
+
+.bd-acct-body p {
+  margin: 0;
+}
+
+.bd-acct-off,
+.bd-acct-in,
+.bd-acct-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-sm);
+}
+
+.bd-acct-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+}
+
+.bd-acct-field .bd-input {
+  min-height: var(--dt-size-control-md);
+  /* 16px or more, so a phone doesn't zoom in on the field. */
+  font-size: max(16px, var(--dt-font-size-sm));
+}
+
+.bd-acct-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+}
+
+.bd-acct-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dt-text-link);
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.bd-acct-switch {
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-acct-who {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  overflow-wrap: anywhere;
+}
+
+.bd-acct-msg:empty {
+  display: none;
+}
+
+.bd-acct-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-radius: var(--dt-radius-control);
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-acct-msg .bd-ic {
+  flex: none;
+}
+
+.bd-acct-msg.is-error {
+  background: var(--dt-surface-danger-subtle);
+  color: var(--dt-text-danger);
+}
+
+.bd-acct-msg.is-note {
+  background: var(--dt-surface-success-subtle);
+  color: var(--dt-text-success);
+}
+
+@media (max-width: 900px) {
+  /* On a phone the rail is a row: Account takes just its icon at the end. */
+  .bd-rail-tabs {
+    flex: 1;
+  }
+
+  .bd-rail .bd-rail-account {
+    flex: none;
+    width: var(--dt-size-control-lg);
+    margin-top: 0;
+  }
+
+  .bd-rail-account .bd-rail-label {
+    display: none;
+  }
+}

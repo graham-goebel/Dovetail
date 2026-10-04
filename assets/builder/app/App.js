@@ -8,6 +8,7 @@ import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { ago, foldersOf, itemsOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
+import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
@@ -212,6 +213,9 @@ function App(props) {
   var stageRef = useRef(null);
   var dialogRef = useRef(null);
   var importRef = useRef(null);
+  /* Who's signed in to the cloud, if it's connected (cloud/Account.js). */
+  var accountRef = useRef(null);
+  var accountState = useAccount(), account = accountState[0];
   var rightRef = useRef(null);
   var leftPanelRef = useRef(null);
   var hidePanelsRef = useRef(false);
@@ -264,6 +268,13 @@ function App(props) {
   };
 
   var announce = useCallback(function (text) { setSay(""); setTimeout(function () { setSay(text); }, 30); }, []);
+  var openAccount = function () { var dlg = accountRef.current; if (dlg && dlg.showModal && !dlg.open) dlg.showModal(); };
+  /* Back from a link in one of the cloud's emails (a confirmed address, a
+     password to reset): the Account dialog takes it from there. */
+  var arrivedRef = useRef(ARRIVED.link);
+  useEffect(function () {
+    if (account.status === "recovery" || (arrivedRef.current && (account.status === "in" || account.status === "out"))) { arrivedRef.current = false; openAccount(); }
+  }, [account.status]);
   var select = useCallback(function (ids) {
     var next = ids.filter(function (x) { return x && x !== "root"; });
     selRef.current = next;
@@ -1770,6 +1781,8 @@ function App(props) {
      only while nothing else has focus. */
   var keyRef = useRef(function () { return false; });
   keyRef.current = function (ev) {
+    /* The Account dialog opens over Home too, and Escape is its own. */
+    if (accountRef.current && accountRef.current.open) return false;
     if (homeRef.current) { if (ev.key === "Escape") { closeProjects(); return true; } return false; }
     if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (versionsRef.current && versionsRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open)) return false;
     var t = ev.target;
@@ -2618,6 +2631,8 @@ function App(props) {
           e("h1", { id: "bd-projects-title", className: "bd-home-title" }, "Projects"),
           e("p", { className: "bd-inspect-sub" }, "Each project has its own canvas, saved in this browser. Download one as a file to move it or keep a copy.")),
         e("div", { className: "bd-code-actions" },
+          e("button", { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account.status === "in" ? "Signed in as " + account.account.email : account.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
+            e(Icon, { name: "user" }), account.status === "in" ? "Account" : "Sign in"),
           e("label", { className: "bd-btn", title: "Open a .dovetail file as a new project" }, e(Icon, { name: "upload" }), "Open file",
             e("input", { ref: importFileRef, type: "file", className: "visually-hidden", accept: ".dovetail,application/json",
               onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; importProject(f); } })))),
@@ -4992,12 +5007,16 @@ function App(props) {
       })),
     e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined },
       e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || undefined },
-        e("div", { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
-          RAIL.map(function (r) {
-            var isHome = r[0] === "home";
-            return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(isHome ? home : !home && left === r[0]), "aria-controls": isHome ? undefined : "bd-left-body", title: r[2],
-              onClick: isHome ? openProjects : function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
-          })),
+        e("div", { className: "bd-left-tabs bd-rail" },
+          e("div", { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
+            RAIL.map(function (r) {
+              var isHome = r[0] === "home";
+              return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(isHome ? home : !home && left === r[0]), "aria-controls": isHome ? undefined : "bd-left-body", title: r[2],
+                onClick: isHome ? openProjects : function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
+            })),
+          e("button", { type: "button", className: cx("bd-tab bd-rail-account", account.status === "in" && "is-in"), "aria-haspopup": "dialog", "aria-label": account.status === "in" ? "Account: signed in as " + account.account.email : "Account",
+            title: account.status === "in" ? "Signed in as " + account.account.email : account.status === "off" ? "Account (the cloud isn't connected yet)" : "Sign in or create an account", onClick: openAccount },
+            e(Icon, { name: "user" }), e("span", { className: "bd-rail-label", "aria-hidden": "true" }, "Account"))),
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           left === "configure" ? e("div", { className: "bd-config-dock", ref: dockRef })
             : e(React.Fragment, null,
@@ -5032,6 +5051,7 @@ function App(props) {
     versionsDialog(),
     componentDialog(),
     playDialog(),
+    e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }
 
