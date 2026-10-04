@@ -5740,6 +5740,63 @@
     };
     var gestureRef = useRef(gesture);
     gestureRef.current = gesture;
+    var marqueeState = useState(null);
+    var marquee = marqueeState[0], setMarquee = marqueeState[1];
+    var marqRef = useRef(null);
+    var marqueeHits = function(r) {
+      var best = null;
+      docRef.current.frames.forEach(function(f) {
+        var a = api(f.id), b = layoutRef.current.boxes[f.id];
+        if (!a || !b || !a.rect) return;
+        var ids = [];
+        f.root.children.forEach(function(c) {
+          var box2 = toStage(a.rect(c.id), f.id);
+          if (box2 && box2.left < r.left + r.width && box2.left + box2.width > r.left && box2.top < r.top + r.height && box2.top + box2.height > r.top) ids.push(c.id);
+        });
+        if (ids.length && (!best || ids.length > best.ids.length)) best = { fid: f.id, ids };
+      });
+      return best;
+    };
+    var marqueeStart = function(ev) {
+      var p = stageXY(ev.clientX, ev.clientY);
+      marqRef.current = { id: ev.pointerId, x0: p.x, y0: p.y, add: ev.shiftKey, base: selRef.current.slice(), baseFid: docRef.current.active, moved: false, raf: 0 };
+    };
+    var marqueeMove = function(ev) {
+      var m = marqRef.current;
+      var p = stageXY(ev.clientX, ev.clientY);
+      if (!m.moved && Math.abs(p.x - m.x0) + Math.abs(p.y - m.y0) < 5) return;
+      m.moved = true;
+      var r = { left: Math.min(m.x0, p.x), top: Math.min(m.y0, p.y), width: Math.abs(p.x - m.x0), height: Math.abs(p.y - m.y0) };
+      setMarquee(r);
+      cancelAnimationFrame(m.raf);
+      m.raf = requestAnimationFrame(function() {
+        if (marqRef.current !== m) return;
+        var hit = marqueeHits(r);
+        var fid = hit ? hit.fid : m.baseFid;
+        if (fid !== docRef.current.active) activate(fid);
+        var ids = hit ? hit.ids : [];
+        if (m.add && fid === m.baseFid) m.base.forEach(function(id) {
+          if (ids.indexOf(id) < 0) ids.push(id);
+        });
+        var cur = selRef.current;
+        if (ids.length !== cur.length || ids.some(function(id) {
+          return cur.indexOf(id) < 0;
+        })) select(ids);
+        if (!ids.length) setFrameOn(false);
+      });
+    };
+    var marqueeEnd = function(done) {
+      var m = marqRef.current;
+      if (!m) return false;
+      marqRef.current = null;
+      cancelAnimationFrame(m.raf);
+      setMarquee(null);
+      if (!done) {
+        if (m.baseFid !== docRef.current.active) activate(m.baseFid);
+        select(m.base);
+      } else if (selRef.current.length) announce(selRef.current.length === 1 ? "1 selected" : selRef.current.length + " selected");
+      return m.moved;
+    };
     var toStage = useCallback(function(r, fid) {
       if (!r) return null;
       var b = layoutRef.current.boxes[fid || docRef.current.active];
@@ -7183,6 +7240,10 @@
         return true;
       }
       if (previewRef.current) return false;
+      if (ev.key === "Escape" && marqRef.current) {
+        marqueeEnd(false);
+        return true;
+      }
       if (ev.key === "Escape" && tray) {
         setTray(null);
         return true;
@@ -12270,12 +12331,28 @@
             ev.currentTarget.setPointerCapture(ev.pointerId);
           } catch (err) {
           }
+          if (ev.button === 0 && ev.pointerType !== "touch" && !spaceRef.current && tool === "select" && !previewRef.current && !marqRef.current) {
+            marqueeStart(ev);
+            return;
+          }
           gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
         },
         onPointerMove: function(ev) {
+          if (marqRef.current && marqRef.current.id === ev.pointerId) {
+            marqueeMove(ev);
+            return;
+          }
           if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
         },
         onPointerUp: function(ev) {
+          if (marqRef.current && marqRef.current.id === ev.pointerId) {
+            if (!marqueeEnd(true)) {
+              select([]);
+              setFrameOn(false);
+              if (editRef.current) editDone(true);
+            }
+            return;
+          }
           if (!gest.current.pts[ev.pointerId]) return;
           var moved = gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
           if (!moved && isBackground(ev.target) && !spaceRef.current) {
@@ -12285,6 +12362,10 @@
           }
         },
         onPointerCancel: function(ev) {
+          if (marqRef.current && marqRef.current.id === ev.pointerId) {
+            marqueeEnd(false);
+            return;
+          }
           if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
         }
       },
@@ -12356,6 +12437,7 @@
         "div",
         { className: "bd-marks", "aria-hidden": true },
         !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+        marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
         !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
         !preview ? marks.sel.map(function(m) {
           var at = locate(doc, m.id);

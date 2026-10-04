@@ -678,6 +678,63 @@ function App(props) {
   };
   var gestureRef = useRef(gesture); gestureRef.current = gesture;
 
+  /* A marquee: with the Select tool, a mouse or pen dragged across empty
+     canvas draws a box and selects the top-level layers it touches, in the
+     frame holding most of them. Shift adds them to what was selected.
+     Touch keeps panning, as do Space, the Hand tool and the middle button. */
+  var marqueeState = useState(null);
+  var marquee = marqueeState[0], setMarquee = marqueeState[1];
+  var marqRef = useRef(null);
+  var marqueeHits = function (r) {
+    var best = null;
+    docRef.current.frames.forEach(function (f) {
+      var a = api(f.id), b = layoutRef.current.boxes[f.id];
+      if (!a || !b || !a.rect) return;
+      var ids = [];
+      f.root.children.forEach(function (c) {
+        var box = toStage(a.rect(c.id), f.id);
+        if (box && box.left < r.left + r.width && box.left + box.width > r.left && box.top < r.top + r.height && box.top + box.height > r.top) ids.push(c.id);
+      });
+      if (ids.length && (!best || ids.length > best.ids.length)) best = { fid: f.id, ids: ids };
+    });
+    return best;
+  };
+  var marqueeStart = function (ev) {
+    var p = stageXY(ev.clientX, ev.clientY);
+    marqRef.current = { id: ev.pointerId, x0: p.x, y0: p.y, add: ev.shiftKey, base: selRef.current.slice(), baseFid: docRef.current.active, moved: false, raf: 0 };
+  };
+  var marqueeMove = function (ev) {
+    var m = marqRef.current;
+    var p = stageXY(ev.clientX, ev.clientY);
+    if (!m.moved && Math.abs(p.x - m.x0) + Math.abs(p.y - m.y0) < 5) return;
+    m.moved = true;
+    var r = { left: Math.min(m.x0, p.x), top: Math.min(m.y0, p.y), width: Math.abs(p.x - m.x0), height: Math.abs(p.y - m.y0) };
+    setMarquee(r);
+    cancelAnimationFrame(m.raf);
+    m.raf = requestAnimationFrame(function () {
+      if (marqRef.current !== m) return;
+      var hit = marqueeHits(r);
+      var fid = hit ? hit.fid : m.baseFid;
+      if (fid !== docRef.current.active) activate(fid);
+      var ids = hit ? hit.ids : [];
+      if (m.add && fid === m.baseFid) m.base.forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); });
+      var cur = selRef.current;
+      if (ids.length !== cur.length || ids.some(function (id) { return cur.indexOf(id) < 0; })) select(ids);
+      if (!ids.length) setFrameOn(false);
+    });
+  };
+  /* done: false puts back what was selected before (Escape). */
+  var marqueeEnd = function (done) {
+    var m = marqRef.current;
+    if (!m) return false;
+    marqRef.current = null;
+    cancelAnimationFrame(m.raf);
+    setMarquee(null);
+    if (!done) { if (m.baseFid !== docRef.current.active) activate(m.baseFid); select(m.base); }
+    else if (selRef.current.length) announce(selRef.current.length === 1 ? "1 selected" : selRef.current.length + " selected");
+    return m.moved;
+  };
+
   /* ------------------------------------------------- measuring */
 
   /* A node's box in stage coordinates, from its frame's own. */
@@ -1861,6 +1918,7 @@ function App(props) {
     if (mod && ev.key === "\\") { actions.panels(); return true; }
     if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
     if (previewRef.current) return false;
+    if (ev.key === "Escape" && marqRef.current) { marqueeEnd(false); return true; }
     if (ev.key === "Escape" && tray) { setTray(null); return true; }
     if (ev.key === "Escape" && tool !== "select") { setTool("select"); return true; }
     if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { pickToolRef.current(TOOL_INFO[TOOL_KEY[key]]); return true; }
@@ -4824,15 +4882,26 @@ function App(props) {
       ev.preventDefault();
       releaseFocus();
       try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      if (ev.button === 0 && ev.pointerType !== "touch" && !spaceRef.current && tool === "select" && !previewRef.current && !marqRef.current) { marqueeStart(ev); return; }
       gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
     },
-    onPointerMove: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+    onPointerMove: function (ev) {
+      if (marqRef.current && marqRef.current.id === ev.pointerId) { marqueeMove(ev); return; }
+      if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+    },
     onPointerUp: function (ev) {
+      if (marqRef.current && marqRef.current.id === ev.pointerId) {
+        if (!marqueeEnd(true)) { select([]); setFrameOn(false); if (editRef.current) editDone(true); }
+        return;
+      }
       if (!gest.current.pts[ev.pointerId]) return;
       var moved = gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
       if (!moved && isBackground(ev.target) && !spaceRef.current) { select([]); setFrameOn(false); if (editRef.current) editDone(true); }
     },
-    onPointerCancel: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+    onPointerCancel: function (ev) {
+      if (marqRef.current && marqRef.current.id === ev.pointerId) { marqueeEnd(false); return; }
+      if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+    },
   },
     e("div", { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
       doc.frames.map(function (f) {
@@ -4874,6 +4943,7 @@ function App(props) {
       })),
     e("div", { className: "bd-marks", "aria-hidden": true },
       !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+      marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
       !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
       !preview ? marks.sel.map(function (m) {
         var at = locate(doc, m.id);

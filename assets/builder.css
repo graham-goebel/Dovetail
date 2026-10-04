@@ -1925,6 +1925,16 @@ span.bd-layer-twisty.is-open .bd-ic {
   box-sizing: border-box;
 }
 
+/* The box a drag across empty canvas draws to select what it touches. */
+.bd-marquee {
+  position: absolute;
+  box-sizing: border-box;
+  border: var(--dt-border-width-default) solid var(--dt-border-focus);
+  background: var(--dt-surface-selected);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .bd-mark-hover {
   outline: var(--dt-border-width-default) dashed var(--dt-text-secondary);
 }

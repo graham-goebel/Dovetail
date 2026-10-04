@@ -457,15 +457,17 @@ try {
     await page.waitForFunction((b) => document.querySelector(".bd-world").style.transform !== b, before);
     const panned = await camera(page);
     await page.mouse.move(stage.x + 8, stage.y + stage.height - 8);
+    await page.keyboard.down("Space");
     await page.mouse.down();
     await page.mouse.move(stage.x + 120, stage.y + stage.height - 60, { steps: 5 });
     await page.mouse.up();
-    expect(await camera(page) !== panned, "dragging the empty canvas pans it");
+    await page.keyboard.up("Space");
+    expect(await camera(page) !== panned, "dragging the empty canvas with Space held pans it");
     await page.keyboard.down("Control");
     await page.mouse.wheel(0, -120);
     await page.keyboard.up("Control");
     await page.waitForFunction((p) => { const m = /scale\(([\d.]+)\)/.exec(document.querySelector(".bd-world").style.transform); return m && Number(m[1]) !== Number(/scale\(([\d.]+)\)/.exec(p)[1]); }, panned);
-    ok("the wheel and a drag on empty canvas pan it; Ctrl and the wheel zoom");
+    ok("the wheel and a Space-drag on empty canvas pan it; Ctrl and the wheel zoom");
     await page.keyboard.press("Escape");
     await page.locator(".bd-right .bd-frame-menu").click();
     await option(page, "Duplicate frame").click();
@@ -2635,6 +2637,8 @@ try {
       d.active = "freebie";
       await window.__builder.store.saveDoc(window.__builder.project().id, d);
     });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(150);
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
@@ -2709,6 +2713,44 @@ try {
     expect(orig.style.x === 60 && orig.style.y === 10, `the original stays at 60,10, got ${orig.style.x},${orig.style.y}`);
     expect(copy.style.x > 60 && copy.style.y > 10, `the copy moved with the pointer, got ${copy.style.x},${copy.style.y}`);
     ok(`Alt-drag puts a copy of Beta at ${copy.style.x},${copy.style.y} and leaves the original where it was`);
+
+    /* A marquee from the empty canvas left of the free frame, across its two Buttons. */
+    await fitAll(page);
+    await page.evaluate(() => window.__builder.select([]));
+    const fb = await page.evaluate(() => { const fr = document.querySelectorAll("iframe.bd-frame")[1], r = fr.getBoundingClientRect(); return { left: r.left, top: r.top, s: r.width / parseFloat(fr.style.width) }; });
+    const camBefore = await camera(page);
+    const sweep = async (x0, y0, x1, y1, mods = []) => {
+      for (const m of mods) await page.keyboard.down(m);
+      await page.mouse.move(x0, y0);
+      await page.mouse.down();
+      await page.mouse.move((x0 + x1) / 2, (y0 + y1) / 2, { steps: 4 });
+      await page.mouse.move(x1, y1, { steps: 4 });
+      await page.waitForTimeout(80);
+    };
+    await sweep(fb.left - 24, fb.top + 4, fb.left + 300 * fb.s, fb.top + 90 * fb.s);
+    expect(await page.locator(".bd-marquee").count() === 1, "a box shows while dragging");
+    await page.mouse.up();
+    await page.waitForTimeout(100);
+    let picked = await page.evaluate(() => window.__builder.selection().sort().join());
+    expect(picked === "ba,bb", `a sweep across the Buttons selects both, got ${picked}`);
+    expect(await camera(page) === camBefore, "and the canvas didn't pan");
+    expect(await page.locator(".bd-marquee").count() === 0, "the box goes when the drag ends");
+    await sweep(fb.left - 24, fb.top + 200 * fb.s, fb.left + 100 * fb.s, fb.top + 300 * fb.s, ["Shift"]);
+    await page.mouse.up();
+    await page.keyboard.up("Shift");
+    await page.waitForTimeout(100);
+    picked = await page.evaluate(() => window.__builder.selection().sort().join());
+    expect(picked === "ba,bb,hc", `a Shift-sweep over the Heading adds it, got ${picked}`);
+    await sweep(fb.left - 24, fb.top + 4, fb.left + 300 * fb.s, fb.top + 90 * fb.s);
+    await page.keyboard.press("Escape");
+    await page.mouse.up();
+    await page.waitForTimeout(100);
+    picked = await page.evaluate(() => window.__builder.selection().sort().join());
+    expect(picked === "ba,bb,hc", `Escape mid-sweep keeps the selection as it was, got ${picked}`);
+    await page.mouse.click(fb.left - 24, fb.top + 4);
+    await page.waitForTimeout(100);
+    expect((await page.evaluate(() => window.__builder.selection())).length === 0, "a plain click on empty canvas still clears the selection");
+    ok("a drag on empty canvas draws a marquee that selects what it touches; Shift adds; Escape cancels; a click still clears");
     await page.close();
   });
 
