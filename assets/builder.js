@@ -271,7 +271,7 @@
   var RAIL = [
     ["assets", "Assets", "Primitives, variables, components, blocks and templates", "plus"],
     ["pages", "Pages", "The project's pages, each its own canvas", "file"],
-    ["layers", "Layers", "Everything in each frame", "blocks"],
+    ["layers", "Layers", "Everything in each frame", "layers2"],
     ["content", "Content", "Images, illustrations and icons", "folder"],
     ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"]
   ];
@@ -4578,6 +4578,8 @@
     var say = sayState[0], setSay = sayState[1];
     var savedState = useState({ ok: true, at: null });
     var saved = savedState[0], setSaved = savedState[1];
+    var savedRef = useRef(saved);
+    savedRef.current = saved;
     var boxState = useState({ w: 0, h: 0 });
     var box = boxState[0], setBox = boxState[1];
     var camState = useState(null);
@@ -4636,12 +4638,6 @@
     var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
     var codeTitleState = useState("");
     var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
-    var newRef = useRef(null);
-    var newBtnRef = useRef(null);
-    var newOpenState = useState(null);
-    var newOpen = newOpenState[0], setNewOpen = newOpenState[1];
-    var newOpenRef = useRef(null);
-    newOpenRef.current = newOpen;
     var clip = useRef(null);
     var layout = layoutOf(doc, heights, resizing, widths, movingFrame);
     var boxes = layout.boxes;
@@ -4894,7 +4890,14 @@
         },
         /* Changes as someone else would send them, and the changes an edit makes. */
         receive,
-        diff
+        diff,
+        /* How many steps there are to undo and redo, and whether the project saved. */
+        history: function() {
+          return { past: history.current.past.length, future: history.current.future.length };
+        },
+        saved: function() {
+          return savedRef.current;
+        }
       };
     }, []);
     useEffect(function() {
@@ -5560,7 +5563,7 @@
         var sr = stageRef.current && stageRef.current.getBoundingClientRect();
         if (sr && dr.lastX >= sr.left && dr.lastX <= sr.right && dr.lastY >= sr.top && dr.lastY <= sr.bottom) {
           var cz = camRef.current;
-          frameOps.add(null, dr.payload.tool === "page", { x: (dr.lastX - sr.left - cz.x) / cz.z, y: (dr.lastY - sr.top - cz.y) / cz.z });
+          frameOps.add(null, dr.payload.tool === "page", { x: (dr.lastX - sr.left - cz.x) / cz.z, y: (dr.lastY - sr.top - cz.y) / cz.z }, dr.payload.opts);
         }
         return;
       }
@@ -5571,7 +5574,7 @@
       }
       var fid = hit.frame || docRef.current.active;
       if (dr.payload.kind === "tool") {
-        placeTool(dr.payload.tool, hit);
+        placeTool(dr.payload.tool, hit, dr.payload.opts);
         return;
       }
       if (dr.payload.kind === "asset") {
@@ -6518,7 +6521,7 @@
       return false;
     });
     keyRef.current = function(ev) {
-      if (dialogRef.current && dialogRef.current.open || importRef.current && importRef.current.open || projectsRef.current && projectsRef.current.open || versionsRef.current && versionsRef.current.open || playRef.current && playRef.current.open || compRef.current && compRef.current.open || newOpenRef.current) return false;
+      if (dialogRef.current && dialogRef.current.open || importRef.current && importRef.current.open || projectsRef.current && projectsRef.current.open || versionsRef.current && versionsRef.current.open || playRef.current && playRef.current.open || compRef.current && compRef.current.open) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
       if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -6886,14 +6889,26 @@
          screen size, and a desktop screen otherwise (never a loose object's
          size, or an odd one a frame was dragged to). at: where its top left
          corner goes on the canvas; otherwise it goes beside the others. */
-      add: function(size, page, at) {
+      /* opts: a kind (free or structured) and a screen size; otherwise the
+         active frame's size, or a desktop screen. */
+      add: function(size, page, at, opts) {
+        opts = opts || {};
         var cur = active(docRef.current);
-        var pid = !page && !cur.bare ? presetOf(cur) : "";
+        var structured = opts.mode === "structured";
+        var pid = opts.preset && PRESET[opts.preset] ? opts.preset : !page && !cur.bare ? presetOf(cur) : "";
         var p = pid && PRESET[pid] || PRESET.desktop;
-        var f = makeFrame("Frame " + (docRef.current.frames.length + 1), pid || "desktop", !!page);
+        var f = makeFrame("Frame " + (docRef.current.frames.length + 1), pid || "desktop", !!page || structured);
         f.width = size ? side(size.width, MAX_WIDTH, p.width) : p.width;
         f.height = size ? side(size.height, MAX_HEIGHT, p.height) : p.height;
+        if (opts.preset && p.typeScale) f.typeScale = p.typeScale;
         if (page) f.root.children = [make("Section")];
+        if (structured) {
+          f.mode = "structured";
+          var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" });
+          g.name = "Content";
+          f.root.children = [g];
+          f.gap = "block";
+        }
         var L = layoutRef.current, boxesNow = L.boxes;
         change(function(d) {
           var placed = d.frames.some(function(fr) {
@@ -6913,7 +6928,7 @@
           d.frames.push(f);
           d.active = f.id;
           return [];
-        }, "Added " + f.name + ", " + f.width + " by " + f.height);
+        }, "Added " + f.name + ", " + f.width + " by " + f.height + (structured ? ": a structured frame. Everything goes in auto-layout Groups." : opts.mode === "free" ? ": a freeform frame. Place things anywhere." : ""));
         setTimeout(function() {
           showFrameRef.current(f.id, true);
         }, 0);
@@ -7200,58 +7215,8 @@
         window.prompt("Copy this link", url);
       });
     };
-    var openNew = function(from) {
-      var b = from && from.getBoundingClientRect ? from : newBtnRef.current;
-      var r = b ? b.getBoundingClientRect() : { left: 16, bottom: 56 };
-      setNewOpen({ left: Math.max(8, Math.min(r.left, window.innerWidth - 408)), top: r.bottom + 6 });
-    };
-    var closeNew = function() {
-      setNewOpen(null);
-    };
-    useEffect(function() {
-      if (!newOpen) return void 0;
-      var first = newRef.current && newRef.current.querySelector("button");
-      if (first) first.focus({ preventScroll: true });
-      var away = function(ev) {
-        if (newRef.current && newRef.current.contains(ev.target)) return;
-        if (newBtnRef.current && newBtnRef.current.contains(ev.target)) return;
-        setNewOpen(null);
-      };
-      var key = function(ev) {
-        if (ev.key === "Escape") {
-          ev.preventDefault();
-          ev.stopPropagation();
-          setNewOpen(null);
-          if (newBtnRef.current) newBtnRef.current.focus();
-        }
-      };
-      document.addEventListener("pointerdown", away, true);
-      document.addEventListener("keydown", key, true);
-      return function() {
-        document.removeEventListener("pointerdown", away, true);
-        document.removeEventListener("keydown", key, true);
-      };
-    }, [!!newOpen]);
     var newFrame = function(mode) {
-      closeNew();
-      var d = docRef.current;
-      var structured = mode === "structured";
-      var f = makeFrame("Frame " + (d.frames.length + 1), "desktop", structured);
-      f.mode = structured ? "structured" : "free";
-      if (structured) {
-        var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" });
-        g.name = "Content";
-        f.root.children = [g];
-        f.gap = "block";
-      }
-      change(function(dd) {
-        dd.frames.push(f);
-        dd.active = f.id;
-        return [];
-      }, "Added " + f.name + (structured ? ": a structured frame. Everything goes in auto-layout Groups." : ": a freeform frame. Place things anywhere."));
-      setTimeout(function() {
-        showFrameRef.current(f.id, true);
-      }, 0);
+      frameOps.add(null, false, null, { mode: mode === "structured" ? "structured" : "free" });
     };
     var projectsRef = useRef(null);
     var versionsRef = useRef(null);
@@ -7866,7 +7831,6 @@
       );
     };
     var startFrom = function(id) {
-      closeNew();
       if (id === "import") {
         openImport();
         return;
@@ -9209,6 +9173,7 @@
       );
     };
     var ASSET_KINDS = [
+      ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
       ["primitives", "Primitives", "shapes", "Groups, stacks, grids, shapes and type to build with"],
       ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
       ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
@@ -9350,7 +9315,6 @@
         return x[0] === id;
       })[0];
       if (!st) return;
-      closeNew();
       var incoming = st[2]().frames;
       if (into) {
         var fid = docRef.current.active;
@@ -9393,6 +9357,54 @@
       setTimeout(function() {
         if (first) showFrameRef.current(first, true);
       }, 0);
+    };
+    var CONTAINER_KINDS = [
+      ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
+      ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
+      ["page", "Tall frame", "file", "Grows as tall as what's on it"]
+    ];
+    var containerCard = function(key, name, icon, note3, payload, onAdd) {
+      return e(
+        "li",
+        { key },
+        e(
+          "button",
+          {
+            type: "button",
+            className: "bd-kind bd-container-card",
+            "data-container": key,
+            title: note3 + ". Press to add one beside your frames, or drag it onto the canvas.",
+            onPointerDown: function(ev) {
+              if (ev.pointerType !== "touch") startDrag(ev, payload);
+            },
+            onClick: function() {
+              if (!justDragged.current) onAdd();
+            }
+          },
+          e("span", { className: "bd-kind-pics is-asset" }, e(Icon, { name: icon })),
+          e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note3))
+        )
+      );
+    };
+    var containersPanel = function() {
+      return e(
+        React.Fragment,
+        null,
+        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
+        e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function(k) {
+          var page = k[0] === "page", opts = page ? null : { mode: k[0] };
+          return containerCard(k[0], k[1], k[2], k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
+            frameOps.add(null, page, null, opts);
+          });
+        })),
+        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
+        e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function(p) {
+          var opts = { preset: p.id, mode: "free" };
+          return containerCard(p.id, p.label, PRESET_ICON[p.id] || "frame", p.width + " × " + p.height, { kind: "tool", tool: "frame", label: p.label, opts }, function() {
+            frameOps.add(null, false, null, opts);
+          });
+        }))
+      );
     };
     var templatesPanel = function() {
       return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function(st) {
@@ -9497,7 +9509,7 @@
           head,
           e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
             var note3 = k[3];
-            var count = k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
+            var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
               return t + usableIn(g).length;
             }, 0) + " to add";
             return e("li", { key: k[0] }, e(
@@ -9528,6 +9540,7 @@
       );
       if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head, back, variablesPanel());
       if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head, back, templatesPanel());
+      if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head, back, containersPanel());
       var groups = groupsOf(kind[0]);
       if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
       var current2 = groups.filter(function(x) {
@@ -10556,21 +10569,6 @@
           "div",
           { className: "bd-inspect-head" },
           e(
-            "nav",
-            { className: "bd-crumbs", "aria-label": "Selection path" },
-            at.path.map(function(n, i) {
-              var last = i === at.path.length - 1;
-              return e(
-                React.Fragment,
-                { key: n.id },
-                i ? e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›") : null,
-                last ? e("span", { className: "bd-crumb is-current", "aria-current": "true" }, nameOf(n)) : e("button", { type: "button", className: "bd-crumb", onClick: function() {
-                  select(n.type === "Root" ? [] : [n.id]);
-                } }, n.type === "Root" ? frame.name : nameOf(n))
-              );
-            })
-          ),
-          e(
             "div",
             { className: "bd-head-row" },
             e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "blocks" }), words(node.props.name))
@@ -10618,23 +10616,6 @@
         e(
           "div",
           { className: "bd-inspect-head" },
-          at ? e(
-            "nav",
-            { className: "bd-crumbs", "aria-label": "Selection path" },
-            at.path.map(function(n) {
-              return e(
-                React.Fragment,
-                { key: n.id },
-                n.type === "Root" ? null : e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
-                e("button", { type: "button", className: "bd-crumb", onClick: function() {
-                  setPart(null);
-                  select(n.id === "root" ? [] : [n.id]);
-                } }, n.type === "Root" ? frame.name : nameOf(n))
-              );
-            }),
-            e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
-            e("span", { className: "bd-crumb", "aria-current": "true" }, "Title")
-          ) : null,
           e(
             "div",
             { className: "bd-head-row" },
@@ -10764,22 +10745,6 @@
         e(
           "div",
           { className: "bd-inspect-head" },
-          selected ? e(
-            "nav",
-            { className: "bd-crumbs", "aria-label": "Selection path" },
-            selected.path.map(function(n, i) {
-              var isLast = i === selected.path.length - 1;
-              var name = n.type === "Root" ? frame.name : nameOf(n);
-              return e(
-                React.Fragment,
-                { key: n.id },
-                i ? e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›") : null,
-                isLast ? e("span", { className: "bd-crumb", "aria-current": "true" }, name) : e("button", { type: "button", className: "bd-crumb", onClick: function() {
-                  select(n.id === "root" ? [] : [n.id]);
-                } }, name)
-              );
-            })
-          ) : null,
           e(
             "div",
             { className: "bd-head-row" },
@@ -10843,96 +10808,115 @@
         tabPanel(current2, body)
       );
     };
-    var canUndo = history.current.past.length > 0;
-    var canRedo = history.current.future.length > 0;
     var selectedNodes = nodesOf2(selection);
-    var savedText = saved.ok ? "Saved" : "Not saved";
-    var savedTitle = saved.ok ? "Saved in this browser" + (saved.at ? " at " + saved.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "") + ". It stays when you reload or come back." : "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
+    var savedTitle = "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
     var hidePanels = wide && (bare || preview);
     hidePanelsRef.current = hidePanels;
     var zoomText = Math.round(cam.z * 100) + "%";
+    var titleCrumbs = function() {
+      var sep = function(k) {
+        return e("span", { key: "s" + k, className: "bd-crumb-sep", "aria-hidden": true }, "›");
+      };
+      var crumbs = [e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "Project name", hint: "Double-click to rename this project", focusable: true, onChange: function(v) {
+        renameProject(project.id, v);
+      } })];
+      var last = sel ? locate(doc, sel) : null;
+      if (last) {
+        var many = selection.length > 1;
+        last.path.forEach(function(n, i) {
+          var isLast = i === last.path.length - 1 && !many && !part;
+          var name = n.type === "Root" ? frame.name : nameOf(n);
+          crumbs.push(sep(n.id));
+          crumbs.push(isLast ? e("span", { key: n.id, className: "bd-crumb", "aria-current": "true" }, name) : e("button", { key: n.id, type: "button", className: "bd-crumb", onClick: function() {
+            setPart(null);
+            select(n.id === "root" ? [] : [n.id]);
+          } }, name));
+        });
+        if (many) crumbs.push(sep("many"), e("span", { key: "many", className: "bd-crumb", "aria-current": "true" }, selection.length + " layers"));
+        else if (part) crumbs.push(sep("part"), e("span", { key: "part", className: "bd-crumb", "aria-current": "true" }, "Title"));
+      }
+      return e("nav", { className: "bd-crumbs bd-tb-crumbs", "aria-label": "Where you are" }, crumbs);
+    };
     var toolbar = e(
       "div",
       { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
       e(
         "span",
-        { className: "bd-project" },
-        e("button", { type: "button", className: "bd-act", title: "All projects", "aria-label": "Projects", "aria-haspopup": "dialog", onClick: openProjects }, e(Icon, { name: "folder" })),
-        e(Renamable, { className: "bd-project-name", value: project.name, label: "Project name", hint: "Double-click to rename this project", focusable: true, onChange: function(v) {
-          renameProject(project.id, v);
-        } }),
+        { className: "bd-tb-side bd-tb-left" },
+        e("button", { type: "button", className: "bd-act", title: "All projects", "aria-label": "Projects", "aria-haspopup": "dialog", onClick: openProjects }, e(Icon, { name: "folder" }))
+      ),
+      e(
+        "div",
+        { className: "bd-tb-title bd-project" },
+        titleCrumbs(),
         e(Dropdown, {
           menu: true,
           label: "Project actions",
           placeholder: "Project",
-          icon: "down",
+          icon: "more",
           iconOnly: true,
           compact: true,
           narrow: true,
           className: "bd-dd-icon bd-project-menu",
           options: [
+            { value: "link", label: sel ? "Copy link to this layer" : "Copy link to " + frame.name, icon: "link" },
             { value: "projects", label: "All projects", icon: "folder" },
             { value: "versions", label: "Versions", icon: "rotate" },
             { value: "duplicate", label: "Duplicate", icon: "copy" },
             { value: "export", label: "Download file", icon: "exportOut" },
             { value: "picture", label: "Use this frame as the picture", icon: "image" }
-          ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []),
+          ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []).concat([
+            { value: "import", label: "Paste a layout…", icon: "upload" },
+            { value: "blank", label: "Start over with a blank frame", icon: "trash", danger: true }
+          ]),
           onChange: function(v) {
-            if (v === "picture") framePicture();
+            if (v === "link") share();
+            else if (v === "picture") framePicture();
             else if (v === "auto-picture") autoPicture();
             else if (v === "projects") openProjects();
             else if (v === "versions") openVersions();
             else if (v === "duplicate") duplicateProject(project.id);
             else if (v === "export") exportProject(project.id);
+            else if (v === "import" || v === "blank") startFrom(v);
           }
         })
       ),
-      e("button", { type: "button", ref: newBtnRef, className: "bd-act bd-start", title: "New: a free canvas, a structured page or a template", "aria-label": "New", "aria-haspopup": "dialog", "aria-expanded": String(!!newOpen), onClick: function(ev) {
-        if (newOpen) closeNew();
-        else openNew(ev.currentTarget);
-      } }, e(Icon, { name: "plus" })),
       e(
         "span",
-        { className: "bd-tool-group" },
-        e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
-        e("button", { type: "button", className: "bd-act", onClick: redo, disabled: !canRedo, title: "Redo (Ctrl+Shift+Z)", "aria-label": "Redo" }, e(Icon, { name: "redo" }))
-      ),
-      e(Dropdown, {
-        menu: true,
-        label: "Zoom, " + zoomText,
-        placeholder: zoomText,
-        compact: true,
-        narrow: true,
-        className: "bd-zoom",
-        icon: "zoomIn",
-        options: [
-          { value: "in", label: "Zoom in", hint: "Ctrl +" },
-          { value: "out", label: "Zoom out", hint: "Ctrl −" },
-          { value: "all", label: "Zoom to fit", hint: "Shift 1" },
-          { value: "frame", label: "Zoom to " + frame.name, hint: "Shift 2" },
-          { value: 0.5, label: "50%" },
-          { value: 1, label: "100%", hint: "Shift 0" },
-          { value: 2, label: "200%" }
-        ],
-        onChange: function(v) {
-          if (v === "in") zoomStep(1);
-          else if (v === "out") zoomStep(-1);
-          else if (v === "all") fitAll();
-          else if (v === "frame") showFrame(frame.id);
-          else zoomTo(v);
-        }
-      }),
-      e("span", { className: "bd-tool-spacer" }),
-      e("span", { className: cx("bd-saved", !saved.ok && "is-error"), title: savedTitle, role: "status" }, e(Icon, { name: saved.ok ? "check" : "alert" }), e("span", { className: "bd-saved-text" }, savedText)),
-      wide ? e("button", { type: "button", className: "bd-act", "aria-pressed": String(bare), title: (bare ? "Show" : "Hide") + " panels (Tab)", "aria-label": "Hide panels", onClick: actions.panels }, e(Icon, { name: "panels" })) : null,
-      e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function() {
-        openPlay();
-      } }, e(Icon, { name: "play" })),
-      e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
-      e("button", { type: "button", className: "bd-act", onClick: function() {
-        share();
-      }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame.name, "aria-label": "Copy link" }, e(Icon, { name: "link" })),
-      e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], title: "Export: code, a picture or the layout" }, e(Icon, { name: "exportOut" }), "Export")
+        { className: "bd-tb-side bd-tb-right" },
+        e(Dropdown, {
+          menu: true,
+          label: "Zoom, " + zoomText,
+          placeholder: zoomText,
+          compact: true,
+          narrow: true,
+          className: "bd-zoom",
+          icon: "zoomIn",
+          options: [
+            { value: "in", label: "Zoom in", hint: "Ctrl +" },
+            { value: "out", label: "Zoom out", hint: "Ctrl −" },
+            { value: "all", label: "Zoom to fit", hint: "Shift 1" },
+            { value: "frame", label: "Zoom to " + frame.name, hint: "Shift 2" },
+            { value: 0.5, label: "50%" },
+            { value: 1, label: "100%", hint: "Shift 0" },
+            { value: 2, label: "200%" }
+          ],
+          onChange: function(v) {
+            if (v === "in") zoomStep(1);
+            else if (v === "out") zoomStep(-1);
+            else if (v === "all") fitAll();
+            else if (v === "frame") showFrame(frame.id);
+            else zoomTo(v);
+          }
+        }),
+        /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
+        saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
+        e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function() {
+          openPlay();
+        } }, e(Icon, { name: "play" })),
+        e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
+        e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }), e("span", { className: "bd-export-text" }, "Export"))
+      )
     );
     var toolNode = function(kind, size) {
       if (kind === "box") {
@@ -10951,9 +10935,9 @@
       }
       return null;
     };
-    var placeTool = function(kind, hit) {
+    var placeTool = function(kind, hit, opts) {
       if (kind === "frame" || kind === "page") {
-        frameOps.add(null, kind === "page");
+        frameOps.add(null, kind === "page", null, opts);
         return;
       }
       var node = toolNode(kind, null);
@@ -11545,55 +11529,6 @@
         )
       );
     };
-    var NEW_KINDS = [
-      ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
-      ["structured", "Structured frame", "layout", "Everything in auto-layout Groups, with tokens, ready for code"]
-    ];
-    var newMenu = function() {
-      if (!newOpen) return null;
-      return ReactDOM.createPortal(e(
-        "div",
-        { className: "bd-newmenu", ref: newRef, role: "dialog", "aria-label": "New", style: { left: newOpen.left, top: newOpen.top } },
-        e("p", { className: "bd-newmenu-h" }, "New"),
-        e("div", { className: "bd-newmenu-kinds" }, NEW_KINDS.map(function(k) {
-          return e(
-            "button",
-            { key: k[0], type: "button", className: "bd-new-kind", "data-kind": k[0], onClick: function() {
-              newFrame(k[0]);
-            } },
-            e("span", { className: "bd-new-pic", "aria-hidden": true }, e(Icon, { name: k[2] })),
-            e("span", { className: "bd-new-text" }, e("span", { className: "bd-new-name" }, k[1]), e("span", { className: "bd-new-note" }, k[3]))
-          );
-        })),
-        e("p", { className: "bd-newmenu-h" }, "Templates"),
-        e("ul", { className: "bd-new-list", role: "list" }, STARTERS.filter(function(st) {
-          return st[0] !== "blank";
-        }).map(function(st) {
-          return e(
-            "li",
-            { key: st[0], className: "bd-new-tpl", "data-template": st[0] },
-            e(Icon, { name: "file" }),
-            e("span", { className: "bd-new-tpl-name" }, st[1]),
-            e("button", { type: "button", className: "bd-new-add", title: "As a new frame beside yours", onClick: function() {
-              addTemplate(st[0]);
-            } }, "New frame"),
-            e("button", { type: "button", className: "bd-new-into", title: "At the end of " + frame.name, onClick: function() {
-              addTemplate(st[0], true);
-            } }, "Into frame")
-          );
-        })),
-        e(
-          "div",
-          { className: "bd-newmenu-foot" },
-          e("button", { type: "button", className: "bd-new-item", "data-new": "import", onClick: function() {
-            startFrom("import");
-          } }, e(Icon, { name: "upload" }), e("span", null, "Paste a layout…")),
-          e("button", { type: "button", className: "bd-new-item is-danger", "data-new": "blank", onClick: function() {
-            startFrom("blank");
-          } }, e(Icon, { name: "trash" }), e("span", null, "Start over with a blank frame"))
-        )
-      ), document.body);
-    };
     var importDialog = function() {
       var read = readLayout(importText);
       var ok = read && !read.error;
@@ -11949,6 +11884,9 @@
               exportImage(frame.id, "jpeg");
             }, title: frame.name + " as a JPG, at twice its size" }, "JPG"),
             e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
+            e("button", { type: "button", className: "bd-btn", onClick: function() {
+              share();
+            }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame.name }, e(Icon, { name: "link" }), "Copy link"),
             e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
               dialogRef.current.close();
             } }, e(Icon, { name: "close" }))
@@ -11956,7 +11894,6 @@
         ),
         e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))
       ),
-      newMenu(),
       importDialog(),
       projectsDialog(),
       versionsDialog(),

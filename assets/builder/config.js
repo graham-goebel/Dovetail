@@ -207,7 +207,7 @@ function remover() {
 var RAIL = [
   ["assets", "Assets", "Primitives, variables, components, blocks and templates", "plus"],
   ["pages", "Pages", "The project's pages, each its own canvas", "file"],
-  ["layers", "Layers", "Everything in each frame", "blocks"],
+  ["layers", "Layers", "Everything in each frame", "layers2"],
   ["content", "Content", "Images, illustrations and icons", "folder"],
   ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"],
 ];
