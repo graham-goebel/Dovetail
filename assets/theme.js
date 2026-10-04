@@ -63,6 +63,7 @@
     whitespace: "balanced",
     textSpacing: "auto",
     moduleSpacing: "auto",
+    pageWidth: "1280",
     media: "shown",
     customIconInclude: "",
   };
@@ -163,7 +164,13 @@
      paragraph); modules is a module's padding above and below, and the gap
      between its own parts. Multiples of the base unit, as above. */
   var TEXT_SPACING = { tight: [2, 2, 3], balanced: [3, 3, 4], open: [4, 6, 6] };
-  var MODULE_SPACING = { tight: [16, 6], balanced: [24, 10], open: [32, 16] };
+  /* Each: padding (the md step), gap, then the sm, lg and xl padding steps
+     and the inset inside a band set in from the page edges. */
+  var MODULE_SPACING = { tight: [16, 6, 10, 24, 32, 6], balanced: [24, 10, 16, 32, 40, 8], open: [32, 16, 20, 40, 48, 12] };
+  var MODULE_STEPS = { 2: "sm", 3: "lg", 4: "xl" };
+  /* The page column every page shares: --dt-layout-page-width, re-pointed at
+     another container step. 1280 is the stylesheet's own. */
+  var PAGE_WIDTH = { 1024: "container-lg", 1280: null, 1536: "container-2xl" };
   var CHARACTER = { tight: "tight", balanced: "balanced", airy: "open" };
 
   /* Auto follows the spacing character. Only a choice that differs from the
@@ -183,7 +190,12 @@
     if (mod !== "balanced" || (cfg.moduleSpacing && cfg.moduleSpacing !== "auto")) {
       out["--dt-layout-module-padding"] = "var(--dt-dim-" + MODULE_SPACING[mod][0] + ")";
       out["--dt-layout-module-gap"] = "var(--dt-dim-" + MODULE_SPACING[mod][1] + ")";
+      Object.keys(MODULE_STEPS).forEach(function (i) {
+        out["--dt-layout-module-padding-" + MODULE_STEPS[i]] = "var(--dt-dim-" + MODULE_SPACING[mod][i] + ")";
+      });
+      out["--dt-layout-module-inset"] = "var(--dt-dim-" + MODULE_SPACING[mod][5] + ")";
     }
+    if (PAGE_WIDTH[cfg.pageWidth]) out["--dt-layout-page-width"] = "var(--dt-dim-" + PAGE_WIDTH[cfg.pageWidth] + ")";
     return out;
   }
 
@@ -822,6 +834,7 @@
         whitespace: keys(WHITESPACE),
         textSpacing: ["auto"].concat(keys(TEXT_SPACING)),
         moduleSpacing: ["auto"].concat(keys(MODULE_SPACING)),
+        pageWidth: keys(PAGE_WIDTH),
         brandFill: ["solid", "quiet", "gradient", "duotone"],
         pageTint: ["neutral", "muted"],
         sectionTint: ["neutral", "muted"],
@@ -1269,7 +1282,7 @@
     }
     if (Object.keys(tm).length) {
       lines.push("");
-      lines.push("  /* Text " + (cfg.textSpacing || "auto") + ", modules " + (cfg.moduleSpacing || "auto") + " */");
+      lines.push("  /* Text " + (cfg.textSpacing || "auto") + ", modules " + (cfg.moduleSpacing || "auto") + ", page width " + (cfg.pageWidth || "1280") + " */");
       Object.keys(tm).forEach(function (name) {
         lines.push("  " + name + ": " + tm[name] + ";");
       });
@@ -1527,7 +1540,7 @@
     { id: "color", label: "Color", summary: "Primary, secondary, fill and steps", icon: "droplet", fields: colorFields },
     { id: "shape", label: "Shape", summary: "Radius and focus ring", icon: "square", fields: shapeFields },
     { id: "type", label: "Type", summary: "Display, body, secondary and code", icon: "type", fields: typeFields },
-    { id: "layout", label: "Layout", summary: "Spacing, text, modules and density", icon: "ruler", fields: layoutFields },
+    { id: "layout", label: "Layout", summary: "Spacing, text, modules, page width and density", icon: "ruler", fields: layoutFields },
     { id: "media", label: "Media", summary: "Photo, illustration and icons", icon: "image", fields: mediaFields },
     { id: "view", label: "View", summary: "Colour mode and context", icon: "monitor", fields: viewFields },
     { id: "export", label: "Export", summary: "Theme file and download", icon: "download", fields: exportFields },
@@ -2207,6 +2220,19 @@
           config.moduleSpacing || "auto",
           function (value) {
             commit({ moduleSpacing: value });
+          }
+        )
+      ),
+      field(
+        "Page width",
+        "The column every page and section shares, so content lines up from page to page without padding and margin doing the work. Narrow and wide sections keep their own widths.",
+        segmented(
+          "Page width",
+          "pageWidth",
+          [{ value: "1024", label: "1024" }, { value: "1280", label: "1280" }, { value: "1536", label: "1536" }],
+          String(config.pageWidth || "1280"),
+          function (value) {
+            commit({ pageWidth: value });
           }
         )
       ),

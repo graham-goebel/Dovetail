@@ -1,4 +1,4 @@
-<!-- @dsCard group="Primitives" height=1180 name="Section" subtitle="Section — Page width, section rhythm, a tone, a scoped dark band, or a photo band." -->
+<!-- @dsCard group="Primitives" height=1560 name="Section" subtitle="Section — The page column, module padding per edge, a tone, an inset band, a scoped dark band, or a photo band." -->
 <!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -41,6 +41,18 @@
   function Page() {
     return e(React.Fragment, null,
       TONES.map(Band),
+      e(Spec, { name: "spacingTop=\"xl\" spacingBottom=\"sm\"" },
+        e(NS.Section, { tone: "subtle", spacingTop: "xl", spacingBottom: "sm" },
+          e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-layout-text-subcopy)" } },
+            e(NS.Heading, { level: 2, size: "heading-md" }, "More room above than below"),
+            e(NS.Text, { variant: "small", tone: "secondary" }, "Each edge takes a module padding step: sm, md, lg or xl.")))),
+      e(Spec, { name: "bleed=\"inset\"" },
+        e(NS.Section, { bleed: "inset", tone: "brand-muted", spacing: "sm" },
+          e("div", { style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-sm)", alignItems: "center" } },
+            e("div", { style: { display: "flex", flexDirection: "column", gap: "var(--dt-layout-text-subcopy)", marginRight: "auto" } },
+              e(NS.Heading, { level: 2, size: "heading-md" }, "Set in from the page edges"),
+              e(NS.Text, { variant: "small", tone: "secondary" }, "Its fill sits in the page column, with the container radius.")),
+            e(NS.Button, null, "Join")))),
       e(Spec, { name: "dark, scoped to one band" },
         e(NS.Section, { dark: true, spacing: "compact" },
           e("div", { style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-sm)", alignItems: "center" } },

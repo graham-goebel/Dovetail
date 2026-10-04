@@ -2071,6 +2071,42 @@
         "$type": "number",
         "$value": 1,
         "$description": "Multiplies every layer in Stack and Inline. 1 on a page; a surface drawn at another size, such as a social artboard, sets it once."
+      },
+      "module-padding-sm": {
+        "$value": "{primitive.dimension.16}",
+        "$description": "The small step of a module's padding above or below: --dt-space-section-compact at the default layout. Moves with the layout's character."
+      },
+      "module-padding-md": {
+        "$value": "{semantic.layout.module-padding}",
+        "$description": "The default step: module-padding itself."
+      },
+      "module-padding-lg": {
+        "$value": "{primitive.dimension.32}",
+        "$description": "A spacious step, for a band that wants more room."
+      },
+      "module-padding-xl": {
+        "$value": "{primitive.dimension.40}",
+        "$description": "The largest step, for a statement band."
+      },
+      "module-inset": {
+        "$value": "{primitive.dimension.8}",
+        "$description": "Padding inside a band set in from the page edges."
+      },
+      "page-width": {
+        "$value": "{semantic.size.container-default}",
+        "$description": "The content column every page and section shares. Configure's Page width moves it."
+      },
+      "page-width-narrow": {
+        "$value": "{semantic.size.container-narrow}",
+        "$description": "A reading column."
+      },
+      "page-width-wide": {
+        "$value": "{semantic.size.container-wide}",
+        "$description": "A hero or a gallery that still wants a margin."
+      },
+      "page-gutter": {
+        "$value": "{primitive.dimension.6}",
+        "$description": "The room between the page column and the screen's edge: --dt-space-gutter at the default layout. Moves with the layout's character."
       }
     },
     "radius": {

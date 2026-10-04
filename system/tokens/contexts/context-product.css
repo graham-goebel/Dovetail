@@ -40,6 +40,16 @@
   /* Tight rhythm. */
   --dt-space-section: var(--dt-dim-12);
   --dt-space-gutter: var(--dt-space-inset-md);
+  /* Re-declared here so a band inside this region takes its rhythm and its
+     gutter, not the page's: custom properties resolve where declared. */
+  --dt-layout-module-padding: var(--dt-space-section);
+  --dt-layout-module-padding-md: var(--dt-layout-module-padding);
+  --dt-layout-page-gutter: var(--dt-space-gutter);
+  /* The module padding steps either side of this rhythm. */
+  --dt-layout-module-padding-sm: var(--dt-dim-8);  /* 32 */
+  --dt-layout-module-padding-lg: var(--dt-dim-16);  /* 64 */
+  --dt-layout-module-padding-xl: var(--dt-dim-24);  /* 96 */
+  --dt-layout-module-inset: var(--dt-dim-6);  /* 24 */
   --dt-space-stack-xl: var(--dt-dim-8);
   --dt-space-stack-2xl: var(--dt-dim-12);
 

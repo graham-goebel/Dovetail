@@ -68,8 +68,14 @@ export interface MenuBlockProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   dark?: boolean;
   /** Layers the texture token over the tone. */
   texture?: boolean;
-  /** Vertical padding: the section rhythm, the compact one, or none. @default "default" */
-  spacing?: "default" | "compact" | "none";
+  /** Padding above and below, passed to Section: `sm`, `md`, `lg`, `xl` or `none`, from the module padding steps; `default` is `md` and `compact` is `sm`. @default "default" */
+  spacing?: "none" | "sm" | "md" | "lg" | "xl" | "default" | "compact";
+  /** Padding above, when it differs from `spacing`. */
+  spacingTop?: "none" | "sm" | "md" | "lg" | "xl";
+  /** Padding below, when it differs from `spacing`. */
+  spacingBottom?: "none" | "sm" | "md" | "lg" | "xl";
+  /** `full` spans the screen; `inset` sets the band in from the page edges with the container radius. Passed to Section. @default "full" */
+  bleed?: "full" | "inset";
   /** The inner column's width. @default "default" */
   width?: "narrow" | "default" | "wide" | "full";
 }

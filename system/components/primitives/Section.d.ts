@@ -1,12 +1,13 @@
 import * as React from "react";
 
 /**
- * A page section: a page-width column, the section rhythm above and below it,
- * and an optional surface. Pass `media` and it becomes a full-bleed photo band
- * with a scrim, scoped dark so everything inside it reads as light on dark.
+ * A page section: the page column, the module padding above and below it, and
+ * an optional surface, full bleed or set in from the page edges. Pass `media`
+ * and it becomes a photo band with a scrim, scoped dark so everything inside
+ * it reads as light on dark.
  */
 export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
-  /** The inner column. full removes the bound. @default "default" */
+  /** The column, from the page-width tokens: `narrow` (--dt-layout-page-width-narrow, a reading column), `default` (--dt-layout-page-width, the column every page shares), `wide` (--dt-layout-page-width-wide), or `full` with no bound. Inset, it bounds the band itself. @default "default" */
   width?: "narrow" | "default" | "wide" | "full";
   /**
    * The surface, and the text roles that belong on it. Brand and secondary
@@ -21,8 +22,14 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   dark?: boolean;
   /** Layers --dt-surface-texture over the tone. @default false */
   texture?: boolean;
-  /** Vertical padding: the module padding (--dt-layout-module-padding, which is --dt-space-section until the layout says otherwise), --dt-space-section-compact, or none. @default "default" */
-  spacing?: "default" | "compact" | "none";
+  /** Padding above and below, from the module padding steps (--dt-layout-module-padding-sm to -xl), which move with the layout's character: `sm`, `md`, `lg`, `xl` or `none`. `default` is `md` and `compact` is `sm`, by their older names. @default "default" */
+  spacing?: "none" | "sm" | "md" | "lg" | "xl" | "default" | "compact";
+  /** Padding above, when it differs from `spacing`: a band can take more room at its top than its foot. */
+  spacingTop?: "none" | "sm" | "md" | "lg" | "xl";
+  /** Padding below, when it differs from `spacing`. */
+  spacingBottom?: "none" | "sm" | "md" | "lg" | "xl";
+  /** `full`: the band's fill spans the screen and its content sits in the column. `inset`: the band sits in the page column, set in from the screen's edges by the gutter, with the container radius, and pads its content with --dt-layout-module-inset. @default "full" */
+  bleed?: "full" | "inset";
   /** Image URL. Turns the section into a full-bleed photo band. The image is decorative; say what matters in the text. */
   media?: string;
   /** With media: gradient fades from the edge the content sits on, solid washes the whole band. @default "gradient" */

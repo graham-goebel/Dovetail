@@ -1,4 +1,4 @@
-<!-- @dsCard group="Layout" height=760 width=700 subtitle="Text and modules — The gaps inside a block of text, and the room a module takes, at each character." page -->
+<!-- @dsCard group="Layout" height=1000 width=700 subtitle="Text and modules — The gaps inside a block of text, the room a module takes at each character, and its padding steps." page -->
 <!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,7 +23,11 @@ i{display:block;border-radius:4px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .px{font-family:var(--dt-font-family-mono);font-size:10px;line-height:1.7;color:var(--dt-text-tertiary);margin-top:8px}
 .note{margin:14px 0 0;font-size:12px;line-height:1.5;color:var(--dt-text-secondary);max-width:62ch}
-.note code{font-family:var(--dt-font-family-mono);font-size:11px}</style>
+.note code{font-family:var(--dt-font-family-mono);font-size:11px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);column-gap:16px;align-items:end;margin-top:22px}
+.step{background:var(--dt-surface-brand-muted);border-radius:var(--dt-radius-control)}
+.step.sm{height:calc(var(--dt-layout-module-padding-sm) / 2)}.step.md{height:calc(var(--dt-layout-module-padding-md) / 2)}
+.step.lg{height:calc(var(--dt-layout-module-padding-lg) / 2)}.step.xl{height:calc(var(--dt-layout-module-padding-xl) / 2)}</style>
 
 <link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
 </head><body>
@@ -38,5 +42,11 @@ i{display:block;border-radius:4px}
 <div class="mod"><div class="parts"><div class="head"><div class="pair"><i class="eb"></i><i class="ti"></i></div><i class="le"></i></div><div class="two"><i class="bx"></i><i class="bx"></i></div></div></div>
 <div class="px">module padding 128px<br>module gap 64px<br>eyebrow 16px · subcopy 24px<br>paragraph 24px</div></div>
 </div>
-<p class="note">A module is a band or block. Its padding is above and below its content; its gap is between its own parts, here the header and what follows it. Inside the header, the eyebrow binds to the heading (<code>--dt-layout-text-eyebrow</code>) and the lead follows the pair (<code>--dt-layout-text-subcopy</code>); <code>--dt-layout-text-paragraph</code> sits between one paragraph and the next. Configure sets Text and Modules apart from the rest of the layout.</p>
+<div class="steps" data-layout="balanced">
+<div><div class="h"><b>sm</b>module-padding-sm</div><div class="step sm"></div><div class="px">64px</div></div>
+<div><div class="h"><b>md</b>module-padding-md</div><div class="step md"></div><div class="px">96px</div></div>
+<div><div class="h"><b>lg</b>module-padding-lg</div><div class="step lg"></div><div class="px">128px</div></div>
+<div><div class="h"><b>xl</b>module-padding-xl</div><div class="step xl"></div><div class="px">160px</div></div>
+</div>
+<p class="note">A module is a band or block. Its padding is above and below its content; its gap is between its own parts, here the header and what follows it. Inside the header, the eyebrow binds to the heading (<code>--dt-layout-text-eyebrow</code>) and the lead follows the pair (<code>--dt-layout-text-subcopy</code>); <code>--dt-layout-text-paragraph</code> sits between one paragraph and the next. Configure sets Text and Modules apart from the rest of the layout. The padding steps, drawn at half size at the balanced character, let one band take more room than the next, or more above than below: <code>Section</code>'s <code>spacingTop</code> and <code>spacingBottom</code>.</p>
 </body></html>
