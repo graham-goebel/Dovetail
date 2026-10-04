@@ -3939,6 +3939,8 @@
   }
 
   // assets/builder/app/App.js
+  var VIRTUAL_AFTER = 6;
+  var LIVE_MAX = 8;
   var HISTORY_MAX = 200;
   setAutoFreeze(true);
   function App(props) {
@@ -4124,6 +4126,8 @@
     var spaceRef = useRef(false);
     var frameEls = useRef({});
     var rendered = useRef({});
+    var scanned = useRef(/* @__PURE__ */ new WeakSet());
+    var liveRef = useRef({});
     var grows = useRef({});
     var stageRef = useRef(null);
     var dialogRef = useRef(null);
@@ -4296,13 +4300,28 @@
       persist(projectRef.current.id, doc);
     }, [doc]);
     useEffect(function() {
-      window.__builder = { doc: function() {
-        return docRef.current;
-      }, project: function() {
-        return projectRef.current;
-      }, library: function() {
-        return libRef.current;
-      }, flush, store };
+      window.__builder = {
+        doc: function() {
+          return docRef.current;
+        },
+        project: function() {
+          return projectRef.current;
+        },
+        library: function() {
+          return libRef.current;
+        },
+        flush,
+        store,
+        /* One prop on one layer, through the same undoable change a control makes. */
+        edit: function(id, key, value) {
+          return change(function(d) {
+            var at = locate(d, id);
+            if (!at) return null;
+            at.node.props[key] = value;
+            return void 0;
+          });
+        }
+      };
     }, []);
     useEffect(function() {
       storage(function(s) {
@@ -4442,7 +4461,7 @@
     showFrameRef.current = showFrame;
     useEffect(function() {
       if (camState[0] || !box.w) return;
-      if (doc.frames.length > 1 && wide) fitWidth();
+      if (doc.frames.length > 1 && doc.frames.length <= VIRTUAL_AFTER && wide) fitWidth();
       else showFrame(doc.active);
     }, [box.w]);
     var wheel = function(clientX, clientY, dx, dy, zoom, mode) {
@@ -5380,12 +5399,16 @@
         };
         var missing = false;
         doc.frames.forEach(function(f) {
+          if (scanned.current.has(f)) return;
+          var here = false;
           (function walk(n) {
             (n.children || []).forEach(function(c) {
-              if (wants(c)) missing = true;
+              if (wants(c)) here = true;
               walk(c);
             });
           })(f.root);
+          if (here) missing = true;
+          else scanned.current.add(f);
         });
         if (missing) {
           quiet(function(d) {
@@ -5415,9 +5438,9 @@
         var a = api(f.id);
         if (!a) return;
         any = any || a;
-        var key = JSON.stringify(f) + "|" + preview;
-        if (rendered.current[f.id] === key) return;
-        rendered.current[f.id] = key;
+        var last = rendered.current[f.id];
+        if (last && last.frame === f && last.preview === preview) return;
+        rendered.current[f.id] = { frame: f, preview };
         grows.current[f.id] = 0;
         a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare });
       });
@@ -9972,6 +9995,35 @@
       var r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b2 = parseInt(h.slice(5, 7), 16);
       return (0.2126 * r + 0.7152 * g + 0.0722 * b2) / 255 < 0.5;
     })(stageColor);
+    var liveNow = {};
+    (function() {
+      var many = doc.frames.length > VIRTUAL_AFTER;
+      var keep = liveRef.current;
+      var near = function(b, k) {
+        if (!cam || !box.w || !b) return true;
+        var vx = -cam.x / cam.z, vy = -cam.y / cam.z, vw = box.w / cam.z, vh = box.h / cam.z;
+        return b.x < vx + vw * (1 + k) && b.x + b.w > vx - vw * k && b.y < vy + vh * (1 + k) && b.y + b.h > vy - vh * k;
+      };
+      var mid = { x: (box.w / 2 - cam.x) / cam.z, y: (box.h / 2 - cam.y) / cam.z };
+      var gap = function(b) {
+        return b ? Math.hypot(b.x + b.w / 2 - mid.x, b.y + b.h / 2 - mid.y) : Infinity;
+      };
+      var wanted = doc.frames.filter(function(f) {
+        return !many || f.id === doc.active || near(boxes[f.id], keep[f.id] ? 1.5 : 0.5);
+      });
+      if (many && wanted.length > LIVE_MAX) {
+        var rank = function(f) {
+          return f.id === doc.active ? 0 : keep[f.id] ? 1 : 2;
+        };
+        wanted = wanted.slice().sort(function(x, y) {
+          return rank(x) - rank(y) || gap(boxes[x.id]) - gap(boxes[y.id]);
+        }).slice(0, LIVE_MAX);
+      }
+      wanted.forEach(function(f) {
+        liveNow[f.id] = true;
+      });
+      liveRef.current = liveNow;
+    })();
     var stage = e(
       "div",
       {
@@ -10010,6 +10062,14 @@
         { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
         doc.frames.map(function(f) {
           var b = boxes[f.id];
+          if (!liveNow[f.id]) {
+            return e("div", {
+              key: f.id,
+              className: cx("bd-frame", "bd-frame-ghost", f.bare && "is-bare"),
+              "aria-hidden": "true",
+              style: { left: b.x + "px", top: b.y + "px", width: b.w + "px", height: b.h + "px" }
+            }, e("span", { className: "bd-frame-ghost-name" }, f.name));
+          }
           return e("iframe", {
             key: f.id,
             className: cx("bd-frame", f.id === doc.active && "is-active", f.bare && "is-bare"),

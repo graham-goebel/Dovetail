@@ -4549,3 +4549,19 @@ input.bd-proj-name {
     transition: none;
   }
 }
+
+/* A frame far from view in a big project: its size and name, until it's
+   panned near and comes alive. */
+.bd-frame-ghost {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: var(--dt-border-width-default) dashed var(--dt-border-default);
+  background: var(--dt-surface-raised);
+  pointer-events: none;
+}
+
+.bd-frame-ghost-name {
+  color: var(--dt-text-tertiary);
+  font-size: calc(var(--dt-font-size-sm) * 2);
+}
