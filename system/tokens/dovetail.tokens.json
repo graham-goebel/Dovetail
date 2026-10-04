@@ -2162,6 +2162,10 @@
       "control-lg": {
         "$value": "{primitive.dimension.12}"
       },
+      "step": {
+        "$value": "{semantic.size.control-lg}",
+        "$description": "The step of the size grid: a box drawn on a canvas is a whole multiple of it. The large control height."
+      },
       "icon-sm": {
         "$value": "{primitive.dimension.4}"
       },

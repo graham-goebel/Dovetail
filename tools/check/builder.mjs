@@ -374,12 +374,12 @@ try {
     await option(page, /^2xl$/).click();
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]').firstElementChild.style.paddingTop === "var(--dt-space-inset-2xl)");
     ok("the box model's top padding set to 2xl gives paddingTop: var(--dt-space-inset-2xl)");
-    await pick(page, "Height", "control-lg × 2");
-    await pick(page, "Min width", "control-lg × 3");
-    await frame().waitForFunction(() => { const s = document.querySelector('[data-bf-type="Heading"]').firstElementChild.style; return s.height === "calc(var(--dt-size-control-lg) * 2)" && s.minWidth === "calc(var(--dt-size-control-lg) * 3)"; });
+    await pick(page, "Height", "step × 2");
+    await pick(page, "Min width", "step × 3");
+    await frame().waitForFunction(() => { const s = document.querySelector('[data-bf-type="Heading"]').firstElementChild.style; return s.height === "calc(var(--dt-size-step) * 2)" && s.minWidth === "calc(var(--dt-size-step) * 3)"; });
     const hLabel = await dd(page, "Height").locator(".bd-dd-label").textContent();
     expect(/^\d+ ×2$/.test(hLabel), `the size grid gives the px, then the step briefly, got ${hLabel}`);
-    ok("Height and Min width, from the size grid, are multiples of --dt-size-control-lg");
+    ok("Height and Min width, from the size grid, are multiples of --dt-size-step");
     const offered = await page.evaluate(() => Object.values(window.DovetailBuilderData.tokens).flatMap((d) => d.options.flatMap((o) => Object.values(o.css))));
     const bad = offered.filter(raw);
     expect(bad.length === 0, `options with raw values: ${bad.join(", ")}`);
@@ -741,7 +741,7 @@ try {
     await page.locator(".bd-box-p > .bd-box-all").click();
     const padGroups = await page.$$eval(".bd-dd-list .bd-dd-group", (g) => g.map((x) => x.textContent));
     const padPx = await page.$$eval(".bd-dd-list .bd-dd-px", (g) => g.map((x) => x.textContent));
-    expect(padGroups[0] === "Layout layers", `a Section's padding starts with the layout layers, got ${padGroups.join(", ")}`);
+    expect(padGroups[0] === "Sections and page" && padGroups[1] === "Layout layers", `a Section's padding starts with section padding, then the layout layers, got ${padGroups.join(", ")}`);
     expect(padPx.length > 4 && padPx.every((v) => /^\d+$/.test(v)), `each padding option shows its px, got ${padPx.slice(0, 6).join(", ")}`);
     await page.keyboard.press("Escape");
     ok(`a Section opens on Layout, and its padding offers ${padGroups.join(", ")}, each with its px`);
@@ -3254,6 +3254,69 @@ try {
     await page.keyboard.press("Escape");
     expect(code.includes('"--dt-layout-page-width": "var(--dt-layout-page-width-narrow)"') && code.includes('"--dt-layout-page-gutter": "0"') && code.includes('spacingTop="xl"') && code.includes('bleed="inset"') && code.includes("var(--dt-layout-stack-block)"), `the code carries the page's column and gutter, the band's spacing and bleed, and the layer gap, got ${(code.match(/--dt-layout[\w-]*|spacingTop="\w+"|bleed="\w+"/g) || []).join(" ")}`);
     ok("the exported code carries the page column, gutter, band spacing, bleed and layer gap");
+    await page.close();
+  });
+
+  await step("Scoping: each layer is offered only the sizes and spacing that suit it, on the right axis, in the inspector, the Variables panel and when resized", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    /* A band at the top of the page holding a Text and a Button. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames[0].root.children.unshift({ id: "scg", type: "Group", name: "Band", props: { direction: "column", gap: "group" }, style: { padding: "module" },
+        children: [{ id: "sct", type: "Text", props: { children: "Scoped text" }, style: {} }, { id: "scb", type: "Button", props: { children: "Scoped button" }, style: {} }] });
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="sct"]'));
+    const listOf = async (locator) => { await locator.click(); const l = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents(); await page.keyboard.press("Escape"); return l; };
+    const selectOne = async (id, title) => { await page.evaluate((x) => window.__builder.select([x]), id); await page.waitForFunction((t) => new RegExp(t).test(document.querySelector(".bd-inspect-title")?.textContent || ""), title); await tab(page, "Layout"); };
+
+    await selectOne("sct", "Text");
+    const tw = await listOf(dd(page, "Width")), th = await listOf(dd(page, "Height"));
+    const tpad = await listOf(page.locator(".bd-box-p > .bd-box-all"));
+    expect(!tw.concat(th).some((l) => /^(control|icon|avatar|touch)/.test(l)), `a Text is offered no component sizes, got ${tw.concat(th).filter((l) => /control|icon|avatar|touch/.test(l)).join(", ")}`);
+    expect(tw.includes("page") && !th.some((l) => /^page/.test(l)), `a page width is offered for width, never height, got width ${tw.filter((l) => /page/.test(l))} height ${th.filter((l) => /page/.test(l))}`);
+    expect(!tpad.some((l) => /^(section|layout|module|page gutter)/.test(l)), `a Text's padding offers no section padding or layout layers, got ${tpad.join(", ")}`);
+    ok(`a Text is offered ${tw.length - 1} widths and ${th.length - 1} heights, none of them a component size, and no section padding`);
+
+    await selectOne("scb", "Button");
+    const bw = await listOf(dd(page, "Width"));
+    expect(bw.some((l) => /^control-md$/.test(l)), `a Button is offered the control sizes, got ${bw.join(", ")}`);
+    await selectOne("scg", "Band");
+    const gpad = await listOf(page.locator(".bd-box-p > .bd-box-all"));
+    const gleft = await listOf(page.locator(".bd-box-p > .bd-box-cell.is-left .bd-dd"));
+    expect(gpad.some((l) => /^section lg$/.test(l)) && gpad.some((l) => /^layout block$/.test(l)), `a band's padding offers section padding and the layout layers, got ${gpad.join(", ")}`);
+    expect(gleft.includes("page gutter") && !gleft.some((l) => /^module (sm|lg|xl)$|^module padding$/.test(l)), `a side offers the gutter and never a module step, got ${gleft.join(", ")}`);
+    ok("a Button gets control sizes; a band gets section padding and layers, and its sides the page gutter but no module step");
+
+    await selectOne("sct", "Text");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await page.locator('.bd-assets [aria-label="Back to Assets"]').click().catch(() => {});
+    await page.locator('.bd-assets [data-asset-kind="variables"]').click();
+    const vw = await page.locator(".bd-vars-sec", { hasText: "Width" }).locator(".bd-var-name").allTextContents();
+    const vp = await page.locator(".bd-vars-sec", { hasText: "Padding" }).locator(".bd-var-name").allTextContents();
+    expect(vw.length && !vw.some((l) => /^(control|icon|avatar|touch|artboard)/.test(l)) && !vp.some((l) => /^(section|layout|module)/.test(l)), `the Variables panel offers a Text what suits it, got widths ${vw.join(", ")} and padding ${vp.join(", ")}`);
+    ok(`with a Text selected, Variables offers ${vw.length} widths and ${vp.length} paddings that suit it`);
+
+    await page.waitForSelector(".bd-mark-sel .bd-handle.is-s");
+    const hb = await page.locator(".bd-mark-sel .bd-handle.is-s").boundingBox();
+    await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2 + 6, { steps: 3 });
+    await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2 + 14, { steps: 4 });
+    await page.waitForTimeout(120);
+    await page.mouse.up();
+    const sized = await poll(async () => (await saved()).frames[0].root.children[0].children[0].style.height, (v) => !!v);
+    expect(sized && !/^(control|icon|avatar|touch|artboard)/.test(sized), `resizing a Text snaps to a size that suits it, got ${sized}`);
+    ok(`resizing a Text snaps its height to ${sized}, not a component size`);
     await page.close();
   });
 

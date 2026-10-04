@@ -111,7 +111,6 @@
     });
   });
   var TEXT_PROPS = ["children", "title", "label", "text", "name", "brand", "value"];
-  var SHARED_FAMILY = { fit: 1, container: 1, step: 1, inset: 1, space: 1, layout: 1 };
   var TONE_FILL = {
     base: "--dt-surface-base",
     subtle: "--dt-surface-subtle",
@@ -153,31 +152,70 @@
     icon: "Icons",
     avatar: "Avatars",
     media: "Media",
-    container: "Containers",
-    step: "Steps of control-lg",
+    artboard: "Artboards",
+    container: "Page column",
+    step: "Steps of the size grid",
     inset: "Inset",
     space: "Stack and inline",
-    layout: "Layout layers"
+    layout: "Layout layers",
+    band: "Sections and page"
   };
   var CONTROL_TYPES = { Badge: 1, Tag: 1, Pagination: 1, QuantityStepper: 1, PromoCode: 1, FulfilmentToggle: 1, VariantPicker: 1, Rating: 1 };
   var MEDIA_TYPES = { Image: 1, Video: 1, Cover: 1, Media: 1, Figure: 1, AspectRatio: 1, ProductGallery: 1, SocialPost: 1 };
   var BAND_TYPES = { Group: 1, Section: 1, Stack: 1, Inline: 1, Grid: 1, Card: 1, Prose: 1 };
   var TEXT_TYPES = { Text: 1, Heading: 1, Quote: 1, Code: 1, Link: 1 };
   var PICTURE_TYPES = { Image: 1, Figure: 1, Cover: 1 };
-  function contextOf(types) {
-    var t = types.length && types.every(function(x) {
+  function roleOf(t, top) {
+    var m = META[t];
+    if (t === "Avatar" || t === "AvatarGroup") return "avatar";
+    if (t === "Icon" || t === "IconButton") return "icon";
+    if (t === "Shape") return "shape";
+    if (CONTROL_TYPES[t] || m && (m.group === "actions" || m.group === "forms")) return "control";
+    if (MEDIA_TYPES[t]) return "media";
+    if (t === "Section" || m && m.group === "blocks") return "band";
+    if (BAND_TYPES[t]) return top && t !== "Card" && t !== "Prose" ? "band" : "container";
+    if (TEXT_TYPES[t]) return "text";
+    return "element";
+  }
+  var ROLE_FAMILIES = {
+    avatar: { size: ["avatar", "fit", "step"], space: ["inset"] },
+    icon: { size: ["icon", "control", "fit", "step"], space: ["inset", "space"] },
+    shape: { size: ["step", "icon", "control", "fit"], space: ["inset", "space"] },
+    control: { size: ["control", "fit", "step"], space: ["inset", "space"] },
+    media: { size: ["media", "artboard", "container", "fit", "step"], space: ["inset", "space"] },
+    band: { size: ["fit", "container", "media", "artboard", "step"], space: ["band", "layout", "inset", "space"] },
+    container: { size: ["fit", "container", "media", "artboard", "step"], space: ["layout", "band", "inset", "space"] },
+    text: { size: ["fit", "container", "step"], space: ["space", "inset"] },
+    element: { size: ["fit", "container", "step"], space: ["inset", "space"] }
+  };
+  function scopeOf(types, opts) {
+    opts = opts || {};
+    var one2 = types.length && types.every(function(x) {
       return x === types[0];
     }) ? types[0] : null;
-    var m = t && META[t];
-    var name = t ? t : "these items";
-    if (t === "Avatar" || t === "AvatarGroup") return { name, size: ["avatar", "fit", "step"], space: ["inset"] };
-    if (t === "Icon" || t === "IconButton") return { name, size: ["icon", "control", "fit", "step"], space: ["inset", "space"] };
-    if (t === "Shape") return { name, size: ["step", "icon", "control"], space: ["inset", "space"] };
-    if (t && (CONTROL_TYPES[t] || m && (m.group === "actions" || m.group === "forms"))) return { name, size: ["control", "fit", "step"], space: ["inset", "space"] };
-    if (t && MEDIA_TYPES[t]) return { name, size: ["media", "container", "fit", "step"], space: ["inset", "space"] };
-    if (t && (BAND_TYPES[t] || m && m.group === "blocks")) return { name, size: ["fit", "container", "media", "step"], space: ["layout", "inset", "space"] };
-    if (t && TEXT_TYPES[t]) return { name, size: ["fit", "container", "step"], space: ["inset", "space", "layout"] };
-    return { name, size: ["fit", "container", "step", "control"], space: ["inset", "space", "layout"] };
+    var lists = types.map(function(t) {
+      return ROLE_FAMILIES[roleOf(t, opts.top)];
+    });
+    var common = function(axis) {
+      if (!lists.length) return ROLE_FAMILIES.element[axis].slice();
+      return lists[0][axis].filter(function(f) {
+        return (f !== "artboard" || opts.social) && lists.every(function(l) {
+          return l[axis].indexOf(f) >= 0;
+        });
+      });
+    };
+    return { name: one2 || "these items", role: one2 ? roleOf(one2, opts.top) : null, size: common("size"), space: common("space") };
+  }
+  var HEIGHT_KEYS = { height: 1, h: 1 };
+  var SIDE_KEYS = { paddingLeft: 1, paddingRight: 1, marginLeft: 1, marginRight: 1 };
+  function optionAllowed(key, o, scope) {
+    var def = DATA.tokens[key];
+    if (!def || def.section !== "size" && def.section !== "spacing") return true;
+    if (!o.family) return true;
+    if (HEIGHT_KEYS[key] && o.family === "container") return false;
+    if (SIDE_KEYS[key] && /^module($|-(sm|lg|xl)$)/.test(o.value)) return false;
+    var list = def.section === "size" ? scope.size : scope.space;
+    return list.indexOf(o.family) >= 0;
   }
   function smartTab(type) {
     if (type === "__frame" || type === "__mixed") return "layout";
@@ -6740,11 +6778,13 @@
         return Object.assign({}, m, { drop: r ? { line: null, box: toStage(r, hit.fid), swap: true } : null });
       });
     };
-    var sizeNear = function(key, px, fills, any) {
+    var sizeNear = function(key, px, fills, any, nodes) {
       if (fills) return key === "w" || key === "height" ? "fill" : null;
       var best = null, gap = Infinity;
+      var sc = nodes && nodes.length ? scopeFor(nodes) : null;
       DATA.tokens[key].options.forEach(function(o) {
         if (o.family === "fit" || o.family === "container") return;
+        if (sc && !optionAllowed(key, o, sc)) return;
         var v = pxMap[key + "|" + o.value];
         if (v == null) return;
         if (Math.abs(v - px) < gap) {
@@ -6772,11 +6812,11 @@
       if (type === "Inline") n.props.wrap = false;
       n.style = copy(at0.node.style);
       if (r && !n.style.w) {
-        var w = sizeNear("w", r.width, !!pr && Math.abs(pr.width - r.width) < 2 && !isFree(n.style));
+        var w = sizeNear("w", r.width, !!pr && Math.abs(pr.width - r.width) < 2 && !isFree(n.style), false, [n]);
         if (w) n.style.w = w;
       }
       if (r && !n.style.height) {
-        var h = sizeNear("height", r.height, false);
+        var h = sizeNear("height", r.height, false, false, [n]);
         if (h) n.style.height = h;
       }
       if (n.children && at0.node.children) n.children = at0.node.children.filter(function(c) {
@@ -9824,6 +9864,17 @@
     var sizeText = function(f) {
       return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height);
     };
+    var scopeFor = function(nodes) {
+      var d = docRef.current;
+      var top = nodes.length > 0 && nodes.every(function(n) {
+        var at2 = locate(d, n.id);
+        return !!at2 && !!at2.parent && at2.parent.type === "Root";
+      });
+      var fr = active(d);
+      return scopeOf(nodes.map(function(n) {
+        return n.type;
+      }), { top, social: !!fr && fr.typeScale === "social" });
+    };
     var tokenDropdown = function(key, nodes, id, opts) {
       opts = opts || {};
       var def = DATA.tokens[key];
@@ -9832,13 +9883,11 @@
       });
       var mixed = !same3(values);
       var value = mixed ? "" : values[0];
-      var ctx = contextOf(nodes.map(function(n) {
-        return n.type;
-      }));
+      var ctx = scopeFor(nodes);
       var order = def.section === "size" ? ctx.size : def.section === "spacing" ? ctx.space : null;
       var list = def.options.slice();
       if (order) list = list.filter(function(o) {
-        return !o.family || SHARED_FAMILY[o.family] || order.indexOf(o.family) >= 0 || o.value === value;
+        return optionAllowed(key, o, ctx) || o.value === value;
       });
       if (order && list.some(function(o) {
         return o.family;
@@ -9909,7 +9958,7 @@
       var wide2 = key === "w" || key === "minW";
       var picks = nodes.map(function(n) {
         var r = a.rect(n.id);
-        return r ? sizeNear(key, wide2 ? r.width : r.height, false, true) : null;
+        return r ? sizeNear(key, wide2 ? r.width : r.height, false, true, [n]) : null;
       });
       if (!picks.some(Boolean)) {
         announce("No size token to hold it at");
@@ -10929,6 +10978,7 @@
       var picked = nodesOf2(selection).filter(function(n) {
         return n.type !== "Slot";
       });
+      var sc = picked.length ? scopeFor(picked) : null;
       return e(
         "div",
         { className: "bd-vars" },
@@ -10937,7 +10987,7 @@
           var def = DATA.tokens[vs[0]];
           if (!def) return null;
           var opts = def.options.filter(function(o) {
-            return vs[0] !== "w" || o.family !== "fit" && o.family !== "container";
+            return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc));
           });
           var cur = picked.length && same3(picked.map(function(n) {
             return n.style[vs[0]] || "";
@@ -13077,8 +13127,8 @@
           if (Math.abs(dx) >= Math.abs(dy)) h = w * k;
           else w = h / k;
         }
-        var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true) : null;
-        var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true) : null;
+        var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true, [at0.node]) : null;
+        var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true, [at0.node]) : null;
         if (!tw && !th) return;
         var wpx = tw ? pxMap["w|" + tw] : r0.width, hpx = th ? pxMap["height|" + th] : r0.height;
         var xs = free && /w/.test(dir) && wpx != null ? Math.round((r0.width - wpx) / unit) : 0;

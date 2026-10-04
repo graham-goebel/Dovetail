@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -1340,11 +1340,14 @@ function App(props) {
   };
   /* A size token near a measured size, from the fixed sizes: within a fifth
      of it, or nothing. fills: it spans its parent, so it fills. */
-  var sizeNear = function (key, px, fills, any) {
+  var sizeNear = function (key, px, fills, any, nodes) {
     if (fills) return key === "w" || key === "height" ? "fill" : null;
     var best = null, gap = Infinity;
+    /* Only sizes that suit the layer: a Text never snaps to an avatar. */
+    var sc = nodes && nodes.length ? scopeFor(nodes) : null;
     DATA.tokens[key].options.forEach(function (o) {
       if (o.family === "fit" || o.family === "container") return;
+      if (sc && !optionAllowed(key, o, sc)) return;
       var v = pxMap[key + "|" + o.value];
       if (v == null) return;
       if (Math.abs(v - px) < gap) { gap = Math.abs(v - px); best = o.value; }
@@ -1365,8 +1368,8 @@ function App(props) {
     var n = make(type);
     if (type === "Inline") n.props.wrap = false;
     n.style = copy(at0.node.style);
-    if (r && !n.style.w) { var w = sizeNear("w", r.width, !!pr && Math.abs(pr.width - r.width) < 2 && !isFree(n.style)); if (w) n.style.w = w; }
-    if (r && !n.style.height) { var h = sizeNear("height", r.height, false); if (h) n.style.height = h; }
+    if (r && !n.style.w) { var w = sizeNear("w", r.width, !!pr && Math.abs(pr.width - r.width) < 2 && !isFree(n.style), false, [n]); if (w) n.style.w = w; }
+    if (r && !n.style.height) { var h = sizeNear("height", r.height, false, false, [n]); if (h) n.style.height = h; }
     if (n.children && at0.node.children) n.children = at0.node.children.filter(function (c) { return c.type !== "Slot"; }).map(copy);
     var was = nameOf(at0.node);
     var ok = change(function (d) { d.active = fid; return ops.replace(d, id, n); }, "Swapped " + was + " for " + type + ", the same size");
@@ -3459,16 +3462,25 @@ function App(props) {
      button shows just the pixels). Options carry their size in pixels and,
      for size and spacing, sit in families: those that suit the selection
      first, the rest after under More. */
+  /* The families of tokens that suit these layers (config.js scopeOf). */
+  var scopeFor = function (nodes) {
+    var d = docRef.current;
+    var top = nodes.length > 0 && nodes.every(function (n) { var at = locate(d, n.id); return !!at && !!at.parent && at.parent.type === "Root"; });
+    var fr = active(d);
+    return scopeOf(nodes.map(function (n) { return n.type; }), { top: top, social: !!fr && fr.typeScale === "social" });
+  };
   var tokenDropdown = function (key, nodes, id, opts) {
     opts = opts || {};
     var def = DATA.tokens[key];
     var values = nodes.map(function (n) { return n.style[key] || ""; });
     var mixed = !same(values);
     var value = mixed ? "" : values[0];
-    var ctx = contextOf(nodes.map(function (n) { return n.type; }));
+    var ctx = scopeFor(nodes);
     var order = def.section === "size" ? ctx.size : def.section === "spacing" ? ctx.space : null;
     var list = def.options.slice();
-    if (order) list = list.filter(function (o) { return !o.family || SHARED_FAMILY[o.family] || order.indexOf(o.family) >= 0 || o.value === value; });
+    /* Only what suits this selection, and this axis; a value already set
+       stays listed so it can be seen and changed. */
+    if (order) list = list.filter(function (o) { return optionAllowed(key, o, ctx) || o.value === value; });
     if (order && list.some(function (o) { return o.family; })) {
       var rank = function (o) { var i = order.indexOf(o.family); return i < 0 ? order.length : i; };
       list = list.map(function (o, i) { return { o: o, i: i }; }).sort(function (a, b) { return rank(a.o) - rank(b.o) || a.i - b.i; }).map(function (x) { return x.o; });
@@ -3505,7 +3517,7 @@ function App(props) {
     var a = api();
     if (!a) return;
     var wide = key === "w" || key === "minW";
-    var picks = nodes.map(function (n) { var r = a.rect(n.id); return r ? sizeNear(key, wide ? r.width : r.height, false, true) : null; });
+    var picks = nodes.map(function (n) { var r = a.rect(n.id); return r ? sizeNear(key, wide ? r.width : r.height, false, true, [n]) : null; });
     if (!picks.some(Boolean)) { announce("No size token to hold it at"); return; }
     change(function (d) {
       nodes.forEach(function (n, i) { var at = locate(d, n.id); if (at && picks[i]) at.node.style[key] = picks[i]; });
@@ -4031,12 +4043,14 @@ function App(props) {
   };
   var variablesPanel = function () {
     var picked = nodesOf(selection).filter(function (n) { return n.type !== "Slot"; });
+    var sc = picked.length ? scopeFor(picked) : null;
     return e("div", { className: "bd-vars" },
       e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
       VAR_SETS.map(function (vs) {
         var def = DATA.tokens[vs[0]];
         if (!def) return null;
-        var opts = def.options.filter(function (o) { return vs[0] !== "w" || (o.family !== "fit" && o.family !== "container"); });
+        /* With a selection, only what suits it, as in the inspector. */
+        var opts = def.options.filter(function (o) { return (vs[0] !== "w" || (o.family !== "fit" && o.family !== "container")) && (!sc || optionAllowed(vs[0], o, sc)); });
         var cur = picked.length && same(picked.map(function (n) { return n.style[vs[0]] || ""; })) ? picked[0].style[vs[0]] || "" : null;
         return e("section", { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
           e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
@@ -5157,8 +5171,8 @@ function App(props) {
       if (/e/.test(dir)) w = r0.width + dx; else if (/w/.test(dir)) w = r0.width - dx;
       if (/s/.test(dir)) h = r0.height + dy; else if (/n/.test(dir)) h = r0.height - dy;
       if (corner && mv.shiftKey) { var k = r0.height / r0.width; if (Math.abs(dx) >= Math.abs(dy)) h = w * k; else w = h / k; }
-      var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true) : null;
-      var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true) : null;
+      var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true, [at0.node]) : null;
+      var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true, [at0.node]) : null;
       if (!tw && !th) return;
       var wpx = tw ? pxMap["w|" + tw] : r0.width, hpx = th ? pxMap["height|" + th] : r0.height;
       var xs = free && /w/.test(dir) && wpx != null ? Math.round((r0.width - wpx) / unit) : 0;
