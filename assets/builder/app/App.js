@@ -1949,6 +1949,40 @@ function App(props) {
       }));
   };
 
+  /* Copy style takes one layer's look (its tokens and custom colours, not
+     where it sits); paste style puts that look on the selection, replacing
+     what was there. */
+  var styleClip = useRef(null);
+  var POSITION_KEYS = ["x", "y", "position", "anchor", "offset"];
+  var copyStyle = function () {
+    var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+    if (!at) return false;
+    var out = {};
+    Object.keys(at.node.style).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) out[k] = at.node.style[k]; });
+    styleClip.current = out;
+    var n = Object.keys(out).length;
+    announce(n ? "Copied the style of " + nameOf(at.node) + " (" + n + (n === 1 ? " property)" : " properties)") : "Copied a plain style");
+    return true;
+  };
+  var pasteStyle = function () {
+    var clipStyle = styleClip.current;
+    if (!clipStyle || !selRef.current.length) return false;
+    var patch = {};
+    Object.keys(DATA.tokens).concat(["fill", "color", "dark"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
+    setStyles(selRef.current, patch);
+    announce("Pasted the style");
+    return true;
+  };
+  /* Every layer in the frame of the same kind as the selected one. */
+  var selectSame = function () {
+    var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+    if (!at) return;
+    var type = at.node.type, ids = [];
+    (function walk(n) { (n.children || []).forEach(function (c) { if (c.type === type) ids.push(c.id); walk(c); }); })(active(docRef.current).root);
+    select(ids);
+    announce(ids.length + " " + type + (ids.length === 1 ? "" : "s") + " selected");
+  };
+
   /* What the right-click menu offers, for these layers (or none: the frame). */
   var menuOptions = function (ids) {
     var d = docRef.current;
@@ -1971,6 +2005,9 @@ function App(props) {
       { value: "copy", label: "Copy", hint: "Ctrl+C", icon: "copy", group: "Edit" },
       { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
       { value: "duplicate", label: "Duplicate", hint: "Ctrl+D", icon: "copy", group: "Edit" },
+      { value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch", group: "Edit" },
+      { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", group: "Edit", disabled: !styleClip.current },
+      { value: "same", label: "Select all " + (one ? one.type + (one.type.endsWith("s") ? "" : "s") : "of this kind"), icon: "layers2", group: "Edit" },
       { value: "remove", label: "Delete", hint: "Del", icon: "trash", group: "Edit", danger: true },
       { value: "front", label: "Bring to front", hint: "Ctrl+Shift+]", icon: "up", group: "Arrange" },
       { value: "up", label: "Bring forward", hint: "Ctrl+]", icon: "up", group: "Arrange" },
@@ -1991,6 +2028,9 @@ function App(props) {
     else if (v === "copy") copySelection(false);
     else if (v === "paste") { if (clip.current) pasteNodes(clip.current.nodes); }
     else if (v === "duplicate") actions.duplicate();
+    else if (v === "copyStyle") copyStyle();
+    else if (v === "pasteStyle") pasteStyle();
+    else if (v === "same") selectSame();
     else if (v === "remove") actions.remove();
     else if (v === "front" || v === "back" || v === "up" || v === "down") actions.order(v);
     else if (v === "tidy") arrange("tidy");
@@ -2179,7 +2219,10 @@ function App(props) {
     if (ev.key === "Escape") { if (!selRef.current.length) setFrameOn(false); select([]); return true; }
     /* Paste: in this page, the paste event brings what the system clipboard
        holds; from a frame, the builder's own clipboard. */
-    if (mod && key === "v" && !ev.shiftKey) {
+    /* Copy and paste style come before the plain copy and paste. */
+    if (mod && ev.altKey && ev.code === "KeyC") { copyStyle(); return true; }
+    if (mod && ev.altKey && ev.code === "KeyV") { pasteStyle(); return true; }
+    if (mod && key === "v" && !ev.shiftKey && !ev.altKey) {
       if (t && t.ownerDocument !== document) { if (clip.current) pasteNodes(clip.current.nodes); return true; }
       return false;
     }
@@ -4774,7 +4817,8 @@ function App(props) {
                     .concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }])
                   : [])
                 .concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : [])
-                .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : [])
+                .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : [])
+                .concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }])
                 .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }])
                 .concat([{ value: "hide", label: nodes.every(function (n) { return n.hide; }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function (n) { return n.hide; }) ? "eye" : "eyeOff" },
                   { value: "lock", label: nodes.every(function (n) { return n.lock; }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function (n) { return n.lock; }) ? "lockOpen" : "lock" }]),
@@ -4788,6 +4832,9 @@ function App(props) {
                 else if (v === "component") openComponent();
                 else if (v === "hide") actions.hide();
                 else if (v === "lock") actions.lock();
+                else if (v === "same") selectSame();
+                else if (v === "copyStyle") copyStyle();
+                else if (v === "pasteStyle") pasteStyle();
               } }))),
         many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
           : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,

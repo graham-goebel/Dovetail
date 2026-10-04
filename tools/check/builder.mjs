@@ -2895,7 +2895,8 @@ try {
     await page.evaluate(() => window.__builder.select(["bb"]));
     await page.keyboard.press("Control+Shift+KeyL");
     expect((await poll(() => flag("bb"), (v) => v.lock)).lock, "Ctrl+Shift+L locks Beta");
-    expect(await page.locator(".bd-mark-sel .bd-handle").count() === 0 && await page.locator(".bd-mark-sel.is-locked").count() === 1, "a locked layer has no handles and a dashed outline");
+    await page.waitForSelector(".bd-mark-sel.is-locked");
+    expect(await page.locator(".bd-mark-sel .bd-handle").count() === 0, "a locked layer has no handles and a dashed outline");
     const xBefore = (await flag("bb")).x;
     await page.keyboard.press("ArrowRight");
     await page.waitForTimeout(150);
@@ -2958,6 +2959,29 @@ try {
     await tab(page, "Appearance");
     expect(await page.locator(".bd-right .bd-field", { hasText: /^Opacity/ }).count() === 1, "the Layer section offers an Opacity dropdown");
     ok("digits 1 to 9 step the opacity through ghost, disabled, muted and strong; 0 clears it; the canvas paints the token");
+
+    /* Copy and paste style: Alpha's size tokens land on Gamma. Select all
+       of a kind: every Button in the frame. */
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await release(page);
+    const alpha = (await free()).root.children.find((c) => c.id === "ba");
+    expect(alpha.style.w && alpha.style.height, `Alpha carries size tokens to copy, got ${JSON.stringify(alpha.style)}`);
+    await page.keyboard.press("Control+Alt+KeyC");
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    const gammaBefore = (await free()).root.children.find((c) => c.id === "hc");
+    const stepsP = (await steps(page)).past;
+    await page.keyboard.press("Control+Alt+KeyV");
+    const gamma = await poll(async () => (await free()).root.children.find((c) => c.id === "hc"), (n) => n.style.w === alpha.style.w);
+    expect(gamma.style.w === alpha.style.w && gamma.style.height === alpha.style.height && gamma.style.x === gammaBefore.style.x && gamma.style.y === gammaBefore.style.y, `paste style gives Gamma Alpha's tokens and leaves its position, got ${JSON.stringify(gamma.style)} from ${JSON.stringify(gammaBefore.style)}`);
+    expect((await steps(page)).past === stepsP + 1, "as one undo step");
+    await page.evaluate(() => window.__builder.select(["bb"]));
+    const buttons = (await free()).root.children.filter((c) => c.type === "Button").length;
+    await page.locator('.bd-layer[data-layer="bb"]').click({ button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Select all Buttons/ }).click();
+    const picked2 = await poll(() => page.evaluate(() => window.__builder.selection()), (s) => s.length === buttons);
+    expect(picked2.length === buttons && buttons >= 3, `Select all Buttons picks the frame's ${buttons} Buttons, got ${picked2.length}`);
+    ok(`Ctrl+Alt+C / V carry a style between layers; Select all Buttons picks ${buttons}`);
     await page.close();
   });
 

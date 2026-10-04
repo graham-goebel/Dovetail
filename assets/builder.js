@@ -7351,6 +7351,44 @@
         })
       );
     };
+    var styleClip = useRef(null);
+    var POSITION_KEYS = ["x", "y", "position", "anchor", "offset"];
+    var copyStyle = function() {
+      var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+      if (!at) return false;
+      var out = {};
+      Object.keys(at.node.style).forEach(function(k) {
+        if (POSITION_KEYS.indexOf(k) < 0) out[k] = at.node.style[k];
+      });
+      styleClip.current = out;
+      var n = Object.keys(out).length;
+      announce(n ? "Copied the style of " + nameOf(at.node) + " (" + n + (n === 1 ? " property)" : " properties)") : "Copied a plain style");
+      return true;
+    };
+    var pasteStyle = function() {
+      var clipStyle = styleClip.current;
+      if (!clipStyle || !selRef.current.length) return false;
+      var patch = {};
+      Object.keys(DATA.tokens).concat(["fill", "color", "dark"]).forEach(function(k) {
+        if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k];
+      });
+      setStyles(selRef.current, patch);
+      announce("Pasted the style");
+      return true;
+    };
+    var selectSame = function() {
+      var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+      if (!at) return;
+      var type = at.node.type, ids = [];
+      (function walk(n) {
+        (n.children || []).forEach(function(c) {
+          if (c.type === type) ids.push(c.id);
+          walk(c);
+        });
+      })(active(docRef.current).root);
+      select(ids);
+      announce(ids.length + " " + type + (ids.length === 1 ? "" : "s") + " selected");
+    };
     var menuOptions = function(ids) {
       var d = docRef.current;
       var spots = ids.map(function(id) {
@@ -7382,6 +7420,9 @@
         { value: "copy", label: "Copy", hint: "Ctrl+C", icon: "copy", group: "Edit" },
         { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
         { value: "duplicate", label: "Duplicate", hint: "Ctrl+D", icon: "copy", group: "Edit" },
+        { value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch", group: "Edit" },
+        { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", group: "Edit", disabled: !styleClip.current },
+        { value: "same", label: "Select all " + (one2 ? one2.type + (one2.type.endsWith("s") ? "" : "s") : "of this kind"), icon: "layers2", group: "Edit" },
         { value: "remove", label: "Delete", hint: "Del", icon: "trash", group: "Edit", danger: true },
         { value: "front", label: "Bring to front", hint: "Ctrl+Shift+]", icon: "up", group: "Arrange" },
         { value: "up", label: "Bring forward", hint: "Ctrl+]", icon: "up", group: "Arrange" },
@@ -7399,6 +7440,9 @@
       else if (v === "paste") {
         if (clip.current) pasteNodes(clip.current.nodes);
       } else if (v === "duplicate") actions.duplicate();
+      else if (v === "copyStyle") copyStyle();
+      else if (v === "pasteStyle") pasteStyle();
+      else if (v === "same") selectSame();
       else if (v === "remove") actions.remove();
       else if (v === "front" || v === "back" || v === "up" || v === "down") actions.order(v);
       else if (v === "tidy") arrange("tidy");
@@ -7748,7 +7792,15 @@
         select([]);
         return true;
       }
-      if (mod && key === "v" && !ev.shiftKey) {
+      if (mod && ev.altKey && ev.code === "KeyC") {
+        copyStyle();
+        return true;
+      }
+      if (mod && ev.altKey && ev.code === "KeyV") {
+        pasteStyle();
+        return true;
+      }
+      if (mod && key === "v" && !ev.shiftKey && !ev.altKey) {
         if (t && t.ownerDocument !== document) {
           if (clip.current) pasteNodes(clip.current.nodes);
           return true;
@@ -12310,7 +12362,7 @@
                   return t !== first.type && (placeable == null || placeable[t] || t === "Group");
                 }).map(function(t) {
                   return { value: "turn:" + t, label: "Turn into " + t, icon: typeIcon(t) };
-                }).concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }]) : []).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]).concat([
+                }).concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }]) : []).concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : []).concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : []).concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }]).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]).concat([
                   { value: "hide", label: nodes.every(function(n) {
                     return n.hide;
                   }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function(n) {
@@ -12332,6 +12384,9 @@
                   else if (v === "component") openComponent();
                   else if (v === "hide") actions.hide();
                   else if (v === "lock") actions.lock();
+                  else if (v === "same") selectSame();
+                  else if (v === "copyStyle") copyStyle();
+                  else if (v === "pasteStyle") pasteStyle();
                 }
               })
             )
