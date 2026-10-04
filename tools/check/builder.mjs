@@ -403,6 +403,18 @@ try {
     await page.locator(".bd-toolbar .bd-tool-group .bd-act").first().click();
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]')?.textContent !== "Typed here");
     ok("undo puts the heading back");
+    const before = await frame().evaluate(() => document.querySelector('[data-bf-type="Heading"]').textContent);
+    const redoOn = await page.locator('.bd-toolbar [aria-label="Redo"]').isEnabled();
+    const again = await canvasPoint(page, '[data-bf-type="Heading"]', "left");
+    await page.mouse.dblclick(again.x, again.y);
+    await page.locator(".bd-inline").waitFor();
+    await page.keyboard.press("Control+a");
+    await page.keyboard.type("Not kept");
+    await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]')?.textContent === "Not kept");
+    await page.keyboard.press("Escape");
+    await frame().waitForFunction((t) => document.querySelector('[data-bf-type="Heading"]')?.textContent === t, before);
+    expect(await page.locator('.bd-toolbar [aria-label="Redo"]').isEnabled() === redoOn, "a cancelled edit leaves history as it was");
+    ok("Escape takes back what was typed, without leaving a step");
   });
 
   await step("The canvas pans and zooms, frames sit side by side and take a width and height", async () => {
@@ -1796,6 +1808,33 @@ try {
     expect(left.name === "My old page" && left.old === null, `work saved before projects moves into a project of its own, got ${JSON.stringify(left)}`);
     ok("a layout saved before projects opens as its own project, My old page, and the old entry is cleared");
     await moved.page.close();
+  });
+
+  await step("Changes: undo takes back only your own steps, and a change from elsewhere stays", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames[0].root.children.length > 1);
+    const ids = await page.evaluate(() => { const f = window.__builder.doc().frames[0]; const [a, b] = f.root.children; return { f: f.id, a: a.id, b: b.id, title: (a.props.title || "") }; });
+    const text = () => frame().evaluate(() => document.body.textContent);
+    const undo = page.locator('.bd-toolbar [aria-label="Undo"]'), redo = page.locator('.bd-toolbar [aria-label="Redo"]');
+
+    await page.evaluate((id) => window.__builder.edit(id, "title", "Mine, made here"), ids.a);
+    await frame().waitForFunction(() => document.body.textContent.includes("Mine, made here"));
+    const step = await page.evaluate(({ f, b }) => { const before = window.__builder.doc(); window.__builder.receive([{ t: "set", f, n: b, g: "p", k: "title", value: "Theirs, from elsewhere" }]); return window.__builder.diff(before, window.__builder.doc()); }, ids);
+    expect(step.length === 1 && step[0].t === "set" && step[0].n === ids.b && step[0].k === "title", `a change names one prop of one layer, got ${JSON.stringify(step)}`);
+    await frame().waitForFunction(() => document.body.textContent.includes("Theirs, from elsewhere"));
+    ok("an edit made here and a change received from elsewhere are both on the canvas");
+
+    await undo.click();
+    await frame().waitForFunction(() => !document.body.textContent.includes("Mine, made here"));
+    expect((await text()).includes("Theirs, from elsewhere"), "undo leaves the change from elsewhere");
+    expect(await undo.isDisabled(), "and the change from elsewhere was never a step of yours to undo");
+    ok("undo takes back the edit made here, keeps the one from elsewhere, and has nothing more to undo");
+
+    await redo.click();
+    await frame().waitForFunction(() => document.body.textContent.includes("Mine, made here"));
+    expect((await text()).includes("Theirs, from elsewhere"), "redo keeps it too");
+    ok("redo brings the edit back, alongside the change from elsewhere");
+    await page.close();
   });
 
   await step("Performance: a big project opens, keeps far frames as stand-ins, and edits stay quick", async () => {

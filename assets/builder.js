@@ -1205,6 +1205,270 @@
   var produce = immer.produce;
   var setAutoFreeze = /* @__PURE__ */ immer.setAutoFreeze.bind(immer);
 
+  // assets/builder/model/edits.js
+  var GROUPS = { p: "props", s: "style" };
+  function same(a, b) {
+    if (a === b) return true;
+    if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+  function nodeRecord(n) {
+    var fields = {};
+    Object.keys(n).forEach(function(k) {
+      if (k !== "id" && k !== "children" && k !== "props" && k !== "style") fields[k] = n[k];
+    });
+    return {
+      fields,
+      p: n.props === void 0 ? void 0 : Object.assign({}, n.props),
+      s: n.style === void 0 ? void 0 : Object.assign({}, n.style),
+      kids: Array.isArray(n.children) ? n.children.map(function(c) {
+        return c.id;
+      }) : void 0
+    };
+  }
+  function frameRecord(f) {
+    var fields = {};
+    Object.keys(f).forEach(function(k) {
+      if (k !== "id" && k !== "root") fields[k] = f[k];
+    });
+    return { fields, root: f.root.id };
+  }
+  function nodesOf(f) {
+    var out = [];
+    (function walk(n) {
+      out.push(n);
+      (n.children || []).forEach(walk);
+    })(f.root);
+    return out;
+  }
+  function byId(list) {
+    var m = /* @__PURE__ */ new Map();
+    list.forEach(function(x) {
+      m.set(x.id, x);
+    });
+    return m;
+  }
+  function diffFields(out, fid, nid, g, a, b) {
+    var keys = {};
+    Object.keys(a || {}).forEach(function(k) {
+      keys[k] = true;
+    });
+    Object.keys(b || {}).forEach(function(k) {
+      keys[k] = true;
+    });
+    Object.keys(keys).forEach(function(k) {
+      var was = a ? a[k] : void 0, now = b ? b[k] : void 0;
+      if (!same(was, now)) out.push({ t: "set", f: fid, n: nid, g, k, value: now, old: was });
+    });
+  }
+  function diffNode(out, fid, a, b) {
+    var ra = nodeRecord(a), rb = nodeRecord(b);
+    diffFields(out, fid, a.id, "f", ra.fields, rb.fields);
+    ["p", "s"].forEach(function(g) {
+      if (ra[g] === void 0 !== (rb[g] === void 0)) out.push({ t: "group", f: fid, n: a.id, g, value: rb[g], old: ra[g] });
+      else diffFields(out, fid, a.id, g, ra[g], rb[g]);
+    });
+    if (!same(ra.kids, rb.kids)) out.push({ t: "kids", f: fid, n: a.id, value: rb.kids, old: ra.kids });
+  }
+  function addFrame(out, f) {
+    out.push({ t: "addF", f: f.id, rec: frameRecord(f) });
+    nodesOf(f).forEach(function(n) {
+      out.push({ t: "addN", f: f.id, n: n.id, rec: nodeRecord(n) });
+    });
+  }
+  function delFrame(out, f) {
+    out.push({ t: "delF", f: f.id, rec: frameRecord(f) });
+    nodesOf(f).forEach(function(n) {
+      out.push({ t: "delN", f: f.id, n: n.id, rec: nodeRecord(n) });
+    });
+  }
+  function diff(prev, next) {
+    var out = [];
+    if (prev === next) return out;
+    var pf = byId(prev.frames), nf = byId(next.frames);
+    var po = prev.frames.map(function(f) {
+      return f.id;
+    }), no = next.frames.map(function(f) {
+      return f.id;
+    });
+    next.frames.forEach(function(f) {
+      var was = pf.get(f.id);
+      if (!was) {
+        addFrame(out, f);
+        return;
+      }
+      if (was === f) return;
+      diffFields(out, f.id, null, "f", frameRecord(was).fields, frameRecord(f).fields);
+      if (was.root === f.root) return;
+      var a = byId(nodesOf(was)), b = byId(nodesOf(f));
+      b.forEach(function(n, id) {
+        var old = a.get(id);
+        if (!old) out.push({ t: "addN", f: f.id, n: id, rec: nodeRecord(n) });
+        else if (old !== n) diffNode(out, f.id, old, n);
+      });
+      a.forEach(function(n, id) {
+        if (!b.has(id)) out.push({ t: "delN", f: f.id, n: id, rec: nodeRecord(n) });
+      });
+    });
+    prev.frames.forEach(function(f) {
+      if (!nf.has(f.id)) delFrame(out, f);
+    });
+    if (!same(po, no)) out.push({ t: "order", value: no, old: po });
+    return out;
+  }
+  var OPPOSITE = { addF: "delF", delF: "addF", addN: "delN", delN: "addN" };
+  function invert(changes) {
+    return changes.slice().reverse().map(function(c) {
+      if (OPPOSITE[c.t]) return Object.assign({}, c, { t: OPPOSITE[c.t] });
+      return Object.assign({}, c, { value: c.old, old: c.value });
+    });
+  }
+  function build(nid, rec) {
+    var n = Object.assign({ id: nid }, rec.fields);
+    if (rec.p !== void 0) n.props = Object.assign({}, rec.p);
+    if (rec.s !== void 0) n.style = Object.assign({}, rec.s);
+    if (rec.kids !== void 0) n.children = [];
+    return n;
+  }
+  function put(obj, k, v) {
+    if (v === void 0) delete obj[k];
+    else obj[k] = v;
+  }
+  function apply(doc, changes) {
+    if (!changes || !changes.length) return doc;
+    return produce(doc, function(d) {
+      var frames = byId(d.frames);
+      var made = {}, madeFrames = {}, rootOf = {};
+      var index = {};
+      var look = function(fid) {
+        if (index[fid]) return index[fid];
+        var f = frames.get(fid);
+        var nodes = /* @__PURE__ */ new Map(), parent = /* @__PURE__ */ new Map();
+        if (f) (function walk(n, p) {
+          nodes.set(n.id, n);
+          if (p) parent.set(n.id, p);
+          (n.children || []).forEach(function(c) {
+            walk(c, n);
+          });
+        })(f.root, null);
+        index[fid] = { nodes, parent };
+        return index[fid];
+      };
+      var node = function(fid, nid) {
+        return made[fid] && made[fid][nid] || look(fid).nodes.get(nid) || null;
+      };
+      var frame = function(fid) {
+        return madeFrames[fid] || frames.get(fid) || null;
+      };
+      changes.forEach(function(c) {
+        if (c.f && !madeFrames[c.f]) look(c.f);
+      });
+      changes.forEach(function(c) {
+        if (c.t !== "addF" || frames.has(c.f)) return;
+        madeFrames[c.f] = Object.assign({ id: c.f }, c.rec.fields);
+        rootOf[c.f] = c.rec.root;
+      });
+      changes.forEach(function(c) {
+        if (c.t !== "addN" || node(c.f, c.n)) return;
+        (made[c.f] = made[c.f] || {})[c.n] = build(c.n, c.rec);
+      });
+      changes.forEach(function(c) {
+        if (c.t === "set") {
+          var on = c.n === null ? frame(c.f) : node(c.f, c.n);
+          if (!on) return;
+          if (c.g === "f") put(on, c.k, c.value);
+          else {
+            if (!on[GROUPS[c.g]]) on[GROUPS[c.g]] = {};
+            put(on[GROUPS[c.g]], c.k, c.value);
+          }
+        } else if (c.t === "group") {
+          var gn = node(c.f, c.n);
+          if (gn) put(gn, GROUPS[c.g], c.value === void 0 ? void 0 : Object.assign({}, c.value));
+        }
+      });
+      var orders = [];
+      changes.forEach(function(c) {
+        if (c.t === "addN" && c.rec.kids && made[c.f] && made[c.f][c.n]) orders.push({ f: c.f, n: c.n, value: c.rec.kids });
+        else if (c.t === "kids") orders.push({ f: c.f, n: c.n, value: c.value });
+      });
+      var reordered = {};
+      orders.forEach(function(o) {
+        reordered[o.f + "\n" + o.n] = true;
+      });
+      var resolved = orders.map(function(o) {
+        var seen = {};
+        return { o, kids: (o.value || []).filter(function(id) {
+          if (seen[id]) return false;
+          seen[id] = true;
+          return true;
+        }).map(function(id) {
+          return node(o.f, id);
+        }).filter(Boolean) };
+      });
+      resolved.forEach(function(r) {
+        var p = node(r.o.f, r.o.n);
+        if (!p) return;
+        if (r.o.value === void 0) {
+          delete p.children;
+          return;
+        }
+        r.kids.forEach(function(k) {
+          var old = look(r.o.f).parent.get(k.id);
+          if (old && old !== p && !reordered[r.o.f + "\n" + old.id] && old.children) old.children = old.children.filter(function(x) {
+            return x.id !== k.id;
+          });
+        });
+        p.children = r.kids;
+      });
+      changes.forEach(function(c) {
+        if (c.t !== "delN") return;
+        var p = look(c.f).parent.get(c.n);
+        if (p && p.children) p.children = p.children.filter(function(x) {
+          return x.id !== c.n;
+        });
+      });
+      Object.keys(madeFrames).forEach(function(fid) {
+        madeFrames[fid].root = node(fid, rootOf[fid]);
+      });
+      var gone = {};
+      changes.forEach(function(c) {
+        if (c.t === "delF") gone[c.f] = true;
+      });
+      var list = d.frames.filter(function(f) {
+        return !gone[f.id];
+      });
+      Object.keys(madeFrames).forEach(function(fid) {
+        if (madeFrames[fid].root && !gone[fid]) list.push(madeFrames[fid]);
+      });
+      var order = null;
+      changes.forEach(function(c) {
+        if (c.t === "order") order = c.value;
+      });
+      if (order) {
+        var pos = {};
+        order.forEach(function(id, i) {
+          pos[id] = i;
+        });
+        list = list.map(function(f, i) {
+          return { f, i };
+        }).sort(function(x, y) {
+          var a = pos[x.f.id] === void 0 ? order.length + x.i : pos[x.f.id];
+          var b = pos[y.f.id] === void 0 ? order.length + y.i : pos[y.f.id];
+          return a - b;
+        }).map(function(x) {
+          return x.f;
+        });
+      }
+      if (!list.length) return;
+      if (list.length !== d.frames.length || list.some(function(f, i) {
+        return f !== d.frames[i];
+      })) d.frames = list;
+      if (!list.some(function(f) {
+        return f.id === d.active;
+      })) d.active = list[list.length - 1].id;
+    });
+  }
+
   // assets/builder/model/tree.js
   var seq = 0;
   function uid() {
@@ -1314,8 +1578,8 @@
     insert: function(doc, parentId, index, n, fid) {
       var p = locate(doc, parentId, fid);
       if (!canHold(p, n)) return null;
-      var put = settle(fid && frameById(doc, fid) || active(doc), parentId, n);
-      p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, put);
+      var put2 = settle(fid && frameById(doc, fid) || active(doc), parentId, n);
+      p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, put2);
       return n.id;
     },
     move: function(doc, id, parentId, index) {
@@ -2174,14 +2438,14 @@
       });
     }
     var left = Object.assign({}, css), style = {};
-    var same = function(a, b) {
+    var same2 = function(a, b) {
       return String(a).replace(/\s+/g, "") === String(b).replace(/\s+/g, "");
     };
     TOKEN_CSS.forEach(function(t) {
       if (style[t.key] !== void 0) return;
       var keys = Object.keys(t.css);
       if (keys.every(function(p) {
-        return left[p] !== void 0 && same(left[p], t.css[p]);
+        return left[p] !== void 0 && same2(left[p], t.css[p]);
       })) {
         style[t.key] = t.value;
         keys.forEach(function(p) {
@@ -3042,13 +3306,13 @@
     var openState = useState(items.length ? 0 : -1);
     var open = openState[0], setOpen = openState[1];
     var text = spec.of === "text";
-    var put = function(next) {
+    var put2 = function(next) {
       props.onChange(next);
     };
     var setAt = function(i, v) {
       var n = items.slice();
       n[i] = v;
-      put(n);
+      put2(n);
     };
     var move = function(i, by) {
       var j = i + by;
@@ -3057,7 +3321,7 @@
       var t = n[i];
       n[i] = n[j];
       n[j] = t;
-      put(n);
+      put2(n);
       setOpen(j);
     };
     var isId = function(f) {
@@ -3159,7 +3423,7 @@
               move(i, 1);
             } }, e(Icon, { name: "down" })),
             e("button", { type: "button", className: "bd-act bd-act-sm bd-act-ghost", "aria-label": "Remove " + summary(it, i), title: "Remove", onClick: function() {
-              put(items.filter(function(x, k) {
+              put2(items.filter(function(x, k) {
                 return k !== i;
               }));
               setOpen(-1);
@@ -3177,7 +3441,7 @@
         );
       }),
       e("button", { type: "button", className: "bd-btn bd-list-add", disabled: items.length >= 60, onClick: function() {
-        put(items.concat([blank()]));
+        put2(items.concat([blank()]));
         setOpen(items.length);
       } }, e(Icon, { name: "plus" }), "Add " + (text ? "a line" : "an item"))
     );
@@ -3608,8 +3872,8 @@
       var specs = window.DovetailSpecimens;
       if (!el) return;
       el.setAttribute("inert", "");
-      var build = specs && NS && !BUILDER_ICON[props.type] ? specs.samples && specs.samples[props.type] || specs.build[props.type] : null;
-      if (!build) return;
+      var build2 = specs && NS && !BUILDER_ICON[props.type] ? specs.samples && specs.samples[props.type] || specs.build[props.type] : null;
+      if (!build2) return;
       var root = null, stage = null, io = null, done = false;
       var fit = function() {
         if (!stage) return;
@@ -3633,7 +3897,7 @@
         el.appendChild(stage);
         root = ReactDOM.createRoot(stage);
         try {
-          root.render(e(ThumbGuard, null, build()));
+          root.render(e(ThumbGuard, null, build2()));
         } catch (err) {
           return;
         }
@@ -4205,19 +4469,21 @@
       });
       if (next.length) setFrameOn(true);
     }, []);
-    var snapshot = useCallback(function() {
-      history.current.past.push(docRef.current);
+    var remember = useCallback(function(prev, next) {
+      var redo2 = diff(prev, next);
+      if (!redo2.length) return;
+      history.current.past.push({ redo: redo2, undo: invert(redo2) });
       if (history.current.past.length > HISTORY_MAX) history.current.past.shift();
       history.current.future = [];
     }, []);
     var commit = useCallback(function(next, nextSel, message) {
-      snapshot();
       next = freeze(next, true);
+      remember(docRef.current, next);
       docRef.current = next;
       setDoc(next);
       if (nextSel !== void 0) select(nextSel === null || nextSel === "root" ? [] : [].concat(nextSel));
       if (message) announce(message);
-    }, [announce, select, snapshot]);
+    }, [announce, remember, select]);
     var draft = function(fn, tidy) {
       var result;
       var next = produce(docRef.current, function(d) {
@@ -4246,30 +4512,35 @@
       commit(out.doc, out.result, message);
       return true;
     }, [commit]);
-    var undo = useCallback(function() {
-      var h = history.current;
-      if (!h.past.length) return;
-      h.future.push(docRef.current);
-      var prev = h.past.pop();
-      docRef.current = prev;
-      setDoc(prev);
-      select(selRef.current.filter(function(id) {
-        return locate(prev, id);
-      }));
-      announce("Undone");
-    }, [announce, select]);
-    var redo = useCallback(function() {
-      var h = history.current;
-      if (!h.future.length) return;
-      h.past.push(docRef.current);
-      var next = h.future.pop();
+    var place = useCallback(function(changes) {
+      var next = apply(docRef.current, changes);
+      if (next === docRef.current) return next;
       docRef.current = next;
       setDoc(next);
       select(selRef.current.filter(function(id) {
         return locate(next, id);
       }));
+      return next;
+    }, [select]);
+    var undo = useCallback(function() {
+      var h = history.current;
+      if (!h.past.length) return;
+      var step = h.past.pop();
+      h.future.push(step);
+      place(step.undo);
+      announce("Undone");
+    }, [announce, place]);
+    var redo = useCallback(function() {
+      var h = history.current;
+      if (!h.future.length) return;
+      var step = h.future.pop();
+      h.past.push(step);
+      place(step.redo);
       announce("Redone");
-    }, [announce, select]);
+    }, [announce, place]);
+    var receive = useCallback(function(changes) {
+      place(changes);
+    }, [place]);
     var saving = useRef({ busy: false, next: null, done: Promise.resolve() });
     var persist = useCallback(function(pid, d) {
       var q = saving.current;
@@ -4320,7 +4591,10 @@
             at.node.props[key] = value;
             return void 0;
           });
-        }
+        },
+        /* Changes as someone else would send them, and the changes an edit makes. */
+        receive,
+        diff
       };
     }, []);
     useEffect(function() {
@@ -4367,7 +4641,7 @@
       if (!frameById(d, fid)) return;
       select([]);
       setFrameOn(true);
-      if (editRef.current) setEdit(null);
+      if (editRef.current) editDone(true);
       if (d.active === fid) return;
       var next = freeze(Object.assign({}, d, { active: fid }));
       docRef.current = next;
@@ -5625,8 +5899,7 @@
       var t = f.textRect(id, value);
       if (!t) return;
       select([id]);
-      snapshot();
-      setEdit({ id, prop, value, before: value, box: toStage(t.rect), font: t.font });
+      setEdit({ id, prop, value, before: value, base: docRef.current, box: toStage(t.rect), font: t.font });
       if (mql("(max-width: 900px)")) setPane("canvas");
     };
     var beginEditRef = useRef(beginEdit);
@@ -5646,13 +5919,9 @@
       if (!ed) return;
       setEdit(null);
       if (!keep) {
-        var prev = history.current.past.pop();
-        if (prev) {
-          docRef.current = prev;
-          setDoc(prev);
-        }
+        place(invert(diff(ed.base, docRef.current)));
         announce("Edit cancelled");
-      } else if (ed.value === ed.before) history.current.past.pop();
+      } else if (ed.value !== ed.before) remember(ed.base, docRef.current);
     };
     var target = function() {
       var d = docRef.current;
@@ -6272,7 +6541,7 @@
       var t = target();
       var fid = d.active;
       var fr = active(d);
-      var same2 = clip.current && clip.current.from === fid;
+      var same3 = clip.current && clip.current.from === fid;
       var made = [];
       change(function(dd) {
         var at = t.index;
@@ -6280,7 +6549,7 @@
           if (t.parent !== "root" || fr.mode === "structured" || fr.bare) {
             delete n.style.x;
             delete n.style.y;
-          } else if (same2 && isFree(n.style)) {
+          } else if (same3 && isFree(n.style)) {
             n.style.x = Math.min(FREE_MAX, n.style.x + 4);
             n.style.y = Math.min(FREE_MAX, n.style.y + 4);
           }
@@ -6291,7 +6560,7 @@
         });
         return made.length ? made : null;
       }, "Pasted " + (nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers") + " into " + fr.name);
-      if (same2 && clip.current) clip.current = { nodes: clip.current.nodes.map(function(n) {
+      if (same3 && clip.current) clip.current = { nodes: clip.current.nodes.map(function(n) {
         var c = copy(n);
         if (isFree(c.style)) {
           c.style.x += 4;
@@ -7130,14 +7399,14 @@
       if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
       return isContainer(type) ? "box" : "component";
     };
-    var nodesOf = function(ids) {
+    var nodesOf2 = function(ids) {
       return ids.map(function(id) {
         return locate(doc, id);
       }).filter(Boolean).map(function(a) {
         return a.node;
       });
     };
-    var same = function(values) {
+    var same2 = function(values) {
       return values.every(function(v) {
         return JSON.stringify(v) === JSON.stringify(values[0]);
       });
@@ -7183,7 +7452,7 @@
       var values = nodes.map(function(n) {
         return n.style[key] || "";
       });
-      var mixed = !same(values);
+      var mixed = !same2(values);
       var value = mixed ? "" : values[0];
       var ctx = contextOf(nodes.map(function(n) {
         return n.type;
@@ -7362,7 +7631,7 @@
         var allValues = nodes.map(function(n) {
           return n.style[all] || "";
         });
-        var inherited = same(allValues) ? allValues[0] : "";
+        var inherited = same2(allValues) ? allValues[0] : "";
         var own = nodes.some(function(n) {
           return n.style[key];
         });
@@ -7447,7 +7716,7 @@
           labelledBy: id,
           wide: true,
           clearable: true,
-          value: same(values) ? values[0] || void 0 : null,
+          value: same2(values) ? values[0] || void 0 : null,
           onChange: function(v) {
             setStyle(ids, "self", v);
           },
@@ -7476,7 +7745,7 @@
         var vs = nodes.map(function(n) {
           return n.props[name] !== void 0 ? n.props[name] : base[name] !== void 0 ? base[name] : dflt(p);
         });
-        return same(vs) ? vs[0] : void 0;
+        return same2(vs) ? vs[0] : void 0;
       };
       var align = spec("align"), justify = spec("justify"), gap = spec("gap");
       var dir = first.type === "Stack" ? "column" : first.type === "Inline" ? "row" : spec("direction") ? val("direction") || "row" : "column";
@@ -7572,7 +7841,7 @@
         var own2 = n.props[p.name];
         return own2 !== void 0 ? own2 : base[p.name] !== void 0 ? base[p.name] : dflt;
       });
-      var mixed = !same(values);
+      var mixed = !same2(values);
       var current2 = mixed ? void 0 : values[0];
       var ids = nodes.map(function(n) {
         return n.id;
@@ -8104,7 +8373,7 @@
       announce(label + " is " + value + " on " + (ids.length === 1 ? nameOf(locate(docRef.current, ids[0]).node) : ids.length + " layers"));
     };
     var variablesPanel = function() {
-      var picked = nodesOf(selection).filter(function(n) {
+      var picked = nodesOf2(selection).filter(function(n) {
         return n.type !== "Slot";
       });
       return e(
@@ -8117,7 +8386,7 @@
           var opts = def.options.filter(function(o) {
             return vs[0] !== "w" || o.family !== "fit" && o.family !== "container";
           });
-          var cur = picked.length && same(picked.map(function(n) {
+          var cur = picked.length && same2(picked.map(function(n) {
             return n.style[vs[0]] || "";
           })) ? picked[0].style[vs[0]] || "" : null;
           return e(
@@ -8742,7 +9011,7 @@
       return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current2 }, children);
     };
     var tabKey = function() {
-      var ns = nodesOf(selection);
+      var ns = nodesOf2(selection);
       if (!ns.length) return "__frame";
       return ns.every(function(n) {
         return n.type === ns[0].type;
@@ -8838,7 +9107,7 @@
       }), inks = nodes.map(function(n) {
         return n.style.color || "";
       });
-      var fillHex = same(fills) ? fills[0] : "", inkHex = same(inks) ? inks[0] : "";
+      var fillHex = same2(fills) ? fills[0] : "", inkHex = same2(inks) ? inks[0] : "";
       var picker = function(key, value, label, clears) {
         return e(ColorPick, {
           value,
@@ -8865,11 +9134,11 @@
       var picturesOnly = nodes.every(function(n) {
         return PICTURE_TYPES[n.type];
       });
-      var blendNow = same(blendValues) ? blendValues[0] : null;
+      var blendNow = same2(blendValues) ? blendValues[0] : null;
       var blendOpt = blendNow ? DATA.tokens.blend.options.filter(function(o) {
         return o.value === blendNow;
       })[0] : null;
-      var darkOn = same(darkValues) && darkValues[0];
+      var darkOn = same2(darkValues) && darkValues[0];
       var darkToggle = headAction("moon", darkOn ? "Dark band: everything inside resolves dark. Press for inherit." : "Make this a dark band", function() {
         setStyle(ids, "dark", darkOn ? void 0 : true);
       }, !!darkOn);
@@ -8908,7 +9177,7 @@
           picturesOnly ? e(
             Field,
             { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
-            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function(v) {
+            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same2(invValues), onChange: function(v) {
               setStyle(ids, "invert", v ? "on" : void 0);
             } })
           ) : null
@@ -8940,7 +9209,7 @@
               labelledBy: rid,
               wide: true,
               className: "bd-seg-pics",
-              value: same(radiusValues) ? radiusValues[0] || void 0 : null,
+              value: same2(radiusValues) ? radiusValues[0] || void 0 : null,
               onChange: function(v) {
                 if (v) setStyle(ids, "radius", v);
               },
@@ -8968,7 +9237,7 @@
               labelledBy: sid,
               wide: true,
               className: "bd-seg-pics",
-              value: same(shadowValues) ? shadowValues[0] || void 0 : null,
+              value: same2(shadowValues) ? shadowValues[0] || void 0 : null,
               onChange: function(v) {
                 if (v) setStyle(ids, "elevation", v);
               },
@@ -9009,10 +9278,10 @@
             e(
               "div",
               { className: "bd-size-row" },
-              e(NumberField, { short: "X", label: "X position", value: same(xs) ? Math.round(xs[0] * unit) : "", onChange: function(v) {
+              e(NumberField, { short: "X", label: "X position", value: same2(xs) ? Math.round(xs[0] * unit) : "", onChange: function(v) {
                 setStyles(ids, { x: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) });
               } }),
-              e(NumberField, { short: "Y", label: "Y position", value: same(ys) ? Math.round(ys[0] * unit) : "", onChange: function(v) {
+              e(NumberField, { short: "Y", label: "Y position", value: same2(ys) ? Math.round(ys[0] * unit) : "", onChange: function(v) {
                 setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) });
               } })
             )
@@ -9028,8 +9297,8 @@
       var av = nodes.map(function(n) {
         return n.style.anchor || "";
       });
-      var position = same(pv) ? pv[0] : null;
-      var anchor = same(av) ? av[0] : null;
+      var position = same2(pv) ? pv[0] : null;
+      var anchor = same2(av) ? av[0] : null;
       var pid = "bd-pos-" + nodes[0].id;
       return [
         e(
@@ -9442,8 +9711,8 @@
           className: "bd-input",
           type: "text",
           "aria-labelledby": textId,
-          placeholder: same(textValues) ? "" : "Mixed",
-          value: same(textValues) ? textValues[0] : "",
+          placeholder: same2(textValues) ? "" : "Mixed",
+          value: same2(textValues) ? textValues[0] : "",
           onChange: function(ev) {
             setProp(ids, "children", ev.target.value);
           }
@@ -9563,7 +9832,7 @@
     };
     var canUndo = history.current.past.length > 0;
     var canRedo = history.current.future.length > 0;
-    var selectedNodes = nodesOf(selection);
+    var selectedNodes = nodesOf2(selection);
     var savedText = saved.ok ? "Saved" : "Not saved";
     var savedTitle = saved.ok ? "Saved in this browser" + (saved.at ? " at " + saved.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "") + ". It stays when you reload or come back." : "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
     var hidePanels = wide && (bare || preview);

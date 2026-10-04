@@ -2,6 +2,7 @@
 
 import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
+import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { ago, VERSIONS_MAX } from "../model/store.js";
@@ -256,25 +257,28 @@ function App(props) {
     if (next.length) setFrameOn(true);
   }, []);
 
-  /* History keeps earlier documents by reference. Every change is made with
-     immer, so a new document shares everything it didn't touch with the one
-     before: a step costs only the path that changed, undo is a swap, and a
-     frame nobody edited keeps its identity (the canvas skips re-rendering
-     it). Documents are frozen, so nothing can change one behind history's
+  /* History keeps each step as the small changes it made (model/edits.js),
+     with how to take them back. Undo makes the taking-back on the canvas as
+     it is now, so a change that came from elsewhere since stays: undo only
+     ever undoes your own steps. Every change is made with immer, so a frame
+     nobody edited keeps its identity (the canvas skips re-rendering it),
+     and documents are frozen, so nothing can change one behind history's
      back. */
-  var snapshot = useCallback(function () {
-    history.current.past.push(docRef.current);
+  var remember = useCallback(function (prev, next) {
+    var redo = diffDocs(prev, next);
+    if (!redo.length) return;
+    history.current.past.push({ redo: redo, undo: invert(redo) });
     if (history.current.past.length > HISTORY_MAX) history.current.past.shift();
     history.current.future = [];
   }, []);
   var commit = useCallback(function (next, nextSel, message) {
-    snapshot();
     next = freeze(next, true);
+    remember(docRef.current, next);
     docRef.current = next;
     setDoc(next);
     if (nextSel !== undefined) select(nextSel === null || nextSel === "root" ? [] : [].concat(nextSel));
     if (message) announce(message);
-  }, [announce, select, snapshot]);
+  }, [announce, remember, select]);
 
   /* Runs fn on a draft of the document; returns the new document, or null
      when fn returns null (nothing to do). */
@@ -310,26 +314,34 @@ function App(props) {
     return true;
   }, [commit]);
 
-  var undo = useCallback(function () {
-    var h = history.current;
-    if (!h.past.length) return;
-    h.future.push(docRef.current);
-    var prev = h.past.pop();
-    docRef.current = prev;
-    setDoc(prev);
-    select(selRef.current.filter(function (id) { return locate(prev, id); }));
-    announce("Undone");
-  }, [announce, select]);
-  var redo = useCallback(function () {
-    var h = history.current;
-    if (!h.future.length) return;
-    h.past.push(docRef.current);
-    var next = h.future.pop();
+  /* Makes changes on the canvas as it is now, without a history step. */
+  var place = useCallback(function (changes) {
+    var next = applyChanges(docRef.current, changes);
+    if (next === docRef.current) return next;
     docRef.current = next;
     setDoc(next);
     select(selRef.current.filter(function (id) { return locate(next, id); }));
+    return next;
+  }, [select]);
+  var undo = useCallback(function () {
+    var h = history.current;
+    if (!h.past.length) return;
+    var step = h.past.pop();
+    h.future.push(step);
+    place(step.undo);
+    announce("Undone");
+  }, [announce, place]);
+  var redo = useCallback(function () {
+    var h = history.current;
+    if (!h.future.length) return;
+    var step = h.future.pop();
+    h.past.push(step);
+    place(step.redo);
     announce("Redone");
-  }, [announce, select]);
+  }, [announce, place]);
+  /* Changes made somewhere else (later, by someone sharing the canvas):
+     they land on the canvas, and your own history is left as it is. */
+  var receive = useCallback(function (changes) { place(changes); }, [place]);
 
   /* Every change is saved to its project straight away, in order: while one
      save is being written the latest document waits, and only the newest is
@@ -364,7 +376,9 @@ function App(props) {
   useEffect(function () {
     window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store,
       /* One prop on one layer, through the same undoable change a control makes. */
-      edit: function (id, key, value) { return change(function (d) { var at = locate(d, id); if (!at) return null; at.node.props[key] = value; return undefined; }); } };
+      edit: function (id, key, value) { return change(function (d) { var at = locate(d, id); if (!at) return null; at.node.props[key] = value; return undefined; }); },
+      /* Changes as someone else would send them, and the changes an edit makes. */
+      receive: receive, diff: diffDocs };
   }, []);
   useEffect(function () {
     storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, stage: stageColor })); });
@@ -405,7 +419,7 @@ function App(props) {
     if (!frameById(d, fid)) return;
     select([]);
     setFrameOn(true);
-    if (editRef.current) setEdit(null);
+    if (editRef.current) editDone(true);
     if (d.active === fid) return;
     var next = freeze(Object.assign({}, d, { active: fid }));
     docRef.current = next;
@@ -1478,8 +1492,7 @@ function App(props) {
     var t = f.textRect(id, value);
     if (!t) return;
     select([id]);
-    snapshot();
-    setEdit({ id: id, prop: prop, value: value, before: value, box: toStage(t.rect), font: t.font });
+    setEdit({ id: id, prop: prop, value: value, before: value, base: docRef.current, box: toStage(t.rect), font: t.font });
     if (mql("(max-width: 900px)")) setPane("canvas");
   };
   var beginEditRef = useRef(beginEdit); beginEditRef.current = beginEdit;
@@ -1497,11 +1510,12 @@ function App(props) {
     var ed = editRef.current;
     if (!ed) return;
     setEdit(null);
+    /* The typing was made quietly; it becomes one step when it's done, or is
+       taken back when it's cancelled. */
     if (!keep) {
-      var prev = history.current.past.pop();
-      if (prev) { docRef.current = prev; setDoc(prev); }
+      place(invert(diffDocs(ed.base, docRef.current)));
       announce("Edit cancelled");
-    } else if (ed.value === ed.before) history.current.past.pop();
+    } else if (ed.value !== ed.before) remember(ed.base, docRef.current);
   };
 
   /* ------------------------------------------------- placing things */
