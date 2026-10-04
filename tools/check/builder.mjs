@@ -1790,7 +1790,7 @@ try {
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
     expect(data.format === "dovetail-project" && data.name === "Kiln site" && /HeroBlock/.test(types(data.doc)) && dl.suggestedFilename() === "Kiln-site.dovetail", `Download file writes the project, got ${dl.suggestedFilename()} ${JSON.stringify({ format: data.format, name: data.name })}`);
     await openHome();
-    await page.locator(".bd-projects input[type=file]").setInputFiles(file);
+    await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
     await page.waitForFunction((id) => window.__builder.project().id !== id && window.__builder.project().name === "Kiln site", first.id);
     const imported = await proj();
     await page.evaluate(() => window.__builder.flush());
@@ -1808,6 +1808,84 @@ try {
     expect(left.name === "My old page" && left.old === null, `work saved before projects moves into a project of its own, got ${JSON.stringify(left)}`);
     ok("a layout saved before projects opens as its own project, My old page, and the old entry is cleared");
     await moved.page.close();
+  });
+
+  await step("Project settings: each project keeps its own canvas colour, theme and picture", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const proj = () => page.evaluate(() => window.__builder.project());
+    const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
+    const stageBg = () => page.evaluate(() => document.querySelector(".bd-stage").style.backgroundColor);
+    const radius = () => page.evaluate(() => window.DovetailConfigurePanel.config().radius);
+    const openHome = async () => { await page.locator('.bd-toolbar [aria-label="Projects"]').click(); await page.locator(".bd-projects[open] .bd-proj").first().waitFor(); };
+    /* A click on the canvas itself, clear of frames and panels, selects nothing and shows the canvas settings. */
+    const clickStage = async () => {
+      const pt = await page.evaluate(() => { const st = document.querySelector(".bd-stage").getBoundingClientRect(); for (let y = st.bottom - 20; y > st.top; y -= 30) for (let x = st.left + st.width / 2; x < st.right - 10; x += 30) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; } return null; });
+      expect(pt, "there's empty canvas to click");
+      await page.mouse.click(pt.x, pt.y);
+      await page.locator(".bd-stage-swatches").waitFor();
+    };
+    await page.waitForFunction(() => window.DovetailConfigurePanel && window.DovetailConfigurePanel.theme);
+
+    await clickStage();
+    await page.locator('.bd-stage-swatches [aria-label="Black"]').click();
+    await page.waitForFunction(() => document.querySelector(".bd-stage").style.backgroundColor === "rgb(20, 20, 22)");
+    await page.evaluate(() => { const P = window.DovetailConfigurePanel; const t = P.theme(); t.config.radius = "sharp"; P.loadTheme(t); });
+    await page.waitForFunction(() => window.__builder.project().theme && window.__builder.project().theme.config.radius === "sharp");
+    const first = await proj();
+    expect(first.stage === "#141416", `the canvas colour is saved with the project, got ${first.stage}`);
+    ok("a black canvas and a sharp-cornered theme are saved with the first project");
+
+    await openHome();
+    await page.locator(".bd-projects .bd-btn-primary", { hasText: "New project" }).click();
+    await page.waitForFunction((id) => window.__builder.project().id !== id, first.id);
+    await ready();
+    expect(await stageBg() === "", `a new project starts on the builder's own canvas colour, got ${await stageBg()}`);
+    expect(await radius() === "sharp", "and with the theme that was on screen");
+    await clickStage();
+    await page.locator('.bd-stage-swatches [aria-label="White"]').click();
+    await page.evaluate(() => { const P = window.DovetailConfigurePanel; const t = P.theme(); t.config.radius = "soft"; P.loadTheme(t); });
+    await page.waitForFunction(() => window.__builder.project().theme && window.__builder.project().theme.config.radius === "soft");
+    expect((await proj()).name === "Untitled 2", `a second blank project is Untitled 2, got ${(await proj()).name}`);
+    ok("a new project, Untitled 2, starts on the default canvas with the theme on screen, then takes a white canvas and soft corners of its own");
+
+    await openHome();
+    const order = await page.locator(".bd-projects .bd-proj .bd-proj-name").allTextContents();
+    expect(order[0] === "Untitled 2", `the project on screen is listed first, got ${order}`);
+    await page.locator(".bd-proj", { hasText: /^Untitled(?! 2)/ }).locator(".bd-proj-open").click();
+    await page.waitForFunction((id) => window.__builder.project().id === id, first.id);
+    await ready();
+    expect(await stageBg() === "rgb(20, 20, 22)", `the first project's black canvas comes back, got ${await stageBg()}`);
+    expect(await radius() === "sharp", `and its sharp corners, got ${await radius()}`);
+    ok("the project on screen is listed first; going back to the first project brings back its black canvas and sharp corners");
+
+    /* A picture of your own stays when the project is left and opened again. */
+    const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==", "base64");
+    await openHome();
+    await page.locator('.bd-proj input[type=file][aria-label="Choose a picture for Untitled"]').setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
+    await page.waitForFunction(() => window.__builder.project().thumbSet === true);
+    const chosen = (await proj()).thumb;
+    await page.locator(".bd-proj", { hasText: "Untitled 2" }).locator(".bd-proj-open").click();
+    await page.waitForFunction((id) => window.__builder.project().id !== id, first.id);
+    await ready();
+    const kept = await page.evaluate((id) => window.__builder.store.getProject(id), first.id);
+    expect(kept.thumbSet && kept.thumb === chosen, "leaving the project doesn't replace the chosen picture");
+    ok("a picture chosen for a project stays when the project is left");
+
+    /* A file from elsewhere brings its theme, cleaned. */
+    const file = path.join(os.tmpdir(), "settings-" + Date.now() + ".dovetail");
+    const theDoc = await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    fs.writeFileSync(file, JSON.stringify({ format: "dovetail-project", version: 1, name: "From a friend", doc: theDoc, stage: "#ff0000",
+      theme: { config: { radius: "soft", primaryHex: "red;}body{display:none" }, brand: { name: "Friend", mark: "javascript:alert(1)" }, context: "nonsense" } }));
+    await openHome();
+    await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
+    await page.waitForFunction(() => window.__builder.project().name === "From a friend");
+    await ready();
+    const got = await page.evaluate(() => ({ t: window.DovetailConfigurePanel.theme(), stage: document.querySelector(".bd-stage").style.backgroundColor }));
+    fs.unlinkSync(file);
+    expect(got.stage === "rgb(255, 0, 0)" && got.t.config.radius === "soft" && got.t.brand.name === "Friend", `the file's canvas colour and theme come with it, got ${JSON.stringify({ stage: got.stage, radius: got.t.config.radius, name: got.t.brand.name })}`);
+    expect(got.t.config.primaryHex === "#eb6834" && got.t.brand.mark === "" && got.t.context === "", `but only settings the panel knows, as the types they take, got ${JSON.stringify({ hex: got.t.config.primaryHex, mark: got.t.brand.mark, context: got.t.context })}`);
+    ok("a project file brings its red canvas and theme, with anything the panel doesn't take left out");
+    await page.close();
   });
 
   await step("Changes: undo takes back only your own steps, and a change from elsewhere stays", async () => {

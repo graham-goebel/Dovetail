@@ -2907,9 +2907,11 @@
           return rec ? clean(rec.doc) : null;
         });
       },
-      /* A new project, opened next; its first version is where it started. */
-      createProject: function(name, doc) {
-        var meta = { id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null };
+      /* A new project, opened next; its first version is where it started.
+         extra may carry its settings: the canvas colour behind its frames
+         (stage) and its Configure theme. */
+      createProject: function(name, doc, extra) {
+        var meta = Object.assign({ id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null }, settingsOf(extra));
         return b.put("projects", meta).then(function() {
           return b.put("docs", { id: meta.id, doc });
         }).then(function() {
@@ -2942,10 +2944,25 @@
           });
         });
       },
-      setThumb: function(id, thumb) {
+      /* The picture on a project's card. One the person chose (byUser) stays
+         until they choose again or go back to automatic (thumb null); until
+         then, automatic pictures leave it alone. */
+      setThumb: function(id, thumb, byUser) {
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
+          if (meta.thumbSet && !byUser && thumb) return meta;
           meta.thumb = thumb;
+          meta.thumbSet = !!(byUser && thumb);
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      /* A project's own settings: its canvas colour and its theme. */
+      setSettings: function(id, patch) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          Object.assign(meta, settingsOf(patch));
           return b.put("projects", meta).then(function() {
             return meta;
           });
@@ -2954,8 +2971,8 @@
       duplicateProject: function(id) {
         return Promise.all([b.get("projects", id), api.loadDoc(id)]).then(function(got) {
           if (!got[0] || !got[1]) return null;
-          return api.createProject(got[0].name + " copy", got[1]).then(function(meta) {
-            return got[0].thumb ? api.setThumb(meta.id, got[0].thumb) : meta;
+          return api.createProject(got[0].name + " copy", got[1], got[0]).then(function(meta) {
+            return got[0].thumb ? api.setThumb(meta.id, got[0].thumb, got[0].thumbSet) : meta;
           });
         });
       },
@@ -3085,6 +3102,21 @@
       }
     };
     return api;
+  }
+  function settingsOf(src) {
+    var out = {};
+    if (!src || typeof src !== "object") return out;
+    if (typeof src.stage === "string" && (src.stage === "" || /^#[0-9a-f]{6}$/i.test(src.stage))) out.stage = src.stage.toLowerCase();
+    if (src.theme && typeof src.theme === "object") {
+      var t = src.theme;
+      out.theme = {
+        config: t.config && typeof t.config === "object" ? t.config : {},
+        brand: t.brand && typeof t.brand === "object" ? t.brand : {},
+        media: t.media && typeof t.media === "object" ? t.media : {},
+        context: typeof t.context === "string" ? t.context : ""
+      };
+    }
+    return out;
   }
   function ago(t) {
     var s = Math.max(0, Math.round((Date.now() - t) / 1e3));
@@ -4351,7 +4383,7 @@
     var frameOn = frameOnState[0], setFrameOn = frameOnState[1];
     var frameOnRef = useRef(frameOn);
     frameOnRef.current = frameOn;
-    var stageColorState = useState(prefs.stage || "");
+    var stageColorState = useState(typeof init.project.stage === "string" ? init.project.stage : prefs.stage || "");
     var stageColor = stageColorState[0], setStageColor = stageColorState[1];
     var openFramesState = useState({});
     var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
@@ -4599,9 +4631,52 @@
     }, []);
     useEffect(function() {
       storage(function(s) {
-        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left, stage: stageColor }));
+        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left }));
       });
-    }, [category, assetKind, view, tabByType, closedSecs, left, stageColor]);
+    }, [category, assetKind, view, tabByType, closedSecs, left]);
+    useEffect(function() {
+      var meta = projectRef.current;
+      if (meta.stage === stageColor) return;
+      meta.stage = stageColor;
+      store.setSettings(meta.id, { stage: stageColor });
+    }, [stageColor]);
+    var themeLoaded = useRef(false);
+    var applyTheme = function(meta) {
+      var P = window.DovetailConfigurePanel;
+      if (!P || !P.loadTheme) return false;
+      if (meta.theme) P.loadTheme(meta.theme);
+      else {
+        meta.theme = P.theme();
+        store.setSettings(meta.id, { theme: meta.theme });
+      }
+      themeLoaded.current = true;
+      return true;
+    };
+    var applyThemeRef = useRef(applyTheme);
+    applyThemeRef.current = applyTheme;
+    useEffect(function() {
+      var ready2 = function() {
+        applyThemeRef.current(projectRef.current);
+      };
+      if (!applyThemeRef.current(projectRef.current)) window.addEventListener("dovetail:configure-ready", ready2, { once: true });
+      var timer = null;
+      var changed = function() {
+        var P = window.DovetailConfigurePanel;
+        if (!themeLoaded.current || !P || !P.theme) return;
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+          var meta = projectRef.current;
+          meta.theme = P.theme();
+          store.setSettings(meta.id, { theme: meta.theme });
+        }, 250);
+      };
+      window.addEventListener("dovetail:theme-change", changed);
+      return function() {
+        window.removeEventListener("dovetail:configure-ready", ready2);
+        window.removeEventListener("dovetail:theme-change", changed);
+        clearTimeout(timer);
+      };
+    }, []);
     var firstDoc = useRef(doc);
     useEffect(function() {
       if (doc !== firstDoc.current && /^#(b|jsx)=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -6748,11 +6823,19 @@
         return list;
       });
     };
-    var captureThumb = function() {
+    var captureThumb = function(byUser) {
       var pid = projectRef.current.id;
+      if (projectRef.current.thumbSet && !byUser) return Promise.resolve();
       var a = api(docRef.current.active);
       if (!a || !a.snapshot) return Promise.resolve();
-      return a.snapshot("jpeg").then(function(url) {
+      var shot = a.snapshot("jpeg", { fonts: !!byUser });
+      var late = new Promise(function(resolve2) {
+        setTimeout(function() {
+          resolve2(null);
+        }, byUser ? 15e3 : 2500);
+      });
+      return Promise.race([shot, late]).then(function(url) {
+        if (!url) return null;
         return new Promise(function(resolve2) {
           var img = new Image();
           img.onload = function() {
@@ -6770,9 +6853,75 @@
           img.src = url;
         });
       }).then(function(thumb) {
-        return thumb ? store.setThumb(pid, thumb) : null;
+        if (!thumb) return null;
+        return store.setThumb(pid, thumb, !!byUser).then(function(meta) {
+          if (meta && meta.id === projectRef.current.id) {
+            projectRef.current.thumb = meta.thumb;
+            projectRef.current.thumbSet = meta.thumbSet;
+          }
+          return meta;
+        });
       }).catch(function() {
         return null;
+      });
+    };
+    var THUMB_W = 480, THUMB_H = 360;
+    var pictureFrom = function(file) {
+      return new Promise(function(resolve2) {
+        if (!file || !/^image\//.test(file.type)) {
+          resolve2(null);
+          return;
+        }
+        var url = URL.createObjectURL(file);
+        var img = new Image();
+        img.onload = function() {
+          var c = document.createElement("canvas");
+          c.width = THUMB_W;
+          c.height = THUMB_H;
+          var k = Math.max(THUMB_W / img.naturalWidth, THUMB_H / img.naturalHeight);
+          var w = img.naturalWidth * k, h = img.naturalHeight * k;
+          c.getContext("2d").drawImage(img, (THUMB_W - w) / 2, (THUMB_H - h) / 2, w, h);
+          URL.revokeObjectURL(url);
+          resolve2(c.toDataURL("image/jpeg", 0.8));
+        };
+        img.onerror = function() {
+          URL.revokeObjectURL(url);
+          resolve2(null);
+        };
+        img.src = url;
+      });
+    };
+    var setPicture = function(id, file) {
+      pictureFrom(file).then(function(thumb) {
+        if (!thumb) {
+          announce("That file isn't a picture this browser can read.");
+          return;
+        }
+        store.setThumb(id, thumb, true).then(function(meta) {
+          if (meta && meta.id === projectRef.current.id) {
+            projectRef.current.thumb = meta.thumb;
+            projectRef.current.thumbSet = true;
+          }
+          announce("Picture set");
+          refreshProjects();
+        });
+      });
+    };
+    var framePicture = function() {
+      announce("Taking a picture of this frame");
+      captureThumb(true).then(function(meta) {
+        announce(meta ? "This frame is the project's picture now" : "That frame couldn't be pictured.");
+      });
+    };
+    var autoPicture = function() {
+      var meta = projectRef.current;
+      store.setThumb(meta.id, null, false).then(function() {
+        meta.thumbSet = false;
+        meta.thumb = null;
+        return captureThumb(false);
+      }).then(function() {
+        announce("The picture follows the canvas again");
+        refreshProjects();
       });
     };
     var openProjects = function() {
@@ -6799,6 +6948,9 @@
       projectRef.current = meta;
       setProject(meta);
       store.setLastOpened(meta.id);
+      if (typeof meta.stage !== "string") meta.stage = "";
+      setStageColor(meta.stage);
+      applyTheme(meta);
       docRef.current = next;
       setDoc(next);
       closeProjects();
@@ -6827,9 +6979,15 @@
         return x[0] === starterId;
       })[0] : null;
       var d = s ? s[2]() : emptyDoc();
+      var taken = (projList || []).map(function(p) {
+        return p.name;
+      });
       var name = s ? s[1] : "Untitled";
+      for (var n = 2; taken.indexOf(name) >= 0; n++) name = (s ? s[1] : "Untitled") + " " + n;
+      var P = window.DovetailConfigurePanel;
+      var settings = { stage: "", theme: P && P.theme ? P.theme() : void 0 };
       captureThumb().then(flush).then(function() {
-        return store.createProject(name, d);
+        return store.createProject(name, d, settings);
       }).then(function(meta) {
         switchTo(meta, d, "Made a new project, " + name);
       });
@@ -6880,7 +7038,7 @@
         return Promise.all([store.getProject(id), store.loadDoc(id)]);
       }).then(function(got) {
         if (!got[0] || !got[1]) return;
-        var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: got[1] });
+        var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: got[1], stage: got[0].stage, theme: got[0].theme });
         var link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
         link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
@@ -6912,7 +7070,7 @@
         var d = clean(data.doc, dropped);
         var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
         captureThumb().then(flush).then(function() {
-          return store.createProject(name, d);
+          return store.createProject(name, d, { stage: data.stage, theme: data.theme });
         }).then(function(meta) {
           switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
           refreshProjects();
@@ -6957,6 +7115,8 @@
       var q = projQuery.trim().toLowerCase();
       var list = (projList || []).filter(function(p) {
         return !q || p.name.toLowerCase().indexOf(q) >= 0;
+      }).sort(function(x, y) {
+        return (y.id === project.id) - (x.id === project.id) || y.updatedAt - x.updatedAt;
       });
       var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function() {
         setConfirmDel(null);
@@ -7058,6 +7218,22 @@
               e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function() {
                 setRenaming(p.id);
               } }, e(Icon, { name: "pencil" })),
+              e(
+                "label",
+                { className: "bd-act", title: "Choose a picture" },
+                e(Icon, { name: "image" }),
+                e("input", {
+                  type: "file",
+                  className: "visually-hidden",
+                  accept: "image/*",
+                  "aria-label": "Choose a picture for " + p.name,
+                  onChange: function(ev) {
+                    var f = ev.target.files && ev.target.files[0];
+                    ev.target.value = "";
+                    setPicture(p.id, f);
+                  }
+                })
+              ),
               e("button", { type: "button", className: "bd-act", "aria-label": "Duplicate " + p.name, title: "Duplicate", onClick: function() {
                 duplicateProject(p.id);
               } }, e(Icon, { name: "copy" })),
@@ -9861,10 +10037,13 @@
             { value: "projects", label: "All projects", icon: "folder" },
             { value: "versions", label: "Versions", icon: "rotate" },
             { value: "duplicate", label: "Duplicate", icon: "copy" },
-            { value: "export", label: "Download file", icon: "exportOut" }
-          ],
+            { value: "export", label: "Download file", icon: "exportOut" },
+            { value: "picture", label: "Use this frame as the picture", icon: "image" }
+          ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []),
           onChange: function(v) {
-            if (v === "projects") openProjects();
+            if (v === "picture") framePicture();
+            else if (v === "auto-picture") autoPicture();
+            else if (v === "projects") openProjects();
             else if (v === "versions") openVersions();
             else if (v === "duplicate") duplicateProject(project.id);
             else if (v === "export") exportProject(project.id);
@@ -10668,7 +10847,7 @@
           sec("builder-canvas", "Canvas", [
             e(
               Field,
-              { key: "bg", id: bid, label: "Background", hint: stageColor ? "Behind every frame. It isn't part of any design." : "The builder's default, behind every frame." },
+              { key: "bg", id: bid, label: "Background", hint: stageColor ? "Behind every frame in this project. It isn't part of any design." : "The builder's default, behind every frame in this project." },
               e(
                 "div",
                 { className: "bd-canvas-row" },
