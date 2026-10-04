@@ -2796,6 +2796,44 @@ try {
     expect(Math.abs(gaps[0] - gaps[1]) <= 5, `Shift+Alt+H spreads them with even gaps, got ${gaps.map(Math.round)} from ${JSON.stringify(beforeSpread)}`);
     expect(await page.locator(".bd-inspect-title").textContent().then((t) => /^3 /.test(t)), "the selection stays through the arranging");
     ok("Alt+A/W align, Alt+D and the buttons align one object to its frame, Shift+Alt+H spreads three evenly");
+
+    /* Smart guides: Alpha dragged down and to within a few pixels of Beta's
+       left edge snaps to it, with a guide line; with Ctrl held it doesn't. */
+    await fitAll(page);
+    await page.evaluate(() => window.__builder.select([]));
+    const geo = async () => page.evaluate(() => { const fr = document.querySelectorAll("iframe.bd-frame")[1], b = fr.getBoundingClientRect(), api = fr.contentWindow.BuilderFrame; const s = b.width / parseFloat(fr.style.width); const r = (id) => api.rect(id); return { s, ba: r("ba"), bb: r("bb"), left: b.left, top: b.top }; });
+    let g = await geo();
+    const start = { x: g.left + (g.ba.left + g.ba.width / 2) * g.s, y: g.top + (g.ba.top + g.ba.height / 2) * g.s };
+    /* A drag the frame starts measures from its first move, so the first
+       8px wake it and the rest is the distance that counts. */
+    const dragBy = async (dx, dy, hold) => {
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      if (hold) await page.keyboard.down(hold);
+      await page.mouse.move(start.x + 8, start.y);
+      await page.waitForTimeout(60);
+      await page.mouse.move(start.x + 8 + dx / 2, start.y + dy / 2, { steps: 6 });
+      await page.mouse.move(start.x + 8 + dx, start.y + dy, { steps: 6 });
+      await page.waitForTimeout(120);
+      const guides = await page.locator(".bd-guide").count();
+      await page.mouse.up();
+      if (hold) await page.keyboard.up(hold);
+      await page.waitForTimeout(150);
+      return guides;
+    };
+    const aim = (g.bb.left + 4 - g.ba.left) * g.s;
+    const guides = await dragBy(aim, 120 * g.s);
+    g = await geo();
+    expect(Math.abs(g.ba.left - g.bb.left) <= 2, `dragged to 4px off Beta's left edge, Alpha snaps to it: ${Math.round(g.ba.left)} against ${Math.round(g.bb.left)}`);
+    expect(guides >= 1, `and a guide line showed while dragging, got ${guides}`);
+    expect(await page.locator(".bd-guide").count() === 0, "the guide goes when the drag ends");
+    await page.keyboard.press("Control+z");
+    await page.waitForTimeout(200);
+    g = await geo();
+    const noSnap = await dragBy(aim, 120 * g.s, "Control");
+    g = await geo();
+    expect(Math.abs(g.ba.left - g.bb.left) >= 3 && noSnap === 0, `with Ctrl held it lands where it was let go and shows no guide: ${Math.round(g.ba.left)} against ${Math.round(g.bb.left)}, ${noSnap} guides`);
+    ok("a free object snaps to a sibling's edge with a guide line; Ctrl held turns the snapping off");
     await page.close();
   });
 

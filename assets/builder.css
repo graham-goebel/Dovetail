@@ -1980,6 +1980,44 @@ span.bd-layer-twisty.is-open .bd-ic {
   background: var(--dt-text-primary);
 }
 
+/* Smart guides: what a dragged free object lined up with, and equal gaps. */
+.bd-guide {
+  position: absolute;
+  min-width: 1px;
+  min-height: 1px;
+  background: var(--dt-border-focus);
+  pointer-events: none;
+}
+
+.bd-guide.is-gap {
+  background: color-mix(in oklch, var(--dt-border-focus) 40%, transparent);
+}
+
+.bd-guide.is-gap.is-h {
+  min-height: 3px;
+  margin-top: -1px;
+}
+
+.bd-guide.is-gap.is-v {
+  min-width: 3px;
+  margin-left: -1px;
+}
+
+.bd-guide-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 0 var(--dt-space-inset-2xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-border-focus);
+  color: var(--dt-surface-base);
+  font-size: var(--dt-font-size-2xs);
+  font-weight: var(--dt-font-weight-medium);
+  line-height: 1.5;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+
 .bd-mark-box {
   position: absolute;
   box-sizing: border-box;

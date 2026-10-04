@@ -5975,6 +5975,69 @@
       }
       return null;
     };
+    var snapOffRef = useRef(false);
+    var snapFree = function(f, hostFrame, skipId, fx, fy, w, h, z) {
+      var res = { x: fx, y: fy, guides: [] };
+      if (snapOffRef.current || !f.rect) return res;
+      var reach = 6 / z;
+      var targets = [];
+      var rootR = f.rect("root");
+      if (rootR) targets.push({ l: 0, t: 0, r: rootR.width, b: rootR.height, frame: true });
+      hostFrame.root.children.forEach(function(c) {
+        if (c.id === skipId) return;
+        var r = f.rect(c.id);
+        if (r) targets.push({ l: r.left, t: r.top, r: r.right, b: r.bottom });
+      });
+      if (!targets.length) return res;
+      var bestX = null, bestY = null;
+      targets.forEach(function(t) {
+        [t.l, (t.l + t.r) / 2, t.r].forEach(function(line) {
+          [fx, fx + w / 2, fx + w].forEach(function(edge) {
+            var d = line - edge;
+            if (Math.abs(d) <= reach && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at: line, t };
+          });
+        });
+        [t.t, (t.t + t.b) / 2, t.b].forEach(function(line) {
+          [fy, fy + h / 2, fy + h].forEach(function(edge) {
+            var d = line - edge;
+            if (Math.abs(d) <= reach && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d, at: line, t };
+          });
+        });
+      });
+      if (bestX) res.x = fx + bestX.d;
+      if (bestY) res.y = fy + bestY.d;
+      if (bestX) res.guides.push({ v: bestX.at, from: Math.min(res.y, bestX.t.t), to: Math.max(res.y + h, bestX.t.b) });
+      if (bestY) res.guides.push({ h: bestY.at, from: Math.min(res.x, bestY.t.l), to: Math.max(res.x + w, bestY.t.r) });
+      if (!bestX) {
+        var L = null, R = null;
+        targets.forEach(function(t) {
+          if (t.frame || t.b <= res.y || t.t >= res.y + h) return;
+          if (t.r <= fx && (!L || t.r > L.r)) L = t;
+          if (t.l >= fx + w && (!R || t.l < R.l)) R = t;
+        });
+        if (L && R && Math.abs(fx - L.r - (R.l - fx - w)) <= reach * 2) {
+          res.x = (L.r + R.l - w) / 2;
+          var gx = Math.round(res.x - L.r), my = res.y + h / 2;
+          res.guides.push({ gap: true, h: my, from: L.r, to: res.x, label: gx }, { gap: true, h: my, from: res.x + w, to: R.l, label: gx });
+        }
+      }
+      if (!bestY) {
+        var T = null, B = null;
+        targets.forEach(function(t) {
+          if (t.frame || t.r <= res.x || t.l >= res.x + w) return;
+          if (t.b <= fy && (!T || t.b > T.b)) T = t;
+          if (t.t >= fy + h && (!B || t.t < B.t)) B = t;
+        });
+        if (T && B && Math.abs(fy - T.b - (B.t - fy - h)) <= reach * 2) {
+          res.y = (T.b + B.t - h) / 2;
+          var gy = Math.round(res.y - T.b), mx = res.x + w / 2;
+          res.guides.push({ gap: true, v: mx, from: T.b, to: res.y, label: gy }, { gap: true, v: mx, from: res.y + h, to: B.t, label: gy });
+        }
+      }
+      res.x = Math.max(0, res.x);
+      res.y = Math.max(0, res.y);
+      return res;
+    };
     var resolve = function(x, y, payload) {
       var list = layersRef.current;
       var el = document.elementFromPoint(x, y);
@@ -6018,6 +6081,10 @@
         }
         fx = Math.max(0, fx);
         fy = Math.max(0, fy);
+        var snapped = snapFree(f, hostFrame, moving && own ? payload.id : null, fx, fy, w, h, z);
+        fx = snapped.x;
+        fy = snapped.y;
+        out.guides = snapped.guides.length ? snapped.guides : null;
         var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
         out.free = { x: gx, y: gy };
         out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at.fid) || frame).root.children.length;
@@ -6054,7 +6121,11 @@
     var show = function(hit, ghosted) {
       setListDrop(hit && hit.where === "list" ? hit : null);
       setMarks(function(m) {
-        return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box && !(hit.free && ghosted) ? toStage(hit.box, hit.frame) : null } : null });
+        var guides = hit && hit.where === "canvas" && hit.guides ? hit.guides.map(function(g) {
+          var r = g.v !== void 0 ? toStage({ left: g.v, top: g.from, width: 0, height: g.to - g.from }, hit.frame) : toStage({ left: g.from, top: g.h, width: g.to - g.from, height: 0 }, hit.frame);
+          return r ? Object.assign(r, { gap: !!g.gap, label: g.label, v: g.v !== void 0 }) : null;
+        }).filter(Boolean) : null;
+        return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box && !(hit.free && ghosted) ? toStage(hit.box, hit.frame) : null, guides } : null });
       });
     };
     var autoscroll = function(x, y) {
@@ -7341,6 +7412,7 @@
       return false;
     });
     keyRef.current = function(ev) {
+      if (ev.key === "Meta" || ev.key === "Control") snapOffRef.current = true;
       if (accountRef.current && accountRef.current.open) return false;
       if (homeRef.current) {
         if (ev.key === "Escape") {
@@ -7500,6 +7572,7 @@
     var keyUpRef = useRef(function() {
     });
     keyUpRef.current = function(ev) {
+      if (ev.key === "Meta" || ev.key === "Control") snapOffRef.current = false;
       if (ev.key === " " && spaceRef.current) {
         spaceRef.current = false;
         setSpace(false);
@@ -7521,6 +7594,7 @@
           setSpace(false);
         }
         setShiftHeld(false);
+        snapOffRef.current = false;
       };
       document.addEventListener("keydown", onKey);
       document.addEventListener("keyup", onUp);
@@ -12602,6 +12676,13 @@
           );
         }) : null,
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
+        marks.drop && marks.drop.guides ? marks.drop.guides.map(function(g, i) {
+          return e(
+            "div",
+            { key: i, className: cx("bd-guide", g.gap && "is-gap", g.v ? "is-v" : "is-h"), style: { left: g.left + "px", top: g.top + "px", width: g.width + "px", height: g.height + "px" } },
+            g.label !== void 0 ? e("span", { className: "bd-guide-label" }, g.label) : null
+          );
+        }) : null,
         marks.drop && marks.drop.box ? e("div", { className: cx("bd-mark-box", marks.drop.swap && "is-swap"), style: marks.drop.box }) : null,
         dupFrame ? e(
           "div",
