@@ -114,6 +114,10 @@ function App(props) {
   var savedState = useState({ ok: true, at: null });
   var saved = savedState[0], setSaved = savedState[1];
   var savedRef = useRef(saved); savedRef.current = saved;
+  /* Home: every project, as a page over the canvas. */
+  var homeState = useState(false);
+  var home = homeState[0], setHome = homeState[1];
+  var homeRef = useRef(false); homeRef.current = home;
   var boxState = useState({ w: 0, h: 0 });
   var box = boxState[0], setBox = boxState[1];
   var camState = useState(null);
@@ -1766,7 +1770,8 @@ function App(props) {
      only while nothing else has focus. */
   var keyRef = useRef(function () { return false; });
   keyRef.current = function (ev) {
-    if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (projectsRef.current && projectsRef.current.open) || (versionsRef.current && versionsRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open)) return false;
+    if (homeRef.current) { if (ev.key === "Escape") { closeProjects(); return true; } return false; }
+    if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (versionsRef.current && versionsRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open)) return false;
     var t = ev.target;
     var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
     if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -2229,7 +2234,6 @@ function App(props) {
   /* Projects: each a name and its own canvas, kept in this browser. The
      home lists them; the bar names the one on screen. Switching saves this
      one first, then opens the other with a fresh history. */
-  var projectsRef = useRef(null);
   var versionsRef = useRef(null);
   /* null while the list is being read, so an old list never shows. */
   var projListState = useState(null);
@@ -2334,12 +2338,10 @@ function App(props) {
     setConfirmDel(null);
     setProjList(null);
     refreshProjects();
-    setShown("projects");
-    var dlg = projectsRef.current;
-    if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    setHome(true);
     captureThumb().then(refreshProjects);
   };
-  var closeProjects = function () { var dlg = projectsRef.current; if (dlg && dlg.open) dlg.close(); };
+  var closeProjects = function () { setHome(false); setConfirmDel(null); setRenamingProj(null); };
 
   var switchTo = function (meta, d, message, pg) {
     var next = freeze(d, true);
@@ -2559,23 +2561,26 @@ function App(props) {
     });
   };
 
-  var projectsDialog = function () {
+  /* Home: a page of every project over the canvas, which stays where it was
+     underneath. Opening one puts the canvas back; so does Escape, or Back. */
+  var homePage = function () {
+    if (!home) return null;
     var q = projQuery.trim().toLowerCase();
     /* The project on screen first, then the most recently edited. */
     var list = (projList || []).filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0; })
       .sort(function (x, y) { return (y.id === project.id) - (x.id === project.id) || y.updatedAt - x.updatedAt; });
-    var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function () { setConfirmDel(null); setRenamingProj(null); setShown(null); } };
-    if (shown !== "projects") return e("dialog", dialogProps);
-    return e("dialog", dialogProps,
-      e("div", { className: "bd-code-head" },
+    return e("main", { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
+      /* On a phone the bar lives in the canvas pane, under this page, so it comes along. */
+      slot ? null : toolbar,
+      e("div", { className: "bd-home-inner" },
+      e("div", { className: "bd-home-head" },
         e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-projects-title" }, "Projects"),
+          e("h1", { id: "bd-projects-title", className: "bd-home-title" }, "Projects"),
           e("p", { className: "bd-inspect-sub" }, "Each project has its own canvas, saved in this browser. Download one as a file to move it or keep a copy.")),
         e("div", { className: "bd-code-actions" },
           e("label", { className: "bd-btn", title: "Open a .dovetail file as a new project" }, e(Icon, { name: "upload" }), "Open file",
             e("input", { ref: importFileRef, type: "file", className: "visually-hidden", accept: ".dovetail,application/json",
-              onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; importProject(f); } })),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: closeProjects }, e(Icon, { name: "close" })))),
+              onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; importProject(f); } })))),
       e("div", { className: "bd-projects-bar" },
         e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { newProject(null); } }, e(Icon, { name: "plus" }), "New project"),
         e("span", { className: "bd-projects-tpl", role: "group", "aria-label": "New project from a template" },
@@ -2599,7 +2604,6 @@ function App(props) {
               e("span", null, "Delete for good?"),
               e("button", { type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteProject(p.id); } }, "Delete"),
               e("button", { type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep"))
-            /* Plain buttons: a menu's list would open outside this modal dialog. */
             : e("span", { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
               e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function () { setRenamingProj(p.id); } }, e(Icon, { name: "pencil" })),
               e("label", { className: "bd-act", title: "Choose a picture" },
@@ -2609,7 +2613,7 @@ function App(props) {
               e("button", { type: "button", className: "bd-act", "aria-label": "Duplicate " + p.name, title: "Duplicate", onClick: function () { duplicateProject(p.id); } }, e(Icon, { name: "copy" })),
               e("button", { type: "button", className: "bd-act", "aria-label": "Download " + p.name, title: "Download as a file", onClick: function () { exportProject(p.id); } }, e(Icon, { name: "exportOut" })),
               e("button", { type: "button", className: "bd-act", "aria-label": "Delete " + p.name, title: "Delete", onClick: function () { setConfirmDel(p.id); } }, e(Icon, { name: "trash" }))));
-      })) : e("p", { className: "bd-sec-empty bd-projects-empty", "aria-busy": projList ? undefined : "true" }, !projList ? "Loading projects…" : q ? "No project is called that." : "No projects yet."));
+      })) : e("p", { className: "bd-sec-empty bd-projects-empty", "aria-busy": projList ? undefined : "true" }, !projList ? "Loading projects…" : q ? "No project is called that." : "No projects yet.")));
   };
 
   var versionsDialog = function () {
@@ -4194,9 +4198,13 @@ function App(props) {
     return e("nav", { className: "bd-crumbs bd-tb-crumbs", "aria-label": "Where you are" }, crumbs);
   };
 
-  var toolbar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
-    e("span", { className: "bd-tb-side bd-tb-left" },
-      e("button", { type: "button", className: "bd-act", title: "All projects", "aria-label": "Projects", "aria-haspopup": "dialog", onClick: openProjects }, e(Icon, { name: "folder" }))),
+  var homeBar = e("div", { className: "bd-toolbar is-home", role: "toolbar", "aria-label": "Builder" },
+    e("span", { className: "bd-tb-side bd-tb-left" }),
+    e("div", { className: "bd-tb-title" }, e("span", { className: "bd-tb-home" }, "Projects")),
+    e("span", { className: "bd-tb-side bd-tb-right" },
+      e("button", { type: "button", className: "bd-btn bd-home-back", onClick: closeProjects, title: "Back to the canvas (Esc)" }, e(Icon, { name: "left" }), e("span", { className: "bd-home-back-text" }, "Back to " + project.name))));
+  var workBar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
+    e("span", { className: "bd-tb-side bd-tb-left" }),
     e("div", { className: "bd-tb-title bd-project" },
       titleCrumbs(),
       e(Dropdown, { menu: true, label: "Project actions", placeholder: "Project", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-project-menu",
@@ -4237,6 +4245,7 @@ function App(props) {
       e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function () { openPlay(); } }, e(Icon, { name: "play" })),
       e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
       e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }), e("span", { className: "bd-export-text" }, "Export"))));
+  var toolbar = home ? homeBar : workBar;
 
   /* ------------------------------------------------- drawing */
 
@@ -4776,17 +4785,18 @@ function App(props) {
 
   return e(React.Fragment, null,
     slot ? ReactDOM.createPortal(toolbar, slot) : null,
-    e("div", { className: "bd-tabs", role: "tablist", "aria-label": "Builder panels" },
+    home ? null : e("div", { className: "bd-tabs", role: "tablist", "aria-label": "Builder panels" },
       [["add", "Add"], ["canvas", "Canvas"], ["edit", "Edit"]].map(function (t) {
         return e("button", { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0]), onClick: function () { setPane(t[0]); } },
           t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
       })),
-    e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane },
+    e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined },
       e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || undefined },
         e("div", { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
           RAIL.map(function (r) {
-            return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === r[0]), "aria-controls": "bd-left-body", title: r[2],
-              onClick: function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
+            var isHome = r[0] === "home";
+            return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(isHome ? home : !home && left === r[0]), "aria-controls": isHome ? undefined : "bd-left-body", title: r[2],
+              onClick: isHome ? openProjects : function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
           })),
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           left === "configure" ? e("div", { className: "bd-config-dock", ref: dockRef })
@@ -4797,6 +4807,7 @@ function App(props) {
                 : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })))),
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
       e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
+    homePage(),
     drag && drag.ghost ? (function () {
       var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
       var x = drag.spot ? drag.spot.x : drag.x - grab.x * z, y = drag.spot ? drag.spot.y : drag.y - grab.y * z;
@@ -4818,7 +4829,6 @@ function App(props) {
           e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
       e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
     importDialog(),
-    projectsDialog(),
     versionsDialog(),
     componentDialog(),
     playDialog(),

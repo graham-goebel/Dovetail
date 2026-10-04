@@ -205,6 +205,7 @@ function remover() {
 
 /* The left panel's rail: what it shows, its short name, its tip, its icon. */
 var RAIL = [
+  ["home", "Home", "All your projects", "home"],
   ["assets", "Assets", "Primitives, variables, components, blocks and templates", "plus"],
   ["pages", "Pages", "The project's pages, each its own canvas", "file"],
   ["layers", "Layers", "Everything in each frame", "layers2"],
