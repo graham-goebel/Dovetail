@@ -3581,6 +3581,11 @@ function App(props) {
      a box model reads. The name in each ring sets every side at once. */
   var boxModel = function (nodes) {
     var ids = nodes.map(function (n) { return n.id; });
+    /* A component that pads itself from its own tier (Card's card padding)
+       names that as the default, so "None" doesn't read as no padding. Only
+       on that component: a mixed selection, or another type, never sees it. */
+    var ownPad = nodes.length && nodes.every(function (n) { return n.type === nodes[0].type; }) && META[nodes[0].type] ? META[nodes[0].type].ownPadding : null;
+    var ownLabel = ownPad ? "Default: " + ownPad.label : null;
     var side = function (key, all, where) {
       var allValues = nodes.map(function (n) { return n.style[all] || ""; });
       var inherited = same(allValues) ? allValues[0] : "";
@@ -3588,13 +3593,14 @@ function App(props) {
       return e("div", { key: key, className: "bd-box-cell is-" + where },
         tokenDropdown(key, nodes, null, {
           compact: true, noPreview: true, mixedLabel: "~", pxOnly: true, className: cx("bd-box-val", !own && "is-inherited"),
-          noneLabel: inherited ? "Same as every side (" + inherited + ")" : "None",
-          noneShort: inherited ? (pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited) : "–",
+          noneLabel: inherited ? "Same as every side (" + inherited + ")" : all === "padding" && ownLabel ? ownLabel : "None",
+          noneShort: inherited ? (pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited) : all === "padding" && ownLabel ? "Def" : "–",
         }));
     };
     var ring = function (key, title) {
       return tokenDropdown(key, nodes, null, {
         compact: true, noPreview: true, label: title + ", every side", prefix: title, mixedLabel: "", noneShort: "", short: function () { return ""; }, className: "bd-box-all",
+        noneLabel: key === "padding" && ownLabel ? ownLabel : undefined,
         onChange: function (v) {
           var patch = {};
           patch[key] = v || undefined;
@@ -4044,6 +4050,7 @@ function App(props) {
   var variablesPanel = function () {
     var picked = nodesOf(selection).filter(function (n) { return n.type !== "Slot"; });
     var sc = picked.length ? scopeFor(picked) : null;
+    var own = picked.length && picked.every(function (n) { return n.type === picked[0].type; }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
     return e("div", { className: "bd-vars" },
       e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
       VAR_SETS.map(function (vs) {
@@ -4054,7 +4061,10 @@ function App(props) {
         var cur = picked.length && same(picked.map(function (n) { return n.style[vs[0]] || ""; })) ? picked[0].style[vs[0]] || "" : null;
         return e("section", { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
           e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
-          e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, opts.map(function (o) {
+          e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, (vs[0] === "padding" && own ? [e("button", { key: "__own", type: "button", className: "bd-var bd-var-own", "aria-pressed": String(cur === ""),
+            title: own.token + ": " + nameOf(picked[0]) + "'s own padding. Clears Padding so it applies",
+            onClick: function () { var patch = { padding: undefined }; DATA.tokens.padding.sides.forEach(function (k) { patch[k] = undefined; }); setStyles(picked.map(function (n) { return n.id; }), patch); announce(nameOf(picked[0]) + " takes its own padding, " + own.label); } },
+            e("span", { className: "bd-var-name" }, "Default: " + own.label))] : []).concat(opts.map(function (o) {
             var px = pxMap[vs[0] + "|" + o.value];
             var tok = o.tokens[0];
             return e("button", { key: o.value, type: "button", className: "bd-var", "aria-pressed": String(cur === o.value),
@@ -4065,7 +4075,7 @@ function App(props) {
                 : vs[2] === "shadow" && tok ? e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + tok + ")" }, "aria-hidden": true })
                 : px != null ? e("span", { className: "bd-var-px" }, Math.round(px)) : null,
               e("span", { className: "bd-var-name" }, o.label || o.value));
-          })));
+          }))));
       }));
   };
 

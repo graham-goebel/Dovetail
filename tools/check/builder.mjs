@@ -3320,6 +3320,50 @@ try {
     await page.close();
   });
 
+  await step("Own padding: a component that pads itself names that as its default, in the box model and in Variables, and nowhere else", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames[0].root.children.unshift({ id: "opc", type: "Card", props: { title: "Own padding" }, style: { padding: "lg" } }, { id: "opt", type: "Text", props: { children: "No padding of its own" }, style: {} });
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="opc"]'));
+    const listOf = async (locator) => { await locator.click(); const l = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents(); await page.keyboard.press("Escape"); return l; };
+    const selectOne = async (id, title) => { await page.evaluate((x) => window.__builder.select([x]), id); await page.waitForFunction((t) => new RegExp(t).test(document.querySelector(".bd-inspect-title")?.textContent || ""), title); await tab(page, "Layout"); };
+
+    await selectOne("opc", "Card");
+    const cardPad = await listOf(page.locator(".bd-box-p > .bd-box-all"));
+    expect(cardPad[0] === "Default: card padding", `a Card's padding names its own as the default, got ${cardPad[0]}`);
+    await selectOne("opt", "Text");
+    const textPad = await listOf(page.locator(".bd-box-p > .bd-box-all"));
+    expect(!textPad.some((l) => /card padding|Default:/.test(l)), `a Text never sees the card's padding, got ${textPad[0]}`);
+    ok("a Card's padding list starts with its own card padding as the default; a Text's doesn't");
+
+    await selectOne("opc", "Card");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await page.locator('.bd-assets [aria-label="Back to Assets"]').click().catch(() => {});
+    await page.locator('.bd-assets [data-asset-kind="variables"]').click();
+    const own = page.locator(".bd-vars-sec", { hasText: "Padding" }).locator(".bd-var-own");
+    expect(await own.count() === 1 && /card padding/.test(await own.textContent()), "Variables offers the Card's own padding as its default");
+    await own.click();
+    const card = await poll(async () => (await saved()).frames[0].root.children.find((c) => c.id === "opc"), (c) => c && !c.style.padding);
+    expect(card && !card.style.padding, `pressing it clears Padding so the card's own applies, got ${JSON.stringify(card && card.style)}`);
+    await page.evaluate(() => window.__builder.select(["opt"]));
+    await page.waitForTimeout(200);
+    expect(await page.locator(".bd-vars-sec", { hasText: "Padding" }).locator(".bd-var-own").count() === 0, "with a Text selected, Variables offers no component's padding");
+    ok("Variables offers the Card's own padding as its default, which clears Padding; a Text gets none");
+    await page.close();
+  });
+
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {
     const phone = await open({ width: 390, height: 844 });
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");

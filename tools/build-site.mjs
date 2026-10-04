@@ -2626,6 +2626,24 @@ function buildBuilder() {
 
   const meta = {};
   const groups = [];
+  /* The padding a component sets itself from its own tier (Card's
+     --dt-card-padding, Button's --dt-button-padding-md), read from its
+     source, so the inspector can name it as that component's default, and
+     only on that component. Semantic space and layout tokens aren't a
+     component's own. */
+  const ownPadding = (c) => {
+    /* A block's padding is its Section's module padding, not the card
+       inside it. */
+    if (!c.types || c.group === "blocks") return null;
+    const file = path.join(ROOT, c.types.replace(/\.d\.ts$/, ".jsx"));
+    if (!fs.existsSync(file)) return null;
+    const m = /padding[A-Za-z]*:\s*[^,\n]*?var\((--dt-(?!space-|layout-|size-|dim-)[a-z0-9-]*padding[a-z0-9-]*?(?:-\$\{size\})?)\)/.exec(read(file));
+    if (!m) return null;
+    /* A size-dependent padding is named at the default size. */
+    const token = m[1].replace("${size}", "md");
+    if (!declared.has(token)) return null;
+    return { token, label: token.replace(/^--dt-/, "").replace(/-/g, " ") };
+  };
   const entry = (c) => {
     /* A free-form length, URL or breakpoint isn't a token, so it isn't a
        control here: the inspector would be handing out raw values. Enums keep
@@ -2657,6 +2675,8 @@ function buildBuilder() {
       href: `components/${c.name}.html`,
       props,
     };
+    const own = ownPadding(c);
+    if (own) meta[c.name].ownPadding = own;
     return c.name;
   };
   meta.Group = BUILDER_GROUP;
