@@ -1,11 +1,12 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { BACKUP_KEY, CAROUSEL_STEPS, DATA, FAMILY_LABEL, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { readLayout } from "../model/paste.js";
-import { copyText, encode, initialDoc, loadLibrary, loadPrefs, thick, withoutUploads } from "../model/share.js";
+import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
+import { ago, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
-import { FREE_MAX, active, autoLayout, canHold, cleanNode, copy, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
+import { FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
@@ -17,11 +18,20 @@ setAutoFreeze(true);
 
 /* ------------------------------------------------------------ the app */
 
-function App() {
-  var init = useMemo(initialDoc, []);
+function App(props) {
+  var init = props.init;
+  var store = props.store;
   var prefs = useMemo(loadPrefs, []);
   var docState = useState(function () { return freeze(init.doc, true); });
   var doc = docState[0], setDoc = docState[1];
+  /* The project on screen: { id, name, createdAt, updatedAt, frames, thumb }. */
+  var projectState = useState(init.project);
+  var project = projectState[0], setProject = projectState[1];
+  var projectRef = useRef(project); projectRef.current = project;
+  /* The document last written for the project, so opening one isn't saved
+     back as an edit (which would change its edited time). */
+  var lastSaved = useRef(init.from === "saved" ? doc : null);
+
   var selState = useState([]);
   var selection = selState[0], setSelection = selState[1];
   /* A component's own part being changed, like a block's title: { id, part }. */
@@ -195,8 +205,9 @@ function App() {
     document.documentElement.classList.add("bd-configure-docked");
     return function () { document.documentElement.classList.remove("bd-configure-docked"); };
   }, []);
-  var libState = useState(loadLibrary);
+  var libState = useState(init.library);
   var library = libState[0], setLibrary = libState[1];
+  var libRef = useRef(library); libRef.current = library;
   var libTabState = useState(null);
   var libTab = libTabState[0], setLibTab = libTabState[1];
   var libBusyState = useState(null);
@@ -204,8 +215,7 @@ function App() {
   var libFirst = useRef(true);
   useEffect(function () {
     if (libFirst.current) { libFirst.current = false; return; }
-    var ok = storage(function (s) { s.setItem(LIB_KEY, JSON.stringify(library)); return true; });
-    if (!ok) announce("This browser is out of room for content. Remove something, or use smaller files.");
+    store.saveLibrary(library).catch(function () { announce("This browser is out of room for content. Remove something, or use smaller files."); });
   }, [library]);
   var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
   useEffect(function () {
@@ -313,13 +323,39 @@ function App() {
     announce("Redone");
   }, [announce, select]);
 
-  /* Every change is written straight away. The toolbar says when it last
-     saved, or that this browser won't keep it (a private window, blocked
-     storage, or too many uploads), so work is never lost quietly. */
+  /* Every change is saved to its project straight away, in order: while one
+     save is being written the latest document waits, and only the newest is
+     written next. The toolbar says when it last saved, or that it couldn't,
+     so work is never lost quietly. */
+  var saving = useRef({ busy: false, next: null, done: Promise.resolve() });
+  var persist = useCallback(function (pid, d) {
+    var q = saving.current;
+    q.next = { pid: pid, doc: d };
+    if (q.busy) return q.done;
+    q.busy = true;
+    var loop = function () {
+      var job = q.next;
+      q.next = null;
+      if (!job) { q.busy = false; return Promise.resolve(); }
+      return store.saveDoc(job.pid, job.doc).then(function () {
+        setSaved({ ok: true, at: new Date() });
+      }, function () {
+        setSaved({ ok: false, at: null });
+      }).then(loop);
+    };
+    q.done = loop();
+    return q.done;
+  }, []);
+  var flush = function () { return saving.current.done; };
   useEffect(function () {
-    var ok = storage(function (s) { s.setItem(STORE_KEY, JSON.stringify(doc)); return true; });
-    setSaved({ ok: !!ok, at: new Date() });
+    if (doc === lastSaved.current) return;
+    persist(projectRef.current.id, doc);
   }, [doc]);
+  /* For the checks: the document and project on screen, and a way to wait
+     for the save. */
+  useEffect(function () {
+    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store };
+  }, []);
   useEffect(function () {
     storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, stage: stageColor })); });
   }, [category, assetKind, view, tabByType, closedSecs, left, stageColor]);
@@ -1551,7 +1587,7 @@ function App() {
      only while nothing else has focus. */
   var keyRef = useRef(function () { return false; });
   keyRef.current = function (ev) {
-    if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open) || newOpenRef.current) return false;
+    if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (projectsRef.current && projectsRef.current.open) || (versionsRef.current && versionsRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open) || newOpenRef.current) return false;
     var t = ev.target;
     var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
     if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
@@ -1943,6 +1979,249 @@ function App() {
     setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
   };
 
+  /* ------------------------------------------------- projects */
+
+  /* Projects: each a name and its own canvas, kept in this browser. The
+     home lists them; the bar names the one on screen. Switching saves this
+     one first, then opens the other with a fresh history. */
+  var projectsRef = useRef(null);
+  var versionsRef = useRef(null);
+  var projListState = useState([]);
+  var projList = projListState[0], setProjList = projListState[1];
+  var projQueryState = useState("");
+  var projQuery = projQueryState[0], setProjQuery = projQueryState[1];
+  var renamingState = useState(null);
+  var renaming = renamingState[0], setRenaming = renamingState[1];
+  var confirmState = useState(null);
+  var confirmDel = confirmState[0], setConfirmDel = confirmState[1];
+  var versionsState = useState([]);
+  var versions = versionsState[0], setVersions = versionsState[1];
+  /* Which of the two dialogs is open; their contents render only then. */
+  var shownState = useState(null);
+  var shown = shownState[0], setShown = shownState[1];
+  var importFileRef = useRef(null);
+
+  var refreshProjects = function () { return store.listProjects().then(function (list) { setProjList(list); return list; }); };
+
+  /* A small picture of the active frame for the project's card: the frame's
+     own export, scaled to 480px wide. Best effort; a card without one shows
+     its frame count. */
+  var captureThumb = function () {
+    var pid = projectRef.current.id;
+    var a = api(docRef.current.active);
+    if (!a || !a.snapshot) return Promise.resolve();
+    return a.snapshot("jpeg").then(function (url) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.onload = function () {
+          var w = Math.min(480, img.naturalWidth), h = Math.round(img.naturalHeight * w / img.naturalWidth);
+          var c = document.createElement("canvas");
+          c.width = w; c.height = Math.min(h, Math.round(w * 1.25));
+          var g = c.getContext("2d");
+          g.drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL("image/jpeg", 0.72));
+        };
+        img.onerror = function () { resolve(null); };
+        img.src = url;
+      });
+    }).then(function (thumb) { return thumb ? store.setThumb(pid, thumb) : null; }).catch(function () { return null; });
+  };
+
+  var openProjects = function () {
+    setProjQuery("");
+    setRenaming(null);
+    setConfirmDel(null);
+    refreshProjects();
+    setShown("projects");
+    var dlg = projectsRef.current;
+    if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    captureThumb().then(refreshProjects);
+  };
+  var closeProjects = function () { var dlg = projectsRef.current; if (dlg && dlg.open) dlg.close(); };
+
+  var switchTo = function (meta, d, message) {
+    var next = freeze(d, true);
+    history.current = { past: [], future: [] };
+    setEdit(null);
+    select([]);
+    lastSaved.current = next;
+    projectRef.current = meta;
+    setProject(meta);
+    store.setLastOpened(meta.id);
+    docRef.current = next;
+    setDoc(next);
+    closeProjects();
+    if (message) announce(message);
+    setTimeout(function () { showFrameRef.current(next.active); }, 0);
+  };
+  var openProject = function (meta) {
+    if (meta.id === projectRef.current.id) { closeProjects(); return; }
+    captureThumb().then(flush).then(function () { return store.loadDoc(meta.id); }).then(function (d) {
+      if (!d) { announce("That project couldn't be opened."); return; }
+      switchTo(meta, d, "Opened " + meta.name);
+    });
+  };
+  var newProject = function (starterId) {
+    var s = starterId ? STARTERS.filter(function (x) { return x[0] === starterId; })[0] : null;
+    var d = s ? s[2]() : emptyDoc();
+    var name = s ? s[1] : "Untitled";
+    captureThumb().then(flush).then(function () { return store.createProject(name, d); }).then(function (meta) {
+      switchTo(meta, d, "Made a new project, " + name);
+    });
+  };
+  var renameProject = function (id, name) {
+    setRenaming(null);
+    if (!name) return;
+    store.renameProject(id, name).then(function (meta) {
+      if (!meta) return;
+      if (id === projectRef.current.id) { projectRef.current = meta; setProject(meta); }
+      refreshProjects();
+    });
+  };
+  var duplicateProject = function (id) {
+    flush().then(function () { return store.duplicateProject(id); }).then(function (meta) {
+      if (meta) announce("Made a copy, " + meta.name);
+      refreshProjects();
+    });
+  };
+  var deleteProject = function (id) {
+    setConfirmDel(null);
+    var gone = projList.filter(function (p) { return p.id === id; })[0];
+    store.deleteProject(id).then(refreshProjects).then(function (list) {
+      announce("Deleted " + (gone ? gone.name : "the project"));
+      if (id !== projectRef.current.id) return;
+      /* The one on screen went: open the next, or start a new one. */
+      if (list.length) store.loadDoc(list[0].id).then(function (d) { switchTo(list[0], d || emptyDoc(), "Opened " + list[0].name); });
+      else { var d = starterDoc(); store.createProject("Untitled", d).then(function (meta) { switchTo(meta, d, "Made a new project"); refreshProjects(); }); }
+    });
+  };
+
+  /* A project as one file: its name and document, uploads and all. */
+  var PROJECT_FORMAT = "dovetail-project";
+  var exportProject = function (id) {
+    flush().then(function () { return Promise.all([store.getProject(id), store.loadDoc(id)]); }).then(function (got) {
+      if (!got[0] || !got[1]) return;
+      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: new Date().toISOString(), doc: got[1] });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
+      link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
+      announce("Downloaded " + link.download);
+    });
+  };
+  var importProject = function (file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var data;
+      try { data = JSON.parse(String(reader.result)); } catch (err) { announce(file.name + " isn't a Dovetail project file."); return; }
+      if (!data || data.format !== PROJECT_FORMAT || !data.doc) { announce(file.name + " isn't a Dovetail project file."); return; }
+      var dropped = [];
+      var d = clean(data.doc, dropped);
+      var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
+      captureThumb().then(flush).then(function () { return store.createProject(name, d); }).then(function (meta) {
+        switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
+        refreshProjects();
+      });
+    };
+    reader.readAsText(file);
+  };
+
+  /* Versions of the project on screen. Restoring is a step undo can take back. */
+  var openVersions = function () {
+    flush().then(function () { return store.listVersions(projectRef.current.id); }).then(function (vs) {
+      setVersions(vs);
+      setShown("versions");
+      var dlg = versionsRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    });
+  };
+  var keepVersion = function () {
+    store.addVersion(projectRef.current.id, docRef.current, "Saved by you").then(function () { return store.listVersions(projectRef.current.id); }).then(function (vs) {
+      setVersions(vs);
+      announce("Kept this version");
+    });
+  };
+  var restoreVersion = function (v) {
+    store.loadVersion(v.key).then(function (d) {
+      if (!d) { announce("That version couldn't be opened."); return; }
+      store.addVersion(projectRef.current.id, docRef.current, "Before restoring");
+      var dlg = versionsRef.current;
+      if (dlg && dlg.open) dlg.close();
+      commit(d, null, "Restored the version from " + new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) + ". Undo to go back.");
+      setTimeout(function () { showFrameRef.current(d.active); }, 0);
+    });
+  };
+
+  var projectsDialog = function () {
+    var q = projQuery.trim().toLowerCase();
+    var list = projList.filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0; });
+    var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function () { setConfirmDel(null); setRenaming(null); setShown(null); } };
+    if (shown !== "projects") return e("dialog", dialogProps);
+    return e("dialog", dialogProps,
+      e("div", { className: "bd-code-head" },
+        e("div", { className: "bd-code-intro" },
+          e("h2", { id: "bd-projects-title" }, "Projects"),
+          e("p", { className: "bd-inspect-sub" }, "Each project has its own canvas, saved in this browser. Download one as a file to move it or keep a copy.")),
+        e("div", { className: "bd-code-actions" },
+          e("label", { className: "bd-btn", title: "Open a .dovetail file as a new project" }, e(Icon, { name: "upload" }), "Open file",
+            e("input", { ref: importFileRef, type: "file", className: "visually-hidden", accept: ".dovetail,application/json",
+              onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; importProject(f); } })),
+          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: closeProjects }, e(Icon, { name: "close" })))),
+      e("div", { className: "bd-projects-bar" },
+        e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { newProject(null); } }, e(Icon, { name: "plus" }), "New project"),
+        e("span", { className: "bd-projects-tpl", role: "group", "aria-label": "New project from a template" },
+          STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) {
+            return e("button", { key: st[0], type: "button", className: "bd-btn bd-chip", onClick: function () { newProject(st[0]); }, title: "A new project from the " + st[1] + " template" }, st[1]);
+          })),
+        e(SearchField, { className: "bd-projects-search", label: "Search projects", placeholder: "Search projects", value: projQuery, onChange: setProjQuery })),
+      list.length ? e("ul", { className: "bd-projects-grid", role: "list" }, list.map(function (p) {
+        var current = p.id === project.id;
+        return e("li", { key: p.id, className: cx("bd-proj", current && "is-current"), "data-project": p.id },
+          e("button", { type: "button", className: "bd-proj-open", onClick: function () { openProject(p); }, "aria-label": "Open " + p.name + (current ? ", open now" : "") },
+            e("span", { className: "bd-proj-thumb", "aria-hidden": "true" },
+              p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" }))),
+          e("div", { className: "bd-proj-info" },
+            renaming === p.id
+              ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "Project name", startEditing: true, onChange: function (v) { renameProject(p.id, v); } })
+              : e("span", { className: "bd-proj-name" }, p.name),
+            e("span", { className: "bd-proj-meta" }, (current ? "Open now · " : "") + ago(p.updatedAt) + " · " + p.frames + (p.frames === 1 ? " frame" : " frames"))),
+          confirmDel === p.id
+            ? e("div", { className: "bd-proj-confirm", role: "group", "aria-label": "Delete " + p.name },
+              e("span", null, "Delete for good?"),
+              e("button", { type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteProject(p.id); } }, "Delete"),
+              e("button", { type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep"))
+            /* Plain buttons: a menu's list would open outside this modal dialog. */
+            : e("span", { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
+              e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function () { setRenaming(p.id); } }, e(Icon, { name: "pencil" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Duplicate " + p.name, title: "Duplicate", onClick: function () { duplicateProject(p.id); } }, e(Icon, { name: "copy" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Download " + p.name, title: "Download as a file", onClick: function () { exportProject(p.id); } }, e(Icon, { name: "exportOut" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Delete " + p.name, title: "Delete", onClick: function () { setConfirmDel(p.id); } }, e(Icon, { name: "trash" }))));
+      })) : e("p", { className: "bd-sec-empty bd-projects-empty" }, q ? "No project is called that." : "No projects yet."));
+  };
+
+  var versionsDialog = function () {
+    var dialogProps = { className: "bd-code bd-versions", ref: versionsRef, "aria-labelledby": "bd-versions-title", onClose: function () { setShown(null); } };
+    if (shown !== "versions") return e("dialog", dialogProps);
+    return e("dialog", dialogProps,
+      e("div", { className: "bd-code-head" },
+        e("div", { className: "bd-code-intro" },
+          e("h2", { id: "bd-versions-title" }, "Versions of " + project.name),
+          e("p", { className: "bd-inspect-sub" }, "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.")),
+        e("div", { className: "bd-code-actions" },
+          e("button", { type: "button", className: "bd-btn", onClick: keepVersion }, e(Icon, { name: "plus" }), "Keep this version"),
+          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { versionsRef.current.close(); } }, e(Icon, { name: "close" })))),
+      versions.length ? e("ul", { className: "bd-versions-list", role: "list" }, versions.map(function (v) {
+        return e("li", { key: v.key, className: "bd-version" },
+          e("span", { className: "bd-version-when" }, new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })),
+          e("span", { className: "bd-version-what" }, v.label + " · " + v.frames + (v.frames === 1 ? " frame" : " frames")),
+          e("button", { type: "button", className: "bd-btn", onClick: function () { restoreVersion(v); } }, "Restore"));
+      })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now."));
+  };
+
   /* Starting over, or a pasted layout. Templates add; only this replaces. */
   var startFrom = function (id) {
     closeNew();
@@ -1951,7 +2230,7 @@ function App() {
     if (!s) return;
     var has = docRef.current.frames.some(function (f) { return f.root.children.length; });
     if (has && !window.confirm("Start over with a blank frame? Every frame goes; undo brings your work back.")) return;
-    storage(function (st) { st.setItem(BACKUP_KEY, JSON.stringify(docRef.current)); });
+    store.addVersion(projectRef.current.id, docRef.current, "Before starting over");
     var next = s[2]();
     commit(next, null, "Started from " + s[1] + ". Undo to go back.");
     setTimeout(function () { showFrameRef.current(next.active); }, 0);
@@ -2090,7 +2369,7 @@ function App() {
     if (dlg) dlg.close();
     var dropped = read.report.length ? " " + read.report.length + (read.report.length === 1 ? " thing was" : " things were") + " left out." : "";
     if (mode === "replace") {
-      storage(function (st) { st.setItem(BACKUP_KEY, JSON.stringify(docRef.current)); });
+      store.addVersion(projectRef.current.id, docRef.current, "Before a pasted layout");
       commit(read.doc, null, "Opened the pasted layout. Undo to go back." + dropped);
       setTimeout(function () { showFrameRef.current(read.doc.active); }, 0);
       return;
@@ -3354,6 +3633,22 @@ function App() {
   var zoomText = Math.round(cam.z * 100) + "%";
 
   var toolbar = e("div", { className: "bd-toolbar", role: "toolbar", "aria-label": "Builder" },
+    e("span", { className: "bd-project" },
+      e("button", { type: "button", className: "bd-act", title: "All projects", "aria-label": "Projects", "aria-haspopup": "dialog", onClick: openProjects }, e(Icon, { name: "folder" })),
+      e(Renamable, { className: "bd-project-name", value: project.name, label: "Project name", hint: "Double-click to rename this project", focusable: true, onChange: function (v) { renameProject(project.id, v); } }),
+      e(Dropdown, { menu: true, label: "Project actions", placeholder: "Project", icon: "down", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-project-menu",
+        options: [
+          { value: "projects", label: "All projects", icon: "folder" },
+          { value: "versions", label: "Versions", icon: "rotate" },
+          { value: "duplicate", label: "Duplicate", icon: "copy" },
+          { value: "export", label: "Download file", icon: "exportOut" },
+        ],
+        onChange: function (v) {
+          if (v === "projects") openProjects();
+          else if (v === "versions") openVersions();
+          else if (v === "duplicate") duplicateProject(project.id);
+          else if (v === "export") exportProject(project.id);
+        } })),
     e("button", { type: "button", ref: newBtnRef, className: "bd-act bd-start", title: "New: a free canvas, a structured page or a template", "aria-label": "New", "aria-haspopup": "dialog", "aria-expanded": String(!!newOpen), onClick: function (ev) { if (newOpen) closeNew(); else openNew(ev.currentTarget); } }, e(Icon, { name: "plus" })),
     e("span", { className: "bd-tool-group" },
       e("button", { type: "button", className: "bd-act", onClick: undo, disabled: !canUndo, title: "Undo (Ctrl+Z)", "aria-label": "Undo" }, e(Icon, { name: "undo" })),
@@ -3914,6 +4209,8 @@ function App() {
       e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
     newMenu(),
     importDialog(),
+    projectsDialog(),
+    versionsDialog(),
     componentDialog(),
     playDialog(),
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));

@@ -1,15 +1,15 @@
 /* Share links, saved work and the first layout a visit opens. */
 
-import { DATA, LIB_KEY, LIB_KINDS, PREFS_KEY, PRESET, STORE_KEY, mql, storage } from "../config.js";
+import { DATA, LIB_KINDS, PREFS_KEY, PRESET, mql, storage } from "../config.js";
 import { readLayout } from "./paste.js";
 import { STARTERS } from "./starters.js";
-import { clean, cleanNode, copy, emptyDoc, frameById, uid } from "./tree.js";
+import { clean, cleanNode, copy, frameById, uid } from "./tree.js";
 
 /* ---------------------------------------------------- share and storage */
 
-/* The Content library saved in this browser, cleaned like anything else that comes in. */
-function loadLibrary() {
-  var raw = storage(function (s) { return JSON.parse(s.getItem(LIB_KEY) || "null"); }) || {};
+/* The Content library as saved, cleaned like anything else that comes in. */
+function loadLibrary(saved) {
+  var raw = saved && typeof saved === "object" ? saved : {};
   var out = {};
   LIB_KINDS.forEach(function (k) {
     out[k] = (Array.isArray(raw[k]) ? raw[k] : []).filter(function (it) {
@@ -50,53 +50,80 @@ function withoutUploads(doc) {
   return { doc: d, dropped: dropped };
 }
 
-/* A share link: #b= the layout, then maybe &f= the frame and &n= the
-   layer it opens on. */
-function initialDoc() {
-  /* An example from the docs: its JSX, added as a frame beside what's saved. */
+/* What the address asks for, read once: #jsx= an example from the docs, or
+   #b= a share link (then maybe &f= the frame and &n= the layer). */
+function readHash() {
   var jx = /^#jsx=([\w-]+)$/.exec(location.hash);
   if (jx) {
     /* Read once: a reload shouldn't add the example again. */
     try { window.history.replaceState(null, "", location.pathname + location.search); } catch (err) { /* keep going */ }
-    var src = null;
     try {
       var bin = atob(jx[1].replace(/-/g, "+").replace(/_/g, "/"));
       var bytes = new Uint8Array(bin.length);
       for (var b = 0; b < bin.length; b++) bytes[b] = bin.charCodeAt(b);
-      src = new TextDecoder().decode(bytes);
-    } catch (err) { src = null; }
-    var read = src ? readLayout(src) : null;
-    if (read && read.doc) {
-      var mine = storage(function (s) { return s.getItem(STORE_KEY); });
-      var base = null;
-      if (mine) { try { base = clean(JSON.parse(mine)); } catch (err) { base = null; } }
-      var added = read.doc.frames.map(function (f) { var c = copy(f); c.id = uid(); c.name = "Example"; return c; });
-      if (base) {
-        base.frames = base.frames.concat(added).slice(-24);
-        base.active = added[0].id;
-      } else base = { frames: added, active: added[0].id };
-      return { doc: base, from: "jsx", dropped: read.report };
-    }
-    return { doc: emptyDoc(), from: "jsx", dropped: [], error: read && read.error ? read.error : "That example couldn't be read." };
+      return { kind: "jsx", src: new TextDecoder().decode(bytes) };
+    } catch (err) { return { kind: "jsx", src: null }; }
   }
   var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40})*)$/.exec(location.hash);
   if (m) {
-    var shared = decode(m[1]);
-    if (shared) {
-      var dropped = [];
-      var d = clean(shared, dropped);
-      var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]);
-      if (f && frameById(d, f[1])) d.active = f[1];
-      return { doc: d, from: "link", dropped: dropped, focus: n ? n[1] : null };
-    }
+    var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]);
+    return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null };
   }
-  var saved = storage(function (s) { return s.getItem(STORE_KEY); });
-  if (saved) {
-    try { return { doc: clean(JSON.parse(saved)), from: "saved" }; } catch (err) { /* fall through */ }
-  }
+  return null;
+}
+
+/* A first project's first layout: the landing page, phone-wide on a phone. */
+function starterDoc() {
   var first = STARTERS[0][2]();
   if (mql("(max-width: 900px)")) first.frames[0].width = PRESET.phone.width;
-  return { doc: first, from: "starter" };
+  return first;
+}
+
+/* The project a visit opens, and its document: a share link opens as a new
+   project, an example from the docs joins the last project as a frame, and
+   otherwise the last project opens (or a first one is made). */
+function openStart(store) {
+  var hash = readHash();
+  return store.listProjects().then(function (projects) {
+    var last = store.lastOpened();
+    var pick = projects.filter(function (p) { return p.id === last; })[0] || projects[0] || null;
+    var current = function () {
+      return pick ? store.loadDoc(pick.id).then(function (doc) { return doc ? { project: pick, doc: doc } : null; }) : Promise.resolve(null);
+    };
+    var fresh = function (name, doc, extra) {
+      return store.createProject(name, doc).then(function (meta) { return Object.assign({ project: meta, doc: doc }, extra); });
+    };
+    if (hash && hash.kind === "link" && hash.data) {
+      var dropped = [];
+      var d = clean(hash.data, dropped);
+      if (hash.frame && frameById(d, hash.frame)) d.active = hash.frame;
+      return fresh(d.frames.length === 1 ? d.frames[0].name : "Shared layout", d, { from: "link", dropped: dropped, focus: hash.node });
+    }
+    if (hash && hash.kind === "jsx") {
+      var read = hash.src ? readLayout(hash.src) : null;
+      return current().then(function (cur) {
+        if (!read || !read.doc) {
+          var err = read && read.error ? read.error : "That example couldn't be read.";
+          return cur ? Object.assign(cur, { from: "jsx", dropped: [], error: err }) : fresh("Untitled", starterDoc(), { from: "jsx", dropped: [], error: err });
+        }
+        var added = read.doc.frames.map(function (f) { var c = copy(f); c.id = uid(); c.name = "Example"; return c; });
+        if (!cur) return fresh("Examples", { frames: added, active: added[0].id }, { from: "jsx", dropped: read.report });
+        var base = copy(cur.doc);
+        base.frames = base.frames.concat(added).slice(-24);
+        base.active = added[0].id;
+        return { project: cur.project, doc: base, from: "jsx", dropped: read.report };
+      });
+    }
+    return current().then(function (cur) {
+      return cur ? Object.assign(cur, { from: "saved" }) : fresh("Untitled", starterDoc(), { from: "starter" });
+    });
+  }).then(function (init) {
+    store.setLastOpened(init.project.id);
+    return store.loadLibrary().then(function (lib) {
+      init.library = loadLibrary(lib);
+      return init;
+    });
+  });
 }
 
 function loadPrefs() {
@@ -130,4 +157,4 @@ function thick(r) {
   return r;
 }
 
-export { copyText, decode, encode, initialDoc, loadLibrary, loadPrefs, thick, withoutUploads };
+export { copyText, decode, encode, loadLibrary, loadPrefs, openStart, readHash, starterDoc, thick, withoutUploads };

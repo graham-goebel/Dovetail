@@ -4303,3 +4303,249 @@ button.bd-sys-item:focus-visible {
   background: var(--dt-surface-sunken);
   font-size: var(--dt-font-size-xs);
 }
+
+/* ------------------------------------------------------------- projects */
+
+/* The bar names the project on screen: the projects button, its name
+   (double-click to rename) and a menu of what a project can do. */
+.bd-project {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  min-width: 0;
+}
+
+.bd-project-name {
+  overflow: hidden;
+  max-width: 14rem;
+  padding: 0 var(--dt-space-inset-2xs);
+  border-radius: var(--dt-radius-control);
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bd-project-name:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+}
+
+input.bd-project-name {
+  width: 12rem;
+  height: var(--dt-size-control-sm);
+}
+
+@media (max-width: 900px) {
+  .bd-project-name {
+    max-width: 8rem;
+  }
+}
+
+.bd-btn-danger,
+.bd-btn-danger:hover {
+  background: var(--dt-surface-danger);
+  border-color: var(--dt-surface-danger);
+  color: var(--dt-text-on-danger);
+}
+
+/* The projects home: new, search, and a card per project. */
+.bd-projects-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
+}
+
+.bd-projects-tpl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-2xs);
+}
+
+/* A card's actions float over its picture: on hover or focus with a
+   pointer, always on touch. */
+.bd-proj-acts {
+  position: absolute;
+  top: var(--dt-space-inset-xs);
+  right: var(--dt-space-inset-xs);
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-overlay);
+  box-shadow: var(--dt-elevation-2);
+  opacity: 0;
+  transition: opacity var(--dt-motion-micro);
+}
+
+.bd-proj:hover .bd-proj-acts,
+.bd-proj:focus-within .bd-proj-acts {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .bd-proj-acts {
+    opacity: 1;
+  }
+}
+
+.bd-projects-search {
+  flex: 1 1 12rem;
+  margin-left: auto;
+  max-width: 20rem;
+}
+
+.bd-projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  align-content: start;
+  gap: var(--dt-space-inline-md);
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md) var(--dt-space-inset-md);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bd-proj {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--dt-space-stack-2xs);
+}
+
+.bd-proj-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-sunken);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--dt-motion-micro), box-shadow var(--dt-motion-micro);
+}
+
+.bd-proj-open:hover {
+  border-color: var(--dt-border-strong);
+}
+
+.bd-proj-open:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: var(--dt-focus-ring-offset);
+}
+
+.bd-proj.is-current .bd-proj-open {
+  border-color: var(--dt-surface-action);
+  box-shadow: 0 0 0 var(--dt-border-width-default) var(--dt-surface-action);
+}
+
+.bd-proj-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  color: var(--dt-text-tertiary);
+}
+
+.bd-proj-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.bd-proj-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bd-proj-name {
+  overflow: hidden;
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+input.bd-proj-name {
+  width: 100%;
+  height: var(--dt-size-control-sm);
+}
+
+.bd-proj-meta {
+  overflow: hidden;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bd-proj-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-proj-confirm span {
+  margin-right: auto;
+}
+
+.bd-projects-empty {
+  padding: var(--dt-space-inset-md);
+}
+
+/* Versions of the project on screen, newest first. */
+.bd-versions {
+  height: min(640px, calc(100dvh - 48px));
+}
+
+.bd-versions-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md) var(--dt-space-inset-md);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.bd-version {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--dt-space-inline-sm);
+  padding: var(--dt-space-inset-xs) 0;
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+
+.bd-version-when {
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-version-what {
+  grid-column: 1;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-version .bd-btn {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-proj-open,
+  .bd-proj-acts {
+    transition: none;
+  }
+}

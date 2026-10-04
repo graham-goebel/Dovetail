@@ -31,9 +31,19 @@
 import { mountEl, e } from "./config.js";
 import { App } from "./app/App.js";
 import { installTips } from "./ui/tips.js";
+import { openStore } from "./model/store.js";
+import { openStart } from "./model/share.js";
 
+/* The store opens first (IndexedDB is asynchronous), then the project to
+   show; the page says it's loading until then. */
 if (mountEl && window.DovetailBuilderData && window.React && window.ReactDOM) {
   installTips();
-  mountEl.textContent = "";
-  ReactDOM.createRoot(mountEl).render(e(App));
+  openStore().then(function (store) {
+    return openStart(store).then(function (init) {
+      mountEl.textContent = "";
+      ReactDOM.createRoot(mountEl).render(e(App, { init: init, store: store }));
+    });
+  }).catch(function (err) {
+    mountEl.textContent = "The builder couldn't open: " + (err && err.message ? err.message : err) + ". Reload to try again.";
+  });
 }
