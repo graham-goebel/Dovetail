@@ -91,6 +91,8 @@ function settle(frame, parentId, n) {
   if (parentId !== "root" || joinsFlow(n.type) || isContainer(n.type)) return n;
   return make("Group", { direction: "column", gap: "md" }, [n], { padding: "md" });
 }
+/* The containers that turn into one another. */
+var CONVERTS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
 var ops = {
   insert: function (doc, parentId, index, n, fid) {
     var p = locate(doc, parentId, fid);
@@ -141,6 +143,7 @@ var ops = {
     var at = locate(doc, id);
     if (fixed(at)) return null;
     var box = make(type, {}, [at.node]);
+    if (type === "Group" && active(doc).mode === "structured") autoLayout(box);
     if (!canHold(parentSpot(at), box)) return null;
     at.parent.children.splice(at.index, 1, box);
     return box.id;
@@ -154,6 +157,8 @@ var ops = {
     if (!parent || spots.some(function (s) { return s.parent !== parent; })) return null;
     spots.sort(function (a, b) { return a.index - b.index; });
     var box = make("Group", {}, spots.map(function (s) { return s.node; }));
+    /* In a structured frame a Group always lays out what it holds. */
+    if (active(doc).mode === "structured") autoLayout(box);
     var at = spots[0].index;
     parent.children = parent.children.filter(function (c) { return ids.indexOf(c.id) < 0; });
     parent.children.splice(at, 0, box);
@@ -166,6 +171,27 @@ var ops = {
     if (kids.some(function (k) { return !canHold(parentSpot(at), k); })) return null;
     at.parent.children.splice.apply(at.parent.children, [at.index, 1].concat(kids));
     return kids.length ? kids[0].id : at.parent.id;
+  },
+  /* One container turned into another, keeping what's in it, its name and
+     where it sits: a Section or a Stack into a Group, a Group into a
+     Section, and so on. A Group comes laid out (a column, or a row from an
+     Inline), with padding where a band had it. Keeps the node's id, so
+     it stays selected. */
+  convert: function (doc, id, type) {
+    var at = locate(doc, id);
+    if (fixed(at) || !at.node.children || at.node.type === type) return null;
+    if (CONVERTS.indexOf(at.node.type) < 0 || CONVERTS.indexOf(type) < 0) return null;
+    var from = at.node;
+    var kids = from.children.filter(function (c) { return c.type !== "Slot"; });
+    var n = type === "Group"
+      ? make("Group", { direction: from.type === "Inline" ? "row" : "column", gap: "md" }, kids, from.type === "Section" || from.type === "Card" ? { padding: "lg" } : {})
+      : make(type, {}, kids);
+    n.id = from.id;
+    if (from.name) n.name = from.name;
+    ["x", "y"].forEach(function (k) { if (from.style && from.style[k] !== undefined) n.style[k] = from.style[k]; });
+    if (!canHold(parentSpot(at), n)) return null;
+    at.parent.children.splice(at.index, 1, n);
+    return n.id;
   },
   nudge: function (doc, id, by) {
     var at = locate(doc, id);
@@ -348,4 +374,4 @@ function clean(doc, report) {
   return out;
 }
 
-export { FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };
+export { CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };

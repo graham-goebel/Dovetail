@@ -78,10 +78,10 @@
     { nav: true },
     null,
     { group: "layout", label: "Layout", items: [
-      { id: "box", label: "Group", icon: "container", key: "B", hint: "A padded flex container" },
+      { id: "box", label: "Group", icon: "container", key: "B", hint: "A box that lays out what it holds in a row or a column (auto layout)" },
       { id: "comp:Section", label: "Section", icon: "layout", hint: "A band across the page" },
-      { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a device size" },
-      { id: "page", label: "Page", icon: "file", hint: "A frame that grows with its content" }
+      { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a fixed device size" },
+      { id: "page", label: "Tall frame", icon: "file", hint: "A frame that grows as tall as what's on it" }
     ] },
     { group: "text", label: "Text", items: [
       { id: "comp:Text", label: "Text", icon: "type", key: "T", hint: "Body copy" },
@@ -1575,6 +1575,7 @@
     if (parentId !== "root" || joinsFlow(n.type) || isContainer(n.type)) return n;
     return make("Group", { direction: "column", gap: "md" }, [n], { padding: "md" });
   }
+  var CONVERTS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
   var ops = {
     insert: function(doc, parentId, index, n, fid) {
       var p = locate(doc, parentId, fid);
@@ -1627,6 +1628,7 @@
       var at = locate(doc, id);
       if (fixed(at)) return null;
       var box = make(type, {}, [at.node]);
+      if (type === "Group" && active(doc).mode === "structured") autoLayout(box);
       if (!canHold(parentSpot(at), box)) return null;
       at.parent.children.splice(at.index, 1, box);
       return box.id;
@@ -1648,6 +1650,7 @@
       var box = make("Group", {}, spots.map(function(s) {
         return s.node;
       }));
+      if (active(doc).mode === "structured") autoLayout(box);
       var at = spots[0].index;
       parent.children = parent.children.filter(function(c) {
         return ids.indexOf(c.id) < 0;
@@ -1664,6 +1667,29 @@
       })) return null;
       at.parent.children.splice.apply(at.parent.children, [at.index, 1].concat(kids));
       return kids.length ? kids[0].id : at.parent.id;
+    },
+    /* One container turned into another, keeping what's in it, its name and
+       where it sits: a Section or a Stack into a Group, a Group into a
+       Section, and so on. A Group comes laid out (a column, or a row from an
+       Inline), with padding where a band had it. Keeps the node's id, so
+       it stays selected. */
+    convert: function(doc, id, type) {
+      var at = locate(doc, id);
+      if (fixed(at) || !at.node.children || at.node.type === type) return null;
+      if (CONVERTS.indexOf(at.node.type) < 0 || CONVERTS.indexOf(type) < 0) return null;
+      var from = at.node;
+      var kids = from.children.filter(function(c) {
+        return c.type !== "Slot";
+      });
+      var n = type === "Group" ? make("Group", { direction: from.type === "Inline" ? "row" : "column", gap: "md" }, kids, from.type === "Section" || from.type === "Card" ? { padding: "lg" } : {}) : make(type, {}, kids);
+      n.id = from.id;
+      if (from.name) n.name = from.name;
+      ["x", "y"].forEach(function(k) {
+        if (from.style && from.style[k] !== void 0) n.style[k] = from.style[k];
+      });
+      if (!canHold(parentSpot(at), n)) return null;
+      at.parent.children.splice(at.index, 1, n);
+      return n.id;
     },
     nudge: function(doc, id, by) {
       var at = locate(doc, id);
@@ -6298,6 +6324,19 @@
           return ops.wrap(d, id, type);
         }, "Wrapped in " + type);
       },
+      /* One container into another (a Section into a Group, say), or onto
+         the canvas as a frame of its own. */
+      convert: function(type) {
+        var id = selRef.current[selRef.current.length - 1];
+        if (!id || !type) return;
+        if (type === "frame") {
+          layerToFrame(id);
+          return;
+        }
+        if (!change(function(d) {
+          return ops.convert(d, id, type);
+        }, "Now a " + type)) announce("That can't be a " + type + " where it is");
+      },
       group: function() {
         var ids = selRef.current.slice();
         if (!ids.length) return;
@@ -6640,6 +6679,84 @@
         return void 0;
       });
     };
+    var pinFrames = function(d) {
+      var boxesNow = layoutRef.current.boxes;
+      d.frames.forEach(function(fr) {
+        if (typeof fr.x !== "number" && boxesNow[fr.id]) {
+          fr.x = Math.round(boxesNow[fr.id].x);
+          fr.y = Math.round(boxesNow[fr.id].y);
+        }
+      });
+    };
+    var layerToFrame = function(id) {
+      var fid = docRef.current.active;
+      var src = frameById(docRef.current, fid);
+      var at0 = locate(docRef.current, id, fid);
+      if (!src || fixedSpot(at0)) return;
+      var a = api(fid), r = a && a.rect ? a.rect(id) : null;
+      var b = layoutRef.current.boxes[fid];
+      var label = nameOf(at0.node);
+      change(function(d) {
+        var at = locate(d, id, fid);
+        if (fixedSpot(at)) return null;
+        pinFrames(d);
+        at.parent.children.splice(at.index, 1);
+        var n = at.node;
+        ["x", "y", "position", "anchor", "offset"].forEach(function(k) {
+          delete n.style[k];
+        });
+        var f = makeFrame(label, "desktop", true);
+        f.width = Math.max(minSide(src), Math.min(MAX_WIDTH, Math.round(r && r.width ? r.width : src.width)));
+        f.mode = src.mode;
+        if (b) {
+          f.x = Math.round(b.x + b.w + FRAME_GAP);
+          f.y = Math.round(b.y);
+        }
+        f.root.children = [n];
+        d.frames.push(f);
+        d.active = f.id;
+        return n.id;
+      }, label + " is a frame of its own now");
+    };
+    var frameToGroup = function(fid) {
+      var b = layoutRef.current.boxes[fid];
+      change(function(d) {
+        var f = frameById(d, fid);
+        if (!f || f.bare) return null;
+        pinFrames(d);
+        var kids = f.root.children.slice().sort(function(p, q) {
+          return (p.style.y || 0) - (q.style.y || 0) || (p.style.x || 0) - (q.style.x || 0);
+        });
+        kids.forEach(function(k) {
+          delete k.style.x;
+          delete k.style.y;
+        });
+        var g = make("Group", { direction: "column", gap: "md" }, kids, { padding: "lg" });
+        g.name = f.name;
+        f.root.children = [g];
+        f.bare = true;
+        f.hug = true;
+        f.sized = true;
+        f.width = Math.round(b ? b.w : f.width);
+        f.mode = "free";
+        d.active = f.id;
+        return g.id;
+      }, "Now a Group, loose on the canvas: drag it into a frame");
+    };
+    var looseToFrame = function(fid) {
+      var b = layoutRef.current.boxes[fid];
+      change(function(d) {
+        var f = frameById(d, fid);
+        if (!f || !f.bare) return null;
+        pinFrames(d);
+        f.bare = false;
+        delete f.sized;
+        f.hug = true;
+        f.width = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, Math.round(b ? b.w : f.width)));
+        d.active = f.id;
+        return [];
+      }, "Now a frame");
+    };
     var frameOps = {
       /* page: a frame that hugs its content, started with a Section to fill.
          A new frame is the screen size of the frame on screen when that is a
@@ -6650,7 +6767,7 @@
         var cur = active(docRef.current);
         var pid = !page && !cur.bare ? presetOf(cur) : "";
         var p = pid && PRESET[pid] || PRESET.desktop;
-        var f = makeFrame((page ? "Page " : "Frame ") + (docRef.current.frames.length + 1), pid || "desktop", !!page);
+        var f = makeFrame("Frame " + (docRef.current.frames.length + 1), pid || "desktop", !!page);
         f.width = size ? side(size.width, MAX_WIDTH, p.width) : p.width;
         f.height = size ? side(size.height, MAX_HEIGHT, p.height) : p.height;
         if (page) f.root.children = [make("Section")];
@@ -6996,7 +7113,7 @@
       closeNew();
       var d = docRef.current;
       var structured = mode === "structured";
-      var f = makeFrame((structured ? "Page " : "Canvas ") + (d.frames.length + 1), "desktop", structured);
+      var f = makeFrame("Frame " + (d.frames.length + 1), "desktop", structured);
       f.mode = structured ? "structured" : "free";
       if (structured) {
         var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" });
@@ -7008,7 +7125,7 @@
         dd.frames.push(f);
         dd.active = f.id;
         return [];
-      }, "Added " + f.name + (structured ? ": a structured page. Everything goes in Groups." : ": a free canvas. Place things anywhere."));
+      }, "Added " + f.name + (structured ? ": a structured frame. Everything goes in auto-layout Groups." : ": a freeform frame. Place things anywhere."));
       setTimeout(function() {
         showFrameRef.current(f.id, true);
       }, 0);
@@ -7936,8 +8053,9 @@
         alignEnd: true,
         className: "bd-dd-icon bd-frame-menu",
         options: [
-          { value: "duplicate", label: "Duplicate frame", icon: "copy" },
+          { value: "duplicate", label: f.bare ? "Duplicate" : "Duplicate frame", icon: "copy" },
           { value: "rename", label: "Rename", icon: "pencil" },
+          f.bare ? { value: "to-frame", label: "Turn into a frame", icon: "frame" } : { value: "to-group", label: "Turn into a group", icon: "group" },
           { value: "fit", label: "Zoom to frame", icon: "fit" },
           { value: "link", label: "Copy link to frame", icon: "link" },
           { value: "png", label: "Export as PNG", icon: "image" },
@@ -7946,6 +8064,8 @@
         ],
         onChange: function(v) {
           if (v === "duplicate") frameOps.duplicate(f.id);
+          if (v === "to-group") frameToGroup(f.id);
+          if (v === "to-frame") looseToFrame(f.id);
           if (v === "rename") setRenaming({ id: "frame:" + f.id, where });
           if (v === "fit") {
             activate(f.id);
@@ -9949,7 +10069,7 @@
       ])] : [
         sec("frame-mode", "Kind", e(
           Field,
-          { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
+          { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
           e(Segmented, {
             labelledBy: "bd-fr-kind",
             wide: true,
@@ -10397,6 +10517,23 @@
                 }),
                 onChange: actions.wrap
               }),
+              !many && CONVERTS.indexOf(first.type) >= 0 ? e(Dropdown, {
+                menu: true,
+                label: "Turn into",
+                placeholder: "Turn into",
+                icon: "rotate",
+                iconOnly: true,
+                compact: true,
+                alignEnd: true,
+                className: "bd-dd-icon",
+                title: "Turn into another container, or a frame",
+                options: CONVERTS.filter(function(t) {
+                  return t !== first.type && (placeable == null || placeable[t] || t === "Group");
+                }).map(function(t) {
+                  return { value: t, label: "Turn into " + t, icon: typeIcon(t) };
+                }).concat([{ value: "frame", label: "Turn into a frame", icon: "frame" }]),
+                onChange: actions.convert
+              }) : null,
               !many && first.type === "Group" ? headAction("group", "Ungroup (Ctrl+Shift+G)", actions.ungroup) : headAction("group", "Group (Ctrl+G)", actions.group),
               !many && detachable[first.type] ? headAction("detach", "Detach into primitives", actions.detach) : null,
               !many ? headAction("link", "Copy a link to this layer", function() {
@@ -11114,8 +11251,8 @@
       );
     };
     var NEW_KINDS = [
-      ["free", "Freeform canvas", "frame", "Anything anywhere, any colour"],
-      ["structured", "Structured page", "layout", "Groups and tokens, ready for code"]
+      ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
+      ["structured", "Structured frame", "layout", "Everything in auto-layout Groups, with tokens, ready for code"]
     ];
     var newMenu = function() {
       if (!newOpen) return null;

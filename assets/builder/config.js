@@ -58,10 +58,10 @@ var TOOLBAR = [
   { nav: true },
   null,
   { group: "layout", label: "Layout", items: [
-    { id: "box", label: "Group", icon: "container", key: "B", hint: "A padded flex container" },
+    { id: "box", label: "Group", icon: "container", key: "B", hint: "A box that lays out what it holds in a row or a column (auto layout)" },
     { id: "comp:Section", label: "Section", icon: "layout", hint: "A band across the page" },
-    { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a device size" },
-    { id: "page", label: "Page", icon: "file", hint: "A frame that grows with its content" },
+    { id: "frame", label: "Frame", icon: "frame", key: "F", hint: "A screen at a fixed device size" },
+    { id: "page", label: "Tall frame", icon: "file", hint: "A frame that grows as tall as what's on it" },
   ] },
   { group: "text", label: "Text", items: [
     { id: "comp:Text", label: "Text", icon: "type", key: "T", hint: "Body copy" },
