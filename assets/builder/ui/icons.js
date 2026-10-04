@@ -95,6 +95,7 @@ var PATHS = {
    see assets/vendor/heroicons-LICENSE.txt). The builder's own drawings
    above fill the gaps: alignment, rows and columns, shapes and type. */
 var HERO = {
+  grip: ["M9 6h.01", "M9 12h.01", "M9 18h.01", "M15 6h.01", "M15 12h.01", "M15 18h.01"],
   home: ["m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"],
   undo: ["M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"],
   redo: ["m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"],
