@@ -571,6 +571,14 @@
       host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey, part);
     }, true);
   });
+  /* A right-click: the builder's own menu, for the layer under the pointer
+     (or the frame). */
+  document.addEventListener("contextmenu", function (ev) {
+    if (!editing() || !host() || !host().menu) return;
+    ev.preventDefault();
+    var w = layerOf(ev.target);
+    host().menu(w ? w.getAttribute("data-bf-id") : "root", ev.clientX, ev.clientY);
+  }, true);
   /* A pan or a pinch: every finger while editing, the middle button, or any
      drag while the builder holds Space. The builder moves the canvas and says
      whether the pointer moved, so a pan doesn't end in a click. */

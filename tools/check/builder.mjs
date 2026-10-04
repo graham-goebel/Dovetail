@@ -2911,6 +2911,36 @@ try {
     await page.locator('.bd-layer[data-layer="bb"] .bd-layer-flag[aria-label^="Unlock"]').click();
     expect(!(await poll(() => flag("bb"), (v) => !v.lock)).lock, "the lock on the row unlocks it");
     ok("hide takes a layer off the canvas and out of the code; lock keeps the canvas and the arrows off it; the row's eye and lock turn both back");
+
+    /* The right-click menu: on a canvas layer, on a layer row, from the
+       keyboard, and on empty canvas. */
+    await page.evaluate(() => window.__builder.select([]));
+    const bbPt = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
+    await page.mouse.click(bbPt.x, bbPt.y, { button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    expect((await page.evaluate(() => window.__builder.selection())).join() === "bb", "a right-click on a layer selects it first");
+    const countBefore = (await free()).root.children.length;
+    await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Duplicate/ }).click();
+    const countAfter = (await poll(async () => (await free()).root.children.length, (n) => n === countBefore + 1));
+    expect(countAfter === countBefore + 1 && await page.locator(".bd-ctx").count() === 0, `Duplicate from the menu adds a layer and closes it, ${countBefore} to ${countAfter}`);
+    await page.locator('.bd-layer[data-layer="hc"]').click({ button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Hide/ }).click();
+    expect((await poll(() => flag("hc"), (v) => v.hide)).hide, "a layer row's menu hides it");
+    await page.keyboard.press("Control+z");
+    await poll(() => flag("hc"), (v) => !v.hide);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await release(page);
+    await page.keyboard.press("Shift+F10");
+    await page.waitForSelector(".bd-ctx");
+    expect(await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Lock/ }).count() === 1, "Shift+F10 opens the menu for the selection");
+    await page.keyboard.press("Escape");
+    expect(await page.locator(".bd-ctx").count() === 0, "Escape closes it");
+    await page.mouse.click(fb.left - 24, fb.top + 4, { button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    expect(await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Select all/ }).count() === 1 && await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Delete/ }).count() === 0, "empty canvas offers Select all and Paste, not Delete");
+    await page.keyboard.press("Escape");
+    ok("the right-click menu works on canvas layers, layer rows, from Shift+F10 and on empty canvas");
     await page.close();
   });
 

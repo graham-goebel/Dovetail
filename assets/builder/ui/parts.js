@@ -319,6 +319,67 @@ function Dropdown(props) {
     })), document.body) : null);
 }
 
+/* A menu at a point: the right-click menu. Same options and rows as a
+   Dropdown's list; arrows, Enter and type-ahead work; Escape or a press
+   anywhere else closes it. Kept on screen near its point. */
+function ContextMenu(props) {
+  var activeState = useState(0);
+  var activeI = activeState[0], setActive = activeState[1];
+  var list = useRef(null);
+  var options = props.options;
+  var typed = useRef({ text: "", at: 0 });
+  var width = 220, want = Math.min(480, options.length * 40 + 16);
+  var left = Math.max(8, Math.min(props.x, window.innerWidth - width - 8));
+  var top = props.y + want > window.innerHeight - 8 ? Math.max(8, props.y - want) : props.y;
+  var choose = function (o) { if (!o || o.disabled) return; props.onClose(); props.onChoose(o.value); };
+  useEffect(function () {
+    if (list.current) list.current.focus({ preventScroll: true });
+    var away = function (ev) { if (list.current && list.current.contains(ev.target)) return; props.onClose(); };
+    var onKey = function (ev) { if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); props.onClose(); } };
+    document.addEventListener("pointerdown", away, true);
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("blur", props.onClose);
+    return function () {
+      document.removeEventListener("pointerdown", away, true);
+      document.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("blur", props.onClose);
+    };
+  }, []);
+  var onListKey = function (ev) {
+    var k = ev.key;
+    if (k === "ArrowDown") { ev.preventDefault(); setActive(Math.min(options.length - 1, activeI + 1)); }
+    else if (k === "ArrowUp") { ev.preventDefault(); setActive(Math.max(0, activeI - 1)); }
+    else if (k === "Home") { ev.preventDefault(); setActive(0); }
+    else if (k === "End") { ev.preventDefault(); setActive(options.length - 1); }
+    else if (k === "Enter" || k === " ") { ev.preventDefault(); choose(options[activeI]); }
+    else if (k === "Tab") { ev.preventDefault(); props.onClose(); }
+    else if (k.length === 1 && /\S/.test(k)) {
+      var now = Date.now();
+      typed.current.text = (now - typed.current.at > 600 ? "" : typed.current.text) + k.toLowerCase();
+      typed.current.at = now;
+      var hit = options.findIndex(function (o) { return String(o.label || o.value).toLowerCase().indexOf(typed.current.text) === 0; });
+      if (hit >= 0) setActive(hit);
+    }
+  };
+  return ReactDOM.createPortal(e("ul", {
+    ref: list, role: "menu", tabIndex: -1, className: "bd-dd-list bd-ctx", "aria-label": props.label || "Actions",
+    style: { left: left, top: top, minWidth: width, maxHeight: Math.min(want, window.innerHeight - 16) },
+    onKeyDown: onListKey, onContextMenu: function (ev) { ev.preventDefault(); },
+  }, options.map(function (o, i) {
+    var head = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+    return [head, e("li", {
+      key: String(o.value), "data-i": i, role: "menuitem", "aria-disabled": o.disabled ? "true" : undefined,
+      className: cx("bd-dd-opt", i === activeI && "is-active", o.disabled && "is-disabled", o.danger && "is-danger"),
+      onPointerMove: function () { if (activeI !== i) setActive(i); },
+      onClick: function () { choose(o); },
+    },
+      o.icon ? e(Icon, { name: o.icon }) : e("span", { className: "bd-dd-noicon" }),
+      e("span", { className: "bd-dd-opt-text" },
+        e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
+        o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null))];
+  })), document.body);
+}
+
 function Field(props) {
   return e("div", { className: cx("bd-field", props.inline && "bd-field-inline") },
     e("span", { className: "bd-field-label", id: props.id, title: props.note || undefined }, props.label),
@@ -612,4 +673,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, Dropdown, Field, ID_FIELD, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };

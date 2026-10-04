@@ -3605,6 +3605,7 @@
     distributeH: ["M4 4v16", "M20 4v16", "M9 8h6v8H9z"],
     distributeV: ["M4 4h16", "M4 20h16", "M8 9h8v6H8z"],
     tidy: ["M4 4h7v7H4z", "M13 4h7v7h-7z", "M4 13h7v7H4z", "M13 13h7v7h-7z"],
+    scissors: ["M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M20 4 8.1 15.9", "M14.5 14.5 20 20", "M8.1 8.1 12 12"],
     eyeOff: ["M3 3l18 18", "M10.6 10.6a2 2 0 0 0 2.8 2.8", "M9.9 5.2A9.8 9.8 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9", "M6.6 6.6C3.9 8.4 2 12 2 12s4 7 10 7c1.4 0 2.7-.3 3.9-.8"],
     lock: ["M6 11h12v9H6z", "M9 11V8a3 3 0 0 1 6 0v3"],
     lockOpen: ["M6 11h12v9H6z", "M9 11V8a3 3 0 0 1 5.8-1"],
@@ -4570,6 +4571,110 @@
         )];
       })), document.body) : null
     );
+  }
+  function ContextMenu(props) {
+    var activeState = useState(0);
+    var activeI = activeState[0], setActive = activeState[1];
+    var list = useRef(null);
+    var options = props.options;
+    var typed = useRef({ text: "", at: 0 });
+    var width = 220, want = Math.min(480, options.length * 40 + 16);
+    var left = Math.max(8, Math.min(props.x, window.innerWidth - width - 8));
+    var top = props.y + want > window.innerHeight - 8 ? Math.max(8, props.y - want) : props.y;
+    var choose = function(o) {
+      if (!o || o.disabled) return;
+      props.onClose();
+      props.onChoose(o.value);
+    };
+    useEffect(function() {
+      if (list.current) list.current.focus({ preventScroll: true });
+      var away = function(ev) {
+        if (list.current && list.current.contains(ev.target)) return;
+        props.onClose();
+      };
+      var onKey = function(ev) {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          props.onClose();
+        }
+      };
+      document.addEventListener("pointerdown", away, true);
+      document.addEventListener("keydown", onKey, true);
+      window.addEventListener("blur", props.onClose);
+      return function() {
+        document.removeEventListener("pointerdown", away, true);
+        document.removeEventListener("keydown", onKey, true);
+        window.removeEventListener("blur", props.onClose);
+      };
+    }, []);
+    var onListKey = function(ev) {
+      var k = ev.key;
+      if (k === "ArrowDown") {
+        ev.preventDefault();
+        setActive(Math.min(options.length - 1, activeI + 1));
+      } else if (k === "ArrowUp") {
+        ev.preventDefault();
+        setActive(Math.max(0, activeI - 1));
+      } else if (k === "Home") {
+        ev.preventDefault();
+        setActive(0);
+      } else if (k === "End") {
+        ev.preventDefault();
+        setActive(options.length - 1);
+      } else if (k === "Enter" || k === " ") {
+        ev.preventDefault();
+        choose(options[activeI]);
+      } else if (k === "Tab") {
+        ev.preventDefault();
+        props.onClose();
+      } else if (k.length === 1 && /\S/.test(k)) {
+        var now = Date.now();
+        typed.current.text = (now - typed.current.at > 600 ? "" : typed.current.text) + k.toLowerCase();
+        typed.current.at = now;
+        var hit = options.findIndex(function(o) {
+          return String(o.label || o.value).toLowerCase().indexOf(typed.current.text) === 0;
+        });
+        if (hit >= 0) setActive(hit);
+      }
+    };
+    return ReactDOM.createPortal(e("ul", {
+      ref: list,
+      role: "menu",
+      tabIndex: -1,
+      className: "bd-dd-list bd-ctx",
+      "aria-label": props.label || "Actions",
+      style: { left, top, minWidth: width, maxHeight: Math.min(want, window.innerHeight - 16) },
+      onKeyDown: onListKey,
+      onContextMenu: function(ev) {
+        ev.preventDefault();
+      }
+    }, options.map(function(o, i) {
+      var head = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+      return [head, e(
+        "li",
+        {
+          key: String(o.value),
+          "data-i": i,
+          role: "menuitem",
+          "aria-disabled": o.disabled ? "true" : void 0,
+          className: cx("bd-dd-opt", i === activeI && "is-active", o.disabled && "is-disabled", o.danger && "is-danger"),
+          onPointerMove: function() {
+            if (activeI !== i) setActive(i);
+          },
+          onClick: function() {
+            choose(o);
+          }
+        },
+        o.icon ? e(Icon, { name: o.icon }) : e("span", { className: "bd-dd-noicon" }),
+        e(
+          "span",
+          { className: "bd-dd-opt-text" },
+          e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
+          o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null
+        )
+      )];
+    })), document.body);
   }
   function Field(props) {
     return e(
@@ -5796,6 +5901,24 @@
         if (!ids.length) setFrameOn(false);
       });
     };
+    var menuState = useState(null);
+    var menu = menuState[0], setMenu = menuState[1];
+    var openMenu = function(x, y, id, fid) {
+      if (fid && fid !== docRef.current.active) activate(fid);
+      var onLayer = id && id !== "root";
+      if (onLayer && selRef.current.indexOf(id) < 0) select([id]);
+      setMenu({ x, y, ids: onLayer ? selRef.current.indexOf(id) < 0 ? [id] : selRef.current.slice() : id === void 0 ? selRef.current.slice() : [] });
+    };
+    var openMenuRef = useRef(openMenu);
+    openMenuRef.current = openMenu;
+    var menuAtSelection = function() {
+      var st = stageRef.current && stageRef.current.getBoundingClientRect();
+      var m = marks.sel.filter(function(s) {
+        return s.id === sel;
+      })[0] || marks.sel[0];
+      if (st && m) openMenu(st.left + m.r.left + Math.min(m.r.width, 160) / 2, st.top + m.r.top + Math.min(m.r.height, 40) / 2, void 0);
+      else if (st) openMenu(st.left + st.width / 2, st.top + st.height / 3, selRef.current.length ? void 0 : null);
+    };
     var marqueeEnd = function(done) {
       var m = marqRef.current;
       if (!m) return false;
@@ -6634,6 +6757,10 @@
             pick: on(function(fid, id, additive, deep, part2) {
               pickRef.current(id, additive, deep, "canvas", fid, part2);
             }),
+            menu: on(function(fid, id, x, y) {
+              var p = toPage(fid, x, y);
+              openMenuRef.current(p.x, p.y, id, fid);
+            }),
             edit: on(function(fid, id, text) {
               if (docRef.current.active !== fid) activateRef.current(fid);
               beginEditRef.current(id, text);
@@ -7224,6 +7351,68 @@
         })
       );
     };
+    var menuOptions = function(ids) {
+      var d = docRef.current;
+      var spots = ids.map(function(id) {
+        return locate(d, id);
+      }).filter(Boolean);
+      var nodes = spots.map(function(at) {
+        return at.node;
+      });
+      var one2 = nodes.length === 1 ? nodes[0] : null;
+      var hasClip = !!(clip.current && clip.current.nodes && clip.current.nodes.length);
+      if (!nodes.length) {
+        return [
+          { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
+          { value: "selectAll", label: "Select all", hint: "Ctrl+A", icon: "layers2", group: "Edit" },
+          { value: "fitAll", label: "Zoom to fit", hint: "Shift+1", icon: "fit", group: "View" },
+          { value: "fitFrame", label: "Zoom to " + active(d).name, hint: "Shift+2", icon: "frame", group: "View" }
+        ];
+      }
+      var allHidden = nodes.every(function(n) {
+        return n.hide;
+      }), allLocked = nodes.every(function(n) {
+        return n.lock;
+      });
+      var free = spots.every(function(at) {
+        return isFree(at.node.style);
+      });
+      return [
+        { value: "cut", label: "Cut", hint: "Ctrl+X", icon: "scissors", group: "Edit" },
+        { value: "copy", label: "Copy", hint: "Ctrl+C", icon: "copy", group: "Edit" },
+        { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
+        { value: "duplicate", label: "Duplicate", hint: "Ctrl+D", icon: "copy", group: "Edit" },
+        { value: "remove", label: "Delete", hint: "Del", icon: "trash", group: "Edit", danger: true },
+        { value: "front", label: "Bring to front", hint: "Ctrl+Shift+]", icon: "up", group: "Arrange" },
+        { value: "up", label: "Bring forward", hint: "Ctrl+]", icon: "up", group: "Arrange" },
+        { value: "down", label: "Send backward", hint: "Ctrl+[", icon: "down", group: "Arrange" },
+        { value: "back", label: "Send to back", hint: "Ctrl+Shift+[", icon: "down", group: "Arrange" }
+      ].concat(free && nodes.length > 1 ? [{ value: "tidy", label: "Tidy up", hint: "Shift+Alt+T", icon: "tidy", group: "Arrange" }] : []).concat([
+        one2 && one2.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
+        { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
+        { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" }
+      ]).concat(one2 && one2.type === "Group" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }] : []);
+    };
+    var onMenu = function(v) {
+      if (v === "cut") copySelection(true);
+      else if (v === "copy") copySelection(false);
+      else if (v === "paste") {
+        if (clip.current) pasteNodes(clip.current.nodes);
+      } else if (v === "duplicate") actions.duplicate();
+      else if (v === "remove") actions.remove();
+      else if (v === "front" || v === "back" || v === "up" || v === "down") actions.order(v);
+      else if (v === "tidy") arrange("tidy");
+      else if (v === "group") actions.group();
+      else if (v === "ungroup") actions.ungroup();
+      else if (v === "hide") actions.hide();
+      else if (v === "lock") actions.lock();
+      else if (v === "rename") actions.rename();
+      else if (v === "component") openComponent();
+      else if (v === "link") share(selRef.current[0]);
+      else if (v === "selectAll") actions.selectAll();
+      else if (v === "fitAll") fitAll();
+      else if (v === "fitFrame") showFrame(docRef.current.active);
+    };
     var actions = {
       remove: function() {
         var ids = selRef.current.slice();
@@ -7496,6 +7685,10 @@
       if (previewRef.current) return false;
       if (ev.key === "Escape" && marqRef.current) {
         marqueeEnd(false);
+        return true;
+      }
+      if (ev.key === "ContextMenu" || ev.key === "F10" && ev.shiftKey) {
+        menuAtSelection();
         return true;
       }
       if (ev.key === "Escape" && tray) {
@@ -11170,6 +11363,12 @@
             },
             onPointerLeave: function() {
               setHover(null);
+            },
+            onContextMenu: function(ev) {
+              if (n.type !== "Slot") {
+                ev.preventDefault();
+                openMenu(ev.clientX, ev.clientY, n.id, f.id);
+              }
             }
           },
           folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : void 0, onClick: function() {
@@ -12751,6 +12950,12 @@
             return;
           }
           if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+        },
+        onContextMenu: function(ev) {
+          if (!previewRef.current && isBackground(ev.target)) {
+            ev.preventDefault();
+            openMenu(ev.clientX, ev.clientY, null);
+          }
         }
       },
       e(
@@ -13350,6 +13555,9 @@
       componentDialog(),
       playDialog(),
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1] }),
+      menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
+        setMenu(null);
+      }, onChoose: onMenu }) : null,
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say)
     );
   }

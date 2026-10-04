@@ -11,7 +11,7 @@ import { STARTERS } from "../model/starters.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* Past this many frames, only frames near the view stay live. */
 var VIRTUAL_AFTER = 6;
@@ -722,6 +722,26 @@ function App(props) {
       if (ids.length !== cur.length || ids.some(function (id) { return cur.indexOf(id) < 0; })) select(ids);
       if (!ids.length) setFrameOn(false);
     });
+  };
+  /* The right-click menu: on a layer (canvas or Layers), on the frame or
+     on empty canvas. A press on a layer outside the selection selects it
+     first; the menu then acts on the selection. Shift+F10 opens it too. */
+  var menuState = useState(null);
+  var menu = menuState[0], setMenu = menuState[1];
+  /* id: a layer; null or "root": the frame or empty canvas (the frame's
+     menu, whatever is selected); undefined: the selection itself. */
+  var openMenu = function (x, y, id, fid) {
+    if (fid && fid !== docRef.current.active) activate(fid);
+    var onLayer = id && id !== "root";
+    if (onLayer && selRef.current.indexOf(id) < 0) select([id]);
+    setMenu({ x: x, y: y, ids: onLayer ? (selRef.current.indexOf(id) < 0 ? [id] : selRef.current.slice()) : id === undefined ? selRef.current.slice() : [] });
+  };
+  var openMenuRef = useRef(openMenu); openMenuRef.current = openMenu;
+  var menuAtSelection = function () {
+    var st = stageRef.current && stageRef.current.getBoundingClientRect();
+    var m = marks.sel.filter(function (s) { return s.id === sel; })[0] || marks.sel[0];
+    if (st && m) openMenu(st.left + m.r.left + Math.min(m.r.width, 160) / 2, st.top + m.r.top + Math.min(m.r.height, 40) / 2, undefined);
+    else if (st) openMenu(st.left + st.width / 2, st.top + st.height / 3, selRef.current.length ? undefined : null);
   };
   /* done: false puts back what was selected before (Escape). */
   var marqueeEnd = function (done) {
@@ -1477,6 +1497,7 @@ function App(props) {
           ready: on(function (fid) { readyRef.current(fid); }),
           selection: on(function (fid) { if (docRef.current.active !== fid) return null; var s = selRef.current; return s.length ? s[s.length - 1] : null; }),
           pick: on(function (fid, id, additive, deep, part) { pickRef.current(id, additive, deep, "canvas", fid, part); }),
+          menu: on(function (fid, id, x, y) { var p = toPage(fid, x, y); openMenuRef.current(p.x, p.y, id, fid); }),
           edit: on(function (fid, id, text) { if (docRef.current.active !== fid) activateRef.current(fid); beginEditRef.current(id, text); }),
           hover: on(function (fid, id) {
             var h = hoverRef.current;
@@ -1928,6 +1949,63 @@ function App(props) {
       }));
   };
 
+  /* What the right-click menu offers, for these layers (or none: the frame). */
+  var menuOptions = function (ids) {
+    var d = docRef.current;
+    var spots = ids.map(function (id) { return locate(d, id); }).filter(Boolean);
+    var nodes = spots.map(function (at) { return at.node; });
+    var one = nodes.length === 1 ? nodes[0] : null;
+    var hasClip = !!(clip.current && clip.current.nodes && clip.current.nodes.length);
+    if (!nodes.length) {
+      return [
+        { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
+        { value: "selectAll", label: "Select all", hint: "Ctrl+A", icon: "layers2", group: "Edit" },
+        { value: "fitAll", label: "Zoom to fit", hint: "Shift+1", icon: "fit", group: "View" },
+        { value: "fitFrame", label: "Zoom to " + active(d).name, hint: "Shift+2", icon: "frame", group: "View" },
+      ];
+    }
+    var allHidden = nodes.every(function (n) { return n.hide; }), allLocked = nodes.every(function (n) { return n.lock; });
+    var free = spots.every(function (at) { return isFree(at.node.style); });
+    return [
+      { value: "cut", label: "Cut", hint: "Ctrl+X", icon: "scissors", group: "Edit" },
+      { value: "copy", label: "Copy", hint: "Ctrl+C", icon: "copy", group: "Edit" },
+      { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
+      { value: "duplicate", label: "Duplicate", hint: "Ctrl+D", icon: "copy", group: "Edit" },
+      { value: "remove", label: "Delete", hint: "Del", icon: "trash", group: "Edit", danger: true },
+      { value: "front", label: "Bring to front", hint: "Ctrl+Shift+]", icon: "up", group: "Arrange" },
+      { value: "up", label: "Bring forward", hint: "Ctrl+]", icon: "up", group: "Arrange" },
+      { value: "down", label: "Send backward", hint: "Ctrl+[", icon: "down", group: "Arrange" },
+      { value: "back", label: "Send to back", hint: "Ctrl+Shift+[", icon: "down", group: "Arrange" },
+    ].concat(free && nodes.length > 1 ? [{ value: "tidy", label: "Tidy up", hint: "Shift+Alt+T", icon: "tidy", group: "Arrange" }] : [])
+    .concat([
+      one && one.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
+      { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
+      { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" },
+    ])
+    .concat(one && one.type === "Group" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : [])
+    .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }])
+    .concat(one ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }] : []);
+  };
+  var onMenu = function (v) {
+    if (v === "cut") copySelection(true);
+    else if (v === "copy") copySelection(false);
+    else if (v === "paste") { if (clip.current) pasteNodes(clip.current.nodes); }
+    else if (v === "duplicate") actions.duplicate();
+    else if (v === "remove") actions.remove();
+    else if (v === "front" || v === "back" || v === "up" || v === "down") actions.order(v);
+    else if (v === "tidy") arrange("tidy");
+    else if (v === "group") actions.group();
+    else if (v === "ungroup") actions.ungroup();
+    else if (v === "hide") actions.hide();
+    else if (v === "lock") actions.lock();
+    else if (v === "rename") actions.rename();
+    else if (v === "component") openComponent();
+    else if (v === "link") share(selRef.current[0]);
+    else if (v === "selectAll") actions.selectAll();
+    else if (v === "fitAll") fitAll();
+    else if (v === "fitFrame") showFrame(docRef.current.active);
+  };
+
   var actions = {
     remove: function () {
       var ids = selRef.current.slice();
@@ -2084,6 +2162,7 @@ function App(props) {
     if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
     if (previewRef.current) return false;
     if (ev.key === "Escape" && marqRef.current) { marqueeEnd(false); return true; }
+    if (ev.key === "ContextMenu" || (ev.key === "F10" && ev.shiftKey)) { menuAtSelection(); return true; }
     if (ev.key === "Escape" && tray) { setTray(null); return true; }
     if (ev.key === "Escape" && tool !== "select") { setTool("select"); return true; }
     if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { pickToolRef.current(TOOL_INFO[TOOL_KEY[key]]); return true; }
@@ -4290,6 +4369,7 @@ function App(props) {
         style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
         onPointerEnter: function () { setHover({ f: f.id, id: n.id }); },
         onPointerLeave: function () { setHover(null); },
+        onContextMenu: function (ev) { if (n.type !== "Slot") { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, n.id, f.id); } },
       },
         folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : undefined, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
           : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
@@ -5151,6 +5231,7 @@ function App(props) {
       if (marqRef.current && marqRef.current.id === ev.pointerId) { marqueeEnd(false); return; }
       if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
     },
+    onContextMenu: function (ev) { if (!previewRef.current && isBackground(ev.target)) { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, null); } },
   },
     e("div", { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
       doc.frames.map(function (f) {
@@ -5451,6 +5532,7 @@ function App(props) {
     componentDialog(),
     playDialog(),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
+    menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }
 

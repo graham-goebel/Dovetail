@@ -574,6 +574,17 @@ html.bd-configure-docked .configure-open-btn {
 }
 
 /* Where a family of options starts: Controls, Layout layers, More sizes. */
+/* The right-click menu sits at its point; rows keep their icon column. */
+.bd-ctx {
+  outline: none;
+}
+
+.bd-dd-noicon {
+  display: inline-block;
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+}
+
 .bd-dd-group {
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-xs) var(--dt-space-inset-2xs);
   color: var(--dt-text-tertiary);
