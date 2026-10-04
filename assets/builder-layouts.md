@@ -69,6 +69,7 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle or 
 | `surface` | Fill | `base`, `subtle`, `raised`, `sunken`, `brand`, `brand-muted`, `brand-secondary`, `brand-secondary-muted`, `success-subtle`, `warning-subtle`, `danger-subtle`, `info-subtle` |
 | `blend` | Blend mode | `multiply`, `screen`, `overlay`, `darken`, `lighten`, `color-dodge`, `color-burn`, `hard-light`, `soft-light`, `difference`, `exclusion`, `hue`, `saturation`, `color`, `luminosity` |
 | `invert` | Invert | `on` |
+| `opacity` | Opacity | `ghost`, `disabled`, `muted`, `strong` |
 | `border` | Border | `subtle`, `default`, `strong`, `brand` |
 | `borderTop` | Border top | `subtle`, `default`, `strong`, `brand` |
 | `borderRight` | Border right | `subtle`, `default`, `strong`, `brand` |

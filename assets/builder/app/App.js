@@ -2191,6 +2191,14 @@ function App(props) {
     if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
     if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
     if (mod && key === "d") { actions.duplicate(); return true; }
+    /* 1 to 9 step the opacity through its roles, as Figma's keys do; 0 is opaque. */
+    if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
+      var digit = Number(ev.code.slice(5));
+      var role = digit === 0 ? undefined : digit <= 2 ? "ghost" : digit <= 5 ? "disabled" : digit <= 7 ? "muted" : "strong";
+      setStyle(selRef.current, "opacity", role);
+      announce(role ? "Opacity " + role : "Opaque");
+      return true;
+    }
     if (mod && ev.shiftKey && (key === "h" || ev.code === "KeyH")) { actions.hide(); return true; }
     if (mod && ev.shiftKey && (key === "l" || ev.code === "KeyL")) { actions.lock(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
@@ -4526,7 +4534,9 @@ function App(props) {
           tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true })),
         picturesOnly ? e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
           e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })) : null,
-      ], null, styled(nodes, ["blend", "invert"])),
+        e(Field, { key: "opacity", id: lid + "-op", label: "Opacity", hint: "Keys 1 to 9 step it; 0 makes it opaque again" },
+          tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })),
+      ], null, styled(nodes, ["blend", "invert", "opacity"])),
       sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),

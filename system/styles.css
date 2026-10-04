@@ -7,6 +7,7 @@
 @import "tokens/primitive/typography.css";
 @import "tokens/primitive/motion.css";
 @import "tokens/primitive/elevation.css";
+@import "tokens/primitive/opacity.css";
 
 @import "tokens/semantic/color.css";
 @import "tokens/semantic/texture.css";
@@ -16,6 +17,7 @@
 @import "tokens/semantic/shape.css";
 @import "tokens/semantic/size.css";
 @import "tokens/semantic/elevation.css";
+@import "tokens/semantic/opacity.css";
 @import "tokens/semantic/motion.css";
 
 @import "tokens/themes/base-dark.css";

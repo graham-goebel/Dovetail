@@ -1,0 +1,15 @@
+/* TIER 2 — SEMANTIC OPACITY
+   How see-through a layer is, by purpose, so a theme can tune it in one
+   place. Opaque is the default and has no token.
+
+   ghost     watermarks, placeholders, things barely there
+   disabled  a control that can't be used right now
+   muted     secondary art that shouldn't compete with content
+   strong    a layer over content that should still show what's beneath */
+
+:root {
+  --dt-opacity-ghost: var(--dt-opacity-20); /* @kind other */
+  --dt-opacity-disabled: var(--dt-opacity-40); /* @kind other */
+  --dt-opacity-muted: var(--dt-opacity-60); /* @kind other */
+  --dt-opacity-strong: var(--dt-opacity-80); /* @kind other */
+}

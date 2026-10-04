@@ -7781,6 +7781,13 @@
         actions.duplicate();
         return true;
       }
+      if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
+        var digit = Number(ev.code.slice(5));
+        var role = digit === 0 ? void 0 : digit <= 2 ? "ghost" : digit <= 5 ? "disabled" : digit <= 7 ? "muted" : "strong";
+        setStyle(selRef.current, "opacity", role);
+        announce(role ? "Opacity " + role : "Opaque");
+        return true;
+      }
       if (mod && ev.shiftKey && (key === "h" || ev.code === "KeyH")) {
         actions.hide();
         return true;
@@ -11706,8 +11713,13 @@
             e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same2(invValues), onChange: function(v) {
               setStyle(ids, "invert", v ? "on" : void 0);
             } })
-          ) : null
-        ], null, styled(nodes, ["blend", "invert"])),
+          ) : null,
+          e(
+            Field,
+            { key: "opacity", id: lid + "-op", label: "Opacity", hint: "Keys 1 to 9 step it; 0 makes it opaque again" },
+            tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })
+          )
+        ], null, styled(nodes, ["blend", "invert", "opacity"])),
         sec(
           "border",
           "Border",

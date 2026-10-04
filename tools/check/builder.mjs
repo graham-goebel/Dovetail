@@ -2941,6 +2941,23 @@ try {
     expect(await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Select all/ }).count() === 1 && await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Delete/ }).count() === 0, "empty canvas offers Select all and Paste, not Delete");
     await page.keyboard.press("Escape");
     ok("the right-click menu works on canvas layers, layer rows, from Shift+F10 and on empty canvas");
+
+    /* Opacity: the digit keys step it through the four roles, 0 makes it
+       opaque; the frame paints the token; the Layer section offers it. */
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await release(page);
+    await page.keyboard.press("Digit5");
+    const op = async () => ((await free()).root.children.find((c) => c.id === "ba").style.opacity);
+    expect(await poll(op, (v) => v === "disabled") === "disabled", `5 sets the opacity role disabled, got ${await op()}`);
+    const painted = await frames(page)[1].evaluate(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).opacity);
+    expect(painted === "0.4", `the canvas paints --dt-opacity-disabled as 0.4, got ${painted}`);
+    await page.keyboard.press("Digit9");
+    expect(await poll(op, (v) => v === "strong") === "strong", "9 is strong");
+    await page.keyboard.press("Digit0");
+    expect(await poll(op, (v) => v === undefined) === undefined, "0 makes it opaque again");
+    await tab(page, "Appearance");
+    expect(await page.locator(".bd-right .bd-field", { hasText: /^Opacity/ }).count() === 1, "the Layer section offers an Opacity dropdown");
+    ok("digits 1 to 9 step the opacity through ghost, disabled, muted and strong; 0 clears it; the canvas paints the token");
     await page.close();
   });
 

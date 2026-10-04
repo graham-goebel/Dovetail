@@ -80,6 +80,9 @@ Durations 0–600ms. Four easing curves: `standard`, `decelerate`, `accelerate`,
 Six raw shadows, each a two-layer recipe: a tight contact shadow plus a soft ambient one.
 Single-layer shadows read as flat stickers once they get large.
 
+Opacity steps `--dt-opacity-0` to `--dt-opacity-100`, by tenths. Only the semantic opacity
+roles read them.
+
 ---
 
 ## Tier 2: Semantic
@@ -201,6 +204,15 @@ hand-picked z-index values are how overlay bugs start.
 1 cards        4 dialogs, drawers
 2 hover, popovers   5 toasts
 ```
+
+### Opacity
+
+Four roles, by purpose, so a theme tunes them in one place: `--dt-opacity-ghost` (0.2) for
+watermarks and placeholders, `--dt-opacity-disabled` (0.4) for a control that can't be used
+right now, `--dt-opacity-muted` (0.6) for secondary art that shouldn't compete with content,
+and `--dt-opacity-strong` (0.8) for a layer over content that should still show what's
+beneath. Opaque is the default and has no token. Never reach for a raw step: if none of the
+four fits, the role is missing, not the number.
 
 ### Motion
 
