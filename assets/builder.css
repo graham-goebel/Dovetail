@@ -1947,6 +1947,43 @@ span.bd-layer-twisty.is-open .bd-ic {
   outline-style: dashed;
 }
 
+/* Resize handles on the selected object. */
+.bd-handle {
+  position: absolute;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border: var(--dt-border-width-default) solid var(--dt-text-primary);
+  border-radius: 2px;
+  background: var(--dt-surface-base);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.bd-handle.is-nw { left: 0; top: 0; cursor: nwse-resize; }
+.bd-handle.is-n { left: 50%; top: 0; cursor: ns-resize; }
+.bd-handle.is-ne { left: 100%; top: 0; cursor: nesw-resize; }
+.bd-handle.is-e { left: 100%; top: 50%; cursor: ew-resize; }
+.bd-handle.is-se { left: 100%; top: 100%; cursor: nwse-resize; }
+.bd-handle.is-s { left: 50%; top: 100%; cursor: ns-resize; }
+.bd-handle.is-sw { left: 0; top: 100%; cursor: nesw-resize; }
+.bd-handle.is-w { left: 0; top: 50%; cursor: ew-resize; }
+
+.bd-handle:hover,
+.bd-handle:active {
+  border-color: var(--dt-border-focus);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--dt-border-focus) 30%, transparent);
+}
+
+@media (pointer: coarse) {
+  .bd-handle {
+    width: 16px;
+    height: 16px;
+    margin: -8px;
+  }
+}
+
 .bd-mark-tag {
   position: absolute;
   bottom: 100%;

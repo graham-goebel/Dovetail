@@ -12303,6 +12303,72 @@
         })
       )
     );
+    var startNodeResize = function(ev, id, dir) {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      releaseFocus();
+      try {
+        ev.currentTarget.setPointerCapture(ev.pointerId);
+      } catch (err) {
+      }
+      var f = api(), r0 = f && f.rect ? f.rect(id) : null, at0 = locate(docRef.current, id);
+      if (!r0 || !at0) return;
+      var z = camRef.current.z;
+      var unit = f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
+      var free = isFree(at0.node.style), x0 = at0.node.style.x, y0 = at0.node.style.y;
+      var start = { x: ev.clientX, y: ev.clientY };
+      var first = true, last = "";
+      var corner = /[ns]/.test(dir) && /[ew]/.test(dir);
+      var move = function(mv) {
+        var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
+        var w = r0.width, h = r0.height;
+        if (/e/.test(dir)) w = r0.width + dx;
+        else if (/w/.test(dir)) w = r0.width - dx;
+        if (/s/.test(dir)) h = r0.height + dy;
+        else if (/n/.test(dir)) h = r0.height - dy;
+        if (corner && mv.shiftKey) {
+          var k = r0.height / r0.width;
+          if (Math.abs(dx) >= Math.abs(dy)) h = w * k;
+          else w = h / k;
+        }
+        var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true) : null;
+        var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true) : null;
+        if (!tw && !th) return;
+        var wpx = tw ? pxMap["w|" + tw] : r0.width, hpx = th ? pxMap["height|" + th] : r0.height;
+        var xs = free && /w/.test(dir) && wpx != null ? Math.round((r0.width - wpx) / unit) : 0;
+        var ys = free && /n/.test(dir) && hpx != null ? Math.round((r0.height - hpx) / unit) : 0;
+        var key = [tw, th, xs, ys].join("|");
+        if (key === last) return;
+        last = key;
+        var fn = function(d) {
+          var at = locate(d, id);
+          if (!at) return null;
+          if (tw) at.node.style.w = tw;
+          if (th) at.node.style.height = th;
+          if (xs) at.node.style.x = Math.max(0, Math.min(FREE_MAX, x0 + xs));
+          if (ys) at.node.style.y = Math.max(0, Math.min(FREE_MAX, y0 + ys));
+          return void 0;
+        };
+        if (first) {
+          first = false;
+          change(fn);
+        } else quiet(fn);
+      };
+      var up = function() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        window.removeEventListener("pointercancel", up);
+        if (!first) {
+          var n = locate(docRef.current, id);
+          if (n) announce(nameOf(n.node) + (n.node.style.w ? " is " + n.node.style.w + " wide" : "") + (n.node.style.height ? ", " + n.node.style.height + " tall" : ""));
+        }
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      window.addEventListener("pointercancel", up);
+    };
+    var HANDLES_FREE = ["nw", "n", "ne", "e", "se", "s", "sw", "w"], HANDLES_FLOW = ["e", "se", "s"];
     var startResize = function(ev, f, edge) {
       if (ev.button !== 0) return;
       ev.preventDefault();
@@ -12661,6 +12727,7 @@
           if (!at) return null;
           var isMain = m.id === sel && !edit;
           var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
+          var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" ? isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
           return e(
             "div",
             { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
@@ -12672,7 +12739,12 @@
                 ev.stopPropagation();
                 startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type });
               }
-            }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null
+            }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null,
+            handles ? handles.map(function(dir) {
+              return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function(ev) {
+                startNodeResize(ev, at.node.id, dir);
+              } });
+            }) : null
           );
         }) : null,
         marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,

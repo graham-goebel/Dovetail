@@ -2834,6 +2834,42 @@ try {
     g = await geo();
     expect(Math.abs(g.ba.left - g.bb.left) >= 3 && noSnap === 0, `with Ctrl held it lands where it was let go and shows no guide: ${Math.round(g.ba.left)} against ${Math.round(g.bb.left)}, ${noSnap} guides`);
     ok("a free object snaps to a sibling's edge with a guide line; Ctrl held turns the snapping off");
+
+    /* Resize handles: the right edge widens Alpha to a size token; the left
+       edge of a free object moves it as it grows; Shift on a corner sets both. */
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForSelector(".bd-mark-sel .bd-handle.is-se");
+    expect(await page.locator(".bd-mark-sel .bd-handle").count() === 8, "a free object shows eight handles");
+    const node = async () => (await free()).root.children.find((c) => c.id === "ba");
+    const widthOf = () => page.evaluate(() => document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect("ba").width);
+    const w0 = await widthOf(), stepsR = (await steps(page)).past;
+    const pull = async (dir, dx, dy, hold) => {
+      const hb = await page.locator(".bd-mark-sel .bd-handle.is-" + dir).boundingBox();
+      await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+      await page.mouse.down();
+      if (hold) await page.keyboard.down(hold);
+      await page.mouse.move(hb.x + hb.width / 2 + dx / 2, hb.y + hb.height / 2 + dy / 2, { steps: 5 });
+      await page.mouse.move(hb.x + hb.width / 2 + dx, hb.y + hb.height / 2 + dy, { steps: 5 });
+      await page.waitForTimeout(120);
+      await page.mouse.up();
+      if (hold) await page.keyboard.up(hold);
+      await page.waitForTimeout(250);
+    };
+    await pull("e", 90, 0);
+    const grown = await node();
+    const sizes = await page.evaluate(() => ({ w: window.DovetailBuilderData.tokens.w.options.map((o) => o.value), h: window.DovetailBuilderData.tokens.height.options.map((o) => o.value) }));
+    expect(sizes.w.includes(grown.style.w), `the width becomes a size token, got ${JSON.stringify(grown.style.w)}`);
+    const w1 = await widthOf();
+    expect(w1 > w0 + 20, `and the Button is wider on the canvas, ${Math.round(w0)} to ${Math.round(w1)}`);
+    expect((await steps(page)).past === stepsR + 1, "the whole pull is one undo step");
+    const x1 = grown.style.x;
+    await pull("w", -60, 0);
+    const left = await node();
+    expect(left.style.x < x1 && sizes.w.includes(left.style.w), `pulling the left edge moves a free object as it grows: x ${x1} to ${left.style.x}, width ${left.style.w}`);
+    await pull("se", 40, 40, "Shift");
+    const kept = await node();
+    expect(sizes.w.includes(kept.style.w) && sizes.h.includes(kept.style.height), `Shift on a corner sets both width and height tokens, got ${kept.style.w} × ${kept.style.height}`);
+    ok(`handles resize to tokens: ${grown.style.w} wide, then the left edge moved it, then a Shift corner gave ${kept.style.w} × ${kept.style.height}`);
     await page.close();
   });
 
