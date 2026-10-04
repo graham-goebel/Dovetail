@@ -6,7 +6,7 @@
 <title>Token reference · Dovetail</title>
 <meta name="description" content="Every token, tier by tier.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
-<link rel="stylesheet" href="../system/styles.css?v=d2e228029f">
+<link rel="stylesheet" href="../system/styles.css?v=1c8045ba70">
 <link rel="stylesheet" href="../assets/site.css?v=155271ec65">
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
@@ -85,6 +85,7 @@
 <h3 id="motion-and-elevation">Motion and elevation</h3>
 <p>Durations 0–600ms. Four easing curves: <code>standard</code>, <code>decelerate</code>, <code>accelerate</code>, <code>emphasis</code>.</p>
 <p>Six raw shadows, each a two-layer recipe: a tight contact shadow plus a soft ambient one. Single-layer shadows read as flat stickers once they get large.</p>
+<p>Opacity steps <code>--dt-opacity-0</code> to <code>--dt-opacity-100</code>, by tenths. Only the semantic opacity roles read them.</p>
 <hr>
 <h2 id="tier-2-semantic">Tier 2: Semantic</h2>
 <p>The themeable layer. This is where a consumer spends their time.</p>
@@ -119,6 +120,8 @@
 <pre class="code"><code>0 flush        3 sticky headers, dropdowns
 1 cards        4 dialogs, drawers
 2 hover, popovers   5 toasts</code></pre>
+<h3 id="opacity">Opacity</h3>
+<p>Four roles, by purpose, so a theme tunes them in one place: <code>--dt-opacity-ghost</code> (0.2) for watermarks and placeholders, <code>--dt-opacity-disabled</code> (0.4) for a control that can't be used right now, <code>--dt-opacity-muted</code> (0.6) for secondary art that shouldn't compete with content, and <code>--dt-opacity-strong</code> (0.8) for a layer over content that should still show what's beneath. Opaque is the default and has no token. Never reach for a raw step: if none of the four fits, the role is missing, not the number.</p>
 <h3 id="motion">Motion</h3>
 <p>Four roles. <code>micro</code> for state changes on screen, <code>enter</code> for arrivals, <code>exit</code> for departures, <code>emphasis</code> for changes that must be noticed. Exits are faster than entrances: people wait for arrivals, not departures.</p>
 <p>All four collapse to zero under <code>prefers-reduced-motion</code>.</p>
@@ -157,6 +160,7 @@
     <li class="nested"><a href="#size">Size</a></li>
     <li class="nested"><a href="#shape">Shape</a></li>
     <li class="nested"><a href="#elevation">Elevation</a></li>
+    <li class="nested"><a href="#opacity">Opacity</a></li>
     <li class="nested"><a href="#motion">Motion</a></li>
     <li><a href="#tier-3-component">Tier 3: Component</a></li>
     <li><a href="#adding-a-token">Adding a token</a></li>

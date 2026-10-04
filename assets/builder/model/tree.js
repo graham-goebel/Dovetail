@@ -202,6 +202,26 @@ var ops = {
     at.parent.children.splice(to, 0, at.node);
     return id;
   },
+  /* To the front (last among its siblings, drawn on top) or the back. */
+  order: function (doc, id, where) {
+    var at = locate(doc, id);
+    if (fixed(at)) return null;
+    var to = where === "front" ? at.parent.children.length - 1 : 0;
+    if (to === at.index) return null;
+    at.parent.children.splice(at.index, 1);
+    at.parent.children.splice(to, 0, at.node);
+    return id;
+  },
+  /* A free object moved by whole steps; stays within the canvas's range. */
+  shift: function (doc, id, dx, dy) {
+    var at = locate(doc, id);
+    if (fixed(at) || at.node.lock || !isFree(at.node.style)) return null;
+    var st = at.node.style;
+    var x = Math.max(0, Math.min(FREE_MAX, st.x + dx)), y = Math.max(0, Math.min(FREE_MAX, st.y + dy));
+    if (x === st.x && y === st.y) return null;
+    st.x = x; st.y = y;
+    return id;
+  },
 };
 
 /* Only what the inspector could have set survives a save, a share link or
@@ -301,6 +321,9 @@ function cleanNode(n, report) {
   /* A Group can be named by hand; a detached component keeps its old name
      on whatever container it became. */
   if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
+  /* Locked: left alone on the canvas. Hidden: not drawn, not exported. */
+  if (n.lock === true) out.lock = true;
+  if (n.hide === true) out.hide = true;
   var seenSlot0 = {};
   var slotChild = function (c) {
     if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot0[c.props.name]) return false;

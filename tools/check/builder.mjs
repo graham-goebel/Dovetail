@@ -338,7 +338,7 @@ try {
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
     await page.keyboard.press("Escape");
-    expect(actions[0] === "Group" && actions.includes("Wrap in Group") && actions.includes("Copy link to this layer") && actions[actions.length - 1] === "Create component" && !actions.some((a) => /Turn into|Detach/.test(a)), `the menu offers Group, Wrap in, a link and Create component for a Heading, got ${actions.join("|")}`);
+    expect(actions[0] === "Group" && actions.includes("Wrap in Group") && actions.includes("Copy link to this layer") && actions.includes("Create component") && actions.includes("Copy style") && actions.includes("Hide") && actions.includes("Lock") && !actions.some((a) => /Turn into|Detach/.test(a)), `the menu offers Group, Wrap in, a link, Create component, Copy style, Hide and Lock for a Heading, got ${actions.join("|")}`);
     const stage = await stageBox(page);
     await page.mouse.click(stage.x + 6, stage.y + stage.height - 6);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -456,16 +456,19 @@ try {
     await page.mouse.wheel(0, 160);
     await page.waitForFunction((b) => document.querySelector(".bd-world").style.transform !== b, before);
     const panned = await camera(page);
+    await release(page);
     await page.mouse.move(stage.x + 8, stage.y + stage.height - 8);
+    await page.keyboard.down("Space");
     await page.mouse.down();
     await page.mouse.move(stage.x + 120, stage.y + stage.height - 60, { steps: 5 });
     await page.mouse.up();
-    expect(await camera(page) !== panned, "dragging the empty canvas pans it");
+    await page.keyboard.up("Space");
+    expect(await camera(page) !== panned, "dragging the empty canvas with Space held pans it");
     await page.keyboard.down("Control");
     await page.mouse.wheel(0, -120);
     await page.keyboard.up("Control");
     await page.waitForFunction((p) => { const m = /scale\(([\d.]+)\)/.exec(document.querySelector(".bd-world").style.transform); return m && Number(m[1]) !== Number(/scale\(([\d.]+)\)/.exec(p)[1]); }, panned);
-    ok("the wheel and a drag on empty canvas pan it; Ctrl and the wheel zoom");
+    ok("the wheel and a Space-drag on empty canvas pan it; Ctrl and the wheel zoom");
     await page.keyboard.press("Escape");
     await page.locator(".bd-right .bd-frame-menu").click();
     await option(page, "Duplicate frame").click();
@@ -2619,6 +2622,373 @@ try {
     expect(box.x >= 0 && box.x + box.width <= 390, `the dialog fits a phone, got ${Math.round(box.x)} + ${Math.round(box.width)}`);
     ok("a reset link opens the dialog to a new password, at 390px");
     await back.page.close();
+  });
+
+  await step("Keyboard and selection: arrows nudge free objects, Cmd+A selects all, Cmd+] and [ order, Shift+2 zooms to the selection, Alt-drag copies", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    /* A freeform frame with three loose objects at known steps, saved once
+       the first visit's own save has landed. */
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const node = (id, type, props, x, y) => ({ id, type, props, style: { x, y } });
+      d.frames.push({ id: "freebie", name: "Free", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        node("ba", "Button", { children: "Alpha" }, 10, 10), node("bb", "Button", { children: "Beta" }, 60, 10), node("hc", "Heading", { children: "Gamma" }, 10, 60)] } });
+      d.active = "freebie";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(150);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    const opened = await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : "no builder"), (v) => /freebie/.test(v), 8000);
+    expect(/freebie/.test(opened), `after the save and reload the free frame is there, got frames ${opened}`);
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    const free = async () => (await saved()).frames.find((f) => f.id === "freebie");
+    const at = async (id) => { const n = (await free()).root.children.find((c) => c.id === id); return [n.style.x, n.style.y]; };
+    const order = async () => (await free()).root.children.map((c) => c.id).join(",");
+    await fitAll(page);
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const steps0 = (await steps(page)).past;
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Shift+ArrowRight");
+    const moved = await poll(() => at("ba"), (v) => v[0] === 15 && v[1] === 11);
+    expect(moved[0] === 15 && moved[1] === 11, `Right, Down and Shift+Right take Alpha from 10,10 to 15,11, got ${moved}`);
+    expect((await steps(page)).past === steps0 + 3, "each key press is one undo step");
+    await page.keyboard.press("ArrowLeft");
+    for (let i = 0; i < 6; i++) await page.keyboard.press("Shift+ArrowUp");
+    const edge = await poll(() => at("ba"), (v) => v[1] === 0);
+    expect(edge[0] === 14 && edge[1] === 0, `nudging past the top stops at 0, got ${edge}`);
+    ok("arrows move a free object a step at a time, Shift four, never past the canvas's edge");
+
+    await page.keyboard.press("Control+a");
+    const all = await page.evaluate(() => window.__builder.selection());
+    expect(all.length === 3, `Cmd+A selects the frame's three objects, got ${all.length}`);
+    ok("Cmd+A selects everything at the top of the frame");
+
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.keyboard.press("Control+]");
+    expect(await poll(order, (o) => o === "bb,ba,hc") === "bb,ba,hc", `Cmd+] brings Alpha forward one, got ${await order()}`);
+    await page.keyboard.press("Control+Shift+]");
+    expect(await poll(order, (o) => o === "bb,hc,ba") === "bb,hc,ba", `Cmd+Shift+] brings it to the front, got ${await order()}`);
+    await page.keyboard.press("Control+Shift+[");
+    expect(await poll(order, (o) => o === "ba,bb,hc") === "ba,bb,hc", `Cmd+Shift+[ sends it to the back, got ${await order()}`);
+    await page.keyboard.press("Control+[");
+    expect(await order() === "ba,bb,hc", "Cmd+[ at the back changes nothing");
+    expect(await page.evaluate(() => window.__builder.selection()).then((s) => s.join() === "ba"), "the selection stays through the reordering");
+    ok("Cmd+] / [ step the z-order, with Shift to the front and the back");
+
+    const wide = await camera(page);
+    await page.keyboard.press("Shift+Digit2");
+    await page.waitForFunction((c) => document.querySelector(".bd-world").style.transform !== c, wide);
+    const zoomed = await camera(page);
+    const zIn = Number(/scale\(([\d.]+)\)/.exec(zoomed)[1]), zWide = Number(/scale\(([\d.]+)\)/.exec(wide)[1]);
+    expect(zIn > zWide, `Shift+2 zooms in on the selected Button, ${zWide} to ${zIn}`);
+    await page.waitForTimeout(250);
+    const centred = await page.evaluate(() => {
+      const st = document.querySelector(".bd-stage").getBoundingClientRect();
+      const fr = document.querySelectorAll("iframe.bd-frame")[1], fb = fr.getBoundingClientRect();
+      const r = fr.contentWindow.BuilderFrame.rect("ba"), s = fb.width / parseFloat(fr.style.width);
+      return { dx: fb.left + (r.left + r.width / 2) * s - (st.left + st.width / 2), dy: fb.top + (r.top + r.height / 2) * s - (st.top + st.height / 2), w: st.width, h: st.height };
+    });
+    expect(Math.abs(centred.dx) < centred.w * 0.15 && Math.abs(centred.dy) < centred.h * 0.15, `and centres it, off by ${Math.round(centred.dx)},${Math.round(centred.dy)} in a stage ${Math.round(centred.w)}×${Math.round(centred.h)}`);
+    ok("Shift+2 zooms to the selection and centres it");
+
+    await fitAll(page);
+    await page.evaluate(() => window.__builder.select([]));
+    const from = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
+    await page.keyboard.down("Alt");
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 40, from.y + 30, { steps: 8 });
+    await page.mouse.move(from.x + 80, from.y + 60, { steps: 8 });
+    await page.mouse.up();
+    await page.keyboard.up("Alt");
+    const after = await poll(free, (f) => f.root.children.length === 4);
+    const betas = after.root.children.filter((c) => c.type === "Button" && c.props.children === "Beta");
+    expect(betas.length === 2, `Alt-drag leaves two Betas, got ${after.root.children.map((c) => c.props.children)}`);
+    const orig = betas.find((b) => b.id === "bb"), copy = betas.find((b) => b.id !== "bb");
+    expect(orig.style.x === 60 && orig.style.y === 10, `the original stays at 60,10, got ${orig.style.x},${orig.style.y}`);
+    expect(copy.style.x > 60 && copy.style.y > 10, `the copy moved with the pointer, got ${copy.style.x},${copy.style.y}`);
+    ok(`Alt-drag puts a copy of Beta at ${copy.style.x},${copy.style.y} and leaves the original where it was`);
+
+    /* A marquee from the empty canvas left of the free frame, across its two Buttons. */
+    await fitAll(page);
+    await page.evaluate(() => window.__builder.select([]));
+    const fb = await page.evaluate(() => { const fr = document.querySelectorAll("iframe.bd-frame")[1], r = fr.getBoundingClientRect(); return { left: r.left, top: r.top, s: r.width / parseFloat(fr.style.width) }; });
+    const camBefore = await camera(page);
+    const sweep = async (x0, y0, x1, y1, mods = []) => {
+      for (const m of mods) await page.keyboard.down(m);
+      await page.mouse.move(x0, y0);
+      await page.mouse.down();
+      await page.mouse.move((x0 + x1) / 2, (y0 + y1) / 2, { steps: 4 });
+      await page.mouse.move(x1, y1, { steps: 4 });
+      await page.waitForTimeout(80);
+    };
+    await sweep(fb.left - 24, fb.top + 4, fb.left + 300 * fb.s, fb.top + 90 * fb.s);
+    expect(await page.locator(".bd-marquee").count() === 1, "a box shows while dragging");
+    await page.mouse.up();
+    await page.waitForTimeout(100);
+    let picked = await page.evaluate(() => window.__builder.selection().sort().join());
+    expect(picked === "ba,bb", `a sweep across the Buttons selects both, got ${picked}`);
+    expect(await camera(page) === camBefore, "and the canvas didn't pan");
+    expect(await page.locator(".bd-marquee").count() === 0, "the box goes when the drag ends");
+    await sweep(fb.left - 24, fb.top + 200 * fb.s, fb.left + 100 * fb.s, fb.top + 300 * fb.s, ["Shift"]);
+    await page.mouse.up();
+    await page.keyboard.up("Shift");
+    await page.waitForTimeout(100);
+    picked = await page.evaluate(() => window.__builder.selection().sort().join());
+    expect(picked === "ba,bb,hc", `a Shift-sweep over the Heading adds it, got ${picked}`);
+    await sweep(fb.left - 24, fb.top + 4, fb.left + 300 * fb.s, fb.top + 90 * fb.s);
+    await page.keyboard.press("Escape");
+    await page.mouse.up();
+    await page.waitForTimeout(100);
+    picked = await page.evaluate(() => window.__builder.selection().sort().join());
+    expect(picked === "ba,bb,hc", `Escape mid-sweep keeps the selection as it was, got ${picked}`);
+    await page.mouse.click(fb.left - 24, fb.top + 4);
+    await page.waitForTimeout(100);
+    expect((await page.evaluate(() => window.__builder.selection())).length === 0, "a plain click on empty canvas still clears the selection");
+    ok("a drag on empty canvas draws a marquee that selects what it touches; Shift adds; Escape cancels; a click still clears");
+
+    /* Align and distribute: Alpha is at 14,0, Beta at 60,10, Gamma at 10,60. */
+    await page.evaluate(() => window.__builder.select(["ba", "bb", "hc"]));
+    await page.waitForSelector(".bd-arrange");
+    expect(await page.locator(".bd-arrange-btn").count() === 9 && await page.locator(".bd-arrange-btn[disabled]").count() === 0, "three free objects get nine arrange buttons, all live");
+    await release(page);
+    const stepsA = (await steps(page)).past;
+    await page.keyboard.press("Alt+KeyA");
+    const lefts = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[0] === 10));
+    expect(lefts.every((p) => p[0] === 10), `Alt+A lines their left edges up on the leftmost, got ${JSON.stringify(lefts)}`);
+    expect((await steps(page)).past === stepsA + 1, "as one undo step");
+    await page.keyboard.press("Alt+KeyW");
+    const tops = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[1] === 0));
+    expect(tops.every((p) => p[1] === 0), `Alt+W lines their tops up, got ${JSON.stringify(tops)}`);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForTimeout(100);
+    expect(await page.locator(".bd-arrange-btn[disabled]").count() === 3, "one object can align to its frame but not spread");
+    await page.keyboard.press("Alt+KeyD");
+    const right = await poll(() => at("ba"), (v) => v[0] > 100);
+    expect(right[0] > 150, `on its own, Alt+D takes Alpha to the frame's right edge, got ${right}`);
+    await page.locator(".bd-arrange-btn[aria-label='Align centres']").click();
+    const mid = await poll(() => at("ba"), (v) => v[0] < 150 && v[0] > 50);
+    expect(mid[0] > 50 && mid[0] < 150, `the Align centres button puts it in the middle of the frame, got ${mid}`);
+    /* Three across a row, then spread evenly. */
+    await page.evaluate(() => window.__builder.select(["bb", "hc"]));
+    await page.keyboard.press("Alt+KeyW");
+    await poll(async () => [await at("bb"), await at("hc")], (v) => v[0][1] === 0 && v[1][1] === 0);
+    await page.waitForTimeout(200);
+    await page.evaluate(() => window.__builder.select(["ba", "bb", "hc"]));
+    const beforeSpread = await page.evaluate(() => ["ba", "bb", "hc"].map((id) => { const r = document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect(id); return [id, Math.round(r.left), Math.round(r.width)]; }));
+    await page.keyboard.press("Shift+Alt+KeyH");
+    await page.waitForTimeout(300);
+    const gaps = await page.evaluate(() => {
+      const fr = document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame;
+      const rs = ["ba", "bb", "hc"].map((id) => fr.rect(id)).sort((p, q) => p.left - q.left);
+      return [rs[1].left - rs[0].right, rs[2].left - rs[1].right];
+    });
+    expect(Math.abs(gaps[0] - gaps[1]) <= 5, `Shift+Alt+H spreads them with even gaps, got ${gaps.map(Math.round)} from ${JSON.stringify(beforeSpread)}`);
+    expect(await page.locator(".bd-inspect-title").textContent().then((t) => /^3 /.test(t)), "the selection stays through the arranging");
+    ok("Alt+A/W align, Alt+D and the buttons align one object to its frame, Shift+Alt+H spreads three evenly");
+
+    /* Smart guides: Alpha dragged down and to within a few pixels of Beta's
+       left edge snaps to it, with a guide line; with Ctrl held it doesn't. */
+    await fitAll(page);
+    await page.evaluate(() => window.__builder.select([]));
+    const geo = async () => page.evaluate(() => { const fr = document.querySelectorAll("iframe.bd-frame")[1], b = fr.getBoundingClientRect(), api = fr.contentWindow.BuilderFrame; const s = b.width / parseFloat(fr.style.width); const r = (id) => api.rect(id); return { s, ba: r("ba"), bb: r("bb"), left: b.left, top: b.top }; });
+    let g = await geo();
+    const start = { x: g.left + (g.ba.left + g.ba.width / 2) * g.s, y: g.top + (g.ba.top + g.ba.height / 2) * g.s };
+    /* A drag the frame starts measures from its first move, so the first
+       8px wake it and the rest is the distance that counts. */
+    const dragBy = async (dx, dy, hold) => {
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+      if (hold) await page.keyboard.down(hold);
+      await page.mouse.move(start.x + 8, start.y);
+      await page.waitForTimeout(60);
+      await page.mouse.move(start.x + 8 + dx / 2, start.y + dy / 2, { steps: 6 });
+      await page.mouse.move(start.x + 8 + dx, start.y + dy, { steps: 6 });
+      await page.waitForTimeout(120);
+      const guides = await page.locator(".bd-guide").count();
+      await page.mouse.up();
+      if (hold) await page.keyboard.up(hold);
+      await page.waitForTimeout(150);
+      return guides;
+    };
+    const aim = (g.bb.left + 4 - g.ba.left) * g.s;
+    const guides = await dragBy(aim, 120 * g.s);
+    g = await geo();
+    expect(Math.abs(g.ba.left - g.bb.left) <= 2, `dragged to 4px off Beta's left edge, Alpha snaps to it: ${Math.round(g.ba.left)} against ${Math.round(g.bb.left)}`);
+    expect(guides >= 1, `and a guide line showed while dragging, got ${guides}`);
+    expect(await page.locator(".bd-guide").count() === 0, "the guide goes when the drag ends");
+    await page.keyboard.press("Control+z");
+    await page.waitForTimeout(200);
+    g = await geo();
+    const noSnap = await dragBy(aim, 120 * g.s, "Control");
+    g = await geo();
+    expect(Math.abs(g.ba.left - g.bb.left) >= 3 && noSnap === 0, `with Ctrl held it lands where it was let go and shows no guide: ${Math.round(g.ba.left)} against ${Math.round(g.bb.left)}, ${noSnap} guides`);
+    ok("a free object snaps to a sibling's edge with a guide line; Ctrl held turns the snapping off");
+
+    /* Resize handles: the right edge widens Alpha to a size token; the left
+       edge of a free object moves it as it grows; Shift on a corner sets both. */
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForSelector(".bd-mark-sel .bd-handle.is-se");
+    expect(await page.locator(".bd-mark-sel .bd-handle").count() === 8, "a free object shows eight handles");
+    const node = async () => (await free()).root.children.find((c) => c.id === "ba");
+    const widthOf = () => page.evaluate(() => document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect("ba").width);
+    const w0 = await widthOf(), stepsR = (await steps(page)).past;
+    const pull = async (dir, dx, dy, hold) => {
+      const hb = await page.locator(".bd-mark-sel .bd-handle.is-" + dir).boundingBox();
+      await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+      await page.mouse.down();
+      if (hold) await page.keyboard.down(hold);
+      await page.mouse.move(hb.x + hb.width / 2 + dx / 2, hb.y + hb.height / 2 + dy / 2, { steps: 5 });
+      await page.mouse.move(hb.x + hb.width / 2 + dx, hb.y + hb.height / 2 + dy, { steps: 5 });
+      await page.waitForTimeout(120);
+      await page.mouse.up();
+      if (hold) await page.keyboard.up(hold);
+      await page.waitForTimeout(250);
+    };
+    await pull("e", 90, 0);
+    const grown = await node();
+    const sizes = await page.evaluate(() => ({ w: window.DovetailBuilderData.tokens.w.options.map((o) => o.value), h: window.DovetailBuilderData.tokens.height.options.map((o) => o.value) }));
+    expect(sizes.w.includes(grown.style.w), `the width becomes a size token, got ${JSON.stringify(grown.style.w)}`);
+    const w1 = await widthOf();
+    expect(w1 > w0 + 20, `and the Button is wider on the canvas, ${Math.round(w0)} to ${Math.round(w1)}`);
+    expect((await steps(page)).past === stepsR + 1, "the whole pull is one undo step");
+    const x1 = grown.style.x;
+    await pull("w", -60, 0);
+    const left = await node();
+    expect(left.style.x < x1 && sizes.w.includes(left.style.w), `pulling the left edge moves a free object as it grows: x ${x1} to ${left.style.x}, width ${left.style.w}`);
+    await pull("se", 40, 40, "Shift");
+    const kept = await node();
+    expect(sizes.w.includes(kept.style.w) && sizes.h.includes(kept.style.height), `Shift on a corner sets both width and height tokens, got ${kept.style.w} × ${kept.style.height}`);
+    ok(`handles resize to tokens: ${grown.style.w} wide, then the left edge moved it, then a Shift corner gave ${kept.style.w} × ${kept.style.height}`);
+
+    /* Hide and lock. Gamma hidden: gone from the canvas and the code, dim in
+       Layers, back with the eye. Beta locked: a canvas press passes it by,
+       arrows don't move it, no handles; Layers still picks it. */
+    const flag = async (id) => { const n = (await free()).root.children.find((c) => c.id === id); return { hide: !!n.hide, lock: !!n.lock, x: n.style.x }; };
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    await release(page);
+    await page.keyboard.press("Control+Shift+KeyH");
+    expect((await poll(() => flag("hc"), (v) => v.hide)).hide, "Ctrl+Shift+H hides the Heading");
+    await frames(page)[1].waitForFunction(() => !document.querySelector('[data-bf-id="hc"]'));
+    await page.evaluate(() => window.__builder.select([]));
+    await page.waitForTimeout(100);
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(!/Gamma/.test(code) && /Alpha/.test(code), "the hidden Heading stays out of the exported code while the Buttons are in it");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    const gammaRow = page.locator('.bd-layer[data-layer="hc"]');
+    expect(await gammaRow.evaluate((r) => r.classList.contains("is-hidden")), "its layer row is dimmed");
+    await gammaRow.locator(".bd-layer-flag[aria-label^='Show']").click();
+    expect(!(await poll(() => flag("hc"), (v) => !v.hide)).hide, "the eye on the row shows it again");
+    await frames(page)[1].waitForSelector('[data-bf-id="hc"]');
+    await page.evaluate(() => window.__builder.select(["bb"]));
+    await page.keyboard.press("Control+Shift+KeyL");
+    expect((await poll(() => flag("bb"), (v) => v.lock)).lock, "Ctrl+Shift+L locks Beta");
+    await page.waitForSelector(".bd-mark-sel.is-locked");
+    expect(await page.locator(".bd-mark-sel .bd-handle").count() === 0, "a locked layer has no handles and a dashed outline");
+    const xBefore = (await flag("bb")).x;
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+    expect((await flag("bb")).x === xBefore, "arrows don't move a locked layer");
+    await page.evaluate(() => window.__builder.select([]));
+    const bbAt = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
+    await page.mouse.click(bbAt.x, bbAt.y);
+    await page.waitForTimeout(200);
+    expect(!(await page.evaluate(() => window.__builder.selection())).includes("bb"), "a press on the canvas passes a locked layer by");
+    await page.locator('.bd-layer[data-layer="bb"] .bd-layer-main').click();
+    await page.waitForTimeout(150);
+    expect((await page.evaluate(() => window.__builder.selection())).join() === "bb", "Layers still picks it");
+    await page.locator('.bd-layer[data-layer="bb"] .bd-layer-flag[aria-label^="Unlock"]').click();
+    expect(!(await poll(() => flag("bb"), (v) => !v.lock)).lock, "the lock on the row unlocks it");
+    ok("hide takes a layer off the canvas and out of the code; lock keeps the canvas and the arrows off it; the row's eye and lock turn both back");
+
+    /* The right-click menu: on a canvas layer, on a layer row, from the
+       keyboard, and on empty canvas. */
+    await page.evaluate(() => window.__builder.select([]));
+    /* Once the unlock has reached the frame and the old marks are gone. */
+    await frames(page)[1].waitForSelector('[data-bf-id="bb"]:not([data-bf-locked])', { state: "attached" });
+    await page.waitForFunction(() => document.querySelectorAll(".bd-mark-sel").length === 0);
+    const bbPt = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
+    await page.mouse.move(bbPt.x, bbPt.y);
+    await page.mouse.down({ button: "right" });
+    await page.mouse.up({ button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    expect((await page.evaluate(() => window.__builder.selection())).join() === "bb", "a right-click on a layer selects it first");
+    const countBefore = (await free()).root.children.length;
+    await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Duplicate/ }).click();
+    const countAfter = (await poll(async () => (await free()).root.children.length, (n) => n === countBefore + 1));
+    expect(countAfter === countBefore + 1 && await page.locator(".bd-ctx").count() === 0, `Duplicate from the menu adds a layer and closes it, ${countBefore} to ${countAfter}`);
+    await page.locator('.bd-layer[data-layer="hc"]').click({ button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Hide/ }).click();
+    expect((await poll(() => flag("hc"), (v) => v.hide)).hide, "a layer row's menu hides it");
+    await page.keyboard.press("Control+z");
+    await poll(() => flag("hc"), (v) => !v.hide);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await release(page);
+    await page.keyboard.press("Shift+F10");
+    await page.waitForSelector(".bd-ctx");
+    expect(await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Lock/ }).count() === 1, "Shift+F10 opens the menu for the selection");
+    await page.keyboard.press("Escape");
+    expect(await page.locator(".bd-ctx").count() === 0, "Escape closes it");
+    await page.mouse.click(fb.left - 24, fb.top + 4, { button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    expect(await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Select all/ }).count() === 1 && await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Delete/ }).count() === 0, "empty canvas offers Select all and Paste, not Delete");
+    await page.keyboard.press("Escape");
+    ok("the right-click menu works on canvas layers, layer rows, from Shift+F10 and on empty canvas");
+
+    /* Opacity: the digit keys step it through the four roles, 0 makes it
+       opaque; the frame paints the token; the Layer section offers it. */
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await release(page);
+    await page.keyboard.press("Digit5");
+    const op = async () => ((await free()).root.children.find((c) => c.id === "ba").style.opacity);
+    expect(await poll(op, (v) => v === "disabled") === "disabled", `5 sets the opacity role disabled, got ${await op()}`);
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).opacity === "0.4");
+    ok("the canvas paints --dt-opacity-disabled as 0.4");
+    await page.keyboard.press("Digit9");
+    expect(await poll(op, (v) => v === "strong") === "strong", "9 is strong");
+    await page.keyboard.press("Digit0");
+    expect(await poll(op, (v) => v === undefined) === undefined, "0 makes it opaque again");
+    await tab(page, "Appearance");
+    expect(await page.locator(".bd-right .bd-field", { hasText: /^Opacity/ }).count() === 1, "the Layer section offers an Opacity dropdown");
+    ok("digits 1 to 9 step the opacity through ghost, disabled, muted and strong; 0 clears it; the canvas paints the token");
+
+    /* Copy and paste style: Alpha's size tokens land on Gamma. Select all
+       of a kind: every Button in the frame. */
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await release(page);
+    const alpha = (await free()).root.children.find((c) => c.id === "ba");
+    expect(alpha.style.w && alpha.style.height, `Alpha carries size tokens to copy, got ${JSON.stringify(alpha.style)}`);
+    await page.keyboard.press("Control+Alt+KeyC");
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    const gammaBefore = (await free()).root.children.find((c) => c.id === "hc");
+    const stepsP = (await steps(page)).past;
+    await page.keyboard.press("Control+Alt+KeyV");
+    const gamma = await poll(async () => (await free()).root.children.find((c) => c.id === "hc"), (n) => n.style.w === alpha.style.w);
+    expect(gamma.style.w === alpha.style.w && gamma.style.height === alpha.style.height && gamma.style.x === gammaBefore.style.x && gamma.style.y === gammaBefore.style.y, `paste style gives Gamma Alpha's tokens and leaves its position, got ${JSON.stringify(gamma.style)} from ${JSON.stringify(gammaBefore.style)}`);
+    expect((await steps(page)).past === stepsP + 1, "as one undo step");
+    await page.evaluate(() => window.__builder.select(["bb"]));
+    const buttons = (await free()).root.children.filter((c) => c.type === "Button").length;
+    await page.locator('.bd-layer[data-layer="bb"]').click({ button: "right" });
+    await page.waitForSelector(".bd-ctx");
+    await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Select all Buttons/ }).click();
+    const picked2 = await poll(() => page.evaluate(() => window.__builder.selection()), (s) => s.length === buttons);
+    expect(picked2.length === buttons && buttons >= 3, `Select all Buttons picks the frame's ${buttons} Buttons, got ${picked2.length}`);
+    ok(`Ctrl+Alt+C / V carry a style between layers; Select all Buttons picks ${buttons}`);
+    await page.close();
   });
 
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {

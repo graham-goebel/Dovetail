@@ -574,6 +574,17 @@ html.bd-configure-docked .configure-open-btn {
 }
 
 /* Where a family of options starts: Controls, Layout layers, More sizes. */
+/* The right-click menu sits at its point; rows keep their icon column. */
+.bd-ctx {
+  outline: none;
+}
+
+.bd-dd-noicon {
+  display: inline-block;
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+}
+
 .bd-dd-group {
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-xs) var(--dt-space-inset-2xs);
   color: var(--dt-text-tertiary);
@@ -1271,6 +1282,54 @@ button.bd-layer-twisty.is-open .bd-ic {
   font-weight: var(--dt-font-weight-medium);
 }
 
+/* The eye and lock at the end of a row: shown on hover, or while set. */
+.bd-layer-flags {
+  display: inline-flex;
+  flex: none;
+  gap: 1px;
+  margin-left: auto;
+  padding-right: var(--dt-space-inset-2xs);
+  opacity: 0;
+}
+
+.bd-layer:hover .bd-layer-flags,
+.bd-layer:focus-within .bd-layer-flags,
+.bd-layer-flags.is-set {
+  opacity: 1;
+}
+
+.bd-layer-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--dt-size-control-xs);
+  height: var(--dt-size-control-xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  cursor: pointer;
+}
+
+.bd-layer-flag:hover,
+.bd-layer-flag.is-on {
+  color: var(--dt-text-primary);
+}
+
+.bd-layer-flag .bd-ic {
+  width: var(--dt-size-icon-sm);
+  height: var(--dt-size-icon-sm);
+}
+
+.bd-layer.is-hidden .bd-layer-main {
+  opacity: 0.45;
+}
+
+.bd-mark-sel.is-locked {
+  outline-style: dashed;
+}
+
 .bd-layer-text {
   min-width: 0;
   overflow: hidden;
@@ -1925,6 +1984,16 @@ span.bd-layer-twisty.is-open .bd-ic {
   box-sizing: border-box;
 }
 
+/* The box a drag across empty canvas draws to select what it touches. */
+.bd-marquee {
+  position: absolute;
+  box-sizing: border-box;
+  border: var(--dt-border-width-default) solid var(--dt-border-focus);
+  background: var(--dt-surface-selected);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .bd-mark-hover {
   outline: var(--dt-border-width-default) dashed var(--dt-text-secondary);
 }
@@ -1935,6 +2004,43 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-mark-sel.is-extra {
   outline-style: dashed;
+}
+
+/* Resize handles on the selected object. */
+.bd-handle {
+  position: absolute;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border: var(--dt-border-width-default) solid var(--dt-text-primary);
+  border-radius: 2px;
+  background: var(--dt-surface-base);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.bd-handle.is-nw { left: 0; top: 0; cursor: nwse-resize; }
+.bd-handle.is-n { left: 50%; top: 0; cursor: ns-resize; }
+.bd-handle.is-ne { left: 100%; top: 0; cursor: nesw-resize; }
+.bd-handle.is-e { left: 100%; top: 50%; cursor: ew-resize; }
+.bd-handle.is-se { left: 100%; top: 100%; cursor: nwse-resize; }
+.bd-handle.is-s { left: 50%; top: 100%; cursor: ns-resize; }
+.bd-handle.is-sw { left: 0; top: 100%; cursor: nesw-resize; }
+.bd-handle.is-w { left: 0; top: 50%; cursor: ew-resize; }
+
+.bd-handle:hover,
+.bd-handle:active {
+  border-color: var(--dt-border-focus);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--dt-border-focus) 30%, transparent);
+}
+
+@media (pointer: coarse) {
+  .bd-handle {
+    width: 16px;
+    height: 16px;
+    margin: -8px;
+  }
 }
 
 .bd-mark-tag {
@@ -1968,6 +2074,44 @@ span.bd-layer-twisty.is-open .bd-ic {
   position: absolute;
   border-radius: var(--dt-radius-pill);
   background: var(--dt-text-primary);
+}
+
+/* Smart guides: what a dragged free object lined up with, and equal gaps. */
+.bd-guide {
+  position: absolute;
+  min-width: 1px;
+  min-height: 1px;
+  background: var(--dt-border-focus);
+  pointer-events: none;
+}
+
+.bd-guide.is-gap {
+  background: color-mix(in oklch, var(--dt-border-focus) 40%, transparent);
+}
+
+.bd-guide.is-gap.is-h {
+  min-height: 3px;
+  margin-top: -1px;
+}
+
+.bd-guide.is-gap.is-v {
+  min-width: 3px;
+  margin-left: -1px;
+}
+
+.bd-guide-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 0 var(--dt-space-inset-2xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-border-focus);
+  color: var(--dt-surface-base);
+  font-size: var(--dt-font-size-2xs);
+  font-weight: var(--dt-font-weight-medium);
+  line-height: 1.5;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
 }
 
 .bd-mark-box {
@@ -2034,6 +2178,23 @@ span.bd-layer-twisty.is-open .bd-ic {
   padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-sm);
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
   background: var(--dt-surface-subtle);
+}
+
+/* Align and distribute, under the title, for free objects. */
+.bd-arrange {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: var(--dt-space-stack-2xs);
+}
+
+.bd-arrange-btn:nth-child(3n):not(:last-child) {
+  margin-right: var(--dt-space-inline-xs);
+}
+
+.bd-arrange-btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .bd-head-row {

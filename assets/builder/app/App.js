@@ -11,7 +11,7 @@ import { STARTERS } from "../model/starters.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* Past this many frames, only frames near the view stay live. */
 var VIRTUAL_AFTER = 6;
@@ -413,6 +413,8 @@ function App(props) {
       edit: function (id, key, value) { return change(function (d) { var at = locate(d, id); if (!at) return null; at.node.props[key] = value; return undefined; }); },
       /* Changes as someone else would send them, and the changes an edit makes. */
       receive: receive, diff: diffDocs,
+      /* The selection, as the checks read and set it. */
+      selection: function () { return selRef.current.slice(); }, select: function (ids) { select([].concat(ids)); },
       /* How many steps there are to undo and redo, and whether the project saved. */
       history: function () { return { past: history.current.past.length, future: history.current.future.length }; },
       saved: function () { return savedRef.current; } };
@@ -575,6 +577,22 @@ function App(props) {
     setCam({ x: ins.l + (W - b.w * z) / 2 - b.x * z, y: (fits ? (H - b.h * z + LABEL_ROOM) / 2 : STAGE_PAD + LABEL_ROOM) - b.y * z, z: z });
   };
   var showFrameRef = useRef(showFrame); showFrameRef.current = showFrame;
+  /* The selection filling the stage (never past 100%); false when there's
+     nothing selected to show. */
+  var showSelection = function () {
+    var ids = selRef.current;
+    var fid = docRef.current.active, f = api(fid), b = layoutRef.current.boxes[fid];
+    if (!ids.length || !f || !b) return false;
+    var l = Infinity, t = Infinity, r = -Infinity, btm = -Infinity;
+    ids.forEach(function (id) { var rc = f.rect(id); if (!rc) return; l = Math.min(l, rc.left); t = Math.min(t, rc.top); r = Math.max(r, rc.right); btm = Math.max(btm, rc.bottom); });
+    if (l === Infinity) return false;
+    var ins = insets(), W = boxRef.current.w - ins.l - ins.r, H = boxRef.current.h;
+    if (!W) return false;
+    var w = Math.max(1, r - l), h = Math.max(1, btm - t);
+    var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / w, (H - STAGE_PAD * 2 - LABEL_ROOM) / h));
+    setCam({ x: ins.l + (W - w * z) / 2 - (b.x + l) * z, y: (H - h * z + LABEL_ROOM) / 2 - (b.y + t) * z, z: z });
+    return true;
+  };
 
   /* The first view: the active frame on its own, or every frame across. */
   useEffect(function () {
@@ -659,6 +677,83 @@ function App(props) {
     return g.moved;
   };
   var gestureRef = useRef(gesture); gestureRef.current = gesture;
+
+  /* A marquee: with the Select tool, a mouse or pen dragged across empty
+     canvas draws a box and selects the top-level layers it touches, in the
+     frame holding most of them. Shift adds them to what was selected.
+     Touch keeps panning, as do Space, the Hand tool and the middle button. */
+  var marqueeState = useState(null);
+  var marquee = marqueeState[0], setMarquee = marqueeState[1];
+  var marqRef = useRef(null);
+  var marqueeHits = function (r) {
+    var best = null;
+    docRef.current.frames.forEach(function (f) {
+      var a = api(f.id), b = layoutRef.current.boxes[f.id];
+      if (!a || !b || !a.rect) return;
+      var ids = [];
+      f.root.children.forEach(function (c) {
+        var box = toStage(a.rect(c.id), f.id);
+        if (box && box.left < r.left + r.width && box.left + box.width > r.left && box.top < r.top + r.height && box.top + box.height > r.top) ids.push(c.id);
+      });
+      if (ids.length && (!best || ids.length > best.ids.length)) best = { fid: f.id, ids: ids };
+    });
+    return best;
+  };
+  var marqueeStart = function (ev) {
+    var p = stageXY(ev.clientX, ev.clientY);
+    marqRef.current = { id: ev.pointerId, x0: p.x, y0: p.y, add: ev.shiftKey, base: selRef.current.slice(), baseFid: docRef.current.active, moved: false, raf: 0 };
+  };
+  var marqueeMove = function (ev) {
+    var m = marqRef.current;
+    var p = stageXY(ev.clientX, ev.clientY);
+    if (!m.moved && Math.abs(p.x - m.x0) + Math.abs(p.y - m.y0) < 5) return;
+    m.moved = true;
+    var r = { left: Math.min(m.x0, p.x), top: Math.min(m.y0, p.y), width: Math.abs(p.x - m.x0), height: Math.abs(p.y - m.y0) };
+    setMarquee(r);
+    cancelAnimationFrame(m.raf);
+    m.raf = requestAnimationFrame(function () {
+      if (marqRef.current !== m) return;
+      var hit = marqueeHits(r);
+      var fid = hit ? hit.fid : m.baseFid;
+      if (fid !== docRef.current.active) activate(fid);
+      var ids = hit ? hit.ids : [];
+      if (m.add && fid === m.baseFid) m.base.forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); });
+      var cur = selRef.current;
+      if (ids.length !== cur.length || ids.some(function (id) { return cur.indexOf(id) < 0; })) select(ids);
+      if (!ids.length) setFrameOn(false);
+    });
+  };
+  /* The right-click menu: on a layer (canvas or Layers), on the frame or
+     on empty canvas. A press on a layer outside the selection selects it
+     first; the menu then acts on the selection. Shift+F10 opens it too. */
+  var menuState = useState(null);
+  var menu = menuState[0], setMenu = menuState[1];
+  /* id: a layer; null or "root": the frame or empty canvas (the frame's
+     menu, whatever is selected); undefined: the selection itself. */
+  var openMenu = function (x, y, id, fid) {
+    if (fid && fid !== docRef.current.active) activate(fid);
+    var onLayer = id && id !== "root";
+    if (onLayer && selRef.current.indexOf(id) < 0) select([id]);
+    setMenu({ x: x, y: y, ids: onLayer ? (selRef.current.indexOf(id) < 0 ? [id] : selRef.current.slice()) : id === undefined ? selRef.current.slice() : [] });
+  };
+  var openMenuRef = useRef(openMenu); openMenuRef.current = openMenu;
+  var menuAtSelection = function () {
+    var st = stageRef.current && stageRef.current.getBoundingClientRect();
+    var m = marks.sel.filter(function (s) { return s.id === sel; })[0] || marks.sel[0];
+    if (st && m) openMenu(st.left + m.r.left + Math.min(m.r.width, 160) / 2, st.top + m.r.top + Math.min(m.r.height, 40) / 2, undefined);
+    else if (st) openMenu(st.left + st.width / 2, st.top + st.height / 3, selRef.current.length ? undefined : null);
+  };
+  /* done: false puts back what was selected before (Escape). */
+  var marqueeEnd = function (done) {
+    var m = marqRef.current;
+    if (!m) return false;
+    marqRef.current = null;
+    cancelAnimationFrame(m.raf);
+    setMarquee(null);
+    if (!done) { if (m.baseFid !== docRef.current.active) activate(m.baseFid); select(m.base); }
+    else if (selRef.current.length) announce(selRef.current.length === 1 ? "1 selected" : selRef.current.length + " selected");
+    return m.moved;
+  };
 
   /* ------------------------------------------------- measuring */
 
@@ -821,6 +916,70 @@ function App(props) {
     return null;
   };
 
+  /* Smart guides: a free object dragged near a sibling's edge or centre,
+     or the frame's, snaps to it, and a line shows what it lined up with.
+     Between two siblings it snaps to equal gaps, which are labelled. Cmd
+     or Ctrl held turns the snapping off. All in the frame's pixels. */
+  var snapOffRef = useRef(false);
+  var snapFree = function (f, hostFrame, skipId, fx, fy, w, h, z) {
+    var res = { x: fx, y: fy, guides: [] };
+    if (snapOffRef.current || !f.rect) return res;
+    var reach = 6 / z;
+    var targets = [];
+    var rootR = f.rect("root");
+    if (rootR) targets.push({ l: 0, t: 0, r: rootR.width, b: rootR.height, frame: true });
+    hostFrame.root.children.forEach(function (c) { if (c.id === skipId) return; var r = f.rect(c.id); if (r) targets.push({ l: r.left, t: r.top, r: r.right, b: r.bottom }); });
+    if (!targets.length) return res;
+    var bestX = null, bestY = null;
+    targets.forEach(function (t) {
+      [t.l, (t.l + t.r) / 2, t.r].forEach(function (line) {
+        [fx, fx + w / 2, fx + w].forEach(function (edge) {
+          var d = line - edge;
+          if (Math.abs(d) <= reach && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d: d, at: line, t: t };
+        });
+      });
+      [t.t, (t.t + t.b) / 2, t.b].forEach(function (line) {
+        [fy, fy + h / 2, fy + h].forEach(function (edge) {
+          var d = line - edge;
+          if (Math.abs(d) <= reach && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d: d, at: line, t: t };
+        });
+      });
+    });
+    if (bestX) res.x = fx + bestX.d;
+    if (bestY) res.y = fy + bestY.d;
+    if (bestX) res.guides.push({ v: bestX.at, from: Math.min(res.y, bestX.t.t), to: Math.max(res.y + h, bestX.t.b) });
+    if (bestY) res.guides.push({ h: bestY.at, from: Math.min(res.x, bestY.t.l), to: Math.max(res.x + w, bestY.t.r) });
+    /* Between two siblings: the same gap on each side. */
+    if (!bestX) {
+      var L = null, R = null;
+      targets.forEach(function (t) {
+        if (t.frame || t.b <= res.y || t.t >= res.y + h) return;
+        if (t.r <= fx && (!L || t.r > L.r)) L = t;
+        if (t.l >= fx + w && (!R || t.l < R.l)) R = t;
+      });
+      if (L && R && Math.abs((fx - L.r) - (R.l - fx - w)) <= reach * 2) {
+        res.x = (L.r + R.l - w) / 2;
+        var gx = Math.round(res.x - L.r), my = res.y + h / 2;
+        res.guides.push({ gap: true, h: my, from: L.r, to: res.x, label: gx }, { gap: true, h: my, from: res.x + w, to: R.l, label: gx });
+      }
+    }
+    if (!bestY) {
+      var T = null, B = null;
+      targets.forEach(function (t) {
+        if (t.frame || t.r <= res.x || t.l >= res.x + w) return;
+        if (t.b <= fy && (!T || t.b > T.b)) T = t;
+        if (t.t >= fy + h && (!B || t.t < B.t)) B = t;
+      });
+      if (T && B && Math.abs((fy - T.b) - (B.t - fy - h)) <= reach * 2) {
+        res.y = (T.b + B.t - h) / 2;
+        var gy = Math.round(res.y - T.b), mx = res.x + w / 2;
+        res.guides.push({ gap: true, v: mx, from: T.b, to: res.y, label: gy }, { gap: true, v: mx, from: res.y + h, to: B.t, label: gy });
+      }
+    }
+    res.x = Math.max(0, res.x); res.y = Math.max(0, res.y);
+    return res;
+  };
+
   var resolve = function (x, y, payload) {
     var list = layersRef.current;
     var el = document.elementFromPoint(x, y);
@@ -864,6 +1023,9 @@ function App(props) {
         fy = r0.top + (fy - sy);
       }
       fx = Math.max(0, fx); fy = Math.max(0, fy);
+      var snapped = snapFree(f, hostFrame, moving && own ? payload.id : null, fx, fy, w, h, z);
+      fx = snapped.x; fy = snapped.y;
+      out.guides = snapped.guides.length ? snapped.guides : null;
       var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
       out.free = { x: gx, y: gy };
       out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at.fid) || frame).root.children.length;
@@ -907,7 +1069,11 @@ function App(props) {
   var show = function (hit, ghosted) {
     setListDrop(hit && hit.where === "list" ? hit : null);
     setMarks(function (m) {
-      return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box && !(hit.free && ghosted) ? toStage(hit.box, hit.frame) : null } : null });
+      var guides = hit && hit.where === "canvas" && hit.guides ? hit.guides.map(function (g) {
+        var r = g.v !== undefined ? toStage({ left: g.v, top: g.from, width: 0, height: g.to - g.from }, hit.frame) : toStage({ left: g.from, top: g.h, width: g.to - g.from, height: 0 }, hit.frame);
+        return r ? Object.assign(r, { gap: !!g.gap, label: g.label, v: g.v !== undefined }) : null;
+      }).filter(Boolean) : null;
+      return Object.assign({}, m, { drop: hit && hit.where === "canvas" ? { line: hit.line ? thick(toStage(hit.line, hit.frame)) : null, box: hit.box && !(hit.free && ghosted) ? toStage(hit.box, hit.frame) : null, guides: guides } : null });
     });
   };
 
@@ -1331,6 +1497,7 @@ function App(props) {
           ready: on(function (fid) { readyRef.current(fid); }),
           selection: on(function (fid) { if (docRef.current.active !== fid) return null; var s = selRef.current; return s.length ? s[s.length - 1] : null; }),
           pick: on(function (fid, id, additive, deep, part) { pickRef.current(id, additive, deep, "canvas", fid, part); }),
+          menu: on(function (fid, id, x, y) { var p = toPage(fid, x, y); openMenuRef.current(p.x, p.y, id, fid); }),
           edit: on(function (fid, id, text) { if (docRef.current.active !== fid) activateRef.current(fid); beginEditRef.current(id, text); }),
           hover: on(function (fid, id) {
             var h = hoverRef.current;
@@ -1340,11 +1507,21 @@ function App(props) {
           key: function (ev) { return keyRef.current(ev); },
           keyup: function (ev) { keyUpRef.current(ev); },
           moved: function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { measureRef.current(); }); },
-          dragStart: on(function (fid, id) {
+          dragStart: on(function (fid, id, alt) {
             if (docRef.current.active !== fid) activateRef.current(fid);
             var at = locate(docRef.current, id);
             if (!at) return;
-            if (at.node.type === "Slot") return;
+            if (at.node.type === "Slot" || at.node.lock) return;
+            /* Alt-drag: a copy is made where the original is, and it's the
+               copy that moves, so the original stays put. */
+            if (alt) {
+              var copyId = null;
+              change(function (d) { copyId = ops.duplicate(d, id); return copyId; }, "Duplicated");
+              if (!copyId) return;
+              id = copyId;
+              at = locate(docRef.current, id);
+              if (!at) return;
+            }
             var pl = { kind: "move", id: id, label: nameOf(at.node) };
             dragRef.current = { payload: pl, active: true, ghost: null };
             dragRef.current.ghost = ghostFor(pl);
@@ -1693,6 +1870,182 @@ function App(props) {
     if (mql("(max-width: 900px)")) setPane("canvas");
   };
 
+  /* Align and distribute free objects: on their own, to the frame's edges
+     and centre; several, to each other. Positions move by whole steps of
+     --dt-space-inset-2xs, so the document stays token-only. Flow children
+     aren't arranged this way: their parent's layout already does it. */
+  var arrangeable = function (ids) {
+    var d = docRef.current;
+    if (!ids.length) return null;
+    var spots = ids.map(function (id) { return locate(d, id); });
+    if (spots.some(function (at) { return !at || !isFree(at.node.style); })) return null;
+    var parent = spots[0].parent;
+    if (spots.some(function (at) { return at.parent !== parent; })) return null;
+    return spots;
+  };
+  var arrange = function (kind) {
+    var ids = selRef.current.slice();
+    var spots = arrangeable(ids);
+    var f = api();
+    if (!spots || !f || !f.rect || !f.measure) return false;
+    var unit = f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
+    var items = spots.map(function (at) { var r = f.rect(at.node.id); return r ? { id: at.node.id, l: r.left, t: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom } : null; }).filter(Boolean);
+    if (!items.length) return false;
+    /* One object lines up with its parent; several, with each other. */
+    var box;
+    if (items.length === 1) { var pr = f.rect(spots[0].parent.id); if (!pr) return false; box = { l: pr.left, t: pr.top, r: pr.right, b: pr.bottom }; }
+    else box = { l: Math.min.apply(null, items.map(function (i) { return i.l; })), t: Math.min.apply(null, items.map(function (i) { return i.t; })), r: Math.max.apply(null, items.map(function (i) { return i.r; })), b: Math.max.apply(null, items.map(function (i) { return i.b; })) };
+    var moves = {};
+    var put = function (i, l, t) { moves[i.id] = { dx: Math.round((l - i.l) / unit), dy: Math.round((t - i.t) / unit) }; };
+    var spread = function (axis) {
+      if (items.length < 3) return;
+      var a = axis === "x" ? ["l", "w", "r"] : ["t", "h", "b"];
+      var sorted = items.slice().sort(function (p, q) { return p[a[0]] - q[a[0]]; });
+      var first = sorted[0], last = sorted[sorted.length - 1];
+      var span = last[a[2]] - first[a[0]], sum = sorted.reduce(function (n, i) { return n + i[a[1]]; }, 0);
+      var gap = (span - sum) / (sorted.length - 1), at = first[a[0]];
+      sorted.forEach(function (i) { if (axis === "x") put(i, at, i.t); else put(i, i.l, at); at += i[a[1]] + gap; });
+    };
+    if (kind === "left") items.forEach(function (i) { put(i, box.l, i.t); });
+    else if (kind === "hcenter") items.forEach(function (i) { put(i, (box.l + box.r) / 2 - i.w / 2, i.t); });
+    else if (kind === "right") items.forEach(function (i) { put(i, box.r - i.w, i.t); });
+    else if (kind === "top") items.forEach(function (i) { put(i, i.l, box.t); });
+    else if (kind === "vcenter") items.forEach(function (i) { put(i, i.l, (box.t + box.b) / 2 - i.h / 2); });
+    else if (kind === "bottom") items.forEach(function (i) { put(i, i.l, box.b - i.h); });
+    else if (kind === "hspread") spread("x");
+    else if (kind === "vspread") spread("y");
+    else if (kind === "tidy") {
+      /* Even gaps along the longer run, and centred across it. */
+      var wideRun = box.r - box.l >= box.b - box.t;
+      spread(wideRun ? "x" : "y");
+      items.forEach(function (i) {
+        var m = moves[i.id] || { dx: 0, dy: 0 };
+        if (wideRun) m.dy = Math.round(((box.t + box.b) / 2 - i.h / 2 - i.t) / unit); else m.dx = Math.round(((box.l + box.r) / 2 - i.w / 2 - i.l) / unit);
+        moves[i.id] = m;
+      });
+    }
+    var LABEL = { left: "Aligned left", hcenter: "Centred", right: "Aligned right", top: "Aligned top", vcenter: "Centred", bottom: "Aligned bottom", hspread: "Spread evenly across", vspread: "Spread evenly down", tidy: "Tidied up" };
+    var moved = change(function (d) {
+      var any = null;
+      Object.keys(moves).forEach(function (id) { var m = moves[id]; if ((m.dx || m.dy) && ops.shift(d, id, m.dx, m.dy)) any = id; });
+      return any ? ids : null;
+    }, LABEL[kind]);
+    if (moved) select(ids);
+    return true;
+  };
+  var ARRANGE = [
+    ["left", "Align left", "alignStart", "Alt+A"], ["hcenter", "Align centres", "alignCenter", "Alt+H"], ["right", "Align right", "alignEnd", "Alt+D"],
+    ["top", "Align top", "alignTop", "Alt+W"], ["vcenter", "Align middles", "alignMiddle", "Alt+V"], ["bottom", "Align bottom", "alignBottom", "Alt+S"],
+    ["hspread", "Spread evenly across", "distributeH", "Shift+Alt+H"], ["vspread", "Spread evenly down", "distributeV", "Shift+Alt+V"], ["tidy", "Tidy up", "tidy", "Shift+Alt+T"],
+  ];
+  var arrangeRow = function (nodes) {
+    var spots = arrangeable(nodes.map(function (n) { return n.id; }));
+    if (!spots) return null;
+    var few = nodes.length < 3;
+    return e("div", { key: "arrange", className: "bd-arrange", role: "group", "aria-label": "Align and distribute" },
+      ARRANGE.map(function (a) {
+        var off = few && (a[0] === "hspread" || a[0] === "vspread" || a[0] === "tidy");
+        return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || undefined, onClick: function () { arrange(a[0]); } }, e(Icon, { name: a[2] }));
+      }));
+  };
+
+  /* Copy style takes one layer's look (its tokens and custom colours, not
+     where it sits); paste style puts that look on the selection, replacing
+     what was there. */
+  var styleClip = useRef(null);
+  var POSITION_KEYS = ["x", "y", "position", "anchor", "offset"];
+  var copyStyle = function () {
+    var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+    if (!at) return false;
+    var out = {};
+    Object.keys(at.node.style).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) out[k] = at.node.style[k]; });
+    styleClip.current = out;
+    var n = Object.keys(out).length;
+    announce(n ? "Copied the style of " + nameOf(at.node) + " (" + n + (n === 1 ? " property)" : " properties)") : "Copied a plain style");
+    return true;
+  };
+  var pasteStyle = function () {
+    var clipStyle = styleClip.current;
+    if (!clipStyle || !selRef.current.length) return false;
+    var patch = {};
+    Object.keys(DATA.tokens).concat(["fill", "color", "dark"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
+    setStyles(selRef.current, patch);
+    announce("Pasted the style");
+    return true;
+  };
+  /* Every layer in the frame of the same kind as the selected one. */
+  var selectSame = function () {
+    var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+    if (!at) return;
+    var type = at.node.type, ids = [];
+    (function walk(n) { (n.children || []).forEach(function (c) { if (c.type === type) ids.push(c.id); walk(c); }); })(active(docRef.current).root);
+    select(ids);
+    announce(ids.length + " " + type + (ids.length === 1 ? "" : "s") + " selected");
+  };
+
+  /* What the right-click menu offers, for these layers (or none: the frame). */
+  var menuOptions = function (ids) {
+    var d = docRef.current;
+    var spots = ids.map(function (id) { return locate(d, id); }).filter(Boolean);
+    var nodes = spots.map(function (at) { return at.node; });
+    var one = nodes.length === 1 ? nodes[0] : null;
+    var hasClip = !!(clip.current && clip.current.nodes && clip.current.nodes.length);
+    if (!nodes.length) {
+      return [
+        { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
+        { value: "selectAll", label: "Select all", hint: "Ctrl+A", icon: "layers2", group: "Edit" },
+        { value: "fitAll", label: "Zoom to fit", hint: "Shift+1", icon: "fit", group: "View" },
+        { value: "fitFrame", label: "Zoom to " + active(d).name, hint: "Shift+2", icon: "frame", group: "View" },
+      ];
+    }
+    var allHidden = nodes.every(function (n) { return n.hide; }), allLocked = nodes.every(function (n) { return n.lock; });
+    var free = spots.every(function (at) { return isFree(at.node.style); });
+    return [
+      { value: "cut", label: "Cut", hint: "Ctrl+X", icon: "scissors", group: "Edit" },
+      { value: "copy", label: "Copy", hint: "Ctrl+C", icon: "copy", group: "Edit" },
+      { value: "paste", label: "Paste", hint: "Ctrl+V", icon: "copy", group: "Edit", disabled: !hasClip },
+      { value: "duplicate", label: "Duplicate", hint: "Ctrl+D", icon: "copy", group: "Edit" },
+      { value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch", group: "Edit" },
+      { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", group: "Edit", disabled: !styleClip.current },
+      { value: "same", label: "Select all " + (one ? one.type + (one.type.endsWith("s") ? "" : "s") : "of this kind"), icon: "layers2", group: "Edit" },
+      { value: "remove", label: "Delete", hint: "Del", icon: "trash", group: "Edit", danger: true },
+      { value: "front", label: "Bring to front", hint: "Ctrl+Shift+]", icon: "up", group: "Arrange" },
+      { value: "up", label: "Bring forward", hint: "Ctrl+]", icon: "up", group: "Arrange" },
+      { value: "down", label: "Send backward", hint: "Ctrl+[", icon: "down", group: "Arrange" },
+      { value: "back", label: "Send to back", hint: "Ctrl+Shift+[", icon: "down", group: "Arrange" },
+    ].concat(free && nodes.length > 1 ? [{ value: "tidy", label: "Tidy up", hint: "Shift+Alt+T", icon: "tidy", group: "Arrange" }] : [])
+    .concat([
+      one && one.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
+      { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
+      { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" },
+    ])
+    .concat(one && one.type === "Group" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : [])
+    .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }])
+    .concat(one ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }] : []);
+  };
+  var onMenu = function (v) {
+    if (v === "cut") copySelection(true);
+    else if (v === "copy") copySelection(false);
+    else if (v === "paste") { if (clip.current) pasteNodes(clip.current.nodes); }
+    else if (v === "duplicate") actions.duplicate();
+    else if (v === "copyStyle") copyStyle();
+    else if (v === "pasteStyle") pasteStyle();
+    else if (v === "same") selectSame();
+    else if (v === "remove") actions.remove();
+    else if (v === "front" || v === "back" || v === "up" || v === "down") actions.order(v);
+    else if (v === "tidy") arrange("tidy");
+    else if (v === "group") actions.group();
+    else if (v === "ungroup") actions.ungroup();
+    else if (v === "hide") actions.hide();
+    else if (v === "lock") actions.lock();
+    else if (v === "rename") actions.rename();
+    else if (v === "component") openComponent();
+    else if (v === "link") share(selRef.current[0]);
+    else if (v === "selectAll") actions.selectAll();
+    else if (v === "fitAll") fitAll();
+    else if (v === "fitFrame") showFrame(docRef.current.active);
+  };
+
   var actions = {
     remove: function () {
       var ids = selRef.current.slice();
@@ -1707,6 +2060,56 @@ function App(props) {
     },
     up: function () { var id = selRef.current[selRef.current.length - 1]; if (id && change(function (d) { return ops.nudge(d, id, -1); }, "Moved up")) select([id]); },
     down: function () { var id = selRef.current[selRef.current.length - 1]; if (id && change(function (d) { return ops.nudge(d, id, 1); }, "Moved down")) select([id]); },
+    /* Z-order among siblings: up and down one, or to the front and back.
+       Later siblings draw on top, so "front" is last. */
+    order: function (where) {
+      var ids = selRef.current.slice();
+      if (!ids.length) return;
+      var step = where === "up" ? 1 : where === "down" ? -1 : 0;
+      var ordered = ids.map(function (id) { return locate(docRef.current, id); }).filter(Boolean).sort(function (a, b) { return a.index - b.index; }).map(function (a) { return a.node.id; });
+      /* Moving forward, the last one goes first so siblings don't collide. */
+      if (step > 0 || where === "front") ordered.reverse();
+      var moved = change(function (d) {
+        var any = null;
+        ordered.forEach(function (id) { if (step ? ops.nudge(d, id, step) : ops.order(d, id, where)) any = id; });
+        return any ? ids : null;
+      }, where === "front" ? "Brought to the front" : where === "back" ? "Sent to the back" : where === "up" ? "Brought forward" : "Sent backward");
+      if (moved) select(ids);
+    },
+    /* Free objects move by whole steps; nothing else takes the arrows. */
+    nudge: function (dx, dy) {
+      var ids = selRef.current.slice();
+      if (!ids.length || (!dx && !dy)) return false;
+      var d = docRef.current;
+      if (!ids.some(function (id) { var at = locate(d, id); return at && isFree(at.node.style); })) return false;
+      return !!change(function (dd) {
+        var any = null;
+        ids.forEach(function (id) { if (ops.shift(dd, id, dx, dy)) any = id; });
+        return any ? ids : null;
+      });
+    },
+    /* Locked: left alone on the canvas (it still answers in Layers).
+       Hidden: not drawn and not exported. Each toggles the selection. */
+    lock: function () {
+      var ids = selRef.current.slice();
+      if (!ids.length) return;
+      var d = docRef.current, on = ids.some(function (id) { var at = locate(d, id); return at && !at.node.lock; });
+      change(function (dd) { var any = false; ids.forEach(function (id) { var at = locate(dd, id); if (!at || at.node.type === "Slot") return; any = true; if (on) at.node.lock = true; else delete at.node.lock; }); return any ? ids : null; }, on ? (ids.length > 1 ? "Locked " + ids.length : "Locked") : (ids.length > 1 ? "Unlocked " + ids.length : "Unlocked"));
+    },
+    hide: function () {
+      var ids = selRef.current.slice();
+      if (!ids.length) return;
+      var d = docRef.current, on = ids.some(function (id) { var at = locate(d, id); return at && !at.node.hide; });
+      change(function (dd) { var any = false; ids.forEach(function (id) { var at = locate(dd, id); if (!at || at.node.type === "Slot") return; any = true; if (on) at.node.hide = true; else delete at.node.hide; }); return any ? ids : null; }, on ? (ids.length > 1 ? "Hidden " + ids.length : "Hidden") : (ids.length > 1 ? "Shown " + ids.length : "Shown"));
+    },
+    /* Everything at the top of the active frame. */
+    selectAll: function () {
+      var f = active(docRef.current);
+      var ids = f.root.children.map(function (c) { return c.id; });
+      if (!ids.length) return;
+      select(ids);
+      announce(ids.length === 1 ? "1 selected" : ids.length + " selected");
+    },
     /* Enter goes into the selection: a container's children, or a leaf's text. */
     into: function () {
       var d = docRef.current;
@@ -1781,6 +2184,7 @@ function App(props) {
      only while nothing else has focus. */
   var keyRef = useRef(function () { return false; });
   keyRef.current = function (ev) {
+    if (ev.key === "Meta" || ev.key === "Control") snapOffRef.current = true;
     /* The Account dialog opens over Home too, and Escape is its own. */
     if (accountRef.current && accountRef.current.open) return false;
     if (homeRef.current) { if (ev.key === "Escape") { closeProjects(); return true; } return false; }
@@ -1797,6 +2201,8 @@ function App(props) {
     if (mod && ev.key === "\\") { actions.panels(); return true; }
     if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
     if (previewRef.current) return false;
+    if (ev.key === "Escape" && marqRef.current) { marqueeEnd(false); return true; }
+    if (ev.key === "ContextMenu" || (ev.key === "F10" && ev.shiftKey)) { menuAtSelection(); return true; }
     if (ev.key === "Escape" && tray) { setTray(null); return true; }
     if (ev.key === "Escape" && tool !== "select") { setTool("select"); return true; }
     if (!mod && !ev.altKey && !ev.shiftKey && TOOL_KEY[key]) { pickToolRef.current(TOOL_INFO[TOOL_KEY[key]]); return true; }
@@ -1807,12 +2213,16 @@ function App(props) {
     if (mod && ev.key === "0") { fitAll(); return true; }
     if (ev.shiftKey && !mod && ev.code === "Digit0") { zoomTo(1); return true; }
     if (ev.shiftKey && !mod && ev.code === "Digit1") { fitAll(); return true; }
-    if (ev.shiftKey && !mod && ev.code === "Digit2") { showFrame(docRef.current.active); return true; }
+    if (ev.shiftKey && !mod && ev.code === "Digit2") { if (!showSelection()) showFrame(docRef.current.active); return true; }
+    if (mod && key === "a" && !ev.shiftKey && !ev.altKey) { actions.selectAll(); return true; }
     if (ev.key === "Enter") { (ev.shiftKey ? actions.out : actions.into)(); return true; }
     if (ev.key === "Escape") { if (!selRef.current.length) setFrameOn(false); select([]); return true; }
     /* Paste: in this page, the paste event brings what the system clipboard
        holds; from a frame, the builder's own clipboard. */
-    if (mod && key === "v" && !ev.shiftKey) {
+    /* Copy and paste style come before the plain copy and paste. */
+    if (mod && ev.altKey && ev.code === "KeyC") { copyStyle(); return true; }
+    if (mod && ev.altKey && ev.code === "KeyV") { pasteStyle(); return true; }
+    if (mod && key === "v" && !ev.shiftKey && !ev.altKey) {
       if (t && t.ownerDocument !== document) { if (clip.current) pasteNodes(clip.current.nodes); return true; }
       return false;
     }
@@ -1824,12 +2234,35 @@ function App(props) {
     if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
     if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
     if (mod && key === "d") { actions.duplicate(); return true; }
+    /* 1 to 9 step the opacity through its roles, as Figma's keys do; 0 is opaque. */
+    if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
+      var digit = Number(ev.code.slice(5));
+      var role = digit === 0 ? undefined : digit <= 2 ? "ghost" : digit <= 5 ? "disabled" : digit <= 7 ? "muted" : "strong";
+      setStyle(selRef.current, "opacity", role);
+      announce(role ? "Opacity " + role : "Opaque");
+      return true;
+    }
+    if (mod && ev.shiftKey && (key === "h" || ev.code === "KeyH")) { actions.hide(); return true; }
+    if (mod && ev.shiftKey && (key === "l" || ev.code === "KeyL")) { actions.lock(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowDown") { actions.down(); return true; }
+    /* Align and distribute, as Figma has them: Alt and a letter. */
+    if (ev.altKey && !mod) {
+      var ARRANGE_KEY = ev.shiftKey ? { KeyH: "hspread", KeyV: "vspread", KeyT: "tidy" } : { KeyA: "left", KeyH: "hcenter", KeyD: "right", KeyW: "top", KeyV: "vcenter", KeyS: "bottom" };
+      if (ARRANGE_KEY[ev.code] && arrange(ARRANGE_KEY[ev.code])) return true;
+    }
+    if (mod && (ev.key === "]" || ev.code === "BracketRight")) { actions.order(ev.shiftKey ? "front" : "up"); return true; }
+    if (mod && (ev.key === "[" || ev.code === "BracketLeft")) { actions.order(ev.shiftKey ? "back" : "down"); return true; }
+    /* Arrows move free objects a step of --dt-space-inset-2xs; Shift, four. */
+    if (!mod && !ev.altKey && /^Arrow(Left|Right|Up|Down)$/.test(ev.key)) {
+      var by = ev.shiftKey ? 4 : 1;
+      if (actions.nudge(ev.key === "ArrowLeft" ? -by : ev.key === "ArrowRight" ? by : 0, ev.key === "ArrowUp" ? -by : ev.key === "ArrowDown" ? by : 0)) return true;
+    }
     return false;
   };
   var keyUpRef = useRef(function () {});
   keyUpRef.current = function (ev) {
+    if (ev.key === "Meta" || ev.key === "Control") snapOffRef.current = false;
     if (ev.key === " " && spaceRef.current) { spaceRef.current = false; setSpace(false); }
     if (ev.key === "Shift") setShiftHeld(false);
   };
@@ -1841,7 +2274,7 @@ function App(props) {
       if (keyRef.current(ev)) ev.preventDefault();
     };
     var onUp = function (ev) { keyUpRef.current(ev); };
-    var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } setShiftHeld(false); };
+    var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } setShiftHeld(false); snapOffRef.current = false; };
     document.addEventListener("keydown", onKey);
     document.addEventListener("keyup", onUp);
     window.addEventListener("blur", onBlur);
@@ -1886,6 +2319,15 @@ function App(props) {
       [].concat(ids).forEach(function (id) { var at = locate(d, id); if (!at) return; any = true; if (value === undefined) delete at.node.props[key]; else at.node.props[key] = value; });
       return any ? undefined : null;
     });
+  };
+  /* The eye and lock on a layer row, on any frame's row. */
+  var flagLayer = function (id, fid, key) {
+    change(function (d) {
+      var at = locate(d, id, fid);
+      if (!at) return null;
+      if (at.node[key]) delete at.node[key]; else at.node[key] = true;
+      return undefined;
+    }, null);
   };
   var setStyle = function (ids, key, value) {
     change(function (d) {
@@ -3972,12 +4414,13 @@ function App(props) {
       var folds = !!n.children || owner;
       var renameable = n.type === "Group";
       return e("div", {
-        key: n.id, className: cx("bd-layer", on && "is-current", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+        key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
         "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
         "aria-expanded": folds ? String(open) : undefined,
         style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
         onPointerEnter: function () { setHover({ f: f.id, id: n.id }); },
         onPointerLeave: function () { setHover(null); },
+        onContextMenu: function (ev) { if (n.type !== "Slot") { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, n.id, f.id); } },
       },
         folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : undefined, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
           : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
@@ -3985,13 +4428,18 @@ function App(props) {
           type: "button", className: "bd-layer-main",
           onClick: function (ev) { if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id); },
           onDoubleClick: function () { if (renameable && mine) setRenaming({ id: n.id, where: "layer" }); },
-          onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot") startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
+          onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
         },
           e(Icon, { name: typeIcon(n.type) }),
           renameable && mine && isRenaming(n.id, "layer")
             ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
             : e("span", { className: "bd-layer-name" }, nameOf(n)),
-          text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null));
+          text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
+        n.type !== "Slot" ? e("span", { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
+          e("button", { type: "button", className: cx("bd-layer-flag", n.hide && "is-on"), "aria-pressed": String(!!n.hide), "aria-label": (n.hide ? "Show " : "Hide ") + nameOf(n), title: n.hide ? "Hidden: press to show (Ctrl+Shift+H)" : "Hide (Ctrl+Shift+H)",
+            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "hide"); } }, e(Icon, { name: n.hide ? "eyeOff" : "eye" })),
+          e("button", { type: "button", className: cx("bd-layer-flag", n.lock && "is-on"), "aria-pressed": String(!!n.lock), "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n), title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
+            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "lock"); } }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))) : null);
     };
     return e("div", { className: "bd-layers-panel" },
       e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
@@ -4129,7 +4577,9 @@ function App(props) {
           tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true })),
         picturesOnly ? e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
           e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })) : null,
-      ], null, styled(nodes, ["blend", "invert"])),
+        e(Field, { key: "opacity", id: lid + "-op", label: "Opacity", hint: "Keys 1 to 9 step it; 0 makes it opaque again" },
+          tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })),
+      ], null, styled(nodes, ["blend", "invert", "opacity"])),
       sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),
@@ -4348,6 +4798,7 @@ function App(props) {
         .concat(lookSections(nodes, toned ? e("p", { key: "note", className: "bd-note" }, "Tone, under Style, paints this one's own background. Fill sits underneath it.") : null));
     }
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
+    var arrangeTools = arrangeRow(nodes);
     return e("div", { className: "bd-inspect" },
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" },
@@ -4366,8 +4817,11 @@ function App(props) {
                     .concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }])
                   : [])
                 .concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : [])
-                .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : [])
-                .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]),
+                .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }, { value: "same", label: "Select all " + first.type + (first.type.endsWith("s") ? "" : "s"), icon: "layers2" }] : [])
+                .concat([{ value: "copyStyle", label: "Copy style", hint: "Ctrl+Alt+C", icon: "swatch" }, { value: "pasteStyle", label: "Paste style", hint: "Ctrl+Alt+V", icon: "swatch", disabled: !styleClip.current }])
+                .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }])
+                .concat([{ value: "hide", label: nodes.every(function (n) { return n.hide; }) ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: nodes.every(function (n) { return n.hide; }) ? "eye" : "eyeOff" },
+                  { value: "lock", label: nodes.every(function (n) { return n.lock; }) ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: nodes.every(function (n) { return n.lock; }) ? "lockOpen" : "lock" }]),
               onChange: function (v) {
                 if (v === "group") actions.group();
                 else if (v === "ungroup") actions.ungroup();
@@ -4376,9 +4830,15 @@ function App(props) {
                 else if (v === "detach") actions.detach();
                 else if (v === "link") share(first.id);
                 else if (v === "component") openComponent();
+                else if (v === "hide") actions.hide();
+                else if (v === "lock") actions.lock();
+                else if (v === "same") selectSame();
+                else if (v === "copyStyle") copyStyle();
+                else if (v === "pasteStyle") pasteStyle();
               } }))),
         many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
-          : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null),
+          : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
+        arrangeTools),
       tabBar(have, current),
       tabPanel(current, body));
   };
@@ -4560,6 +5020,62 @@ function App(props) {
 
   /* A frame's right and bottom edges, and its corner, drag to resize it. A
      page lands on a standard viewport size; a frame snaps to one nearby. */
+  /* Handles on the selected object: a drag sets its width and height to
+     the nearest size tokens (never raw pixels), live, as one undo step.
+     On a free object the top and left edges move it as they go, and
+     Shift on a corner keeps its shape. */
+  var startNodeResize = function (ev, id, dir) {
+    if (ev.button !== 0) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    releaseFocus();
+    try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+    var f = api(), r0 = f && f.rect ? f.rect(id) : null, at0 = locate(docRef.current, id);
+    if (!r0 || !at0) return;
+    var z = camRef.current.z;
+    var unit = (f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0]) || 4;
+    var free = isFree(at0.node.style), x0 = at0.node.style.x, y0 = at0.node.style.y;
+    var start = { x: ev.clientX, y: ev.clientY };
+    var first = true, last = "";
+    var corner = /[ns]/.test(dir) && /[ew]/.test(dir);
+    var move = function (mv) {
+      var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
+      var w = r0.width, h = r0.height;
+      if (/e/.test(dir)) w = r0.width + dx; else if (/w/.test(dir)) w = r0.width - dx;
+      if (/s/.test(dir)) h = r0.height + dy; else if (/n/.test(dir)) h = r0.height - dy;
+      if (corner && mv.shiftKey) { var k = r0.height / r0.width; if (Math.abs(dx) >= Math.abs(dy)) h = w * k; else w = h / k; }
+      var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true) : null;
+      var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true) : null;
+      if (!tw && !th) return;
+      var wpx = tw ? pxMap["w|" + tw] : r0.width, hpx = th ? pxMap["height|" + th] : r0.height;
+      var xs = free && /w/.test(dir) && wpx != null ? Math.round((r0.width - wpx) / unit) : 0;
+      var ys = free && /n/.test(dir) && hpx != null ? Math.round((r0.height - hpx) / unit) : 0;
+      var key = [tw, th, xs, ys].join("|");
+      if (key === last) return;
+      last = key;
+      var fn = function (d) {
+        var at = locate(d, id);
+        if (!at) return null;
+        if (tw) at.node.style.w = tw;
+        if (th) at.node.style.height = th;
+        if (xs) at.node.style.x = Math.max(0, Math.min(FREE_MAX, x0 + xs));
+        if (ys) at.node.style.y = Math.max(0, Math.min(FREE_MAX, y0 + ys));
+        return undefined;
+      };
+      if (first) { first = false; change(fn); } else quiet(fn);
+    };
+    var up = function () {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      if (!first) { var n = locate(docRef.current, id); if (n) announce(nameOf(n.node) + (n.node.style.w ? " is " + n.node.style.w + " wide" : "") + (n.node.style.height ? ", " + n.node.style.height + " tall" : "")); }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
+  var HANDLES_FREE = ["nw", "n", "ne", "e", "se", "s", "sw", "w"], HANDLES_FLOW = ["e", "se", "s"];
+
   var startResize = function (ev, f, edge) {
     if (ev.button !== 0) return;
     ev.preventDefault();
@@ -4752,15 +5268,27 @@ function App(props) {
       ev.preventDefault();
       releaseFocus();
       try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      if (ev.button === 0 && ev.pointerType !== "touch" && !spaceRef.current && tool === "select" && !previewRef.current && !marqRef.current) { marqueeStart(ev); return; }
       gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
     },
-    onPointerMove: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+    onPointerMove: function (ev) {
+      if (marqRef.current && marqRef.current.id === ev.pointerId) { marqueeMove(ev); return; }
+      if (gest.current.pts[ev.pointerId]) gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+    },
     onPointerUp: function (ev) {
+      if (marqRef.current && marqRef.current.id === ev.pointerId) {
+        if (!marqueeEnd(true)) { select([]); setFrameOn(false); if (editRef.current) editDone(true); }
+        return;
+      }
       if (!gest.current.pts[ev.pointerId]) return;
       var moved = gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
       if (!moved && isBackground(ev.target) && !spaceRef.current) { select([]); setFrameOn(false); if (editRef.current) editDone(true); }
     },
-    onPointerCancel: function (ev) { if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null); },
+    onPointerCancel: function (ev) {
+      if (marqRef.current && marqRef.current.id === ev.pointerId) { marqueeEnd(false); return; }
+      if (gest.current.pts[ev.pointerId]) gesture("up", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType, null);
+    },
+    onContextMenu: function (ev) { if (!previewRef.current && isBackground(ev.target)) { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, null); } },
   },
     e("div", { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
       doc.frames.map(function (f) {
@@ -4802,6 +5330,7 @@ function App(props) {
       })),
     e("div", { className: "bd-marks", "aria-hidden": true },
       !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+      marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
       !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
       !preview ? marks.sel.map(function (m) {
         var at = locate(doc, m.id);
@@ -4810,13 +5339,21 @@ function App(props) {
         /* At the top of the stage, or of its frame (where the frame's name
            sits), the tag goes inside the box. */
         var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
-        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+        var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? (isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW) : null;
+        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
           isMain ? e("span", {
             className: "bd-mark-tag", title: "Drag to move",
             onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
-          }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null);
+          }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null,
+          handles ? handles.map(function (dir) {
+            return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function (ev) { startNodeResize(ev, at.node.id, dir); } });
+          }) : null);
       }) : null,
       marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
+      marks.drop && marks.drop.guides ? marks.drop.guides.map(function (g, i) {
+        return e("div", { key: i, className: cx("bd-guide", g.gap && "is-gap", g.v ? "is-v" : "is-h"), style: { left: g.left + "px", top: g.top + "px", width: g.width + "px", height: g.height + "px" } },
+          g.label !== undefined ? e("span", { className: "bd-guide-label" }, g.label) : null);
+      }) : null,
       marks.drop && marks.drop.box ? e("div", { className: cx("bd-mark-box", marks.drop.swap && "is-swap"), style: marks.drop.box }) : null,
       dupFrame ? e("div", { className: "bd-dup", style: { left: cam.x + dupFrame.x * cam.z, top: cam.y + dupFrame.y * cam.z, width: dupFrame.w * cam.z, height: dupFrame.h * cam.z } },
         e("span", { className: "bd-dup-tag" }, e(Icon, { name: "copy" }), dupFrame.name + " copy")) : null),
@@ -5052,6 +5589,7 @@ function App(props) {
     componentDialog(),
     playDialog(),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
+    menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
 }
 

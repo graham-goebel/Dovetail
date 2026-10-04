@@ -2296,6 +2296,10 @@ const BUILDER_TOKENS = {
       .map((o) => tokenOption(o, [], { mixBlendMode: o }, o.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase()))) },
   invert: { label: "Invert", section: "appearance", preview: "text",
     options: [tokenOption("on", [], { filter: "invert(1)" }, "Inverted")] },
+  /* How see-through a layer is: the four opacity roles, never a number. */
+  opacity: { label: "Opacity", section: "appearance", preview: "text",
+    options: [["ghost", "Ghost (20%)"], ["disabled", "Disabled (40%)"], ["muted", "Muted (60%)"], ["strong", "Strong (80%)"]]
+      .map(([o, label]) => tokenOption(o, [`--dt-opacity-${o}`], { opacity: cssVar(`--dt-opacity-${o}`) }, label)) },
   border: { label: "Border", section: "appearance", preview: "color", sides: ["borderTop", "borderRight", "borderBottom", "borderLeft"], options: borderOpts("border") },
   borderTop: { label: "Border top", section: "appearance", preview: "color", side: "top", options: borderOpts("borderTop") },
   borderRight: { label: "Border right", section: "appearance", preview: "color", side: "right", options: borderOpts("borderRight") },
