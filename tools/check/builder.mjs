@@ -82,13 +82,26 @@ import { serve } from "./serve.mjs";
 
 let failures = 0;
 const ok = (m) => console.log(`  ok    ${m}`);
-const fail = (m) => { failures++; console.log(`  FAIL  ${m}`); };
+let stepNow = "";
+/* On GitHub Actions a failure is also an annotation, so it reads from the
+   checks page without opening the log. */
+const fail = (m) => {
+  failures++;
+  console.log(`  FAIL  ${m}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Builder check::${(stepNow + ": " + m).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`);
+};
 const expect = (cond, m) => { if (!cond) throw new Error(m); };
 /* ONLY=<text> runs just the steps whose title has it, to work on one. */
 async function step(title, fn) {
   if (process.env.ONLY && !title.includes(process.env.ONLY) && title !== "page errors") return;
   console.log(title);
-  try { await fn(); } catch (err) { if (process.env.DEBUG) console.log(err); fail(String(err && err.message ? err.message : err).split("\n")[0]); }
+  stepNow = title;
+  try { await fn(); } catch (err) {
+    if (process.env.DEBUG) console.log(err);
+    /* A timeout doesn't say which wait it was; the line in this file does. */
+    const at = /builder\.mjs:(\d+)/.exec((err && err.stack) || "");
+    fail(String(err && err.message ? err.message : err).split("\n")[0] + (at && /Timeout/.test(String(err && err.message)) ? ` (line ${at[1]})` : ""));
+  }
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
