@@ -53,7 +53,7 @@ Ask in two short rounds. Use your structured question tool if you have one (four
 | Page colour | `pageTint`, `sectionTint` | White and grey (`neutral`), or the brand's pale tint on the quiet bands only (`sectionTint: "muted"`) or on the whole page (`pageTint: "muted"`). |
 | Second colour | `secondary`, `secondaryHex` | Optional: a secondary brand colour for accents and illustrations, as for the primary. |
 
-Anything they don't mention keeps its default; leave it out of the answers rather than restating defaults. The advanced choices (`headlineColor`, `wordmarkColor`, `texture`, `textSpacing`, `moduleSpacing`, `codeFont`, `secondaryFont`, `baseUnit`, `focusRing`, `density`, `mono`, `steps`) are all in `options`. Set them only when the user asks for something they express, such as "headlines in our brand colour" (`headlineColor: "primary"`).
+Anything they don't mention keeps its default; leave it out of the answers rather than restating defaults. The advanced choices (`headlineColor`, `wordmarkColor`, `texture`, `textSpacing`, `moduleSpacing`, `pageWidth`, `codeFont`, `secondaryFont`, `baseUnit`, `focusRing`, `density`, `mono`, `steps`) are all in `options`. Set them only when the user asks for something they express, such as "headlines in our brand colour" (`headlineColor: "primary"`).
 
 Write the answers to a JSON file, then build:
 

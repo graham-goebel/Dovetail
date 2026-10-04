@@ -16,8 +16,16 @@
              subcopy    a heading (with its eyebrow) and the lead under it
              paragraph  one paragraph or body item and the next
    module  — the room a module (a band or block) takes
-             padding    above and below its content
+             padding    above and below its content, in four steps (sm, md,
+                        lg, xl) so one band can take more room than the next;
+                        padding on its own is md
              gap        between its own parts: header, content, call to action
+             inset      inside a band set in from the page edges, which keeps
+                        its fill within the page width
+   page    — the column every page shares
+             width      the content width, so pages line up without padding
+                        and margin doing the work; narrow and wide beside it
+             gutter     the room between that column and the screen's edge
 
    The character of the layout moves all of them together:
 
@@ -60,10 +68,23 @@
 
   --dt-layout-module-padding: var(--dt-space-section);
   --dt-layout-module-gap: var(--dt-space-stack-xl);
+  --dt-layout-module-padding-sm: var(--dt-space-section-compact); /* 64 */
+  --dt-layout-module-padding-md: var(--dt-layout-module-padding);  /* 96 */
+  --dt-layout-module-padding-lg: var(--dt-dim-32);                 /* 128 */
+  --dt-layout-module-padding-xl: var(--dt-dim-40);                 /* 160 */
+  --dt-layout-module-inset: var(--dt-dim-8);                       /* 32 */
+
+  --dt-layout-page-gutter: var(--dt-space-gutter);                 /* 24 */
 }
 
+/* The page column doesn't change with the character: a page is as wide as
+   it is. Configure's Page width moves --dt-layout-page-width. */
 :root {
   --dt-layout-scale: 1;
+
+  --dt-layout-page-width: var(--dt-size-container-default);        /* 1280 */
+  --dt-layout-page-width-narrow: var(--dt-size-container-narrow);  /* 768 */
+  --dt-layout-page-width-wide: var(--dt-size-container-wide);      /* 1536 */
 }
 
 [data-layout="tight"] {
@@ -83,6 +104,13 @@
 
   --dt-layout-module-padding: var(--dt-dim-16); /* 64 */
   --dt-layout-module-gap: var(--dt-dim-6);      /* 24 */
+  --dt-layout-module-padding-sm: var(--dt-dim-10);                 /* 40 */
+  --dt-layout-module-padding-md: var(--dt-layout-module-padding);  /* 64 */
+  --dt-layout-module-padding-lg: var(--dt-dim-24);                 /* 96 */
+  --dt-layout-module-padding-xl: var(--dt-dim-32);                 /* 128 */
+  --dt-layout-module-inset: var(--dt-dim-6);                       /* 24 */
+
+  --dt-layout-page-gutter: var(--dt-dim-4);                        /* 16 */
 }
 
 [data-layout="open"] {
@@ -102,4 +130,11 @@
 
   --dt-layout-module-padding: var(--dt-dim-32); /* 128 */
   --dt-layout-module-gap: var(--dt-dim-16);     /* 64 */
+  --dt-layout-module-padding-sm: var(--dt-dim-20);                 /* 80 */
+  --dt-layout-module-padding-md: var(--dt-layout-module-padding);  /* 128 */
+  --dt-layout-module-padding-lg: var(--dt-dim-40);                 /* 160 */
+  --dt-layout-module-padding-xl: var(--dt-dim-48);                 /* 192 */
+  --dt-layout-module-inset: var(--dt-dim-12);                      /* 48 */
+
+  --dt-layout-page-gutter: var(--dt-dim-10);                       /* 40 */
 }

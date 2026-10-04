@@ -208,8 +208,12 @@ say("Stack renders a column with --dt-space-stack-sm and both children");
 const band = renderToStaticMarkup(h(Section, { dark: true, tone: "brand" }, h(Stack, null, h(Button, null, "Go"))));
 assert.match(band, /^<section class="dark"/, band);
 assert.ok(band.includes("<button"), band);
-assert.ok(band.includes("padding-inline:var(--dt-space-gutter)"), band);
-say("Section dark renders <section class=\\"dark\\"> around Stack and Button");
+assert.ok(band.includes("padding-inline:var(--dt-layout-page-gutter)") && band.includes("max-width:var(--dt-layout-page-width)"), band);
+say("Section dark renders <section class=\\"dark\\"> around Stack and Button, in the page column");
+
+const inset = renderToStaticMarkup(h(Section, { bleed: "inset", tone: "brand", spacingTop: "xl" }, "x"));
+assert.ok(inset.startsWith('<section style="padding-inline:var(--dt-layout-page-gutter)') && inset.includes("border-radius:var(--dt-radius-container)") && inset.includes("padding-top:var(--dt-layout-module-padding-xl)") && inset.includes("padding-inline:var(--dt-layout-module-inset)"), inset);
+say("Section bleed=\\"inset\\" sets its band in by the gutter, with the container radius and its own top step");
 
 const plain = renderToStaticMarkup(h(Section, null, "x"));
 assert.ok(!/class="[^"]*dark/.test(plain), plain);

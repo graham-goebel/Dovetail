@@ -150,6 +150,15 @@ gaps between the items of a block of text: `--dt-layout-text-eyebrow` (an eyebro
 `-subcopy` (a heading and the lead under it) and `-paragraph`. **Modules** is the room a module takes:
 `--dt-layout-module-padding` above and below its content, and `--dt-layout-module-gap` between its own
 parts. At the balanced character they are the space axes themselves, so a context still moves them.
+The padding comes in four steps, `--dt-layout-module-padding-sm`, `-md` (the padding itself), `-lg` and
+`-xl`, so one band can take more room than the next, or more above than below, and still move with the
+character. `--dt-layout-module-inset` pads a band set in from the page edges.
+
+**Page** is the column every page shares. `--dt-layout-page-width` is its width, so content lines up
+from page to page without padding and margin doing the work; `-narrow` is a reading column and `-wide`
+a hero or gallery. Configure's Page width moves the first for every page. `--dt-layout-page-gutter`
+keeps the column off the screen's edge and moves with the character. `Section` and every block read
+these, so a band's width and rhythm come from the page, not from the band.
 `--dt-layout-scale` multiplies every layer in `Stack` and `Inline` (1 on a page), which is how a social
 artboard drawn at 1080px keeps its proportions.
 

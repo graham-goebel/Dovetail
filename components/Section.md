@@ -6,7 +6,7 @@ Live page: https://graham-goebel.github.io/Dovetail/components/Section.html
 
 ## Guidelines
 
-A page section: a column bounded by a container width, the section rhythm above and below, and an optional surface. With `media` it becomes a full-bleed photo band. It is the scaffold both example sites built for themselves before it existed.
+A page section: the page column, the module padding above and below, and an optional surface. Its fill can span the screen or sit inset in the page column. With `media` it becomes a photo band. It is the scaffold both example sites built for themselves before it existed.
 
 ### Use it when
 - Every top-level band of a marketing or editorial page.
@@ -31,6 +31,23 @@ A page section: a column bounded by a container width, the section rhythm above 
 </Section>
 ```
 
+### Spacing, width and bleed
+Every section on a page shares one column, `--dt-layout-page-width`, so content lines up from page to page without padding and margin doing the work. Configure's Page width moves it for every page at once. `width="narrow"` and `width="wide"` read `--dt-layout-page-width-narrow` and `-wide`, and `full` drops the bound. The column keeps `--dt-layout-page-gutter` from the screen's edge.
+
+`spacing` sets the padding above and below from the module padding steps: `sm`, `md`, `lg`, `xl` or `none`. They move with the layout's character, so a tight page and an open one keep their proportions. `spacingTop` and `spacingBottom` set either edge apart, for a band that needs more room on top than below. `default` and `compact` are `md` and `sm` by their older names.
+
+`bleed="inset"` sets a band in from the screen's edges: its fill sits in the page column with the container radius, its content is padded by `--dt-layout-module-inset`, and a block of space keeps two inset bands apart. Use it to set one theme apart from the bands around it.
+
+```jsx
+<Section spacingTop="xl" spacingBottom="md">
+  <Heading level={1} size="display-md">Made slowly</Heading>
+</Section>
+
+<Section bleed="inset" tone="brand-muted" spacing="lg">
+  <Heading level={2}>Members get early access</Heading>
+</Section>
+```
+
 ### Tones
 A tone is a surface and the text roles that go on it. The `brand` tone follows Configure's Fill: solid, gradient, duotone, or Quiet, which is the palest tint of the primary (`--dt-surface-brand-muted`, its 050 step) with the text that belongs on it, for a band that does not shout. Padding follows the layout's modules setting. To tint a section without re-colouring its text, put `data-surface="brand-muted"` on it: the surface roles become the brand's tint and text keeps its ordinary roles. Put it on `html` for the whole page. `brand` and `secondary` are full fills; the `-muted` tones are the pale tint of the same hue. The section re-points `--dt-text-primary`, `-secondary` and `-tertiary` on itself, so everything inside that reads the semantic text roles, `Stat` and `Card` descriptions included, follows the band. That is also how to build a band that should not follow the page's light or dark mode: its colours come from the brand roles, not the page surface.
 
@@ -44,7 +61,7 @@ On a full fill (`brand`, `secondary`) the brand can't be the button too, so the 
 A scrim's alpha does not tell you the contrast over a specific photograph. Check it the way `guidelines/accessibility.md` describes: hide the text, sample the pixels behind where it sat, and take the worst case.
 
 ### Tokens
-`--dt-size-container-*`, `--dt-layout-module-padding` (`--dt-space-section` at the default layout), `--dt-space-section-compact`, `--dt-space-gutter`, `--dt-surface-brand*`, `--dt-text-on-brand*`, `--dt-surface-scrim`, `--dt-text-on-scrim*`, `--dt-surface-texture`.
+`--dt-layout-page-width`, `--dt-layout-page-width-narrow`, `--dt-layout-page-width-wide`, `--dt-layout-page-gutter`, `--dt-layout-module-padding-sm`, `-md`, `-lg` and `-xl`, `--dt-layout-module-inset`, `--dt-layout-stack-block`, `--dt-radius-container`, `--dt-surface-brand*`, `--dt-text-on-brand*`, `--dt-surface-scrim`, `--dt-text-on-scrim*`, `--dt-surface-texture`.
 
 ## Props
 
@@ -52,12 +69,13 @@ A scrim's alpha does not tell you the contrast over a specific photograph. Check
 import * as React from "react";
 
 /**
- * A page section: a page-width column, the section rhythm above and below it,
- * and an optional surface. Pass `media` and it becomes a full-bleed photo band
- * with a scrim, scoped dark so everything inside it reads as light on dark.
+ * A page section: the page column, the module padding above and below it, and
+ * an optional surface, full bleed or set in from the page edges. Pass `media`
+ * and it becomes a photo band with a scrim, scoped dark so everything inside
+ * it reads as light on dark.
  */
 export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
-  /** The inner column. full removes the bound. @default "default" */
+  /** The column, from the page-width tokens: `narrow` (--dt-layout-page-width-narrow, a reading column), `default` (--dt-layout-page-width, the column every page shares), `wide` (--dt-layout-page-width-wide), or `full` with no bound. Inset, it bounds the band itself. @default "default" */
   width?: "narrow" | "default" | "wide" | "full";
   /**
    * The surface, and the text roles that belong on it. Brand and secondary
@@ -72,8 +90,14 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   dark?: boolean;
   /** Layers --dt-surface-texture over the tone. @default false */
   texture?: boolean;
-  /** Vertical padding: the module padding (--dt-layout-module-padding, which is --dt-space-section until the layout says otherwise), --dt-space-section-compact, or none. @default "default" */
-  spacing?: "default" | "compact" | "none";
+  /** Padding above and below, from the module padding steps (--dt-layout-module-padding-sm to -xl), which move with the layout's character: `sm`, `md`, `lg`, `xl` or `none`. `default` is `md` and `compact` is `sm`, by their older names. @default "default" */
+  spacing?: "none" | "sm" | "md" | "lg" | "xl" | "default" | "compact";
+  /** Padding above, when it differs from `spacing`: a band can take more room at its top than its foot. */
+  spacingTop?: "none" | "sm" | "md" | "lg" | "xl";
+  /** Padding below, when it differs from `spacing`. */
+  spacingBottom?: "none" | "sm" | "md" | "lg" | "xl";
+  /** `full`: the band's fill spans the screen and its content sits in the column. `inset`: the band sits in the page column, set in from the screen's edges by the gutter, with the container radius, and pads its content with --dt-layout-module-inset. @default "full" */
+  bleed?: "full" | "inset";
   /** Image URL. Turns the section into a full-bleed photo band. The image is decorative; say what matters in the text. */
   media?: string;
   /** With media: gradient fades from the edge the content sits on, solid washes the whole band. @default "gradient" */
@@ -147,14 +171,18 @@ export declare function Section(props: SectionProps): React.JSX.Element;
 | `--dt-border-subtle` | semantic | `var(--dt-color-neutral-100)` |
 | `--dt-focus-ring-color` | semantic | `var(--dt-color-neutral-900)` |
 | `--dt-focus-ring-offset-color` | semantic | `var(--dt-surface-base)` |
-| `--dt-layout-module-padding` | semantic | `var(--dt-space-section)` |
+| `--dt-layout-module-inset` | semantic | `var(--dt-dim-8)` |
+| `--dt-layout-module-padding-lg` | semantic | `var(--dt-dim-32)` |
+| `--dt-layout-module-padding-md` | semantic | `var(--dt-layout-module-padding)` |
+| `--dt-layout-module-padding-sm` | semantic | `var(--dt-space-section-compact)` |
+| `--dt-layout-module-padding-xl` | semantic | `var(--dt-dim-40)` |
+| `--dt-layout-page-gutter` | semantic | `var(--dt-space-gutter)` |
+| `--dt-layout-page-width` | semantic | `var(--dt-size-container-default)` |
+| `--dt-layout-page-width-narrow` | semantic | `var(--dt-size-container-narrow)` |
+| `--dt-layout-page-width-wide` | semantic | `var(--dt-size-container-wide)` |
+| `--dt-layout-stack-block` | semantic | `var(--dt-dim-8)` |
+| `--dt-radius-container` | semantic | `var(--dt-radius-raw-16)` |
 | `--dt-scrim-full` | semantic | `color-mix(in oklab, var(--dt-color-neutral-950) 55%, transparent)` |
-| `--dt-size-container-default` | semantic | `var(--dt-dim-container-xl)` |
-| `--dt-size-container-narrow` | semantic | `var(--dt-dim-container-md)` |
-| `--dt-size-container-wide` | semantic | `var(--dt-dim-container-2xl)` |
-| `--dt-space-gutter` | semantic | `var(--dt-dim-6)` |
-| `--dt-space-section` | semantic | `var(--dt-dim-24)` |
-| `--dt-space-section-compact` | semantic | `var(--dt-dim-16)` |
 | `--dt-surface-action-active` | semantic | `var(--dt-color-neutral-700)` |
 | `--dt-surface-action-brand` | semantic | `var(--dt-color-primary-600)` |
 | `--dt-surface-action-brand-active` | semantic | `var(--dt-color-primary-800)` |
@@ -205,13 +233,17 @@ export declare function Section(props: SectionProps): React.JSX.Element;
 ```jsx
 import React from "react";
 
+/* The page column, from the page-width tokens, so every page lines up. */
 const WIDTHS = {
-  narrow: "var(--dt-size-container-narrow)",
-  default: "var(--dt-size-container-default)",
-  wide: "var(--dt-size-container-wide)",
+  narrow: "var(--dt-layout-page-width-narrow)",
+  default: "var(--dt-layout-page-width)",
+  wide: "var(--dt-layout-page-width-wide)",
   full: "none",
 };
-const SPACING = { default: "var(--dt-layout-module-padding, var(--dt-space-section))", compact: "var(--dt-space-section-compact)", none: "0" };
+/* The module padding steps, which move with the layout's character. default
+   and compact are the md and sm steps by their older names. */
+const pad = (step) => `var(--dt-layout-module-padding-${step})`;
+const SPACING = { none: "0", sm: pad("sm"), md: pad("md"), lg: pad("lg"), xl: pad("xl"), default: pad("md"), compact: pad("sm") };
 const ALIGN = { top: "flex-start", center: "center", bottom: "flex-end" };
 
 /* Each tone is a surface and the text roles that belong on it. The text roles
@@ -310,6 +342,9 @@ export function Section({
   dark,
   texture = false,
   spacing = "default",
+  spacingTop,
+  spacingBottom,
+  bleed = "full",
   media,
   scrim = "gradient",
   align = "bottom",
@@ -324,40 +359,61 @@ export function Section({
   const scoped = dark === undefined ? photo : dark;
   const surface = photo ? { background: "var(--dt-surface-base)", ...onFill("var(--dt-text-on-scrim)"), "--dt-text-secondary": "var(--dt-text-on-scrim-secondary)" } : TONES[tone] || TONES.base;
   const fill = texture && surface.background ? `var(--dt-surface-texture), ${surface.background}` : surface.background;
-  const pad = SPACING[spacing] || SPACING.default;
+  const both = SPACING[spacing] || SPACING.default;
+  const inset = bleed === "inset";
+  const limit = WIDTHS[width] || WIDTHS.default;
 
-  return (
-    <Tag
-      className={[scoped ? "dark" : null, className].filter(Boolean).join(" ") || undefined}
-      style={{
-        position: "relative",
-        overflow: photo ? "hidden" : undefined,
-        ...surface,
-        background: fill,
-        color: surface.color || "var(--dt-text-primary)",
-        display: photo ? "flex" : undefined,
-        flexDirection: photo ? "column" : undefined,
-        justifyContent: photo ? ALIGN[align] || ALIGN.bottom : undefined,
-        minHeight: minHeight || (photo ? "min(70vh, var(--dt-dim-container-sm))" : undefined),
-        paddingBlock: pad,
-        ...style,
-      }}
-      {...rest}
-    >
+  /* The band: its fill, its photo and its padding above and below. Full
+     bleed, it spans the screen; inset, it sits in the page column with the
+     container radius, so a page can set one theme apart from the next. */
+  const band = {
+    position: "relative",
+    overflow: photo || inset ? "hidden" : undefined,
+    ...surface,
+    background: fill,
+    color: surface.color || "var(--dt-text-primary)",
+    display: photo ? "flex" : undefined,
+    flexDirection: photo ? "column" : undefined,
+    justifyContent: photo ? ALIGN[align] || ALIGN.bottom : undefined,
+    minHeight: minHeight || (photo ? "min(70vh, var(--dt-dim-container-sm))" : undefined),
+    paddingTop: SPACING[spacingTop] || both,
+    paddingBottom: SPACING[spacingBottom] || both,
+  };
+  const content = (
+    <>
       {photo && <img src={media} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
       {photo && scrim !== "none" && <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: scrimImage(scrim, align) }} />}
       <div
         style={{
           position: photo ? "relative" : undefined,
           width: "100%",
-          maxWidth: WIDTHS[width] || WIDTHS.default,
+          maxWidth: inset ? undefined : limit,
           marginInline: "auto",
-          paddingInline: "var(--dt-space-gutter)",
+          paddingInline: inset ? "var(--dt-layout-module-inset)" : "var(--dt-layout-page-gutter)",
           boxSizing: "border-box",
         }}
       >
         {children}
       </div>
+    </>
+  );
+  const scope = [scoped ? "dark" : null, className].filter(Boolean).join(" ") || undefined;
+
+  if (inset) {
+    /* The gutter keeps it off the screen's edge, and a block of space keeps
+       two inset bands apart. */
+    return (
+      <Tag className={className} style={{ paddingInline: "var(--dt-layout-page-gutter)", paddingBlock: "var(--dt-layout-stack-block)", ...style }} {...rest}>
+        <div className={scoped ? "dark" : undefined} style={{ ...band, maxWidth: limit, marginInline: "auto", borderRadius: "var(--dt-radius-container)", boxSizing: "border-box" }}>
+          {content}
+        </div>
+      </Tag>
+    );
+  }
+
+  return (
+    <Tag className={scope} style={{ ...band, ...style }} {...rest}>
+      {content}
     </Tag>
   );
 }

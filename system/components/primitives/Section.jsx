@@ -1,12 +1,16 @@
 import React from "react";
 
+/* The page column, from the page-width tokens, so every page lines up. */
 const WIDTHS = {
-  narrow: "var(--dt-size-container-narrow)",
-  default: "var(--dt-size-container-default)",
-  wide: "var(--dt-size-container-wide)",
+  narrow: "var(--dt-layout-page-width-narrow)",
+  default: "var(--dt-layout-page-width)",
+  wide: "var(--dt-layout-page-width-wide)",
   full: "none",
 };
-const SPACING = { default: "var(--dt-layout-module-padding, var(--dt-space-section))", compact: "var(--dt-space-section-compact)", none: "0" };
+/* The module padding steps, which move with the layout's character. default
+   and compact are the md and sm steps by their older names. */
+const pad = (step) => `var(--dt-layout-module-padding-${step})`;
+const SPACING = { none: "0", sm: pad("sm"), md: pad("md"), lg: pad("lg"), xl: pad("xl"), default: pad("md"), compact: pad("sm") };
 const ALIGN = { top: "flex-start", center: "center", bottom: "flex-end" };
 
 /* Each tone is a surface and the text roles that belong on it. The text roles
@@ -105,6 +109,9 @@ export function Section({
   dark,
   texture = false,
   spacing = "default",
+  spacingTop,
+  spacingBottom,
+  bleed = "full",
   media,
   scrim = "gradient",
   align = "bottom",
@@ -119,40 +126,61 @@ export function Section({
   const scoped = dark === undefined ? photo : dark;
   const surface = photo ? { background: "var(--dt-surface-base)", ...onFill("var(--dt-text-on-scrim)"), "--dt-text-secondary": "var(--dt-text-on-scrim-secondary)" } : TONES[tone] || TONES.base;
   const fill = texture && surface.background ? `var(--dt-surface-texture), ${surface.background}` : surface.background;
-  const pad = SPACING[spacing] || SPACING.default;
+  const both = SPACING[spacing] || SPACING.default;
+  const inset = bleed === "inset";
+  const limit = WIDTHS[width] || WIDTHS.default;
 
-  return (
-    <Tag
-      className={[scoped ? "dark" : null, className].filter(Boolean).join(" ") || undefined}
-      style={{
-        position: "relative",
-        overflow: photo ? "hidden" : undefined,
-        ...surface,
-        background: fill,
-        color: surface.color || "var(--dt-text-primary)",
-        display: photo ? "flex" : undefined,
-        flexDirection: photo ? "column" : undefined,
-        justifyContent: photo ? ALIGN[align] || ALIGN.bottom : undefined,
-        minHeight: minHeight || (photo ? "min(70vh, var(--dt-dim-container-sm))" : undefined),
-        paddingBlock: pad,
-        ...style,
-      }}
-      {...rest}
-    >
+  /* The band: its fill, its photo and its padding above and below. Full
+     bleed, it spans the screen; inset, it sits in the page column with the
+     container radius, so a page can set one theme apart from the next. */
+  const band = {
+    position: "relative",
+    overflow: photo || inset ? "hidden" : undefined,
+    ...surface,
+    background: fill,
+    color: surface.color || "var(--dt-text-primary)",
+    display: photo ? "flex" : undefined,
+    flexDirection: photo ? "column" : undefined,
+    justifyContent: photo ? ALIGN[align] || ALIGN.bottom : undefined,
+    minHeight: minHeight || (photo ? "min(70vh, var(--dt-dim-container-sm))" : undefined),
+    paddingTop: SPACING[spacingTop] || both,
+    paddingBottom: SPACING[spacingBottom] || both,
+  };
+  const content = (
+    <>
       {photo && <img src={media} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
       {photo && scrim !== "none" && <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: scrimImage(scrim, align) }} />}
       <div
         style={{
           position: photo ? "relative" : undefined,
           width: "100%",
-          maxWidth: WIDTHS[width] || WIDTHS.default,
+          maxWidth: inset ? undefined : limit,
           marginInline: "auto",
-          paddingInline: "var(--dt-space-gutter)",
+          paddingInline: inset ? "var(--dt-layout-module-inset)" : "var(--dt-layout-page-gutter)",
           boxSizing: "border-box",
         }}
       >
         {children}
       </div>
+    </>
+  );
+  const scope = [scoped ? "dark" : null, className].filter(Boolean).join(" ") || undefined;
+
+  if (inset) {
+    /* The gutter keeps it off the screen's edge, and a block of space keeps
+       two inset bands apart. */
+    return (
+      <Tag className={className} style={{ paddingInline: "var(--dt-layout-page-gutter)", paddingBlock: "var(--dt-layout-stack-block)", ...style }} {...rest}>
+        <div className={scoped ? "dark" : undefined} style={{ ...band, maxWidth: limit, marginInline: "auto", borderRadius: "var(--dt-radius-container)", boxSizing: "border-box" }}>
+          {content}
+        </div>
+      </Tag>
+    );
+  }
+
+  return (
+    <Tag className={scope} style={{ ...band, ...style }} {...rest}>
+      {content}
     </Tag>
   );
 }
