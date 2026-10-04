@@ -1700,6 +1700,27 @@
       at.parent.children.splice(at.index, 1);
       at.parent.children.splice(to, 0, at.node);
       return id;
+    },
+    /* To the front (last among its siblings, drawn on top) or the back. */
+    order: function(doc, id, where) {
+      var at = locate(doc, id);
+      if (fixed(at)) return null;
+      var to = where === "front" ? at.parent.children.length - 1 : 0;
+      if (to === at.index) return null;
+      at.parent.children.splice(at.index, 1);
+      at.parent.children.splice(to, 0, at.node);
+      return id;
+    },
+    /* A free object moved by whole steps; stays within the canvas's range. */
+    shift: function(doc, id, dx, dy) {
+      var at = locate(doc, id);
+      if (fixed(at) || !isFree(at.node.style)) return null;
+      var st = at.node.style;
+      var x = Math.max(0, Math.min(FREE_MAX, st.x + dx)), y = Math.max(0, Math.min(FREE_MAX, st.y + dy));
+      if (x === st.x && y === st.y) return null;
+      st.x = x;
+      st.y = y;
+      return id;
     }
   };
   function tokenOption(key, v) {
@@ -5407,6 +5428,13 @@
         /* Changes as someone else would send them, and the changes an edit makes. */
         receive,
         diff,
+        /* The selection, as the checks read and set it. */
+        selection: function() {
+          return selRef.current.slice();
+        },
+        select: function(ids) {
+          select([].concat(ids));
+        },
         /* How many steps there are to undo and redo, and whether the project saved. */
         history: function() {
           return { past: history.current.past.length, future: history.current.future.length };
@@ -5598,6 +5626,27 @@
     };
     var showFrameRef = useRef(showFrame);
     showFrameRef.current = showFrame;
+    var showSelection = function() {
+      var ids = selRef.current;
+      var fid = docRef.current.active, f = api(fid), b = layoutRef.current.boxes[fid];
+      if (!ids.length || !f || !b) return false;
+      var l = Infinity, t = Infinity, r = -Infinity, btm = -Infinity;
+      ids.forEach(function(id) {
+        var rc = f.rect(id);
+        if (!rc) return;
+        l = Math.min(l, rc.left);
+        t = Math.min(t, rc.top);
+        r = Math.max(r, rc.right);
+        btm = Math.max(btm, rc.bottom);
+      });
+      if (l === Infinity) return false;
+      var ins = insets(), W = boxRef.current.w - ins.l - ins.r, H = boxRef.current.h;
+      if (!W) return false;
+      var w = Math.max(1, r - l), h = Math.max(1, btm - t);
+      var z = clampZoom(Math.min(1, (W - STAGE_PAD * 2) / w, (H - STAGE_PAD * 2 - LABEL_ROOM) / h));
+      setCam({ x: ins.l + (W - w * z) / 2 - (b.x + l) * z, y: (H - h * z + LABEL_ROOM) / 2 - (b.y + t) * z, z });
+      return true;
+    };
     useEffect(function() {
       if (camState[0] || !box.w) return;
       if (doc.frames.length > 1 && doc.frames.length <= VIRTUAL_AFTER && wide) fitWidth();
@@ -6470,11 +6519,22 @@
                 measureRef.current();
               });
             },
-            dragStart: on(function(fid, id) {
+            dragStart: on(function(fid, id, alt) {
               if (docRef.current.active !== fid) activateRef.current(fid);
               var at = locate(docRef.current, id);
               if (!at) return;
               if (at.node.type === "Slot") return;
+              if (alt) {
+                var copyId = null;
+                change(function(d) {
+                  copyId = ops.duplicate(d, id);
+                  return copyId;
+                }, "Duplicated");
+                if (!copyId) return;
+                id = copyId;
+                at = locate(docRef.current, id);
+                if (!at) return;
+              }
               var pl = { kind: "move", id, label: nameOf(at.node) };
               dragRef.current = { payload: pl, active: true, ghost: null };
               dragRef.current.ghost = ghostFor(pl);
@@ -6926,6 +6986,56 @@
           return ops.nudge(d, id, 1);
         }, "Moved down")) select([id]);
       },
+      /* Z-order among siblings: up and down one, or to the front and back.
+         Later siblings draw on top, so "front" is last. */
+      order: function(where) {
+        var ids = selRef.current.slice();
+        if (!ids.length) return;
+        var step = where === "up" ? 1 : where === "down" ? -1 : 0;
+        var ordered = ids.map(function(id) {
+          return locate(docRef.current, id);
+        }).filter(Boolean).sort(function(a, b) {
+          return a.index - b.index;
+        }).map(function(a) {
+          return a.node.id;
+        });
+        if (step > 0 || where === "front") ordered.reverse();
+        var moved = change(function(d) {
+          var any = null;
+          ordered.forEach(function(id) {
+            if (step ? ops.nudge(d, id, step) : ops.order(d, id, where)) any = id;
+          });
+          return any ? ids : null;
+        }, where === "front" ? "Brought to the front" : where === "back" ? "Sent to the back" : where === "up" ? "Brought forward" : "Sent backward");
+        if (moved) select(ids);
+      },
+      /* Free objects move by whole steps; nothing else takes the arrows. */
+      nudge: function(dx, dy) {
+        var ids = selRef.current.slice();
+        if (!ids.length || !dx && !dy) return false;
+        var d = docRef.current;
+        if (!ids.some(function(id) {
+          var at = locate(d, id);
+          return at && isFree(at.node.style);
+        })) return false;
+        return !!change(function(dd) {
+          var any = null;
+          ids.forEach(function(id) {
+            if (ops.shift(dd, id, dx, dy)) any = id;
+          });
+          return any ? ids : null;
+        });
+      },
+      /* Everything at the top of the active frame. */
+      selectAll: function() {
+        var f = active(docRef.current);
+        var ids = f.root.children.map(function(c) {
+          return c.id;
+        });
+        if (!ids.length) return;
+        select(ids);
+        announce(ids.length === 1 ? "1 selected" : ids.length + " selected");
+      },
       /* Enter goes into the selection: a container's children, or a leaf's text. */
       into: function() {
         var d = docRef.current;
@@ -7114,7 +7224,11 @@
         return true;
       }
       if (ev.shiftKey && !mod && ev.code === "Digit2") {
-        showFrame(docRef.current.active);
+        if (!showSelection()) showFrame(docRef.current.active);
+        return true;
+      }
+      if (mod && key === "a" && !ev.shiftKey && !ev.altKey) {
+        actions.selectAll();
         return true;
       }
       if (ev.key === "Enter") {
@@ -7166,6 +7280,18 @@
       if ((ev.altKey || mod) && ev.key === "ArrowDown") {
         actions.down();
         return true;
+      }
+      if (mod && (ev.key === "]" || ev.code === "BracketRight")) {
+        actions.order(ev.shiftKey ? "front" : "up");
+        return true;
+      }
+      if (mod && (ev.key === "[" || ev.code === "BracketLeft")) {
+        actions.order(ev.shiftKey ? "back" : "down");
+        return true;
+      }
+      if (!mod && !ev.altKey && /^Arrow(Left|Right|Up|Down)$/.test(ev.key)) {
+        var by = ev.shiftKey ? 4 : 1;
+        if (actions.nudge(ev.key === "ArrowLeft" ? -by : ev.key === "ArrowRight" ? by : 0, ev.key === "ArrowUp" ? -by : ev.key === "ArrowDown" ? by : 0)) return true;
       }
       return false;
     };

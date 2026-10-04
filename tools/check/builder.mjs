@@ -2621,6 +2621,97 @@ try {
     await back.page.close();
   });
 
+  await step("Keyboard and selection: arrows nudge free objects, Cmd+A selects all, Cmd+] and [ order, Shift+2 zooms to the selection, Alt-drag copies", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    /* A freeform frame with three loose objects at known steps. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const node = (id, type, props, x, y) => ({ id, type, props, style: { x, y } });
+      d.frames.push({ id: "freebie", name: "Free", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        node("ba", "Button", { children: "Alpha" }, 10, 10), node("bb", "Button", { children: "Beta" }, 60, 10), node("hc", "Heading", { children: "Gamma" }, 10, 60)] } });
+      d.active = "freebie";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    const free = async () => (await saved()).frames.find((f) => f.id === "freebie");
+    const at = async (id) => { const n = (await free()).root.children.find((c) => c.id === id); return [n.style.x, n.style.y]; };
+    const order = async () => (await free()).root.children.map((c) => c.id).join(",");
+    await fitAll(page);
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const steps0 = (await steps(page)).past;
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Shift+ArrowRight");
+    const moved = await poll(() => at("ba"), (v) => v[0] === 15 && v[1] === 11);
+    expect(moved[0] === 15 && moved[1] === 11, `Right, Down and Shift+Right take Alpha from 10,10 to 15,11, got ${moved}`);
+    expect((await steps(page)).past === steps0 + 3, "each key press is one undo step");
+    await page.keyboard.press("ArrowLeft");
+    for (let i = 0; i < 6; i++) await page.keyboard.press("Shift+ArrowUp");
+    const edge = await poll(() => at("ba"), (v) => v[1] === 0);
+    expect(edge[0] === 14 && edge[1] === 0, `nudging past the top stops at 0, got ${edge}`);
+    ok("arrows move a free object a step at a time, Shift four, never past the canvas's edge");
+
+    await page.keyboard.press("Control+a");
+    const all = await page.evaluate(() => window.__builder.selection());
+    expect(all.length === 3, `Cmd+A selects the frame's three objects, got ${all.length}`);
+    ok("Cmd+A selects everything at the top of the frame");
+
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.keyboard.press("Control+]");
+    expect(await poll(order, (o) => o === "bb,ba,hc") === "bb,ba,hc", `Cmd+] brings Alpha forward one, got ${await order()}`);
+    await page.keyboard.press("Control+Shift+]");
+    expect(await poll(order, (o) => o === "bb,hc,ba") === "bb,hc,ba", `Cmd+Shift+] brings it to the front, got ${await order()}`);
+    await page.keyboard.press("Control+Shift+[");
+    expect(await poll(order, (o) => o === "ba,bb,hc") === "ba,bb,hc", `Cmd+Shift+[ sends it to the back, got ${await order()}`);
+    await page.keyboard.press("Control+[");
+    expect(await order() === "ba,bb,hc", "Cmd+[ at the back changes nothing");
+    expect(await page.evaluate(() => window.__builder.selection()).then((s) => s.join() === "ba"), "the selection stays through the reordering");
+    ok("Cmd+] / [ step the z-order, with Shift to the front and the back");
+
+    const wide = await camera(page);
+    await page.keyboard.press("Shift+Digit2");
+    await page.waitForFunction((c) => document.querySelector(".bd-world").style.transform !== c, wide);
+    const zoomed = await camera(page);
+    const zIn = Number(/scale\(([\d.]+)\)/.exec(zoomed)[1]), zWide = Number(/scale\(([\d.]+)\)/.exec(wide)[1]);
+    expect(zIn > zWide, `Shift+2 zooms in on the selected Button, ${zWide} to ${zIn}`);
+    await page.waitForTimeout(250);
+    const centred = await page.evaluate(() => {
+      const st = document.querySelector(".bd-stage").getBoundingClientRect();
+      const fr = document.querySelectorAll("iframe.bd-frame")[1], fb = fr.getBoundingClientRect();
+      const r = fr.contentWindow.BuilderFrame.rect("ba"), s = fb.width / parseFloat(fr.style.width);
+      return { dx: fb.left + (r.left + r.width / 2) * s - (st.left + st.width / 2), dy: fb.top + (r.top + r.height / 2) * s - (st.top + st.height / 2), w: st.width, h: st.height };
+    });
+    expect(Math.abs(centred.dx) < centred.w * 0.15 && Math.abs(centred.dy) < centred.h * 0.15, `and centres it, off by ${Math.round(centred.dx)},${Math.round(centred.dy)} in a stage ${Math.round(centred.w)}×${Math.round(centred.h)}`);
+    ok("Shift+2 zooms to the selection and centres it");
+
+    await fitAll(page);
+    await page.evaluate(() => window.__builder.select([]));
+    const from = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
+    await page.keyboard.down("Alt");
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 40, from.y + 30, { steps: 8 });
+    await page.mouse.move(from.x + 80, from.y + 60, { steps: 8 });
+    await page.mouse.up();
+    await page.keyboard.up("Alt");
+    const after = await poll(free, (f) => f.root.children.length === 4);
+    const betas = after.root.children.filter((c) => c.type === "Button" && c.props.children === "Beta");
+    expect(betas.length === 2, `Alt-drag leaves two Betas, got ${after.root.children.map((c) => c.props.children)}`);
+    const orig = betas.find((b) => b.id === "bb"), copy = betas.find((b) => b.id !== "bb");
+    expect(orig.style.x === 60 && orig.style.y === 10, `the original stays at 60,10, got ${orig.style.x},${orig.style.y}`);
+    expect(copy.style.x > 60 && copy.style.y > 10, `the copy moved with the pointer, got ${copy.style.x},${copy.style.y}`);
+    ok(`Alt-drag puts a copy of Beta at ${copy.style.x},${copy.style.y} and leaves the original where it was`);
+    await page.close();
+  });
+
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {
     const phone = await open({ width: 390, height: 844 });
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");

@@ -623,7 +623,7 @@
     if (!id || id === "root" || !index[id]) return;
     var sel = host().selection();
     var dragId = sel && sel !== "root" && index[sel] && contains(sel, id) ? sel : id;
-    press = { id: dragId, x: ev.clientX, y: ev.clientY, pointer: ev.pointerId, active: false };
+    press = { id: dragId, x: ev.clientX, y: ev.clientY, pointer: ev.pointerId, active: false, alt: !!ev.altKey };
     try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
   }, true);
   document.addEventListener("pointermove", function (ev) {
@@ -634,7 +634,8 @@
     if (press && ev.pointerId === press.pointer) {
       if (!press.active && Math.abs(ev.clientX - press.x) + Math.abs(ev.clientY - press.y) > 5) {
         press.active = true;
-        host().dragStart(press.id);
+        /* With Alt (Option) held, a copy is what's dragged. */
+        host().dragStart(press.id, press.alt || !!ev.altKey);
       }
       if (press.active) { host().dragMove(ev.clientX, ev.clientY); return; }
     }
