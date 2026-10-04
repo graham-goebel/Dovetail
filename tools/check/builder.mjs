@@ -338,7 +338,7 @@ try {
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
     await page.keyboard.press("Escape");
-    expect(actions[0] === "Group" && actions.includes("Wrap in Group") && actions.includes("Copy link to this layer") && actions[actions.length - 1] === "Create component" && !actions.some((a) => /Turn into|Detach/.test(a)), `the menu offers Group, Wrap in, a link and Create component for a Heading, got ${actions.join("|")}`);
+    expect(actions[0] === "Group" && actions.includes("Wrap in Group") && actions.includes("Copy link to this layer") && actions.includes("Create component") && actions.includes("Copy style") && actions.includes("Hide") && actions.includes("Lock") && !actions.some((a) => /Turn into|Detach/.test(a)), `the menu offers Group, Wrap in, a link, Create component, Copy style, Hide and Lock for a Heading, got ${actions.join("|")}`);
     const stage = await stageBox(page);
     await page.mouse.click(stage.x + 6, stage.y + stage.height - 6);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -456,6 +456,7 @@ try {
     await page.mouse.wheel(0, 160);
     await page.waitForFunction((b) => document.querySelector(".bd-world").style.transform !== b, before);
     const panned = await camera(page);
+    await release(page);
     await page.mouse.move(stage.x + 8, stage.y + stage.height - 8);
     await page.keyboard.down("Space");
     await page.mouse.down();
