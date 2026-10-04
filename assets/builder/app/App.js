@@ -5,7 +5,7 @@ import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
-import { ago, VERSIONS_MAX } from "../model/store.js";
+import { ago, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
 import { FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
@@ -45,7 +45,7 @@ function App(props) {
   var partRef = useRef(part); partRef.current = part;
   var hoverState = useState(null);
   var hover = hoverState[0], setHover = hoverState[1];
-  var leftState = useState(prefs.left === "layers" || prefs.left === "content" || prefs.left === "configure" ? prefs.left : "assets");
+  var leftState = useState(["pages", "layers", "content", "configure"].indexOf(prefs.left) >= 0 ? prefs.left : "assets");
   var left = leftState[0], setLeft = leftState[1];
   var paneState = useState("canvas");
   var pane = paneState[0], setPane = paneState[1];
@@ -184,6 +184,12 @@ function App(props) {
   var boxes = layout.boxes;
 
   var history = useRef({ past: [], future: [] });
+  /* The page on screen, and each page's history while the project is open,
+     so going back to a page brings its undo back too. */
+  var pageState = useState(init.page || pageOf(init.project));
+  var pageId = pageState[0], setPageId = pageState[1];
+  var pageRef = useRef(pageId); pageRef.current = pageId;
+  var histories = useRef({});
   var docRef = useRef(doc); docRef.current = doc;
   var selRef = useRef(selection); selRef.current = selection;
   var camRef = useRef(cam); camRef.current = cam;
@@ -350,16 +356,16 @@ function App(props) {
      written next. The toolbar says when it last saved, or that it couldn't,
      so work is never lost quietly. */
   var saving = useRef({ busy: false, next: null, done: Promise.resolve() });
-  var persist = useCallback(function (pid, d) {
+  var persist = useCallback(function (pid, d, pg) {
     var q = saving.current;
-    q.next = { pid: pid, doc: d };
+    q.next = { pid: pid, page: pg, doc: d };
     if (q.busy) return q.done;
     q.busy = true;
     var loop = function () {
       var job = q.next;
       q.next = null;
       if (!job) { q.busy = false; return Promise.resolve(); }
-      return store.saveDoc(job.pid, job.doc).then(function () {
+      return store.saveDoc(job.pid, job.doc, job.page).then(function () {
         setSaved({ ok: true, at: new Date() });
       }, function () {
         setSaved({ ok: false, at: null });
@@ -368,10 +374,18 @@ function App(props) {
     q.done = loop();
     return q.done;
   }, []);
-  var flush = function () { return saving.current.done; };
+  /* Writes to the project itself (its page, colour and theme) wait their
+     turn too, so a flush has everything on disk. */
+  var metaWrites = useRef(Promise.resolve());
+  var noteMeta = function (p) {
+    var settle = function () { return p.then(null, function () { return null; }); };
+    metaWrites.current = metaWrites.current.then(settle, settle);
+    return p;
+  };
+  var flush = function () { return saving.current.done.then(function () { return metaWrites.current; }); };
   useEffect(function () {
     if (doc === lastSaved.current) return;
-    persist(projectRef.current.id, doc);
+    persist(projectRef.current.id, doc, pageRef.current);
   }, [doc]);
   /* For the checks: the document and project on screen, and a way to wait
      for the save. */
@@ -389,7 +403,7 @@ function App(props) {
     var meta = projectRef.current;
     if (meta.stage === stageColor) return;
     meta.stage = stageColor;
-    store.setSettings(meta.id, { stage: stageColor });
+    noteMeta(store.setSettings(meta.id, { stage: stageColor }));
   }, [stageColor]);
 
   /* The Configure theme is the project's own too. A project saved before
@@ -400,7 +414,7 @@ function App(props) {
     var P = window.DovetailConfigurePanel;
     if (!P || !P.loadTheme) return false;
     if (meta.theme) P.loadTheme(meta.theme);
-    else { meta.theme = P.theme(); store.setSettings(meta.id, { theme: meta.theme }); }
+    else { meta.theme = P.theme(); noteMeta(store.setSettings(meta.id, { theme: meta.theme })); }
     themeLoaded.current = true;
     return true;
   };
@@ -416,7 +430,7 @@ function App(props) {
       timer = setTimeout(function () {
         var meta = projectRef.current;
         meta.theme = P.theme();
-        store.setSettings(meta.id, { theme: meta.theme });
+        noteMeta(store.setSettings(meta.id, { theme: meta.theme }));
       }, 250);
     };
     window.addEventListener("dovetail:theme-change", changed);
@@ -2077,7 +2091,7 @@ function App(props) {
   var projQueryState = useState("");
   var projQuery = projQueryState[0], setProjQuery = projQueryState[1];
   var renamingState = useState(null);
-  var renaming = renamingState[0], setRenaming = renamingState[1];
+  var renamingProj = renamingState[0], setRenamingProj = renamingState[1];
   var confirmState = useState(null);
   var confirmDel = confirmState[0], setConfirmDel = confirmState[1];
   var versionsState = useState([]);
@@ -2170,7 +2184,7 @@ function App(props) {
 
   var openProjects = function () {
     setProjQuery("");
-    setRenaming(null);
+    setRenamingProj(null);
     setConfirmDel(null);
     setProjList(null);
     refreshProjects();
@@ -2181,9 +2195,13 @@ function App(props) {
   };
   var closeProjects = function () { var dlg = projectsRef.current; if (dlg && dlg.open) dlg.close(); };
 
-  var switchTo = function (meta, d, message) {
+  var switchTo = function (meta, d, message, pg) {
     var next = freeze(d, true);
     history.current = { past: [], future: [] };
+    histories.current = {};
+    pg = pg || pageOf(meta);
+    pageRef.current = pg;
+    setPageId(pg);
     setEdit(null);
     select([]);
     lastSaved.current = next;
@@ -2202,9 +2220,10 @@ function App(props) {
   };
   var openProject = function (meta) {
     if (meta.id === projectRef.current.id) { closeProjects(); return; }
-    captureThumb().then(flush).then(function () { return store.loadDoc(meta.id); }).then(function (d) {
+    var pg = pageOf(meta);
+    captureThumb().then(flush).then(function () { return store.loadDoc(meta.id, pg); }).then(function (d) {
       if (!d) { announce("That project couldn't be opened."); return; }
-      switchTo(meta, d, "Opened " + meta.name);
+      switchTo(meta, d, "Opened " + meta.name, pg);
     });
   };
   var newProject = function (starterId) {
@@ -2221,7 +2240,7 @@ function App(props) {
     });
   };
   var renameProject = function (id, name) {
-    setRenaming(null);
+    setRenamingProj(null);
     if (!name) return;
     store.renameProject(id, name).then(function (meta) {
       if (!meta) return;
@@ -2242,17 +2261,95 @@ function App(props) {
       announce("Deleted " + (gone ? gone.name : "the project"));
       if (id !== projectRef.current.id) return;
       /* The one on screen went: open the next, or start a new one. */
-      if (list.length) store.loadDoc(list[0].id).then(function (d) { switchTo(list[0], d || emptyDoc(), "Opened " + list[0].name); });
+      if (list.length) store.loadDoc(list[0].id, pageOf(list[0])).then(function (d) { switchTo(list[0], d || emptyDoc(), "Opened " + list[0].name, pageOf(list[0])); });
       else { var d = starterDoc(); store.createProject("Untitled", d).then(function (meta) { switchTo(meta, d, "Made a new project"); refreshProjects(); }); }
+    });
+  };
+
+  /* ------------------------------------------------- pages */
+
+  /* A project's pages, each its own canvas. Opening one saves the page
+     being left first; its history waits for it to come back. */
+  var renamingPageState = useState(null);
+  var renamingPage = renamingPageState[0], setRenamingPage = renamingPageState[1];
+  var confirmPageState = useState(null);
+  var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
+  var takeMeta = function (meta) {
+    if (meta && meta.id === projectRef.current.id) { projectRef.current = meta; setProject(meta); }
+    return meta;
+  };
+  var openPage = function (pg) {
+    if (pg === pageRef.current) return Promise.resolve();
+    var meta = projectRef.current;
+    if (editRef.current) editDone(true);
+    return flush().then(function () { return store.loadDoc(meta.id, pg); }).then(function (d) {
+      if (projectRef.current.id !== meta.id) return;
+      histories.current[pageRef.current] = history.current;
+      history.current = histories.current[pg] || { past: [], future: [] };
+      var next = freeze(d || emptyDoc(), true);
+      select([]);
+      if (d) lastSaved.current = next;
+      pageRef.current = pg;
+      setPageId(pg);
+      docRef.current = next;
+      setDoc(next);
+      noteMeta(store.setPage(meta.id, pg)).then(takeMeta);
+      var named = pagesOf(projectRef.current).filter(function (x) { return x.id === pg; })[0];
+      announce("Opened " + (named ? named.name : "the page"));
+      setTimeout(function () { showFrameRef.current(next.active); }, 0);
+    });
+  };
+  var addPage = function () {
+    var meta = projectRef.current;
+    var taken = pagesOf(meta).map(function (x) { return x.name; });
+    var n = taken.length + 1, name = "Page " + n;
+    while (taken.indexOf(name) >= 0) name = "Page " + (++n);
+    flush().then(function () { return store.addPage(meta.id, name, emptyDoc(), pageRef.current); }).then(function (got) {
+      if (!got) return null;
+      takeMeta(got.meta);
+      return openPage(got.page.id);
+    });
+  };
+  var renamePage = function (pg, name) {
+    setRenamingPage(null);
+    if (!name) return;
+    store.renamePage(projectRef.current.id, pg, name).then(takeMeta);
+  };
+  var movePage = function (pg, by) { store.movePage(projectRef.current.id, pg, by).then(takeMeta); };
+  var duplicatePage = function (pg) {
+    flush().then(function () { return store.duplicatePage(projectRef.current.id, pg); }).then(function (got) {
+      if (!got) return null;
+      takeMeta(got.meta);
+      announce("Made a copy, " + got.page.name);
+      return openPage(got.page.id);
+    });
+  };
+  var deletePage = function (pg) {
+    setConfirmPage(null);
+    var meta = projectRef.current;
+    var gone = pagesOf(meta).filter(function (x) { return x.id === pg; })[0];
+    if (pagesOf(meta).length < 2 || !gone) return;
+    var here = pg === pageRef.current;
+    var others = pagesOf(meta).filter(function (x) { return x.id !== pg; });
+    /* Off the page first, so nothing saves into it once it's gone. */
+    (here ? openPage(others[0].id) : flush()).then(function () { return store.deletePage(meta.id, pg); }).then(function (m) {
+      delete histories.current[pg];
+      takeMeta(m);
+      announce("Deleted " + gone.name);
     });
   };
 
   /* A project as one file: its name and document, uploads and all. */
   var PROJECT_FORMAT = "dovetail-project";
   var exportProject = function (id) {
-    flush().then(function () { return Promise.all([store.getProject(id), store.loadDoc(id)]); }).then(function (got) {
-      if (!got[0] || !got[1]) return;
-      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: new Date().toISOString(), doc: got[1], stage: got[0].stage, theme: got[0].theme });
+    flush().then(function () { return store.getProject(id); }).then(function (meta) {
+      if (!meta) return null;
+      return Promise.all(pagesOf(meta).map(function (p) { return store.loadDoc(id, p.id); })).then(function (docs) { return [meta, docs]; });
+    }).then(function (got) {
+      if (!got || !got[1][0]) return;
+      /* Every page, in order; doc is the first, for files read before pages. */
+      var pages = pagesOf(got[0]).map(function (p, i) { return { name: p.name, doc: got[1][i] }; }).filter(function (p) { return p.doc; });
+      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 2, name: got[0].name, savedAt: new Date().toISOString(), doc: pages[0].doc, pages: pages, stage: got[0].stage, theme: got[0].theme });
       var link = document.createElement("a");
       link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
       link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
@@ -2271,10 +2368,18 @@ function App(props) {
       try { data = JSON.parse(String(reader.result)); } catch (err) { announce(file.name + " isn't a Dovetail project file."); return; }
       if (!data || data.format !== PROJECT_FORMAT || !data.doc) { announce(file.name + " isn't a Dovetail project file."); return; }
       var dropped = [];
-      var d = clean(data.doc, dropped);
+      var given = (Array.isArray(data.pages) && data.pages.length ? data.pages : [{ name: "Page 1", doc: data.doc }]).slice(0, 50)
+        .filter(function (p) { return p && p.doc && typeof p.doc === "object"; });
+      if (!given.length) { announce(file.name + " isn't a Dovetail project file."); return; }
+      var pages = given.map(function (p, i) { return { name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "Page " + (i + 1), doc: clean(p.doc, dropped) }; });
+      var d = pages[0].doc;
       var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
-      /* Its canvas colour and theme come along, cleaned like anything else that comes in. */
+      /* Its pages, canvas colour and theme come along, cleaned like anything else that comes in. */
       captureThumb().then(flush).then(function () { return store.createProject(name, d, { stage: data.stage, theme: data.theme }); }).then(function (meta) {
+        var steps = store.renamePage(meta.id, pageOf(meta), pages[0].name);
+        pages.slice(1).forEach(function (p) { steps = steps.then(function () { return store.addPage(meta.id, p.name, p.doc); }); });
+        return steps.then(function () { return store.getProject(meta.id); });
+      }).then(function (meta) {
         switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
         refreshProjects();
       });
@@ -2284,7 +2389,7 @@ function App(props) {
 
   /* Versions of the project on screen. Restoring is a step undo can take back. */
   var openVersions = function () {
-    flush().then(function () { return store.listVersions(projectRef.current.id); }).then(function (vs) {
+    flush().then(function () { return store.listVersions(projectRef.current.id, pageRef.current); }).then(function (vs) {
       setVersions(vs);
       setShown("versions");
       var dlg = versionsRef.current;
@@ -2292,7 +2397,7 @@ function App(props) {
     });
   };
   var keepVersion = function () {
-    store.addVersion(projectRef.current.id, docRef.current, "Saved by you").then(function () { return store.listVersions(projectRef.current.id); }).then(function (vs) {
+    store.addVersion(projectRef.current.id, docRef.current, "Saved by you", pageRef.current).then(function () { return store.listVersions(projectRef.current.id, pageRef.current); }).then(function (vs) {
       setVersions(vs);
       announce("Kept this version");
     });
@@ -2300,7 +2405,7 @@ function App(props) {
   var restoreVersion = function (v) {
     store.loadVersion(v.key).then(function (d) {
       if (!d) { announce("That version couldn't be opened."); return; }
-      store.addVersion(projectRef.current.id, docRef.current, "Before restoring");
+      store.addVersion(projectRef.current.id, docRef.current, "Before restoring", pageRef.current);
       var dlg = versionsRef.current;
       if (dlg && dlg.open) dlg.close();
       commit(d, null, "Restored the version from " + new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) + ". Undo to go back.");
@@ -2313,7 +2418,7 @@ function App(props) {
     /* The project on screen first, then the most recently edited. */
     var list = (projList || []).filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0; })
       .sort(function (x, y) { return (y.id === project.id) - (x.id === project.id) || y.updatedAt - x.updatedAt; });
-    var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function () { setConfirmDel(null); setRenaming(null); setShown(null); } };
+    var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function () { setConfirmDel(null); setRenamingProj(null); setShown(null); } };
     if (shown !== "projects") return e("dialog", dialogProps);
     return e("dialog", dialogProps,
       e("div", { className: "bd-code-head" },
@@ -2339,10 +2444,10 @@ function App(props) {
             e("span", { className: "bd-proj-thumb", "aria-hidden": "true" },
               p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" }))),
           e("div", { className: "bd-proj-info" },
-            renaming === p.id
+            renamingProj === p.id
               ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "Project name", startEditing: true, onChange: function (v) { renameProject(p.id, v); } })
               : e("span", { className: "bd-proj-name" }, p.name),
-            e("span", { className: "bd-proj-meta" }, (current ? "Open now · " : "") + ago(p.updatedAt) + " · " + p.frames + (p.frames === 1 ? " frame" : " frames"))),
+            e("span", { className: "bd-proj-meta" }, (current ? "Open now · " : "") + ago(p.updatedAt) + " · " + (pagesOf(p).length > 1 ? pagesOf(p).length + " pages · " : "") + p.frames + (p.frames === 1 ? " frame" : " frames"))),
           confirmDel === p.id
             ? e("div", { className: "bd-proj-confirm", role: "group", "aria-label": "Delete " + p.name },
               e("span", null, "Delete for good?"),
@@ -2350,7 +2455,7 @@ function App(props) {
               e("button", { type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep"))
             /* Plain buttons: a menu's list would open outside this modal dialog. */
             : e("span", { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
-              e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function () { setRenaming(p.id); } }, e(Icon, { name: "pencil" })),
+              e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function () { setRenamingProj(p.id); } }, e(Icon, { name: "pencil" })),
               e("label", { className: "bd-act", title: "Choose a picture" },
                 e(Icon, { name: "image" }),
                 e("input", { type: "file", className: "visually-hidden", accept: "image/*", "aria-label": "Choose a picture for " + p.name,
@@ -2388,7 +2493,7 @@ function App(props) {
     if (!s) return;
     var has = docRef.current.frames.some(function (f) { return f.root.children.length; });
     if (has && !window.confirm("Start over with a blank frame? Every frame goes; undo brings your work back.")) return;
-    store.addVersion(projectRef.current.id, docRef.current, "Before starting over");
+    store.addVersion(projectRef.current.id, docRef.current, "Before starting over", pageRef.current);
     var next = s[2]();
     commit(next, null, "Started from " + s[1] + ". Undo to go back.");
     setTimeout(function () { showFrameRef.current(next.active); }, 0);
@@ -2527,7 +2632,7 @@ function App(props) {
     if (dlg) dlg.close();
     var dropped = read.report.length ? " " + read.report.length + (read.report.length === 1 ? " thing was" : " things were") + " left out." : "";
     if (mode === "replace") {
-      store.addVersion(projectRef.current.id, docRef.current, "Before a pasted layout");
+      store.addVersion(projectRef.current.id, docRef.current, "Before a pasted layout", pageRef.current);
       commit(read.doc, null, "Opened the pasted layout. Undo to go back." + dropped);
       setTimeout(function () { showFrameRef.current(read.doc.active); }, 0);
       return;
@@ -3201,8 +3306,7 @@ function App(props) {
           var count = k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? (STARTERS.length - 1) + " pages" : groupsOf(k[0]).reduce(function (t, g) { return t + usableIn(g).length; }, 0) + " to add";
           return e("li", { key: k[0] }, e("button", { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note, onClick: function () { setAssetKind(k[0]); } },
             e("span", { className: "bd-kind-pics is-asset" },
-              k[0] === "variables" ? e("span", { className: "bd-kind-swatches", "aria-hidden": true }, ["--dt-surface-brand", "--dt-surface-brand-secondary", "--dt-surface-action", "--dt-surface-inverse"].map(function (t) { return e("span", { key: t, style: { background: "var(" + t + ")" } }); }))
-                : e(Icon, { name: k[2] })),
+              e(Icon, { name: k[2] })),
             e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))));
         })));
     }
@@ -3270,6 +3374,41 @@ function App(props) {
   var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
   var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
   var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
+  var pagesPanel = function () {
+    var list = pagesOf(project);
+    return e("div", { className: "bd-pages-panel" },
+      e("div", { className: "bd-panel-head" },
+        e("h2", { className: "bd-panel-title" }, "Pages"),
+        e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" }))),
+      e("ul", { className: "bd-pages", role: "list" }, list.map(function (p, i) {
+        var on = p.id === pageId;
+        return e("li", { key: p.id, className: cx("bd-page", on && "is-current") },
+          renamingPage === p.id
+            ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function (v) { renamePage(p.id, v); } })
+            : e("button", { type: "button", className: "bd-page-open", "aria-current": on ? "page" : undefined, title: "Double-click to rename",
+              onClick: function () { openPage(p.id); }, onDoubleClick: function () { setRenamingPage(p.id); } },
+              e(Icon, { name: "file" }), e("span", { className: "bd-page-name" }, p.name)),
+          confirmPage === p.id
+            ? e("span", { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + p.name },
+              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function () { deletePage(p.id); } }, "Delete"),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setConfirmPage(null); } }, "Keep"))
+            : e(Dropdown, { menu: true, label: "Actions for " + p.name, placeholder: "Page", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
+              options: [
+                { value: "rename", label: "Rename", icon: "pencil" },
+                { value: "duplicate", label: "Duplicate", icon: "copy" },
+              ].concat(i > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
+                .concat(i < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : [])
+                .concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
+              onChange: function (v) {
+                if (v === "rename") setRenamingPage(p.id);
+                else if (v === "duplicate") duplicatePage(p.id);
+                else if (v === "up") movePage(p.id, -1);
+                else if (v === "down") movePage(p.id, 1);
+                else if (v === "delete") setConfirmPage(p.id);
+              } }));
+      })));
+  };
+
   var layersPanel = function () {
     var q = layerQuery.trim().toLowerCase();
     var toggle = function (id) {
@@ -4371,7 +4510,7 @@ function App(props) {
           t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
       })),
     e("div", { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane },
-      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, layers, content and configure", hidden: hidePanels || undefined },
+      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || undefined },
         e("div", { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
           RAIL.map(function (r) {
             return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(left === r[0]), "aria-controls": "bd-left-body", title: r[2],
@@ -4380,8 +4519,8 @@ function App(props) {
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           left === "configure" ? e("div", { className: "bd-config-dock", ref: dockRef })
             : e(React.Fragment, null,
-              e("div", { className: "bd-left-main" }, left === "assets" ? assetsPanel() : left === "layers" ? layersPanel() : contentPanel()),
-              left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
+              e("div", { className: "bd-left-main" }, left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()),
+              left === "pages" ? null : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
                 : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery })
                 : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })))),
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),

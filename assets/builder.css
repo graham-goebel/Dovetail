@@ -3490,11 +3490,6 @@ span.bd-layer-twisty.is-open .bd-ic {
   font-weight: var(--dt-font-weight-medium);
 }
 
-.bd-asset-kinds .bd-kind-swatches > span {
-  width: var(--dt-size-icon-md);
-  height: var(--dt-size-icon-md);
-}
-
 .bd-asset-kinds .bd-kind-count {
   padding-top: 0;
 }
@@ -3520,18 +3515,6 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-kind-pics > .bd-ic {
   width: var(--dt-size-icon-lg);
   height: var(--dt-size-icon-lg);
-}
-
-.bd-kind-swatches {
-  display: flex;
-  gap: var(--dt-space-inline-2xs);
-}
-
-.bd-kind-swatches > span {
-  width: var(--dt-size-icon-lg);
-  height: var(--dt-size-icon-lg);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: 50%;
 }
 
 .bd-kind-count {
@@ -4555,6 +4538,96 @@ input.bd-proj-name {
   .bd-proj-confirm {
     grid-column: 2;
   }
+}
+
+/* The project's pages, in the left panel: one row each, the page on
+   screen marked. */
+.bd-pages-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bd-pages {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0 var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  list-style: none;
+}
+
+.bd-page {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--dt-size-control-sm);
+  border-radius: var(--dt-radius-control);
+}
+
+.bd-page:hover {
+  background: var(--dt-surface-raised);
+}
+
+.bd-page.is-current {
+  background: var(--dt-surface-selected);
+  color: var(--dt-text-on-selected);
+}
+
+.bd-page-open {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
+  min-height: var(--dt-size-control-sm);
+  padding: 0 var(--dt-space-inset-xs);
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--dt-font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-page-open:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: -2px;
+}
+
+.bd-page-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+input.bd-page-name {
+  flex: 1;
+  min-width: 0;
+  height: var(--dt-size-control-sm);
+}
+
+.bd-page-menu {
+  opacity: 0;
+}
+
+.bd-page:hover .bd-page-menu,
+.bd-page:focus-within .bd-page-menu,
+.bd-page.is-current .bd-page-menu {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .bd-page-menu {
+    opacity: 1;
+  }
+}
+
+.bd-page-confirm {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+  padding-right: var(--dt-space-inset-2xs);
 }
 
 /* Versions of the project on screen, newest first. */

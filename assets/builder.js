@@ -270,6 +270,7 @@
   }
   var RAIL = [
     ["assets", "Assets", "Primitives, variables, components, blocks and templates", "plus"],
+    ["pages", "Pages", "The project's pages, each its own canvas", "file"],
     ["layers", "Layers", "Everything in each frame", "blocks"],
     ["content", "Content", "Images, illustrations and icons", "folder"],
     ["configure", "Configure", "The system's brand, colour, type and layout", "sliders"]
@@ -1940,6 +1941,563 @@
     return out;
   }
 
+  // assets/builder/model/store.js
+  var DB_NAME = "dovetail-builder";
+  var DB_VERSION = 1;
+  var VERSIONS_MAX = 30;
+  var VERSION_EVERY = 10 * 60 * 1e3;
+  var LAST_KEY = "dovetail-builder-last";
+  var MAIN = "main";
+  function docKey(id, page) {
+    return !page || page === MAIN ? id : id + ":" + page;
+  }
+  function pagesOf(meta) {
+    return meta && Array.isArray(meta.pages) && meta.pages.length ? meta.pages : [{ id: MAIN, name: "Page 1" }];
+  }
+  function pageOf(meta) {
+    var pages = pagesOf(meta);
+    return pages.some(function(p) {
+      return p.id === (meta && meta.page);
+    }) ? meta.page : pages[0].id;
+  }
+  var FALLBACK_KEY = "dovetail-builder-store";
+  function idb() {
+    return new Promise(function(resolve) {
+      var done = false;
+      var finish = function(db) {
+        if (!done) {
+          done = true;
+          resolve(db);
+        }
+      };
+      setTimeout(function() {
+        finish(null);
+      }, 4e3);
+      try {
+        if (!window.indexedDB) {
+          finish(null);
+          return;
+        }
+        var req = window.indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = function() {
+          var db = req.result;
+          if (!db.objectStoreNames.contains("projects")) db.createObjectStore("projects", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("versions")) db.createObjectStore("versions", { keyPath: "key", autoIncrement: true }).createIndex("project", "project");
+          if (!db.objectStoreNames.contains("library")) db.createObjectStore("library", { keyPath: "id" });
+        };
+        req.onsuccess = function() {
+          finish(req.result);
+        };
+        req.onerror = function() {
+          finish(null);
+        };
+        req.onblocked = function() {
+          finish(null);
+        };
+      } catch (err) {
+        finish(null);
+      }
+    });
+  }
+  function idbBackend(db) {
+    var run = function(store, mode, fn) {
+      return new Promise(function(resolve, reject) {
+        var tx = db.transaction(store, mode);
+        var out;
+        tx.oncomplete = function() {
+          resolve(out);
+        };
+        tx.onerror = function() {
+          reject(tx.error);
+        };
+        tx.onabort = function() {
+          reject(tx.error || new Error("The save was stopped."));
+        };
+        var req = fn(tx.objectStore(store));
+        if (req) req.onsuccess = function() {
+          out = req.result;
+        };
+      });
+    };
+    return {
+      kind: "indexeddb",
+      get: function(store, key) {
+        return run(store, "readonly", function(s) {
+          return s.get(key);
+        });
+      },
+      all: function(store) {
+        return run(store, "readonly", function(s) {
+          return s.getAll();
+        });
+      },
+      put: function(store, value) {
+        return run(store, "readwrite", function(s) {
+          return s.put(value);
+        });
+      },
+      del: function(store, key) {
+        return run(store, "readwrite", function(s) {
+          return s.delete(key);
+        });
+      },
+      byIndex: function(store, index, key) {
+        return run(store, "readonly", function(s) {
+          return s.index(index).getAll(key);
+        });
+      }
+    };
+  }
+  function localBackend() {
+    var read = function() {
+      return storage(function(s) {
+        return JSON.parse(s.getItem(FALLBACK_KEY) || "null");
+      }) || { projects: {}, docs: {}, versions: {}, library: {}, seq: 0 };
+    };
+    var write = function(data) {
+      var ok = storage(function(s) {
+        s.setItem(FALLBACK_KEY, JSON.stringify(data));
+        return true;
+      });
+      return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
+    };
+    var keyOf = function(store, value) {
+      return store === "versions" ? value.key : value.id;
+    };
+    return {
+      kind: "localstorage",
+      get: function(store, key) {
+        var d = read();
+        return Promise.resolve(d[store][key]);
+      },
+      all: function(store) {
+        var d = read();
+        return Promise.resolve(Object.keys(d[store]).map(function(k) {
+          return d[store][k];
+        }));
+      },
+      put: function(store, value) {
+        var d = read();
+        var v = JSON.parse(JSON.stringify(value));
+        if (store === "versions" && v.key === void 0) v.key = ++d.seq;
+        d[store][keyOf(store, v)] = v;
+        return write(d).then(function() {
+          return keyOf(store, v);
+        });
+      },
+      del: function(store, key) {
+        var d = read();
+        delete d[store][key];
+        return write(d);
+      },
+      byIndex: function(store, index, key) {
+        var d = read();
+        return Promise.resolve(Object.keys(d[store]).map(function(k) {
+          return d[store][k];
+        }).filter(function(v) {
+          return v[index] === key;
+        }));
+      }
+    };
+  }
+  function openStore() {
+    return idb().then(function(db) {
+      var b = db ? idbBackend(db) : localBackend();
+      var store = makeStore(b);
+      return store.migrate().then(function() {
+        return store;
+      });
+    });
+  }
+  function makeStore(b) {
+    var now = function() {
+      return Date.now();
+    };
+    var count = function(doc) {
+      return doc && Array.isArray(doc.frames) ? doc.frames.length : 0;
+    };
+    var lastVersionAt = {};
+    var api = {
+      kind: b.kind,
+      listProjects: function() {
+        return b.all("projects").then(function(list) {
+          return (list || []).sort(function(x, y) {
+            return y.updatedAt - x.updatedAt;
+          });
+        });
+      },
+      getProject: function(id) {
+        return b.get("projects", id);
+      },
+      loadDoc: function(id, page) {
+        return b.get("docs", docKey(id, page)).then(function(rec) {
+          return rec ? clean(rec.doc) : null;
+        });
+      },
+      /* A new project, opened next; its first version is where it started.
+         extra may carry its settings: the canvas colour behind its frames
+         (stage) and its Configure theme. */
+      createProject: function(name, doc, extra) {
+        var meta = Object.assign({
+          id: "p" + uid(),
+          name: (name || "Untitled").slice(0, 80),
+          createdAt: now(),
+          updatedAt: now(),
+          frames: count(doc),
+          thumb: null,
+          pages: [{ id: MAIN, name: "Page 1" }],
+          page: MAIN,
+          pageFrames: { main: count(doc) }
+        }, settingsOf(extra));
+        return b.put("projects", meta).then(function() {
+          return b.put("docs", { id: meta.id, doc });
+        }).then(function() {
+          return meta;
+        });
+      },
+      /* The document, and the project's edited time and frame count. Every so
+         often the save is also kept as a version. */
+      saveDoc: function(id, doc, page) {
+        page = page || MAIN;
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) throw new Error("That project is gone.");
+          meta.updatedAt = now();
+          tally(meta, page, count(doc));
+          var key = docKey(id, page);
+          return b.put("docs", { id: key, doc }).then(function() {
+            return b.put("projects", meta);
+          }).then(function() {
+            var last = lastVersionAt[key] || meta.createdAt;
+            if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc, "Autosave", page);
+          }).then(function() {
+            return meta;
+          });
+        });
+      },
+      /* Pages. Each returns the project as it is after. */
+      addPage: function(id, name, doc, after) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          var pages = pagesOf(meta).slice();
+          var page = { id: "pg" + uid(), name: (name || "Page " + (pages.length + 1)).slice(0, 60) };
+          var at = pages.findIndex(function(p) {
+            return p.id === after;
+          });
+          pages.splice(at >= 0 ? at + 1 : pages.length, 0, page);
+          meta.pages = pages;
+          tally(meta, page.id, count(doc));
+          return b.put("docs", { id: docKey(id, page.id), doc }).then(function() {
+            return b.put("projects", meta);
+          }).then(function() {
+            return { meta, page };
+          });
+        });
+      },
+      renamePage: function(id, pageId, name) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          var named = String(name || "").trim().slice(0, 60);
+          meta.pages = pagesOf(meta).map(function(p) {
+            return p.id === pageId && named ? { id: p.id, name: named } : p;
+          });
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      movePage: function(id, pageId, by) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          var pages = pagesOf(meta).slice();
+          var at = pages.findIndex(function(p) {
+            return p.id === pageId;
+          }), to = at + by;
+          if (at < 0 || to < 0 || to >= pages.length) return meta;
+          pages.splice(to, 0, pages.splice(at, 1)[0]);
+          meta.pages = pages;
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      duplicatePage: function(id, pageId) {
+        return Promise.all([b.get("projects", id), api.loadDoc(id, pageId)]).then(function(got) {
+          var from = pagesOf(got[0]).filter(function(p) {
+            return p.id === pageId;
+          })[0];
+          if (!got[0] || !from || !got[1]) return null;
+          return api.addPage(id, from.name + " copy", got[1], pageId);
+        });
+      },
+      /* A project keeps at least one page. */
+      deletePage: function(id, pageId) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          var pages = pagesOf(meta);
+          if (pages.length < 2 || !pages.some(function(p) {
+            return p.id === pageId;
+          })) return meta;
+          meta.pages = pages.filter(function(p) {
+            return p.id !== pageId;
+          });
+          if (meta.pageFrames) delete meta.pageFrames[pageId];
+          meta.frames = sum(meta);
+          if (meta.page === pageId) meta.page = meta.pages[0].id;
+          return api.listVersions(id, pageId).then(function(vs) {
+            return Promise.all(vs.map(function(v) {
+              return b.del("versions", v.key);
+            }));
+          }).then(function() {
+            return b.del("docs", docKey(id, pageId));
+          }).then(function() {
+            return b.put("projects", meta);
+          }).then(function() {
+            return meta;
+          });
+        });
+      },
+      /* The page last open, which the project opens on next time. */
+      setPage: function(id, pageId) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta || meta.page === pageId) return meta;
+          meta.page = pageId;
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      renameProject: function(id, name) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          meta.name = String(name || "").trim().slice(0, 80) || meta.name;
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      /* The picture on a project's card. One the person chose (byUser) stays
+         until they choose again or go back to automatic (thumb null); until
+         then, automatic pictures leave it alone. */
+      setThumb: function(id, thumb, byUser) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          if (meta.thumbSet && !byUser && thumb) return meta;
+          meta.thumb = thumb;
+          meta.thumbSet = !!(byUser && thumb);
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      /* A project's own settings: its canvas colour and its theme. */
+      setSettings: function(id, patch) {
+        return b.get("projects", id).then(function(meta) {
+          if (!meta) return null;
+          Object.assign(meta, settingsOf(patch));
+          return b.put("projects", meta).then(function() {
+            return meta;
+          });
+        });
+      },
+      /* Every page comes along, in order, with its name. */
+      duplicateProject: function(id) {
+        return b.get("projects", id).then(function(src) {
+          if (!src) return null;
+          var pages = pagesOf(src);
+          return Promise.all(pages.map(function(p) {
+            return api.loadDoc(id, p.id);
+          })).then(function(docs) {
+            if (!docs[0]) return null;
+            return api.createProject(src.name + " copy", docs[0], src).then(function(meta) {
+              return api.renamePage(meta.id, MAIN, pages[0].name);
+            }).then(function(meta) {
+              var steps = Promise.resolve(meta);
+              pages.slice(1).forEach(function(p, i) {
+                steps = steps.then(function() {
+                  return api.addPage(meta.id, p.name, docs[i + 1] || emptyDoc());
+                });
+              });
+              return steps.then(function() {
+                return src.thumb ? api.setThumb(meta.id, src.thumb, src.thumbSet) : b.get("projects", meta.id);
+              });
+            });
+          });
+        });
+      },
+      deleteProject: function(id) {
+        return b.get("projects", id).then(function(meta) {
+          return api.listVersions(id).then(function(vs) {
+            return Promise.all(vs.map(function(v) {
+              return b.del("versions", v.key);
+            }));
+          }).then(function() {
+            return Promise.all(pagesOf(meta).map(function(p) {
+              return b.del("docs", docKey(id, p.id));
+            }));
+          }).then(function() {
+            return b.del("projects", id);
+          });
+        });
+      },
+      /* Versions: newest first, at most VERSIONS_MAX a page. Without a page,
+         listVersions gives every page's. */
+      addVersion: function(id, doc, label, page) {
+        page = page || MAIN;
+        lastVersionAt[docKey(id, page)] = now();
+        return b.put("versions", { project: id, page, at: now(), label: label || "Saved", frames: count(doc), doc }).then(function() {
+          return api.listVersions(id, page);
+        }).then(function(vs) {
+          return Promise.all(vs.slice(VERSIONS_MAX).map(function(v) {
+            return b.del("versions", v.key);
+          }));
+        });
+      },
+      listVersions: function(id, page) {
+        return b.byIndex("versions", "project", id).then(function(vs) {
+          return (vs || []).filter(function(v) {
+            return !page || (v.page || MAIN) === page;
+          }).sort(function(x, y) {
+            return y.at - x.at || y.key - x.key;
+          });
+        });
+      },
+      loadVersion: function(key) {
+        return b.get("versions", key).then(function(v) {
+          return v ? clean(v.doc) : null;
+        });
+      },
+      /* The Content library. Without IndexedDB it stays where it always was. */
+      loadLibrary: function() {
+        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
+          return JSON.parse(s.getItem(LIB_KEY) || "null");
+        }));
+        return b.get("library", "library").then(function(rec) {
+          return rec ? rec.value : null;
+        });
+      },
+      saveLibrary: function(value) {
+        if (b.kind !== "indexeddb") {
+          var ok = storage(function(s) {
+            s.setItem(LIB_KEY, JSON.stringify(value));
+            return true;
+          });
+          return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
+        }
+        return b.put("library", { id: "library", value });
+      },
+      lastOpened: function() {
+        return storage(function(s) {
+          return s.getItem(LAST_KEY);
+        });
+      },
+      setLastOpened: function(id) {
+        storage(function(s) {
+          s.setItem(LAST_KEY, id);
+        });
+      },
+      /* Work saved before projects: the layout and its backup become a
+         project (with the backup as a version), and the Content library moves
+         across. The old entries are removed once they're safely copied. */
+      migrate: function() {
+        var raw = storage(function(s) {
+          return s.getItem(STORE_KEY);
+        });
+        var backup = storage(function(s) {
+          return s.getItem(BACKUP_KEY);
+        });
+        var lib = storage(function(s) {
+          return s.getItem(LIB_KEY);
+        });
+        var steps = Promise.resolve();
+        if (raw) {
+          steps = steps.then(function() {
+            var doc;
+            try {
+              doc = clean(JSON.parse(raw));
+            } catch (err) {
+              return null;
+            }
+            var name = doc.frames.length === 1 ? doc.frames[0].name : "My layout";
+            return api.createProject(name, doc).then(function(meta) {
+              var more = Promise.resolve();
+              if (backup) {
+                try {
+                  more = api.addVersion(meta.id, clean(JSON.parse(backup)), "Before projects");
+                } catch (err) {
+                  more = Promise.resolve();
+                }
+              }
+              return more.then(function() {
+                api.setLastOpened(meta.id);
+              });
+            });
+          }).then(function() {
+            storage(function(s) {
+              s.removeItem(STORE_KEY);
+              s.removeItem(BACKUP_KEY);
+            });
+          });
+        }
+        if (lib && b.kind === "indexeddb") {
+          steps = steps.then(function() {
+            var value;
+            try {
+              value = JSON.parse(lib);
+            } catch (err) {
+              return null;
+            }
+            return api.saveLibrary(value).then(function() {
+              storage(function(s) {
+                s.removeItem(LIB_KEY);
+              });
+            });
+          });
+        }
+        return steps.catch(function() {
+        });
+      }
+    };
+    return api;
+  }
+  function tally(meta, page, n) {
+    if (!meta.pageFrames) meta.pageFrames = { main: meta.frames || 0 };
+    meta.pageFrames[page] = n;
+    meta.frames = sum(meta);
+  }
+  function sum(meta) {
+    var by = meta.pageFrames || {};
+    return pagesOf(meta).reduce(function(t, p) {
+      return t + (by[p.id] || 0);
+    }, 0) || (meta.pageFrames ? 0 : meta.frames || 0);
+  }
+  function settingsOf(src) {
+    var out = {};
+    if (!src || typeof src !== "object") return out;
+    if (typeof src.stage === "string" && (src.stage === "" || /^#[0-9a-f]{6}$/i.test(src.stage))) out.stage = src.stage.toLowerCase();
+    if (src.theme && typeof src.theme === "object") {
+      var t = src.theme;
+      out.theme = {
+        config: t.config && typeof t.config === "object" ? t.config : {},
+        brand: t.brand && typeof t.brand === "object" ? t.brand : {},
+        media: t.media && typeof t.media === "object" ? t.media : {},
+        context: typeof t.context === "string" ? t.context : ""
+      };
+    }
+    return out;
+  }
+  function ago(t) {
+    var s = Math.max(0, Math.round((Date.now() - t) / 1e3));
+    if (s < 45) return "Just now";
+    var m = Math.round(s / 60);
+    if (m < 60) return m + (m === 1 ? " minute ago" : " minutes ago");
+    var h = Math.round(m / 60);
+    if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
+    var d = Math.round(h / 24);
+    if (d < 14) return d + (d === 1 ? " day ago" : " days ago");
+    return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  }
+
   // assets/builder/model/starters.js
   function one(name, preset, children, extra) {
     var f = makeFrame(name, preset, true);
@@ -2070,13 +2628,15 @@
         return p.id === last;
       })[0] || projects[0] || null;
       var current2 = function() {
-        return pick ? store.loadDoc(pick.id).then(function(doc) {
-          return doc ? { project: pick, doc } : null;
-        }) : Promise.resolve(null);
+        if (!pick) return Promise.resolve(null);
+        var page = pageOf(pick);
+        return store.loadDoc(pick.id, page).then(function(doc) {
+          return doc ? { project: pick, page, doc } : null;
+        });
       };
       var fresh2 = function(name, doc, extra) {
         return store.createProject(name, doc).then(function(meta) {
-          return Object.assign({ project: meta, doc }, extra);
+          return Object.assign({ project: meta, page: pageOf(meta), doc }, extra);
         });
       };
       if (hash && hash.kind === "link" && hash.data) {
@@ -2724,410 +3284,6 @@
       })(f.root);
     });
     return { doc, report, layers };
-  }
-
-  // assets/builder/model/store.js
-  var DB_NAME = "dovetail-builder";
-  var DB_VERSION = 1;
-  var VERSIONS_MAX = 30;
-  var VERSION_EVERY = 10 * 60 * 1e3;
-  var LAST_KEY = "dovetail-builder-last";
-  var FALLBACK_KEY = "dovetail-builder-store";
-  function idb() {
-    return new Promise(function(resolve) {
-      var done = false;
-      var finish = function(db) {
-        if (!done) {
-          done = true;
-          resolve(db);
-        }
-      };
-      setTimeout(function() {
-        finish(null);
-      }, 4e3);
-      try {
-        if (!window.indexedDB) {
-          finish(null);
-          return;
-        }
-        var req = window.indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = function() {
-          var db = req.result;
-          if (!db.objectStoreNames.contains("projects")) db.createObjectStore("projects", { keyPath: "id" });
-          if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", { keyPath: "id" });
-          if (!db.objectStoreNames.contains("versions")) db.createObjectStore("versions", { keyPath: "key", autoIncrement: true }).createIndex("project", "project");
-          if (!db.objectStoreNames.contains("library")) db.createObjectStore("library", { keyPath: "id" });
-        };
-        req.onsuccess = function() {
-          finish(req.result);
-        };
-        req.onerror = function() {
-          finish(null);
-        };
-        req.onblocked = function() {
-          finish(null);
-        };
-      } catch (err) {
-        finish(null);
-      }
-    });
-  }
-  function idbBackend(db) {
-    var run = function(store, mode, fn) {
-      return new Promise(function(resolve, reject) {
-        var tx = db.transaction(store, mode);
-        var out;
-        tx.oncomplete = function() {
-          resolve(out);
-        };
-        tx.onerror = function() {
-          reject(tx.error);
-        };
-        tx.onabort = function() {
-          reject(tx.error || new Error("The save was stopped."));
-        };
-        var req = fn(tx.objectStore(store));
-        if (req) req.onsuccess = function() {
-          out = req.result;
-        };
-      });
-    };
-    return {
-      kind: "indexeddb",
-      get: function(store, key) {
-        return run(store, "readonly", function(s) {
-          return s.get(key);
-        });
-      },
-      all: function(store) {
-        return run(store, "readonly", function(s) {
-          return s.getAll();
-        });
-      },
-      put: function(store, value) {
-        return run(store, "readwrite", function(s) {
-          return s.put(value);
-        });
-      },
-      del: function(store, key) {
-        return run(store, "readwrite", function(s) {
-          return s.delete(key);
-        });
-      },
-      byIndex: function(store, index, key) {
-        return run(store, "readonly", function(s) {
-          return s.index(index).getAll(key);
-        });
-      }
-    };
-  }
-  function localBackend() {
-    var read = function() {
-      return storage(function(s) {
-        return JSON.parse(s.getItem(FALLBACK_KEY) || "null");
-      }) || { projects: {}, docs: {}, versions: {}, library: {}, seq: 0 };
-    };
-    var write = function(data) {
-      var ok = storage(function(s) {
-        s.setItem(FALLBACK_KEY, JSON.stringify(data));
-        return true;
-      });
-      return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
-    };
-    var keyOf = function(store, value) {
-      return store === "versions" ? value.key : value.id;
-    };
-    return {
-      kind: "localstorage",
-      get: function(store, key) {
-        var d = read();
-        return Promise.resolve(d[store][key]);
-      },
-      all: function(store) {
-        var d = read();
-        return Promise.resolve(Object.keys(d[store]).map(function(k) {
-          return d[store][k];
-        }));
-      },
-      put: function(store, value) {
-        var d = read();
-        var v = JSON.parse(JSON.stringify(value));
-        if (store === "versions" && v.key === void 0) v.key = ++d.seq;
-        d[store][keyOf(store, v)] = v;
-        return write(d).then(function() {
-          return keyOf(store, v);
-        });
-      },
-      del: function(store, key) {
-        var d = read();
-        delete d[store][key];
-        return write(d);
-      },
-      byIndex: function(store, index, key) {
-        var d = read();
-        return Promise.resolve(Object.keys(d[store]).map(function(k) {
-          return d[store][k];
-        }).filter(function(v) {
-          return v[index] === key;
-        }));
-      }
-    };
-  }
-  function openStore() {
-    return idb().then(function(db) {
-      var b = db ? idbBackend(db) : localBackend();
-      var store = makeStore(b);
-      return store.migrate().then(function() {
-        return store;
-      });
-    });
-  }
-  function makeStore(b) {
-    var now = function() {
-      return Date.now();
-    };
-    var count = function(doc) {
-      return doc && Array.isArray(doc.frames) ? doc.frames.length : 0;
-    };
-    var lastVersionAt = {};
-    var api = {
-      kind: b.kind,
-      listProjects: function() {
-        return b.all("projects").then(function(list) {
-          return (list || []).sort(function(x, y) {
-            return y.updatedAt - x.updatedAt;
-          });
-        });
-      },
-      getProject: function(id) {
-        return b.get("projects", id);
-      },
-      loadDoc: function(id) {
-        return b.get("docs", id).then(function(rec) {
-          return rec ? clean(rec.doc) : null;
-        });
-      },
-      /* A new project, opened next; its first version is where it started.
-         extra may carry its settings: the canvas colour behind its frames
-         (stage) and its Configure theme. */
-      createProject: function(name, doc, extra) {
-        var meta = Object.assign({ id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null }, settingsOf(extra));
-        return b.put("projects", meta).then(function() {
-          return b.put("docs", { id: meta.id, doc });
-        }).then(function() {
-          return meta;
-        });
-      },
-      /* The document, and the project's edited time and frame count. Every so
-         often the save is also kept as a version. */
-      saveDoc: function(id, doc) {
-        return b.get("projects", id).then(function(meta) {
-          if (!meta) throw new Error("That project is gone.");
-          meta.updatedAt = now();
-          meta.frames = count(doc);
-          return b.put("docs", { id, doc }).then(function() {
-            return b.put("projects", meta);
-          }).then(function() {
-            var last = lastVersionAt[id] || meta.createdAt;
-            if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc, "Autosave");
-          }).then(function() {
-            return meta;
-          });
-        });
-      },
-      renameProject: function(id, name) {
-        return b.get("projects", id).then(function(meta) {
-          if (!meta) return null;
-          meta.name = String(name || "").trim().slice(0, 80) || meta.name;
-          return b.put("projects", meta).then(function() {
-            return meta;
-          });
-        });
-      },
-      /* The picture on a project's card. One the person chose (byUser) stays
-         until they choose again or go back to automatic (thumb null); until
-         then, automatic pictures leave it alone. */
-      setThumb: function(id, thumb, byUser) {
-        return b.get("projects", id).then(function(meta) {
-          if (!meta) return null;
-          if (meta.thumbSet && !byUser && thumb) return meta;
-          meta.thumb = thumb;
-          meta.thumbSet = !!(byUser && thumb);
-          return b.put("projects", meta).then(function() {
-            return meta;
-          });
-        });
-      },
-      /* A project's own settings: its canvas colour and its theme. */
-      setSettings: function(id, patch) {
-        return b.get("projects", id).then(function(meta) {
-          if (!meta) return null;
-          Object.assign(meta, settingsOf(patch));
-          return b.put("projects", meta).then(function() {
-            return meta;
-          });
-        });
-      },
-      duplicateProject: function(id) {
-        return Promise.all([b.get("projects", id), api.loadDoc(id)]).then(function(got) {
-          if (!got[0] || !got[1]) return null;
-          return api.createProject(got[0].name + " copy", got[1], got[0]).then(function(meta) {
-            return got[0].thumb ? api.setThumb(meta.id, got[0].thumb, got[0].thumbSet) : meta;
-          });
-        });
-      },
-      deleteProject: function(id) {
-        return api.listVersions(id).then(function(vs) {
-          return Promise.all(vs.map(function(v) {
-            return b.del("versions", v.key);
-          }));
-        }).then(function() {
-          return b.del("docs", id);
-        }).then(function() {
-          return b.del("projects", id);
-        });
-      },
-      /* Versions: newest first, at most VERSIONS_MAX a project. */
-      addVersion: function(id, doc, label) {
-        lastVersionAt[id] = now();
-        return b.put("versions", { project: id, at: now(), label: label || "Saved", frames: count(doc), doc }).then(function() {
-          return api.listVersions(id);
-        }).then(function(vs) {
-          return Promise.all(vs.slice(VERSIONS_MAX).map(function(v) {
-            return b.del("versions", v.key);
-          }));
-        });
-      },
-      listVersions: function(id) {
-        return b.byIndex("versions", "project", id).then(function(vs) {
-          return (vs || []).sort(function(x, y) {
-            return y.at - x.at || y.key - x.key;
-          });
-        });
-      },
-      loadVersion: function(key) {
-        return b.get("versions", key).then(function(v) {
-          return v ? clean(v.doc) : null;
-        });
-      },
-      /* The Content library. Without IndexedDB it stays where it always was. */
-      loadLibrary: function() {
-        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
-          return JSON.parse(s.getItem(LIB_KEY) || "null");
-        }));
-        return b.get("library", "library").then(function(rec) {
-          return rec ? rec.value : null;
-        });
-      },
-      saveLibrary: function(value) {
-        if (b.kind !== "indexeddb") {
-          var ok = storage(function(s) {
-            s.setItem(LIB_KEY, JSON.stringify(value));
-            return true;
-          });
-          return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
-        }
-        return b.put("library", { id: "library", value });
-      },
-      lastOpened: function() {
-        return storage(function(s) {
-          return s.getItem(LAST_KEY);
-        });
-      },
-      setLastOpened: function(id) {
-        storage(function(s) {
-          s.setItem(LAST_KEY, id);
-        });
-      },
-      /* Work saved before projects: the layout and its backup become a
-         project (with the backup as a version), and the Content library moves
-         across. The old entries are removed once they're safely copied. */
-      migrate: function() {
-        var raw = storage(function(s) {
-          return s.getItem(STORE_KEY);
-        });
-        var backup = storage(function(s) {
-          return s.getItem(BACKUP_KEY);
-        });
-        var lib = storage(function(s) {
-          return s.getItem(LIB_KEY);
-        });
-        var steps = Promise.resolve();
-        if (raw) {
-          steps = steps.then(function() {
-            var doc;
-            try {
-              doc = clean(JSON.parse(raw));
-            } catch (err) {
-              return null;
-            }
-            var name = doc.frames.length === 1 ? doc.frames[0].name : "My layout";
-            return api.createProject(name, doc).then(function(meta) {
-              var more = Promise.resolve();
-              if (backup) {
-                try {
-                  more = api.addVersion(meta.id, clean(JSON.parse(backup)), "Before projects");
-                } catch (err) {
-                  more = Promise.resolve();
-                }
-              }
-              return more.then(function() {
-                api.setLastOpened(meta.id);
-              });
-            });
-          }).then(function() {
-            storage(function(s) {
-              s.removeItem(STORE_KEY);
-              s.removeItem(BACKUP_KEY);
-            });
-          });
-        }
-        if (lib && b.kind === "indexeddb") {
-          steps = steps.then(function() {
-            var value;
-            try {
-              value = JSON.parse(lib);
-            } catch (err) {
-              return null;
-            }
-            return api.saveLibrary(value).then(function() {
-              storage(function(s) {
-                s.removeItem(LIB_KEY);
-              });
-            });
-          });
-        }
-        return steps.catch(function() {
-        });
-      }
-    };
-    return api;
-  }
-  function settingsOf(src) {
-    var out = {};
-    if (!src || typeof src !== "object") return out;
-    if (typeof src.stage === "string" && (src.stage === "" || /^#[0-9a-f]{6}$/i.test(src.stage))) out.stage = src.stage.toLowerCase();
-    if (src.theme && typeof src.theme === "object") {
-      var t = src.theme;
-      out.theme = {
-        config: t.config && typeof t.config === "object" ? t.config : {},
-        brand: t.brand && typeof t.brand === "object" ? t.brand : {},
-        media: t.media && typeof t.media === "object" ? t.media : {},
-        context: typeof t.context === "string" ? t.context : ""
-      };
-    }
-    return out;
-  }
-  function ago(t) {
-    var s = Math.max(0, Math.round((Date.now() - t) / 1e3));
-    if (s < 45) return "Just now";
-    var m = Math.round(s / 60);
-    if (m < 60) return m + (m === 1 ? " minute ago" : " minutes ago");
-    var h = Math.round(m / 60);
-    if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
-    var d = Math.round(h / 24);
-    if (d < 14) return d + (d === 1 ? " day ago" : " days ago");
-    return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
   }
 
   // assets/builder/ui/icons.js
@@ -4260,7 +4416,7 @@
     partRef.current = part;
     var hoverState = useState(null);
     var hover = hoverState[0], setHover = hoverState[1];
-    var leftState = useState(prefs.left === "layers" || prefs.left === "content" || prefs.left === "configure" ? prefs.left : "assets");
+    var leftState = useState(["pages", "layers", "content", "configure"].indexOf(prefs.left) >= 0 ? prefs.left : "assets");
     var left = leftState[0], setLeft = leftState[1];
     var paneState = useState("canvas");
     var pane = paneState[0], setPane = paneState[1];
@@ -4399,6 +4555,11 @@
     var layout = layoutOf(doc, heights, resizing, widths, movingFrame);
     var boxes = layout.boxes;
     var history = useRef({ past: [], future: [] });
+    var pageState = useState(init.page || pageOf(init.project));
+    var pageId = pageState[0], setPageId = pageState[1];
+    var pageRef = useRef(pageId);
+    pageRef.current = pageId;
+    var histories = useRef({});
     var docRef = useRef(doc);
     docRef.current = doc;
     var selRef = useRef(selection);
@@ -4574,9 +4735,9 @@
       place(changes);
     }, [place]);
     var saving = useRef({ busy: false, next: null, done: Promise.resolve() });
-    var persist = useCallback(function(pid, d) {
+    var persist = useCallback(function(pid, d, pg) {
       var q = saving.current;
-      q.next = { pid, doc: d };
+      q.next = { pid, page: pg, doc: d };
       if (q.busy) return q.done;
       q.busy = true;
       var loop = function() {
@@ -4586,7 +4747,7 @@
           q.busy = false;
           return Promise.resolve();
         }
-        return store.saveDoc(job.pid, job.doc).then(function() {
+        return store.saveDoc(job.pid, job.doc, job.page).then(function() {
           setSaved({ ok: true, at: /* @__PURE__ */ new Date() });
         }, function() {
           setSaved({ ok: false, at: null });
@@ -4595,12 +4756,24 @@
       q.done = loop();
       return q.done;
     }, []);
+    var metaWrites = useRef(Promise.resolve());
+    var noteMeta = function(p) {
+      var settle2 = function() {
+        return p.then(null, function() {
+          return null;
+        });
+      };
+      metaWrites.current = metaWrites.current.then(settle2, settle2);
+      return p;
+    };
     var flush = function() {
-      return saving.current.done;
+      return saving.current.done.then(function() {
+        return metaWrites.current;
+      });
     };
     useEffect(function() {
       if (doc === lastSaved.current) return;
-      persist(projectRef.current.id, doc);
+      persist(projectRef.current.id, doc, pageRef.current);
     }, [doc]);
     useEffect(function() {
       window.__builder = {
@@ -4638,7 +4811,7 @@
       var meta = projectRef.current;
       if (meta.stage === stageColor) return;
       meta.stage = stageColor;
-      store.setSettings(meta.id, { stage: stageColor });
+      noteMeta(store.setSettings(meta.id, { stage: stageColor }));
     }, [stageColor]);
     var themeLoaded = useRef(false);
     var applyTheme = function(meta) {
@@ -4647,7 +4820,7 @@
       if (meta.theme) P.loadTheme(meta.theme);
       else {
         meta.theme = P.theme();
-        store.setSettings(meta.id, { theme: meta.theme });
+        noteMeta(store.setSettings(meta.id, { theme: meta.theme }));
       }
       themeLoaded.current = true;
       return true;
@@ -4667,7 +4840,7 @@
         timer = setTimeout(function() {
           var meta = projectRef.current;
           meta.theme = P.theme();
-          store.setSettings(meta.id, { theme: meta.theme });
+          noteMeta(store.setSettings(meta.id, { theme: meta.theme }));
         }, 250);
       };
       window.addEventListener("dovetail:theme-change", changed);
@@ -6809,7 +6982,7 @@
     var projQueryState = useState("");
     var projQuery = projQueryState[0], setProjQuery = projQueryState[1];
     var renamingState = useState(null);
-    var renaming = renamingState[0], setRenaming = renamingState[1];
+    var renamingProj = renamingState[0], setRenamingProj = renamingState[1];
     var confirmState = useState(null);
     var confirmDel = confirmState[0], setConfirmDel = confirmState[1];
     var versionsState = useState([]);
@@ -6926,7 +7099,7 @@
     };
     var openProjects = function() {
       setProjQuery("");
-      setRenaming(null);
+      setRenamingProj(null);
       setConfirmDel(null);
       setProjList(null);
       refreshProjects();
@@ -6939,9 +7112,13 @@
       var dlg = projectsRef.current;
       if (dlg && dlg.open) dlg.close();
     };
-    var switchTo = function(meta, d, message) {
+    var switchTo = function(meta, d, message, pg) {
       var next = freeze(d, true);
       history.current = { past: [], future: [] };
+      histories.current = {};
+      pg = pg || pageOf(meta);
+      pageRef.current = pg;
+      setPageId(pg);
       setEdit(null);
       select([]);
       lastSaved.current = next;
@@ -6964,14 +7141,15 @@
         closeProjects();
         return;
       }
+      var pg = pageOf(meta);
       captureThumb().then(flush).then(function() {
-        return store.loadDoc(meta.id);
+        return store.loadDoc(meta.id, pg);
       }).then(function(d) {
         if (!d) {
           announce("That project couldn't be opened.");
           return;
         }
-        switchTo(meta, d, "Opened " + meta.name);
+        switchTo(meta, d, "Opened " + meta.name, pg);
       });
     };
     var newProject = function(starterId) {
@@ -6993,7 +7171,7 @@
       });
     };
     var renameProject = function(id, name) {
-      setRenaming(null);
+      setRenamingProj(null);
       if (!name) return;
       store.renameProject(id, name).then(function(meta) {
         if (!meta) return;
@@ -7020,8 +7198,8 @@
       store.deleteProject(id).then(refreshProjects).then(function(list) {
         announce("Deleted " + (gone ? gone.name : "the project"));
         if (id !== projectRef.current.id) return;
-        if (list.length) store.loadDoc(list[0].id).then(function(d2) {
-          switchTo(list[0], d2 || emptyDoc(), "Opened " + list[0].name);
+        if (list.length) store.loadDoc(list[0].id, pageOf(list[0])).then(function(d2) {
+          switchTo(list[0], d2 || emptyDoc(), "Opened " + list[0].name, pageOf(list[0]));
         });
         else {
           var d = starterDoc();
@@ -7032,13 +7210,115 @@
         }
       });
     };
+    var renamingPageState = useState(null);
+    var renamingPage = renamingPageState[0], setRenamingPage = renamingPageState[1];
+    var confirmPageState = useState(null);
+    var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
+    var takeMeta = function(meta) {
+      if (meta && meta.id === projectRef.current.id) {
+        projectRef.current = meta;
+        setProject(meta);
+      }
+      return meta;
+    };
+    var openPage = function(pg) {
+      if (pg === pageRef.current) return Promise.resolve();
+      var meta = projectRef.current;
+      if (editRef.current) editDone(true);
+      return flush().then(function() {
+        return store.loadDoc(meta.id, pg);
+      }).then(function(d) {
+        if (projectRef.current.id !== meta.id) return;
+        histories.current[pageRef.current] = history.current;
+        history.current = histories.current[pg] || { past: [], future: [] };
+        var next = freeze(d || emptyDoc(), true);
+        select([]);
+        if (d) lastSaved.current = next;
+        pageRef.current = pg;
+        setPageId(pg);
+        docRef.current = next;
+        setDoc(next);
+        noteMeta(store.setPage(meta.id, pg)).then(takeMeta);
+        var named = pagesOf(projectRef.current).filter(function(x) {
+          return x.id === pg;
+        })[0];
+        announce("Opened " + (named ? named.name : "the page"));
+        setTimeout(function() {
+          showFrameRef.current(next.active);
+        }, 0);
+      });
+    };
+    var addPage = function() {
+      var meta = projectRef.current;
+      var taken = pagesOf(meta).map(function(x) {
+        return x.name;
+      });
+      var n = taken.length + 1, name = "Page " + n;
+      while (taken.indexOf(name) >= 0) name = "Page " + ++n;
+      flush().then(function() {
+        return store.addPage(meta.id, name, emptyDoc(), pageRef.current);
+      }).then(function(got) {
+        if (!got) return null;
+        takeMeta(got.meta);
+        return openPage(got.page.id);
+      });
+    };
+    var renamePage = function(pg, name) {
+      setRenamingPage(null);
+      if (!name) return;
+      store.renamePage(projectRef.current.id, pg, name).then(takeMeta);
+    };
+    var movePage = function(pg, by) {
+      store.movePage(projectRef.current.id, pg, by).then(takeMeta);
+    };
+    var duplicatePage = function(pg) {
+      flush().then(function() {
+        return store.duplicatePage(projectRef.current.id, pg);
+      }).then(function(got) {
+        if (!got) return null;
+        takeMeta(got.meta);
+        announce("Made a copy, " + got.page.name);
+        return openPage(got.page.id);
+      });
+    };
+    var deletePage = function(pg) {
+      setConfirmPage(null);
+      var meta = projectRef.current;
+      var gone = pagesOf(meta).filter(function(x) {
+        return x.id === pg;
+      })[0];
+      if (pagesOf(meta).length < 2 || !gone) return;
+      var here = pg === pageRef.current;
+      var others = pagesOf(meta).filter(function(x) {
+        return x.id !== pg;
+      });
+      (here ? openPage(others[0].id) : flush()).then(function() {
+        return store.deletePage(meta.id, pg);
+      }).then(function(m) {
+        delete histories.current[pg];
+        takeMeta(m);
+        announce("Deleted " + gone.name);
+      });
+    };
     var PROJECT_FORMAT = "dovetail-project";
     var exportProject = function(id) {
       flush().then(function() {
-        return Promise.all([store.getProject(id), store.loadDoc(id)]);
+        return store.getProject(id);
+      }).then(function(meta) {
+        if (!meta) return null;
+        return Promise.all(pagesOf(meta).map(function(p) {
+          return store.loadDoc(id, p.id);
+        })).then(function(docs) {
+          return [meta, docs];
+        });
       }).then(function(got) {
-        if (!got[0] || !got[1]) return;
-        var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: got[1], stage: got[0].stage, theme: got[0].theme });
+        if (!got || !got[1][0]) return;
+        var pages = pagesOf(got[0]).map(function(p, i) {
+          return { name: p.name, doc: got[1][i] };
+        }).filter(function(p) {
+          return p.doc;
+        });
+        var file = JSON.stringify({ format: PROJECT_FORMAT, version: 2, name: got[0].name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: pages[0].doc, pages, stage: got[0].stage, theme: got[0].theme });
         var link = document.createElement("a");
         link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
         link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
@@ -7067,10 +7347,30 @@
           return;
         }
         var dropped = [];
-        var d = clean(data.doc, dropped);
+        var given = (Array.isArray(data.pages) && data.pages.length ? data.pages : [{ name: "Page 1", doc: data.doc }]).slice(0, 50).filter(function(p) {
+          return p && p.doc && typeof p.doc === "object";
+        });
+        if (!given.length) {
+          announce(file.name + " isn't a Dovetail project file.");
+          return;
+        }
+        var pages = given.map(function(p, i) {
+          return { name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "Page " + (i + 1), doc: clean(p.doc, dropped) };
+        });
+        var d = pages[0].doc;
         var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
         captureThumb().then(flush).then(function() {
           return store.createProject(name, d, { stage: data.stage, theme: data.theme });
+        }).then(function(meta) {
+          var steps = store.renamePage(meta.id, pageOf(meta), pages[0].name);
+          pages.slice(1).forEach(function(p) {
+            steps = steps.then(function() {
+              return store.addPage(meta.id, p.name, p.doc);
+            });
+          });
+          return steps.then(function() {
+            return store.getProject(meta.id);
+          });
         }).then(function(meta) {
           switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
           refreshProjects();
@@ -7080,7 +7380,7 @@
     };
     var openVersions = function() {
       flush().then(function() {
-        return store.listVersions(projectRef.current.id);
+        return store.listVersions(projectRef.current.id, pageRef.current);
       }).then(function(vs) {
         setVersions(vs);
         setShown("versions");
@@ -7089,8 +7389,8 @@
       });
     };
     var keepVersion = function() {
-      store.addVersion(projectRef.current.id, docRef.current, "Saved by you").then(function() {
-        return store.listVersions(projectRef.current.id);
+      store.addVersion(projectRef.current.id, docRef.current, "Saved by you", pageRef.current).then(function() {
+        return store.listVersions(projectRef.current.id, pageRef.current);
       }).then(function(vs) {
         setVersions(vs);
         announce("Kept this version");
@@ -7102,7 +7402,7 @@
           announce("That version couldn't be opened.");
           return;
         }
-        store.addVersion(projectRef.current.id, docRef.current, "Before restoring");
+        store.addVersion(projectRef.current.id, docRef.current, "Before restoring", pageRef.current);
         var dlg = versionsRef.current;
         if (dlg && dlg.open) dlg.close();
         commit(d, null, "Restored the version from " + new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) + ". Undo to go back.");
@@ -7120,7 +7420,7 @@
       });
       var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function() {
         setConfirmDel(null);
-        setRenaming(null);
+        setRenamingProj(null);
         setShown(null);
       } };
       if (shown !== "projects") return e("dialog", dialogProps);
@@ -7197,10 +7497,10 @@
             e(
               "div",
               { className: "bd-proj-info" },
-              renaming === p.id ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "Project name", startEditing: true, onChange: function(v) {
+              renamingProj === p.id ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "Project name", startEditing: true, onChange: function(v) {
                 renameProject(p.id, v);
               } }) : e("span", { className: "bd-proj-name" }, p.name),
-              e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + ago(p.updatedAt) + " · " + p.frames + (p.frames === 1 ? " frame" : " frames"))
+              e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + ago(p.updatedAt) + " · " + (pagesOf(p).length > 1 ? pagesOf(p).length + " pages · " : "") + p.frames + (p.frames === 1 ? " frame" : " frames"))
             ),
             confirmDel === p.id ? e(
               "div",
@@ -7216,7 +7516,7 @@
               "span",
               { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
               e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function() {
-                setRenaming(p.id);
+                setRenamingProj(p.id);
               } }, e(Icon, { name: "pencil" })),
               e(
                 "label",
@@ -7301,7 +7601,7 @@
         return f.root.children.length;
       });
       if (has2 && !window.confirm("Start over with a blank frame? Every frame goes; undo brings your work back.")) return;
-      store.addVersion(projectRef.current.id, docRef.current, "Before starting over");
+      store.addVersion(projectRef.current.id, docRef.current, "Before starting over", pageRef.current);
       var next = s[2]();
       commit(next, null, "Started from " + s[1] + ". Undo to go back.");
       setTimeout(function() {
@@ -7532,7 +7832,7 @@
       if (dlg) dlg.close();
       var dropped = read.report.length ? " " + read.report.length + (read.report.length === 1 ? " thing was" : " things were") + " left out." : "";
       if (mode === "replace") {
-        store.addVersion(projectRef.current.id, docRef.current, "Before a pasted layout");
+        store.addVersion(projectRef.current.id, docRef.current, "Before a pasted layout", pageRef.current);
         commit(read.doc, null, "Opened the pasted layout. Undo to go back." + dropped);
         setTimeout(function() {
           showFrameRef.current(read.doc.active);
@@ -8755,9 +9055,7 @@
               e(
                 "span",
                 { className: "bd-kind-pics is-asset" },
-                k[0] === "variables" ? e("span", { className: "bd-kind-swatches", "aria-hidden": true }, ["--dt-surface-brand", "--dt-surface-brand-secondary", "--dt-surface-action", "--dt-surface-inverse"].map(function(t) {
-                  return e("span", { key: t, style: { background: "var(" + t + ")" } });
-                })) : e(Icon, { name: k[2] })
+                e(Icon, { name: k[2] })
               ),
               e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
             ));
@@ -8895,6 +9193,75 @@
           });
         })(f.root);
       });
+    };
+    var pagesPanel = function() {
+      var list = pagesOf(project);
+      return e(
+        "div",
+        { className: "bd-pages-panel" },
+        e(
+          "div",
+          { className: "bd-panel-head" },
+          e("h2", { className: "bd-panel-title" }, "Pages"),
+          e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" }))
+        ),
+        e("ul", { className: "bd-pages", role: "list" }, list.map(function(p, i) {
+          var on = p.id === pageId;
+          return e(
+            "li",
+            { key: p.id, className: cx("bd-page", on && "is-current") },
+            renamingPage === p.id ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function(v) {
+              renamePage(p.id, v);
+            } }) : e(
+              "button",
+              {
+                type: "button",
+                className: "bd-page-open",
+                "aria-current": on ? "page" : void 0,
+                title: "Double-click to rename",
+                onClick: function() {
+                  openPage(p.id);
+                },
+                onDoubleClick: function() {
+                  setRenamingPage(p.id);
+                }
+              },
+              e(Icon, { name: "file" }),
+              e("span", { className: "bd-page-name" }, p.name)
+            ),
+            confirmPage === p.id ? e(
+              "span",
+              { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + p.name },
+              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function() {
+                deletePage(p.id);
+              } }, "Delete"),
+              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+                setConfirmPage(null);
+              } }, "Keep")
+            ) : e(Dropdown, {
+              menu: true,
+              label: "Actions for " + p.name,
+              placeholder: "Page",
+              icon: "more",
+              iconOnly: true,
+              compact: true,
+              narrow: true,
+              className: "bd-dd-icon bd-page-menu",
+              options: [
+                { value: "rename", label: "Rename", icon: "pencil" },
+                { value: "duplicate", label: "Duplicate", icon: "copy" }
+              ].concat(i > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(i < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
+              onChange: function(v) {
+                if (v === "rename") setRenamingPage(p.id);
+                else if (v === "duplicate") duplicatePage(p.id);
+                else if (v === "up") movePage(p.id, -1);
+                else if (v === "down") movePage(p.id, 1);
+                else if (v === "delete") setConfirmPage(p.id);
+              }
+            })
+          );
+        }))
+      );
     };
     var layersPanel = function() {
       var q = layerQuery.trim().toLowerCase();
@@ -10986,7 +11353,7 @@
         { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane },
         e(
           "aside",
-          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, layers, content and configure", hidden: hidePanels || void 0 },
+          { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || void 0 },
           e(
             "div",
             { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
@@ -11011,8 +11378,8 @@
             left === "configure" ? e("div", { className: "bd-config-dock", ref: dockRef }) : e(
               React.Fragment,
               null,
-              e("div", { className: "bd-left-main" }, left === "assets" ? assetsPanel() : left === "layers" ? layersPanel() : contentPanel()),
-              left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
+              e("div", { className: "bd-left-main" }, left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()),
+              left === "pages" ? null : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
             )
           )
         ),

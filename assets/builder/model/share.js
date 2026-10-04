@@ -2,6 +2,7 @@
 
 import { DATA, LIB_KINDS, PREFS_KEY, PRESET, mql, storage } from "../config.js";
 import { readLayout } from "./paste.js";
+import { pageOf } from "./store.js";
 import { STARTERS } from "./starters.js";
 import { clean, cleanNode, copy, frameById, uid } from "./tree.js";
 
@@ -88,10 +89,12 @@ function openStart(store) {
     var last = store.lastOpened();
     var pick = projects.filter(function (p) { return p.id === last; })[0] || projects[0] || null;
     var current = function () {
-      return pick ? store.loadDoc(pick.id).then(function (doc) { return doc ? { project: pick, doc: doc } : null; }) : Promise.resolve(null);
+      if (!pick) return Promise.resolve(null);
+      var page = pageOf(pick);
+      return store.loadDoc(pick.id, page).then(function (doc) { return doc ? { project: pick, page: page, doc: doc } : null; });
     };
     var fresh = function (name, doc, extra) {
-      return store.createProject(name, doc).then(function (meta) { return Object.assign({ project: meta, doc: doc }, extra); });
+      return store.createProject(name, doc).then(function (meta) { return Object.assign({ project: meta, page: pageOf(meta), doc: doc }, extra); });
     };
     if (hash && hash.kind === "link" && hash.data) {
       var dropped = [];

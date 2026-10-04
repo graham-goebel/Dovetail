@@ -773,7 +773,7 @@ try {
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
     const tabs = await page.$$eval(".bd-rail .bd-tab", (b) => b.map((x) => x.textContent));
-    expect(tabs.join() === "Assets,Layers,Content,Configure", `the rail holds Assets, Layers, Content and Configure, got ${tabs}`);
+    expect(tabs.join() === "Assets,Pages,Layers,Content,Configure", `the rail holds Assets, Pages, Layers, Content and Configure, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
     await rail("Configure").click();
@@ -1818,11 +1818,17 @@ try {
     const radius = () => page.evaluate(() => window.DovetailConfigurePanel.config().radius);
     const openHome = async () => { await page.locator('.bd-toolbar [aria-label="Projects"]').click(); await page.locator(".bd-projects[open] .bd-proj").first().waitFor(); };
     /* A click on the canvas itself, clear of frames and panels, selects nothing and shows the canvas settings. */
+    /* The camera can still be settling as a project opens, so a spot is
+       found and clicked again until the canvas settings show. */
     const clickStage = async () => {
-      const pt = await page.evaluate(() => { const st = document.querySelector(".bd-stage").getBoundingClientRect(); for (let y = st.bottom - 20; y > st.top; y -= 30) for (let x = st.left + st.width / 2; x < st.right - 10; x += 30) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; } return null; });
-      expect(pt, "there's empty canvas to click");
-      await page.mouse.click(pt.x, pt.y);
-      await page.locator(".bd-stage-swatches").waitFor();
+      await ready();
+      for (let tries = 0; tries < 4; tries++) {
+        const pt = await page.evaluate(() => { const st = document.querySelector(".bd-stage").getBoundingClientRect(); for (let y = st.bottom - 20; y > st.top; y -= 30) for (let x = st.left + st.width / 2; x < st.right - 10; x += 30) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; } return null; });
+        expect(pt, "there's empty canvas to click");
+        await page.mouse.click(pt.x, pt.y);
+        if (await page.locator(".bd-stage-swatches").waitFor({ timeout: 1500 }).then(() => true, () => false)) return;
+      }
+      throw new Error("a click on empty canvas should show the canvas settings");
     };
     await page.waitForFunction(() => window.DovetailConfigurePanel && window.DovetailConfigurePanel.theme);
 
@@ -1885,6 +1891,87 @@ try {
     expect(got.stage === "rgb(255, 0, 0)" && got.t.config.radius === "soft" && got.t.brand.name === "Friend", `the file's canvas colour and theme come with it, got ${JSON.stringify({ stage: got.stage, radius: got.t.config.radius, name: got.t.brand.name })}`);
     expect(got.t.config.primaryHex === "#eb6834" && got.t.brand.mark === "" && got.t.context === "", `but only settings the panel knows, as the types they take, got ${JSON.stringify({ hex: got.t.config.primaryHex, mark: got.t.brand.mark, context: got.t.context })}`);
     ok("a project file brings its red canvas and theme, with anything the panel doesn't take left out");
+    await page.close();
+  });
+
+  await step("Pages: a project's pages, each its own canvas and history, added, switched, renamed, copied, moved and removed", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
+    const names = () => page.locator(".bd-pages .bd-page-name").allTextContents();
+    const current = () => page.locator(".bd-page.is-current .bd-page-name").textContent();
+    const types = () => page.evaluate(() => window.__builder.doc().frames.map((f) => f.root.children.map((c) => c.type).join("+")).join(" | "));
+    const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
+    const undo = page.locator('.bd-toolbar [aria-label="Undo"]');
+    const menuFor = async (name, item) => { await page.locator(".bd-page", { hasText: name }).first().locator(".bd-page-menu").click(); await option(page, item).click(); };
+
+    const varIcon = await page.locator('.bd-assets [data-asset-kind="variables"] .bd-kind-pics svg').count();
+    expect(varIcon === 1, "the Variables card in Assets shows an icon, like the others");
+    await rail("Pages").click();
+    expect((await names()).join() === "Page 1" && await current() === "Page 1", `a project starts with one page, Page 1, got ${await names()}`);
+    const landing = await types();
+    await page.locator('.bd-pages-panel [aria-label="Add a page"]').click();
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name")?.textContent === "Page 2");
+    await ready();
+    expect(!/HeroBlock/.test(await types()), `a new page is a canvas of its own, got ${await types()}`);
+    await rail("Assets").click();
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    ok("the Variables card has an icon; Pages lists Page 1, and Add a page makes Page 2, a canvas of its own, where a Heading goes");
+
+    await rail("Pages").click();
+    await page.locator(".bd-page", { hasText: "Page 1" }).locator(".bd-page-open").click();
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name")?.textContent === "Page 1");
+    await ready();
+    expect(await types() === landing && await undo.isDisabled(), `Page 1 comes back as it was, with nothing to undo from Page 2, got ${await types()}`);
+    await page.locator(".bd-page", { hasText: "Page 2" }).locator(".bd-page-open").click();
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name")?.textContent === "Page 2");
+    await ready();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    expect(await undo.isEnabled(), "and Page 2's own undo is waiting for it");
+    ok("switching to Page 1 shows its canvas with nothing to undo; back on Page 2 its Heading and its undo are both there");
+
+    await page.locator(".bd-page", { hasText: "Page 2" }).locator(".bd-page-open").dblclick();
+    await page.locator("input.bd-page-name").fill("About");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-pages .bd-page-name")].some((x) => x.textContent === "About"));
+    await menuFor("About", "Duplicate");
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name")?.textContent === "About copy");
+    await ready();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    expect((await names()).join() === "Page 1,About,About copy", `the copy goes after the page it copies, got ${await names()}`);
+    await menuFor("About copy", "Move up");
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-pages .bd-page-name")].map((x) => x.textContent).join() === "Page 1,About copy,About");
+    await menuFor("About copy", "Delete");
+    await page.locator(".bd-page-confirm .bd-btn-danger").click();
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-pages .bd-page-name")].map((x) => x.textContent).join() === "Page 1,About");
+    await ready();
+    ok("double-click renames Page 2 to About; Duplicate makes About copy, with its Heading, which moves up and is deleted after asking");
+
+    await page.locator(".bd-page", { hasText: "About" }).locator(".bd-page-open").click();
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name")?.textContent === "About");
+    await page.evaluate(() => window.__builder.flush());
+    await page.reload();
+    await page.waitForFunction(() => !!window.__builder);
+    await rail("Pages").click();
+    await ready();
+    expect(await current() === "About" && /Heading/.test(await types()), `a reload opens the page last open, got ${await current()} / ${await types()}`);
+    ok("a reload opens the project on About, the page last open");
+
+    const [dl] = await Promise.all([page.waitForEvent("download"), (async () => { await page.locator(".bd-project-menu").click(); await option(page, "Download file").click(); })()]);
+    const file = path.join(os.tmpdir(), "pages-" + Date.now() + ".dovetail");
+    await dl.saveAs(file);
+    const data = JSON.parse(fs.readFileSync(file, "utf8"));
+    expect(data.version === 2 && data.pages.map((p) => p.name).join() === "Page 1,About" && /HeroBlock/.test(JSON.stringify(data.doc)), `the file carries every page, got ${JSON.stringify(data.pages && data.pages.map((p) => p.name))}`);
+    await page.locator('.bd-toolbar [aria-label="Projects"]').click();
+    await page.locator(".bd-projects[open] .bd-proj").first().waitFor();
+    expect(/2 pages/.test(await page.locator(".bd-proj.is-current .bd-proj-meta").textContent()), "the project's card counts its pages");
+    await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
+    await page.waitForFunction(() => window.__builder.project().pages && window.__builder.project().pages.length === 2 && document.querySelectorAll(".bd-projects[open]").length === 0);
+    fs.unlinkSync(file);
+    await ready();
+    expect((await names()).join() === "Page 1,About" && await current() === "Page 1", `an opened file brings its pages, got ${await names()}`);
+    ok("Download file carries both pages, the card says 2 pages, and opening the file makes a project with Page 1 and About");
     await page.close();
   });
 
