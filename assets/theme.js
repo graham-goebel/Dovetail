@@ -1057,6 +1057,7 @@
     else store(BRAND_KEY, JSON.stringify(brand));
     applyBrand();
     render();
+    window.dispatchEvent(new Event("dovetail:theme-change"));
   }
 
   /* Photography and illustration are kept separate from the brand mark: the
@@ -1071,6 +1072,7 @@
     if (!media.photo && !media.illustration) store(MEDIA_KEY, null);
     else store(MEDIA_KEY, JSON.stringify(media));
     render();
+    window.dispatchEvent(new Event("dovetail:theme-change"));
   }
 
   function commit(patch, options) {
@@ -2702,6 +2704,7 @@
     store(BRAND_KEY, brand.name || brand.mark || brand.wordmark ? JSON.stringify(brand) : null);
     store(MEDIA_KEY, media.photo || media.illustration ? JSON.stringify(media) : null);
     store(CONTEXT_KEY, context || null);
+    applyBrand();
     commit({});
   }
 
@@ -2933,6 +2936,24 @@
        project. */
     theme: function () { var t = snapshot(); t.config = cleanTheme(t).config; return t; },
     loadTheme: loadTheme,
+    /* The name, wordmark and mark, and a way to change them from another
+       panel (the builder's Content). An image must be a base64 data URL of
+       a picture within the upload limit; anything else is refused. */
+    brand: function () { return assign({}, brand); },
+    brandLimit: MARK_LIMIT,
+    setBrand: function (patch) {
+      if (!patch || typeof patch !== "object") return false;
+      var next = {};
+      if (typeof patch.name === "string") next.name = patch.name.slice(0, 80);
+      for (var i = 0, ks = ["mark", "wordmark"]; i < ks.length; i++) {
+        var v = patch[ks[i]];
+        if (v === undefined) continue;
+        if (v !== "" && !(typeof v === "string" && IMAGE_DATA.test(v) && v.length <= Math.ceil(MARK_LIMIT / 3) * 4 + 64)) return false;
+        next[ks[i]] = v;
+      }
+      setBrand(next);
+      return true;
+    },
     /* Another panel on the page (the builder's Content) can pick the icon library. */
     setIconLib: function (key) {
       if (key !== "custom" && !DATA.icons[key]) return;

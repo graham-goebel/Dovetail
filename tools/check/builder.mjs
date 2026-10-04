@@ -788,7 +788,7 @@ try {
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
     await rail("Content").click();
-    expect((await page.locator(".bd-kind .bd-kind-name").allTextContents()).join(",") === "Images,Illustrations,Icons,Video", "Content opens on a card for each kind");
+    expect((await page.locator(".bd-kind .bd-kind-name").allTextContents()).join(",") === "Brand,Images,Illustrations,Icons,Video", "Content opens on the brand, then a card for each kind");
     await page.locator('.bd-kind[data-kind="images"]').click();
     await page.locator(".bd-gallery-head", { hasText: "Images" }).waitFor();
     const png = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 160; c.height = 120; const x = c.getContext("2d"); x.fillStyle = "#f3f2ee"; x.fillRect(0, 0, 160, 120); x.fillStyle = "#a01010"; x.beginPath(); x.arc(80, 60, 36, 0, 7); x.fill(); return c.toDataURL("image/png"); });
@@ -2185,6 +2185,61 @@ try {
     await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
     await page.waitForFunction(() => document.querySelectorAll(".bd-right .bd-sys-prim").length > 3);
     ok(`with nothing selected the inspector lists what this project uses: ${before.join(", ") || "no primitives"} on the landing page, then the Heading too once one's placed, and ${textStyles} text style(s); Everything shows the whole system again`);
+    await page.close();
+  });
+
+  await step("Brand in Content: the name, logo and brand mark, set for the project and placed on a frame", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const named = (d, name) => { let hit = null; (function w(n) { (n.children || []).forEach((c) => { if (c.name === name) hit = c; w(c); }); })(d.frames[0].root); return hit; };
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await page.waitForFunction(() => window.DovetailConfigurePanel && window.DovetailConfigurePanel.setBrand);
+    await page.locator(".bd-rail .bd-tab", { hasText: "Content" }).click();
+    const card = page.locator('.bd-kind[data-kind="brand"]');
+    expect(/Name, logo and mark/.test(await card.textContent()), `the Brand card says what it holds, got ${await card.textContent()}`);
+    await card.click();
+    await page.locator(".bd-gallery-head", { hasText: "Brand" }).waitFor();
+    expect(await page.locator('.bd-brand-tile[data-brand="wordmark"]').textContent() === "Your brand" && await page.locator(".bd-brand-tile.is-empty").count() === 1, "with no brand yet, the logo is a placeholder name and there's no mark to place");
+
+    await page.locator("#bd-brand-name").fill("Acme");
+    await page.waitForFunction(() => { const t = window.__builder.project().theme; return t && t.brand.name === "Acme"; });
+    expect(await page.locator('.bd-brand-tile[data-brand="wordmark"]').textContent() === "Acme", "the logo tile sets the name in type");
+    await page.locator('.bd-brand-tile[data-brand="wordmark"]').click();
+    await frame().waitForFunction(() => [...document.querySelectorAll('[data-bf-type="Heading"]')].some((h) => h.textContent.trim() === "Acme"));
+    const word = named(await saved(), "Logo");
+    expect(word && word.type === "Heading" && word.props.children === "Acme", `pressing the logo adds the name as a Heading called Logo, got ${JSON.stringify(word)}`);
+    ok("the name typed in Content is saved with the project's theme, and with no logo file pressing the logo adds it as a Heading named Logo");
+
+    const png = (w, h, fill) => page.evaluate(([w, h, fill]) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.fillStyle = fill; x.fillRect(0, 0, w, h); return c.toDataURL("image/png"); }, [w, h, fill]);
+    const file = async (name, w, h, fill) => ({ name, mimeType: "image/png", buffer: Buffer.from((await png(w, h, fill)).split(",")[1], "base64") });
+    await page.setInputFiles("#bd-brand-mark", { name: "huge.png", mimeType: "image/png", buffer: Buffer.alloc(600 * 1024, 1) });
+    await page.locator(".bd-brand-err", { hasText: "The limit is 512KB" }).waitFor();
+    expect(!(await page.evaluate(() => window.DovetailConfigurePanel.brand().mark)), "a mark over the limit is turned away");
+    await page.setInputFiles("#bd-brand-mark", await file("mark.png", 40, 40, "#a01010"));
+    await page.waitForFunction(() => { const t = window.__builder.project().theme; return t && /^data:image\/png/.test(t.brand.mark); });
+    expect(await page.locator(".bd-brand-err").count() === 0, "a mark within the limit clears the message");
+    await page.locator('.bd-brand-tile[data-brand="mark"] img').waitFor();
+    const tile = await page.locator('.bd-brand-tile[data-brand="mark"]').boundingBox();
+    const fb = await page.locator("iframe.bd-frame").boundingBox();
+    await drag(page, { x: tile.x + tile.width / 2, y: tile.y + tile.height / 2 }, { x: fb.x + fb.width * 0.5, y: fb.y + fb.height * 0.5 });
+    await frame().waitForSelector('[data-bf-type="Image"] img[src^="data:image/png"]');
+    const mark = named(await saved(), "Brand mark");
+    expect(mark && mark.type === "Image" && mark.props.fit === "contain" && mark.props.ratio === "square" && mark.props.radius === "none" && mark.style.w === "x2" && /^data:image\/png/.test(mark.props.src), `the mark drags on as a whole, square, uncropped picture called Brand mark, got ${JSON.stringify(mark && { props: { ...mark.props, src: mark.props.src.slice(0, 22) }, style: mark.style })}`);
+    ok("a mark over 512KB is turned away with a message; one within it is saved with the project and drags onto the frame as an uncropped square Image named Brand mark");
+
+    await page.setInputFiles("#bd-brand-wordmark", await file("logo.png", 210, 90, "#101010"));
+    await page.locator('.bd-brand-tile[data-brand="wordmark"] img').waitFor();
+    await page.locator('.bd-brand-tile[data-brand="wordmark"]').click();
+    await page.waitForFunction(() => { let n = 0; (function w(x) { (x.children || []).forEach((c) => { if (c.name === "Logo") n++; w(c); }); })(window.__builder.doc().frames[0].root); return n === 2; });
+    const logos = []; (function w(n) { (n.children || []).forEach((c) => { if (c.name === "Logo") logos.push(c); w(c); }); })((await saved()).frames[0].root);
+    const pic = logos.find((n) => n.type === "Image");
+    expect(pic && pic.props.fit === "contain" && pic.props.ratio === "21:9" && pic.style.w === "x4" && pic.props.alt === "Acme", `with a logo file, the logo is that picture, got ${JSON.stringify(pic && pic.props.alt)}`);
+    await page.locator('.bd-brand-sec:has(#bd-brand-mark) .bd-btn', { hasText: "Remove" }).click();
+    await page.waitForFunction(() => window.__builder.project().theme.brand.mark === "");
+    await page.locator(".bd-gallery-head [aria-label='Back to Content']").click();
+    expect(/Logo/.test(await card.textContent()) && await card.locator("img").count() === 1, `back in Content the Brand card shows the logo, got ${await card.textContent()}`);
+    ok("a logo file replaces the name: pressed, it adds an uncropped Image named Logo with the name as its alt; removing the mark saves that too, and the Brand card shows what's set");
     await page.close();
   });
 
