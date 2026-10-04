@@ -1905,6 +1905,7 @@
     if (f.bare === true) {
       base.bare = true;
       base.hug = true;
+      if (f.sized === true) base.sized = true;
     }
     base.spacing = SPACINGS.some(function(s) {
       return s[0] === f.spacing;
@@ -4350,7 +4351,7 @@
     var maxX = 0, maxY = 0, minX = 0, minY = 0;
     doc.frames.forEach(function(f) {
       var r = resizing && resizing.fid === f.id ? resizing : null;
-      var w = r ? r.w : f.bare ? Math.max(24, widths && widths[f.id] || 120) : f.width;
+      var w = r ? r.w : f.bare ? f.sized ? f.width : Math.max(24, widths && widths[f.id] || 120) : f.width;
       var h = r && r.h != null ? r.h : f.bare ? Math.max(16, heights[f.id] || 40) : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
       var m = moving && moving.fid === f.id ? moving : null;
       var b;
@@ -5203,7 +5204,7 @@
       var hs = heightsRef.current, next = null;
       var ws = widthsRef.current, nextW = null;
       docRef.current.frames.forEach(function(f) {
-        if (!f.bare) return;
+        if (!f.bare || f.sized) return;
         var a = api(f.id);
         if (!a || !a.width) return;
         var w = Math.max(24, Math.min(MAX_WIDTH, a.width() || 0));
@@ -5460,7 +5461,10 @@
       }
       if (commitIt && dr.payload.kind === "tool" && (dr.payload.tool === "frame" || dr.payload.tool === "page")) {
         var sr = stageRef.current && stageRef.current.getBoundingClientRect();
-        if (sr && dr.lastX >= sr.left && dr.lastX <= sr.right && dr.lastY >= sr.top && dr.lastY <= sr.bottom) frameOps.add(null, dr.payload.tool === "page");
+        if (sr && dr.lastX >= sr.left && dr.lastX <= sr.right && dr.lastY >= sr.top && dr.lastY <= sr.bottom) {
+          var cz = camRef.current;
+          frameOps.add(null, dr.payload.tool === "page", { x: (dr.lastX - sr.left - cz.x) / cz.z, y: (dr.lastY - sr.top - cz.y) / cz.z });
+        }
         return;
       }
       if (!commitIt || !hit) return;
@@ -5702,6 +5706,12 @@
       else if (payload.kind === "tool") node = toolNode(payload.tool, null);
       else if (payload.kind === "local") node = instanceOf(payload.comp);
       else if (payload.kind === "move") moving = payload.id;
+      var had = null;
+      if (moving) {
+        var src = api(docRef.current.active);
+        var r0 = src && src.rect ? src.rect(moving) : null;
+        if (r0 && r0.width) had = Math.round(r0.width);
+      }
       var made = null;
       change(function(d) {
         var n = node;
@@ -5719,7 +5729,14 @@
         var f = makeFrame(band ? "Frame " + (d.frames.length + 1) : nameOf(n), "desktop", true);
         f.x = Math.round(hit.x);
         f.y = Math.round(hit.y);
-        if (!band) f.bare = true;
+        if (band && had) f.width = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, had));
+        if (!band) {
+          f.bare = true;
+          if (had) {
+            f.width = Math.max(MIN_FREE, Math.min(MAX_WIDTH, had));
+            f.sized = true;
+          }
+        }
         f.root.children = [n];
         d.frames.push(f);
         d.active = f.id;
@@ -5854,9 +5871,9 @@
             dragEnd: function(commitIt) {
               dragEndRef.current(commitIt);
             },
-            frameDrag: on(function(fid, phase, x, y) {
+            frameDrag: on(function(fid, phase, x, y, dup) {
               var p = toPage(fid, x, y);
-              frameDragRef.current(fid, phase, p.x, p.y);
+              return frameDragRef.current(fid, phase, p.x, p.y, dup);
             }),
             gesture: on(function(fid, phase, id, x, y, kind) {
               var p = toPage(fid, x, y);
@@ -5964,7 +5981,7 @@
         if (last && last.frame === f && last.preview === preview) return;
         rendered.current[f.id] = { frame: f, preview };
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -6624,18 +6641,39 @@
       });
     };
     var frameOps = {
-      /* page: a frame that hugs its content, started with a Section to fill. */
-      add: function(size, page) {
+      /* page: a frame that hugs its content, started with a Section to fill.
+         A new frame is the screen size of the frame on screen when that is a
+         screen size, and a desktop screen otherwise (never a loose object's
+         size, or an odd one a frame was dragged to). at: where its top left
+         corner goes on the canvas; otherwise it goes beside the others. */
+      add: function(size, page, at) {
         var cur = active(docRef.current);
-        var f = makeFrame((page ? "Page " : "Frame ") + (docRef.current.frames.length + 1), "desktop", !!page);
-        f.width = size ? side(size.width, MAX_WIDTH, cur.width) : page ? PRESET.desktop.width : cur.width;
-        f.height = size ? side(size.height, MAX_HEIGHT, cur.height) : page ? PRESET.desktop.height : cur.height;
+        var pid = !page && !cur.bare ? presetOf(cur) : "";
+        var p = pid && PRESET[pid] || PRESET.desktop;
+        var f = makeFrame((page ? "Page " : "Frame ") + (docRef.current.frames.length + 1), pid || "desktop", !!page);
+        f.width = size ? side(size.width, MAX_WIDTH, p.width) : p.width;
+        f.height = size ? side(size.height, MAX_HEIGHT, p.height) : p.height;
         if (page) f.root.children = [make("Section")];
+        var L = layoutRef.current, boxesNow = L.boxes;
         change(function(d) {
+          var placed = d.frames.some(function(fr) {
+            return typeof fr.x === "number";
+          });
+          if (at || placed) {
+            d.frames.forEach(function(fr) {
+              if (typeof fr.x !== "number" && boxesNow[fr.id]) {
+                fr.x = Math.round(boxesNow[fr.id].x);
+                fr.y = Math.round(boxesNow[fr.id].y);
+              }
+            });
+            var cb = boxesNow[cur.id];
+            f.x = Math.round(at ? at.x : L.left + L.width + FRAME_GAP);
+            f.y = Math.round(at ? at.y : cb ? cb.y : L.top);
+          }
           d.frames.push(f);
           d.active = f.id;
           return [];
-        }, "Added " + f.name);
+        }, "Added " + f.name + ", " + f.width + " by " + f.height);
         setTimeout(function() {
           showFrameRef.current(f.id, true);
         }, 0);
@@ -10629,9 +10667,9 @@
       }
       var b = layoutRef.current.boxes[f.id];
       var z = camRef.current.z;
-      var start = { x: ev.clientX, y: ev.clientY, w: f.width, h: b.h };
+      var start = { x: ev.clientX, y: ev.clientY, w: f.bare ? Math.round(b.w) : f.width, h: b.h };
       var cur = null;
-      var lo = minSide(f), snaps = f.mode === "structured";
+      var lo = f.bare ? MIN_FREE : minSide(f), snaps = f.mode === "structured";
       var fit = function(v, list) {
         return snaps ? snapSide(v, list, f.hug, 16 / z) : Math.round(v);
       };
@@ -10666,6 +10704,11 @@
             var fr = frameById(d, f.id);
             if (!fr) return null;
             fr.width = done.w;
+            if (fr.bare) {
+              fr.sized = true;
+              d.active = f.id;
+              return void 0;
+            }
             if (done.h != null) {
               fr.height = done.h;
               fr.hug = false;
@@ -10699,14 +10742,14 @@
         end: function(ok) {
           setMovingFrame(null);
           setDupFrame(null);
-          if (!ok || !cur) return;
+          if (!ok || !cur) return moved;
           justDragged.current = true;
           setTimeout(function() {
             justDragged.current = false;
           }, 60);
           if (dup) {
             frameOps.duplicate(f.id, { x: cur.x, y: cur.y });
-            return;
+            return true;
           }
           var done = cur;
           var boxesNow = layoutRef.current.boxes;
@@ -10724,11 +10767,12 @@
             d.active = done.fid;
             return void 0;
           }, "Moved " + f.name);
+          return true;
         }
       };
     };
     var startFrameMove = function(ev, f) {
-      if (ev.button !== 0 || ev.pointerType === "touch") return;
+      if (ev.button !== 0) return;
       var dr = beginFrameDrag(f, ev.clientX, ev.clientY, ev.shiftKey && (ev.metaKey || ev.ctrlKey));
       if (!dr) return;
       ev.preventDefault();
@@ -10752,20 +10796,20 @@
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", onCancel);
     };
-    var frameDragFrom = function(fid, phase, x, y) {
+    var frameDragFrom = function(fid, phase, x, y, dup) {
       if (phase === "down") {
         var f = frameById(docRef.current, fid);
-        frameDrag.current = f ? beginFrameDrag(f, x, y, true) : null;
-        return;
+        frameDrag.current = f ? beginFrameDrag(f, x, y, dup !== false) : null;
+        return false;
       }
       var dr = frameDrag.current;
-      if (!dr) return;
+      if (!dr) return false;
       if (phase === "move") {
         dr.move(x, y);
-        return;
+        return false;
       }
       frameDrag.current = null;
-      dr.end(phase === "up");
+      return dr.end(phase === "up");
     };
     var frameDragRef = useRef(frameDragFrom);
     frameDragRef.current = frameDragFrom;
@@ -10780,9 +10824,12 @@
       { className: "bd-resizers", "aria-hidden": true },
       doc.frames.map(function(f) {
         var b = boxes[f.id];
-        if (!b || f.bare) return null;
+        if (!b) return null;
         var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
         var r = resizing && resizing.fid === f.id ? resizing : null;
+        if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function(ev) {
+          startResize(ev, f, "r");
+        } });
         return e(
           React.Fragment,
           { key: f.id },

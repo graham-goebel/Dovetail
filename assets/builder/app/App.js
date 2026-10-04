@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -759,7 +759,7 @@ function App(props) {
     var hs = heightsRef.current, next = null;
     var ws = widthsRef.current, nextW = null;
     docRef.current.frames.forEach(function (f) {
-      if (!f.bare) return;
+      if (!f.bare || f.sized) return;
       var a = api(f.id);
       if (!a || !a.width) return;
       var w = Math.max(24, Math.min(MAX_WIDTH, a.width() || 0));
@@ -1000,7 +1000,10 @@ function App(props) {
     /* A frame or page dragged from the tool bar lands anywhere on the canvas. */
     if (commitIt && dr.payload.kind === "tool" && (dr.payload.tool === "frame" || dr.payload.tool === "page")) {
       var sr = stageRef.current && stageRef.current.getBoundingClientRect();
-      if (sr && dr.lastX >= sr.left && dr.lastX <= sr.right && dr.lastY >= sr.top && dr.lastY <= sr.bottom) frameOps.add(null, dr.payload.tool === "page");
+      if (sr && dr.lastX >= sr.left && dr.lastX <= sr.right && dr.lastY >= sr.top && dr.lastY <= sr.bottom) {
+        var cz = camRef.current;
+        frameOps.add(null, dr.payload.tool === "page", { x: (dr.lastX - sr.left - cz.x) / cz.z, y: (dr.lastY - sr.top - cz.y) / cz.z });
+      }
       return;
     }
     if (!commitIt || !hit) return;
@@ -1207,6 +1210,13 @@ function App(props) {
     else if (payload.kind === "tool") node = toolNode(payload.tool, null);
     else if (payload.kind === "local") node = instanceOf(payload.comp);
     else if (payload.kind === "move") moving = payload.id;
+    /* Something dragged off a frame keeps the width it had there. */
+    var had = null;
+    if (moving) {
+      var src = api(docRef.current.active);
+      var r0 = src && src.rect ? src.rect(moving) : null;
+      if (r0 && r0.width) had = Math.round(r0.width);
+    }
     var made = null;
     change(function (d) {
       var n = node;
@@ -1222,7 +1232,11 @@ function App(props) {
       var f = makeFrame(band ? "Frame " + (d.frames.length + 1) : nameOf(n), "desktop", true);
       f.x = Math.round(hit.x);
       f.y = Math.round(hit.y);
-      if (!band) f.bare = true;
+      if (band && had) f.width = Math.max(MIN_SIDE, Math.min(MAX_WIDTH, had));
+      if (!band) {
+        f.bare = true;
+        if (had) { f.width = Math.max(MIN_FREE, Math.min(MAX_WIDTH, had)); f.sized = true; }
+      }
       f.root.children = [n];
       d.frames.push(f);
       d.active = f.id;
@@ -1315,7 +1329,7 @@ function App(props) {
           }),
           dragMove: on(function (fid, x, y) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y); }),
           dragEnd: function (commitIt) { dragEndRef.current(commitIt); },
-          frameDrag: on(function (fid, phase, x, y) { var p = toPage(fid, x, y); frameDragRef.current(fid, phase, p.x, p.y); }),
+          frameDrag: on(function (fid, phase, x, y, dup) { var p = toPage(fid, x, y); return frameDragRef.current(fid, phase, p.x, p.y, dup); }),
           gesture: on(function (fid, phase, id, x, y, kind) { var p = toPage(fid, x, y); return gestureRef.current(phase, id, p.x, p.y, kind, fid); }),
           wheel: on(function (fid, x, y, dx, dy, zoom, mode) { var p = toPage(fid, x, y); wheelRef.current(p.x, p.y, dx, dy, zoom, mode); }),
           spaceHeld: function () { return spaceRef.current; },
@@ -1400,7 +1414,7 @@ function App(props) {
       if (last && last.frame === f && last.preview === preview) return;
       rendered.current[f.id] = { frame: f, preview: preview };
       grows.current[f.id] = 0;
-      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare });
+      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
     });
     if (any && !placeable) {
       var ok = {}, sc = {}, det = {};
@@ -1820,14 +1834,33 @@ function App(props) {
   var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
   var frameOps = {
-    /* page: a frame that hugs its content, started with a Section to fill. */
-    add: function (size, page) {
+    /* page: a frame that hugs its content, started with a Section to fill.
+       A new frame is the screen size of the frame on screen when that is a
+       screen size, and a desktop screen otherwise (never a loose object's
+       size, or an odd one a frame was dragged to). at: where its top left
+       corner goes on the canvas; otherwise it goes beside the others. */
+    add: function (size, page, at) {
       var cur = active(docRef.current);
-      var f = makeFrame((page ? "Page " : "Frame ") + (docRef.current.frames.length + 1), "desktop", !!page);
-      f.width = size ? side(size.width, MAX_WIDTH, cur.width) : page ? PRESET.desktop.width : cur.width;
-      f.height = size ? side(size.height, MAX_HEIGHT, cur.height) : page ? PRESET.desktop.height : cur.height;
+      var pid = !page && !cur.bare ? presetOf(cur) : "";
+      var p = (pid && PRESET[pid]) || PRESET.desktop;
+      var f = makeFrame((page ? "Page " : "Frame ") + (docRef.current.frames.length + 1), pid || "desktop", !!page);
+      f.width = size ? side(size.width, MAX_WIDTH, p.width) : p.width;
+      f.height = size ? side(size.height, MAX_HEIGHT, p.height) : p.height;
       if (page) f.root.children = [make("Section")];
-      change(function (d) { d.frames.push(f); d.active = f.id; return []; }, "Added " + f.name);
+      var L = layoutRef.current, boxesNow = L.boxes;
+      change(function (d) {
+        var placed = d.frames.some(function (fr) { return typeof fr.x === "number"; });
+        if (at || placed) {
+          /* Frames still in their row keep the spot they're in, so the new one doesn't shuffle them. */
+          d.frames.forEach(function (fr) { if (typeof fr.x !== "number" && boxesNow[fr.id]) { fr.x = Math.round(boxesNow[fr.id].x); fr.y = Math.round(boxesNow[fr.id].y); } });
+          var cb = boxesNow[cur.id];
+          f.x = Math.round(at ? at.x : L.left + L.width + FRAME_GAP);
+          f.y = Math.round(at ? at.y : cb ? cb.y : L.top);
+        }
+        d.frames.push(f);
+        d.active = f.id;
+        return [];
+      }, "Added " + f.name + ", " + f.width + " by " + f.height);
       setTimeout(function () { showFrameRef.current(f.id, true); }, 0);
     },
     /* at: where the copy goes on the canvas; otherwise it goes beside. */
@@ -4079,10 +4112,10 @@ function App(props) {
     try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
     var b = layoutRef.current.boxes[f.id];
     var z = camRef.current.z;
-    var start = { x: ev.clientX, y: ev.clientY, w: f.width, h: b.h };
+    var start = { x: ev.clientX, y: ev.clientY, w: f.bare ? Math.round(b.w) : f.width, h: b.h };
     var cur = null;
     /* A structured page lands on a viewport size; a freeform canvas takes any. */
-    var lo = minSide(f), snaps = f.mode === "structured";
+    var lo = f.bare ? MIN_FREE : minSide(f), snaps = f.mode === "structured";
     var fit = function (v, list) { return snaps ? snapSide(v, list, f.hug, 16 / z) : Math.round(v); };
     var move = function (mv) {
       var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
@@ -4111,6 +4144,7 @@ function App(props) {
           var fr = frameById(d, f.id);
           if (!fr) return null;
           fr.width = done.w;
+          if (fr.bare) { fr.sized = true; d.active = f.id; return undefined; }
           if (done.h != null) { fr.height = done.h; fr.hug = false; }
           d.active = f.id;
           return undefined;
@@ -4144,10 +4178,10 @@ function App(props) {
       end: function (ok) {
         setMovingFrame(null);
         setDupFrame(null);
-        if (!ok || !cur) return;
+        if (!ok || !cur) return moved;
         justDragged.current = true;
         setTimeout(function () { justDragged.current = false; }, 60);
-        if (dup) { frameOps.duplicate(f.id, { x: cur.x, y: cur.y }); return; }
+        if (dup) { frameOps.duplicate(f.id, { x: cur.x, y: cur.y }); return true; }
         var done = cur;
         var boxesNow = layoutRef.current.boxes;
         change(function (d) {
@@ -4158,11 +4192,12 @@ function App(props) {
           d.active = done.fid;
           return undefined;
         }, "Moved " + f.name);
+        return true;
       },
     };
   };
   var startFrameMove = function (ev, f) {
-    if (ev.button !== 0 || ev.pointerType === "touch") return;
+    if (ev.button !== 0) return;
     var dr = beginFrameDrag(f, ev.clientX, ev.clientY, ev.shiftKey && (ev.metaKey || ev.ctrlKey));
     if (!dr) return;
     /* No text selection or native drag starts from the name, and the
@@ -4183,17 +4218,20 @@ function App(props) {
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onCancel);
   };
-  var frameDragFrom = function (fid, phase, x, y) {
+  /* A drag that began on a frame itself: on its own background it moves
+     the frame; with Cmd or Ctrl and Shift it drops a copy. Says, when it
+     ends, whether the frame went anywhere. */
+  var frameDragFrom = function (fid, phase, x, y, dup) {
     if (phase === "down") {
       var f = frameById(docRef.current, fid);
-      frameDrag.current = f ? beginFrameDrag(f, x, y, true) : null;
-      return;
+      frameDrag.current = f ? beginFrameDrag(f, x, y, dup !== false) : null;
+      return false;
     }
     var dr = frameDrag.current;
-    if (!dr) return;
-    if (phase === "move") { dr.move(x, y); return; }
+    if (!dr) return false;
+    if (phase === "move") { dr.move(x, y); return false; }
     frameDrag.current = null;
-    dr.end(phase === "up");
+    return dr.end(phase === "up");
   };
   var frameDragRef = useRef(frameDragFrom); frameDragRef.current = frameDragFrom;
   var sizeName = function (w, h) {
@@ -4203,9 +4241,11 @@ function App(props) {
   var resizers = e("div", { className: "bd-resizers", "aria-hidden": true },
     doc.frames.map(function (f) {
       var b = boxes[f.id];
-      if (!b || f.bare) return null;
+      if (!b) return null;
       var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
       var r = resizing && resizing.fid === f.id ? resizing : null;
+      /* A loose object takes a width (its height follows what it holds). */
+      if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } });
       return e(React.Fragment, { key: f.id },
         e("div", { className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } }),
         e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H - 4, width: W }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "b"); } }),
