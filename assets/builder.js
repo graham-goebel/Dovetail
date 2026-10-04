@@ -3313,6 +3313,70 @@
     return { doc, report, layers };
   }
 
+  // assets/builder/model/usage.js
+  var TEXT_KEYS = {};
+  TEXT_STYLES.forEach(function(t) {
+    TEXT_KEYS[t[0]] = true;
+  });
+  function emptyUsage() {
+    return { types: {}, tokens: {}, text: {} };
+  }
+  function note2(use, key, value) {
+    if (typeof value !== "string" || !value) return;
+    (use.tokens[key] = use.tokens[key] || {})[value] = true;
+  }
+  function usageOf(docs, into) {
+    var use = into || emptyUsage();
+    (docs || []).forEach(function(doc) {
+      if (!doc || !Array.isArray(doc.frames)) return;
+      doc.frames.forEach(function(f) {
+        note2(use, "surface", f.surface || "base");
+        (function walk(n) {
+          if (n.type !== "Root" && n.type !== "Slot") use.types[n.type] = true;
+          var st = n.style || {};
+          Object.keys(st).forEach(function(k) {
+            if (DATA.tokens[k]) note2(use, k, st[k]);
+          });
+          var meta = META[n.type];
+          var props = n.props || {};
+          Object.keys(props).forEach(function(k) {
+            if (typeof props[k] === "string" && TEXT_KEYS[props[k]]) use.text[props[k]] = true;
+          });
+          if (meta) meta.props.forEach(function(p) {
+            if (props[p.name] === void 0 && typeof p.default === "string" && TEXT_KEYS[p.default] && Array.isArray(p.options) && p.options.some(function(o) {
+              return TEXT_KEYS[o];
+            })) use.text[p.default] = true;
+          });
+          (n.children || []).forEach(walk);
+        })(f.root);
+      });
+    });
+    return use;
+  }
+  function mergeUsage(a, b) {
+    var out = emptyUsage();
+    [a, b].forEach(function(u) {
+      if (!u) return;
+      Object.keys(u.types).forEach(function(t) {
+        out.types[t] = true;
+      });
+      Object.keys(u.text).forEach(function(t) {
+        out.text[t] = true;
+      });
+      Object.keys(u.tokens).forEach(function(k) {
+        Object.keys(u.tokens[k]).forEach(function(v) {
+          note2(out, k, v);
+        });
+      });
+    });
+    return out;
+  }
+  function usesToken(use, keys, value) {
+    return [].concat(keys).some(function(k) {
+      return !!(use.tokens[k] && use.tokens[k][value]);
+    });
+  }
+
   // assets/builder/ui/icons.js
   var PATHS = {
     undo: ["M9 14 4 9l5-5", "M4 9h11a5 5 0 0 1 0 10h-3"],
@@ -8807,7 +8871,7 @@
           e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
           e("ul", { className: "bd-kinds", role: "list" }, LIB_TABS.map(function(t) {
             var items2 = library[t[0]];
-            var note2 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";
+            var note3 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";
             return e("li", { key: t[0] }, e(
               "button",
               { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function() {
@@ -8816,7 +8880,7 @@
               e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items2.length ? items2.slice(0, 3).map(function(it) {
                 return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false });
               }) : e(Icon, { name: t[2] })),
-              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note2)),
+              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note3)),
               e(Icon, { name: "right", className: "bd-kind-chev" })
             ));
           }))
@@ -9250,13 +9314,13 @@
           { className: "bd-assets is-cards" },
           head,
           e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
-            var note2 = k[3];
+            var note3 = k[3];
             var count = k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
               return t + usableIn(g).length;
             }, 0) + " to add";
             return e("li", { key: k[0] }, e(
               "button",
-              { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note2, onClick: function() {
+              { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
                 setAssetKind(k[0]);
               } },
               e(
@@ -11430,8 +11494,40 @@
       );
     };
     var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
+    var sysScopeState = useState("used");
+    var sysScope = sysScopeState[0], setSysScope = sysScopeState[1];
+    var otherUseState = useState(null);
+    var otherUse = otherUseState[0], setOtherUse = otherUseState[1];
+    var pageKey = pagesOf(project).map(function(p) {
+      return p.id;
+    }).join() + "|" + pageId;
+    useEffect(function() {
+      var meta = projectRef.current, live = true;
+      var others = pagesOf(meta).filter(function(p) {
+        return p.id !== pageRef.current;
+      });
+      Promise.all(others.map(function(p) {
+        return store.loadDoc(meta.id, p.id);
+      })).then(function(docs) {
+        if (live) setOtherUse(usageOf(docs.filter(Boolean)));
+      });
+      return function() {
+        live = false;
+      };
+    }, [project.id, pageKey]);
+    var used = useMemo(function() {
+      return mergeUsage(usageOf([doc]), otherUse);
+    }, [doc, otherUse]);
     var builderInspector = function() {
       var bid = "bd-stage-bg";
+      var onlyUsed = sysScope === "used";
+      var prims = DATA.groups.filter(function(g) {
+        return g.id === "layout" || g.id === "typography";
+      }).reduce(function(a, g) {
+        return a.concat(g.items);
+      }, []).filter(function(n) {
+        return (!placeable || placeable[n]) && (!onlyUsed || used.types[n]);
+      });
       return e(
         "div",
         { className: "bd-inspect" },
@@ -11475,16 +11571,32 @@
           /* Nothing selected: what the system offers, rather than a list of
              frames (Layers has those). */
           sec("builder-vars", "Variables", [
-            sysGroup("colour", "Colour", DATA.tokens.surface.options.slice(0, 16).map(function(o) {
+            e(Segmented, {
+              key: "scope",
+              label: "Show",
+              wide: true,
+              value: sysScope,
+              onChange: function(v) {
+                if (v) setSysScope(v);
+              },
+              options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
+            }),
+            sysGroup("colour", "Colour", DATA.tokens.surface.options.filter(function(o, i) {
+              return onlyUsed ? usesToken(used, "surface", o.value) : i < 16;
+            }).map(function(o) {
               return sysRow(o.value, e("span", { className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
             })),
             sysGroup("space", "Spacing", DATA.tokens.padding.options.filter(function(o) {
               return !o.family || o.family === "inset";
-            }).slice(0, 8).map(function(o) {
+            }).filter(function(o, i) {
+              return onlyUsed ? usesToken(used, PADDING_KEYS, o.value) : i < 8;
+            }).map(function(o) {
               var px = pxMap["padding|" + o.value];
               return sysRow(o.value, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(28, Math.round(px)) + "px" : "8px" } }), o.value, px != null ? Math.round(px) + "px" : o.tokens[0]);
             })),
-            sysGroup("radius", "Radius", DATA.tokens.radius.options.map(function(o) {
+            sysGroup("radius", "Radius", DATA.tokens.radius.options.filter(function(o) {
+              return !onlyUsed || usesToken(used, "radius", o.value);
+            }).map(function(o) {
               return sysRow(o.value, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
             })),
             e(
@@ -11500,14 +11612,8 @@
             )
           ]),
           sec("builder-prims", "Primitives", [
-            e("p", { key: "n", className: "bd-sec-empty" }, "Press one to add it to " + frame.name + ", or drag it onto the canvas."),
-            e("ul", { key: "list", className: "bd-sys-list", role: "list" }, DATA.groups.filter(function(g) {
-              return g.id === "layout" || g.id === "typography";
-            }).reduce(function(a, g) {
-              return a.concat(g.items);
-            }, []).filter(function(n) {
-              return !placeable || placeable[n];
-            }).map(function(n) {
+            e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
+            e("ul", { key: "list", className: "bd-sys-list", role: "list" }, prims.map(function(n) {
               return e("li", { key: n }, e(
                 "button",
                 {
@@ -11529,11 +11635,15 @@
             }))
           ]),
           sec("builder-styles", "Styles", [
-            sysGroup("text", "Text", TEXT_STYLES.map(function(t) {
+            sysGroup("text", "Text", TEXT_STYLES.filter(function(t) {
+              return !onlyUsed || used.text[t[0]];
+            }).map(function(t) {
               var px = pxMap["text|" + t[0]];
               return sysRow(t[0], e("span", { className: "bd-sys-ag", style: { fontFamily: "var(--dt-text-" + t[0] + "-family)", fontWeight: "var(--dt-text-" + t[0] + "-weight)" } }, "Ag"), t[1], px != null ? Math.round(px) + "px" : "", "--dt-text-" + t[0] + "-size");
             })),
-            sysGroup("fx", "Shadow", DATA.tokens.elevation.options.map(function(o) {
+            sysGroup("fx", "Shadow", DATA.tokens.elevation.options.filter(function(o) {
+              return !onlyUsed || usesToken(used, "elevation", o.value);
+            }).map(function(o) {
               return sysRow(o.value, e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }), "Elevation " + o.value, o.tokens[0]);
             }))
           ])
@@ -11549,12 +11659,13 @@
         e("span", { className: "bd-sys-meta" }, meta)
       );
     };
+    var PADDING_KEYS = ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
     var sysGroup = function(key, label, rows) {
       return e(
         "div",
         { key, className: "bd-sys-row" },
         e("span", { className: "bd-sys-label" }, label),
-        e("ul", { className: "bd-sys-list", role: "list" }, rows)
+        rows.length ? e("ul", { className: "bd-sys-list", role: "list" }, rows) : e("p", { className: "bd-sec-empty bd-sys-none" }, "None in this project yet")
       );
     };
     var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector() : selectedNodes.length ? nodeInspector(selectedNodes.filter(function(n) {

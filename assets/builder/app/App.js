@@ -4,6 +4,7 @@ import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_I
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
+import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { ago, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
@@ -4604,8 +4605,28 @@ function App(props) {
 
   /* Nothing picked, not even a frame: the builder's own settings. */
   var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
+  /* What the project uses, for the inspector when nothing is selected: the
+     page on screen, live, with the project's other pages read from the store. */
+  var sysScopeState = useState("used");
+  var sysScope = sysScopeState[0], setSysScope = sysScopeState[1];
+  var otherUseState = useState(null);
+  var otherUse = otherUseState[0], setOtherUse = otherUseState[1];
+  var pageKey = pagesOf(project).map(function (p) { return p.id; }).join() + "|" + pageId;
+  useEffect(function () {
+    var meta = projectRef.current, live = true;
+    var others = pagesOf(meta).filter(function (p) { return p.id !== pageRef.current; });
+    Promise.all(others.map(function (p) { return store.loadDoc(meta.id, p.id); })).then(function (docs) {
+      if (live) setOtherUse(usageOf(docs.filter(Boolean)));
+    });
+    return function () { live = false; };
+  }, [project.id, pageKey]);
+  var used = useMemo(function () { return mergeUsage(usageOf([doc]), otherUse); }, [doc, otherUse]);
+
   var builderInspector = function () {
     var bid = "bd-stage-bg";
+    var onlyUsed = sysScope === "used";
+    var prims = DATA.groups.filter(function (g) { return g.id === "layout" || g.id === "typography"; }).reduce(function (a, g) { return a.concat(g.items); }, [])
+      .filter(function (n) { return (!placeable || placeable[n]) && (!onlyUsed || used.types[n]); });
     return e("div", { className: "bd-inspect" },
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" }, e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "panels" }), "Canvas")),
@@ -4622,14 +4643,16 @@ function App(props) {
         /* Nothing selected: what the system offers, rather than a list of
            frames (Layers has those). */
         sec("builder-vars", "Variables", [
-          sysGroup("colour", "Colour", DATA.tokens.surface.options.slice(0, 16).map(function (o) {
+          e(Segmented, { key: "scope", label: "Show", wide: true, value: sysScope, onChange: function (v) { if (v) setSysScope(v); },
+            options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }] }),
+          sysGroup("colour", "Colour", DATA.tokens.surface.options.filter(function (o, i) { return onlyUsed ? usesToken(used, "surface", o.value) : i < 16; }).map(function (o) {
             return sysRow(o.value, e("span", { className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
           })),
-          sysGroup("space", "Spacing", DATA.tokens.padding.options.filter(function (o) { return !o.family || o.family === "inset"; }).slice(0, 8).map(function (o) {
+          sysGroup("space", "Spacing", DATA.tokens.padding.options.filter(function (o) { return !o.family || o.family === "inset"; }).filter(function (o, i) { return onlyUsed ? usesToken(used, PADDING_KEYS, o.value) : i < 8; }).map(function (o) {
             var px = pxMap["padding|" + o.value];
             return sysRow(o.value, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(28, Math.round(px)) + "px" : "8px" } }), o.value, px != null ? Math.round(px) + "px" : o.tokens[0]);
           })),
-          sysGroup("radius", "Radius", DATA.tokens.radius.options.map(function (o) {
+          sysGroup("radius", "Radius", DATA.tokens.radius.options.filter(function (o) { return !onlyUsed || usesToken(used, "radius", o.value); }).map(function (o) {
             return sysRow(o.value, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
           })),
           e("div", { key: "acts", className: "bd-media-actions" },
@@ -4637,8 +4660,8 @@ function App(props) {
             e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("configure"); } }, e(Icon, { name: "sliders" }), "Change in Configure")),
         ]),
         sec("builder-prims", "Primitives", [
-          e("p", { key: "n", className: "bd-sec-empty" }, "Press one to add it to " + frame.name + ", or drag it onto the canvas."),
-          e("ul", { key: "list", className: "bd-sys-list", role: "list" }, DATA.groups.filter(function (g) { return g.id === "layout" || g.id === "typography"; }).reduce(function (a, g) { return a.concat(g.items); }, []).filter(function (n) { return !placeable || placeable[n]; }).map(function (n) {
+          e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
+          e("ul", { key: "list", className: "bd-sys-list", role: "list" }, prims.map(function (n) {
             return e("li", { key: n }, e("button", { type: "button", className: "bd-sys-item bd-sys-prim", "data-type": n, title: META[n].blurb ? n + ": " + META[n].blurb : n,
               onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n }); },
               onClick: function () { if (!justDragged.current) add(n); } },
@@ -4648,11 +4671,11 @@ function App(props) {
           })),
         ]),
         sec("builder-styles", "Styles", [
-          sysGroup("text", "Text", TEXT_STYLES.map(function (t) {
+          sysGroup("text", "Text", TEXT_STYLES.filter(function (t) { return !onlyUsed || used.text[t[0]]; }).map(function (t) {
             var px = pxMap["text|" + t[0]];
             return sysRow(t[0], e("span", { className: "bd-sys-ag", style: { fontFamily: "var(--dt-text-" + t[0] + "-family)", fontWeight: "var(--dt-text-" + t[0] + "-weight)" } }, "Ag"), t[1], px != null ? Math.round(px) + "px" : "", "--dt-text-" + t[0] + "-size");
           })),
-          sysGroup("fx", "Shadow", DATA.tokens.elevation.options.map(function (o) {
+          sysGroup("fx", "Shadow", DATA.tokens.elevation.options.filter(function (o) { return !onlyUsed || usesToken(used, "elevation", o.value); }).map(function (o) {
             return sysRow(o.value, e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + o.tokens[0] + ")" } }), "Elevation " + o.value, o.tokens[0]);
           })),
         ])));
@@ -4664,10 +4687,13 @@ function App(props) {
       e("span", { className: "bd-sys-name" }, name),
       e("span", { className: "bd-sys-meta" }, meta));
   };
+  var PADDING_KEYS = ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
+  /* A group of the system's pieces; none at all says so. */
   var sysGroup = function (key, label, rows) {
     return e("div", { key: key, className: "bd-sys-row" },
       e("span", { className: "bd-sys-label" }, label),
-      e("ul", { className: "bd-sys-list", role: "list" }, rows));
+      rows.length ? e("ul", { className: "bd-sys-list", role: "list" }, rows)
+        : e("p", { className: "bd-sec-empty bd-sys-none" }, "None in this project yet"));
   };
   var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
     : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes)

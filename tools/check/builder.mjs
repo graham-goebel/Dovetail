@@ -1362,6 +1362,8 @@ try {
     const tint = await page.locator(".bd-sys-sw").first().evaluate((el) => el.style.background);
     expect(tint && !/var\(/.test(tint), `the colour swatches show the frame's own colours, got ${tint}`);
     const before = (await saved()).frames[0].root.children.length;
+    /* The whole system, not only what's in the project. */
+    await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
     await page.locator('.bd-sys-prim[data-type="Stack"]').click();
     await poll(async () => (await saved()).frames[0].root.children.length, (n) => n === before + 1);
     ok(`a press on the canvas lets go of everything; the inspector then shows Variables, Primitives and Styles (sections: ${secs.join(", ")}), and a primitive adds itself`);
@@ -1427,6 +1429,7 @@ try {
 
     { const sb = await stageBox(page); await page.mouse.click(sb.x + sb.width / 2, sb.y + 8); }
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
     const rows = await page.$$eval(".bd-right .bd-sys-list .bd-sys-item", (r) => r.map((x) => { const b = x.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }));
     expect(rows.length > 10 && rows.every(([w, h]) => w > 200 && h < 56), `variables, primitives and styles list as full-width rows, got ${rows.length} rows, first ${JSON.stringify(rows[0])}`);
     const kinds = await page.$$eval(".bd-asset-kinds .bd-kind", (k) => k.map((x) => Math.round(x.getBoundingClientRect().width)));
@@ -2147,6 +2150,41 @@ try {
     await page.keyboard.press("Control+z");
     await frame().waitForFunction((t) => document.body.textContent.includes(t) && !document.body.textContent.includes("Fired three times"), first);
     ok("undo puts the sample title back");
+    await page.close();
+  });
+
+  await step("The project's own system: with nothing selected, variables, primitives and styles are the ones the project uses", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const clickStage = async () => {
+      for (let tries = 0; tries < 4; tries++) {
+        const pt = await page.evaluate(() => { const st = document.querySelector(".bd-stage").getBoundingClientRect(); for (let y = st.bottom - 20; y > st.top; y -= 30) for (let x = st.left + st.width / 2; x < st.right - 10; x += 30) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; } return null; });
+        expect(pt, "there's empty canvas to click");
+        await page.mouse.click(pt.x, pt.y);
+        if (await page.locator(".bd-sys-prim, .bd-right .bd-sys-none, .bd-right .bd-sec-empty").first().waitFor({ timeout: 1500 }).then(() => true, () => false)) return;
+      }
+      throw new Error("a click on empty canvas should show the canvas settings");
+    };
+    const prims = () => page.locator(".bd-right .bd-sys-prim").evaluateAll((els) => els.map((x) => x.getAttribute("data-type")));
+    await frame().waitForSelector('[data-bf-type="HeroBlock"]');
+    await clickStage();
+    expect(await page.locator('.bd-right .bd-seg-btn[aria-pressed="true"]', { hasText: "In this project" }).count() === 1, "the inspector starts on what's in this project");
+    /* The primitives on the canvas, however deep (a hero's buttons sit in an Inline). */
+    const placed = () => page.evaluate(() => { const out = new Set(); (function w(n) { (n.children || []).forEach((c) => { out.add(c.type); w(c); }); })(window.__builder.doc().frames[0].root); return [...out]; });
+    const before = await prims();
+    const has = await placed();
+    expect(before.every((t) => has.includes(t)) && !before.includes("Heading") && !before.includes("Stack"), `Primitives lists only what's placed, got ${before}`);
+    const textStyles = await page.locator('.bd-right .bd-sys-row:has(.bd-sys-label:text-is("Text")) .bd-sys-item').count();
+    expect(textStyles >= 1, `the hero's title style is listed, got ${textStyles} text styles`);
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    await clickStage();
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-right .bd-sys-prim")].some((x) => x.getAttribute("data-type") === "Heading"));
+    const after = await prims();
+    expect(after.includes("Heading") && after.length === before.length + 1, `with a Heading placed, Primitives adds the Heading, got ${after}`);
+    await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-right .bd-sys-prim").length > 3);
+    ok(`with nothing selected the inspector lists what this project uses: ${before.join(", ") || "no primitives"} on the landing page, then the Heading too once one's placed, and ${textStyles} text style(s); Everything shows the whole system again`);
     await page.close();
   });
 
