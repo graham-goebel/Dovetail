@@ -1975,6 +1975,97 @@ try {
     await page.close();
   });
 
+  await step("Frames on the canvas: dragged by their background, loose objects keep their size, and new frames take a screen size", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const boxOf = (fid) => page.evaluate((id) => { const f = window.__builder.doc().frames.find((x) => x.id === id); const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title && f && el.title.indexOf("Frame " + f.name + ",") === 0); const r = i && i.getBoundingClientRect(); return r ? { x: r.x, y: r.y, w: r.width, h: r.height } : null; }, fid);
+    /* A spot on the canvas with no frame or panel over it, nearest the corner asked for. */
+    const emptyPoint = (corner) => page.evaluate((corner) => {
+      const st = document.querySelector(".bd-stage").getBoundingClientRect();
+      const xs = [], ys = [];
+      for (let x = st.left + 20; x < st.right - 20; x += 24) xs.push(x);
+      for (let y = st.top + 20; y < st.bottom - 20; y += 24) ys.push(y);
+      if (corner.includes("right")) xs.reverse();
+      if (corner.includes("bottom")) ys.reverse();
+      for (const y of ys) for (const x of xs) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; }
+      return null;
+    }, corner);
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await fitAll(page);
+    /* Zoomed out a step, so there's canvas around the frame to drop things on. */
+    await release(page);
+    await page.keyboard.press("Control+Minus");
+    await page.waitForTimeout(250);
+    const d0 = await saved();
+    const f0 = d0.frames[0];
+    const b0 = await boxOf(f0.id);
+    /* Low on the frame, clear of the empty slot's prompt: the frame's own background. */
+    const from = { x: b0.x + b0.w * 0.7, y: b0.y + b0.h * 0.85 };
+    await page.mouse.click(from.x, from.y);
+    await page.waitForTimeout(200);
+    expect(await page.locator(".bd-flabel.is-current .bd-flabel-name").textContent() === f0.name, "a click on the frame's background selects the frame");
+    await drag(page, from, { x: from.x + 200, y: from.y + 100 });
+    const moved = (await saved()).frames[0];
+    expect(typeof moved.x === "number" && typeof moved.y === "number", "the frame has a place of its own on the canvas");
+    const b1 = await boxOf(f0.id);
+    expect(Math.abs(b1.x - b0.x - 200) < 6 && Math.abs(b1.y - b0.y - 100) < 6, `dragging its background moves the frame with the pointer, moved ${Math.round(b1.x - b0.x)}, ${Math.round(b1.y - b0.y)}`);
+    ok(`a click on a frame's own background selects it, and a drag there moves it ${Math.round(b1.x - b0.x)} by ${Math.round(b1.y - b0.y)} on screen`);
+
+    /* A Button in the frame, dragged off it, keeps the width it had there. */
+    await category(page, "Actions");
+    await page.locator('.bd-tile[data-type="Button"]').click();
+    await frame().waitForSelector('[data-bf-type="Button"]');
+    const bw = await frame().evaluate(() => { const w = document.querySelector('[data-bf-type="Button"]'); const el = w.style.display === "contents" ? w.firstElementChild : w; return el.getBoundingClientRect().width; });
+    const grip = await canvasPoint(page, '[data-bf-type="Button"]');
+    const off = await emptyPoint("bottom-right");
+    expect(off, "there's empty canvas to drop on");
+    await drag(page, grip, off);
+    const loose = (await saved()).frames.filter((x) => x.bare);
+    expect(loose.length === 1 && loose[0].sized && Math.abs(loose[0].width - bw) <= 2, `a Button dragged off its frame keeps its width, ${Math.round(bw)}, got ${JSON.stringify(loose.map((x) => [x.width, x.sized]))}`);
+    ok(`a Button dragged off its frame onto the canvas stays ${Math.round(bw)} wide, as it was`);
+
+    /* A Heading put down loose is as wide as its text, not squeezed. */
+    await category(page, "Typography");
+    const tile = await page.locator('.bd-tile[data-type="Heading"]').boundingBox();
+    await page.mouse.move(tile.x + 30, tile.y + 30);
+    await page.mouse.down();
+    await page.mouse.move(tile.x + 80, tile.y + 60, { steps: 4 });
+    const off2 = await emptyPoint("top-right");
+    await page.mouse.move(off2.x, off2.y, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(700);
+    const heading = (await saved()).frames.find((x) => x.bare && x.root.children[0].type === "Heading");
+    const hb = heading && await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); return i ? parseFloat(i.style.width) : 0; }, heading.name);
+    const textW = heading && await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); const h = i.contentDocument.querySelector("h1, h2, h3, h4"); const r = document.createRange(); r.selectNodeContents(h); return r.getBoundingClientRect().width; }, heading.name);
+    expect(heading && hb > 140 && hb >= textW - 2, `a Heading put down loose is as wide as its text, got a box ${Math.round(hb)} wide for text ${Math.round(textW)} wide`);
+    ok(`a Heading put down loose is ${Math.round(hb)} wide, its text's width, rather than squeezed into 120`);
+
+    /* With a loose object active, a new frame is still a screen. */
+    await release(page);
+    await page.keyboard.press("f");
+    await page.waitForTimeout(300);
+    const frames = (await saved()).frames.filter((x) => !x.bare);
+    const made = frames[frames.length - 1];
+    expect(frames.length === 2 && made.width === 1280 && made.height === 800, `F makes a desktop screen, not a loose object's size, got ${made.width} by ${made.height}`);
+    ok("with a loose object active, F adds a frame at 1280 by 800, a desktop screen");
+
+    /* A loose object's right edge gives it a width. */
+    const hid = heading.id;
+    await fitAll(page);
+    const zNow = await page.evaluate(() => Number(/scale\(([\d.]+)\)/.exec(document.querySelector(".bd-world").style.transform)[1]));
+    const hbox = await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); const r = i.getBoundingClientRect(); return { x: r.right, y: r.top + r.height / 2 }; }, heading.name);
+    await page.mouse.move(hbox.x - 1, hbox.y);
+    await page.mouse.down();
+    await page.mouse.move(hbox.x - 1 + Math.max(40, 60 * zNow), hbox.y, { steps: 6 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    const resized = (await saved()).frames.find((x) => x.id === hid);
+    expect(resized.sized && resized.width > hb + 10, `dragging a loose object's edge sets its width, got ${resized.width} (was ${Math.round(hb)})`);
+    ok(`a loose object's right edge sets its width, ${Math.round(hb)} to ${resized.width}`);
+    await page.close();
+  });
+
   await step("Changes: undo takes back only your own steps, and a change from elsewhere stays", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     await page.waitForFunction(() => window.__builder && window.__builder.doc().frames[0].root.children.length > 1);

@@ -355,7 +355,7 @@
     var style = pageStyle(page);
     /* A loose object on the builder's canvas: no page around it, as wide as
        what it holds. */
-    if (opts.bare) { cls.push("bf-bare"); style.background = "transparent"; }
+    if (opts.bare) { cls.push("bf-bare"); style.background = "transparent"; if (opts.sized) cls.push("bf-sized"); }
     html.classList.toggle("bf-bare-doc", !!opts.bare);
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
@@ -551,18 +551,27 @@
       host().pick(id, ev.shiftKey, ev.metaKey || ev.ctrlKey, part);
     }, true);
   });
-  /* A pan or a pinch: every finger while editing, the middle button, a drag
-     on the frame's own background, or any drag while the builder holds Space.
-     The builder moves the canvas and says whether the pointer moved, so a pan
-     doesn't end in a click. */
+  /* A pan or a pinch: every finger while editing, the middle button, or any
+     drag while the builder holds Space. The builder moves the canvas and says
+     whether the pointer moved, so a pan doesn't end in a click. */
   var pans = {};
   var framing = null;
+  /* A finger held still on the frame's own background picks the frame up. */
+  var hold = null;
+  var HOLD_MS = 450;
+  function onBackground(ev) {
+    var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
+    return !w || w.getAttribute("data-bf-id") === "root";
+  }
   function panning(ev) {
     if (!host()) return false;
     if (ev.pointerType === "touch") return true;
-    if (ev.button === 1 || (host().spaceHeld && host().spaceHeld())) return true;
-    var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
-    return ev.button === 0 && !ev.shiftKey && !ev.metaKey && !ev.ctrlKey && (!w || w.getAttribute("data-bf-id") === "root");
+    return ev.button === 1 || !!(host().spaceHeld && host().spaceHeld());
+  }
+  function startFraming(ev, dup) {
+    framing = ev.pointerId;
+    try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+    host().frameDrag("down", ev.clientX, ev.clientY, dup);
   }
   document.addEventListener("pointerdown", function (ev) {
     if (!editing()) return;
@@ -570,15 +579,31 @@
     if (ev.pointerType === "mouse") ev.preventDefault();
     /* Cmd or Ctrl with Shift: the whole frame is dragged, to drop a copy. */
     if (ev.button === 0 && ev.shiftKey && (ev.metaKey || ev.ctrlKey) && host() && host().frameDrag) {
-      framing = ev.pointerId;
-      try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
-      host().frameDrag("down", ev.clientX, ev.clientY);
+      startFraming(ev, true);
       return;
     }
     if (panning(ev)) {
       pans[ev.pointerId] = true;
       try { ev.target.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
       host().gesture("down", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType);
+      /* A finger that stays put on the background long enough stops panning
+         and moves the frame instead. */
+      if (ev.pointerType === "touch" && onBackground(ev) && host().frameDrag) {
+        var down = ev;
+        clearTimeout(hold && hold.timer);
+        hold = { id: ev.pointerId, x: ev.clientX, y: ev.clientY, timer: setTimeout(function () {
+          if (!hold || hold.id !== down.pointerId || !pans[down.pointerId]) return;
+          delete pans[down.pointerId];
+          host().gesture("cancel", down.pointerId, hold.x, hold.y, "touch");
+          hold = null;
+          startFraming(down, false);
+        }, HOLD_MS) };
+      }
+      return;
+    }
+    /* A drag on the frame's own background moves the frame on the canvas. */
+    if (ev.button === 0 && !ev.shiftKey && !ev.metaKey && !ev.ctrlKey && onBackground(ev) && host() && host().frameDrag) {
+      startFraming(ev, false);
       return;
     }
     if (ev.button !== 0 || ev.pointerType === "touch" || ev.shiftKey || ev.metaKey || ev.ctrlKey || !host()) return;
@@ -593,6 +618,7 @@
   document.addEventListener("pointermove", function (ev) {
     if (!editing() || !host()) return;
     if (framing === ev.pointerId) { host().frameDrag("move", ev.clientX, ev.clientY); return; }
+    if (hold && hold.id === ev.pointerId && Math.abs(ev.clientX - hold.x) + Math.abs(ev.clientY - hold.y) > 8) { clearTimeout(hold.timer); hold = null; }
     if (pans[ev.pointerId]) { host().gesture("move", ev.pointerId, ev.clientX, ev.clientY, ev.pointerType); return; }
     if (press && ev.pointerId === press.pointer) {
       if (!press.active && Math.abs(ev.clientX - press.x) + Math.abs(ev.clientY - press.y) > 5) {
@@ -605,11 +631,14 @@
   }, true);
   function release(commit) {
     return function (ev) {
+      if (hold && hold.id === ev.pointerId) { clearTimeout(hold.timer); hold = null; }
       if (framing === ev.pointerId) {
         framing = null;
-        if (host()) host().frameDrag(commit ? "up" : "cancel", ev.clientX, ev.clientY);
-        swallowClick = true;
-        setTimeout(function () { swallowClick = false; }, 0);
+        /* A press that didn't move is a click on the frame, which selects it. */
+        if (host() && host().frameDrag(commit ? "up" : "cancel", ev.clientX, ev.clientY)) {
+          swallowClick = true;
+          setTimeout(function () { swallowClick = false; }, 0);
+        }
         return;
       }
       if (pans[ev.pointerId]) {

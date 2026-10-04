@@ -324,7 +324,8 @@ function cleanFrame(f, i, report) {
   if (f.lock === true) base.lock = true;
   var place = function (v) { return typeof v === "number" && isFinite(v) ? Math.max(-40000, Math.min(40000, Math.round(v))) : null; };
   if (place(f.x) !== null && place(f.y) !== null) { base.x = place(f.x); base.y = place(f.y); }
-  if (f.bare === true) { base.bare = true; base.hug = true; }
+  /* A loose object is as wide as what it holds, unless it was given a width. */
+  if (f.bare === true) { base.bare = true; base.hug = true; if (f.sized === true) base.sized = true; }
   base.spacing = SPACINGS.some(function (s) { return s[0] === f.spacing; }) ? f.spacing : "";
   base.gap = DATA.rootGaps.indexOf(f.gap) >= 0 ? f.gap : "";
   if (f.typeScale === "social") base.typeScale = "social";

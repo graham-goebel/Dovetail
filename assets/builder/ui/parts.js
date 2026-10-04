@@ -577,7 +577,7 @@ function layoutOf(doc, heights, resizing, widths, moving) {
   var maxX = 0, maxY = 0, minX = 0, minY = 0;
   doc.frames.forEach(function (f) {
     var r = resizing && resizing.fid === f.id ? resizing : null;
-    var w = r ? r.w : f.bare ? Math.max(24, (widths && widths[f.id]) || 120) : f.width;
+    var w = r ? r.w : f.bare ? (f.sized ? f.width : Math.max(24, (widths && widths[f.id]) || 120)) : f.width;
     var h = r && r.h != null ? r.h : f.bare ? Math.max(16, heights[f.id] || 40) : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
     var m = moving && moving.fid === f.id ? moving : null;
     var b;
