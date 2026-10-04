@@ -122,10 +122,11 @@ function watch(page) {
 /* The canvas frames, in the order they sit on the canvas. */
 const frames = (page) => page.frames().filter((f) => f.url().includes("builder-frame"));
 
-async function open(viewport, { hash = "", store = null } = {}) {
+async function open(viewport, { hash = "", store = null, before = null } = {}) {
   const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
   page.setDefaultTimeout(8000);
   watch(page);
+  if (before) await before(page);
   await page.goto(server.origin + "/builder.html");
   /* Let the first visit finish making its project before the reload below. */
   await page.waitForFunction(() => !!window.__builder);
@@ -393,7 +394,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions)").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-acct)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -799,7 +800,7 @@ try {
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
-    const tabs = await page.$$eval(".bd-rail .bd-tab", (b) => b.map((x) => x.textContent));
+    const tabs = await page.$$eval(".bd-rail [role=tab]", (b) => b.map((x) => x.textContent));
     expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure", `the rail holds Home, Assets, Pages, Layers, Content and Configure, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
@@ -2499,6 +2500,125 @@ try {
     expect(chrome[0] && chrome[1] !== "rgb(255, 0, 0)", `the builder's panels should keep their own colours, got ${chrome[1]}`);
     ok("the canvas takes the configured surface; the panels keep theirs");
     await themed.page.close();
+  });
+
+  await step("Account: off without a cloud and fetching nothing; with one, sign in, a friendly error, sign up, a reset link, a new password, sign out", async () => {
+    /* No cloud: nothing reaches Supabase or the CDN, and the dialog says why. */
+    const asked = [];
+    const off = await open({ width: 1440, height: 900 }, { before: (p) => p.on("request", (r) => { if (/supabase|jsdelivr/.test(r.url())) asked.push(r.url()); }) });
+    await off.page.locator(".bd-rail-account").click();
+    await off.page.waitForSelector(".bd-acct[open]");
+    const note = await off.page.locator(".bd-acct-body").textContent();
+    expect(/isn't connected/.test(note) && /saved in this browser/.test(note), `without a cloud the dialog says it isn't connected, got "${note.slice(0, 80)}"`);
+    expect(await off.page.locator(".bd-acct input").count() === 0, "and offers nothing to fill in");
+    await off.page.keyboard.press("Escape");
+    expect(await off.page.locator(".bd-acct[open]").count() === 0, "Escape closes it");
+    await off.page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click();
+    await off.page.locator(".bd-home-account").click();
+    await off.page.waitForSelector(".bd-acct[open]");
+    await off.page.keyboard.press("Escape");
+    expect(await off.page.locator(".bd-acct[open]").count() === 0 && await off.page.locator(".bd-home").count() === 1, "on Home, Escape closes the Account dialog and leaves Home open");
+    expect(asked.length === 0, `without a cloud nothing is fetched from Supabase or the CDN, got ${asked.join(", ")}`);
+    ok("off: says so, offers no form, fetches nothing, from the rail or Home");
+    await off.page.close();
+
+    /* A stand-in for supabase-js, served where the CDN would be. */
+    const FAKE = `
+      const users = { "ann@example.com": "correct horse battery" };
+      let session = null;
+      const subs = new Set();
+      const emit = (ev) => { for (const f of subs) f(ev, session); };
+      const err = (code, message) => ({ data: { session: null, user: null }, error: { code, message } });
+      export function createClient(url, key, opts) {
+        const log = window.__fakeSb = { url, key, opts, calls: [] };
+        const call = (...a) => log.calls.push(a);
+        const recover = new URLSearchParams(location.search).get("code") === "recover";
+        return {
+          auth: {
+            getSession: async () => ({ data: { session }, error: null }),
+            onAuthStateChange: (f) => {
+              subs.add(f);
+              setTimeout(() => { f("INITIAL_SESSION", session); if (recover) { session = { user: { id: "u1", email: "ann@example.com" } }; f("PASSWORD_RECOVERY", session); } }, 0);
+              return { data: { subscription: { unsubscribe: () => subs.delete(f) } } };
+            },
+            signInWithPassword: async ({ email, password }) => {
+              call("signIn", email);
+              if (users[email] !== password) return err("invalid_credentials", "Invalid login credentials");
+              session = { user: { id: "u1", email } }; emit("SIGNED_IN");
+              return { data: { session, user: session.user }, error: null };
+            },
+            signUp: async ({ email, options }) => { call("signUp", email, options.emailRedirectTo); return { data: { session: null, user: { id: "u2", email } }, error: null }; },
+            signOut: async () => { session = null; emit("SIGNED_OUT"); return { error: null }; },
+            resetPasswordForEmail: async (email, o) => { call("reset", email, o.redirectTo); return { data: {}, error: null }; },
+            updateUser: async ({ password }) => { call("updateUser", password.length); emit("USER_UPDATED"); return { data: { user: session.user }, error: null }; },
+          },
+          rpc: async (name) => { call("rpc", name); return { data: 0, error: null }; },
+        };
+      }`;
+    const withCloud = async (p) => {
+      await p.addInitScript(() => { window.DovetailCloud = { url: "https://stand-in.supabase.co/", anonKey: "stand-in-anon-key-0123456789" }; });
+      await p.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", headers: { "access-control-allow-origin": "*" }, body: FAKE }));
+    };
+    const { page } = await open({ width: 1440, height: 900 }, { before: withCloud });
+    await page.waitForFunction(() => window.__fakeSb);
+    const made = await page.evaluate(() => ({ url: window.__fakeSb.url, flow: window.__fakeSb.opts.auth.flowType }));
+    expect(made.url === "https://stand-in.supabase.co" && made.flow === "pkce", `the client is made with the address and the PKCE flow, got ${JSON.stringify(made)}`);
+    const acct = page.locator(".bd-acct");
+    await page.locator(".bd-rail-account").click();
+    await page.waitForSelector(".bd-acct[open] #bd-acct-email");
+    expect((await page.locator("#bd-acct-title").textContent()) === "Sign in", "signed out, the dialog signs in");
+    await page.fill("#bd-acct-email", "ann@example.com");
+    await page.fill("#bd-acct-pass", "wrong");
+    await acct.locator("button[type=submit]").click();
+    await page.waitForSelector(".bd-acct-msg.is-error");
+    const bad = await page.locator(".bd-acct-msg").textContent();
+    expect(/don't match/.test(bad), `a wrong password says so in words, got "${bad}"`);
+    await page.fill("#bd-acct-pass", "correct horse battery");
+    await acct.locator("button[type=submit]").click();
+    await page.waitForSelector(".bd-acct-who");
+    expect(/ann@example\.com/.test(await page.locator(".bd-acct-who").textContent()), "signed in, it names the account");
+    expect(/ann@example\.com/.test(await page.locator(".bd-rail-account").getAttribute("aria-label")), "and so does the Account button");
+    expect(await page.evaluate(() => window.__fakeSb.calls.some((c) => c[0] === "rpc" && c[1] === "accept_invites")), "signing in accepts waiting invites");
+    ok("on: the PKCE client, a friendly error, then signed in with invites accepted");
+
+    await acct.locator("button", { hasText: "Sign out" }).click();
+    await page.waitForSelector(".bd-acct[open] #bd-acct-email");
+    await acct.locator(".bd-acct-link", { hasText: "Create an account" }).click();
+    expect((await page.locator("#bd-acct-pass").getAttribute("autocomplete")) === "new-password", "a new account asks for a new password");
+    await page.fill("#bd-acct-email", "ben@example.com");
+    await page.fill("#bd-acct-pass", "a fresh password");
+    await acct.locator("button[type=submit]").click();
+    await page.waitForSelector(".bd-acct-msg.is-note");
+    expect(/ben@example\.com/.test(await page.locator(".bd-acct-msg").textContent()), "signing up says to open the link we sent");
+    await acct.locator(".bd-acct-link", { hasText: "Sign in" }).click();
+    await acct.locator(".bd-acct-link", { hasText: "Forgot" }).click();
+    expect(await page.locator("#bd-acct-pass").count() === 0, "a reset asks only for the email");
+    await page.fill("#bd-acct-email", "ann@example.com");
+    await acct.locator("button[type=submit]").click();
+    await page.waitForSelector(".bd-acct-msg.is-note");
+    const calls = await page.evaluate(() => window.__fakeSb.calls);
+    const here = server.origin + "/builder.html";
+    expect(calls.some((c) => c[0] === "signUp" && c[2] === here) && calls.some((c) => c[0] === "reset" && c[2] === here), `the emails' links come back to the builder, got ${JSON.stringify(calls)}`);
+    ok("sign out, sign up, and a reset link, each saying what happens next");
+    await page.close();
+
+    /* Back from the reset link: the dialog opens to choose a new password. */
+    const back = await open({ width: 390, height: 844 }, { before: withCloud });
+    await back.page.goto(server.origin + "/builder.html?code=recover");
+    await back.page.waitForSelector(".bd-acct[open]");
+    expect((await back.page.locator("#bd-acct-title").textContent()) === "Choose a new password", "the reset link opens the dialog to choose a new password");
+    await back.page.fill("#bd-acct-pass", "a newer password");
+    await back.page.fill("#bd-acct-again", "not the same");
+    await back.page.locator(".bd-acct button[type=submit]").click();
+    expect(/don't match/.test(await back.page.locator(".bd-acct-msg").textContent()), "two different passwords are caught");
+    await back.page.fill("#bd-acct-again", "a newer password");
+    await back.page.locator(".bd-acct button[type=submit]").click();
+    await back.page.waitForSelector(".bd-acct-who");
+    expect(/changed/.test(await back.page.locator(".bd-acct-msg").textContent()), "the new password is saved and said so");
+    const box = await back.page.locator(".bd-acct").boundingBox();
+    expect(box.x >= 0 && box.x + box.width <= 390, `the dialog fits a phone, got ${Math.round(box.x)} + ${Math.round(box.width)}`);
+    ok("a reset link opens the dialog to a new password, at 390px");
+    await back.page.close();
   });
 
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {

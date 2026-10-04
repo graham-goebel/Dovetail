@@ -3704,6 +3704,360 @@
   var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
   var PROP_LABEL = { width: "Content width", spacing: "Section spacing" };
 
+  // assets/builder/cloud/config.js
+  var CLOUD = {
+    url: "",
+    anonKey: ""
+  };
+  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
+  function cloudConfig() {
+    var over = typeof window !== "undefined" && window.DovetailCloud;
+    var c = over && typeof over === "object" ? over : CLOUD;
+    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
+  }
+  function cloudReady() {
+    var c = cloudConfig();
+    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
+  }
+
+  // assets/builder/cloud/client.js
+  var clientLoading = null;
+  function getClient() {
+    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
+    if (!clientLoading) {
+      var c = cloudConfig();
+      var lib = LIB_URL;
+      clientLoading = import(lib).then(function(mod) {
+        return mod.createClient(c.url, c.anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
+        });
+      }, function() {
+        clientLoading = null;
+        throw new Error("Couldn't load the cloud. Check your connection and try again.");
+      });
+    }
+    return clientLoading;
+  }
+  var MESSAGES = {
+    invalid_credentials: "That email and password don't match an account.",
+    email_not_confirmed: "Confirm your email first: open the link we sent you.",
+    user_already_exists: "There's already an account with that email. Sign in instead.",
+    email_exists: "There's already an account with that email. Sign in instead.",
+    weak_password: "Choose a longer password: at least 8 characters.",
+    same_password: "That's your current password. Choose a new one.",
+    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
+    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
+    email_address_invalid: "That doesn't look like an email address.",
+    signup_disabled: "New accounts are turned off for this builder.",
+    session_not_found: "You've been signed out. Sign in again.",
+    otp_expired: "That link has expired. Ask for a new one.",
+    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
+    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
+    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
+  };
+  function friendly(err) {
+    if (!err) return "";
+    var code = err.code || err.error_code || "";
+    if (MESSAGES[code]) return MESSAGES[code];
+    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
+    return String(err.message || "Something went wrong. Try again.");
+  }
+  function unwrap(res) {
+    if (res && res.error) throw new Error(friendly(res.error));
+    return res ? res.data : null;
+  }
+  function backHere() {
+    return location.origin + location.pathname;
+  }
+  function account(session) {
+    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
+  }
+  var auth = {
+    /* The signed-in account, or null. */
+    current: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.getSession();
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    /* Calls fn(event, account) on every change; returns a function to stop.
+       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
+    watch: function(fn) {
+      var sub = null, stopped = false;
+      getClient().then(function(sb) {
+        if (stopped) return;
+        sub = sb.auth.onAuthStateChange(function(event, session) {
+          fn(event, account(session));
+        }).data.subscription;
+      }, function() {
+      });
+      return function() {
+        stopped = true;
+        if (sub) sub.unsubscribe();
+      };
+    },
+    /* A new account. Resolves { confirm: true } when an email must be
+       confirmed before signing in (the setting docs/cloud.md asks for). */
+    signUp: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
+      }).then(function(res) {
+        var data = unwrap(res);
+        return { confirm: !data.session, account: account(data.session) };
+      });
+    },
+    signIn: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signInWithPassword({ email, password });
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    signOut: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.signOut();
+      }).then(unwrap);
+    },
+    /* Emails a link that brings you back here to choose a new password. */
+    resetPassword: function(email) {
+      return getClient().then(function(sb) {
+        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
+      }).then(unwrap);
+    },
+    setPassword: function(password) {
+      return getClient().then(function(sb) {
+        return sb.auth.updateUser({ password });
+      }).then(unwrap);
+    },
+    /* Turns invites to this (confirmed) address into memberships; resolves
+       how many projects that joined. */
+    acceptInvites: function() {
+      return getClient().then(function(sb) {
+        return sb.rpc("accept_invites");
+      }).then(unwrap);
+    }
+  };
+
+  // assets/builder/cloud/Account.js
+  var ARRIVED = (function() {
+    try {
+      var q = new URLSearchParams(location.search);
+      var h = new URLSearchParams(location.hash.replace(/^#/, ""));
+      var error = q.get("error_description") || h.get("error_description");
+      return { link: q.has("code") || !!error, error: error ? error.replace(/\+/g, " ") : "" };
+    } catch (err) {
+      return { link: false, error: "" };
+    }
+  })();
+  function useAccount() {
+    var ready = cloudReady();
+    var st = useState({ status: ready ? "loading" : "off", account: null, joined: 0 });
+    var s = st[0], set2 = st[1];
+    useEffect(function() {
+      if (!ready) return void 0;
+      var live = true;
+      var signedIn = function(a) {
+        set2(function(p) {
+          return p.status === "recovery" ? Object.assign({}, p, { account: a }) : { status: "in", account: a, joined: p.joined };
+        });
+        auth.acceptInvites().then(function(n) {
+          if (live && n) set2(function(p) {
+            return Object.assign({}, p, { joined: p.joined + n });
+          });
+        }, function() {
+        });
+      };
+      auth.current().then(function(a) {
+        if (!live) return;
+        if (a) signedIn(a);
+        else set2(function(p) {
+          return p.status === "loading" ? { status: "out", account: null, joined: 0 } : p;
+        });
+      }, function(err) {
+        if (live) set2({ status: "out", account: null, joined: 0, error: err.message });
+      });
+      var stop = auth.watch(function(event, a) {
+        if (!live) return;
+        if (event === "PASSWORD_RECOVERY") set2({ status: "recovery", account: a, joined: 0 });
+        else if (event === "SIGNED_OUT" || !a) set2({ status: "out", account: null, joined: 0 });
+        else if (event === "SIGNED_IN") signedIn(a);
+        else set2(function(p) {
+          return Object.assign({}, p, { account: a });
+        });
+      });
+      return function() {
+        live = false;
+        stop();
+      };
+    }, []);
+    return [s, set2];
+  }
+  function AccountDialog(props) {
+    var s = props.state, setState = props.setState, ref = props.dialogRef;
+    var modeSt = useState("signin"), mode = modeSt[0], setMode = modeSt[1];
+    var emailSt = useState(""), email = emailSt[0], setEmail = emailSt[1];
+    var passSt = useState(""), pass = passSt[0], setPass = passSt[1];
+    var againSt = useState(""), again = againSt[0], setAgain = againSt[1];
+    var busySt = useState(false), busy = busySt[0], setBusy = busySt[1];
+    var msgSt = useState(ARRIVED.error ? { error: ARRIVED.error } : null), msg = msgSt[0], setMsg = msgSt[1];
+    var switchTo = function(m) {
+      setMode(m);
+      setMsg(null);
+      setPass("");
+      setAgain("");
+    };
+    var run = function(work, done) {
+      setBusy(true);
+      setMsg(null);
+      work().then(function(r) {
+        setBusy(false);
+        done(r);
+      }, function(err) {
+        setBusy(false);
+        setMsg({ error: err.message });
+      });
+    };
+    var close = function() {
+      if (ref.current) ref.current.close();
+    };
+    var submit = function(ev) {
+      ev.preventDefault();
+      var addr = email.trim();
+      if (s.status === "recovery") {
+        if (pass !== again) {
+          setMsg({ error: "The two passwords don't match." });
+          return;
+        }
+        run(function() {
+          return auth.setPassword(pass);
+        }, function() {
+          setPass("");
+          setAgain("");
+          setState(function(p) {
+            return { status: "in", account: p.account, joined: p.joined };
+          });
+          setMsg({ note: "Your password is changed." });
+        });
+      } else if (mode === "forgot") {
+        run(function() {
+          return auth.resetPassword(addr);
+        }, function() {
+          setMsg({ note: "If there's an account for " + addr + ", it has an email with a link to choose a new password. Open it on this device." });
+        });
+      } else if (mode === "signup") {
+        run(function() {
+          return auth.signUp(addr, pass);
+        }, function(r) {
+          setPass("");
+          if (r.confirm) setMsg({ note: "Nearly there: we've sent a link to " + addr + ". Open it to confirm your address, and you're in." });
+        });
+      } else {
+        run(function() {
+          return auth.signIn(addr, pass);
+        }, function() {
+          setPass("");
+        });
+      }
+    };
+    var signOut = function() {
+      run(function() {
+        return auth.signOut();
+      }, function() {
+        switchTo("signin");
+      });
+    };
+    var field = function(id, label, input) {
+      return e("label", { className: "bd-acct-field", htmlFor: id }, e("span", { className: "bd-field-label" }, label), e("input", Object.assign({ id, className: "bd-input", required: true, disabled: busy }, input)));
+    };
+    var emailField = field("bd-acct-email", "Email", { type: "email", autoComplete: "email", value: email, onChange: function(ev) {
+      setEmail(ev.target.value);
+    } });
+    var passField = function(label, autoComplete) {
+      return field("bd-acct-pass", label, { type: "password", autoComplete, minLength: autoComplete === "new-password" ? 8 : void 0, value: pass, onChange: function(ev) {
+        setPass(ev.target.value);
+      } });
+    };
+    var button = function(label) {
+      return e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: busy }, busy ? "One moment…" : label);
+    };
+    var link = function(label, m) {
+      return e("button", { type: "button", className: "bd-acct-link", onClick: function() {
+        switchTo(m);
+      } }, label);
+    };
+    var title = s.status === "recovery" ? "Choose a new password" : s.status === "in" ? "Your account" : s.status === "out" ? mode === "signup" ? "Create an account" : mode === "forgot" ? "Reset your password" : "Sign in" : "Account";
+    var body;
+    if (s.status === "off") {
+      body = e(
+        "div",
+        { className: "bd-acct-off" },
+        e("p", null, "The cloud isn't connected to this builder yet, so there's nothing to sign in to. Your projects are saved in this browser, as they always have been."),
+        e("p", null, "Once it's connected, an account keeps your projects in the cloud and lets you share them, to edit together live.")
+      );
+    } else if (s.status === "loading") {
+      body = e("p", { className: "bd-sec-empty" }, "Connecting…");
+    } else if (s.status === "in") {
+      body = e(
+        "div",
+        { className: "bd-acct-in" },
+        e("p", { className: "bd-acct-who" }, e(Icon, { name: "user" }), e("span", null, "Signed in as ", e("strong", null, s.account && s.account.email))),
+        s.joined ? e("p", null, "You've joined " + s.joined + (s.joined === 1 ? " shared project." : " shared projects.")) : null,
+        e("p", { className: "bd-inspect-sub" }, "Your projects are still saved in this browser. Keeping them in the cloud, and editing together, come next."),
+        e("div", { className: "bd-acct-actions" }, e("button", { type: "button", className: "bd-btn", disabled: busy, onClick: signOut }, "Sign out"))
+      );
+    } else if (s.status === "recovery") {
+      body = e(
+        "form",
+        { className: "bd-acct-form", onSubmit: submit },
+        passField("New password", "new-password"),
+        field("bd-acct-again", "The same again", { type: "password", autoComplete: "new-password", minLength: 8, value: again, onChange: function(ev) {
+          setAgain(ev.target.value);
+        } }),
+        e("div", { className: "bd-acct-actions" }, button("Save password"))
+      );
+    } else {
+      body = e(
+        "form",
+        { className: "bd-acct-form", onSubmit: submit },
+        e("p", { className: "bd-inspect-sub" }, mode === "forgot" ? "We'll email you a link to choose a new password." : mode === "signup" ? "Use any email you can open: we'll send it a link to confirm. Passwords need at least 8 characters." : "Sign in to keep your projects in the cloud and edit them with others."),
+        emailField,
+        mode === "forgot" ? null : passField("Password", mode === "signup" ? "new-password" : "current-password"),
+        e(
+          "div",
+          { className: "bd-acct-actions" },
+          button(mode === "signup" ? "Create account" : mode === "forgot" ? "Send the link" : "Sign in"),
+          mode === "signin" ? link("Forgot your password?", "forgot") : null
+        ),
+        e("p", { className: "bd-acct-switch" }, mode === "signin" ? e(React.Fragment, null, "New here? ", link("Create an account", "signup")) : e(React.Fragment, null, mode === "signup" ? "Have an account? " : "Remembered it? ", link("Sign in", "signin")))
+      );
+    }
+    return e(
+      "dialog",
+      { className: "bd-code bd-acct", ref, "aria-labelledby": "bd-acct-title", onClose: props.onClose },
+      e(
+        "div",
+        { className: "bd-code-head" },
+        e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-acct-title" }, title)),
+        e(
+          "div",
+          { className: "bd-code-actions" },
+          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: close }, e(Icon, { name: "close" }))
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-acct-body" },
+        body,
+        e(
+          "div",
+          { role: "status", "aria-live": "polite", className: cx("bd-acct-msg", msg && msg.error && "is-error", msg && msg.note && "is-note") },
+          msg ? e(React.Fragment, null, e(Icon, { name: msg.error ? "alert" : "check" }), e("span", null, msg.error || msg.note)) : null
+        )
+      )
+    );
+  }
+
   // assets/builder/ui/parts.js
   function ColorPick(props) {
     return e(
@@ -4825,6 +5179,8 @@
     var stageRef = useRef(null);
     var dialogRef = useRef(null);
     var importRef = useRef(null);
+    var accountRef = useRef(null);
+    var accountState = useAccount(), account2 = accountState[0];
     var rightRef = useRef(null);
     var leftPanelRef = useRef(null);
     var hidePanelsRef = useRef(false);
@@ -4891,6 +5247,17 @@
         setSay(text);
       }, 30);
     }, []);
+    var openAccount = function() {
+      var dlg = accountRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    };
+    var arrivedRef = useRef(ARRIVED.link);
+    useEffect(function() {
+      if (account2.status === "recovery" || arrivedRef.current && (account2.status === "in" || account2.status === "out")) {
+        arrivedRef.current = false;
+        openAccount();
+      }
+    }, [account2.status]);
     var select = useCallback(function(ids) {
       var next = ids.filter(function(x) {
         return x && x !== "root";
@@ -6670,6 +7037,7 @@
       return false;
     });
     keyRef.current = function(ev) {
+      if (accountRef.current && accountRef.current.open) return false;
       if (homeRef.current) {
         if (ev.key === "Escape") {
           closeProjects();
@@ -7900,6 +8268,12 @@
             e(
               "div",
               { className: "bd-code-actions" },
+              e(
+                "button",
+                { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account2.status === "in" ? "Signed in as " + account2.account.email : account2.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
+                e(Icon, { name: "user" }),
+                account2.status === "in" ? "Account" : "Sign in"
+              ),
               e(
                 "label",
                 { className: "bd-btn", title: "Open a .dovetail file as a new project" },
@@ -12270,22 +12644,39 @@
           { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || void 0 },
           e(
             "div",
-            { className: "bd-left-tabs bd-rail", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
-            RAIL.map(function(r) {
-              var isHome = r[0] === "home";
-              return e("button", {
-                key: r[0],
+            { className: "bd-left-tabs bd-rail" },
+            e(
+              "div",
+              { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
+              RAIL.map(function(r) {
+                var isHome = r[0] === "home";
+                return e("button", {
+                  key: r[0],
+                  type: "button",
+                  role: "tab",
+                  className: "bd-tab",
+                  "aria-selected": String(isHome ? home : !home && left === r[0]),
+                  "aria-controls": isHome ? void 0 : "bd-left-body",
+                  title: r[2],
+                  onClick: isHome ? openProjects : function() {
+                    setLeft(r[0]);
+                  }
+                }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
+              })
+            ),
+            e(
+              "button",
+              {
                 type: "button",
-                role: "tab",
-                className: "bd-tab",
-                "aria-selected": String(isHome ? home : !home && left === r[0]),
-                "aria-controls": isHome ? void 0 : "bd-left-body",
-                title: r[2],
-                onClick: isHome ? openProjects : function() {
-                  setLeft(r[0]);
-                }
-              }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
-            })
+                className: cx("bd-tab bd-rail-account", account2.status === "in" && "is-in"),
+                "aria-haspopup": "dialog",
+                "aria-label": account2.status === "in" ? "Account: signed in as " + account2.account.email : "Account",
+                title: account2.status === "in" ? "Signed in as " + account2.account.email : account2.status === "off" ? "Account (the cloud isn't connected yet)" : "Sign in or create an account",
+                onClick: openAccount
+              },
+              e(Icon, { name: "user" }),
+              e("span", { className: "bd-rail-label", "aria-hidden": "true" }, "Account")
+            )
           ),
           e(
             "div",
@@ -12353,6 +12744,7 @@
       versionsDialog(),
       componentDialog(),
       playDialog(),
+      e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1] }),
       e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say)
     );
   }

@@ -631,6 +631,7 @@ const GUIDE_PAGES = [
   ["working-together", "Working together", "CONTRIBUTING.md", "Branches, pull requests, builds and checks for everyone working on Dovetail."],
   ["changelog", "Changelog", "CHANGELOG.md", "What changed in each release, newest first."],
   ["changelog-strategy", "Changelog strategy", "docs/changelog.md", "How changes are recorded, versioned and announced."],
+  ["cloud", "Builder cloud", "docs/cloud.md", "Accounts, cloud projects and live editing for the Builder, on Supabase."],
   ["token-pipeline", "Token pipeline", "system/tools/README.md", "DTCG source of truth and the Style Dictionary build."],
   ["authoring-rules", "Authoring rules", "system/assets/notes/CLAUDE.from-standalone.md", "The always-on rules for building with Dovetail."],
   ["plan", "Build plan", "system/PLAN.md", "The four-phase plan, benchmarks and inventory."],
@@ -640,7 +641,7 @@ const GUIDE_PAGES = [
 /* Guide pages that are built and linkable but kept out of the menu, the
    sidebar, the guide index and search for now: notes for the people working
    on Dovetail rather than for the people using it. */
-const GUIDE_HIDDEN = new Set(["working-together", "changelog-strategy", "authoring-rules", "plan", "provenance", "token-pipeline"]);
+const GUIDE_HIDDEN = new Set(["working-together", "changelog-strategy", "cloud", "authoring-rules", "plan", "provenance", "token-pipeline"]);
 const GUIDE_SHOWN = GUIDE_PAGES.filter(([sl]) => !GUIDE_HIDDEN.has(sl));
 const GUIDE_ICON = { readme: "book", tokens: "braces", theming: "blend", accessibility: "shield", "headless-integration": "link", contributing: "blocks", changelog: "list", "token-pipeline": "sliders" };
 

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Builder cloud · Dovetail</title>
+<meta name="description" content="Accounts, cloud projects and live editing for the Builder, on Supabase.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=d2e228029f">
+<link rel="stylesheet" href="../assets/site.css?v=155271ec65">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
+  try {
+    var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">Builder cloud</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+    <li><a href="../builder.html">Builder</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Carousel.html">Carousel</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/MenuSheet.html">MenuSheet</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Builder cloud</li></ol></nav>
+<article class="prose doc">
+<h1 id="the-builder-s-cloud">The Builder's cloud</h1>
+<p>The Builder keeps projects in the browser it runs in. Its cloud adds accounts (email and password), projects kept online, sharing a project by email, and editing a page together live. It runs on <a href="https://supabase.com">Supabase</a>, and until one is connected the cloud is off: there's nothing to sign in to, nothing is fetched, and the Builder works exactly as before.</p>
+<p>Connecting one takes about fifteen minutes in Supabase's dashboard, and one small change here.</p>
+<h2 id="what-s-where">What's where</h2>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>What it does</th></tr></thead><tbody><tr><td><code>supabase/schema.sql</code></td><td>The tables, the access rules and the live-editing rules. Run once in Supabase.</td></tr><tr><td><code>supabase/tests/</code></td><td>The same rules tried against a local Postgres: who can see, change and join what.</td></tr><tr><td><code>assets/builder/cloud/config.js</code></td><td>The project's address and public key. Empty means off.</td></tr><tr><td><code>assets/builder/cloud/client.js</code></td><td>Sign in, sign up, reset a password; a live channel per page.</td></tr><tr><td><code>assets/builder/cloud/sync.js</code></td><td>Live editing: sends each edit as small changes and applies everyone else's.</td></tr><tr><td><code>assets/builder/cloud/Account.js</code></td><td>The Account button's dialog.</td></tr></tbody></table></div>
+<h2 id="connecting-a-supabase-project">Connecting a Supabase project</h2>
+<ol><li><strong>Make the project.</strong> At <a href="https://supabase.com">supabase.com</a>, sign in and choose <em>New project</em>. Any name; a region near the people who'll use it. Keep the database password somewhere safe. Nobody here needs it.</li></ol>
+<ol><li><strong>Make the tables.</strong> Open <em>SQL Editor</em>, start a new query, paste all of <code>supabase/schema.sql</code>, and run it. It should finish with no errors. Running it again later (after an update to it) is safe.</li></ol>
+<ol><li><strong>Turn on email accounts.</strong> Under <em>Authentication</em>, open the sign-in providers and check that <em>Email</em> is on, with <em>Confirm email</em> on too. Invites rely on it: an invite only turns into access once its address is confirmed, so nobody can claim someone else's invite. Set the minimum password length to 8.</li></ol>
+<ol><li><strong>Let it send email.</strong> Supabase's own sender is only for trying things out: it sends a few emails an hour, and only to the people on your Supabase team. Before anyone else signs up, give it a real sender under <em>Authentication &gt; Emails &gt; SMTP settings</em> (Resend, Postmark, Amazon SES or your own mail provider all work). The email templates there can be reworded too.</li></ol>
+<ol><li><strong>Say where the Builder lives.</strong> Under <em>Authentication &gt; URL configuration</em>, set the <em>Site URL</em> to the Builder's address, <code>https://graham-goebel.github.io/Dovetail/builder.html</code>, and add it under <em>Redirect URLs</em> as well. Add <code>http://localhost:8099/builder.html</code> too if you'll try it on your own machine (<code>npm run serve</code>). The links in sign-up and reset emails only ever lead back to an address on this list.</li></ol>
+<ol><li><strong>Hand over the address and the public key.</strong> Under <em>Project Settings &gt; API</em> (or <em>Data API</em> and <em>API Keys</em>), copy the <em>Project URL</em> and the <em>anon</em> (or <em>publishable</em>) key, and put them in <code>assets/builder/cloud/config.js</code>:</li></ol>
+<p>   ``<code>js    var CLOUD = {      url: &quot;https://abcdefghijklmnop.supabase.co&quot;,      anonKey: &quot;eyJhbGciOi...&quot;,    };    </code>``</p>
+<p>   Then <code>npm run build</code>, commit, and open a pull request.</p>
+<p>   Both are public by design: every visitor's browser gets them, and the    access rules from step 2 are what keep each project to its members. The    <strong>service_role</strong> (or <strong>secret</strong>) key is different: it skips every rule.    It never goes in this file, in a commit, in an issue or in a chat.</p>
+<h2 id="how-it-keeps-things-private">How it keeps things private</h2>
+<p>Every request from the Builder carries the signed-in person's token, and Postgres checks it against row-level security on every row:</p>
+<ul><li><strong>Projects</strong> are seen and changed by their members. Anyone signed in can make one, and becomes its owner. Only the owner deletes it.</li><li><strong>Members</strong>: the owner adds and removes people; anyone can leave.</li><li><strong>Invites</strong> are by email. Members invite; the person invited sees invites to their address, and signing in with that address, once confirmed, joins them to the project.</li><li><strong>Pages</strong> (each page's document) are read and written by the project's members. Each save counts up a version and records who made it.</li><li><strong>Live channels</strong> are named <code>project:&lt;project id&gt;:&lt;page id&gt;</code>, and only the project's members may listen or send on one.</li></ul>
+<p>Visitors who aren't signed in can't read or write anything.</p>
+<p>To try the rules yourself, with Postgres 16 installed:</p>
+<pre class="code" data-lang="sh"><code>sh supabase/tests/run.sh      # as a user that isn't root</code></pre>
+<p>It starts a throwaway database, stands in for Supabase's <code>auth</code> and <code>realtime</code> schemas, loads the schema twice, and walks through who can do what. It ends with <code>access: all checks passed</code>.</p>
+<h2 id="live-editing">Live editing</h2>
+<p>Each edit in the Builder is already a small list of changes (the same ones its undo history keeps). Once live editing is on, on a shared page the Builder sends each list to everyone else on that page's channel, and applies theirs as they arrive, without adding them to its own undo history. Changes to different things all survive, in any order; on the very same field, the last to arrive wins. Undo takes back only your own edits. A change too big for one message (a large uploaded image, say) is saved with the page instead, and everyone else loads it.</p>
+<p><code>npm run check:unit</code> runs the sync engine against an in-memory channel: <code>tools/check/unit/sync.test.mjs</code>.</p>
+<h2 id="what-s-built-and-what-s-next">What's built and what's next</h2>
+<p>Built: the schema and its tests, signing in and out, new accounts with a confirmed email, password resets, invites accepted on sign-in, and the sync engine. The Builder fetches nothing until the address and key are set.</p>
+<p>Next, once a project is connected: keeping projects in the cloud (and listing them on Home beside the ones in this browser), inviting people, and turning on live editing and presence for shared pages.</p>
+</article>
+<p class="muted">Source: <a href="../docs/cloud.md">docs/cloud.md</a></p>
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#what-s-where">What's where</a></li>
+    <li><a href="#connecting-a-supabase-project">Connecting a Supabase project</a></li>
+    <li><a href="#how-it-keeps-things-private">How it keeps things private</a></li>
+    <li><a href="#live-editing">Live editing</a></li>
+    <li><a href="#what-s-built-and-what-s-next">What's built and what's next</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">Builder cloud</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../docs/cloud.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="../docs/cloud.md" download="cloud.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="../docs/cloud.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fdocs%2Fcloud.md%3A%20the%20%22Builder%20cloud%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="Builder cloud" data-md="../docs/cloud.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=59b117cee2" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=105c15bc1c" defer></script>
+<script src="../assets/theme.js?v=bb429b4e44" defer></script>
+<script src="../assets/site.js?v=94c1c9b8f0" defer></script>
+
+</body>
+</html>
