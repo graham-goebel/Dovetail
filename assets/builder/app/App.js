@@ -10,6 +10,10 @@ import { FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
+/* Past this many frames, only frames near the view stay live. */
+var VIRTUAL_AFTER = 6;
+/* However far out the view is zoomed, at most this many frames are live. */
+var LIVE_MAX = 8;
 /* How many steps undo goes back. A step holds only what changed. */
 var HISTORY_MAX = 200;
 /* Documents are frozen: a write outside change() fails loudly instead of
@@ -190,6 +194,10 @@ function App(props) {
   var spaceRef = useRef(false);
   var frameEls = useRef({});
   var rendered = useRef({});
+  /* Frames already looked at for components whose slots need filling. */
+  var scanned = useRef(new WeakSet());
+  /* Which frames are live on the canvas (see liveNow). */
+  var liveRef = useRef({});
   var grows = useRef({});
   var stageRef = useRef(null);
   var dialogRef = useRef(null);
@@ -354,7 +362,9 @@ function App(props) {
   /* For the checks: the document and project on screen, and a way to wait
      for the save. */
   useEffect(function () {
-    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store };
+    window.__builder = { doc: function () { return docRef.current; }, project: function () { return projectRef.current; }, library: function () { return libRef.current; }, flush: flush, store: store,
+      /* One prop on one layer, through the same undoable change a control makes. */
+      edit: function (id, key, value) { return change(function (d) { var at = locate(d, id); if (!at) return null; at.node.props[key] = value; return undefined; }); } };
   }, []);
   useEffect(function () {
     storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, stage: stageColor })); });
@@ -480,7 +490,8 @@ function App(props) {
   /* The first view: the active frame on its own, or every frame across. */
   useEffect(function () {
     if (camState[0] || !box.w) return;
-    if (doc.frames.length > 1 && wide) fitWidth(); else showFrame(doc.active);
+    /* A big project opens on its active frame, not the whole board. */
+    if (doc.frames.length > 1 && doc.frames.length <= VIRTUAL_AFTER && wide) fitWidth(); else showFrame(doc.active);
   }, [box.w]);
 
   /* The wheel pans; with Ctrl or Cmd (and a trackpad pinch) it zooms at
@@ -1283,8 +1294,14 @@ function App(props) {
     if (first) {
       var tpl = slotSample;
       var wants = function (n) { var m = META[n.type]; return !!m && !m.builder && !hasSlots(n) && tpl(n.type).length > 0; };
+      /* Only frames that changed since the last look need looking at. */
       var missing = false;
-      doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { if (wants(c)) missing = true; walk(c); }); })(f.root); });
+      doc.frames.forEach(function (f) {
+        if (scanned.current.has(f)) return;
+        var here = false;
+        (function walk(n) { (n.children || []).forEach(function (c) { if (wants(c)) here = true; walk(c); }); })(f.root);
+        if (here) missing = true; else scanned.current.add(f);
+      });
       if (missing) {
         quiet(function (d) {
           d.frames.forEach(function (f) {
@@ -1309,9 +1326,12 @@ function App(props) {
       var a = api(f.id);
       if (!a) return;
       any = any || a;
-      var key = JSON.stringify(f) + "|" + preview;
-      if (rendered.current[f.id] === key) return;
-      rendered.current[f.id] = key;
+      /* Documents are immutable, so a frame nobody edited is the same object:
+         comparing identity costs nothing, where serialising the frame cost
+         its whole size on every edit. */
+      var last = rendered.current[f.id];
+      if (last && last.frame === f && last.preview === preview) return;
+      rendered.current[f.id] = { frame: f, preview: preview };
       grows.current[f.id] = 0;
       a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare });
     });
@@ -3932,6 +3952,34 @@ function App(props) {
   var anyReady = doc.frames.some(function (f) { return ready[f.id]; });
 
   var stageDark = stageColor && (function (h) { var r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b2 = parseInt(h.slice(5, 7), 16); return (0.2126 * r + 0.7152 * g + 0.0722 * b2) / 255 < 0.5; })(stageColor);
+  /* Big projects keep only frames near the view live. A frame comes alive
+     within half a screen of the view and is let go past a screen and a
+     half, so panning doesn't make frames flicker in and out. The active
+     frame is always live; up to VIRTUAL_AFTER frames, all are, and past
+     that never more than LIVE_MAX. */
+  var liveNow = {};
+  (function () {
+    var many = doc.frames.length > VIRTUAL_AFTER;
+    var keep = liveRef.current;
+    var near = function (b, k) {
+      if (!cam || !box.w || !b) return true;
+      var vx = -cam.x / cam.z, vy = -cam.y / cam.z, vw = box.w / cam.z, vh = box.h / cam.z;
+      return b.x < vx + vw * (1 + k) && b.x + b.w > vx - vw * k && b.y < vy + vh * (1 + k) && b.y + b.h > vy - vh * k;
+    };
+    var mid = { x: (box.w / 2 - cam.x) / cam.z, y: (box.h / 2 - cam.y) / cam.z };
+    var gap = function (b) { return b ? Math.hypot(b.x + b.w / 2 - mid.x, b.y + b.h / 2 - mid.y) : Infinity; };
+    var wanted = doc.frames.filter(function (f) {
+      return !many || f.id === doc.active || near(boxes[f.id], keep[f.id] ? 1.5 : 0.5);
+    });
+    /* Zoomed far out, the nearest to the middle win: the active frame,
+       then frames already live (so they don't reload), then by distance. */
+    if (many && wanted.length > LIVE_MAX) {
+      var rank = function (f) { return f.id === doc.active ? 0 : keep[f.id] ? 1 : 2; };
+      wanted = wanted.slice().sort(function (x, y) { return rank(x) - rank(y) || gap(boxes[x.id]) - gap(boxes[y.id]); }).slice(0, LIVE_MAX);
+    }
+    wanted.forEach(function (f) { liveNow[f.id] = true; });
+    liveRef.current = liveNow;
+  })();
   var stage = e("div", {
     className: cx("bd-stage", drag && "is-dragging", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"), ref: stageRef,
     style: stageColor ? { backgroundColor: stageColor } : undefined,
@@ -3954,6 +4002,13 @@ function App(props) {
     e("div", { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
       doc.frames.map(function (f) {
         var b = boxes[f.id];
+        if (!liveNow[f.id]) {
+          /* Far from view in a big project: a light stand-in until it's panned to. */
+          return e("div", {
+            key: f.id, className: cx("bd-frame", "bd-frame-ghost", f.bare && "is-bare"), "aria-hidden": "true",
+            style: { left: b.x + "px", top: b.y + "px", width: b.w + "px", height: b.h + "px" },
+          }, e("span", { className: "bd-frame-ghost-name" }, f.name));
+        }
         return e("iframe", {
           key: f.id, className: cx("bd-frame", f.id === doc.active && "is-active", f.bare && "is-bare"),
           ref: function (el) { if (el) frameEls.current[f.id] = el; else delete frameEls.current[f.id]; },

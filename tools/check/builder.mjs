@@ -875,11 +875,17 @@ try {
     expect(names.includes("actions") && names.includes("media"), `the hero's slots come from its types, got ${names}`);
     ok(`a HeroBlock on the canvas gets its slots (${names.join(", ")}) filled from its sample`);
 
-    const pt = await frame().evaluate(() => { const b = [...document.querySelectorAll("button")].find((x) => /Shop the collection/.test(x.textContent)); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    /* The frame draws the filled slots a moment after the document has them;
+       the hero's own button shows before that, and isn't the slot's. */
+    const SLOTTED = '[data-bf-type="Slot"] button';
+    await frame().waitForFunction((sel) => [...document.querySelectorAll(sel)].some((x) => /Shop the collection/.test(x.textContent)), SLOTTED);
+    const pt = await frame().evaluate((sel) => { const b = [...document.querySelectorAll(sel)].find((x) => /Shop the collection/.test(x.textContent)); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, SLOTTED);
     const ib = await page.locator("iframe.bd-frame").boundingBox();
     const sc = await page.evaluate(() => { const i = document.querySelector("iframe.bd-frame"); return i.getBoundingClientRect().width / parseFloat(i.style.width); });
     await page.mouse.click(ib.x + pt.x * sc, ib.y + pt.y * sc);
-    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || "")).catch(async () => {
+      throw new Error(`clicking the hero's button should select it, got "${await page.locator(".bd-inspect-title").first().textContent().catch(() => "nothing")}"`);
+    });
     const crumbs = await page.locator(".bd-crumbs").first().textContent();
     expect(/HeroBlock.*Actions.*Button/.test(crumbs), `the path runs through the slot, got ${crumbs}`);
     await tab(page, "Content");
@@ -1790,6 +1796,70 @@ try {
     expect(left.name === "My old page" && left.old === null, `work saved before projects moves into a project of its own, got ${JSON.stringify(left)}`);
     ok("a layout saved before projects opens as its own project, My old page, and the old entry is cleared");
     await moved.page.close();
+  });
+
+  await step("Performance: a big project opens, keeps far frames as stand-ins, and edits stay quick", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    /* A project of 24 landing pages: copies of the first frame with fresh ids. */
+    const FRAMES = 24;
+    await page.evaluate(async (n) => {
+      const one = JSON.parse(JSON.stringify(window.__builder.doc().frames[0]));
+      let seq = 0;
+      const renumber = (node) => { node.id = "perf" + (seq++); (node.children || []).forEach(renumber); };
+      const frames = [];
+      for (let i = 0; i < n; i++) {
+        const f = JSON.parse(JSON.stringify(one));
+        f.id = "pf" + i; f.name = "Page " + (i + 1); delete f.x; delete f.y;
+        f.root.children.forEach(renumber);
+        frames.push(f);
+      }
+      const meta = await window.__builder.store.createProject("Big project", { frames, active: "pf0" });
+      window.__builder.store.setLastOpened(meta.id);
+      await window.__builder.flush();
+    }, FRAMES);
+    const t0 = Date.now();
+    await page.reload();
+    await page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame.is-active"); try { return !!(window.__builder && i && i.contentDocument.querySelector('[data-bf-type="HeroBlock"]')); } catch (err) { return false; } }, null, { timeout: 30000 });
+    const boot = Date.now() - t0;
+    const counts = await page.evaluate(() => ({ live: document.querySelectorAll("iframe.bd-frame").length, ghosts: document.querySelectorAll(".bd-frame-ghost").length, name: window.__builder.project().name }));
+    expect(counts.name === "Big project" && counts.live + counts.ghosts === FRAMES, `the big project opens with every frame placed, got ${JSON.stringify(counts)}`);
+    expect(counts.live <= 8 && counts.ghosts >= FRAMES - 8, `only frames near the view are live, got ${counts.live} live and ${counts.ghosts} stand-ins`);
+    expect(boot < 15000, `a ${FRAMES}-frame project should open in under 15s here, took ${boot}ms`);
+    ok(`a ${FRAMES}-frame project opened in ${boot}ms with ${counts.live} live frames and ${counts.ghosts} stand-ins`);
+
+    /* Edit latency: a change to a heading in the active frame, until the frame shows it. */
+    const heading = await page.evaluate(() => { let id = null; (function w(n) { (n.children || []).forEach((c) => { if (!id && c.type === "HeroBlock") id = c.id; w(c); }); })(window.__builder.doc().frames[0].root); return id; });
+    const times = [];
+    for (let i = 0; i < 12; i++) {
+      times.push(await page.evaluate(async ({ id, i }) => {
+        const text = "Perf title " + i;
+        const frame = document.querySelector("iframe.bd-frame.is-active");
+        const start = performance.now();
+        window.__builder.edit(id, "title", text);
+        await new Promise((resolve) => { const tick = () => (frame.contentDocument.body.textContent.includes(text) ? resolve() : requestAnimationFrame(tick)); tick(); });
+        return performance.now() - start;
+      }, { id: heading, i }));
+    }
+    times.sort((a, b) => a - b);
+    const median = Math.round(times[Math.floor(times.length / 2)]);
+    expect(median < 200, `an edit should show in the frame in under 200ms (median), took ${median}ms; all: ${times.map(Math.round)}`);
+    ok(`an edit reaches the frame in ${median}ms (median of 12) with ${FRAMES} frames in the project`);
+
+    /* Zoomed out to the whole board, no more than a handful stay live. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+    await page.keyboard.press("Shift+Digit1");
+    await page.waitForTimeout(400);
+    const wide = await page.evaluate(() => ({ live: document.querySelectorAll("iframe.bd-frame").length, ghosts: document.querySelectorAll(".bd-frame-ghost").length, labels: document.querySelectorAll(".bd-flabel").length }));
+    expect(wide.live <= 8 && wide.live + wide.ghosts === FRAMES, `zoomed out, at most 8 frames should be live, got ${wide.live} live and ${wide.ghosts} stand-ins`);
+    expect(wide.labels === FRAMES, `every frame keeps its label, got ${wide.labels}`);
+    ok(`zoomed out to all ${FRAMES} frames, ${wide.live} are live and the rest are stand-ins`);
+
+    /* Selecting a far frame brings it alive. */
+    await page.locator(".bd-labels .bd-flabel-btn", { hasText: "Page 24" }).first().click({ force: true }).catch(() => {});
+    await page.evaluate(() => { const b = [...document.querySelectorAll(".bd-flabel")].find((x) => x.textContent.includes("Page 24")); if (b) b.querySelector("button")?.click(); });
+    await page.waitForFunction(() => [...document.querySelectorAll("iframe.bd-frame")].some((f) => /Page 24/.test(f.title)), null, { timeout: 15000 });
+    ok("selecting Page 24 brings it alive on the canvas");
+    await page.close();
   });
 
   await step("Share links open what they encode, and nothing the inspector can't set", async () => {
