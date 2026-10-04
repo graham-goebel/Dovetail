@@ -3877,6 +3877,17 @@ span.bd-layer-twisty.is-open .bd-ic {
   border-color: var(--dt-border-strong);
 }
 
+/* A component's own padding, offered as its default: dashed, since it is
+   what applies when Padding is unset rather than a token to set. */
+.bd-var-own {
+  grid-column: 1 / -1;
+  border-style: dashed;
+}
+
+.bd-var-own .bd-var-name {
+  color: var(--dt-text-secondary);
+}
+
 .bd-var[aria-pressed="true"] {
   border-color: var(--dt-border-selected);
   box-shadow: inset 0 0 0 1px var(--dt-border-selected);
