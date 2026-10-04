@@ -106,3 +106,39 @@ test("pasting tells JSON, JSX and nonsense apart", () => {
   assert.match(readLayout("not a layout").error, /isn't JSON, JSX or a builder link/);
   assert.match(readLayout("<Card><Stack></Card>").error, /can't be read/);
 });
+
+test("convert turns one container into another, keeping what's in it, its name, place and id", () => {
+  const h = make("Heading"), t = make("Text");
+  const section = make("Section", {}, [h, t]);
+  section.name = "Intro";
+  const d = doc(section);
+  assert.equal(ops.convert(d, section.id, "Group"), section.id);
+  const g = locate(d, section.id).node;
+  assert.equal(g.type, "Group");
+  assert.equal(g.name, "Intro");
+  assert.deepEqual(g.children.map((c) => c.id), [h.id, t.id]);
+  assert.equal(g.props.direction, "column", "a Group comes laid out");
+  assert.equal(g.style.padding, "lg", "with the padding a band had");
+  assert.equal(ops.convert(d, section.id, "Section"), section.id);
+  assert.equal(locate(d, section.id).node.type, "Section");
+  const row = make("Inline", {}, [make("Button")]);
+  const d2 = doc(row);
+  ops.convert(d2, row.id, "Group");
+  assert.equal(locate(d2, row.id).node.props.direction, "row", "an Inline becomes a row");
+  assert.equal(ops.convert(d2, row.id, "Heading"), null, "only containers turn into containers");
+  assert.equal(ops.convert(d2, h.id, "Group"), null, "something not there turns into nothing");
+});
+
+test("in a structured frame, grouping or wrapping gives a Group auto layout", () => {
+  const a = make("Heading"), b = make("Text");
+  const d = doc(make("Group", { direction: "column", gap: "md" }, [a, b], { padding: "md" }));
+  d.frames[0].mode = "structured";
+  const g = ops.group(d, [a.id, b.id]);
+  const box = locate(d, g).node;
+  assert.ok(box.props.direction && box.props.gap && box.style.padding, `a new Group in a structured frame is laid out, got ${JSON.stringify([box.props, box.style])}`);
+  const w = ops.wrap(d, a.id, "Group");
+  assert.ok(locate(d, w).node.props.direction, "and so is a wrap in a Group");
+  const free = doc(make("Heading"));
+  const g2 = ops.group(free, [free.frames[0].root.children[0].id]);
+  assert.equal(locate(free, g2).node.props.direction, undefined, "a freeform frame's Group is left to the person");
+});

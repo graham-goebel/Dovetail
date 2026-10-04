@@ -560,7 +560,7 @@ try {
     ok("an Image takes a pasted https URL, and refuses a javascript: one");
 
     await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
-    await page.locator(".bd-tray-item", { hasText: "Frame" }).click();
+    await page.locator(".bd-tray-item", { hasText: /^Frame$/ }).click();
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     await frame(1).waitForFunction(() => !!window.BuilderFrame && !!document.querySelector('[data-bf-slot="root"]'));
     await fitAll(page);
@@ -590,7 +590,7 @@ try {
       trays[g] = await page.$$eval(".bd-tray-item", (b) => b.map((x) => x.querySelector(".bd-tray-label").textContent + (x.getAttribute("aria-disabled") ? "*" : "")));
       await page.locator(`.bd-tool-group[aria-label^="${g},"]`).click();
     }
-    expect(trays.Layout.join() === "Group,Section,Frame,Page", `the Layout tray, got ${trays.Layout}`);
+    expect(trays.Layout.join() === "Group,Section,Frame,Tall frame", `the Layout tray, got ${trays.Layout}`);
     expect(trays.Text.join() === "Text,Heading", `the Text tray, got ${trays.Text}`);
     expect(trays["Images and media"].join() === "Image,Video,Cover,Media,Figure,Icons*,Illustrations*", `the media tray, with icons and illustrations to come, got ${trays["Images and media"]}`);
     expect(await page.locator(".bd-tray.is-open").count() === 0, "pressing a group again closes its tray");
@@ -637,7 +637,7 @@ try {
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     ok("F adds a frame");
     await page.locator('.bd-tool-group[aria-label^="Layout,"]').click();
-    await page.locator(".bd-tray-item", { hasText: "Page" }).click();
+    await page.locator(".bd-tray-item", { hasText: "Tall frame" }).click();
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 3);
     const pageFrame = (await saved()).frames[2];
     expect(pageFrame.hug === true && pageFrame.root.children[0].type === "Section", `Page adds a frame that hugs its content, started with a Section, got ${JSON.stringify(pageFrame).slice(0, 160)}`);
@@ -1064,8 +1064,8 @@ try {
     await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames[0].root.children[0].children; });
 
     await page.locator(".bd-start").click();
-    expect((await page.locator(".bd-new-kind .bd-new-name").allTextContents()).join(",") === "Freeform canvas,Structured page" && await page.locator(".bd-newmenu .bd-new-tpl").count() >= 3 && await page.locator("dialog[open]").count() === 0, "New opens a menu, not a dialog: a freeform canvas, a structured page, and the templates");
-    await page.locator(".bd-new-kind", { hasText: "Structured page" }).click();
+    expect((await page.locator(".bd-new-kind .bd-new-name").allTextContents()).join(",") === "Freeform frame,Structured frame" && await page.locator(".bd-newmenu .bd-new-tpl").count() >= 3 && await page.locator("dialog[open]").count() === 0, "New opens a menu, not a dialog: a freeform frame, a structured frame, and the templates");
+    await page.locator(".bd-new-kind", { hasText: "Structured frame" }).click();
     let f = await lastFrame();
     expect(f.mode === "structured" && f.root.children[0].type === "Group", `a structured page starts with a Group, got ${JSON.stringify(f.root.children.map((c) => c.type))}`);
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
@@ -1456,7 +1456,7 @@ try {
     ok(`a frame lists no components; Social post is 1080 × 1350 with data-type-scale="social", its headline ${before}px to ${after}px, and Type scale sets it back`);
 
     await page.locator(".bd-start").click();
-    await page.locator(".bd-new-kind", { hasText: "Freeform canvas" }).click();
+    await page.locator(".bd-new-kind", { hasText: "Freeform frame" }).click();
     await poll(async () => (await saved()).frames.length, (n) => n === 2);
     const w = page.locator("input[aria-label='Frame width']");
     await w.fill("40");
@@ -1464,7 +1464,7 @@ try {
     const tiny = await poll(async () => (await saved()).frames[1].width, (v) => v === 40);
     expect(tiny === 40, `a freeform frame takes any width, got ${tiny}`);
     await page.locator(".bd-start").click();
-    await page.locator(".bd-new-kind", { hasText: "Structured page" }).click();
+    await page.locator(".bd-new-kind", { hasText: "Structured frame" }).click();
     const page3 = await poll(async () => (await saved()).frames[2], Boolean);
     const g = page3.root.children[0];
     expect(page3.gap && g.type === "Group" && g.props.direction === "column" && g.props.gap && g.style.padding, `a structured page and its Group get auto layout, got gap ${page3.gap}, ${JSON.stringify(g.props)} ${JSON.stringify(g.style)}`);
@@ -2063,6 +2063,48 @@ try {
     const resized = (await saved()).frames.find((x) => x.id === hid);
     expect(resized.sized && resized.width > hb + 10, `dragging a loose object's edge sets its width, got ${resized.width} (was ${Math.round(hb)})`);
     ok(`a loose object's right edge sets its width, ${Math.round(hb)} to ${resized.width}`);
+    await page.close();
+  });
+
+  await step("Groups and frames: a Section turns into a Group and back, a layer into a frame, a frame into a loose Group, and that into a frame again", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const find = (d, id) => { let out = null; d.frames.forEach((f) => (function w(n) { (n.children || []).forEach((c) => { if (c.id === id) out = { node: c, frame: f }; w(c); }); })(f.root)); return out; };
+    const turn = async (label) => { await page.locator('.bd-right .bd-dd[aria-label="Turn into"]').click(); await option(page, label).click(); };
+    await category(page, "Layout");
+    await page.locator('.bd-tile[data-type="Section"]').click();
+    await page.waitForFunction(() => /Section/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    const sid = await page.evaluate(() => { let id = null; (function w(n) { (n.children || []).forEach((c) => { if (c.type === "Section") id = c.id; w(c); }); })(window.__builder.doc().frames[0].root); return id; });
+    await turn("Turn into Group");
+    await page.waitForFunction((id) => { let t = null; (function w(n) { (n.children || []).forEach((c) => { if (c.id === id) t = c.type; w(c); }); })(window.__builder.doc().frames[0].root); return t === "Group"; }, sid);
+    const g = find(await saved(), sid).node;
+    expect(g.props.direction === "column" && g.style.padding === "lg", `the Group comes laid out, with the Section's padding, got ${JSON.stringify([g.props, g.style])}`);
+    await turn("Turn into Section");
+    await page.waitForFunction((id) => JSON.stringify(window.__builder.doc()).includes('"id":"' + id + '","type":"Section"'), sid);
+    ok("a Section turns into a laid-out Group, still selected, and back into a Section");
+
+    const framesBefore = (await saved()).frames.length;
+    await turn("Turn into a frame");
+    await page.waitForFunction((n) => window.__builder.doc().frames.length === n + 1, framesBefore);
+    const d1 = await saved();
+    const own = find(d1, sid);
+    expect(own && own.frame.root.children.length === 1 && own.frame.id === d1.active && !find({ frames: [d1.frames[0]] }, sid), "the Section is a frame of its own now, and gone from the first");
+    ok("Turn into a frame puts the Section in a frame of its own beside the first");
+
+    /* With nothing in it selected, the inspector is the frame's. */
+    await release(page);
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-right .bd-frame-menu").click();
+    await option(page, "Turn into a group").click();
+    await page.waitForFunction((fid) => { const f = window.__builder.doc().frames.find((x) => x.id === fid); return f && f.bare; }, own.frame.id);
+    const loose = (await saved()).frames.find((x) => x.id === own.frame.id);
+    expect(loose.root.children.length === 1 && loose.root.children[0].type === "Group" && loose.root.children[0].children[0].id === sid, `the frame is a loose Group holding the Section, got ${JSON.stringify(loose.root.children.map((c) => c.type))}`);
+    await release(page);
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-right .bd-frame-menu").click();
+    await option(page, "Turn into a frame").click();
+    await page.waitForFunction((fid) => { const f = window.__builder.doc().frames.find((x) => x.id === fid); return f && !f.bare; }, own.frame.id);
+    ok("its frame turns into a Group, loose on the canvas where the frame was, and that turns back into a frame");
     await page.close();
   });
 
