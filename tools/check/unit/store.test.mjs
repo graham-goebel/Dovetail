@@ -4,7 +4,7 @@
 import "./setup.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { makeStore, localBackend, VERSIONS_MAX } from "../../../assets/builder/model/store.js";
+import { makeStore, localBackend, pagesOf, pageOf, MAIN, VERSIONS_MAX } from "../../../assets/builder/model/store.js";
 import { make, makeFrame } from "../../../assets/builder/model/tree.js";
 
 const doc = (name = "Home") => { const f = makeFrame(name, "desktop"); f.root.children = [make("Heading", { children: name })]; return { frames: [f], active: f.id }; };
@@ -69,4 +69,58 @@ test("a saved document is cleaned when it loads", async () => {
   const loaded = await s.loadDoc(a.id);
   assert.deepEqual(loaded.frames[0].root.children.map((c) => c.type), ["Heading", "Button"]);
   assert.equal(loaded.frames[0].root.children[1].props.onClick, undefined);
+});
+
+test("pages: each its own canvas, added, renamed, moved, copied and removed", async () => {
+  const s = fresh();
+  const a = await s.createProject("Kiln site", doc("Home"));
+  assert.deepEqual(pagesOf(a).map((p) => p.name), ["Page 1"], "a new project has one page");
+  const added = await s.addPage(a.id, "About", doc("About"));
+  const about = added.page.id;
+  assert.deepEqual(pagesOf(added.meta).map((p) => p.name), ["Page 1", "About"]);
+  assert.equal((await s.loadDoc(a.id)).frames[0].root.children[0].props.children, "Home", "the first page is the project's own document");
+  assert.equal((await s.loadDoc(a.id, about)).frames[0].root.children[0].props.children, "About", "a page has its own");
+  await s.saveDoc(a.id, doc("About again"), about);
+  assert.equal((await s.loadDoc(a.id, about)).frames[0].root.children[0].props.children, "About again");
+  assert.equal((await s.loadDoc(a.id)).frames[0].root.children[0].props.children, "Home", "saving one page leaves the other");
+  assert.equal((await s.getProject(a.id)).frames, 2, "the project counts frames across its pages");
+  await s.renamePage(a.id, MAIN, "Home");
+  const moved = await s.movePage(a.id, about, -1);
+  assert.deepEqual(pagesOf(moved).map((p) => p.name), ["About", "Home"]);
+  const copy = await s.duplicatePage(a.id, about);
+  assert.deepEqual(pagesOf(copy.meta).map((p) => p.name), ["About", "About copy", "Home"], "a copy goes right after the page it copies");
+  await s.addVersion(a.id, doc("About v"), "Saved", about);
+  assert.equal((await s.listVersions(a.id, about)).length, 1, "versions are kept per page");
+  assert.equal((await s.listVersions(a.id, MAIN)).length, 0);
+  await s.setPage(a.id, about);
+  assert.equal(pageOf(await s.getProject(a.id)), about, "the project opens on the page last open");
+  const after = await s.deletePage(a.id, about);
+  assert.deepEqual(pagesOf(after).map((p) => p.name), ["About copy", "Home"]);
+  assert.equal(await s.loadDoc(a.id, about), null, "its document goes");
+  assert.equal((await s.listVersions(a.id, about)).length, 0, "and its versions");
+  assert.notEqual(pageOf(after), about, "the project opens elsewhere");
+  const last = await s.deletePage(a.id, copy.page.id);
+  assert.equal(pagesOf(await s.deletePage(a.id, MAIN)).length, 1, "the last page can't be removed");
+  assert.ok(last);
+});
+
+test("pages: a project saved before pages is one page, and copies and deletes take every page", async () => {
+  const s = fresh();
+  const a = await s.createProject("Old", doc("Old"));
+  /* As saved before pages: no pages list. */
+  const raw = JSON.parse(window.localStorage.getItem("dovetail-builder-store"));
+  delete raw.projects[a.id].pages; delete raw.projects[a.id].page; delete raw.projects[a.id].pageFrames;
+  window.localStorage.setItem("dovetail-builder-store", JSON.stringify(raw));
+  const old = await s.getProject(a.id);
+  assert.deepEqual(pagesOf(old).map((p) => p.id), [MAIN]);
+  assert.equal(pageOf(old), MAIN);
+  const p2 = (await s.addPage(a.id, "Two", doc("Two"))).page.id;
+  assert.equal((await s.getProject(a.id)).frames, 2, "the old page's frames still count");
+  const copy = await s.duplicateProject(a.id);
+  assert.deepEqual(pagesOf(copy).map((p) => p.name), ["Page 1", "Two"]);
+  const copyTwo = pagesOf(copy)[1].id;
+  assert.equal((await s.loadDoc(copy.id, copyTwo)).frames[0].root.children[0].props.children, "Two");
+  await s.deleteProject(a.id);
+  assert.equal(await s.loadDoc(a.id, p2), null, "deleting a project takes every page");
+  assert.equal(await s.loadDoc(a.id), null);
 });

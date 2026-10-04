@@ -8,7 +8,7 @@
    Every call returns a promise. Nothing here knows about React. */
 
 import { BACKUP_KEY, LIB_KEY, STORE_KEY, storage } from "../config.js";
-import { clean, uid } from "./tree.js";
+import { clean, emptyDoc, uid } from "./tree.js";
 
 var DB_NAME = "dovetail-builder";
 var DB_VERSION = 1;
@@ -17,6 +17,19 @@ var STORES = ["projects", "docs", "versions", "library"];
 var VERSIONS_MAX = 30;
 var VERSION_EVERY = 10 * 60 * 1000;
 var LAST_KEY = "dovetail-builder-last";
+/* A project's pages, each its own canvas. The first page's document is the
+   project's own (as before pages), so a project saved earlier is simply a
+   project of one page. */
+var MAIN = "main";
+function docKey(id, page) { return !page || page === MAIN ? id : id + ":" + page; }
+function pagesOf(meta) {
+  return meta && Array.isArray(meta.pages) && meta.pages.length ? meta.pages : [{ id: MAIN, name: "Page 1" }];
+}
+/* The page a project opens on: the one last open, or its first. */
+function pageOf(meta) {
+  var pages = pagesOf(meta);
+  return pages.some(function (p) { return p.id === (meta && meta.page); }) ? meta.page : pages[0].id;
+}
 var FALLBACK_KEY = "dovetail-builder-store";
 
 /* ------------------------------------------------------------ the backend */
@@ -110,29 +123,95 @@ function makeStore(b) {
       return b.all("projects").then(function (list) { return (list || []).sort(function (x, y) { return y.updatedAt - x.updatedAt; }); });
     },
     getProject: function (id) { return b.get("projects", id); },
-    loadDoc: function (id) {
-      return b.get("docs", id).then(function (rec) { return rec ? clean(rec.doc) : null; });
+    loadDoc: function (id, page) {
+      return b.get("docs", docKey(id, page)).then(function (rec) { return rec ? clean(rec.doc) : null; });
     },
     /* A new project, opened next; its first version is where it started.
        extra may carry its settings: the canvas colour behind its frames
        (stage) and its Configure theme. */
     createProject: function (name, doc, extra) {
-      var meta = Object.assign({ id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null }, settingsOf(extra));
+      var meta = Object.assign({ id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null,
+        pages: [{ id: MAIN, name: "Page 1" }], page: MAIN, pageFrames: { main: count(doc) } }, settingsOf(extra));
       return b.put("projects", meta)
         .then(function () { return b.put("docs", { id: meta.id, doc: doc }); })
         .then(function () { return meta; });
     },
     /* The document, and the project's edited time and frame count. Every so
        often the save is also kept as a version. */
-    saveDoc: function (id, doc) {
+    saveDoc: function (id, doc, page) {
+      page = page || MAIN;
       return b.get("projects", id).then(function (meta) {
         if (!meta) throw new Error("That project is gone.");
         meta.updatedAt = now();
-        meta.frames = count(doc);
-        return b.put("docs", { id: id, doc: doc }).then(function () { return b.put("projects", meta); }).then(function () {
-          var last = lastVersionAt[id] || meta.createdAt;
-          if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc, "Autosave");
+        tally(meta, page, count(doc));
+        var key = docKey(id, page);
+        return b.put("docs", { id: key, doc: doc }).then(function () { return b.put("projects", meta); }).then(function () {
+          var last = lastVersionAt[key] || meta.createdAt;
+          if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc, "Autosave", page);
         }).then(function () { return meta; });
+      });
+    },
+    /* Pages. Each returns the project as it is after. */
+    addPage: function (id, name, doc, after) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var pages = pagesOf(meta).slice();
+        var page = { id: "pg" + uid(), name: (name || "Page " + (pages.length + 1)).slice(0, 60) };
+        var at = pages.findIndex(function (p) { return p.id === after; });
+        pages.splice(at >= 0 ? at + 1 : pages.length, 0, page);
+        meta.pages = pages;
+        tally(meta, page.id, count(doc));
+        return b.put("docs", { id: docKey(id, page.id), doc: doc }).then(function () { return b.put("projects", meta); })
+          .then(function () { return { meta: meta, page: page }; });
+      });
+    },
+    renamePage: function (id, pageId, name) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var named = String(name || "").trim().slice(0, 60);
+        meta.pages = pagesOf(meta).map(function (p) { return p.id === pageId && named ? { id: p.id, name: named } : p; });
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    movePage: function (id, pageId, by) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var pages = pagesOf(meta).slice();
+        var at = pages.findIndex(function (p) { return p.id === pageId; }), to = at + by;
+        if (at < 0 || to < 0 || to >= pages.length) return meta;
+        pages.splice(to, 0, pages.splice(at, 1)[0]);
+        meta.pages = pages;
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    duplicatePage: function (id, pageId) {
+      return Promise.all([b.get("projects", id), api.loadDoc(id, pageId)]).then(function (got) {
+        var from = pagesOf(got[0]).filter(function (p) { return p.id === pageId; })[0];
+        if (!got[0] || !from || !got[1]) return null;
+        return api.addPage(id, from.name + " copy", got[1], pageId);
+      });
+    },
+    /* A project keeps at least one page. */
+    deletePage: function (id, pageId) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        var pages = pagesOf(meta);
+        if (pages.length < 2 || !pages.some(function (p) { return p.id === pageId; })) return meta;
+        meta.pages = pages.filter(function (p) { return p.id !== pageId; });
+        if (meta.pageFrames) delete meta.pageFrames[pageId];
+        meta.frames = sum(meta);
+        if (meta.page === pageId) meta.page = meta.pages[0].id;
+        return api.listVersions(id, pageId).then(function (vs) {
+          return Promise.all(vs.map(function (v) { return b.del("versions", v.key); }));
+        }).then(function () { return b.del("docs", docKey(id, pageId)); }).then(function () { return b.put("projects", meta); }).then(function () { return meta; });
+      });
+    },
+    /* The page last open, which the project opens on next time. */
+    setPage: function (id, pageId) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta || meta.page === pageId) return meta;
+        meta.page = pageId;
+        return b.put("projects", meta).then(function () { return meta; });
       });
     },
     renameProject: function (id, name) {
@@ -162,31 +241,46 @@ function makeStore(b) {
         return b.put("projects", meta).then(function () { return meta; });
       });
     },
+    /* Every page comes along, in order, with its name. */
     duplicateProject: function (id) {
-      return Promise.all([b.get("projects", id), api.loadDoc(id)]).then(function (got) {
-        if (!got[0] || !got[1]) return null;
-        return api.createProject(got[0].name + " copy", got[1], got[0]).then(function (meta) {
-          return got[0].thumb ? api.setThumb(meta.id, got[0].thumb, got[0].thumbSet) : meta;
+      return b.get("projects", id).then(function (src) {
+        if (!src) return null;
+        var pages = pagesOf(src);
+        return Promise.all(pages.map(function (p) { return api.loadDoc(id, p.id); })).then(function (docs) {
+          if (!docs[0]) return null;
+          return api.createProject(src.name + " copy", docs[0], src).then(function (meta) {
+            return api.renamePage(meta.id, MAIN, pages[0].name);
+          }).then(function (meta) {
+            var steps = Promise.resolve(meta);
+            pages.slice(1).forEach(function (p, i) { steps = steps.then(function () { return api.addPage(meta.id, p.name, docs[i + 1] || emptyDoc()); }); });
+            return steps.then(function () { return src.thumb ? api.setThumb(meta.id, src.thumb, src.thumbSet) : b.get("projects", meta.id); });
+          });
         });
       });
     },
     deleteProject: function (id) {
-      return api.listVersions(id).then(function (vs) {
-        return Promise.all(vs.map(function (v) { return b.del("versions", v.key); }));
-      }).then(function () { return b.del("docs", id); }).then(function () { return b.del("projects", id); });
+      return b.get("projects", id).then(function (meta) {
+        return api.listVersions(id).then(function (vs) {
+          return Promise.all(vs.map(function (v) { return b.del("versions", v.key); }));
+        }).then(function () {
+          return Promise.all(pagesOf(meta).map(function (p) { return b.del("docs", docKey(id, p.id)); }));
+        }).then(function () { return b.del("projects", id); });
+      });
     },
-    /* Versions: newest first, at most VERSIONS_MAX a project. */
-    addVersion: function (id, doc, label) {
-      lastVersionAt[id] = now();
-      return b.put("versions", { project: id, at: now(), label: label || "Saved", frames: count(doc), doc: doc }).then(function () {
-        return api.listVersions(id);
+    /* Versions: newest first, at most VERSIONS_MAX a page. Without a page,
+       listVersions gives every page's. */
+    addVersion: function (id, doc, label, page) {
+      page = page || MAIN;
+      lastVersionAt[docKey(id, page)] = now();
+      return b.put("versions", { project: id, page: page, at: now(), label: label || "Saved", frames: count(doc), doc: doc }).then(function () {
+        return api.listVersions(id, page);
       }).then(function (vs) {
         return Promise.all(vs.slice(VERSIONS_MAX).map(function (v) { return b.del("versions", v.key); }));
       });
     },
-    listVersions: function (id) {
+    listVersions: function (id, page) {
       return b.byIndex("versions", "project", id).then(function (vs) {
-        return (vs || []).sort(function (x, y) { return y.at - x.at || y.key - x.key; });
+        return (vs || []).filter(function (v) { return !page || (v.page || MAIN) === page; }).sort(function (x, y) { return y.at - x.at || y.key - x.key; });
       });
     },
     loadVersion: function (key) {
@@ -244,6 +338,18 @@ function makeStore(b) {
   return api;
 }
 
+/* Each page's frame count, and the project's across them all. A project
+   saved before pages counts its one page. */
+function tally(meta, page, n) {
+  if (!meta.pageFrames) meta.pageFrames = { main: meta.frames || 0 };
+  meta.pageFrames[page] = n;
+  meta.frames = sum(meta);
+}
+function sum(meta) {
+  var by = meta.pageFrames || {};
+  return pagesOf(meta).reduce(function (t, p) { return t + (by[p.id] || 0); }, 0) || (meta.pageFrames ? 0 : meta.frames || 0);
+}
+
 /* The settings a project keeps, from anything that might carry them: a
    canvas colour as #rrggbb (or "" for the builder's own), and a theme as the
    Configure panel gives it. Anything else is left behind. */
@@ -276,4 +382,4 @@ function ago(t) {
   return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 }
 
-export { openStore, makeStore, localBackend, ago, settingsOf, VERSIONS_MAX, VERSION_EVERY };
+export { openStore, makeStore, localBackend, ago, settingsOf, pagesOf, pageOf, MAIN, VERSIONS_MAX, VERSION_EVERY };
