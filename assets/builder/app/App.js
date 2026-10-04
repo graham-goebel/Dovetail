@@ -230,6 +230,12 @@ function App(props) {
   var libTab = libTabState[0], setLibTab = libTabState[1];
   var libBusyState = useState(null);
   var libBusy = libBusyState[0], setLibBusy = libBusyState[1];
+  /* The brand lives in the theme; this ticks when it changes, so Content's
+     Brand gallery shows the new one. */
+  var brandTickState = useState(0);
+  var setBrandTick = brandTickState[1];
+  var brandErrState = useState(null);
+  var brandErr = brandErrState[0], setBrandErr = brandErrState[1];
   var libFirst = useRef(true);
   useEffect(function () {
     if (libFirst.current) { libFirst.current = false; return; }
@@ -426,6 +432,7 @@ function App(props) {
     var timer = null;
     var changed = function () {
       var P = window.DovetailConfigurePanel;
+      setBrandTick(function (n) { return n + 1; });
       if (!themeLoaded.current || !P || !P.theme) return;
       clearTimeout(timer);
       timer = setTimeout(function () {
@@ -1013,10 +1020,10 @@ function App(props) {
     if (dr.payload.kind === "tool") { placeTool(dr.payload.tool, hit); return; }
     if (dr.payload.kind === "asset") {
       var where = { parent: hit.parent, index: hit.index, frame: fid, free: hit.free };
-      if (dr.payload.media === "video") add("Video", where, { src: dr.payload.src }); else add("Image", where, { src: dr.payload.src, alt: dr.payload.label });
+      if (dr.payload.media === "video") add("Video", where, { src: dr.payload.src }); else add("Image", where, Object.assign({ src: dr.payload.src, alt: dr.payload.label }, dr.payload.props), dr.payload.extra);
       return;
     }
-    if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
+    if (dr.payload.kind === "new") { add(dr.payload.type, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }, dr.payload.props, dr.payload.extra); return; }
     if (dr.payload.kind === "local") { addLocal(dr.payload.comp, { parent: hit.parent, index: hit.index, frame: fid, free: hit.free }); return; }
     /* Moved on its frame's canvas: it keeps its place in the list and takes
        the new position; from inside a stack, it comes out onto the canvas. */
@@ -1206,11 +1213,12 @@ function App(props) {
      A band (a Section or a block) gets a page of its own instead. */
   var placeLoose = function (payload, hit) {
     var node = null, moving = null;
-    if (payload.kind === "new") { node = make(payload.type); if (payload.type === "Inline") node.props.wrap = false; }
-    else if (payload.kind === "asset") node = payload.media === "video" ? make("Video", { src: payload.src }) : make("Image", { src: payload.src, alt: payload.label });
+    if (payload.kind === "new") { node = make(payload.type, Object.assign({}, payload.props), null, Object.assign({}, payload.extra && payload.extra.style)); if (payload.type === "Inline") node.props.wrap = false; }
+    else if (payload.kind === "asset") node = payload.media === "video" ? make("Video", { src: payload.src }) : make("Image", Object.assign({ src: payload.src, alt: payload.label }, payload.props), null, Object.assign({}, payload.extra && payload.extra.style));
     else if (payload.kind === "tool") node = toolNode(payload.tool, null);
     else if (payload.kind === "local") node = instanceOf(payload.comp);
     else if (payload.kind === "move") moving = payload.id;
+    if (node && payload.extra && payload.extra.name) node.name = payload.extra.name;
     /* Something dragged off a frame keeps the width it had there. */
     var had = null;
     if (moving) {
@@ -1646,7 +1654,7 @@ function App(props) {
     return { parent: at.parent.id, index: at.index + 1 };
   };
 
-  var add = function (type, where, props) {
+  var add = function (type, where, props, extra) {
     var t = where || target();
     var fid = t.frame || docRef.current.active;
     /* A slot that doesn't take this kind: it goes after the component instead. */
@@ -1660,6 +1668,8 @@ function App(props) {
     }
     var n = make(type);
     if (props) Object.assign(n.props, props);
+    if (extra && extra.name) n.name = extra.name;
+    if (extra && extra.style) Object.assign(n.style, extra.style);
     if (t.free) { n.style.x = t.free.x; n.style.y = t.free.y; }
     /* A row added here stays on one line until it's told to wrap. */
     if (type === "Inline") n.props.wrap = false;
@@ -3200,7 +3210,95 @@ function App(props) {
     else add("Image", null, { src: it.src, alt: it.name });
     announce("Added " + it.name + " to " + frame.name);
   };
+  /* The brand: the name, the logo (a wordmark file, or the name set in type)
+     and the brand mark, the same ones Configure's Brand group sets and kept
+     with the project's theme. Each places on a frame like any picture. */
+  var brandNow = function () {
+    var P = window.DovetailConfigurePanel;
+    return P && P.brand ? P.brand() : { name: "", mark: "", wordmark: "" };
+  };
+  var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
+  var brandPieces = function (b) {
+    var name = b.name || "Your brand";
+    var P = window.DovetailConfigurePanel;
+    var tone = P && P.config ? WORDMARK_TONE[P.config().wordmarkColor] : null;
+    var logo = b.wordmark
+      ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } }
+      : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone: tone } : {}), extra: { name: "Logo" } };
+    var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
+    return { logo: logo, mark: mark };
+  };
+  var placeBrand = function (piece) {
+    if (piece.kind === "asset") add("Image", null, Object.assign({ src: piece.src, alt: piece.label }, piece.props), piece.extra);
+    else add(piece.type, null, piece.props, piece.extra);
+    announce("Added the " + piece.extra.name.toLowerCase() + " to " + frame.name);
+  };
+  var setBrandPart = function (patch) {
+    var P = window.DovetailConfigurePanel;
+    if (!P || !P.setBrand) { setBrandErr("Configure hasn't loaded yet. Try again in a moment."); return false; }
+    if (!P.setBrand(patch)) { setBrandErr("That picture couldn't be used. Use a PNG, JPEG, GIF, WebP or SVG."); return false; }
+    setBrandErr(null);
+    setBrandTick(function (n) { return n + 1; });
+    return true;
+  };
+  var readBrandFile = function (kind, file) {
+    if (!file) return;
+    var P = window.DovetailConfigurePanel;
+    var limit = (P && P.brandLimit) || 512 * 1024;
+    var what = kind === "wordmark" ? "logo" : "brand mark";
+    if (!/^image\//.test(file.type)) { setBrandErr("That isn't a picture. Use a PNG, JPEG, GIF, WebP or SVG."); return; }
+    if (file.size > limit) { setBrandErr("That " + what + " is " + Math.round(file.size / 1024) + "KB. The limit is " + Math.round(limit / 1024) + "KB, because it's kept in this browser."); return; }
+    var reader = new FileReader();
+    reader.onload = function () { var patch = {}; patch[kind] = String(reader.result); if (setBrandPart(patch)) announce("The " + what + " is set for this project."); };
+    reader.onerror = function () { setBrandErr("That file couldn't be read."); };
+    reader.readAsDataURL(file);
+  };
+  var brandPanel = function () {
+    var b = brandNow();
+    var pieces = brandPieces(b);
+    var tile = function (key, label, piece, preview, emptyNote, hint) {
+      var fileId = "bd-brand-" + key;
+      var hasFile = !!b[key];
+      return e("section", { className: "bd-content-sec bd-brand-sec", "aria-labelledby": fileId + "-h",
+        onDragOver: function (ev) { if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault(); },
+        onDrop: function (ev) { if (!ev.dataTransfer.files.length) return; ev.preventDefault(); readBrandFile(key, ev.dataTransfer.files[0]); } },
+        e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
+        piece ? e("button", { type: "button", className: cx("bd-brand-tile", key === "mark" && "is-mark"), "data-brand": key, title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
+          onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, piece); },
+          onClick: function () { if (!justDragged.current) placeBrand(piece); } }, preview)
+          : e("div", { className: "bd-brand-tile is-empty" }, e(Icon, { name: "image" }), e("span", null, emptyNote)),
+        e("div", { className: "bd-content-add" },
+          e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), hasFile ? "Replace" : "Upload"),
+          e("input", { id: fileId, type: "file", className: "visually-hidden", accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml",
+            onChange: function (ev) { readBrandFile(key, ev.target.files[0]); ev.target.value = ""; } }),
+          hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function () { var patch = {}; patch[key] = ""; if (setBrandPart(patch)) announce("Removed the " + label.toLowerCase() + "."); } }, "Remove") : null),
+        hint ? e("p", { className: "bd-content-note" }, hint) : null);
+    };
+    return e("div", { className: "bd-content" },
+      e("div", { className: "bd-panel-head bd-gallery-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { setLibTab(null); setBrandErr(null); } }, e(Icon, { name: "left" })),
+        e("h2", { className: "bd-panel-title" }, "Brand")),
+      e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each project keeps its own. Drag one onto a frame, or press it to add it."),
+      e("section", { className: "bd-content-sec" },
+        e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
+        e("input", { id: "bd-brand-name", className: "bd-input", type: "text", maxLength: 80, placeholder: "Your brand", value: b.name,
+          onChange: function (ev) { setBrandPart({ name: ev.target.value }); } })),
+      brandErr ? e("p", { className: "bd-brand-err", role: "alert" }, brandErr) : null,
+      tile("wordmark", "Logo", pieces.logo,
+        b.wordmark ? e("img", { src: b.wordmark, alt: "", draggable: false }) : e("span", { className: "bd-brand-word" }, b.name || "Your brand"),
+        "", b.wordmark ? null : "Without a logo file, the logo is the name, set in type. SVG or PNG, up to 512KB."),
+      tile("mark", "Brand mark", pieces.mark, b.mark ? e("img", { src: b.mark, alt: "", draggable: false }) : null, "No brand mark yet", "A small symbol for beside the logo, or on its own. SVG or PNG, up to 512KB."));
+  };
   /* Content opens on a card for each kind; a card opens its gallery. */
+  var brandCard = function () {
+    var b = brandNow();
+    var pics = [b.mark, b.wordmark].filter(Boolean);
+    var note = b.wordmark && b.mark ? "Logo and mark" : b.wordmark ? "Logo" : b.mark ? "Mark, and the name" : b.name ? "The name" : "Name, logo and mark";
+    return e("li", { key: "brand" }, e("button", { type: "button", className: "bd-kind", "data-kind": "brand", onClick: function () { setLibTab("brand"); } },
+      e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function (src, i) { return e("img", { key: i, src: src, alt: "", draggable: false }); }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
+      e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note)),
+      e(Icon, { name: "right", className: "bd-kind-chev" })));
+  };
   var contentPanel = function () {
     var q0 = contentQuery.trim().toLowerCase();
     if (!libTab && q0) {
@@ -3221,7 +3319,7 @@ function App(props) {
     if (!libTab) {
       return e("div", { className: "bd-content" },
         e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
-        e("ul", { className: "bd-kinds", role: "list" }, LIB_TABS.map(function (t) {
+        e("ul", { className: "bd-kinds", role: "list" }, [brandCard()].concat(LIB_TABS.map(function (t) {
           var items = library[t[0]];
           var note = t[0] === "icons" ? (items.length ? items.length + " of yours, and the icon library" : "The icon library, and yours") : items.length ? items.length + (items.length === 1 ? " item" : " items") : "Nothing yet";
           return e("li", { key: t[0] }, e("button", { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function () { setLibTab(t[0]); } },
@@ -3230,8 +3328,9 @@ function App(props) {
               : e(Icon, { name: t[2] })),
             e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note)),
             e(Icon, { name: "right", className: "bd-kind-chev" })));
-        })));
+        }))));
     }
+    if (libTab === "brand") return brandPanel();
     var kind = libTab;
     var cq = contentQuery.trim().toLowerCase();
     var items = library[kind].filter(function (it) { return !cq || it.name.toLowerCase().indexOf(cq) >= 0; });

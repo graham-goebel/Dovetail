@@ -4691,3 +4691,79 @@ input.bd-page-name {
   color: var(--dt-text-tertiary);
   font-size: calc(var(--dt-font-size-sm) * 2);
 }
+
+/* Content: the brand. The logo and mark show on a neutral tile at their own
+   proportions; the name stands in for a logo file, set in the sans family. */
+.bd-brand-intro {
+  padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-xs);
+}
+
+.bd-brand-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--dt-space-inline-xs);
+  width: 100%;
+  min-height: 88px;
+  padding: var(--dt-space-inset-sm);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container);
+  background: var(--dt-surface-sunken);
+  color: var(--dt-text-primary);
+  font: inherit;
+  cursor: grab;
+  touch-action: manipulation;
+}
+
+.bd-brand-tile:hover {
+  border-color: var(--dt-border-default);
+}
+
+.bd-brand-tile:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: 2px;
+}
+
+.bd-brand-tile img {
+  max-width: 100%;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+.bd-brand-tile.is-mark img {
+  max-height: 56px;
+}
+
+.bd-brand-tile.is-empty {
+  flex-direction: column;
+  border-style: dashed;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+  cursor: default;
+}
+
+.bd-brand-word {
+  overflow: hidden;
+  font-family: var(--dt-font-family-sans);
+  font-size: var(--dt-font-size-lg);
+  font-weight: var(--dt-font-weight-semibold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--dt-text-wordmark, var(--dt-text-primary));
+}
+
+.bd-kind-pics.is-brand img {
+  object-fit: contain;
+  padding: var(--dt-space-inset-2xs);
+}
+
+.bd-kind-pics.is-brand .bd-brand-word {
+  padding-inline: var(--dt-space-inset-xs);
+  font-size: var(--dt-font-size-md);
+}
+
+.bd-brand-err {
+  margin: 0 var(--dt-space-inset-md);
+  color: var(--dt-text-danger, var(--dt-text-primary));
+  font-size: var(--dt-font-size-xs);
+}
