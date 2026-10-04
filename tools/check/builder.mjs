@@ -2956,8 +2956,8 @@ try {
     await page.keyboard.press("Digit5");
     const op = async () => ((await free()).root.children.find((c) => c.id === "ba").style.opacity);
     expect(await poll(op, (v) => v === "disabled") === "disabled", `5 sets the opacity role disabled, got ${await op()}`);
-    const painted = await frames(page)[1].evaluate(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).opacity);
-    expect(painted === "0.4", `the canvas paints --dt-opacity-disabled as 0.4, got ${painted}`);
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).opacity === "0.4");
+    ok("the canvas paints --dt-opacity-disabled as 0.4");
     await page.keyboard.press("Digit9");
     expect(await poll(op, (v) => v === "strong") === "strong", "9 is strong");
     await page.keyboard.press("Digit0");
