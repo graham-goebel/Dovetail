@@ -1901,6 +1901,13 @@ function App(props) {
       autoLayout(f.root);
       return [];
     }, mode === "structured" ? "Structured: everything is in Groups now" : "Freeform: place things anywhere");
+    if (mode !== "structured") return;
+    /* The auto layout is the point of it: the Layout tab opens, on the
+       one Group everything went into when there is one. */
+    var f = active(docRef.current);
+    var g = f.root.children.length === 1 && f.root.children[0].type === "Group" ? f.root.children[0] : null;
+    setTabByType(function (m) { var n = Object.assign({}, m); n.Group = "layout"; n[tabKey()] = "layout"; return n; });
+    if (g) select([g.id]);
   };
   var setName = function (id, name) { change(function (d) { var at = locate(d, id); if (!at) return null; if (name) at.node.name = name; else delete at.node.name; return undefined; }); };
 
@@ -4310,20 +4317,28 @@ function App(props) {
             many ? title : isContainer(first.type) && first.type === "Group"
               ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
               : nameOf(first)),
-          e("div", { className: "bd-head-actions", role: "toolbar", "aria-label": "Selection" },
-            e(Dropdown, { menu: true, label: "Wrap in", placeholder: "Wrap in", icon: "wrap", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon", title: "Wrap in a container",
-              options: WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: w, label: "Wrap in " + w, icon: typeIcon(w) }; }),
-              onChange: actions.wrap }),
-            !many && CONVERTS.indexOf(first.type) >= 0 ? e(Dropdown, { menu: true, label: "Turn into", placeholder: "Turn into", icon: "rotate", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon", title: "Turn into another container, or a frame",
-              options: CONVERTS.filter(function (t) { return t !== first.type && (placeable == null || placeable[t] || t === "Group"); }).map(function (t) { return { value: t, label: "Turn into " + t, icon: typeIcon(t) }; })
-                .concat([{ value: "frame", label: "Turn into a frame", icon: "frame" }]),
-              onChange: actions.convert }) : null,
-            !many && first.type === "Group"
-              ? headAction("group", "Ungroup (Ctrl+Shift+G)", actions.ungroup)
-              : headAction("group", "Group (Ctrl+G)", actions.group),
-            !many && detachable[first.type] ? headAction("detach", "Detach into primitives", actions.detach) : null,
-            !many ? headAction("link", "Copy a link to this layer", function () { share(first.id); }) : null,
-            headAction("component", "Create component (Ctrl+Alt+K)", openComponent))),
+          /* Everything a selection can do, in one menu, so a long name has
+             the row to itself. */
+          e("div", { className: "bd-head-actions" },
+            e(Dropdown, { menu: true, label: "Actions for " + (many ? title : nameOf(first)), placeholder: "Actions", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-layer-menu",
+              options: [!many && first.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group" }]
+                .concat(WRAPS.filter(function (w) { return placeable == null || placeable[w]; }).map(function (w) { return { value: "wrap:" + w, label: "Wrap in " + w, icon: typeIcon(w) }; }))
+                .concat(!many && CONVERTS.indexOf(first.type) >= 0
+                  ? CONVERTS.filter(function (t) { return t !== first.type && (placeable == null || placeable[t] || t === "Group"); }).map(function (t) { return { value: "turn:" + t, label: "Turn into " + t, icon: typeIcon(t) }; })
+                    .concat([{ value: "turn:frame", label: "Turn into a frame", icon: "frame" }])
+                  : [])
+                .concat(!many && detachable[first.type] ? [{ value: "detach", label: "Detach into primitives", icon: "detach" }] : [])
+                .concat(!many ? [{ value: "link", label: "Copy link to this layer", icon: "link" }] : [])
+                .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component" }]),
+              onChange: function (v) {
+                if (v === "group") actions.group();
+                else if (v === "ungroup") actions.ungroup();
+                else if (v.indexOf("wrap:") === 0) actions.wrap(v.slice(5));
+                else if (v.indexOf("turn:") === 0) actions.convert(v.slice(5));
+                else if (v === "detach") actions.detach();
+                else if (v === "link") share(first.id);
+                else if (v === "component") openComponent();
+              } }))),
         many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
           : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null),
       tabBar(have, current),
