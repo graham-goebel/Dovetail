@@ -526,6 +526,16 @@
     return bound.api;
   }
 
+  /* The text node under a point, inside the node's own wrapper. */
+  function textAt(x, y, within) {
+    var range = document.caretRangeFromPoint ? document.caretRangeFromPoint(x, y) : null;
+    var node = range ? range.startContainer : null;
+    if (!node && document.caretPositionFromPoint) { var pos = document.caretPositionFromPoint(x, y); node = pos ? pos.offsetNode : null; }
+    if (!node || node.nodeType !== 3 || (within && !within.contains(node))) return null;
+    var t = node.textContent.trim();
+    return t || null;
+  }
+
   /* Press on any part of a node and drag to move it. Inside the selection,
      the selection moves; elsewhere, the node under the pointer does. Touch
      scrolls instead, and moves with the selection's tag. */
@@ -540,7 +550,8 @@
       if (!host()) return;
       var w = ev.target.closest ? ev.target.closest("[data-bf-id]") : null;
       var id = w ? w.getAttribute("data-bf-id") : "root";
-      if (type === "dblclick") { host().edit(id); return; }
+      /* The text right under the pointer, so that piece of it is what's typed into. */
+      if (type === "dblclick") { host().edit(id, textAt(ev.clientX, ev.clientY, w)); return; }
       if (type !== "click") return;
       if (swallowClick) { swallowClick = false; return; }
       /* A component's own heading, pressed: the component, with its title
