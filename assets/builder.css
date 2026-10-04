@@ -1330,6 +1330,43 @@ button.bd-layer-twisty.is-open .bd-ic {
   outline-style: dashed;
 }
 
+/* A linked instance of one of My components. */
+.bd-mark-sel.is-instance {
+  outline-color: var(--dt-border-brand);
+}
+
+.bd-layer.is-instance .bd-layer-main > .bd-ic:first-child {
+  color: var(--dt-text-brand);
+}
+
+.bd-inst {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  margin-top: var(--dt-space-stack-2xs);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+  line-height: var(--dt-text-body-xs-line);
+}
+
+.bd-inst > .bd-ic {
+  flex: none;
+  color: var(--dt-text-brand);
+}
+
+.bd-inst.is-lost > .bd-ic {
+  color: var(--dt-text-secondary);
+}
+
+.bd-inst-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.bd-inst-update {
+  flex: none;
+}
+
 .bd-layer-text {
   min-width: 0;
   overflow: hidden;
@@ -3282,6 +3319,17 @@ span.bd-layer-twisty.is-open .bd-ic {
   border-color: color-mix(in oklch, var(--dt-color-neutral-100) 18%, transparent);
   background: color-mix(in oklch, var(--dt-color-neutral-100) 10%, transparent);
   color: var(--dt-color-neutral-050);
+}
+
+.bd-play-back {
+  flex: none;
+}
+
+/* A link: where it goes, and the address when it's a web one. */
+.bd-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
 }
 
 .bd-play-stage {

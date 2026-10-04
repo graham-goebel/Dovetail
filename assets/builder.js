@@ -1543,11 +1543,11 @@
     }
     return p.node.type === "Root" || isContainer(p.node.type);
   }
-  function parentSpot(at) {
-    return { node: at.parent, path: at.path.slice(0, -1) };
+  function parentSpot(at2) {
+    return { node: at2.parent, path: at2.path.slice(0, -1) };
   }
-  function fixedSpot(at) {
-    return !at || !at.parent || at.node.type === "Slot";
+  function fixedSpot(at2) {
+    return !at2 || !at2.parent || at2.node.type === "Slot";
   }
   var fixed = fixedSpot;
   function autoLayout(n) {
@@ -1603,35 +1603,35 @@
     remove: function(doc, ids) {
       var next = null, any = false;
       [].concat(ids).forEach(function(id) {
-        var at = locate(doc, id);
-        if (fixed(at)) return;
-        at.parent.children.splice(at.index, 1);
+        var at2 = locate(doc, id);
+        if (fixed(at2)) return;
+        at2.parent.children.splice(at2.index, 1);
         any = true;
-        var n = at.parent.children[at.index] || at.parent.children[at.index - 1];
-        next = n ? n.id : at.parent.id;
+        var n = at2.parent.children[at2.index] || at2.parent.children[at2.index - 1];
+        next = n ? n.id : at2.parent.id;
       });
       return any ? next || "root" : null;
     },
     duplicate: function(doc, id) {
-      var at = locate(doc, id);
-      if (fixed(at)) return null;
-      var c = fresh(at.node);
-      at.parent.children.splice(at.index + 1, 0, c);
+      var at2 = locate(doc, id);
+      if (fixed(at2)) return null;
+      var c = fresh(at2.node);
+      at2.parent.children.splice(at2.index + 1, 0, c);
       return c.id;
     },
     replace: function(doc, id, n) {
-      var at = locate(doc, id);
-      if (fixed(at) || !canHold(parentSpot(at), n)) return null;
-      at.parent.children.splice(at.index, 1, n);
+      var at2 = locate(doc, id);
+      if (fixed(at2) || !canHold(parentSpot(at2), n)) return null;
+      at2.parent.children.splice(at2.index, 1, n);
       return n.id;
     },
     wrap: function(doc, id, type) {
-      var at = locate(doc, id);
-      if (fixed(at)) return null;
-      var box = make(type, {}, [at.node]);
+      var at2 = locate(doc, id);
+      if (fixed(at2)) return null;
+      var box = make(type, {}, [at2.node]);
       if (type === "Group" && active(doc).mode === "structured") autoLayout(box);
-      if (!canHold(parentSpot(at), box)) return null;
-      at.parent.children.splice(at.index, 1, box);
+      if (!canHold(parentSpot(at2), box)) return null;
+      at2.parent.children.splice(at2.index, 1, box);
       return box.id;
     },
     /* Siblings into one Group, in their order, where the first one was. */
@@ -1652,22 +1652,22 @@
         return s.node;
       }));
       if (active(doc).mode === "structured") autoLayout(box);
-      var at = spots[0].index;
+      var at2 = spots[0].index;
       parent.children = parent.children.filter(function(c) {
         return ids.indexOf(c.id) < 0;
       });
-      parent.children.splice(at, 0, box);
+      parent.children.splice(at2, 0, box);
       return box.id;
     },
     ungroup: function(doc, id) {
-      var at = locate(doc, id);
-      if (fixed(at) || !at.node.children || !isContainer(at.node.type)) return null;
-      var kids = at.node.children;
+      var at2 = locate(doc, id);
+      if (fixed(at2) || !at2.node.children || !isContainer(at2.node.type)) return null;
+      var kids = at2.node.children;
       if (kids.some(function(k) {
-        return !canHold(parentSpot(at), k);
+        return !canHold(parentSpot(at2), k);
       })) return null;
-      at.parent.children.splice.apply(at.parent.children, [at.index, 1].concat(kids));
-      return kids.length ? kids[0].id : at.parent.id;
+      at2.parent.children.splice.apply(at2.parent.children, [at2.index, 1].concat(kids));
+      return kids.length ? kids[0].id : at2.parent.id;
     },
     /* One container turned into another, keeping what's in it, its name and
        where it sits: a Section or a Stack into a Group, a Group into a
@@ -1675,10 +1675,10 @@
        Inline), with padding where a band had it. Keeps the node's id, so
        it stays selected. */
     convert: function(doc, id, type) {
-      var at = locate(doc, id);
-      if (fixed(at) || !at.node.children || at.node.type === type) return null;
-      if (CONVERTS.indexOf(at.node.type) < 0 || CONVERTS.indexOf(type) < 0) return null;
-      var from = at.node;
+      var at2 = locate(doc, id);
+      if (fixed(at2) || !at2.node.children || at2.node.type === type) return null;
+      if (CONVERTS.indexOf(at2.node.type) < 0 || CONVERTS.indexOf(type) < 0) return null;
+      var from = at2.node;
       var kids = from.children.filter(function(c) {
         return c.type !== "Slot";
       });
@@ -1688,34 +1688,34 @@
       ["x", "y"].forEach(function(k) {
         if (from.style && from.style[k] !== void 0) n.style[k] = from.style[k];
       });
-      if (!canHold(parentSpot(at), n)) return null;
-      at.parent.children.splice(at.index, 1, n);
+      if (!canHold(parentSpot(at2), n)) return null;
+      at2.parent.children.splice(at2.index, 1, n);
       return n.id;
     },
     nudge: function(doc, id, by) {
-      var at = locate(doc, id);
-      if (fixed(at)) return null;
-      var to = at.index + by;
-      if (to < 0 || to >= at.parent.children.length) return null;
-      at.parent.children.splice(at.index, 1);
-      at.parent.children.splice(to, 0, at.node);
+      var at2 = locate(doc, id);
+      if (fixed(at2)) return null;
+      var to = at2.index + by;
+      if (to < 0 || to >= at2.parent.children.length) return null;
+      at2.parent.children.splice(at2.index, 1);
+      at2.parent.children.splice(to, 0, at2.node);
       return id;
     },
     /* To the front (last among its siblings, drawn on top) or the back. */
     order: function(doc, id, where) {
-      var at = locate(doc, id);
-      if (fixed(at)) return null;
-      var to = where === "front" ? at.parent.children.length - 1 : 0;
-      if (to === at.index) return null;
-      at.parent.children.splice(at.index, 1);
-      at.parent.children.splice(to, 0, at.node);
+      var at2 = locate(doc, id);
+      if (fixed(at2)) return null;
+      var to = where === "front" ? at2.parent.children.length - 1 : 0;
+      if (to === at2.index) return null;
+      at2.parent.children.splice(at2.index, 1);
+      at2.parent.children.splice(to, 0, at2.node);
       return id;
     },
     /* A free object moved by whole steps; stays within the canvas's range. */
     shift: function(doc, id, dx, dy) {
-      var at = locate(doc, id);
-      if (fixed(at) || at.node.lock || !isFree(at.node.style)) return null;
-      var st = at.node.style;
+      var at2 = locate(doc, id);
+      if (fixed(at2) || at2.node.lock || !isFree(at2.node.style)) return null;
+      var st = at2.node.style;
       var x = Math.max(0, Math.min(FREE_MAX, st.x + dx)), y = Math.max(0, Math.min(FREE_MAX, st.y + dy));
       if (x === st.x && y === st.y) return null;
       st.x = x;
@@ -1836,6 +1836,11 @@
         else note(report, n.type + ": " + k + " takes an https URL");
         return;
       }
+      if (spec && spec.kind === "url") {
+        if (typeof v === "string" && SAFE_HREF.test(v)) props[k] = v;
+        else note(report, n.type + ": " + k + " takes a page link (#page:id) or a safe address");
+        return;
+      }
       if (spec && spec.kind === "list") {
         var lv = cleanList(spec, v);
         if (lv) props[k] = lv;
@@ -1893,6 +1898,9 @@
     if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
     if (n.lock === true) out.lock = true;
     if (n.hide === true) out.hide = true;
+    if (n.inst && typeof n.inst === "object" && typeof n.inst.of === "string" && /^[\w-]{1,40}$/.test(n.inst.of)) {
+      out.inst = { of: n.inst.of, rev: Number.isInteger(n.inst.rev) && n.inst.rev >= 0 ? n.inst.rev : 1 };
+    }
     var seenSlot0 = {};
     var slotChild = function(c) {
       if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot0[c.props.name]) return false;
@@ -2249,14 +2257,14 @@
           if (!meta) return null;
           var pages = pagesOf(meta).slice();
           var page = { id: "pg" + uid(), name: (name || "Page " + (pages.length + 1)).slice(0, 60) };
-          var at = pages.findIndex(function(p) {
+          var at2 = pages.findIndex(function(p) {
             return p.id === after;
           });
-          var fold = folder !== void 0 ? folder : at >= 0 ? pages[at].folder : null;
+          var fold = folder !== void 0 ? folder : at2 >= 0 ? pages[at2].folder : null;
           if (fold && foldersOf(meta).some(function(f) {
             return f.id === fold;
           })) page.folder = fold;
-          pages.splice(at >= 0 ? at + 1 : pages.length, 0, page);
+          pages.splice(at2 >= 0 ? at2 + 1 : pages.length, 0, page);
           meta.pages = pages;
           tally(meta, page.id, count(doc));
           return b.put("docs", { id: docKey(id, page.id), doc }).then(function() {
@@ -2282,11 +2290,11 @@
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
           var pages = pagesOf(meta).slice();
-          var at = pages.findIndex(function(p) {
+          var at2 = pages.findIndex(function(p) {
             return p.id === pageId;
-          }), to = at + by;
-          if (at < 0 || to < 0 || to >= pages.length) return meta;
-          pages.splice(to, 0, pages.splice(at, 1)[0]);
+          }), to = at2 + by;
+          if (at2 < 0 || to < 0 || to >= pages.length) return meta;
+          pages.splice(to, 0, pages.splice(at2, 1)[0]);
           meta.pages = pages;
           return b.put("projects", meta).then(function() {
             return meta;
@@ -2308,11 +2316,11 @@
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
           var pages = pagesOf(meta).slice();
-          var at = pages.findIndex(function(p) {
+          var at2 = pages.findIndex(function(p) {
             return p.id === pageId;
           });
-          if (at < 0) return meta;
-          var page = Object.assign({}, pages.splice(at, 1)[0]);
+          if (at2 < 0) return meta;
+          var page = Object.assign({}, pages.splice(at2, 1)[0]);
           if (folderId && foldersOf(meta).some(function(f) {
             return f.id === folderId;
           })) page.folder = folderId;
@@ -2371,11 +2379,11 @@
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
           var items = itemsOf(pagesOf(meta));
-          var at = items.findIndex(function(it) {
+          var at2 = items.findIndex(function(it) {
             return it.folder === folderId;
-          }), to = at + by;
-          if (at < 0 || to < 0 || to >= items.length) return meta;
-          items.splice(to, 0, items.splice(at, 1)[0]);
+          }), to = at2 + by;
+          if (at2 < 0 || to < 0 || to >= items.length) return meta;
+          items.splice(to, 0, items.splice(at2, 1)[0]);
           meta.pages = [].concat.apply([], items.map(function(it) {
             return it.pages;
           }));
@@ -3191,14 +3199,14 @@
       });
     }
     var left = Object.assign({}, css), style = {};
-    var same2 = function(a, b) {
+    var same3 = function(a, b) {
       return String(a).replace(/\s+/g, "") === String(b).replace(/\s+/g, "");
     };
     TOKEN_CSS.forEach(function(t) {
       if (style[t.key] !== void 0) return;
       var keys = Object.keys(t.css);
       if (keys.every(function(p) {
-        return left[p] !== void 0 && same2(left[p], t.css[p]);
+        return left[p] !== void 0 && same3(left[p], t.css[p]);
       })) {
         style[t.key] = t.value;
         keys.forEach(function(p) {
@@ -4091,6 +4099,156 @@
     );
   }
 
+  // assets/builder/model/instances.js
+  var FLAGS = ["name", "hide", "lock"];
+  function same2(a, b) {
+    return a === b || JSON.stringify(a) === JSON.stringify(b);
+  }
+  function diffObj(a, b, skip) {
+    var out = null;
+    a = a || {};
+    b = b || {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function(k) {
+      if (skip && skip.indexOf(k) >= 0) return;
+      if (out && k in out) return;
+      if (!same2(a[k], b[k])) {
+        out = out || {};
+        out[k] = b[k];
+      }
+    });
+    return out;
+  }
+  function lined(as, bs) {
+    if (as.length !== bs.length) return false;
+    return as.every(function(c, i) {
+      return c.type === bs[i].type && (c.type !== "Slot" || c.props.name === bs[i].props.name);
+    });
+  }
+  function at(node, path) {
+    if (!path) return node;
+    var n = node;
+    var parts = path.split("/");
+    for (var i = 0; i < parts.length; i++) {
+      n = n && n.children ? n.children[Number(parts[i])] : null;
+      if (!n) return null;
+    }
+    return n;
+  }
+  function overrides(inst, master) {
+    var out = [];
+    (function walk(a, b, path) {
+      var o = { path };
+      var props = diffObj(b.props, a.props);
+      var style = diffObj(b.style, a.style, path === "" ? ["x", "y"] : null);
+      if (props) o.props = props;
+      if (style) o.style = style;
+      if (path !== "") {
+        var flags = null;
+        FLAGS.forEach(function(k) {
+          if (!same2(a[k], b[k])) {
+            flags = flags || {};
+            flags[k] = a[k];
+          }
+        });
+        if (flags) o.flags = flags;
+      }
+      var ak = a.children || [], bk = b.children || [];
+      if (a.children && !lined(ak, bk)) o.children = copy(ak);
+      else ak.forEach(function(c, i) {
+        walk(c, bk[i], path ? path + "/" + i : String(i));
+      });
+      if (o.props || o.style || o.flags || o.children) out.push(o);
+    })(inst, master, "");
+    return out;
+  }
+  function reid(n) {
+    var c = copy(n);
+    (function walk(x) {
+      x.id = uid();
+      (x.children || []).forEach(walk);
+    })(c);
+    return c;
+  }
+  function setKeys(target, patch) {
+    Object.keys(patch).forEach(function(k) {
+      if (patch[k] === void 0) delete target[k];
+      else target[k] = patch[k];
+    });
+  }
+  function applyOverrides(master, ovs) {
+    var out = reid(master);
+    ovs.forEach(function(o) {
+      var n = at(out, o.path);
+      if (!n) return;
+      if (o.props) {
+        n.props = n.props || {};
+        setKeys(n.props, o.props);
+      }
+      if (o.style) {
+        n.style = n.style || {};
+        setKeys(n.style, o.style);
+      }
+      if (o.flags) setKeys(n, o.flags);
+      if (o.children && n.children) n.children = copy(o.children);
+    });
+    return out;
+  }
+  function rebase(inst, was, next, rev) {
+    var out = applyOverrides(next, overrides(inst, was || next));
+    out.id = inst.id;
+    FLAGS.forEach(function(k) {
+      if (inst[k] !== void 0) out[k] = inst[k];
+      else delete out[k];
+    });
+    out.style = out.style || {};
+    if (inst.style && inst.style.x !== void 0) {
+      out.style.x = inst.style.x;
+      out.style.y = inst.style.y;
+    } else {
+      delete out.style.x;
+      delete out.style.y;
+    }
+    out.inst = { of: inst.inst.of, rev };
+    return out;
+  }
+  function instancesOf(doc, compId) {
+    var out = [];
+    doc.frames.forEach(function(f) {
+      (function walk(n) {
+        (n.children || []).forEach(function(c, i) {
+          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
+          else walk(c);
+        });
+      })(f.root);
+    });
+    return out;
+  }
+  function updateInstances(doc, compId, was, next, rev, exceptId) {
+    var hits = instancesOf(doc, compId), n = 0;
+    hits.forEach(function(h) {
+      if (h.node.id === exceptId) {
+        h.node.inst = { of: compId, rev };
+        return;
+      }
+      h.parent.children[h.index] = rebase(h.node, was, next, rev);
+      n++;
+    });
+    return n;
+  }
+  function detachAll(doc, compId) {
+    var hits = instancesOf(doc, compId);
+    hits.forEach(function(h) {
+      delete h.node.inst;
+    });
+    return hits.length;
+  }
+  function masterOf(library, node) {
+    if (!node || !node.inst || !library) return null;
+    return (library.components || []).filter(function(c) {
+      return c.id === node.inst.of;
+    })[0] || null;
+  }
+
   // assets/builder/ui/parts.js
   function ColorPick(props) {
     return e(
@@ -4202,6 +4360,7 @@
       else if (LONG_FIELD.test(f.name)) control = e("textarea", { className: "bd-input bd-list-text", rows: 3, "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function(ev) {
         set2(ev.target.value);
       } });
+      else if (f.kind === "url" && props.pages) control = e(LinkTo, { labelledBy: id, value: val, pages: props.pages, pageNow: props.pageNow, onChange: set2 });
       else if (f.kind === "url" || f.kind === "media") control = e(UrlInput, { labelledBy: id, value: val, placeholder: f.kind === "media" ? "https://" : f.optional ? "Optional" : "", ok: f.kind === "media" ? MEDIA_URL : SAFE_HREF, onChange: set2 });
       else control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, value: val == null ? "" : String(val), placeholder: f.optional ? "Optional" : "", onChange: function(ev) {
         set2(ev.target.value);
@@ -4280,6 +4439,39 @@
       }
     });
   }
+  var PAGE_LINK = /^#page:([\w-]+)$/;
+  function LinkTo(props) {
+    var webState = useState(false);
+    var web = webState[0], setWeb = webState[1];
+    var pages = props.pages || [];
+    var m = typeof props.value === "string" ? PAGE_LINK.exec(props.value) : null;
+    var onPage = m && pages.some(function(pg) {
+      return pg.id === m[1];
+    }) ? m[1] : null;
+    var mode = props.mixed ? null : onPage ? "page:" + onPage : props.value || web ? "url" : "";
+    return e(
+      "div",
+      { className: "bd-link" },
+      e(Dropdown, {
+        labelledBy: props.labelledBy,
+        value: mode,
+        mixed: props.mixed,
+        placeholder: "None",
+        className: "bd-dd-field",
+        onChange: function(v) {
+          setWeb(v === "url");
+          if (v === "url") {
+            if (onPage) props.onChange(void 0);
+          } else if (v && v.indexOf("page:") === 0) props.onChange("#page:" + v.slice(5));
+          else props.onChange(void 0);
+        },
+        options: [{ value: "", label: "None" }, { value: "url", label: "A web address", icon: "link" }].concat(pages.map(function(pg) {
+          return { value: "page:" + pg.id, label: pg.name, hint: pg.id === props.pageNow ? "This page" : "Page", icon: "file" };
+        }))
+      }),
+      mode === "url" ? e(UrlInput, { labelledBy: props.labelledBy, value: onPage ? "" : props.value, placeholder: props.placeholder || "https://", ok: props.ok || SAFE_HREF, onChange: props.onChange }) : null
+    );
+  }
   function Segmented(props) {
     return e(
       "div",
@@ -4353,12 +4545,12 @@
       if (!steps.length) return;
       ev.preventDefault();
       ev.stopPropagation();
-      var at = steps.indexOf(selected);
-      if (at < 0) {
+      var at2 = steps.indexOf(selected);
+      if (at2 < 0) {
         var from = props.scrubFrom ? props.scrubFrom() : null;
-        at = 0;
+        at2 = 0;
         if (from != null) steps.forEach(function(o, i) {
-          if (Math.abs(o.px - from) < Math.abs(steps[at].px - from)) at = i;
+          if (Math.abs(o.px - from) < Math.abs(steps[at2].px - from)) at2 = i;
         });
       }
       var x0 = ev.clientX, last = steps.indexOf(selected), first = true;
@@ -4371,7 +4563,7 @@
       var move = function(mv) {
         var moved = Math.round((mv.clientX - x0) / 12);
         if (!moved && last < 0) return;
-        var i = Math.max(0, Math.min(steps.length - 1, at + moved));
+        var i = Math.max(0, Math.min(steps.length - 1, at2 + moved));
         if (i === last) return;
         last = i;
         scrubbed.current = true;
@@ -5533,9 +5725,9 @@
         /* One prop on one layer, through the same undoable change a control makes. */
         edit: function(id, key, value) {
           return change(function(d) {
-            var at = locate(d, id);
-            if (!at) return null;
-            at.node.props[key] = value;
+            var at2 = locate(d, id);
+            if (!at2) return null;
+            at2.node.props[key] = value;
             return void 0;
           });
         },
@@ -6038,9 +6230,9 @@
     };
     var openToken = function(owner, sec2) {
       var d = docRef.current;
-      var at = owner && owner !== "root" ? locate(d, owner) : null;
-      var key = at ? at.node.type : "__frame";
-      select(at ? [owner] : []);
+      var at2 = owner && owner !== "root" ? locate(d, owner) : null;
+      var key = at2 ? at2.node.type : "__frame";
+      select(at2 ? [owner] : []);
       setTabByType(function(m) {
         var n = Object.assign({}, m);
         n[key] = "layout";
@@ -6172,36 +6364,36 @@
       if (!st) return null;
       var sr = st.getBoundingClientRect();
       if (x < sr.left || x > sr.right || y < sr.top || y > sr.bottom) return null;
-      var at = frameAt(x, y);
-      if (!at) {
+      var at2 = frameAt(x, y);
+      if (!at2) {
         var sp = stageXY(x, y), cz = camRef.current;
         return { where: "loose", x: (sp.x - cz.x) / cz.z, y: (sp.y - cz.y) / cz.z };
       }
-      var f = api(at.fid);
+      var f = api(at2.fid);
       if (!f) return null;
       var z = camRef.current.z;
-      var own = at.fid === docRef.current.active;
-      var hit = f.drop((x - at.r.left) / z, (y - at.r.top) / z, own ? payload.id || null : null, 12 / z);
+      var own = at2.fid === docRef.current.active;
+      var hit = f.drop((x - at2.r.left) / z, (y - at2.r.top) / z, own ? payload.id || null : null, 12 / z);
       if (!hit) return null;
-      var out = { where: "canvas", frame: at.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
+      var out = { where: "canvas", frame: at2.fid, parent: hit.parent, index: hit.index, line: hit.line, box: hit.box };
       var dragType = payload.kind === "move" && payload.id ? (locate(docRef.current, payload.id) || { node: {} }).node.type : payload.kind === "new" || payload.kind === "local" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
-      var into = locate(docRef.current, hit.parent, at.fid);
+      var into = locate(docRef.current, hit.parent, at2.fid);
       if (into && into.node.type === "Slot" && dragType) {
         var slotOwner = into.path[into.path.length - 2];
         if (!slotOwner || !slotAccepts(slotOwner.type, into.node.props.name, dragType)) return null;
       }
       var moving = payload.kind === "move" && payload.id ? locate(docRef.current, payload.id) : null;
       var type = moving ? moving.node.type : payload.kind === "new" || payload.kind === "local" ? payload.type : payload.kind === "asset" ? "Image" : payload.kind === "tool" ? (/^comp:(\w+)$/.exec(payload.tool) || [0, payload.tool === "box" ? "Group" : null])[1] : null;
-      var hostFrame = frameById(docRef.current, at.fid);
+      var hostFrame = frameById(docRef.current, at2.fid);
       if (hit.parent === "root" && type && !joinsFlow(type) && hostFrame && hostFrame.mode !== "structured" && !hostFrame.bare) {
         var unit = f.measure && f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
-        var fx = (x - at.r.left) / z, fy = (y - at.r.top) / z;
+        var fx = (x - at2.r.left) / z, fy = (y - at2.r.top) / z;
         var w = 120, h = 40;
         var r0 = moving && own ? dragRef.current && dragRef.current.r0 || f.rect(payload.id) : null;
         if (r0) {
           w = r0.width;
           h = r0.height;
-          var sx = (dragRef.current.x - at.r.left) / z, sy = (dragRef.current.y - at.r.top) / z;
+          var sx = (dragRef.current.x - at2.r.left) / z, sy = (dragRef.current.y - at2.r.top) / z;
           fx = r0.left + (fx - sx);
           fy = r0.top + (fy - sy);
         }
@@ -6213,7 +6405,7 @@
         out.guides = snapped.guides.length ? snapped.guides : null;
         var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
         out.free = { x: gx, y: gy };
-        out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at.fid) || frame).root.children.length;
+        out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at2.fid) || frame).root.children.length;
         out.line = null;
         out.box = { left: gx * unit, top: gy * unit, width: w, height: h };
       }
@@ -6231,18 +6423,18 @@
       if (!row) return { where: "list", parent: "root", index: root.children.length, indicator: { top: layersRef.current.scrollHeight - 2, left: 8 } };
       var id = row.getAttribute("data-layer");
       if (id === "root") return { where: "list", parent: "root", index: 0, indicator: { top: row.offsetTop + row.offsetHeight, left: 22 } };
-      var at = locate(d, id);
-      if (!at) return null;
-      if (payload.id && at.path.some(function(n) {
+      var at2 = locate(d, id);
+      if (!at2) return null;
+      if (payload.id && at2.path.some(function(n) {
         return n.id === payload.id;
       })) return null;
       var r = row.getBoundingClientRect();
       var depth = Number(row.getAttribute("data-depth")) || 0;
       var rel = (y - r.top) / r.height;
       var probe = payload.id ? (locate(d, payload.id) || {}).node : { type: payload.kind === "asset" ? "Image" : payload.type || "Group" };
-      if (rel > 0.3 && rel < 0.7 && canHold(at, probe)) return { where: "list", parent: id, index: at.node.children.length, inside: id };
+      if (rel > 0.3 && rel < 0.7 && canHold(at2, probe)) return { where: "list", parent: id, index: at2.node.children.length, inside: id };
       var after = rel >= 0.5;
-      return { where: "list", parent: at.parent.id, index: at.index + (after ? 1 : 0), indicator: { top: row.offsetTop + (after ? row.offsetHeight : 0), left: 8 + depth * 14 } };
+      return { where: "list", parent: at2.parent.id, index: at2.index + (after ? 1 : 0), indicator: { top: row.offsetTop + (after ? row.offsetHeight : 0), left: 8 + depth * 14 } };
     };
     var show = function(hit, ghosted) {
       setListDrop(hit && hit.where === "list" ? hit : null);
@@ -6262,11 +6454,11 @@
           var px = x - sr.left < 32 ? 12 : sr.right - x < 32 ? -12 : 0;
           var py = y - sr.top < 32 ? 12 : sr.bottom - y < 32 ? -12 : 0;
           if (px || py) panBy(px, py);
-          var at = frameAt(x, y);
-          var fr = at && frameById(docRef.current, at.fid);
+          var at2 = frameAt(x, y);
+          var fr = at2 && frameById(docRef.current, at2.fid);
           if (fr && !fr.hug) {
-            if (y - at.r.top < 48) frameEls.current[at.fid].contentWindow.scrollBy(0, -14);
-            else if (at.r.bottom - y < 48) frameEls.current[at.fid].contentWindow.scrollBy(0, 14);
+            if (y - at2.r.top < 48) frameEls.current[at2.fid].contentWindow.scrollBy(0, -14);
+            else if (at2.r.bottom - y < 48) frameEls.current[at2.fid].contentWindow.scrollBy(0, 14);
           }
         }
       }
@@ -6377,9 +6569,9 @@
         var mp = hit;
         change(function(d) {
           d.active = mp.fid;
-          var at = locate(d, mp.id);
-          if (!at) return null;
-          at.node.props[mp.prop] = dr.payload.src;
+          var at2 = locate(d, mp.id);
+          if (!at2) return null;
+          at2.node.props[mp.prop] = dr.payload.src;
           return mp.id;
         }, mp.name + " shows " + dr.payload.label);
         return;
@@ -6496,17 +6688,17 @@
     var swapTarget = function(x, y) {
       var d = docRef.current;
       var s0 = selRef.current, last = s0.length ? s0[s0.length - 1] : null;
-      var at = frameAt(x, y);
-      if (at) {
-        var f = api(at.fid), z = camRef.current.z;
-        var fx = (x - at.r.left) / z, fy = (y - at.r.top) / z;
-        var sr = last && at.fid === d.active && f && f.rect ? f.rect(last) : null;
-        if (sr && fx >= sr.left && fx <= sr.right && fy >= sr.top && fy <= sr.bottom) return { id: last, fid: at.fid };
+      var at2 = frameAt(x, y);
+      if (at2) {
+        var f = api(at2.fid), z = camRef.current.z;
+        var fx = (x - at2.r.left) / z, fy = (y - at2.r.top) / z;
+        var sr = last && at2.fid === d.active && f && f.rect ? f.rect(last) : null;
+        if (sr && fx >= sr.left && fx <= sr.right && fy >= sr.top && fy <= sr.bottom) return { id: last, fid: at2.fid };
         var id = f && f.pick ? f.pick(fx, fy) : null;
         while (id && id !== "root") {
-          var a = locate(d, id, at.fid);
+          var a = locate(d, id, at2.fid);
           if (!a) break;
-          if (!fixedSpot(a)) return { id, fid: at.fid };
+          if (!fixedSpot(a)) return { id, fid: at2.fid };
           id = a.parent ? a.parent.id : null;
         }
       }
@@ -6525,15 +6717,15 @@
       return media === "video" ? null : props2[0];
     };
     var mediaTarget = function(x, y, media) {
-      var at = frameAt(x, y);
-      if (!at) return null;
-      var d = docRef.current, f = api(at.fid), z = camRef.current.z;
-      var id = f && f.pick ? f.pick((x - at.r.left) / z, (y - at.r.top) / z) : null;
+      var at2 = frameAt(x, y);
+      if (!at2) return null;
+      var d = docRef.current, f = api(at2.fid), z = camRef.current.z;
+      var id = f && f.pick ? f.pick((x - at2.r.left) / z, (y - at2.r.top) / z) : null;
       while (id && id !== "root") {
-        var a = locate(d, id, at.fid);
+        var a = locate(d, id, at2.fid);
         if (!a) break;
         var prop = mediaPropFor(a.node.type, media || "image");
-        if (prop) return { where: "media", id, fid: at.fid, prop, name: nameOf(a.node) };
+        if (prop) return { where: "media", id, fid: at2.fid, prop, name: nameOf(a.node) };
         id = a.parent ? a.parent.id : null;
       }
       return null;
@@ -6602,6 +6794,7 @@
       delete n.style.x;
       delete n.style.y;
       n.name = comp.name;
+      n.inst = { of: comp.id, rev: comp.rev || 1 };
       return n;
     };
     var addLocal = function(comp, where) {
@@ -6642,10 +6835,10 @@
       change(function(d) {
         var n = node;
         if (moving) {
-          var at = locate(d, moving);
-          if (fixedSpot(at)) return null;
-          at.parent.children.splice(at.index, 1);
-          n = at.node;
+          var at2 = locate(d, moving);
+          if (fixedSpot(at2)) return null;
+          at2.parent.children.splice(at2.index, 1);
+          n = at2.node;
           ["x", "y", "position", "anchor", "offset"].forEach(function(k) {
             delete n.style[k];
           });
@@ -6759,6 +6952,13 @@
               var p = toPage(fid, x, y);
               openMenuRef.current(p.x, p.y, id, fid);
             }),
+            /* From the Play screen, which isn't one of the canvas frames. */
+            goPage: function(pageId2) {
+              playGoRef.current(pageId2);
+            },
+            playKey: function(key, alt) {
+              return playKeyRef.current(key, alt);
+            },
             edit: on(function(fid, id, text) {
               if (docRef.current.active !== fid) activateRef.current(fid);
               beginEditRef.current(id, text);
@@ -6785,9 +6985,9 @@
             },
             dragStart: on(function(fid, id, alt) {
               if (docRef.current.active !== fid) activateRef.current(fid);
-              var at = locate(docRef.current, id);
-              if (!at) return;
-              if (at.node.type === "Slot" || at.node.lock) return;
+              var at2 = locate(docRef.current, id);
+              if (!at2) return;
+              if (at2.node.type === "Slot" || at2.node.lock) return;
               if (alt) {
                 var copyId = null;
                 change(function(d) {
@@ -6796,10 +6996,10 @@
                 }, "Duplicated");
                 if (!copyId) return;
                 id = copyId;
-                at = locate(docRef.current, id);
-                if (!at) return;
+                at2 = locate(docRef.current, id);
+                if (!at2) return;
               }
-              var pl = { kind: "move", id, label: nameOf(at.node) };
+              var pl = { kind: "move", id, label: nameOf(at2.node) };
               dragRef.current = { payload: pl, active: true, ghost: null };
               dragRef.current.ghost = ghostFor(pl);
               if (selRef.current.indexOf(id) < 0) select([id]);
@@ -7085,8 +7285,8 @@
         return;
       }
       if (from === "canvas" && mql("(max-width: 900px)")) {
-        var at = locate(docRef.current, id);
-        announce((at ? at.node.type : "") + " selected. Open Edit to change it.");
+        var at2 = locate(docRef.current, id);
+        announce((at2 ? at2.node.type : "") + " selected. Open Edit to change it.");
       }
     };
     var pickRef = useRef(pick);
@@ -7129,18 +7329,18 @@
       return null;
     };
     var beginEdit = function(id, text) {
-      var at = locate(docRef.current, id);
+      var at2 = locate(docRef.current, id);
       var f = api();
-      if (!at || !f) return;
-      var src = text ? textSource(at.node, text, f) : null;
+      if (!at2 || !f) return;
+      var src = text ? textSource(at2.node, text, f) : null;
       if (!src) {
-        var prop = textPropOf(at.node);
+        var prop = textPropOf(at2.node);
         if (!prop) {
           select([id]);
           return;
         }
-        var base = scalars[at.node.type] || {};
-        src = { prop, value: typeof at.node.props[prop] === "string" ? at.node.props[prop] : String(base[prop] || "") };
+        var base = scalars[at2.node.type] || {};
+        src = { prop, value: typeof at2.node.props[prop] === "string" ? at2.node.props[prop] : String(base[prop] || "") };
       }
       var t = f.textRect(id, src.value);
       if (!t) return;
@@ -7155,14 +7355,14 @@
       if (!ed) return;
       setEdit(Object.assign({}, ed, { value }));
       quiet(function(d) {
-        var at = locate(d, ed.id);
-        if (!at) return null;
+        var at2 = locate(d, ed.id);
+        if (!at2) return null;
         if (ed.index === void 0) {
-          at.node.props[ed.prop] = value;
+          at2.node.props[ed.prop] = value;
           return void 0;
         }
-        if (!Array.isArray(at.node.props[ed.prop])) at.node.props[ed.prop] = JSON.parse(JSON.stringify(ed.sample || []));
-        var list = at.node.props[ed.prop];
+        if (!Array.isArray(at2.node.props[ed.prop])) at2.node.props[ed.prop] = JSON.parse(JSON.stringify(ed.sample || []));
+        var list = at2.node.props[ed.prop];
         if (ed.index >= list.length) return null;
         if (ed.field) list[ed.index][ed.field] = value;
         else list[ed.index] = value;
@@ -7182,10 +7382,10 @@
       var d = docRef.current;
       var s = selRef.current;
       var id = s.length ? s[s.length - 1] : null;
-      var at = id ? locate(d, id) : null;
-      if (!at) return { parent: "root", index: active(d).root.children.length };
-      if (isContainer(at.node.type)) return { parent: at.node.id, index: at.node.children.length };
-      return { parent: at.parent.id, index: at.index + 1 };
+      var at2 = id ? locate(d, id) : null;
+      if (!at2) return { parent: "root", index: active(d).root.children.length };
+      if (isContainer(at2.node.type)) return { parent: at2.node.id, index: at2.node.children.length };
+      return { parent: at2.parent.id, index: at2.index + 1 };
     };
     var add = function(type, where, props2, extra) {
       var t = where || target();
@@ -7224,12 +7424,12 @@
       var spots = ids.map(function(id) {
         return locate(d, id);
       });
-      if (spots.some(function(at) {
-        return !at || !isFree(at.node.style);
+      if (spots.some(function(at2) {
+        return !at2 || !isFree(at2.node.style);
       })) return null;
       var parent = spots[0].parent;
-      if (spots.some(function(at) {
-        return at.parent !== parent;
+      if (spots.some(function(at2) {
+        return at2.parent !== parent;
       })) return null;
       return spots;
     };
@@ -7239,9 +7439,9 @@
       var f = api();
       if (!spots || !f || !f.rect || !f.measure) return false;
       var unit = f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
-      var items = spots.map(function(at) {
-        var r = f.rect(at.node.id);
-        return r ? { id: at.node.id, l: r.left, t: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom } : null;
+      var items = spots.map(function(at2) {
+        var r = f.rect(at2.node.id);
+        return r ? { id: at2.node.id, l: r.left, t: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom } : null;
       }).filter(Boolean);
       if (!items.length) return false;
       var box2;
@@ -7272,11 +7472,11 @@
         var span = last[a[2]] - first[a[0]], sum2 = sorted.reduce(function(n, i) {
           return n + i[a[1]];
         }, 0);
-        var gap = (span - sum2) / (sorted.length - 1), at = first[a[0]];
+        var gap = (span - sum2) / (sorted.length - 1), at2 = first[a[0]];
         sorted.forEach(function(i) {
-          if (axis === "x") put2(i, at, i.t);
-          else put2(i, i.l, at);
-          at += i[a[1]] + gap;
+          if (axis === "x") put2(i, at2, i.t);
+          else put2(i, i.l, at2);
+          at2 += i[a[1]] + gap;
         });
       };
       if (kind === "left") items.forEach(function(i) {
@@ -7352,15 +7552,15 @@
     var styleClip = useRef(null);
     var POSITION_KEYS = ["x", "y", "position", "anchor", "offset"];
     var copyStyle = function() {
-      var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
-      if (!at) return false;
+      var at2 = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+      if (!at2) return false;
       var out = {};
-      Object.keys(at.node.style).forEach(function(k) {
-        if (POSITION_KEYS.indexOf(k) < 0) out[k] = at.node.style[k];
+      Object.keys(at2.node.style).forEach(function(k) {
+        if (POSITION_KEYS.indexOf(k) < 0) out[k] = at2.node.style[k];
       });
       styleClip.current = out;
       var n = Object.keys(out).length;
-      announce(n ? "Copied the style of " + nameOf(at.node) + " (" + n + (n === 1 ? " property)" : " properties)") : "Copied a plain style");
+      announce(n ? "Copied the style of " + nameOf(at2.node) + " (" + n + (n === 1 ? " property)" : " properties)") : "Copied a plain style");
       return true;
     };
     var pasteStyle = function() {
@@ -7375,9 +7575,9 @@
       return true;
     };
     var selectSame = function() {
-      var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
-      if (!at) return;
-      var type = at.node.type, ids = [];
+      var at2 = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
+      if (!at2) return;
+      var type = at2.node.type, ids = [];
       (function walk(n) {
         (n.children || []).forEach(function(c) {
           if (c.type === type) ids.push(c.id);
@@ -7392,8 +7592,8 @@
       var spots = ids.map(function(id) {
         return locate(d, id);
       }).filter(Boolean);
-      var nodes = spots.map(function(at) {
-        return at.node;
+      var nodes = spots.map(function(at2) {
+        return at2.node;
       });
       var one2 = nodes.length === 1 ? nodes[0] : null;
       var hasClip = !!(clip.current && clip.current.nodes && clip.current.nodes.length);
@@ -7410,8 +7610,8 @@
       }), allLocked = nodes.every(function(n) {
         return n.lock;
       });
-      var free = spots.every(function(at) {
-        return isFree(at.node.style);
+      var free = spots.every(function(at2) {
+        return isFree(at2.node.style);
       });
       return [
         { value: "cut", label: "Cut", hint: "Ctrl+X", icon: "scissors", group: "Edit" },
@@ -7516,8 +7716,8 @@
         if (!ids.length || !dx && !dy) return false;
         var d = docRef.current;
         if (!ids.some(function(id) {
-          var at = locate(d, id);
-          return at && isFree(at.node.style);
+          var at2 = locate(d, id);
+          return at2 && isFree(at2.node.style);
         })) return false;
         return !!change(function(dd) {
           var any = null;
@@ -7533,17 +7733,17 @@
         var ids = selRef.current.slice();
         if (!ids.length) return;
         var d = docRef.current, on = ids.some(function(id) {
-          var at = locate(d, id);
-          return at && !at.node.lock;
+          var at2 = locate(d, id);
+          return at2 && !at2.node.lock;
         });
         change(function(dd) {
           var any = false;
           ids.forEach(function(id) {
-            var at = locate(dd, id);
-            if (!at || at.node.type === "Slot") return;
+            var at2 = locate(dd, id);
+            if (!at2 || at2.node.type === "Slot") return;
             any = true;
-            if (on) at.node.lock = true;
-            else delete at.node.lock;
+            if (on) at2.node.lock = true;
+            else delete at2.node.lock;
           });
           return any ? ids : null;
         }, on ? ids.length > 1 ? "Locked " + ids.length : "Locked" : ids.length > 1 ? "Unlocked " + ids.length : "Unlocked");
@@ -7552,17 +7752,17 @@
         var ids = selRef.current.slice();
         if (!ids.length) return;
         var d = docRef.current, on = ids.some(function(id) {
-          var at = locate(d, id);
-          return at && !at.node.hide;
+          var at2 = locate(d, id);
+          return at2 && !at2.node.hide;
         });
         change(function(dd) {
           var any = false;
           ids.forEach(function(id) {
-            var at = locate(dd, id);
-            if (!at || at.node.type === "Slot") return;
+            var at2 = locate(dd, id);
+            if (!at2 || at2.node.type === "Slot") return;
             any = true;
-            if (on) at.node.hide = true;
-            else delete at.node.hide;
+            if (on) at2.node.hide = true;
+            else delete at2.node.hide;
           });
           return any ? ids : null;
         }, on ? ids.length > 1 ? "Hidden " + ids.length : "Hidden" : ids.length > 1 ? "Shown " + ids.length : "Shown");
@@ -7589,8 +7789,8 @@
         }
         var kids = [];
         ids.forEach(function(id) {
-          var at = locate(d, id);
-          if (at && at.node.children) kids.push.apply(kids, at.node.children.map(function(c) {
+          var at2 = locate(d, id);
+          if (at2 && at2.node.children) kids.push.apply(kids, at2.node.children.map(function(c) {
             return c.id;
           }));
         });
@@ -7606,8 +7806,8 @@
         var d = docRef.current;
         var parents = [];
         selRef.current.forEach(function(id) {
-          var at = locate(d, id);
-          if (at && at.parent && at.parent.id !== "root" && parents.indexOf(at.parent.id) < 0) parents.push(at.parent.id);
+          var at2 = locate(d, id);
+          if (at2 && at2.parent && at2.parent.id !== "root" && parents.indexOf(at2.parent.id) < 0) parents.push(at2.parent.id);
         });
         select(parents);
       },
@@ -7639,34 +7839,34 @@
       },
       ungroup: function() {
         var id = selRef.current[selRef.current.length - 1];
-        var at = id && locate(docRef.current, id);
-        if (at && at.node.type === "Group") change(function(d) {
+        var at2 = id && locate(docRef.current, id);
+        if (at2 && at2.node.type === "Group") change(function(d) {
           return ops.ungroup(d, id);
         }, "Ungrouped");
       },
       /* The component rebuilt from primitives, where the canvas has a recipe. */
       detach: function() {
         var id = selRef.current[selRef.current.length - 1];
-        var at = id && locate(docRef.current, id);
+        var at2 = id && locate(docRef.current, id);
         var f = api();
-        if (!at || !f) return;
-        var built = f.detach(at.node);
+        if (!at2 || !f) return;
+        var built = f.detach(at2.node);
         var node = built && cleanNode(built);
         if (!node) {
-          announce(at.node.type + " has no primitive version yet");
+          announce(at2.node.type + " has no primitive version yet");
           return;
         }
-        if (isContainer(node.type) && !node.name) node.name = at.node.type;
+        if (isContainer(node.type) && !node.name) node.name = at2.node.type;
         change(function(d) {
           return ops.replace(d, id, node);
-        }, at.node.type + " detached into primitives");
+        }, at2.node.type + " detached into primitives");
       },
       rename: function() {
         var id = selRef.current[selRef.current.length - 1];
         var where = wide && left === "layers" && !bare ? "layer" : "title";
         if (id) {
-          var at = locate(docRef.current, id);
-          if (at && at.node.type === "Group") setRenaming({ id, where });
+          var at2 = locate(docRef.current, id);
+          if (at2 && at2.node.type === "Group") setRenaming({ id, where });
         } else setRenaming({ id: "frame:" + docRef.current.active, where: wide && !bare ? "title" : "label" });
       },
       /* Tab, or Ctrl/Cmd+\, hides the side panels to give the canvas the room. */
@@ -7948,8 +8148,8 @@
       }
       quiet(function(d) {
         ids.forEach(function(id) {
-          var at = locate(d, id);
-          if (at) at.node.style[key] = v;
+          var at2 = locate(d, id);
+          if (at2) at2.node.style[key] = v;
         });
       });
     };
@@ -7968,21 +8168,21 @@
       change(function(d) {
         var any = false;
         [].concat(ids).forEach(function(id) {
-          var at = locate(d, id);
-          if (!at) return;
+          var at2 = locate(d, id);
+          if (!at2) return;
           any = true;
-          if (value === void 0) delete at.node.props[key];
-          else at.node.props[key] = value;
+          if (value === void 0) delete at2.node.props[key];
+          else at2.node.props[key] = value;
         });
         return any ? void 0 : null;
       });
     };
     var flagLayer = function(id, fid, key) {
       change(function(d) {
-        var at = locate(d, id, fid);
-        if (!at) return null;
-        if (at.node[key]) delete at.node[key];
-        else at.node[key] = true;
+        var at2 = locate(d, id, fid);
+        if (!at2) return null;
+        if (at2.node[key]) delete at2.node[key];
+        else at2.node[key] = true;
         return void 0;
       }, null);
     };
@@ -7990,11 +8190,11 @@
       change(function(d) {
         var any = false;
         [].concat(ids).forEach(function(id) {
-          var at = locate(d, id);
-          if (!at) return;
+          var at2 = locate(d, id);
+          if (!at2) return;
           any = true;
-          if (value === void 0 || value === "") delete at.node.style[key];
-          else at.node.style[key] = value;
+          if (value === void 0 || value === "") delete at2.node.style[key];
+          else at2.node.style[key] = value;
         });
         return any ? void 0 : null;
       });
@@ -8046,10 +8246,10 @@
     };
     var setName = function(id, name) {
       change(function(d) {
-        var at = locate(d, id);
-        if (!at) return null;
-        if (name) at.node.name = name;
-        else delete at.node.name;
+        var at2 = locate(d, id);
+        if (!at2) return null;
+        if (name) at2.node.name = name;
+        else delete at2.node.name;
         return void 0;
       });
     };
@@ -8071,11 +8271,11 @@
       var b = layoutRef.current.boxes[fid];
       var label = nameOf(at0.node);
       change(function(d) {
-        var at = locate(d, id, fid);
-        if (fixedSpot(at)) return null;
+        var at2 = locate(d, id, fid);
+        if (fixedSpot(at2)) return null;
         pinFrames(d);
-        at.parent.children.splice(at.index, 1);
-        var n = at.node;
+        at2.parent.children.splice(at2.index, 1);
+        var n = at2.node;
         ["x", "y", "position", "anchor", "offset"].forEach(function(k) {
           delete n.style[k];
         });
@@ -8139,7 +8339,7 @@
          corner goes on the canvas; otherwise it goes beside the others. */
       /* opts: a kind (free or structured) and a screen size; otherwise the
          active frame's size, or a desktop screen. */
-      add: function(size, page, at, opts) {
+      add: function(size, page, at2, opts) {
         opts = opts || {};
         var cur = active(docRef.current);
         var structured = opts.mode === "structured";
@@ -8162,7 +8362,7 @@
           var placed = d.frames.some(function(fr) {
             return typeof fr.x === "number";
           });
-          if (at || placed) {
+          if (at2 || placed) {
             d.frames.forEach(function(fr) {
               if (typeof fr.x !== "number" && boxesNow[fr.id]) {
                 fr.x = Math.round(boxesNow[fr.id].x);
@@ -8170,8 +8370,8 @@
               }
             });
             var cb = boxesNow[cur.id];
-            f.x = Math.round(at ? at.x : L.left + L.width + FRAME_GAP);
-            f.y = Math.round(at ? at.y : cb ? cb.y : L.top);
+            f.x = Math.round(at2 ? at2.x : L.left + L.width + FRAME_GAP);
+            f.y = Math.round(at2 ? at2.y : cb ? cb.y : L.top);
           }
           d.frames.push(f);
           d.active = f.id;
@@ -8182,7 +8382,7 @@
         }, 0);
       },
       /* at: where the copy goes on the canvas; otherwise it goes beside. */
-      duplicate: function(id, at) {
+      duplicate: function(id, at2) {
         var made = null;
         var boxesNow = layoutRef.current.boxes;
         change(function(d) {
@@ -8193,15 +8393,15 @@
           c.name = src.name + " copy";
           c.root = fresh(src.root);
           c.root.id = "root";
-          if (at) {
+          if (at2) {
             d.frames.forEach(function(fr) {
               if (typeof fr.x !== "number" && boxesNow[fr.id]) {
                 fr.x = Math.round(boxesNow[fr.id].x);
                 fr.y = Math.round(boxesNow[fr.id].y);
               }
             });
-            c.x = at.x;
-            c.y = at.y;
+            c.x = at2.x;
+            c.y = at2.y;
           }
           d.frames.splice(d.frames.indexOf(src) + 1, 0, c);
           d.active = c.id;
@@ -8254,6 +8454,19 @@
         }
       }
     };
+    var pageFile = function(pg, i) {
+      return i === 0 ? "index.html" : ((pg.name || "page").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "page-" + (i + 1)) + ".html";
+    };
+    var withPageLinks = function(tree) {
+      var pages = pagesOf(projectRef.current), files = {};
+      pages.forEach(function(pg, i) {
+        files[pg.id] = "./" + pageFile(pg, i);
+      });
+      return JSON.parse(JSON.stringify(tree), function(k, v) {
+        var m = typeof v === "string" ? PAGE_LINK.exec(v) : null;
+        return m && files[m[1]] ? files[m[1]] : v;
+      });
+    };
     var openCode = function() {
       var f = api();
       if (!f) return;
@@ -8272,10 +8485,10 @@
       if (parts.length && f.jsxNodes) {
         var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
         setCodeTitle(title);
-        setCode(f.jsxNodes(parts, parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts"));
+        setCode(f.jsxNodes(withPageLinks(parts), parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts"));
       } else {
         setCodeTitle(fr.name);
-        setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: fr.root }, fr.name));
+        setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: withPageLinks(fr.root) }, fr.name));
       }
       var dlg = dialogRef.current;
       if (dlg && dlg.showModal) dlg.showModal();
@@ -8302,20 +8515,20 @@
       var d = docRef.current;
       var spots = selRef.current.map(function(id) {
         return locate(d, id);
-      }).filter(function(at) {
-        return at && !fixedSpot(at);
+      }).filter(function(at2) {
+        return at2 && !fixedSpot(at2);
       });
       if (!spots.length) return false;
-      var nodes = spots.map(function(at) {
-        return copy(at.node);
+      var nodes = spots.map(function(at2) {
+        return copy(at2.node);
       });
       clip.current = { nodes, from: d.active };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(JSON.stringify({ kind: CLIP_MARK, nodes: withoutUploads({ frames: [{ root: { children: nodes } }] }).doc.frames[0].root.children })).catch(function() {
       });
       var what = nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers";
       if (cut) change(function(dd) {
-        return ops.remove(dd, spots.map(function(at) {
-          return at.node.id;
+        return ops.remove(dd, spots.map(function(at2) {
+          return at2.node.id;
         }));
       }, "Cut " + what);
       else announce("Copied " + what);
@@ -8330,26 +8543,26 @@
       var t = target();
       var fid = d.active;
       var fr = active(d);
-      var same3 = clip.current && clip.current.from === fid;
+      var same4 = clip.current && clip.current.from === fid;
       var made = [];
       change(function(dd) {
-        var at = t.index;
+        var at2 = t.index;
         nodes.forEach(function(n) {
           if (t.parent !== "root" || fr.mode === "structured" || fr.bare) {
             delete n.style.x;
             delete n.style.y;
-          } else if (same3 && isFree(n.style)) {
+          } else if (same4 && isFree(n.style)) {
             n.style.x = Math.min(FREE_MAX, n.style.x + 4);
             n.style.y = Math.min(FREE_MAX, n.style.y + 4);
           }
-          if (ops.insert(dd, t.parent, at, n, fid)) {
+          if (ops.insert(dd, t.parent, at2, n, fid)) {
             made.push(n.id);
-            at++;
+            at2++;
           }
         });
         return made.length ? made : null;
       }, "Pasted " + (nodes.length === 1 ? nameOf(nodes[0]) : nodes.length + " layers") + " into " + fr.name);
-      if (same3 && clip.current) clip.current = { nodes: clip.current.nodes.map(function(n) {
+      if (same4 && clip.current) clip.current = { nodes: clip.current.nodes.map(function(n) {
         var c = copy(n);
         if (isFree(c.style)) {
           c.style.x += 4;
@@ -8429,16 +8642,16 @@
       change(function(dd) {
         var any = false;
         nodes.forEach(function(n0) {
-          var at = locate(dd, n0.id);
+          var at2 = locate(dd, n0.id);
           var sc = TYPE_SCALE[n0.type];
           var base = scalars[n0.type] || {};
-          var cur = at.node.props[sc.prop] || base[sc.prop];
-          if (!cur && n0.type === "Heading") cur = HEADING_DEFAULT[Number(at.node.props.level || base.level || 2)] || "heading-lg";
+          var cur = at2.node.props[sc.prop] || base[sc.prop];
+          if (!cur && n0.type === "Heading") cur = HEADING_DEFAULT[Number(at2.node.props.level || base.level || 2)] || "heading-lg";
           var i = sc.steps.indexOf(cur);
           if (i < 0) i = sc.steps.indexOf(n0.type === "Text" ? "body" : "heading-lg");
           var j = Math.max(0, Math.min(sc.steps.length - 1, i + by));
           if (j === i) return;
-          at.node.props[sc.prop] = sc.steps[j];
+          at2.node.props[sc.prop] = sc.steps[j];
           any = true;
           said = said || words(cur || "") + " to " + words(sc.steps[j]).replace(/-/g, " ");
         });
@@ -8453,10 +8666,10 @@
       var s0 = selRef.current;
       var nid = nodeId !== void 0 ? nodeId : s0.length ? s0[s0.length - 1] : null;
       var fid = frameId || d.active;
-      var at = nid ? locate(d, nid, fid) : null;
+      var at2 = nid ? locate(d, nid, fid) : null;
       var fr = frameById(d, fid);
-      var url = location.origin + location.pathname + "#b=" + encode(out.doc) + "&f=" + fid + (at ? "&n=" + nid : "");
-      var where = at ? nameOf(at.node) + " in " + (fr ? fr.name : "its frame") : fr ? fr.name : "these frames";
+      var url = location.origin + location.pathname + "#b=" + encode(out.doc) + "&f=" + fid + (at2 ? "&n=" + nid : "");
+      var where = at2 ? nameOf(at2.node) + " in " + (fr ? fr.name : "its frame") : fr ? fr.name : "these frames";
       copyText(url).then(function() {
         announce("Link to " + where + " copied." + (out.dropped ? " Uploaded files aren't in it; they stay in this browser." : ""));
       }, function() {
@@ -9199,12 +9412,12 @@
     };
     var componentSource = function() {
       var d = docRef.current;
-      var at = selRef.current.map(function(id) {
+      var at2 = selRef.current.map(function(id) {
         return locate(d, id);
       }).filter(Boolean);
-      if (!at.length) return null;
-      if (at.length === 1) return copy(at[0].node);
-      return make("Group", { direction: "column", gap: "md" }, at.map(function(a) {
+      if (!at2.length) return null;
+      if (at2.length === 1) return copy(at2[0].node);
+      return make("Group", { direction: "column", gap: "md" }, at2.map(function(a) {
         return copy(a.node);
       }));
     };
@@ -9225,8 +9438,8 @@
       change(function(d) {
         var any = false;
         ids.forEach(function(id) {
-          var at = locate(d, id);
-          if (!at) return;
+          var at2 = locate(d, id);
+          if (!at2) return;
           (function walk(n, depth) {
             ["fill", "color"].forEach(function(k) {
               if (n.style[k]) {
@@ -9242,7 +9455,7 @@
             (n.children || []).forEach(function(c) {
               walk(c, depth + 1);
             });
-          })(at.node, 0);
+          })(at2.node, 0);
         });
         return any ? void 0 : null;
       }, "Custom colours and positions taken out; it uses the system's now");
@@ -9259,12 +9472,21 @@
       if (!kept) return;
       delete kept.style.x;
       delete kept.style.y;
+      var cid = uid();
       setLibrary(function(l) {
         var n = Object.assign({}, l);
-        n.components = [{ id: uid(), name, node: kept, tokens: check.tokens, made: Date.now() }].concat(l.components || []);
+        n.components = [{ id: cid, name, node: kept, tokens: check.tokens, rev: 1, made: Date.now() }].concat(l.components || []);
         return n;
       });
-      if (compDraft.ids.length === 1) setName(compDraft.ids[0], name);
+      if (compDraft.ids.length === 1) {
+        setName(compDraft.ids[0], name);
+        quiet(function(d) {
+          var at2 = locate(d, compDraft.ids[0]);
+          if (!at2) return null;
+          at2.node.inst = { of: cid, rev: 1 };
+          return void 0;
+        });
+      }
       var dlg = compRef.current;
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
@@ -9352,6 +9574,133 @@
         });
         return n;
       });
+      quiet(function(d) {
+        return detachAll(d, id) ? void 0 : null;
+      });
+    };
+    var instanceActions = {
+      update: function(id) {
+        var at2 = locate(docRef.current, id), comp = masterOf(libRef.current, at2 && at2.node);
+        if (!comp) return;
+        var check = componentCheck(at2.node);
+        var bad = check.issues.filter(function(i) {
+          return i.level === "error";
+        })[0];
+        if (bad) {
+          announce("Not yet: " + bad.text);
+          return;
+        }
+        var master = cleanNode(copy(at2.node), null);
+        if (!master) return;
+        delete master.style.x;
+        delete master.style.y;
+        delete master.inst;
+        delete master.lock;
+        delete master.hide;
+        var rev = (comp.rev || 1) + 1, was = comp.node;
+        setLibrary(function(l) {
+          var n = Object.assign({}, l);
+          n.components = (l.components || []).map(function(c) {
+            return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev, tokens: check.tokens }) : c;
+          });
+          return n;
+        });
+        var here = 0;
+        change(function(d) {
+          here = updateInstances(d, comp.id, was, master, rev, id);
+          return void 0;
+        }, null);
+        var pid = projectRef.current.id, pageNow = pageRef.current;
+        var others = pagesOf(projectRef.current).filter(function(pg) {
+          return pg.id !== pageNow;
+        });
+        Promise.all(others.map(function(pg) {
+          return store.loadDoc(pid, pg.id).then(function(d) {
+            if (!d) return 0;
+            var n = 0;
+            var next = produce(d, function(dr) {
+              n = updateInstances(dr, comp.id, was, master, rev, null);
+            });
+            return n ? store.saveDoc(pid, next, pg.id).then(function() {
+              return n;
+            }) : 0;
+          }).catch(function() {
+            return 0;
+          });
+        })).then(function(ns) {
+          var total = here + ns.reduce(function(a, b) {
+            return a + b;
+          }, 0);
+          announce(comp.name + " is updated" + (total ? ", and so " + (total === 1 ? "is its other instance" : "are its " + total + " other instances") : ""));
+        });
+      },
+      /* An instance behind the component (made in another project, say)
+         catches up. Its differences from the revision it was on survive when
+         that revision is the one before; otherwise its differences from the
+         current one do. */
+      pull: function(id) {
+        var at2 = locate(docRef.current, id), comp = masterOf(libRef.current, at2 && at2.node);
+        if (!comp || (at2.node.inst.rev || 1) >= (comp.rev || 1)) return;
+        var was = comp.prev && (at2.node.inst.rev || 1) === (comp.rev || 1) - 1 ? comp.prev : comp.node;
+        change(function(d) {
+          var a = locate(d, id);
+          if (!a || !a.parent) return null;
+          var i = a.parent.children.findIndex(function(c) {
+            return c.id === id;
+          });
+          a.parent.children[i] = rebase(a.node, was, comp.node, comp.rev || 1);
+          return void 0;
+        }, nameOf(at2.node) + " is on the latest " + comp.name);
+      },
+      reset: function(id) {
+        var at2 = locate(docRef.current, id), comp = masterOf(libRef.current, at2 && at2.node);
+        if (!comp) return;
+        change(function(d) {
+          var a = locate(d, id);
+          if (!a || !a.parent) return null;
+          var i = a.parent.children.findIndex(function(c) {
+            return c.id === id;
+          });
+          a.parent.children[i] = rebase(a.node, a.node, comp.node, comp.rev || 1);
+          return void 0;
+        }, nameOf(at2.node) + " is back to " + comp.name);
+      },
+      detach: function(id) {
+        var at2 = locate(docRef.current, id), comp = masterOf(libRef.current, at2 && at2.node);
+        if (!at2 || !at2.node.inst) return;
+        change(function(d) {
+          var a = locate(d, id);
+          if (!a) return null;
+          delete a.node.inst;
+          return void 0;
+        }, nameOf(at2.node) + " is detached from " + (comp ? comp.name : "its component") + "; changes to it stay here");
+      }
+    };
+    var instanceRow = function(n) {
+      var comp = masterOf(library, n);
+      var stale = !!comp && (comp.rev || 1) > (n.inst.rev || 1);
+      return e(
+        "div",
+        { className: cx("bd-inst", !comp && "is-lost", stale && "is-stale") },
+        e(Icon, { name: "component" }),
+        e("span", { className: "bd-inst-text" }, comp ? e(React.Fragment, null, "Instance of ", e("strong", null, comp.name), stale ? ", which has changed since" : "") : "Its component was deleted; it's on its own now"),
+        stale ? e("button", { type: "button", className: "bd-btn bd-btn-sm bd-inst-update", onClick: function() {
+          instanceActions.pull(n.id);
+        } }, "Update") : null,
+        e(Dropdown, {
+          menu: true,
+          label: "Instance actions",
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          alignEnd: true,
+          className: "bd-dd-icon bd-inst-menu",
+          options: (comp ? [{ value: "update", label: "Update component from this", hint: "Every instance follows", icon: "upload" }, { value: "reset", label: "Reset to " + comp.name, icon: "undo" }] : []).concat([{ value: "detach", label: "Detach from component", icon: "detach" }]),
+          onChange: function(v) {
+            if (instanceActions[v]) instanceActions[v](n.id);
+          }
+        })
+      );
     };
     var renameComponent = function(id) {
       var c = (library.components || []).filter(function(x) {
@@ -9430,7 +9779,7 @@
         return a.node;
       });
     };
-    var same2 = function(values) {
+    var same3 = function(values) {
       return values.every(function(v) {
         return JSON.stringify(v) === JSON.stringify(values[0]);
       });
@@ -9479,7 +9828,7 @@
       var values = nodes.map(function(n) {
         return n.style[key] || "";
       });
-      var mixed = !same2(values);
+      var mixed = !same3(values);
       var value = mixed ? "" : values[0];
       var ctx = contextOf(nodes.map(function(n) {
         return n.type;
@@ -9566,8 +9915,8 @@
       }
       change(function(d) {
         nodes.forEach(function(n, i) {
-          var at = locate(d, n.id);
-          if (at && picks[i]) at.node.style[key] = picks[i];
+          var at2 = locate(d, n.id);
+          if (at2 && picks[i]) at2.node.style[key] = picks[i];
         });
         return void 0;
       }, (wide2 ? "Width" : "Height") + " fixed at " + picks.filter(Boolean)[0]);
@@ -9624,12 +9973,12 @@
       change(function(d) {
         var any = false;
         ids.forEach(function(id) {
-          var at = locate(d, id);
-          if (!at) return;
+          var at2 = locate(d, id);
+          if (!at2) return;
           any = true;
           Object.keys(patch).forEach(function(k) {
-            if (patch[k] === void 0 || patch[k] === "") delete at.node.style[k];
-            else at.node.style[k] = patch[k];
+            if (patch[k] === void 0 || patch[k] === "") delete at2.node.style[k];
+            else at2.node.style[k] = patch[k];
           });
         });
         return any ? void 0 : null;
@@ -9639,12 +9988,12 @@
       change(function(d) {
         var any = false;
         ids.forEach(function(id) {
-          var at = locate(d, id);
-          if (!at) return;
+          var at2 = locate(d, id);
+          if (!at2) return;
           any = true;
           Object.keys(patch).forEach(function(k) {
-            if (patch[k] === void 0) delete at.node.props[k];
-            else at.node.props[k] = patch[k];
+            if (patch[k] === void 0) delete at2.node.props[k];
+            else at2.node.props[k] = patch[k];
           });
         });
         return any ? void 0 : null;
@@ -9658,7 +10007,7 @@
         var allValues = nodes.map(function(n) {
           return n.style[all] || "";
         });
-        var inherited = same2(allValues) ? allValues[0] : "";
+        var inherited = same3(allValues) ? allValues[0] : "";
         var own = nodes.some(function(n) {
           return n.style[key];
         });
@@ -9743,7 +10092,7 @@
           labelledBy: id,
           wide: true,
           clearable: true,
-          value: same2(values) ? values[0] || void 0 : null,
+          value: same3(values) ? values[0] || void 0 : null,
           onChange: function(v) {
             setStyle(ids, "self", v);
           },
@@ -9772,7 +10121,7 @@
         var vs = nodes.map(function(n) {
           return n.props[name] !== void 0 ? n.props[name] : base[name] !== void 0 ? base[name] : dflt(p);
         });
-        return same2(vs) ? vs[0] : void 0;
+        return same3(vs) ? vs[0] : void 0;
       };
       var align = spec("align"), justify = spec("justify"), gap = spec("gap");
       var dir = first.type === "Stack" ? "column" : first.type === "Inline" ? "row" : spec("direction") ? val("direction") || "row" : "column";
@@ -9868,7 +10217,7 @@
         var own2 = n.props[p.name];
         return own2 !== void 0 ? own2 : base[p.name] !== void 0 ? base[p.name] : dflt;
       });
-      var mixed = !same2(values);
+      var mixed = !same3(values);
       var current2 = mixed ? void 0 : values[0];
       var ids = nodes.map(function(n) {
         return n.id;
@@ -9888,7 +10237,7 @@
         return e(
           Field,
           { key: p.name, id, label: label + (count ? " (" + count + ")" : ""), note: p.note },
-          e(ListEditor, { key: first.id + p.name, id, label, spec: p, value: sample, onChange: function(v) {
+          e(ListEditor, { key: first.id + p.name, id, label, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function(v) {
             setProp([first.id], p.name, v);
           } })
         );
@@ -10049,6 +10398,8 @@
         control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current2 == null ? "" : String(current2), onChange: function(ev) {
           set2(ev.target.value === "" ? void 0 : ev.target.value);
         } });
+      } else if (p.kind === "url") {
+        control = e(LinkTo, { labelledBy: id, value: current2, mixed, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: set2 });
       } else return null;
       return e(Field, { key: p.name, id, label, note: p.note }, control);
     };
@@ -10559,8 +10910,8 @@
     ];
     var applyVar = function(key, value, label) {
       var ids = selRef.current.filter(function(id) {
-        var at = locate(docRef.current, id);
-        return at && at.node.type !== "Slot";
+        var at2 = locate(docRef.current, id);
+        return at2 && at2.node.type !== "Slot";
       });
       if (!ids.length) {
         announce("Select a layer on the canvas, then pick a variable to apply it");
@@ -10586,7 +10937,7 @@
           var opts = def.options.filter(function(o) {
             return vs[0] !== "w" || o.family !== "fit" && o.family !== "container";
           });
-          var cur = picked.length && same2(picked.map(function(n) {
+          var cur = picked.length && same3(picked.map(function(n) {
             return n.style[vs[0]] || "";
           })) ? picked[0].style[vs[0]] || "" : null;
           return e(
@@ -10944,8 +11295,8 @@
     useEffect(function() {
       var opens = {};
       selection.forEach(function(id) {
-        var at = locate(doc, id);
-        if (at) at.path.slice(1, -1).forEach(function(n) {
+        var at2 = locate(doc, id);
+        if (at2) at2.path.slice(1, -1).forEach(function(n) {
           if (!isOpen(n)) opens[n.id] = isContainer(n.type) ? "del" : false;
         });
       });
@@ -11030,7 +11381,7 @@
       var pages = pagesOf(projectRef.current).filter(function(p) {
         return p.id !== dr.id;
       });
-      var at = function(pid) {
+      var at2 = function(pid) {
         var i2 = pages.findIndex(function(p) {
           return p.id === pid;
         });
@@ -11041,7 +11392,7 @@
         var p = pages.filter(function(q) {
           return q.folder === fid;
         })[0];
-        return p ? at(p.id) : pages.length;
+        return p ? at2(p.id) : pages.length;
       };
       var slot2 = els.length, into = null;
       for (var i = 0; i < els.length; i++) {
@@ -11063,7 +11414,7 @@
       var folder = null, index;
       if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
         folder = before.folder;
-        index = at(before.page.id);
+        index = at2(before.page.id);
       } else if (prev && (prev.kind === "page" && prev.folder || prev.kind === "folder" && !prev.open && prev.count) && tucked) {
         folder = prev.kind === "page" ? prev.folder : prev.folder.id;
         index = endOfFolder(folder, dr.id);
@@ -11072,7 +11423,7 @@
         index = endOfFolder(prev.folder, dr.id);
       } else if (before && before.kind === "page") {
         folder = null;
-        index = at(before.page.id);
+        index = at2(before.page.id);
       } else if (before && before.kind === "folder") {
         folder = null;
         index = before.count ? firstOf(before.folder.id) : pages.length;
@@ -11274,8 +11625,8 @@
     var layersPanel = function() {
       var q = layerQuery.trim().toLowerCase();
       var toggle = function(id) {
-        var at = locate(doc, id);
-        var owner = at && !isContainer(at.node.type);
+        var at2 = locate(doc, id);
+        var owner = at2 && !isContainer(at2.node.type);
         setCollapsed(function(c) {
           var n = Object.assign({}, c);
           if (owner) {
@@ -11406,7 +11757,7 @@
           "div",
           {
             key: n.id,
-            className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+            className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
             "data-layer": mine ? n.id : void 0,
             "data-frame-row": mine ? void 0 : f.id,
             "data-depth": r.depth,
@@ -11446,7 +11797,7 @@
                 if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
               }
             },
-            e(Icon, { name: typeIcon(n.type) }),
+            e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
             renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
               setRenaming(null);
               setName(n.id, v === "Group" ? "" : v);
@@ -11690,7 +12041,7 @@
       }), inks = nodes.map(function(n) {
         return n.style.color || "";
       });
-      var fillHex = same2(fills) ? fills[0] : "", inkHex = same2(inks) ? inks[0] : "";
+      var fillHex = same3(fills) ? fills[0] : "", inkHex = same3(inks) ? inks[0] : "";
       var picker = function(key, value, label, clears) {
         return e(ColorPick, {
           value,
@@ -11717,11 +12068,11 @@
       var picturesOnly = nodes.every(function(n) {
         return PICTURE_TYPES[n.type];
       });
-      var blendNow = same2(blendValues) ? blendValues[0] : null;
+      var blendNow = same3(blendValues) ? blendValues[0] : null;
       var blendOpt = blendNow ? DATA.tokens.blend.options.filter(function(o) {
         return o.value === blendNow;
       })[0] : null;
-      var darkOn = same2(darkValues) && darkValues[0];
+      var darkOn = same3(darkValues) && darkValues[0];
       var darkToggle = headAction("moon", darkOn ? "Dark band: everything inside resolves dark. Press for inherit." : "Make this a dark band", function() {
         setStyle(ids, "dark", darkOn ? void 0 : true);
       }, !!darkOn);
@@ -11760,7 +12111,7 @@
           picturesOnly ? e(
             Field,
             { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
-            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same2(invValues), onChange: function(v) {
+            e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same3(invValues), onChange: function(v) {
               setStyle(ids, "invert", v ? "on" : void 0);
             } })
           ) : null,
@@ -11797,7 +12148,7 @@
               labelledBy: rid,
               wide: true,
               className: "bd-seg-pics",
-              value: same2(radiusValues) ? radiusValues[0] || void 0 : null,
+              value: same3(radiusValues) ? radiusValues[0] || void 0 : null,
               onChange: function(v) {
                 if (v) setStyle(ids, "radius", v);
               },
@@ -11825,7 +12176,7 @@
               labelledBy: sid,
               wide: true,
               className: "bd-seg-pics",
-              value: same2(shadowValues) ? shadowValues[0] || void 0 : null,
+              value: same3(shadowValues) ? shadowValues[0] || void 0 : null,
               onChange: function(v) {
                 if (v) setStyle(ids, "elevation", v);
               },
@@ -11866,10 +12217,10 @@
             e(
               "div",
               { className: "bd-size-row" },
-              e(NumberField, { short: "X", label: "X position", value: same2(xs) ? Math.round(xs[0] * unit) : "", onChange: function(v) {
+              e(NumberField, { short: "X", label: "X position", value: same3(xs) ? Math.round(xs[0] * unit) : "", onChange: function(v) {
                 setStyles(ids, { x: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) });
               } }),
-              e(NumberField, { short: "Y", label: "Y position", value: same2(ys) ? Math.round(ys[0] * unit) : "", onChange: function(v) {
+              e(NumberField, { short: "Y", label: "Y position", value: same3(ys) ? Math.round(ys[0] * unit) : "", onChange: function(v) {
                 setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) });
               } })
             )
@@ -11885,8 +12236,8 @@
       var av = nodes.map(function(n) {
         return n.style.anchor || "";
       });
-      var position = same2(pv) ? pv[0] : null;
-      var anchor = same2(av) ? av[0] : null;
+      var position = same3(pv) ? pv[0] : null;
+      var anchor = same3(av) ? av[0] : null;
       var pid = "bd-pos-" + nodes[0].id;
       return [
         e(
@@ -12121,8 +12472,8 @@
       );
     };
     var slotInspector = function(node) {
-      var at = locate(doc, node.id);
-      var owner = at && at.path.length > 1 ? at.path[at.path.length - 2] : null;
+      var at2 = locate(doc, node.id);
+      var owner = at2 && at2.path.length > 1 ? at2.path[at2.path.length - 2] : null;
       if (!owner) return null;
       var takes = slotTakes(owner.type, node.props.name);
       var spec = slotSpec(owner.type, node.props.name);
@@ -12175,7 +12526,7 @@
       );
     };
     var partInspector = function(node) {
-      var at = locate(doc, node.id);
+      var at2 = locate(doc, node.id);
       var spec = META[node.type].props.filter(function(p) {
         return p.name === "titleSize";
       })[0];
@@ -12267,8 +12618,8 @@
           className: "bd-input",
           type: "text",
           "aria-labelledby": textId,
-          placeholder: same2(textValues) ? "" : "Mixed",
-          value: same2(textValues) ? textValues[0] : "",
+          placeholder: same3(textValues) ? "" : "Mixed",
+          value: same3(textValues) ? textValues[0] : "",
           onChange: function(ev) {
             setProp(ids, "children", ev.target.value);
           }
@@ -12331,7 +12682,7 @@
             e(
               "h2",
               { className: "bd-inspect-title" },
-              e(Icon, { name: sameType ? typeIcon(first.type) : "component" }),
+              e(Icon, { name: !many && first.inst || !sameType ? "component" : typeIcon(first.type) }),
               many ? title : isContainer(first.type) && first.type === "Group" ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function(v) {
                 setRenaming(null);
                 setName(first.id, v === "Group" ? "" : v);
@@ -12389,6 +12740,7 @@
               })
             )
           ),
+          !many && first.inst ? instanceRow(first) : null,
           many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.") : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
           arrangeTools
         ),
@@ -12707,12 +13059,12 @@
         if (key === last) return;
         last = key;
         var fn = function(d) {
-          var at = locate(d, id);
-          if (!at) return null;
-          if (tw) at.node.style.w = tw;
-          if (th) at.node.style.height = th;
-          if (xs) at.node.style.x = Math.max(0, Math.min(FREE_MAX, x0 + xs));
-          if (ys) at.node.style.y = Math.max(0, Math.min(FREE_MAX, y0 + ys));
+          var at2 = locate(d, id);
+          if (!at2) return null;
+          if (tw) at2.node.style.w = tw;
+          if (th) at2.node.style.height = th;
+          if (xs) at2.node.style.x = Math.max(0, Math.min(FREE_MAX, x0 + xs));
+          if (ys) at2.node.style.y = Math.max(0, Math.min(FREE_MAX, y0 + ys));
           return void 0;
         };
         if (first) {
@@ -13094,26 +13446,26 @@
         marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
         !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
         !preview ? marks.sel.map(function(m) {
-          var at = locate(doc, m.id);
-          if (!at) return null;
+          var at2 = locate(doc, m.id);
+          if (!at2) return null;
           var isMain = m.id === sel && !edit;
           var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
-          var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
+          var handles = isMain && !part && !fixedSpot(at2) && at2.node.type !== "Slot" && !at2.node.lock ? isFree(at2.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
           return e(
             "div",
-            { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+            { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
             isMain ? e("span", {
               className: "bd-mark-tag",
               title: "Drag to move",
               onPointerDown: function(ev) {
                 ev.preventDefault();
                 ev.stopPropagation();
-                startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type });
+                startDrag(ev, { kind: "move", id: at2.node.id, label: at2.node.type });
               }
-            }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null,
+            }, nameOf(at2.node) + (part && part.id === m.id ? " › Title" : "")) : null,
             handles ? handles.map(function(dir) {
               return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function(ev) {
-                startNodeResize(ev, at.node.id, dir);
+                startNodeResize(ev, at2.node.id, dir);
               } });
             }) : null
           );
@@ -13164,7 +13516,54 @@
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…")
     );
     var openPlay = function() {
-      setPlay({ fid: frame.id, h: playDefault(frame.width) });
+      setPlay({ fid: frame.id, h: playDefault(frame.width), stack: [], home: { page: pageRef.current, fid: frame.id } });
+    };
+    var playGo = function(pageId2) {
+      var p = playRef.current && playRef.current.open ? play : null;
+      if (!p || !pagesOf(projectRef.current).some(function(pg) {
+        return pg.id === pageId2;
+      })) return;
+      var from = { page: pageRef.current, fid: p.fid };
+      if (pageId2 === pageRef.current) return;
+      openPage(pageId2).then(function() {
+        setPlay(function(q) {
+          return q ? Object.assign({}, q, { fid: docRef.current.active, stack: (q.stack || []).concat([from]) }) : q;
+        });
+      });
+    };
+    var playGoRef = useRef(playGo);
+    playGoRef.current = playGo;
+    var playBack = function() {
+      var p = play;
+      if (!p || !p.stack || !p.stack.length) return;
+      var prev = p.stack[p.stack.length - 1], rest = p.stack.slice(0, -1);
+      var done = function() {
+        setPlay(function(q) {
+          return q ? Object.assign({}, q, { fid: frameById(docRef.current, prev.fid) ? prev.fid : docRef.current.active, stack: rest }) : q;
+        });
+      };
+      if (prev.page === pageRef.current) done();
+      else openPage(prev.page).then(done);
+    };
+    var playKey = function(key, alt) {
+      var el = playRef.current;
+      if (!play || !el || !el.open) return false;
+      if (key === "Escape") {
+        el.close();
+        return true;
+      }
+      if (key === "Backspace" || alt && key === "ArrowLeft") {
+        if (play.stack && play.stack.length) playBack();
+        return true;
+      }
+      return false;
+    };
+    var playKeyRef = useRef(playKey);
+    playKeyRef.current = playKey;
+    var playClosed = function() {
+      var home2 = play && play.home;
+      setPlay(null);
+      if (home2 && home2.page !== pageRef.current) openPage(home2.page);
     };
     var renderPlay = function() {
       var el = playFrameRef.current;
@@ -13177,23 +13576,40 @@
       }
       if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale }, root: fr.root }, { preview: true, hug: false });
     };
+    useEffect(function() {
+      if (play) renderPlay();
+    }, [play && play.fid, doc]);
     var playDialog = function() {
       var fr = play && frameById(doc, play.fid);
       if (!fr) return null;
+      var pageNow = pagesOf(project).filter(function(pg) {
+        return pg.id === pageId;
+      })[0];
+      var canBack = !!(play.stack && play.stack.length);
       var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
       var hs = playHeights(fr.width);
       return e(
         "dialog",
-        { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: function() {
-          setPlay(null);
-        } },
+        {
+          className: "bd-play",
+          ref: playRef,
+          "aria-labelledby": "bd-play-title",
+          onClose: playClosed,
+          onKeyDown: function(ev) {
+            if (canBack && (ev.key === "Backspace" || ev.altKey && ev.key === "ArrowLeft")) {
+              ev.preventDefault();
+              playBack();
+            }
+          }
+        },
         e(
           "div",
           { className: "bd-play-head" },
+          canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: playBack }, e(Icon, { name: "left" })) : null,
           e(
             "div",
             { className: "bd-play-intro" },
-            e("h2", { id: "bd-play-title" }, fr.name),
+            e("h2", { id: "bd-play-title" }, (pageNow && pagesOf(project).length > 1 ? pageNow.name + " › " : "") + fr.name),
             e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")
           ),
           e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function() {

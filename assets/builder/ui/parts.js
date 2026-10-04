@@ -71,6 +71,7 @@ function ListEditor(props) {
     if (f.kind === "enum") control = e(Dropdown, { labelledBy: id, value: val, placeholder: f.optional ? "None" : "Choose", onChange: function (v) { set(v || undefined); }, options: (f.optional ? [{ value: "", label: "None" }] : []).concat(f.options.map(function (o) { return { value: o, label: String(o) }; })) });
     else if (f.kind === "number") control = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function (ev) { set(ev.target.value === "" ? undefined : Number(ev.target.value)); } });
     else if (LONG_FIELD.test(f.name)) control = e("textarea", { className: "bd-input bd-list-text", rows: 3, "aria-labelledby": id, value: val == null ? "" : String(val), onChange: function (ev) { set(ev.target.value); } });
+    else if (f.kind === "url" && props.pages) control = e(LinkTo, { labelledBy: id, value: val, pages: props.pages, pageNow: props.pageNow, onChange: set });
     else if (f.kind === "url" || f.kind === "media") control = e(UrlInput, { labelledBy: id, value: val, placeholder: f.kind === "media" ? "https://" : f.optional ? "Optional" : "", ok: f.kind === "media" ? MEDIA_URL : SAFE_HREF, onChange: set });
     else control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, value: val == null ? "" : String(val), placeholder: f.optional ? "Optional" : "", onChange: function (ev) { set(ev.target.value); } });
     return e("div", { key: f.name, className: "bd-list-field" }, e("span", { className: "bd-field-label", id: id }, words(f.name)), control);
@@ -101,6 +102,28 @@ function UrlInput(props) {
   var bad = !!draft && !props.ok.test(draft.trim());
   return e("input", { className: "bd-input", type: "url", "aria-labelledby": props.labelledBy, "aria-invalid": bad ? "true" : undefined, value: draft, placeholder: props.placeholder,
     onChange: function (ev) { var v = ev.target.value; setDraft(v); v = v.trim(); if (!v) props.onChange(undefined); else if (props.ok.test(v)) props.onChange(v); } });
+}
+
+/* Where a link goes: one of the project's pages (kept as #page:<id>; Play
+   follows it and the code gets a relative address) or a web address. */
+var PAGE_LINK = /^#page:([\w-]+)$/;
+function LinkTo(props) {
+  var webState = useState(false);
+  var web = webState[0], setWeb = webState[1];
+  var pages = props.pages || [];
+  var m = typeof props.value === "string" ? PAGE_LINK.exec(props.value) : null;
+  var onPage = m && pages.some(function (pg) { return pg.id === m[1]; }) ? m[1] : null;
+  var mode = props.mixed ? null : onPage ? "page:" + onPage : props.value || web ? "url" : "";
+  return e("div", { className: "bd-link" },
+    e(Dropdown, { labelledBy: props.labelledBy, value: mode, mixed: props.mixed, placeholder: "None", className: "bd-dd-field",
+      onChange: function (v) {
+        setWeb(v === "url");
+        if (v === "url") { if (onPage) props.onChange(undefined); }
+        else if (v && v.indexOf("page:") === 0) props.onChange("#page:" + v.slice(5));
+        else props.onChange(undefined);
+      },
+      options: [{ value: "", label: "None" }, { value: "url", label: "A web address", icon: "link" }].concat(pages.map(function (pg) { return { value: "page:" + pg.id, label: pg.name, hint: pg.id === props.pageNow ? "This page" : "Page", icon: "file" }; })) }),
+    mode === "url" ? e(UrlInput, { labelledBy: props.labelledBy, value: onPage ? "" : props.value, placeholder: props.placeholder || "https://", ok: props.ok || SAFE_HREF, onChange: props.onChange }) : null);
 }
 
 /* One pressed, icons or pictures where they say it. clearable: pressing
@@ -671,4 +694,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };

@@ -553,6 +553,13 @@
 
   ["click", "submit", "auxclick", "dblclick"].forEach(function (type) {
     document.addEventListener(type, function (ev) {
+      /* In Play, a link to one of the project's pages goes there. */
+      if (opts.preview && type === "click") {
+        var link = ev.target.closest ? ev.target.closest("a[href]") : null;
+        var to = link && /^#page:([\w-]+)$/.exec(link.getAttribute("href") || "");
+        if (to) { ev.preventDefault(); var hh = host(); if (hh && hh.goPage) hh.goPage(to[1]); }
+        return;
+      }
       if (!editing()) return;
       ev.preventDefault();
       ev.stopPropagation();
@@ -692,7 +699,11 @@
   document.addEventListener("pointercancel", release(false), true);
   document.addEventListener("pointerleave", function () { if (host()) host().hover(null); });
   document.addEventListener("keydown", function (ev) {
-    if (!editing() || !host()) return;
+    if (!host()) return;
+    /* In Play the screen has the focus once a link is followed, so Escape
+       and Back still reach the theater. */
+    if (opts.preview) { if (current && host().playKey && host().playKey(ev.key, ev.altKey)) ev.preventDefault(); return; }
+    if (!editing()) return;
     if (host().key(ev)) ev.preventDefault();
   }, true);
   document.addEventListener("keyup", function (ev) { if (host() && host().keyup) host().keyup(ev); }, true);
