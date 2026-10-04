@@ -328,8 +328,11 @@ try {
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Content" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Content opens first, with the Text field");
-    const actions = await page.$$eval(".bd-inspect-head .bd-head-actions [aria-label]", (b) => b.map((x) => x.getAttribute("aria-label")));
-    expect(actions.join("|") === "Wrap in|Group (Ctrl+G)|Copy a link to this layer|Create component (Ctrl+Alt+K)", `the head offers only Wrap, Group, a link and Create component for a Heading, got ${actions.join("|")}`);
+    expect(await page.locator(".bd-inspect-head .bd-head-actions > *").count() === 1, "the head has one menu beside the name, not a row of buttons");
+    await page.locator(".bd-inspect-head .bd-layer-menu").click();
+    const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
+    await page.keyboard.press("Escape");
+    expect(actions[0] === "Group" && actions.includes("Wrap in Group") && actions.includes("Copy link to this layer") && actions[actions.length - 1] === "Create component" && !actions.some((a) => /Turn into|Detach/.test(a)), `the menu offers Group, Wrap in, a link and Create component for a Heading, got ${actions.join("|")}`);
     const stage = await stageBox(page);
     await page.mouse.click(stage.x + 6, stage.y + stage.height - 6);
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -556,7 +559,8 @@ try {
     ok("pressing anywhere on a canvas node and dragging moves it");
 
     await row(page, "HeroBlock").click();
-    await page.locator('.bd-right [aria-label="Detach into primitives"]').click();
+    await page.locator(".bd-inspect-head .bd-layer-menu").click();
+    await option(page, "Detach into primitives").click();
     await page.waitForFunction(() => [...document.querySelectorAll(".bd-layer-name")].filter((n) => n.textContent === "Button").length >= 2);
     const names = await layerNames(page);
     const heroAt = names.indexOf("1:HeroBlock");
@@ -1529,7 +1533,8 @@ try {
     await fitAll(page);
     await pressButton(page, "Shop the collection");
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    await page.locator('.bd-inspect-head [aria-label="Create component (Ctrl+Alt+K)"]').click();
+    await page.locator(".bd-inspect-head .bd-layer-menu").click();
+    await option(page, "Create component").click();
     await page.locator(".bd-comp-dlg[open]").waitFor();
     expect(await page.locator(".bd-comp-status.is-blocked").count() === 1 && await page.locator(".bd-comp-dlg .bd-btn-primary").isDisabled(), "a custom fill blocks the component, and says why");
     await page.locator(".bd-comp-dlg .bd-btn", { hasText: "Use the system's instead" }).click();
@@ -2109,7 +2114,7 @@ try {
     const { page } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const find = (d, id) => { let out = null; d.frames.forEach((f) => (function w(n) { (n.children || []).forEach((c) => { if (c.id === id) out = { node: c, frame: f }; w(c); }); })(f.root)); return out; };
-    const turn = async (label) => { await page.locator('.bd-right .bd-dd[aria-label="Turn into"]').click(); await option(page, label).click(); };
+    const turn = async (label) => { await page.locator(".bd-inspect-head .bd-layer-menu").click(); await option(page, label).click(); };
     await category(page, "Layout");
     await page.locator('.bd-tile[data-type="Section"]').click();
     await page.waitForFunction(() => /Section/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -2144,6 +2149,26 @@ try {
     await option(page, "Turn into a frame").click();
     await page.waitForFunction((fid) => { const f = window.__builder.doc().frames.find((x) => x.id === fid); return f && !f.bare; }, own.frame.id);
     ok("its frame turns into a Group, loose on the canvas where the frame was, and that turns back into a frame");
+    await page.close();
+  });
+
+  await step("Inspector head: one menu beside the name, a head that stays put, and Structured opening its layout", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    await page.locator(".bd-flabel-btn").first().click();
+    await page.waitForFunction(() => document.querySelector('.bd-right [aria-labelledby="bd-fr-kind"]'));
+    await page.locator('.bd-right [aria-labelledby="bd-fr-kind"] .bd-seg-btn', { hasText: "Structured" }).click();
+    await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout" && await page.locator(".bd-right .bd-sec-h", { hasText: /Flex layout|Arrangement/ }).count() === 1, `Structured selects the Group everything went into, on its Layout tab with the flex controls, got tab ${await page.locator(".bd-itab[aria-selected=true]").textContent()}`);
+    ok("switching the frame to Structured opens the Layout tab on the Group its Heading went into, flex controls in view");
+    expect(await page.locator(".bd-inspect-head .bd-layer-menu").count() === 1 && await page.locator(".bd-inspect-head .bd-head-actions > *").count() === 1, "the head has one menu beside the name");
+    const stuck = await page.evaluate(() => { const r = document.querySelector(".bd-right"), h = document.querySelector(".bd-inspect-head"); r.scrollTop = 400; return { position: getComputedStyle(h).position, scrolled: r.scrollTop, top: Math.round(h.getBoundingClientRect().top - r.getBoundingClientRect().top) }; });
+    expect(stuck.position === "sticky" && (stuck.scrolled === 0 || Math.abs(stuck.top) <= 2), `the head stays at the top of the panel while it scrolls, got ${JSON.stringify(stuck)}`);
+    ok(`the name and its menu stay at the top while the inspector scrolls (${stuck.scrolled}px down)`);
     await page.close();
   });
 

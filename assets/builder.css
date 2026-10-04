@@ -2025,9 +2025,15 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 /* ------------------------------------------------------------ inspector */
 
+/* The head stays at the top while the inspector scrolls, so the name and
+   its menu are always to hand. */
 .bd-inspect-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   padding: var(--dt-space-inset-md) var(--dt-space-inset-md) var(--dt-space-inset-sm);
   border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
+  background: var(--dt-surface-subtle);
 }
 
 .bd-head-row {
