@@ -2655,6 +2655,56 @@
     return { config: assign({}, config), brand: assign({}, brand), media: assign({}, media), context: context };
   }
 
+  /* A theme coming back from somewhere else (a builder project's own, or
+     one inside a file someone sent): only the settings the panel knows, each
+     as the type it takes, and pictures only as image data. */
+  var IMAGE_DATA = /^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+\/=]+$/;
+  function cleanTheme(src) {
+    src = src && typeof src === "object" ? src : {};
+    var c = src.config && typeof src.config === "object" ? src.config : {};
+    var cfg = assign({}, DEFAULTS);
+    Object.keys(DEFAULTS).forEach(function (k) {
+      var v = c[k];
+      if (typeof v !== typeof DEFAULTS[k]) return;
+      if (typeof v === "number" && !isFinite(v)) return;
+      if (typeof v === "string") {
+        if (v.length > 4000) return;
+        if (k === "customIconInclude" ? v.indexOf("*/") >= 0 : !/^[\w #.,()%+-]*$/.test(v)) return;
+      }
+      cfg[k] = v;
+    });
+    if (c.rampHues && typeof c.rampHues === "object") {
+      cfg.rampHues = {};
+      Object.keys(c.rampHues).forEach(function (k) {
+        if (/^[\w-]{1,40}$/.test(k) && /^#[0-9a-f]{6}$/i.test(String(c.rampHues[k]))) cfg.rampHues[k] = c.rampHues[k];
+      });
+    }
+    var b = src.brand && typeof src.brand === "object" ? src.brand : {};
+    var m = src.media && typeof src.media === "object" ? src.media : {};
+    var pic = function (v) { return typeof v === "string" && IMAGE_DATA.test(v) ? v : ""; };
+    return {
+      config: cfg,
+      brand: { name: typeof b.name === "string" ? b.name.slice(0, 80) : "", mark: pic(b.mark), wordmark: pic(b.wordmark) },
+      media: { photo: pic(m.photo), illustration: pic(m.illustration) },
+      context: CONTEXTS.indexOf(src.context) >= 0 ? src.context : "",
+    };
+  }
+
+  /* Swap the whole theme for another, everywhere at once, and remember it
+     as the current one. */
+  function loadTheme(src) {
+    var next = cleanTheme(src);
+    draft = null;
+    config = next.config;
+    brand = next.brand;
+    media = next.media;
+    context = next.context;
+    store(BRAND_KEY, brand.name || brand.mark || brand.wordmark ? JSON.stringify(brand) : null);
+    store(MEDIA_KEY, media.photo || media.illustration ? JSON.stringify(media) : null);
+    store(CONTEXT_KEY, context || null);
+    commit({});
+  }
+
   function save() {
     if (draft) {
       var pending = draft.pending;
@@ -2879,6 +2929,10 @@
   window.DovetailConfigurePanel = {
     open: open, close: close, reset: reset, dock: dock, undock: undock,
     config: function () { return assign({}, config); },
+    /* The whole theme, and a way to put one back: the builder keeps one per
+       project. */
+    theme: function () { var t = snapshot(); t.config = cleanTheme(t).config; return t; },
+    loadTheme: loadTheme,
     /* Another panel on the page (the builder's Content) can pick the icon library. */
     setIconLib: function (key) {
       if (key !== "custom" && !DATA.icons[key]) return;

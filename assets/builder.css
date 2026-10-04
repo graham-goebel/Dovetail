@@ -4504,6 +4504,59 @@ input.bd-proj-name {
   padding: var(--dt-space-inset-md);
 }
 
+/* A picture that won't load (or a card being made) keeps its shape. */
+.bd-proj-acts label.bd-act {
+  cursor: pointer;
+}
+
+/* On a phone, each project is a row: its picture, its name, and its actions
+   in plain view beside them, so a screen shows several at once. The dialog's
+   Close stays in its corner however the heading wraps. */
+@media (max-width: 600px) {
+  .bd-projects .bd-code-head,
+  .bd-versions .bd-code-head {
+    position: relative;
+    padding-right: calc(var(--dt-space-inset-md) + var(--dt-size-control-md) + var(--dt-space-inline-xs));
+  }
+
+  .bd-projects .bd-code-actions .bd-act[aria-label="Close"],
+  .bd-versions .bd-code-actions .bd-act[aria-label="Close"] {
+    position: absolute;
+    top: var(--dt-space-inset-md);
+    right: var(--dt-space-inset-md);
+  }
+
+  .bd-projects-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--dt-space-stack-xs);
+  }
+
+  .bd-proj {
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0 var(--dt-space-inline-sm);
+  }
+
+  .bd-proj-open {
+    grid-row: 1 / span 2;
+  }
+
+  .bd-proj-acts {
+    position: static;
+    grid-column: 2;
+    justify-self: start;
+    margin-top: var(--dt-space-stack-2xs);
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    opacity: 1;
+  }
+
+  .bd-proj-confirm {
+    grid-column: 2;
+  }
+}
+
 /* Versions of the project on screen, newest first. */
 .bd-versions {
   height: min(640px, calc(100dvh - 48px));

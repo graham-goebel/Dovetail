@@ -113,9 +113,11 @@ function makeStore(b) {
     loadDoc: function (id) {
       return b.get("docs", id).then(function (rec) { return rec ? clean(rec.doc) : null; });
     },
-    /* A new project, opened next; its first version is where it started. */
-    createProject: function (name, doc) {
-      var meta = { id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null };
+    /* A new project, opened next; its first version is where it started.
+       extra may carry its settings: the canvas colour behind its frames
+       (stage) and its Configure theme. */
+    createProject: function (name, doc, extra) {
+      var meta = Object.assign({ id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null }, settingsOf(extra));
       return b.put("projects", meta)
         .then(function () { return b.put("docs", { id: meta.id, doc: doc }); })
         .then(function () { return meta; });
@@ -140,18 +142,31 @@ function makeStore(b) {
         return b.put("projects", meta).then(function () { return meta; });
       });
     },
-    setThumb: function (id, thumb) {
+    /* The picture on a project's card. One the person chose (byUser) stays
+       until they choose again or go back to automatic (thumb null); until
+       then, automatic pictures leave it alone. */
+    setThumb: function (id, thumb, byUser) {
       return b.get("projects", id).then(function (meta) {
         if (!meta) return null;
+        if (meta.thumbSet && !byUser && thumb) return meta;
         meta.thumb = thumb;
+        meta.thumbSet = !!(byUser && thumb);
+        return b.put("projects", meta).then(function () { return meta; });
+      });
+    },
+    /* A project's own settings: its canvas colour and its theme. */
+    setSettings: function (id, patch) {
+      return b.get("projects", id).then(function (meta) {
+        if (!meta) return null;
+        Object.assign(meta, settingsOf(patch));
         return b.put("projects", meta).then(function () { return meta; });
       });
     },
     duplicateProject: function (id) {
       return Promise.all([b.get("projects", id), api.loadDoc(id)]).then(function (got) {
         if (!got[0] || !got[1]) return null;
-        return api.createProject(got[0].name + " copy", got[1]).then(function (meta) {
-          return got[0].thumb ? api.setThumb(meta.id, got[0].thumb) : meta;
+        return api.createProject(got[0].name + " copy", got[1], got[0]).then(function (meta) {
+          return got[0].thumb ? api.setThumb(meta.id, got[0].thumb, got[0].thumbSet) : meta;
         });
       });
     },
@@ -229,6 +244,25 @@ function makeStore(b) {
   return api;
 }
 
+/* The settings a project keeps, from anything that might carry them: a
+   canvas colour as #rrggbb (or "" for the builder's own), and a theme as the
+   Configure panel gives it. Anything else is left behind. */
+function settingsOf(src) {
+  var out = {};
+  if (!src || typeof src !== "object") return out;
+  if (typeof src.stage === "string" && (src.stage === "" || /^#[0-9a-f]{6}$/i.test(src.stage))) out.stage = src.stage.toLowerCase();
+  if (src.theme && typeof src.theme === "object") {
+    var t = src.theme;
+    out.theme = {
+      config: t.config && typeof t.config === "object" ? t.config : {},
+      brand: t.brand && typeof t.brand === "object" ? t.brand : {},
+      media: t.media && typeof t.media === "object" ? t.media : {},
+      context: typeof t.context === "string" ? t.context : "",
+    };
+  }
+  return out;
+}
+
 /* "5 minutes ago", for a project's edited time. */
 function ago(t) {
   var s = Math.max(0, Math.round((Date.now() - t) / 1000));
@@ -242,4 +276,4 @@ function ago(t) {
   return new Date(t).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 }
 
-export { openStore, makeStore, localBackend, ago, VERSIONS_MAX, VERSION_EVERY };
+export { openStore, makeStore, localBackend, ago, settingsOf, VERSIONS_MAX, VERSION_EVERY };

@@ -166,7 +166,9 @@ function App(props) {
   var frameOnState = useState(true);
   var frameOn = frameOnState[0], setFrameOn = frameOnState[1];
   var frameOnRef = useRef(frameOn); frameOnRef.current = frameOn;
-  var stageColorState = useState(prefs.stage || "");
+  /* The colour behind the frames is the project's own (older saves kept one
+     for every project, which the first project to open takes on). */
+  var stageColorState = useState(typeof init.project.stage === "string" ? init.project.stage : (prefs.stage || ""));
   var stageColor = stageColorState[0], setStageColor = stageColorState[1];
   var openFramesState = useState({});
   var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
@@ -381,8 +383,45 @@ function App(props) {
       receive: receive, diff: diffDocs };
   }, []);
   useEffect(function () {
-    storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, stage: stageColor })); });
-  }, [category, assetKind, view, tabByType, closedSecs, left, stageColor]);
+    storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left })); });
+  }, [category, assetKind, view, tabByType, closedSecs, left]);
+  useEffect(function () {
+    var meta = projectRef.current;
+    if (meta.stage === stageColor) return;
+    meta.stage = stageColor;
+    store.setSettings(meta.id, { stage: stageColor });
+  }, [stageColor]);
+
+  /* The Configure theme is the project's own too. A project saved before
+     that keeps the theme on screen when it first opens. Every change to the
+     theme is saved to the project on screen. */
+  var themeLoaded = useRef(false);
+  var applyTheme = function (meta) {
+    var P = window.DovetailConfigurePanel;
+    if (!P || !P.loadTheme) return false;
+    if (meta.theme) P.loadTheme(meta.theme);
+    else { meta.theme = P.theme(); store.setSettings(meta.id, { theme: meta.theme }); }
+    themeLoaded.current = true;
+    return true;
+  };
+  var applyThemeRef = useRef(applyTheme); applyThemeRef.current = applyTheme;
+  useEffect(function () {
+    var ready = function () { applyThemeRef.current(projectRef.current); };
+    if (!applyThemeRef.current(projectRef.current)) window.addEventListener("dovetail:configure-ready", ready, { once: true });
+    var timer = null;
+    var changed = function () {
+      var P = window.DovetailConfigurePanel;
+      if (!themeLoaded.current || !P || !P.theme) return;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var meta = projectRef.current;
+        meta.theme = P.theme();
+        store.setSettings(meta.id, { theme: meta.theme });
+      }, 250);
+    };
+    window.addEventListener("dovetail:theme-change", changed);
+    return function () { window.removeEventListener("dovetail:configure-ready", ready); window.removeEventListener("dovetail:theme-change", changed); clearTimeout(timer); };
+  }, []);
   var firstDoc = useRef(doc);
   useEffect(function () {
     if (doc !== firstDoc.current && /^#(b|jsx)=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
@@ -2053,11 +2092,18 @@ function App(props) {
   /* A small picture of the active frame for the project's card: the frame's
      own export, scaled to 480px wide. Best effort; a card without one shows
      its frame count. */
-  var captureThumb = function () {
+  /* The project's picture: the active frame, small. An automatic one is
+     quick (no web fonts to fetch) and never holds anything up for long; one
+     chosen from the menu (byUser) takes its time and stays. */
+  var captureThumb = function (byUser) {
     var pid = projectRef.current.id;
+    if (projectRef.current.thumbSet && !byUser) return Promise.resolve();
     var a = api(docRef.current.active);
     if (!a || !a.snapshot) return Promise.resolve();
-    return a.snapshot("jpeg").then(function (url) {
+    var shot = a.snapshot("jpeg", { fonts: !!byUser });
+    var late = new Promise(function (resolve) { setTimeout(function () { resolve(null); }, byUser ? 15000 : 2500); });
+    return Promise.race([shot, late]).then(function (url) {
+      if (!url) return null;
       return new Promise(function (resolve) {
         var img = new Image();
         img.onload = function () {
@@ -2071,7 +2117,55 @@ function App(props) {
         img.onerror = function () { resolve(null); };
         img.src = url;
       });
-    }).then(function (thumb) { return thumb ? store.setThumb(pid, thumb) : null; }).catch(function () { return null; });
+    }).then(function (thumb) {
+      if (!thumb) return null;
+      return store.setThumb(pid, thumb, !!byUser).then(function (meta) {
+        if (meta && meta.id === projectRef.current.id) { projectRef.current.thumb = meta.thumb; projectRef.current.thumbSet = meta.thumbSet; }
+        return meta;
+      });
+    }).catch(function () { return null; });
+  };
+  /* A picture chosen from a file, cut to the card's 4:3 from its middle. */
+  var THUMB_W = 480, THUMB_H = 360;
+  var pictureFrom = function (file) {
+    return new Promise(function (resolve) {
+      if (!file || !/^image\//.test(file.type)) { resolve(null); return; }
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var c = document.createElement("canvas");
+        c.width = THUMB_W; c.height = THUMB_H;
+        var k = Math.max(THUMB_W / img.naturalWidth, THUMB_H / img.naturalHeight);
+        var w = img.naturalWidth * k, h = img.naturalHeight * k;
+        c.getContext("2d").drawImage(img, (THUMB_W - w) / 2, (THUMB_H - h) / 2, w, h);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  };
+  var setPicture = function (id, file) {
+    pictureFrom(file).then(function (thumb) {
+      if (!thumb) { announce("That file isn't a picture this browser can read."); return; }
+      store.setThumb(id, thumb, true).then(function (meta) {
+        if (meta && meta.id === projectRef.current.id) { projectRef.current.thumb = meta.thumb; projectRef.current.thumbSet = true; }
+        announce("Picture set");
+        refreshProjects();
+      });
+    });
+  };
+  var framePicture = function () {
+    announce("Taking a picture of this frame");
+    captureThumb(true).then(function (meta) { announce(meta ? "This frame is the project's picture now" : "That frame couldn't be pictured."); });
+  };
+  var autoPicture = function () {
+    var meta = projectRef.current;
+    store.setThumb(meta.id, null, false).then(function () {
+      meta.thumbSet = false;
+      meta.thumb = null;
+      return captureThumb(false);
+    }).then(function () { announce("The picture follows the canvas again"); refreshProjects(); });
   };
 
   var openProjects = function () {
@@ -2096,6 +2190,10 @@ function App(props) {
     projectRef.current = meta;
     setProject(meta);
     store.setLastOpened(meta.id);
+    /* Its own canvas colour and theme come with it. */
+    if (typeof meta.stage !== "string") meta.stage = "";
+    setStageColor(meta.stage);
+    applyTheme(meta);
     docRef.current = next;
     setDoc(next);
     closeProjects();
@@ -2112,8 +2210,13 @@ function App(props) {
   var newProject = function (starterId) {
     var s = starterId ? STARTERS.filter(function (x) { return x[0] === starterId; })[0] : null;
     var d = s ? s[2]() : emptyDoc();
+    var taken = (projList || []).map(function (p) { return p.name; });
     var name = s ? s[1] : "Untitled";
-    captureThumb().then(flush).then(function () { return store.createProject(name, d); }).then(function (meta) {
+    for (var n = 2; taken.indexOf(name) >= 0; n++) name = (s ? s[1] : "Untitled") + " " + n;
+    /* A new project starts with the theme on screen, and the builder's own canvas colour. */
+    var P = window.DovetailConfigurePanel;
+    var settings = { stage: "", theme: P && P.theme ? P.theme() : undefined };
+    captureThumb().then(flush).then(function () { return store.createProject(name, d, settings); }).then(function (meta) {
       switchTo(meta, d, "Made a new project, " + name);
     });
   };
@@ -2149,7 +2252,7 @@ function App(props) {
   var exportProject = function (id) {
     flush().then(function () { return Promise.all([store.getProject(id), store.loadDoc(id)]); }).then(function (got) {
       if (!got[0] || !got[1]) return;
-      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: new Date().toISOString(), doc: got[1] });
+      var file = JSON.stringify({ format: PROJECT_FORMAT, version: 1, name: got[0].name, savedAt: new Date().toISOString(), doc: got[1], stage: got[0].stage, theme: got[0].theme });
       var link = document.createElement("a");
       link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
       link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
@@ -2170,7 +2273,8 @@ function App(props) {
       var dropped = [];
       var d = clean(data.doc, dropped);
       var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
-      captureThumb().then(flush).then(function () { return store.createProject(name, d); }).then(function (meta) {
+      /* Its canvas colour and theme come along, cleaned like anything else that comes in. */
+      captureThumb().then(flush).then(function () { return store.createProject(name, d, { stage: data.stage, theme: data.theme }); }).then(function (meta) {
         switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
         refreshProjects();
       });
@@ -2206,7 +2310,9 @@ function App(props) {
 
   var projectsDialog = function () {
     var q = projQuery.trim().toLowerCase();
-    var list = (projList || []).filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0; });
+    /* The project on screen first, then the most recently edited. */
+    var list = (projList || []).filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0; })
+      .sort(function (x, y) { return (y.id === project.id) - (x.id === project.id) || y.updatedAt - x.updatedAt; });
     var dialogProps = { className: "bd-code bd-projects", ref: projectsRef, "aria-labelledby": "bd-projects-title", onClose: function () { setConfirmDel(null); setRenaming(null); setShown(null); } };
     if (shown !== "projects") return e("dialog", dialogProps);
     return e("dialog", dialogProps,
@@ -2245,6 +2351,10 @@ function App(props) {
             /* Plain buttons: a menu's list would open outside this modal dialog. */
             : e("span", { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
               e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function () { setRenaming(p.id); } }, e(Icon, { name: "pencil" })),
+              e("label", { className: "bd-act", title: "Choose a picture" },
+                e(Icon, { name: "image" }),
+                e("input", { type: "file", className: "visually-hidden", accept: "image/*", "aria-label": "Choose a picture for " + p.name,
+                  onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; setPicture(p.id, f); } })),
               e("button", { type: "button", className: "bd-act", "aria-label": "Duplicate " + p.name, title: "Duplicate", onClick: function () { duplicateProject(p.id); } }, e(Icon, { name: "copy" })),
               e("button", { type: "button", className: "bd-act", "aria-label": "Download " + p.name, title: "Download as a file", onClick: function () { exportProject(p.id); } }, e(Icon, { name: "exportOut" })),
               e("button", { type: "button", className: "bd-act", "aria-label": "Delete " + p.name, title: "Delete", onClick: function () { setConfirmDel(p.id); } }, e(Icon, { name: "trash" }))));
@@ -3692,9 +3802,12 @@ function App(props) {
           { value: "versions", label: "Versions", icon: "rotate" },
           { value: "duplicate", label: "Duplicate", icon: "copy" },
           { value: "export", label: "Download file", icon: "exportOut" },
-        ],
+          { value: "picture", label: "Use this frame as the picture", icon: "image" },
+        ].concat(project.thumbSet ? [{ value: "auto-picture", label: "Picture follows the canvas", icon: "rotate" }] : []),
         onChange: function (v) {
-          if (v === "projects") openProjects();
+          if (v === "picture") framePicture();
+          else if (v === "auto-picture") autoPicture();
+          else if (v === "projects") openProjects();
           else if (v === "versions") openVersions();
           else if (v === "duplicate") duplicateProject(project.id);
           else if (v === "export") exportProject(project.id);
@@ -4188,7 +4301,7 @@ function App(props) {
         e("p", { className: "bd-inspect-sub" }, "The builder's own settings. Select a frame, or something in one, to change that instead.")),
       e("div", { className: "bd-ipanel" },
         sec("builder-canvas", "Canvas", [
-          e(Field, { key: "bg", id: bid, label: "Background", hint: stageColor ? "Behind every frame. It isn't part of any design." : "The builder's default, behind every frame." },
+          e(Field, { key: "bg", id: bid, label: "Background", hint: stageColor ? "Behind every frame in this project. It isn't part of any design." : "The builder's default, behind every frame in this project." },
             e("div", { className: "bd-canvas-row" },
               e(Segmented, { labelledBy: bid, className: "bd-seg-pics bd-stage-swatches", value: STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }) ? stageColor : null,
                 onChange: function (v) { setStageColor(v || ""); },

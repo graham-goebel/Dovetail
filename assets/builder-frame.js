@@ -965,7 +965,11 @@
   /* The canvas as a picture, PNG or JPEG, at twice its size. The image
      library loads the first time it's asked for. */
   var imaging = null;
-  function snapshot(type) {
+  /* opts.fonts false: skip fetching web fonts into the picture. It's quick
+     and quiet (the exporter otherwise reads every stylesheet the page has),
+     at the cost of text in a fallback face: right for a small project
+     picture, not for an export. */
+  function snapshot(type, opts) {
     if (!imaging) {
       imaging = new Promise(function (resolve, reject) {
         if (window.htmlToImage) { resolve(window.htmlToImage); return; }
@@ -979,7 +983,7 @@
     var target = mount.firstElementChild;
     if (!target) return Promise.reject(new Error("Nothing to export."));
     var bg = getComputedStyle(target).backgroundColor;
-    var options = { pixelRatio: 2, cacheBust: false, backgroundColor: type === "jpeg" && (!bg || bg === "rgba(0, 0, 0, 0)") ? "#ffffff" : undefined,
+    var options = { pixelRatio: 2, cacheBust: false, skipFonts: !!(opts && opts.fonts === false), backgroundColor: type === "jpeg" && (!bg || bg === "rgba(0, 0, 0, 0)") ? "#ffffff" : undefined,
       filter: function (node) { return !(node.classList && node.classList.contains("bf-empty")); } };
     /* A web font it can't fetch (offline, or blocked) leaves the picture in
        the fallback face; the library says so on the console, which is noise
