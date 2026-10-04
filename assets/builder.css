@@ -4817,3 +4817,122 @@ input.bd-folder-name {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ------------------------------------------------------- sidebar pictures */
+
+/* The Assets kinds, the containers and the templates show what they hold,
+   the way the component tiles do: a live specimen, or a drawing. */
+.bd-kind-pics.is-preview {
+  position: relative;
+  gap: var(--dt-space-inline-xs);
+  aspect-ratio: 3 / 2;
+  height: auto;
+  padding: var(--dt-space-inset-2xs);
+  background: var(--dt-surface-subtle);
+}
+
+.bd-kind-pics.is-preview > .bd-thumb {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  background: none;
+}
+
+.bd-asset-kinds .bd-kind-pics.is-preview {
+  width: 100%;
+}
+
+/* A frame drawn to its proportions: an outline on a sheet. */
+.bd-kind-pics.is-frames {
+  gap: 5px;
+  align-items: flex-end;
+  padding-bottom: var(--dt-space-inset-xs);
+}
+
+.bd-mini-frame {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  box-sizing: border-box;
+  padding: 4px;
+  border: var(--dt-border-width-default) solid var(--dt-border-strong);
+  border-radius: 3px;
+  background: var(--dt-surface-base);
+}
+
+.bd-mini-bar {
+  display: block;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--dt-border-default);
+}
+
+.bd-mini-frame.is-free {
+  position: relative;
+  display: block;
+}
+
+.bd-mini-dot {
+  position: absolute;
+  width: 18%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--dt-border-default);
+}
+
+.bd-mini-dot:nth-child(1) { top: 18%; left: 12%; }
+.bd-mini-dot:nth-child(2) { top: 44%; left: 54%; width: 28%; aspect-ratio: 2; border-radius: 99px; }
+.bd-mini-dot:nth-child(3) { bottom: 16%; left: 26%; }
+
+.bd-mini-frame.is-tall {
+  background: linear-gradient(var(--dt-border-default) 0 0) top 5px left 3px / calc(100% - 6px) 4px no-repeat,
+    linear-gradient(var(--dt-border-subtle) 0 0) top 12px left 3px / calc(100% - 6px) 30% no-repeat,
+    linear-gradient(var(--dt-border-subtle) 0 0) bottom 5px left 3px / calc(100% - 6px) 30% no-repeat,
+    var(--dt-surface-base);
+}
+
+/* The system's colours, a chip each. */
+.bd-kind-pics.is-swatches {
+  gap: 4px;
+  padding: var(--dt-space-inset-xs);
+}
+
+.bd-mini-swatch {
+  flex: 1;
+  height: 60%;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: 4px;
+}
+
+/* A page of bands, for a template. */
+.bd-mini-page {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 46%;
+  height: 86%;
+  padding: 4px;
+  border: var(--dt-border-width-default) solid var(--dt-border-strong);
+  border-radius: 3px;
+  background: var(--dt-surface-base);
+}
+
+.bd-mini-band {
+  display: block;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--dt-border-subtle);
+}
+
+.bd-mini-band:first-child {
+  flex: 2;
+  background: var(--dt-border-default);
+}
+
+.bd-container-card .bd-kind-text,
+.bd-tpl-card .bd-kind-text {
+  padding-top: var(--dt-space-stack-2xs);
+}

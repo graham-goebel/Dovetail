@@ -281,6 +281,11 @@ try {
     expect(kinds.join(",") === "Containers,Primitives,Variables,Components,Blocks,Templates", `Assets open on Containers, Primitives, Variables, Components, Blocks and Templates, got ${kinds.join(", ")}`);
     const heights = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => Math.round(x.getBoundingClientRect().height)));
     expect(new Set(heights).size === 1, `the kind cards are all one height, got ${heights.join(", ")}`);
+    await page.waitForFunction(() => ["components", "blocks", "primitives"].every((k) => document.querySelector(`.bd-assets [data-asset-kind="${k}"] .bd-thumb-stage`)));
+    const pics = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => x.getAttribute("data-asset-kind") + ":" + (x.querySelector(".bd-thumb-stage") ? "live" : x.querySelector(".bd-mini-frame, .bd-mini-swatch, .bd-mini-page") ? "drawn" : "icon")));
+    expect(pics.every((p) => !p.endsWith(":icon")), `every kind card shows a picture of what it holds, not an icon, got ${pics.join(", ")}`);
+    const fits = await page.$eval('.bd-assets [data-asset-kind="containers"] .bd-kind-pics', (el) => { const b = el.getBoundingClientRect(); return [...el.querySelectorAll(".bd-mini-frame")].every((f) => { const r = f.getBoundingClientRect(); return r.left >= b.left - 1 && r.right <= b.right + 1; }); });
+    expect(fits, "the Containers card's three frames fit inside it");
     await category(page, "Actions");
     const named = await page.$$eval(".bd-cat", (c) => c.map((x) => x.querySelector(".bd-cat-label")?.textContent || ""));
     expect(named.length >= 8 && named.every(Boolean) && !named.includes("Blocks") && !named.includes("Layout"), `every component category carries its name, without the primitives' or blocks', got ${named.join(", ")}`);
@@ -810,10 +815,9 @@ try {
     await page.waitForFunction(() => !/HeroBlock/.test(document.querySelector(".bd-tb-crumbs")?.textContent || ""));
     expect(await page.locator(".bd-right .bd-crumbs").count() === 0, "the inspector no longer repeats the path");
     const layersIcon = await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).locator("svg path").first().getAttribute("d");
-    await rail("Assets").click();
-    if (await page.locator('.bd-assets [aria-label="Back to Assets"]').count()) await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
-    const blocksIcon = await page.locator('.bd-assets [data-asset-kind="blocks"] svg path').first().getAttribute("d");
-    expect(layersIcon !== blocksIcon, "Layers and Blocks have different icons");
+    await rail("Layers").click();
+    const blocksIcon = await page.locator(".bd-layer-main", { hasText: "HeroBlock" }).first().locator("svg path").last().getAttribute("d");
+    expect(layersIcon !== blocksIcon, "the Layers tab and a block's layer have different icons");
     await rail("Configure").click();
     await page.waitForSelector(".bd-config-dock .configure-sheet.is-docked .configure-row");
     expect(await page.evaluate(() => { const b = document.querySelector(".configure-bar"); return !b || getComputedStyle(b).display === "none"; }), "the floating Configure button is gone on this page");
@@ -1948,8 +1952,8 @@ try {
     const undo = history(page).undo;
     const menuFor = async (name, item) => { await page.locator(".bd-page", { hasText: name }).first().locator(".bd-page-menu").click(); await option(page, item).click(); };
 
-    const varIcon = await page.locator('.bd-assets [data-asset-kind="variables"] .bd-kind-pics svg').count();
-    expect(varIcon === 1, "the Variables card in Assets shows an icon, like the others");
+    const varIcon = await page.locator('.bd-assets [data-asset-kind="variables"] .bd-kind-pics .bd-mini-swatch').count();
+    expect(varIcon >= 4, "the Variables card in Assets shows the system's colours, as the others show what they hold");
     await rail("Pages").click();
     expect((await names()).join() === "Page 1" && await current() === "Page 1", `a project starts with one page, Page 1, got ${await names()}`);
     const landing = await types();

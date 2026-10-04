@@ -9576,12 +9576,42 @@
         if (first) showFrameRef.current(first, true);
       }, 0);
     };
+    var framePic = function(w, h, kind, maxW, maxH) {
+      var k = Math.min((maxW || 84) / w, (maxH || 52) / h);
+      var box2 = { width: Math.round(w * k) + "px", height: Math.round(h * k) + "px" };
+      return e(
+        "span",
+        { key: w + "x" + h, className: cx("bd-mini-frame", kind && "is-" + kind), style: box2, "aria-hidden": true },
+        kind === "structured" ? [0, 1, 2].map(function(i) {
+          return e("span", { key: i, className: "bd-mini-bar" });
+        }) : kind === "free" ? [0, 1, 2].map(function(i) {
+          return e("span", { key: i, className: "bd-mini-dot" });
+        }) : null
+      );
+    };
+    var kindPic = function(key, icon) {
+      if (key === "containers") return e("span", { className: "bd-kind-pics is-preview is-frames", "aria-hidden": true }, framePic(390, 844, null, 16, 36), framePic(768, 1024, null, 27, 36), framePic(1280, 800, null, 40, 36));
+      if (key === "variables") return e(
+        "span",
+        { className: "bd-kind-pics is-preview is-swatches", "aria-hidden": true },
+        ["--dt-surface-brand", "--dt-surface-brand-secondary", "--dt-text-primary", "--dt-surface-raised", "--dt-border-strong"].map(function(v) {
+          return e("span", { key: v, className: "bd-mini-swatch", style: { background: "var(" + v + ")" } });
+        })
+      );
+      if (key === "templates") return e("span", { className: "bd-kind-pics is-preview is-page", "aria-hidden": true }, e("span", { className: "bd-mini-page" }, [0, 1, 2, 3].map(function(i) {
+        return e("span", { key: i, className: "bd-mini-band" });
+      })));
+      var sample = { primitives: ["Stack", false], components: ["Button", false], blocks: ["HeroBlock", true] }[key];
+      if (sample && META[sample[0]]) return e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: sample[0], wide: sample[1] }));
+      return e("span", { className: "bd-kind-pics is-asset" }, e(Icon, { name: icon }));
+    };
+    var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
     var CONTAINER_KINDS = [
       ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
       ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
       ["page", "Tall frame", "file", "Grows as tall as what's on it"]
     ];
-    var containerCard = function(key, name, icon, note3, payload, onAdd) {
+    var containerCard = function(key, name, pic, note3, payload, onAdd) {
       return e(
         "li",
         { key },
@@ -9599,7 +9629,7 @@
               if (!justDragged.current) onAdd();
             }
           },
-          e("span", { className: "bd-kind-pics is-asset" }, e(Icon, { name: icon })),
+          pic,
           e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note3))
         )
       );
@@ -9611,14 +9641,15 @@
         e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
         e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function(k) {
           var page = k[0] === "page", opts = page ? null : { mode: k[0] };
-          return containerCard(k[0], k[1], k[2], k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
+          var shape = page ? framePic(390, 900, "tall") : framePic(1280, 800, k[0]);
+          return containerCard(k[0], k[1], e("span", { className: "bd-kind-pics is-preview is-frames" }, shape), k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
             frameOps.add(null, page, null, opts);
           });
         })),
         e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
         e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function(p) {
           var opts = { preset: p.id, mode: "free" };
-          return containerCard(p.id, p.label, PRESET_ICON[p.id] || "frame", p.width + " × " + p.height, { kind: "tool", tool: "frame", label: p.label, opts }, function() {
+          return containerCard(p.id, p.label, e("span", { className: "bd-kind-pics is-preview is-frames" }, framePic(p.width, p.height)), p.width + " × " + p.height, { kind: "tool", tool: "frame", label: p.label, opts }, function() {
             frameOps.add(null, false, null, opts);
           });
         }))
@@ -9634,7 +9665,7 @@
           e(
             "div",
             { className: "bd-kind bd-tpl-card", "data-template": st[0] },
-            e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
+            TEMPLATE_PIC[st[0]] && META[TEMPLATE_PIC[st[0]][0]] ? e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: TEMPLATE_PIC[st[0]][0], wide: TEMPLATE_PIC[st[0]][1] })) : e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
             e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
             e(
               "span",
@@ -9735,11 +9766,7 @@
               { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
                 setAssetKind(k[0]);
               } },
-              e(
-                "span",
-                { className: "bd-kind-pics is-asset" },
-                e(Icon, { name: k[2] })
-              ),
+              kindPic(k[0], k[2]),
               e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
             ));
           }))
