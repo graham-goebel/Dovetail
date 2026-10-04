@@ -791,7 +791,7 @@ try {
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
     const tabs = await page.$$eval(".bd-rail .bd-tab", (b) => b.map((x) => x.textContent));
-    expect(tabs.join() === "Assets,Pages,Layers,Content,Configure", `the rail holds Assets, Pages, Layers, Content and Configure, got ${tabs}`);
+    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure", `the rail holds Home, Assets, Pages, Layers, Content and Configure, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
     const gone = await page.locator(".bd-toolbar [aria-label='New'], .bd-toolbar [aria-label='Undo'], .bd-toolbar [aria-label='Redo'], .bd-toolbar [aria-label='Hide panels'], .bd-toolbar [aria-label='Copy link'], .bd-toolbar .bd-saved").count();
@@ -1373,7 +1373,7 @@ try {
 
     const panel = await page.evaluate(() => { const l = document.querySelector(".bd-left"), st = document.querySelector(".bd-stage"); const lr = l.getBoundingClientRect(), sr = st.getBoundingClientRect(); return { radius: parseFloat(getComputedStyle(l).borderTopLeftRadius), inset: lr.left, under: sr.left <= lr.left && sr.right >= document.querySelector(".bd-right").getBoundingClientRect().right }; });
     expect(panel.radius > 0 && panel.inset > 0 && panel.under, `the panels float over the canvas, inset and rounded, got ${JSON.stringify(panel)}`);
-    const plus = await page.locator(".bd-rail .bd-tab svg path").first().getAttribute("d");
+    const plus = await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).locator("svg path").first().getAttribute("d");
     expect(/^M12 4\.5v15/.test(plus), `the builder draws with Heroicons, got ${plus}`);
     ok("the side panels float over a full-width canvas, inset with rounded corners; the icons are Heroicons");
 
@@ -1756,7 +1756,7 @@ try {
     const cards = () => page.locator(".bd-projects .bd-proj .bd-proj-name").allTextContents();
     /* Switching projects replaces the canvas's frames; wait for the new one. */
     const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
-    const openHome = async () => { await page.locator('.bd-toolbar [aria-label="Projects"]').click(); await page.locator(".bd-projects[open] .bd-proj").first().waitFor(); };
+    const openHome = async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click(); await page.locator(".bd-home .bd-proj").first().waitFor(); };
 
     expect(await page.locator(".bd-project-name").textContent() === "Untitled" && /HeroBlock/.test(types(await doc())), "a first visit opens one project, Untitled, on the landing page");
     await page.locator(".bd-project-name").dblclick();
@@ -1767,10 +1767,15 @@ try {
     ok("a first visit opens Untitled on the landing page; double-clicking its name in the bar renames it Kiln site");
 
     await openHome();
+    expect(await page.locator('.bd-toolbar [aria-label="Projects"]').count() === 0 && await page.locator(".bd-shell[inert]").count() === 1 && (await page.locator(".bd-toolbar .bd-tb-home").textContent()) === "Projects", "Home is a page over the canvas, named in the bar, with the canvas inert beneath");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-home") && !document.querySelector(".bd-shell[inert]"));
+    ok("Home opens from the rail as a page over the canvas, and Escape goes back to it");
+    await openHome();
     const listed = await cards(), meta0 = await page.locator(".bd-proj.is-current .bd-proj-meta").textContent();
     expect(listed.join() === "Kiln site" && /Open now/.test(meta0), `the home lists the one project, marked open now, got ${listed} / ${meta0}`);
     await page.locator(".bd-projects .bd-btn-primary", { hasText: "New project" }).click();
-    await page.waitForFunction((id) => window.__builder.project().id !== id && !document.querySelector(".bd-projects[open]"), first.id);
+    await page.waitForFunction((id) => window.__builder.project().id !== id && !document.querySelector(".bd-home"), first.id);
     await ready();
     expect(await page.locator(".bd-project-name").textContent() === "Untitled" && types(await doc()) === "", "New project opens a blank canvas of its own");
     await category(page, "Typography");
@@ -1797,8 +1802,8 @@ try {
     await page.waitForFunction(() => document.querySelectorAll(".bd-projects .bd-proj").length === 2);
     await page.locator(".bd-projects-search input").fill("kiln");
     expect((await cards()).join() === "Kiln site", "search narrows the list");
-    await page.locator('.bd-projects [aria-label="Close"]').click();
-    await page.waitForFunction(() => !document.querySelector(".bd-projects[open]"));
+    await page.locator(".bd-toolbar .bd-home-back").click();
+    await page.waitForFunction(() => !document.querySelector(".bd-home"));
     ok("Duplicate makes Kiln site copy, Delete asks first and removes it, and search narrows the list");
 
     await page.locator(".bd-project-menu").click();
@@ -1850,7 +1855,7 @@ try {
     const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
     const stageBg = () => page.evaluate(() => document.querySelector(".bd-stage").style.backgroundColor);
     const radius = () => page.evaluate(() => window.DovetailConfigurePanel.config().radius);
-    const openHome = async () => { await page.locator('.bd-toolbar [aria-label="Projects"]').click(); await page.locator(".bd-projects[open] .bd-proj").first().waitFor(); };
+    const openHome = async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click(); await page.locator(".bd-home .bd-proj").first().waitFor(); };
     /* A click on the canvas itself, clear of frames and panels, selects nothing and shows the canvas settings. */
     /* The camera can still be settling as a project opens, so a spot is
        found and clicked again until the canvas settings show. */
@@ -1997,11 +2002,11 @@ try {
     await dl.saveAs(file);
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
     expect(data.version === 2 && data.pages.map((p) => p.name).join() === "Page 1,About" && /HeroBlock/.test(JSON.stringify(data.doc)), `the file carries every page, got ${JSON.stringify(data.pages && data.pages.map((p) => p.name))}`);
-    await page.locator('.bd-toolbar [aria-label="Projects"]').click();
-    await page.locator(".bd-projects[open] .bd-proj").first().waitFor();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click();
+    await page.locator(".bd-home .bd-proj").first().waitFor();
     expect(/2 pages/.test(await page.locator(".bd-proj.is-current .bd-proj-meta").textContent()), "the project's card counts its pages");
     await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
-    await page.waitForFunction(() => window.__builder.project().pages && window.__builder.project().pages.length === 2 && document.querySelectorAll(".bd-projects[open]").length === 0);
+    await page.waitForFunction(() => window.__builder.project().pages && window.__builder.project().pages.length === 2 && document.querySelectorAll(".bd-home").length === 0);
     fs.unlinkSync(file);
     await ready();
     expect((await names()).join() === "Page 1,About" && await current() === "Page 1", `an opened file brings its pages, got ${await names()}`);

@@ -4577,3 +4577,69 @@ input.bd-page-name {
   color: var(--dt-text-danger, var(--dt-text-primary));
   font-size: var(--dt-font-size-xs);
 }
+
+/* ----------------------------------------------------------------- home */
+
+/* Home: every project, as a page laid over the canvas, which keeps its
+   place underneath. The bar names it and offers the way back. */
+.builder {
+  position: relative;
+}
+
+.bd-home {
+  position: absolute;
+  inset: 0;
+  z-index: var(--dt-z-sticky, 20);
+  overflow-y: auto;
+  background: var(--dt-surface-base);
+  color: var(--dt-text-primary);
+}
+
+.bd-home-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--dt-space-inset-lg) var(--dt-space-inset-md) var(--dt-space-inset-2xl);
+}
+
+.bd-home-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--dt-space-inline-md);
+  padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-sm);
+}
+
+.bd-home-title {
+  margin: 0;
+  font-size: var(--dt-text-heading-lg-size, 1.75rem);
+  font-weight: var(--dt-font-weight-semibold);
+  line-height: 1.15;
+}
+
+.bd-home .bd-projects-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.bd-tb-home {
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-home-back {
+  gap: var(--dt-space-inline-2xs);
+}
+
+@media (max-width: 900px) {
+  .bd-home-inner {
+    padding-top: var(--dt-space-inset-md);
+  }
+
+  .bd-home-back-text {
+    display: none;
+  }
+
+  .bd-home .bd-projects-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
