@@ -4601,11 +4601,9 @@
       };
       document.addEventListener("pointerdown", away, true);
       document.addEventListener("keydown", onKey, true);
-      window.addEventListener("blur", props.onClose);
       return function() {
         document.removeEventListener("pointerdown", away, true);
         document.removeEventListener("keydown", onKey, true);
-        window.removeEventListener("blur", props.onClose);
       };
     }, []);
     var onListKey = function(ev) {

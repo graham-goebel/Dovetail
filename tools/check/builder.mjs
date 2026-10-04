@@ -2917,8 +2917,13 @@ try {
     /* The right-click menu: on a canvas layer, on a layer row, from the
        keyboard, and on empty canvas. */
     await page.evaluate(() => window.__builder.select([]));
+    /* Once the unlock has reached the frame and the old marks are gone. */
+    await frames(page)[1].waitForSelector('[data-bf-id="bb"]:not([data-bf-locked])', { state: "attached" });
+    await page.waitForFunction(() => document.querySelectorAll(".bd-mark-sel").length === 0);
     const bbPt = await canvasPoint(page, '[data-bf-id="bb"]', "center", 1);
-    await page.mouse.click(bbPt.x, bbPt.y, { button: "right" });
+    await page.mouse.move(bbPt.x, bbPt.y);
+    await page.mouse.down({ button: "right" });
+    await page.mouse.up({ button: "right" });
     await page.waitForSelector(".bd-ctx");
     expect((await page.evaluate(() => window.__builder.selection())).join() === "bb", "a right-click on a layer selects it first");
     const countBefore = (await free()).root.children.length;
