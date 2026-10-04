@@ -875,11 +875,17 @@ try {
     expect(names.includes("actions") && names.includes("media"), `the hero's slots come from its types, got ${names}`);
     ok(`a HeroBlock on the canvas gets its slots (${names.join(", ")}) filled from its sample`);
 
-    const pt = await frame().evaluate(() => { const b = [...document.querySelectorAll("button")].find((x) => /Shop the collection/.test(x.textContent)); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    /* The frame draws the filled slots a moment after the document has them;
+       the hero's own button shows before that, and isn't the slot's. */
+    const SLOTTED = '[data-bf-type="Slot"] button';
+    await frame().waitForFunction((sel) => [...document.querySelectorAll(sel)].some((x) => /Shop the collection/.test(x.textContent)), SLOTTED);
+    const pt = await frame().evaluate((sel) => { const b = [...document.querySelectorAll(sel)].find((x) => /Shop the collection/.test(x.textContent)); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, SLOTTED);
     const ib = await page.locator("iframe.bd-frame").boundingBox();
     const sc = await page.evaluate(() => { const i = document.querySelector("iframe.bd-frame"); return i.getBoundingClientRect().width / parseFloat(i.style.width); });
     await page.mouse.click(ib.x + pt.x * sc, ib.y + pt.y * sc);
-    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || "")).catch(async () => {
+      throw new Error(`clicking the hero's button should select it, got "${await page.locator(".bd-inspect-title").first().textContent().catch(() => "nothing")}"`);
+    });
     const crumbs = await page.locator(".bd-crumbs").first().textContent();
     expect(/HeroBlock.*Actions.*Button/.test(crumbs), `the path runs through the slot, got ${crumbs}`);
     await tab(page, "Content");
