@@ -1778,6 +1778,85 @@ function App(props) {
     if (mql("(max-width: 900px)")) setPane("canvas");
   };
 
+  /* Align and distribute free objects: on their own, to the frame's edges
+     and centre; several, to each other. Positions move by whole steps of
+     --dt-space-inset-2xs, so the document stays token-only. Flow children
+     aren't arranged this way: their parent's layout already does it. */
+  var arrangeable = function (ids) {
+    var d = docRef.current;
+    if (!ids.length) return null;
+    var spots = ids.map(function (id) { return locate(d, id); });
+    if (spots.some(function (at) { return !at || !isFree(at.node.style); })) return null;
+    var parent = spots[0].parent;
+    if (spots.some(function (at) { return at.parent !== parent; })) return null;
+    return spots;
+  };
+  var arrange = function (kind) {
+    var ids = selRef.current.slice();
+    var spots = arrangeable(ids);
+    var f = api();
+    if (!spots || !f || !f.rect || !f.measure) return false;
+    var unit = f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
+    var items = spots.map(function (at) { var r = f.rect(at.node.id); return r ? { id: at.node.id, l: r.left, t: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom } : null; }).filter(Boolean);
+    if (!items.length) return false;
+    /* One object lines up with its parent; several, with each other. */
+    var box;
+    if (items.length === 1) { var pr = f.rect(spots[0].parent.id); if (!pr) return false; box = { l: pr.left, t: pr.top, r: pr.right, b: pr.bottom }; }
+    else box = { l: Math.min.apply(null, items.map(function (i) { return i.l; })), t: Math.min.apply(null, items.map(function (i) { return i.t; })), r: Math.max.apply(null, items.map(function (i) { return i.r; })), b: Math.max.apply(null, items.map(function (i) { return i.b; })) };
+    var moves = {};
+    var put = function (i, l, t) { moves[i.id] = { dx: Math.round((l - i.l) / unit), dy: Math.round((t - i.t) / unit) }; };
+    var spread = function (axis) {
+      if (items.length < 3) return;
+      var a = axis === "x" ? ["l", "w", "r"] : ["t", "h", "b"];
+      var sorted = items.slice().sort(function (p, q) { return p[a[0]] - q[a[0]]; });
+      var first = sorted[0], last = sorted[sorted.length - 1];
+      var span = last[a[2]] - first[a[0]], sum = sorted.reduce(function (n, i) { return n + i[a[1]]; }, 0);
+      var gap = (span - sum) / (sorted.length - 1), at = first[a[0]];
+      sorted.forEach(function (i) { if (axis === "x") put(i, at, i.t); else put(i, i.l, at); at += i[a[1]] + gap; });
+    };
+    if (kind === "left") items.forEach(function (i) { put(i, box.l, i.t); });
+    else if (kind === "hcenter") items.forEach(function (i) { put(i, (box.l + box.r) / 2 - i.w / 2, i.t); });
+    else if (kind === "right") items.forEach(function (i) { put(i, box.r - i.w, i.t); });
+    else if (kind === "top") items.forEach(function (i) { put(i, i.l, box.t); });
+    else if (kind === "vcenter") items.forEach(function (i) { put(i, i.l, (box.t + box.b) / 2 - i.h / 2); });
+    else if (kind === "bottom") items.forEach(function (i) { put(i, i.l, box.b - i.h); });
+    else if (kind === "hspread") spread("x");
+    else if (kind === "vspread") spread("y");
+    else if (kind === "tidy") {
+      /* Even gaps along the longer run, and centred across it. */
+      var wideRun = box.r - box.l >= box.b - box.t;
+      spread(wideRun ? "x" : "y");
+      items.forEach(function (i) {
+        var m = moves[i.id] || { dx: 0, dy: 0 };
+        if (wideRun) m.dy = Math.round(((box.t + box.b) / 2 - i.h / 2 - i.t) / unit); else m.dx = Math.round(((box.l + box.r) / 2 - i.w / 2 - i.l) / unit);
+        moves[i.id] = m;
+      });
+    }
+    var LABEL = { left: "Aligned left", hcenter: "Centred", right: "Aligned right", top: "Aligned top", vcenter: "Centred", bottom: "Aligned bottom", hspread: "Spread evenly across", vspread: "Spread evenly down", tidy: "Tidied up" };
+    var moved = change(function (d) {
+      var any = null;
+      Object.keys(moves).forEach(function (id) { var m = moves[id]; if ((m.dx || m.dy) && ops.shift(d, id, m.dx, m.dy)) any = id; });
+      return any ? ids : null;
+    }, LABEL[kind]);
+    if (moved) select(ids);
+    return true;
+  };
+  var ARRANGE = [
+    ["left", "Align left", "alignStart", "Alt+A"], ["hcenter", "Align centres", "alignCenter", "Alt+H"], ["right", "Align right", "alignEnd", "Alt+D"],
+    ["top", "Align top", "alignTop", "Alt+W"], ["vcenter", "Align middles", "alignMiddle", "Alt+V"], ["bottom", "Align bottom", "alignBottom", "Alt+S"],
+    ["hspread", "Spread evenly across", "distributeH", "Shift+Alt+H"], ["vspread", "Spread evenly down", "distributeV", "Shift+Alt+V"], ["tidy", "Tidy up", "tidy", "Shift+Alt+T"],
+  ];
+  var arrangeRow = function (nodes) {
+    var spots = arrangeable(nodes.map(function (n) { return n.id; }));
+    if (!spots) return null;
+    var few = nodes.length < 3;
+    return e("div", { key: "arrange", className: "bd-arrange", role: "group", "aria-label": "Align and distribute" },
+      ARRANGE.map(function (a) {
+        var off = few && (a[0] === "hspread" || a[0] === "vspread" || a[0] === "tidy");
+        return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || undefined, onClick: function () { arrange(a[0]); } }, e(Icon, { name: a[2] }));
+      }));
+  };
+
   var actions = {
     remove: function () {
       var ids = selRef.current.slice();
@@ -1949,6 +2028,11 @@ function App(props) {
     if (mod && key === "d") { actions.duplicate(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowDown") { actions.down(); return true; }
+    /* Align and distribute, as Figma has them: Alt and a letter. */
+    if (ev.altKey && !mod) {
+      var ARRANGE_KEY = ev.shiftKey ? { KeyH: "hspread", KeyV: "vspread", KeyT: "tidy" } : { KeyA: "left", KeyH: "hcenter", KeyD: "right", KeyW: "top", KeyV: "vcenter", KeyS: "bottom" };
+      if (ARRANGE_KEY[ev.code] && arrange(ARRANGE_KEY[ev.code])) return true;
+    }
     if (mod && (ev.key === "]" || ev.code === "BracketRight")) { actions.order(ev.shiftKey ? "front" : "up"); return true; }
     if (mod && (ev.key === "[" || ev.code === "BracketLeft")) { actions.order(ev.shiftKey ? "back" : "down"); return true; }
     /* Arrows move free objects a step of --dt-space-inset-2xs; Shift, four. */
@@ -4478,6 +4562,7 @@ function App(props) {
         .concat(lookSections(nodes, toned ? e("p", { key: "note", className: "bd-note" }, "Tone, under Style, paints this one's own background. Fill sits underneath it.") : null));
     }
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
+    var arrangeTools = arrangeRow(nodes);
     return e("div", { className: "bd-inspect" },
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" },
@@ -4508,7 +4593,8 @@ function App(props) {
                 else if (v === "component") openComponent();
               } }))),
         many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
-          : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null),
+          : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
+        arrangeTools),
       tabBar(have, current),
       tabPanel(current, body));
   };

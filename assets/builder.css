@@ -2046,6 +2046,23 @@ span.bd-layer-twisty.is-open .bd-ic {
   background: var(--dt-surface-subtle);
 }
 
+/* Align and distribute, under the title, for free objects. */
+.bd-arrange {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: var(--dt-space-stack-2xs);
+}
+
+.bd-arrange-btn:nth-child(3n):not(:last-child) {
+  margin-right: var(--dt-space-inline-xs);
+}
+
+.bd-arrange-btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .bd-head-row {
   display: flex;
   align-items: center;

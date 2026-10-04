@@ -2627,7 +2627,10 @@ try {
     const { page } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
-    /* A freeform frame with three loose objects at known steps. */
+    /* A freeform frame with three loose objects at known steps, saved once
+       the first visit's own save has landed. */
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -2641,6 +2644,8 @@ try {
     await page.waitForTimeout(150);
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
+    const opened = await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : "no builder"), (v) => /freebie/.test(v), 8000);
+    expect(/freebie/.test(opened), `after the save and reload the free frame is there, got frames ${opened}`);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
     const free = async () => (await saved()).frames.find((f) => f.id === "freebie");
@@ -2751,6 +2756,46 @@ try {
     await page.waitForTimeout(100);
     expect((await page.evaluate(() => window.__builder.selection())).length === 0, "a plain click on empty canvas still clears the selection");
     ok("a drag on empty canvas draws a marquee that selects what it touches; Shift adds; Escape cancels; a click still clears");
+
+    /* Align and distribute: Alpha is at 14,0, Beta at 60,10, Gamma at 10,60. */
+    await page.evaluate(() => window.__builder.select(["ba", "bb", "hc"]));
+    await page.waitForSelector(".bd-arrange");
+    expect(await page.locator(".bd-arrange-btn").count() === 9 && await page.locator(".bd-arrange-btn[disabled]").count() === 0, "three free objects get nine arrange buttons, all live");
+    await release(page);
+    const stepsA = (await steps(page)).past;
+    await page.keyboard.press("Alt+KeyA");
+    const lefts = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[0] === 10));
+    expect(lefts.every((p) => p[0] === 10), `Alt+A lines their left edges up on the leftmost, got ${JSON.stringify(lefts)}`);
+    expect((await steps(page)).past === stepsA + 1, "as one undo step");
+    await page.keyboard.press("Alt+KeyW");
+    const tops = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[1] === 0));
+    expect(tops.every((p) => p[1] === 0), `Alt+W lines their tops up, got ${JSON.stringify(tops)}`);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForTimeout(100);
+    expect(await page.locator(".bd-arrange-btn[disabled]").count() === 3, "one object can align to its frame but not spread");
+    await page.keyboard.press("Alt+KeyD");
+    const right = await poll(() => at("ba"), (v) => v[0] > 100);
+    expect(right[0] > 150, `on its own, Alt+D takes Alpha to the frame's right edge, got ${right}`);
+    await page.locator(".bd-arrange-btn[aria-label='Align centres']").click();
+    const mid = await poll(() => at("ba"), (v) => v[0] < 150 && v[0] > 50);
+    expect(mid[0] > 50 && mid[0] < 150, `the Align centres button puts it in the middle of the frame, got ${mid}`);
+    /* Three across a row, then spread evenly. */
+    await page.evaluate(() => window.__builder.select(["bb", "hc"]));
+    await page.keyboard.press("Alt+KeyW");
+    await poll(async () => [await at("bb"), await at("hc")], (v) => v[0][1] === 0 && v[1][1] === 0);
+    await page.waitForTimeout(200);
+    await page.evaluate(() => window.__builder.select(["ba", "bb", "hc"]));
+    const beforeSpread = await page.evaluate(() => ["ba", "bb", "hc"].map((id) => { const r = document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect(id); return [id, Math.round(r.left), Math.round(r.width)]; }));
+    await page.keyboard.press("Shift+Alt+KeyH");
+    await page.waitForTimeout(300);
+    const gaps = await page.evaluate(() => {
+      const fr = document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame;
+      const rs = ["ba", "bb", "hc"].map((id) => fr.rect(id)).sort((p, q) => p.left - q.left);
+      return [rs[1].left - rs[0].right, rs[2].left - rs[1].right];
+    });
+    expect(Math.abs(gaps[0] - gaps[1]) <= 5, `Shift+Alt+H spreads them with even gaps, got ${gaps.map(Math.round)} from ${JSON.stringify(beforeSpread)}`);
+    expect(await page.locator(".bd-inspect-title").textContent().then((t) => /^3 /.test(t)), "the selection stays through the arranging");
+    ok("Alt+A/W align, Alt+D and the buttons align one object to its frame, Shift+Alt+H spreads three evenly");
     await page.close();
   });
 
