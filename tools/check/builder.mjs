@@ -1078,7 +1078,11 @@ try {
     await page.locator('.bd-tile[data-type="Navbar"]').click();
     await frame().waitForSelector('[data-bf-type="Navbar"]');
     await tab(page, "Content");
-    const href = page.locator(".bd-list-item.is-open .bd-list-field", { hasText: "Href" }).locator("input");
+    const hrefField = page.locator(".bd-list-item.is-open .bd-list-field", { hasText: "Href" });
+    await hrefField.waitFor();
+    /* An href is a Link to control: pick "A web address" to get the field to type in. */
+    if (await hrefField.locator("input").count() === 0) { await hrefField.locator(".bd-dd").first().click(); await option(page, "A web address").click(); }
+    const href = hrefField.locator("input");
     await href.fill("");
     await href.pressSequentially("https://example.com/shop");
     await page.waitForFunction(() => JSON.parse(JSON.stringify(window.__builder.doc())).frames[0].root.children.find((c) => c.type === "Navbar").props.links[0].href === "https://example.com/shop");
@@ -2988,6 +2992,194 @@ try {
     const picked2 = await poll(() => page.evaluate(() => window.__builder.selection()), (s) => s.length === buttons);
     expect(picked2.length === buttons && buttons >= 3, `Select all Buttons picks the frame's ${buttons} Buttons, got ${picked2.length}`);
     ok(`Ctrl+Alt+C / V carry a style between layers; Select all Buttons picks ${buttons}`);
+    await page.close();
+  });
+
+  await step("Page links: a Button links to another page, the code gets a relative address, Play follows it and comes back", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    /* A second page, About, with a Heading on it. */
+    const aboutId = await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = { frames: [{ id: "abf", name: "About screen", width: 1280, height: 800, root: { id: "root", type: "Root", children: [{ id: "ah", type: "Heading", props: { children: "About us" }, style: {} }] } }], active: "abf" };
+      const got = await window.__builder.store.addPage(window.__builder.project().id, "About", d, null);
+      return got.page.id;
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => window.__builder && window.__builder.project().pages && window.__builder.project().pages.length === 2);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="FeatureGridBlock"]'));
+    const grid = findIn((await saved()).frames[0].root, "FeatureGridBlock");
+    await page.evaluate(([id, to]) => window.__builder.edit(id, "items", [
+      { title: "Fired twice", description: "A second firing makes the glaze hard enough for the dishwasher.", href: "#page:" + to, linkLabel: "About us" },
+      { title: "Repairable", description: "Chips and cracks are mended free for the first five years." },
+      { title: "Made nearby", description: "Every piece comes from a workshop within a day's drive." }]), [grid.id, aboutId]);
+    expect(findIn((await saved()).frames[0].root, "FeatureGridBlock").props.items[0].href === "#page:" + aboutId, "the first feature's href names the About page");
+    expect(await page.evaluate(() => { const c = window.DovetailBuilderData.components; return ["Link", "Card"].every((n) => c[n] && c[n].props.some((p) => p.name === "href" && p.kind === "url")); }), "Link and Card offer an href the builder sets");
+    await page.evaluate((id) => window.__builder.select([id]), grid.id);
+    await page.waitForFunction(() => /FeatureGridBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Content");
+    const linkField = page.locator(".bd-right .bd-link").first();
+    await linkField.waitFor();
+    expect(/About/.test(await linkField.locator(".bd-dd-label").first().textContent()), "the item's Link to shows About");
+    await linkField.locator(".bd-dd").first().click();
+    const linkOpts = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
+    await page.keyboard.press("Escape");
+    expect(linkOpts.includes("None") && linkOpts.includes("A web address") && linkOpts.includes("Page 1") && linkOpts.includes("About"), `Link to offers none, a web address and each page, got ${linkOpts}`);
+    ok("a url prop is a Link to control: None, a web address, or one of the project's pages");
+
+    await page.evaluate(() => window.__builder.select([]));
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(code.includes('"./about.html"') && !code.includes("#page:"), `the code writes the page as a relative address, got ${(code.match(/href[=:] ?"[^"]*"/g) || []).join(" ")}`);
+    ok("the exported code links to ./about.html");
+
+    await page.locator("[aria-label='Play']").first().click();
+    await page.locator(".bd-play[open]").waitFor();
+    const play = page.frameLocator(".bd-play iframe");
+    await play.locator('a[href="#page:' + aboutId + '"]').first().waitFor();
+    expect(/Page 1 › /.test(await page.locator("#bd-play-title").textContent()), "Play names the page and the frame");
+    await play.locator('a[href="#page:' + aboutId + '"]').first().click();
+    await page.waitForFunction(() => /About › About screen/.test(document.querySelector("#bd-play-title")?.textContent || ""));
+    await page.waitForFunction(() => { const i = document.querySelector(".bd-play iframe"); const d = i && i.contentDocument; return !!(d && d.body && /About us/.test(d.body.textContent) && !/autumn collection/i.test(d.body.textContent)); });
+    const onAbout = await poll(() => page.evaluate(() => window.__builder.project().page), (v) => v === aboutId);
+    expect(onAbout === aboutId, `the project is on About while Play shows it, got ${onAbout}`);
+    await page.locator(".bd-play-back").click();
+    await page.waitForFunction(() => /Page 1 › /.test(document.querySelector("#bd-play-title")?.textContent || ""));
+    expect(await page.locator(".bd-play-back").count() === 0, "Back returns to Page 1 and there's nothing further back");
+    /* Page 1's frame is rendered afresh after Back: wait for it to settle before following the link again. */
+    await page.waitForFunction((id) => { const i = document.querySelector(".bd-play iframe"); const d = i && i.contentDocument; return !!(d && d.body && /autumn collection/i.test(d.body.textContent) && d.querySelector('a[href="#page:' + id + '"]')); }, aboutId);
+    await page.waitForTimeout(600);
+    await play.locator('a[href="#page:' + aboutId + '"]').first().click();
+    await page.waitForFunction(() => /About › /.test(document.querySelector("#bd-play-title")?.textContent || ""));
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-play"));
+    const after = await poll(() => page.evaluate(() => window.__builder.project().page), (v) => v && v !== aboutId);
+    expect(after && after !== aboutId, `closing Play goes back to the page it started on, got ${after}`);
+    ok("in Play the link opens About with its own frame, Back retraces, and closing Play returns to the first page");
+    await page.close();
+  });
+
+  await step("Instances: what's added from My components stays linked; Update component carries a change to every instance, on this page and the next, keeping their own edits; Reset, Detach and Delete", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
+    const instances = (d, cid) => { const out = []; d.frames.forEach((f) => (function w(x) { (x.children || []).forEach((c) => { if (c.inst && c.inst.of === cid) out.push(c); w(c); }); })(f.root)); return out; };
+    const byId = (d, id) => { let hit = null; d.frames.forEach((f) => (function w(x) { (x.children || []).forEach((c) => { if (c.id === id) hit = c; w(c); }); })(f.root)); return hit; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    /* The Button gets a radius token, so it can become a component. */
+    const btn = findIn((await saved()).frames[0].root, "Button");
+    await page.evaluate(async (id) => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      (function w(x) { (x.children || []).forEach((c) => { if (c.id === id) c.style.radius = "control"; w(c); }); })(d.frames[0].root);
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    }, btn.id);
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="Button"]'));
+    await page.evaluate((id) => window.__builder.select([id]), btn.id);
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator(".bd-inspect-head .bd-layer-menu").click();
+    await option(page, "Create component").click();
+    await page.locator(".bd-comp-dlg[open]").waitFor();
+    await page.locator(".bd-comp-status.is-ready").waitFor();
+    await page.locator(".bd-comp-name").fill("Shop button");
+    await page.locator(".bd-comp-dlg .bd-btn-primary").click();
+    await page.waitForFunction(() => !document.querySelector(".bd-comp-dlg[open]"));
+    const comp = await poll(() => page.evaluate(() => (JSON.parse(JSON.stringify(window.__builder.library() || {})).components || [])[0]), (c) => c && c.name === "Shop button");
+    expect(comp && comp.name === "Shop button" && comp.rev === 1, `the component starts at revision 1, got ${JSON.stringify(comp && { name: comp.name, rev: comp.rev })}`);
+    const a0 = await poll(async () => byId(await saved(), btn.id), (n) => n && n.inst);
+    expect(a0 && a0.inst && a0.inst.of === comp.id && a0.inst.rev === 1, `what it was made from is its first instance, got ${JSON.stringify(a0 && a0.inst)}`);
+    await page.locator(".bd-inst").waitFor();
+    expect(/Instance of\s*Shop button/.test(await page.locator(".bd-inst").textContent()), "the inspector says which component it's an instance of");
+    ok("Create component links its source as the first instance, and the inspector says so");
+
+    /* A second page carrying an instance of its own. */
+    const twoId = await page.evaluate(async (cid) => {
+      await window.__builder.flush();
+      const lib = window.__builder.library();
+      const c = lib.components.find((x) => x.id === cid);
+      const node = JSON.parse(JSON.stringify(c.node));
+      node.id = "i2"; node.inst = { of: cid, rev: 1 };
+      const d = { frames: [{ id: "twof", name: "Two", width: 1280, height: 800, root: { id: "root", type: "Root", children: [node] } }], active: "twof" };
+      const got = await window.__builder.store.addPage(window.__builder.project().id, "Two", d, null);
+      return got.page.id;
+    }, comp.id);
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => window.__builder && window.__builder.project().pages && window.__builder.project().pages.length === 2);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="Button"]'));
+
+    /* Two more instances from My components. */
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await page.locator('.bd-assets [data-asset-kind="components"]').click();
+    await page.locator(".bd-cat", { hasText: "My components" }).click();
+    await page.locator(".bd-mine-btn", { hasText: "Shop button" }).click();
+    await poll(async () => instances(await saved(), comp.id), (l) => l.length === 2);
+    await page.locator(".bd-mine-btn", { hasText: "Shop button" }).click();
+    const three = await poll(async () => instances(await saved(), comp.id), (l) => l.length === 3);
+    expect(three.length === 3 && three.every((n) => n.inst.rev === 1), `two added from My components make three instances, got ${three.length}`);
+    const others = three.filter((n) => n.id !== btn.id);
+    const bId = others[0].id, cId = others[1].id;
+    await page.evaluate(([id, v]) => window.__builder.edit(id, "children", v), [cId, "Browse"]);
+    await page.evaluate(([id, v]) => window.__builder.edit(id, "children", v), [btn.id, "Shop now"]);
+    await poll(async () => byId(await saved(), btn.id), (n) => n && n.props.children === "Shop now");
+    await page.evaluate((id) => window.__builder.select([id]), btn.id);
+    await page.locator(".bd-inst-menu").waitFor();
+    await page.locator(".bd-inst-menu").click();
+    await option(page, "Update component from this").click();
+    const after = await poll(() => saved(), (d) => byId(d, bId).props.children === "Shop now" && byId(d, cId).inst.rev === 2);
+    expect(byId(after, bId).props.children === "Shop now" && byId(after, bId).inst.rev === 2, `the untouched instance follows the update, got ${JSON.stringify(byId(after, bId).props)} rev ${byId(after, bId).inst.rev}`);
+    expect(byId(after, cId).props.children === "Browse" && byId(after, cId).inst.rev === 2, `the instance with its own text keeps it, got ${JSON.stringify(byId(after, cId).props)}`);
+    expect(byId(after, btn.id).inst.rev === 2, "the source is on the new revision too");
+    const lib2 = await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.library())));
+    expect(lib2.components[0].rev === 2 && lib2.components[0].node.props.children === "Shop now" && lib2.components[0].prev.props.children !== "Shop now", `the library holds revision 2 and the one before, got rev ${lib2.components[0].rev}`);
+    const two = await poll(() => page.evaluate((pid) => window.__builder.store.loadDoc(window.__builder.project().id, pid), twoId), (d) => d && d.frames[0].root.children[0].props.children === "Shop now");
+    expect(two && two.frames[0].root.children[0].props.children === "Shop now" && two.frames[0].root.children[0].inst.rev === 2, `the other page's instance is updated as it's saved, got ${JSON.stringify(two && two.frames[0].root.children[0].props)}`);
+    ok("Update component from this: the other instances on the page and on page Two follow, and one's own text survives");
+
+    await page.evaluate((id) => window.__builder.select([id]), cId);
+    await page.locator(".bd-inst-menu").waitFor();
+    await page.locator(".bd-inst-menu").click();
+    await option(page, "Reset to Shop button").click();
+    const reset = await poll(async () => byId(await saved(), cId), (n) => n && n.props.children === "Shop now");
+    expect(reset.props.children === "Shop now" && reset.inst && reset.inst.rev === 2, `Reset puts the instance back to the component, got ${JSON.stringify(reset.props)}`);
+    await page.evaluate((id) => window.__builder.select([id]), bId);
+    await page.locator(".bd-inst-menu").waitFor();
+    await page.locator(".bd-inst-menu").click();
+    await option(page, "Detach from component").click();
+    const loose = await poll(async () => byId(await saved(), bId), (n) => n && !n.inst);
+    expect(loose && !loose.inst, "Detach takes the link off");
+    await page.waitForFunction(() => !document.querySelector(".bd-inst"));
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-layer.is-instance").length === 2);
+    await page.evaluate((id) => window.__builder.select([id]), btn.id);
+    await page.waitForFunction(() => document.querySelectorAll(".bd-mark-sel.is-instance").length === 1);
+    ok("Reset and Detach work; instances show in Layers and with their own outline on the canvas");
+
+    await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    /* Assets is still on Components › My components from before. */
+    if (await page.locator('.bd-assets [data-asset-kind="components"]').count()) await page.locator('.bd-assets [data-asset-kind="components"]').click();
+    if ((await page.locator(".bd-cat[aria-pressed='true']", { hasText: "My components" }).count()) === 0) await page.locator(".bd-cat", { hasText: "My components" }).click();
+    await page.locator(".bd-mine-item .bd-dd-icon button, .bd-mine-item button.bd-dd-icon").first().click();
+    await option(page, "Delete").click();
+    const gone = await poll(async () => instances(await saved(), comp.id), (l) => l.length === 0);
+    expect(gone.length === 0 && (await saved()).frames[0].root.children.length === after.frames[0].root.children.length, "deleting the component detaches its instances and keeps them on the page");
+    ok("Delete in My components leaves the instances as plain layers");
     await page.close();
   });
 

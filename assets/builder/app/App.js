@@ -10,8 +10,9 @@ import { ago, foldersOf, itemsOf, pageOf, pagesOf, VERSIONS_MAX } from "../model
 import { STARTERS } from "../model/starters.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
+import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* Past this many frames, only frames near the view stay live. */
 var VIRTUAL_AFTER = 6;
@@ -158,6 +159,7 @@ function App(props) {
   var focusSec = focusSecState[0], setFocusSec = focusSecState[1];
   var playState = useState(null);
   var play = playState[0], setPlay = playState[1];
+  /* A link to one of the project's pages is kept as #page:<id> (PAGE_LINK). */
   var playBoxState = useState({ w: 0, h: 0 });
   var playBox = playBoxState[0], setPlayBox = playBoxState[1];
   var playRef = useRef(null), playFrameRef = useRef(null), playStageRef = useRef(null);
@@ -1378,6 +1380,8 @@ function App(props) {
     n = fresh(n);
     delete n.style.x; delete n.style.y;
     n.name = comp.name;
+    /* Linked: the component's changes reach it (model/instances.js). */
+    n.inst = { of: comp.id, rev: comp.rev || 1 };
     return n;
   };
   var addLocal = function (comp, where) {
@@ -1498,6 +1502,9 @@ function App(props) {
           selection: on(function (fid) { if (docRef.current.active !== fid) return null; var s = selRef.current; return s.length ? s[s.length - 1] : null; }),
           pick: on(function (fid, id, additive, deep, part) { pickRef.current(id, additive, deep, "canvas", fid, part); }),
           menu: on(function (fid, id, x, y) { var p = toPage(fid, x, y); openMenuRef.current(p.x, p.y, id, fid); }),
+          /* From the Play screen, which isn't one of the canvas frames. */
+          goPage: function (pageId) { playGoRef.current(pageId); },
+          playKey: function (key, alt) { return playKeyRef.current(key, alt); },
           edit: on(function (fid, id, text) { if (docRef.current.active !== fid) activateRef.current(fid); beginEditRef.current(id, text); }),
           hover: on(function (fid, id) {
             var h = hoverRef.current;
@@ -2527,6 +2534,14 @@ function App(props) {
 
   /* The code for what's selected: one button is just that button, a
      frame (nothing inside it picked) is the whole screen. */
+  /* In the code, a link to a page becomes a relative address made from the
+     page's name: the first page is index.html, "About us" is about-us.html. */
+  var pageFile = function (pg, i) { return i === 0 ? "index.html" : ((pg.name || "page").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "page-" + (i + 1)) + ".html"; };
+  var withPageLinks = function (tree) {
+    var pages = pagesOf(projectRef.current), files = {};
+    pages.forEach(function (pg, i) { files[pg.id] = "./" + pageFile(pg, i); });
+    return JSON.parse(JSON.stringify(tree), function (k, v) { var m = typeof v === "string" ? PAGE_LINK.exec(v) : null; return m && files[m[1]] ? files[m[1]] : v; });
+  };
   var openCode = function () {
     var f = api();
     if (!f) return;
@@ -2538,10 +2553,10 @@ function App(props) {
     if (parts.length && f.jsxNodes) {
       var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
       setCodeTitle(title);
-      setCode(f.jsxNodes(parts, parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts"));
+      setCode(f.jsxNodes(withPageLinks(parts), parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts"));
     } else {
       setCodeTitle(fr.name);
-      setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: fr.root }, fr.name));
+      setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: withPageLinks(fr.root) }, fr.name));
     }
     var dlg = dialogRef.current;
     if (dlg && dlg.showModal) dlg.showModal();
@@ -3220,8 +3235,14 @@ function App(props) {
     var kept = cleanNode(copy(node), null);
     if (!kept) return;
     delete kept.style.x; delete kept.style.y;
-    setLibrary(function (l) { var n = Object.assign({}, l); n.components = [{ id: uid(), name: name, node: kept, tokens: check.tokens, made: Date.now() }].concat(l.components || []); return n; });
-    if (compDraft.ids.length === 1) setName(compDraft.ids[0], name);
+    var cid = uid();
+    setLibrary(function (l) { var n = Object.assign({}, l); n.components = [{ id: cid, name: name, node: kept, tokens: check.tokens, rev: 1, made: Date.now() }].concat(l.components || []); return n; });
+    if (compDraft.ids.length === 1) {
+      setName(compDraft.ids[0], name);
+      /* What it was made from is its first instance, so editing it there
+         and pressing Update component carries the change everywhere. */
+      quiet(function (d) { var at = locate(d, compDraft.ids[0]); if (!at) return null; at.node.inst = { of: cid, rev: 1 }; return undefined; });
+    }
     var dlg = compRef.current;
     if (dlg && dlg.open) dlg.close();
     setCompDraft(null);
@@ -3255,7 +3276,88 @@ function App(props) {
           e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !!errors.length, onClick: saveComponent }, e(Icon, { name: "component" }), "Create component"),
           fixable ? e("button", { type: "button", className: "bd-btn", onClick: fixComponent, title: "Takes out custom colours and positions inside it, so it uses the system's" }, "Use the system's instead") : null)) : null);
   };
-  var removeComponent = function (id) { setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).filter(function (c) { return c.id !== id; }); return n; }); };
+  var removeComponent = function (id) {
+    setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).filter(function (c) { return c.id !== id; }); return n; });
+    quiet(function (d) { return detachAll(d, id) ? undefined : null; });
+  };
+  /* Linked instances (model/instances.js, docs/instances.md). An instance
+     is edited in place; Update component makes it the component's new
+     revision and rebuilds the others, on this page now and on the
+     project's other pages as they're saved. */
+  var instanceActions = {
+    update: function (id) {
+      var at = locate(docRef.current, id), comp = masterOf(libRef.current, at && at.node);
+      if (!comp) return;
+      var check = componentCheck(at.node);
+      var bad = check.issues.filter(function (i) { return i.level === "error"; })[0];
+      if (bad) { announce("Not yet: " + bad.text); return; }
+      var master = cleanNode(copy(at.node), null);
+      if (!master) return;
+      delete master.style.x; delete master.style.y; delete master.inst; delete master.lock; delete master.hide;
+      var rev = (comp.rev || 1) + 1, was = comp.node;
+      setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).map(function (c) { return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev: rev, tokens: check.tokens }) : c; }); return n; });
+      var here = 0;
+      change(function (d) { here = updateInstances(d, comp.id, was, master, rev, id); return undefined; }, null);
+      var pid = projectRef.current.id, pageNow = pageRef.current;
+      var others = pagesOf(projectRef.current).filter(function (pg) { return pg.id !== pageNow; });
+      Promise.all(others.map(function (pg) {
+        return store.loadDoc(pid, pg.id).then(function (d) {
+          if (!d) return 0;
+          var n = 0;
+          var next = produce(d, function (dr) { n = updateInstances(dr, comp.id, was, master, rev, null); });
+          return n ? store.saveDoc(pid, next, pg.id).then(function () { return n; }) : 0;
+        }).catch(function () { return 0; });
+      })).then(function (ns) {
+        var total = here + ns.reduce(function (a, b) { return a + b; }, 0);
+        announce(comp.name + " is updated" + (total ? ", and so " + (total === 1 ? "is its other instance" : "are its " + total + " other instances") : ""));
+      });
+    },
+    /* An instance behind the component (made in another project, say)
+       catches up. Its differences from the revision it was on survive when
+       that revision is the one before; otherwise its differences from the
+       current one do. */
+    pull: function (id) {
+      var at = locate(docRef.current, id), comp = masterOf(libRef.current, at && at.node);
+      if (!comp || (at.node.inst.rev || 1) >= (comp.rev || 1)) return;
+      var was = comp.prev && (at.node.inst.rev || 1) === (comp.rev || 1) - 1 ? comp.prev : comp.node;
+      change(function (d) {
+        var a = locate(d, id);
+        if (!a || !a.parent) return null;
+        var i = a.parent.children.findIndex(function (c) { return c.id === id; });
+        a.parent.children[i] = rebase(a.node, was, comp.node, comp.rev || 1);
+        return undefined;
+      }, nameOf(at.node) + " is on the latest " + comp.name);
+    },
+    reset: function (id) {
+      var at = locate(docRef.current, id), comp = masterOf(libRef.current, at && at.node);
+      if (!comp) return;
+      change(function (d) {
+        var a = locate(d, id);
+        if (!a || !a.parent) return null;
+        var i = a.parent.children.findIndex(function (c) { return c.id === id; });
+        a.parent.children[i] = rebase(a.node, a.node, comp.node, comp.rev || 1);
+        return undefined;
+      }, nameOf(at.node) + " is back to " + comp.name);
+    },
+    detach: function (id) {
+      var at = locate(docRef.current, id), comp = masterOf(libRef.current, at && at.node);
+      if (!at || !at.node.inst) return;
+      change(function (d) { var a = locate(d, id); if (!a) return null; delete a.node.inst; return undefined; }, nameOf(at.node) + " is detached from " + (comp ? comp.name : "its component") + "; changes to it stay here");
+    },
+  };
+  /* Under the inspector's title: which component an instance is of, and
+     what it can do about it. */
+  var instanceRow = function (n) {
+    var comp = masterOf(library, n);
+    var stale = !!comp && (comp.rev || 1) > (n.inst.rev || 1);
+    return e("div", { className: cx("bd-inst", !comp && "is-lost", stale && "is-stale") },
+      e(Icon, { name: "component" }),
+      e("span", { className: "bd-inst-text" }, comp ? e(React.Fragment, null, "Instance of ", e("strong", null, comp.name), stale ? ", which has changed since" : "") : "Its component was deleted; it's on its own now"),
+      stale ? e("button", { type: "button", className: "bd-btn bd-btn-sm bd-inst-update", onClick: function () { instanceActions.pull(n.id); } }, "Update") : null,
+      e(Dropdown, { menu: true, label: "Instance actions", icon: "more", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon bd-inst-menu",
+        options: (comp ? [{ value: "update", label: "Update component from this", hint: "Every instance follows", icon: "upload" }, { value: "reset", label: "Reset to " + comp.name, icon: "undo" }] : []).concat([{ value: "detach", label: "Detach from component", icon: "detach" }]),
+        onChange: function (v) { if (instanceActions[v]) instanceActions[v](n.id); } }));
+  };
   var renameComponent = function (id) {
     var c = (library.components || []).filter(function (x) { return x.id === id; })[0];
     if (!c) return;
@@ -3579,7 +3681,7 @@ function App(props) {
       if (nodes.length > 1) return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: "Select one " + first.type + " to edit its " + label.toLowerCase() + "." }, null);
       if (!Array.isArray(sample)) return e(Field, { key: p.name, id: id, label: label, note: p.note, hint: "Its sample has parts the builder can't edit here (pictures or elements), so it keeps them." }, null);
       return e(Field, { key: p.name, id: id, label: label + (count ? " (" + count + ")" : ""), note: p.note },
-        e(ListEditor, { key: first.id + p.name, id: id, label: label, spec: p, value: sample, onChange: function (v) { setProp([first.id], p.name, v); } }));
+        e(ListEditor, { key: first.id + p.name, id: id, label: label, spec: p, value: sample, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: function (v) { setProp([first.id], p.name, v); } }));
     }
     if (p.kind === "media") {
       var src = typeof current === "string" ? current : "";
@@ -3637,6 +3739,10 @@ function App(props) {
       control = e("input", { className: "bd-input", type: "number", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current == null ? "" : String(current), onChange: function (ev) { set(ev.target.value === "" ? undefined : Number(ev.target.value)); } });
     } else if (p.kind === "text" || (p.kind === "node" && typeof base[p.name] === "string")) {
       control = e("input", { className: "bd-input", type: "text", "aria-labelledby": id, placeholder: mixed ? "Mixed" : "", value: current == null ? "" : String(current), onChange: function (ev) { set(ev.target.value === "" ? undefined : ev.target.value); } });
+    } else if (p.kind === "url") {
+      /* A link goes to one of the project's pages (Play follows it; the
+         code gets a relative address) or to a web address. */
+      control = e(LinkTo, { labelledBy: id, value: current, mixed: mixed, pages: pagesOf(projectRef.current), pageNow: pageRef.current, onChange: set });
     } else return null;
     return e(Field, { key: p.name, id: id, label: label, note: p.note }, control);
   };
@@ -4414,7 +4520,7 @@ function App(props) {
       var folds = !!n.children || owner;
       var renameable = n.type === "Group";
       return e("div", {
-        key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+        key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
         "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
         "aria-expanded": folds ? String(open) : undefined,
         style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
@@ -4430,7 +4536,7 @@ function App(props) {
           onDoubleClick: function () { if (renameable && mine) setRenaming({ id: n.id, where: "layer" }); },
           onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
         },
-          e(Icon, { name: typeIcon(n.type) }),
+          e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
           renameable && mine && isRenaming(n.id, "layer")
             ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
             : e("span", { className: "bd-layer-name" }, nameOf(n)),
@@ -4802,7 +4908,7 @@ function App(props) {
     return e("div", { className: "bd-inspect" },
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" },
-          e("h2", { className: "bd-inspect-title" }, e(Icon, { name: sameType ? typeIcon(first.type) : "component" }),
+          e("h2", { className: "bd-inspect-title" }, e(Icon, { name: (!many && first.inst) || !sameType ? "component" : typeIcon(first.type) }),
             many ? title : isContainer(first.type) && first.type === "Group"
               ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
               : nameOf(first)),
@@ -4836,6 +4942,7 @@ function App(props) {
                 else if (v === "copyStyle") copyStyle();
                 else if (v === "pasteStyle") pasteStyle();
               } }))),
+        !many && first.inst ? instanceRow(first) : null,
         many ? e("p", { className: "bd-inspect-sub" }, sameType ? "Changes apply to all of them. Mixed means they differ." : "Different components: size, spacing and appearance apply to all of them.")
           : meta.blurb ? e("p", { className: "bd-inspect-sub" }, meta.blurb + ".", meta.href ? e(React.Fragment, null, " ", e("a", { href: meta.href }, "Docs")) : null) : null,
         arrangeTools),
@@ -5340,7 +5447,7 @@ function App(props) {
            sits), the tag goes inside the box. */
         var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
         var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? (isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW) : null;
-        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", at.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
           isMain ? e("span", {
             className: "bd-mark-tag", title: "Drag to move",
             onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
@@ -5377,7 +5484,42 @@ function App(props) {
 
   /* Play: the frame through a screen-sized window. It scrolls inside, so
      sticky, pinned and floating items behave as they would on a device. */
-  var openPlay = function () { setPlay({ fid: frame.id, h: playDefault(frame.width) }); };
+  var openPlay = function () { setPlay({ fid: frame.id, h: playDefault(frame.width), stack: [], home: { page: pageRef.current, fid: frame.id } }); };
+  /* Play follows a link to another page: that page opens (as it would on
+     the canvas) and its active frame fills the screen; Back retraces. */
+  var playGo = function (pageId) {
+    var p = playRef.current && playRef.current.open ? play : null;
+    if (!p || !pagesOf(projectRef.current).some(function (pg) { return pg.id === pageId; })) return;
+    var from = { page: pageRef.current, fid: p.fid };
+    if (pageId === pageRef.current) return;
+    openPage(pageId).then(function () {
+      setPlay(function (q) { return q ? Object.assign({}, q, { fid: docRef.current.active, stack: (q.stack || []).concat([from]) }) : q; });
+    });
+  };
+  var playGoRef = useRef(playGo); playGoRef.current = playGo;
+  var playBack = function () {
+    var p = play;
+    if (!p || !p.stack || !p.stack.length) return;
+    var prev = p.stack[p.stack.length - 1], rest = p.stack.slice(0, -1);
+    var done = function () { setPlay(function (q) { return q ? Object.assign({}, q, { fid: frameById(docRef.current, prev.fid) ? prev.fid : docRef.current.active, stack: rest }) : q; }); };
+    if (prev.page === pageRef.current) done(); else openPage(prev.page).then(done);
+  };
+  /* Keys pressed inside the Play screen: Escape closes, Backspace and
+     Alt+Left go back. */
+  var playKey = function (key, alt) {
+    var el = playRef.current;
+    if (!play || !el || !el.open) return false;
+    if (key === "Escape") { el.close(); return true; }
+    if (key === "Backspace" || (alt && key === "ArrowLeft")) { if (play.stack && play.stack.length) playBack(); return true; }
+    return false;
+  };
+  var playKeyRef = useRef(playKey); playKeyRef.current = playKey;
+  /* Closing Play goes back to the page it started on. */
+  var playClosed = function () {
+    var home = play && play.home;
+    setPlay(null);
+    if (home && home.page !== pageRef.current) openPage(home.page);
+  };
   var renderPlay = function () {
     var el = playFrameRef.current;
     var fr = play && frameById(docRef.current, play.fid);
@@ -5385,18 +5527,23 @@ function App(props) {
     try { a = el && el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { a = null; }
     if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale }, root: fr.root }, { preview: true, hug: false });
   };
+  useEffect(function () { if (play) renderPlay(); }, [play && play.fid, doc]);
   var playDialog = function () {
     var fr = play && frameById(doc, play.fid);
     if (!fr) return null;
+    var pageNow = pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0];
+    var canBack = !!(play.stack && play.stack.length);
     var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
     var hs = playHeights(fr.width);
     /* A theater: the screen alone on a dark stage, its name and Close at
        the top, and the screen sizes in a bar along the foot where the
        canvas keeps its tools. */
-    return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: function () { setPlay(null); } },
+    return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: playClosed,
+      onKeyDown: function (ev) { if (canBack && (ev.key === "Backspace" || (ev.altKey && ev.key === "ArrowLeft"))) { ev.preventDefault(); playBack(); } } },
       e("div", { className: "bd-play-head" },
+        canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: playBack }, e(Icon, { name: "left" })) : null,
         e("div", { className: "bd-play-intro" },
-          e("h2", { id: "bd-play-title" }, fr.name),
+          e("h2", { id: "bd-play-title" }, (pageNow && pagesOf(project).length > 1 ? pageNow.name + " › " : "") + fr.name),
           e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")),
         e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function () { playRef.current.close(); } }, e(Icon, { name: "close" }))),
       e("div", { className: "bd-play-stage", ref: playStageRef },

@@ -2490,7 +2490,7 @@ function buildBuilderFormat(meta, groups, tokens) {
   const containers = Object.keys(meta).filter((n) => meta[n].container);
   const propLine = (p) => {
     const slot = p.kind === "node" && (p.accepts || /^(actions|media|footer|aside|extra|start|end|leading|trailing)$/.test(p.name));
-    const kind = p.kind === "enum" ? `one of ${list(p.options)}` : p.kind === "media" ? "an https URL" : slot ? `a slot${p.accepts ? ` taking ${list(p.accepts)}` : ""}`
+    const kind = p.kind === "enum" ? `one of ${list(p.options)}` : p.kind === "media" ? "an https URL" : p.kind === "url" ? "a link: #page:<page id> for a page of the project, or an https, /, # or relative address" : slot ? `a slot${p.accepts ? ` taking ${list(p.accepts)}` : ""}`
       : p.kind === "list" ? (p.of === "text" ? "a list of text" : `a list of { ${p.fields.map((f) => f.name + (f.optional ? "?" : "")).join(", ")} }`) : p.kind === "node" ? "text" : p.kind;
     return `${code(p.name)} (${kind}${p.default != null && p.default !== "" ? `; default ${code(p.default)}` : ""})`;
   };
@@ -2632,6 +2632,9 @@ function buildBuilder() {
     /* An image or video source takes an upload or a URL, never typed CSS. */
     const media = ["Image", "Cover", "Video"].includes(c.name) ? ["src"].concat(c.name === "Video" ? ["poster"] : []) : [];
     media.forEach((name) => props.push({ name, kind: "media", options: null, default: null, note: name === "poster" ? "Shown before the video plays" : "The picture or clip", tab: "content" }));
+    /* A link goes to one of the project's pages or a safe address, through
+       the inspector's Link to control rather than typed CSS. */
+    if (!props.some((p) => p.name === "href") && /\n\s*href\??:\s*string/.test(src)) props.push({ name: "href", kind: "url", options: null, default: null, note: "Where it goes: a page of the project, or a web address", tab: "content" });
     meta[c.name] = {
       blurb: NAV_BLURB[c.name] || String(c.summary || "").replace(/[`*_]/g, "").split(". ")[0],
       group: c.group,

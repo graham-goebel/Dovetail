@@ -294,6 +294,7 @@ function cleanNode(n, report) {
     var spec = meta.props.filter(function (p) { return p.name === k; })[0];
     if (k === "minColumnWidth") { if (DATA.columnWidths.some(function (w) { return w.value === v; })) props[k] = v; else note(report, "Grid: minColumnWidth takes a multiple of --dt-size-control-lg, not " + JSON.stringify(v)); return; }
     if (spec && spec.kind === "media") { if (typeof v === "string" && MEDIA_URL.test(v)) props[k] = v; else note(report, n.type + ": " + k + " takes an https URL"); return; }
+    if (spec && spec.kind === "url") { if (typeof v === "string" && SAFE_HREF.test(v)) props[k] = v; else note(report, n.type + ": " + k + " takes a page link (#page:id) or a safe address"); return; }
     if (spec && spec.kind === "list") { var lv = cleanList(spec, v); if (lv) props[k] = lv; else note(report, n.type + ": " + k + " takes a list of " + (spec.of === "text" ? "text" : "{ " + spec.fields.map(function (f) { return f.name; }).join(", ") + " }") + ", with nothing else in its items"); return; }
     if (spec && spec.kind === "enum" && spec.options.indexOf(v) < 0) { note(report, n.type + ": " + k + " " + JSON.stringify(v) + " isn't one of " + spec.options.join(", ")); return; }
     if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") props[k] = v;
@@ -324,6 +325,10 @@ function cleanNode(n, report) {
   /* Locked: left alone on the canvas. Hidden: not drawn, not exported. */
   if (n.lock === true) out.lock = true;
   if (n.hide === true) out.hide = true;
+  /* An instance of one of My components: which, and the revision it's on. */
+  if (n.inst && typeof n.inst === "object" && typeof n.inst.of === "string" && /^[\w-]{1,40}$/.test(n.inst.of)) {
+    out.inst = { of: n.inst.of, rev: Number.isInteger(n.inst.rev) && n.inst.rev >= 0 ? n.inst.rev : 1 };
+  }
   var seenSlot0 = {};
   var slotChild = function (c) {
     if (!c || c.type !== "Slot" || !c.props || !slotSpec(n.type, c.props.name) || seenSlot0[c.props.name]) return false;
