@@ -1517,8 +1517,8 @@ try {
     await page.locator(".bd-container-card", { hasText: "Structured frame" }).click();
     const page3 = await poll(async () => (await saved()).frames[2], Boolean);
     const g = page3.root.children[0];
-    expect(page3.gap && g.type === "Group" && g.props.direction === "column" && g.props.gap && g.style.padding, `a structured page and its Group get auto layout, got gap ${page3.gap}, ${JSON.stringify(g.props)} ${JSON.stringify(g.style)}`);
-    ok(`a freeform frame shrinks to ${tiny}px wide; a structured page gaps its sections (${page3.gap}) and its Group stacks with gap ${g.props.gap} and padding ${g.style.padding}`);
+    expect(page3.gap && g.type === "Group" && g.props.direction === "column" && g.props.gap && g.style.w === "default" && g.style.paddingLeft === "gutter" && g.style.paddingRight === "gutter", `a structured page and its Group get auto layout in the page column, got gap ${page3.gap}, ${JSON.stringify(g.props)} ${JSON.stringify(g.style)}`);
+    ok(`a freeform frame shrinks to ${tiny}px wide; a structured page gaps its sections (${page3.gap}) and its Group stacks with gap ${g.props.gap} in the page column, with the page gutter at its sides`);
 
     await fitAll(page);
     await pressButton(page, "Shop the collection");
@@ -3180,6 +3180,80 @@ try {
     const gone = await poll(async () => instances(await saved(), comp.id), (l) => l.length === 0);
     expect(gone.length === 0 && (await saved()).frames[0].root.children.length === after.frames[0].root.children.length, "deleting the component detaches its instances and keeps them on the page");
     ok("Delete in My components leaves the instances as plain layers");
+    await page.close();
+  });
+
+  await step("Page column: the frame's page width and gutter re-point every Section and page-width Group; Group gaps take layout layers; a band's spacing per edge and bleed; a section padding sets the gutter at its sides", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    /* A Group set to the page width with a section padding, and three
+       children spaced by the block layer, on top of the starter page. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames[0].root.children.unshift({ id: "pgcol", type: "Group", name: "Column", props: { direction: "column", gap: "block" }, style: { w: "default", padding: "module" },
+        children: ["a", "b", "c"].map((k) => ({ id: "pgt" + k, type: "Text", props: { children: "Line " + k }, style: {} })) });
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    const fr = () => frames(page)[0];
+    await fr().waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="pgcol"] > div') && document.querySelector('[data-bf-type="HeroBlock"] section'));
+    const measure = () => fr().evaluate(() => {
+      const g = getComputedStyle(document.querySelector('[data-bf-id="pgcol"] > div'));
+      const sec = document.querySelector('[data-bf-type="HeroBlock"] section');
+      const col = getComputedStyle(sec.firstElementChild.tagName === "IMG" ? sec.querySelector(":scope > div:last-child") : sec.firstElementChild);
+      return { gMax: g.maxWidth, gGap: g.rowGap, gPadX: g.paddingLeft, gPadY: g.paddingTop, colMax: col.maxWidth, colPad: col.paddingLeft, secTop: getComputedStyle(sec).paddingTop };
+    });
+    const m0 = await measure();
+    expect(m0.gMax === "1280px" && m0.colMax === "1280px", `a page-width Group and a Section's column both read --dt-layout-page-width, got ${m0.gMax} and ${m0.colMax}`);
+    expect(m0.gGap === "32px", `a Group gap of block is --dt-layout-stack-block, 32px at balanced, got ${m0.gGap}`);
+    expect(m0.gPadY === "96px" && m0.gPadX === "24px", `a section padding is module padding above and below and the page gutter at the sides, got ${m0.gPadY} by ${m0.gPadX}`);
+    ok(`a page-width Group and a Section share the ${m0.gMax} column; Group gap block is ${m0.gGap}; section padding is ${m0.gPadY} by ${m0.gPadX}`);
+
+    await page.locator(".bd-flabel.is-current .bd-flabel-btn").click();
+    await page.waitForFunction(() => /Landing/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Layout");
+    await page.locator('.bd-right .bd-dd[aria-labelledby^="bd-pg-width "]').click();
+    await option(page, /^Narrow$/).click();
+    await poll(async () => (await saved()).frames[0].pageWidth, (v) => v === "narrow");
+    await page.locator('.bd-right .bd-dd[aria-labelledby^="bd-pg-gutter "]').click();
+    await option(page, /^None$/).click();
+    await poll(async () => (await saved()).frames[0].gutter, (v) => v === "none");
+    await page.locator('.bd-right .bd-dd[aria-labelledby^="bd-pg-char "]').click();
+    await option(page, /^Tight$/).click();
+    const m1 = await poll(measure, (m) => m.gMax === "768px" && m.colPad === "0px" && m.gGap === "16px");
+    expect(m1.gMax === "768px" && m1.colMax === "768px", `Page width Narrow re-points the column for the Group and the Section, got ${m1.gMax} and ${m1.colMax}`);
+    expect(m1.colPad === "0px", `Page gutter None takes the Section's side room off, got ${m1.colPad}`);
+    expect(m1.gGap === "16px", `the block layer follows the layout character, 16px at tight, got ${m1.gGap}`);
+    ok(`the frame's Page width and Page gutter re-point the column (${m1.gMax}) and gutter (${m1.colPad}); a tight page moves the Group's layer gap to ${m1.gGap}`);
+
+    const hero = findIn((await saved()).frames[0].root, "HeroBlock");
+    await page.evaluate((id) => window.__builder.select([id]), hero.id);
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Layout");
+    const fields = await page.$$eval(".bd-right .bd-field-label", (l) => l.map((x) => x.textContent.trim()));
+    expect(fields.some((f) => /Spacing top/i.test(f)) && fields.some((f) => /Spacing bottom/i.test(f)) && fields.some((f) => /Bleed/i.test(f)), `a block's Layout tab offers Spacing top, Spacing bottom and Bleed, got ${fields.join(", ")}`);
+    await page.evaluate((id) => window.__builder.edit(id, "spacingTop", "xl"), hero.id);
+    const m2 = await poll(measure, (m) => m.secTop === "128px");
+    expect(m2.secTop === "128px", `spacingTop xl is --dt-layout-module-padding-xl, 128px at tight, got ${m2.secTop}`);
+    await page.evaluate((id) => window.__builder.edit(id, "bleed", "inset"), hero.id);
+    const inset = await poll(() => fr().evaluate(() => { const s = document.querySelector('[data-bf-type="HeroBlock"] section'); const b = s && s.firstElementChild; return b ? getComputedStyle(b).borderTopLeftRadius : ""; }), (v) => v && v !== "0px");
+    expect(inset && inset !== "0px", `bleed inset rounds the band with the container radius, got ${inset}`);
+    ok("a block's Layout tab has Spacing top, Spacing bottom and Bleed; spacingTop xl and bleed inset reach the canvas");
+
+    await page.evaluate(() => window.__builder.select([]));
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(code.includes('"--dt-layout-page-width": "var(--dt-layout-page-width-narrow)"') && code.includes('"--dt-layout-page-gutter": "0"') && code.includes('spacingTop="xl"') && code.includes('bleed="inset"') && code.includes("var(--dt-layout-stack-block)"), `the code carries the page's column and gutter, the band's spacing and bleed, and the layer gap, got ${(code.match(/--dt-layout[\w-]*|spacingTop="\w+"|bleed="\w+"/g) || []).join(" ")}`);
+    ok("the exported code carries the page column, gutter, band spacing, bleed and layer gap");
     await page.close();
   });
 

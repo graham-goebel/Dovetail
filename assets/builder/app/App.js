@@ -1621,7 +1621,7 @@ function App(props) {
       if (last && last.frame === f && last.preview === preview) return;
       rendered.current[f.id] = { frame: f, preview: preview };
       grows.current[f.id] = 0;
-      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
+      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
     });
     if (any && !placeable) {
       var ok = {}, sc = {}, det = {};
@@ -2463,7 +2463,7 @@ function App(props) {
       if (page) f.root.children = [make("Section")];
       /* A structured frame starts with a Group to put things in, and its
          blocks sit a block's gap apart. */
-      if (structured) { f.mode = "structured"; var g = make("Group", { direction: "column", gap: "md" }, [], { padding: "lg", w: "fill" }); g.name = "Content"; f.root.children = [g]; f.gap = "block"; }
+      if (structured) { f.mode = "structured"; var g = make("Group", { direction: "column", gap: "group" }, [], { w: "default", paddingTop: "lg", paddingBottom: "lg", paddingLeft: "gutter", paddingRight: "gutter" }); g.name = "Content"; f.root.children = [g]; f.gap = "block"; }
       var L = layoutRef.current, boxesNow = L.boxes;
       change(function (d) {
         var placed = d.frames.some(function (fr) { return typeof fr.x === "number"; });
@@ -4770,6 +4770,12 @@ function App(props) {
           e(Field, { key: "type", id: "bd-pg-type", label: "Type scale", hint: frame.typeScale === "social" ? "data-type-scale=\"social\": body 2.5x, headings 2.75x, display 3x, for a 1080 post read in a feed." : "The page's own sizes." },
             e(Dropdown, { labelledBy: "bd-pg-type", value: frame.typeScale || "", className: "bd-dd-field", onChange: function (v) { setFrame("typeScale", v || undefined, v ? frame.name + " has social type" : frame.name + " has page type"); },
               options: [{ value: "", label: "Page", hint: "The system's sizes" }, { value: "social", label: "Social", hint: "Larger body, steeper headlines, for a 1080 artboard" }] })),
+          e(Field, { key: "width", id: "bd-pg-width", label: "Page width", hint: frame.pageWidth ? "--dt-layout-page-width is the " + frame.pageWidth + " one on this page" : "--dt-layout-page-width: the column every Section, block and page-width Group reads. Configure moves it for every page." },
+            e(Dropdown, { labelledBy: "bd-pg-width", value: frame.pageWidth || "", className: "bd-dd-field", onChange: function (v) { setFrame("pageWidth", v || undefined); },
+              options: [{ value: "", label: "Page", hint: "--dt-layout-page-width" }, { value: "narrow", label: "Narrow", hint: "--dt-layout-page-width-narrow" }, { value: "wide", label: "Wide", hint: "--dt-layout-page-width-wide" }] })),
+          e(Field, { key: "gutter", id: "bd-pg-gutter", label: "Page gutter", hint: "The room between the column and the screen's edge." },
+            e(Dropdown, { labelledBy: "bd-pg-gutter", value: frame.gutter || "", className: "bd-dd-field", onChange: function (v) { setFrame("gutter", v || undefined); },
+              options: [{ value: "", label: "Page", hint: "--dt-layout-page-gutter, which follows the layout character" }, { value: "wide", label: "Wide", hint: "--dt-space-gutter-wide" }, { value: "none", label: "None", hint: "Edge to edge" }] })),
           e(Field, { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
             e(Dropdown, { labelledBy: "bd-pg-gap", value: frame.gap, className: "bd-dd-field", onChange: function (v) { setFrame("gap", v || ""); },
               options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function (g) { return { value: g, label: g, hint: "--dt-layout-stack-" + g }; })) })),
@@ -5525,7 +5531,7 @@ function App(props) {
     var fr = play && frameById(docRef.current, play.fid);
     var a = null;
     try { a = el && el.contentWindow && el.contentWindow.BuilderFrame; } catch (err) { a = null; }
-    if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale }, root: fr.root }, { preview: true, hug: false });
+    if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale, pageWidth: fr.pageWidth, gutter: fr.gutter }, root: fr.root }, { preview: true, hug: false });
   };
   useEffect(function () { if (play) renderPlay(); }, [play && play.fid, doc]);
   var playDialog = function () {
