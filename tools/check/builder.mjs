@@ -219,9 +219,26 @@ async function pick(page, label, optionText) {
 const labels = (page) => page.$$eval(".bd-flabel-name", (n) => n.map((x) => x.textContent));
 /* New, then Start over (a blank frame replaces every frame) or Paste a layout. */
 async function startFrom(page, label) {
-  await page.locator(".bd-start").click();
-  await page.locator(label === "Blank frame" ? '.bd-new-item[data-new="blank"]' : '.bd-new-item[data-new="import"]').click();
+  await page.locator(".bd-project-menu").click();
+  await option(page, label === "Blank frame" ? "Start over with a blank frame" : "Paste a layout…").click();
 }
+/* Assets opens on a kind's cards; a gallery that is open goes back first. */
+async function assetKind(page, kind) {
+  await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+  if (await page.locator('.bd-assets [aria-label="Back to Assets"]').count()) await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
+  await page.locator(`.bd-assets [data-asset-kind="${kind}"]`).click();
+}
+/* A container card, pressed: a new frame beside the others. */
+async function addContainer(page, name) {
+  await assetKind(page, "containers");
+  await page.locator(".bd-container-card", { hasText: name }).click();
+}
+/* Undo and redo are keys now, not buttons; the builder says how many steps wait. */
+const steps = (page) => page.evaluate(() => window.__builder.history());
+const history = (page) => ({
+  undo: { click: async () => { await release(page); await page.keyboard.press("Control+z"); }, isEnabled: async () => (await steps(page)).past > 0, isDisabled: async () => (await steps(page)).past === 0 },
+  redo: { click: async () => { await release(page); await page.keyboard.press("Control+Shift+z"); }, isEnabled: async () => (await steps(page)).future > 0, isDisabled: async () => (await steps(page)).future === 0 },
+});
 /* A blank frame replaces the canvas's iframe, so for a moment there is no
    frame to ask; wait in the page until the new one has drawn its empty root. */
 const emptyFrame = (page) => page.waitForFunction(() => {
@@ -261,7 +278,7 @@ try {
 
   await step("Assets: five kinds, one named category at a time, search across all and clear it, live previews, grid and list", async () => {
     const kinds = await page.$$eval(".bd-assets [data-asset-kind] .bd-kind-name", (c) => c.map((x) => x.textContent));
-    expect(kinds.join(",") === "Primitives,Variables,Components,Blocks,Templates", `Assets open on Primitives, Variables, Components, Blocks and Templates, got ${kinds.join(", ")}`);
+    expect(kinds.join(",") === "Containers,Primitives,Variables,Components,Blocks,Templates", `Assets open on Containers, Primitives, Variables, Components, Blocks and Templates, got ${kinds.join(", ")}`);
     const heights = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => Math.round(x.getBoundingClientRect().height)));
     expect(new Set(heights).size === 1, `the kind cards are all one height, got ${heights.join(", ")}`);
     await category(page, "Actions");
@@ -400,11 +417,11 @@ try {
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]')?.textContent === "Typed here");
     expect(await page.locator(".bd-inline").count() === 0, "Enter closes the editor");
     ok("an editor opens over the heading; typing and Enter set its text");
-    await page.locator(".bd-toolbar .bd-tool-group .bd-act").first().click();
+    await history(page).undo.click();
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]')?.textContent !== "Typed here");
-    ok("undo puts the heading back");
+    ok("Ctrl+Z puts the heading back");
     const before = await frame().evaluate(() => document.querySelector('[data-bf-type="Heading"]').textContent);
-    const redoOn = await page.locator('.bd-toolbar [aria-label="Redo"]').isEnabled();
+    const redoOn = await history(page).redo.isEnabled();
     const again = await canvasPoint(page, '[data-bf-type="Heading"]', "left");
     await page.mouse.dblclick(again.x, again.y);
     await page.locator(".bd-inline").waitFor();
@@ -413,7 +430,7 @@ try {
     await frame().waitForFunction(() => document.querySelector('[data-bf-type="Heading"]')?.textContent === "Not kept");
     await page.keyboard.press("Escape");
     await frame().waitForFunction((t) => document.querySelector('[data-bf-type="Heading"]')?.textContent === t, before);
-    expect(await page.locator('.bd-toolbar [aria-label="Redo"]').isEnabled() === redoOn, "a cancelled edit leaves history as it was");
+    expect(await history(page).redo.isEnabled() === redoOn, "a cancelled edit leaves history as it was");
     ok("Escape takes back what was typed, without leaving a step");
   });
 
@@ -467,18 +484,19 @@ try {
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
     await frame(1).waitForSelector('[data-bf-type="Stack"] [data-bf-type="Heading"]');
-    expect(/^Saved/.test(await page.locator(".bd-saved").evaluate((el) => el.getAttribute("title") || el.getAttribute("data-tip"))), "the toolbar should say it saved");
-    ok("after a reload both frames and their content are still there, and the toolbar says Saved");
+    expect((await page.evaluate(() => window.__builder.saved())).ok && await page.locator(".bd-saved").count() === 0, "the project saved, so the bar shows no warning");
+    ok("after a reload both frames and their content are still there, and the bar has no Not saved warning");
   });
 
   await step("Tab hides the panels, and so does preview", async () => {
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await page.keyboard.press("Tab");
     await page.waitForFunction(() => document.querySelector(".bd-left").hidden && document.querySelector(".bd-right").hidden);
-    expect(await page.locator(".bd-float", { hasText: "Show panels" }).count() === 0, "no Show panels button on the canvas: the header's toggle does it");
-    await page.locator('.bd-toolbar [aria-label="Hide panels"]').click();
+    expect(await page.locator(".bd-float", { hasText: "Show panels" }).count() === 0 && await page.locator('.bd-toolbar [aria-label="Hide panels"]').count() === 0, "no Show panels button on the canvas and none in the bar: Tab does it");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Tab");
     await page.waitForFunction(() => !document.querySelector(".bd-left").hidden);
-    ok("Tab hides both side panels; the header's toggle brings them back");
+    ok("Tab hides both side panels, and Tab again brings them back");
     await page.locator(".bd-toolbar [aria-label=Preview]").click();
     await page.waitForFunction(() => document.querySelector(".bd-left").hidden && document.querySelector(".bd-right").hidden);
     await page.keyboard.press("Escape");
@@ -776,6 +794,22 @@ try {
     expect(tabs.join() === "Assets,Pages,Layers,Content,Configure", `the rail holds Assets, Pages, Layers, Content and Configure, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
+    const gone = await page.locator(".bd-toolbar [aria-label='New'], .bd-toolbar [aria-label='Undo'], .bd-toolbar [aria-label='Redo'], .bd-toolbar [aria-label='Hide panels'], .bd-toolbar [aria-label='Copy link'], .bd-toolbar .bd-saved").count();
+    expect(gone === 0, "the top bar has no New, Undo, Redo, panels toggle, Copy link or Saved mark");
+    const bar = await page.evaluate(() => { const t = document.querySelector(".bd-tb-title").getBoundingClientRect(), b = document.querySelector(".bd-toolbar").getBoundingClientRect(); return { mid: (t.left + t.right) / 2, centre: (b.left + b.right) / 2, text: document.querySelector(".bd-tb-crumbs").textContent.trim() }; });
+    expect(Math.abs(bar.mid - bar.centre) < 24 && bar.text === "Untitled", `the project's name sits in the middle of the bar, got "${bar.text}" at ${Math.round(bar.mid)} of ${Math.round(bar.centre)}`);
+    await pickLayer(page, "HeroBlock");
+    await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-tb-crumbs")?.textContent || ""));
+    const path = await page.locator(".bd-tb-crumbs").textContent();
+    expect(/^Untitled›.*›HeroBlock$/.test(path.replace(/\s+/g, "")), `with a layer selected the bar shows the path to it, got ${path}`);
+    await page.locator(".bd-tb-crumbs .bd-crumb", { hasText: /^Frame 1$|^Landing$/ }).first().click();
+    await page.waitForFunction(() => !/HeroBlock/.test(document.querySelector(".bd-tb-crumbs")?.textContent || ""));
+    expect(await page.locator(".bd-right .bd-crumbs").count() === 0, "the inspector no longer repeats the path");
+    const layersIcon = await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).locator("svg path").first().getAttribute("d");
+    await rail("Assets").click();
+    if (await page.locator('.bd-assets [aria-label="Back to Assets"]').count()) await page.locator('.bd-assets [aria-label="Back to Assets"]').click();
+    const blocksIcon = await page.locator('.bd-assets [data-asset-kind="blocks"] svg path').first().getAttribute("d");
+    expect(layersIcon !== blocksIcon, "Layers and Blocks have different icons");
     await rail("Configure").click();
     await page.waitForSelector(".bd-config-dock .configure-sheet.is-docked .configure-row");
     expect(await page.evaluate(() => { const b = document.querySelector(".configure-bar"); return !b || getComputedStyle(b).display === "none"; }), "the floating Configure button is gone on this page");
@@ -783,7 +817,7 @@ try {
     await page.locator(".bd-config-dock [data-bid='back']").waitFor();
     await rail("Assets").click();
     expect(await page.evaluate(() => { const s = document.querySelector(".configure-sheet"); return s.parentElement === document.body && s.hidden; }), "leaving Configure puts the sheet away");
-    ok("the rail switches Assets, Layers, Content and Configure; Configure sits in the panel, and the top bar has no duplicates");
+    ok("the rail switches Assets, Layers, Content and Configure; Configure sits in the panel; the bar holds the project in the middle, its path when a layer is picked, and nothing redundant");
 
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
@@ -1063,9 +1097,10 @@ try {
     const findIn = (n, type) => { let hit = null; (function w(x) { (x.children || []).forEach((c) => { if (!hit && c.type === type) hit = c; w(c); }); })(n); return hit; };
     await page.waitForFunction(() => { const d = (window.__builder ? JSON.parse(JSON.stringify(window.__builder.doc())) : null); return d && d.frames[0].root.children[0].children; });
 
-    await page.locator(".bd-start").click();
-    expect((await page.locator(".bd-new-kind .bd-new-name").allTextContents()).join(",") === "Freeform frame,Structured frame" && await page.locator(".bd-newmenu .bd-new-tpl").count() >= 3 && await page.locator("dialog[open]").count() === 0, "New opens a menu, not a dialog: a freeform frame, a structured frame, and the templates");
-    await page.locator(".bd-new-kind", { hasText: "Structured frame" }).click();
+    await assetKind(page, "containers");
+    const cards = await page.locator(".bd-container-card .bd-kind-name").allTextContents();
+    expect(cards.slice(0, 3).join(",") === "Freeform frame,Structured frame,Tall frame" && cards.length >= 3 + 6 && await page.locator("dialog[open]").count() === 0, `Containers in Assets offers a freeform, a structured and a tall frame, then the screen sizes, got ${cards}`);
+    await page.locator(".bd-container-card", { hasText: "Structured frame" }).click();
     let f = await lastFrame();
     expect(f.mode === "structured" && f.root.children[0].type === "Group", `a structured page starts with a Group, got ${JSON.stringify(f.root.children.map((c) => c.type))}`);
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
@@ -1272,7 +1307,8 @@ try {
     ok(`Ctrl-dragging Badge onto the Button swapped it, at the Button's width ${fixedW}`);
 
     await page.evaluate(() => { window.DovetailCopy = { write: (t, cb) => { window.__copied = t; cb(true); } }; });
-    await page.locator('.bd-toolbar [aria-label="Copy link"]').click();
+    await page.locator(".bd-project-menu").click();
+    await option(page, /^Copy link/).click();
     const link = await page.evaluate(() => window.__copied);
     const nid = badge.id;
     expect(link.includes("&n=" + nid), `the link names the selected layer, got ${link.slice(-60)}`);
@@ -1301,12 +1337,10 @@ try {
     { const at = await canvasPoint(page, '[data-bf-type="Badge"]', "center", await page.evaluate(() => { const fs = [...document.querySelectorAll("iframe.bd-frame")]; return fs.map((f, i) => (f.contentDocument.querySelector('[data-bf-type="Badge"]') ? i : -1)).filter((i) => i >= 0).pop(); })); await page.mouse.click(at.x, at.y); }
     await page.waitForFunction(() => /Badge/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
 
-    await page.locator(".bd-start").click();
-    const glass = await page.evaluate(() => getComputedStyle(document.querySelector(".bd-newmenu")).backdropFilter);
-    expect(glass && glass !== "none" && await page.locator("dialog[open]").count() === 0, `New opens as a glass menu, not a dialog, got ${glass}`);
-    await page.keyboard.press("Escape");
-    expect(await page.locator(".bd-newmenu").count() === 0, "Escape closes the New menu");
-    ok("New opens as a glass menu under its button, and Escape closes it");
+    expect(await page.locator(".bd-toolbar .bd-start, .bd-toolbar [aria-label='New']").count() === 0, "the bar has no New button");
+    await assetKind(page, "containers");
+    expect(await page.locator(".bd-container-card").count() >= 9, "new frames come from Containers in Assets");
+    ok("New lives in Assets › Containers; the bar has no + button");
 
     await page.locator(".bd-export").click();
     expect(/^Export:/.test(await page.locator("#bd-code-title").textContent()) && await page.locator(".bd-code-actions .bd-btn", { hasText: "PNG" }).count() === 1, "Export offers code, PNG, JPG and the layout");
@@ -1339,7 +1373,7 @@ try {
 
     const panel = await page.evaluate(() => { const l = document.querySelector(".bd-left"), st = document.querySelector(".bd-stage"); const lr = l.getBoundingClientRect(), sr = st.getBoundingClientRect(); return { radius: parseFloat(getComputedStyle(l).borderTopLeftRadius), inset: lr.left, under: sr.left <= lr.left && sr.right >= document.querySelector(".bd-right").getBoundingClientRect().right }; });
     expect(panel.radius > 0 && panel.inset > 0 && panel.under, `the panels float over the canvas, inset and rounded, got ${JSON.stringify(panel)}`);
-    const plus = await page.locator(".bd-start svg path").first().getAttribute("d");
+    const plus = await page.locator(".bd-rail .bd-tab svg path").first().getAttribute("d");
     expect(/^M12 4\.5v15/.test(plus), `the builder draws with Heroicons, got ${plus}`);
     ok("the side panels float over a full-width canvas, inset with rounded corners; the icons are Heroicons");
 
@@ -1368,15 +1402,14 @@ try {
     await poll(async () => (await saved()).frames[0].root.children.length, (n) => n === before + 1);
     ok(`a press on the canvas lets go of everything; the inspector then shows Variables, Primitives and Styles (sections: ${secs.join(", ")}), and a primitive adds itself`);
 
-    await page.locator(".bd-start").click();
-    await page.locator('.bd-new-tpl[data-template="store"] .bd-new-into').click();
+    await assetKind(page, "templates");
+    await page.locator('.bd-tpl-card[data-template="store"] .bd-tpl-into').click();
     const into = await poll(async () => (await saved()).frames, (fs) => fs.length === 1 && fs[0].root.children.some((c) => c.type === "StoreHeader" || c.type === "ProductGridBlock"));
     expect(into.length === 1 && into[0].root.children.some((c) => c.type === "HeroBlock"), "a template put into a frame adds to it and keeps what was there");
-    await page.locator(".bd-start").click();
-    await page.locator('.bd-new-tpl[data-template="settings"] .bd-new-add').click();
+    await page.locator('.bd-tpl-card[data-template="settings"] .bd-tpl-new').click();
     const added = await poll(async () => (await saved()).frames, (fs) => fs.length === 2);
     expect(added.length === 2 && added[0].root.children.some((c) => c.type === "HeroBlock"), "a template as a new frame goes beside the others");
-    ok("New's templates go into the current frame or beside it as a new frame; nothing is cleared");
+    ok("Assets' templates go into the current frame or beside it as a new frame; nothing is cleared");
 
     await page.locator(".bd-layer-frame .bd-layer-main", { hasText: added[0].name }).first().click().catch(async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click(); await page.locator(".bd-layer-frame .bd-layer-main", { hasText: added[0].name }).first().click(); });
     await page.keyboard.press("Shift+Digit2");
@@ -1433,7 +1466,7 @@ try {
     const rows = await page.$$eval(".bd-right .bd-sys-list .bd-sys-item", (r) => r.map((x) => { const b = x.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }));
     expect(rows.length > 10 && rows.every(([w, h]) => w > 200 && h < 56), `variables, primitives and styles list as full-width rows, got ${rows.length} rows, first ${JSON.stringify(rows[0])}`);
     const kinds = await page.$$eval(".bd-asset-kinds .bd-kind", (k) => k.map((x) => Math.round(x.getBoundingClientRect().width)));
-    expect(kinds.length === 5 && Math.abs(kinds[0] - kinds[1]) < 2 && await page.locator(".bd-asset-kinds .bd-kind-note").count() === 0, `the Assets kinds are two columns of icon and name, got widths ${kinds.join(", ")}`);
+    expect(kinds.length === 6 && Math.abs(kinds[0] - kinds[1]) < 2 && await page.locator(".bd-asset-kinds .bd-kind-note").count() === 0, `the Assets kinds are two columns of icon and name, got widths ${kinds.join(", ")}`);
     await page.locator('.bd-assets [data-asset-kind="primitives"]').click();
     const prim = await page.locator('.bd-tile[data-type="Stack"]').evaluate((t) => ({ icon: !!t.querySelector(".bd-thumb.is-icon .bd-ic"), stage: !!t.querySelector(".bd-thumb-stage"), h: Math.round(t.getBoundingClientRect().height) }));
     expect(prim.icon && !prim.stage && prim.h < 120, `a primitive's tile is its icon and name, got ${JSON.stringify(prim)}`);
@@ -1458,16 +1491,14 @@ try {
     expect(!(await poll(async () => (await saved()).frames[0].typeScale, (v) => !v)), "Type scale back to Page takes the social sizes off");
     ok(`a frame lists no components; Social post is 1080 × 1350 with data-type-scale="social", its headline ${before}px to ${after}px, and Type scale sets it back`);
 
-    await page.locator(".bd-start").click();
-    await page.locator(".bd-new-kind", { hasText: "Freeform frame" }).click();
+    await addContainer(page, "Freeform frame");
     await poll(async () => (await saved()).frames.length, (n) => n === 2);
     const w = page.locator("input[aria-label='Frame width']");
     await w.fill("40");
     await w.press("Enter");
     const tiny = await poll(async () => (await saved()).frames[1].width, (v) => v === 40);
     expect(tiny === 40, `a freeform frame takes any width, got ${tiny}`);
-    await page.locator(".bd-start").click();
-    await page.locator(".bd-new-kind", { hasText: "Structured frame" }).click();
+    await page.locator(".bd-container-card", { hasText: "Structured frame" }).click();
     const page3 = await poll(async () => (await saved()).frames[2], Boolean);
     const g = page3.root.children[0];
     expect(page3.gap && g.type === "Group" && g.props.direction === "column" && g.props.gap && g.style.padding, `a structured page and its Group get auto layout, got gap ${page3.gap}, ${JSON.stringify(g.props)} ${JSON.stringify(g.style)}`);
@@ -1745,7 +1776,7 @@ try {
     await category(page, "Typography");
     await page.locator('.bd-tile[data-type="Heading"]').click();
     await frame().waitForSelector('[data-bf-type="Heading"]');
-    expect(await page.locator('.bd-toolbar [aria-label="Undo"]').isEnabled(), "an edit can be undone");
+    expect(await history(page).undo.isEnabled(), "an edit can be undone");
     ok("New project opens a blank canvas, and a Heading goes onto it");
 
     await openHome();
@@ -1754,7 +1785,7 @@ try {
     await page.waitForFunction((id) => window.__builder.project().id === id, first.id);
     await ready();
     await frame().waitForSelector('[data-bf-type="HeroBlock"]');
-    expect(/HeroBlock/.test(types(await doc())) && !/Heading/.test(types(await doc())) && await page.locator('.bd-toolbar [aria-label="Undo"]').isDisabled(), "Kiln site opens as it was, with a fresh history");
+    expect(/HeroBlock/.test(types(await doc())) && !/Heading/.test(types(await doc())) && await history(page).undo.isDisabled(), "Kiln site opens as it was, with a fresh history");
     ok("opening Kiln site from the home brings its own canvas back, with nothing to undo from the other project");
 
     await openHome();
@@ -1904,7 +1935,7 @@ try {
     const current = () => page.locator(".bd-page.is-current .bd-page-name").textContent();
     const types = () => page.evaluate(() => window.__builder.doc().frames.map((f) => f.root.children.map((c) => c.type).join("+")).join(" | "));
     const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
-    const undo = page.locator('.bd-toolbar [aria-label="Undo"]');
+    const undo = history(page).undo;
     const menuFor = async (name, item) => { await page.locator(".bd-page", { hasText: name }).first().locator(".bd-page-menu").click(); await option(page, item).click(); };
 
     const varIcon = await page.locator('.bd-assets [data-asset-kind="variables"] .bd-kind-pics svg').count();
@@ -2248,7 +2279,7 @@ try {
     await page.waitForFunction(() => window.__builder && window.__builder.doc().frames[0].root.children.length > 1);
     const ids = await page.evaluate(() => { const f = window.__builder.doc().frames[0]; const [a, b] = f.root.children; return { f: f.id, a: a.id, b: b.id, title: (a.props.title || "") }; });
     const text = () => frame().evaluate(() => document.body.textContent);
-    const undo = page.locator('.bd-toolbar [aria-label="Undo"]'), redo = page.locator('.bd-toolbar [aria-label="Redo"]');
+    const undo = history(page).undo, redo = history(page).redo;
 
     await page.evaluate((id) => window.__builder.edit(id, "title", "Mine, made here"), ids.a);
     await frame().waitForFunction(() => document.body.textContent.includes("Mine, made here"));

@@ -1322,13 +1322,92 @@ span.bd-layer-twisty.is-open .bd-ic {
   background: var(--dt-surface-base);
 }
 
-.bd-tool-group {
-  display: inline-flex;
-  gap: var(--dt-space-inline-2xs);
+/* Each end of the bar takes the same room, so the title sits in the
+   middle whatever is on either side. */
+.bd-tb-side {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
 }
 
-.bd-tool-spacer {
-  flex: 1;
+.bd-tb-right {
+  justify-content: flex-end;
+}
+
+.bd-tb-title {
+  flex: 0 1 auto;
+  justify-content: center;
+  max-width: 60%;
+}
+
+/* The path in the bar stays on one line; a long name is cut short. */
+.bd-crumbs.bd-tb-crumbs {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-tb-crumbs .bd-crumb {
+  flex: 0 1 auto;
+  overflow: hidden;
+  max-width: 12rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--dt-text-secondary);
+}
+
+.bd-tb-crumbs .bd-crumb:hover {
+  color: var(--dt-text-primary);
+}
+
+.bd-tb-crumbs .bd-crumb[aria-current],
+.bd-tb-crumbs .bd-project-name {
+  color: var(--dt-text-primary);
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-tb-crumbs .bd-crumb[aria-current] {
+  flex-shrink: 0;
+}
+
+.bd-tb-crumbs .bd-crumb-sep {
+  flex: none;
+  padding: 0 2px;
+}
+
+/* On a phone the bar is two rows: the project and its path with the
+   projects button, then zoom, Play, Preview and Export on their own row.
+   The zoom keeps its icon and menu but not its figure. */
+@media (max-width: 900px) {
+  .bd-tb-left {
+    flex: 0 0 auto;
+  }
+
+  .bd-tb-title {
+    flex: 1 1 0;
+    justify-content: flex-start;
+    max-width: none;
+  }
+
+  .bd-tb-right {
+    flex: 1 1 100%;
+  }
+
+  .bd-tb-right .bd-zoom .bd-dd-label,
+  .bd-tb-right .bd-export-text {
+    display: none;
+  }
+
+  .bd-tb-crumbs .bd-crumb {
+    max-width: 8rem;
+  }
+
+  .bd-tb-crumbs .bd-project-name {
+    flex-shrink: 3;
+  }
 }
 
 .bd-saved {
@@ -1353,7 +1432,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   overscroll-behavior: contain;
   touch-action: none;
   background-color: var(--dt-surface-sunken);
-  background-image: radial-gradient(var(--dt-border-default) 1px, transparent 1px);
+  background-image: radial-gradient(var(--dt-border-subtle) 1px, transparent 1px);
   background-size: var(--dt-space-inset-lg) var(--dt-space-inset-lg);
   cursor: default;
 }
@@ -2511,9 +2590,6 @@ span.bd-layer-twisty.is-open .bd-ic {
     height: calc(100dvh - 32px);
   }
 
-  .bd-toolbar .bd-tool-spacer {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -3229,132 +3305,11 @@ span.bd-layer-twisty.is-open .bd-ic {
   }
 }
 
-/* ------------------------------------------------------------------ new */
+/* ---------------------------------------------------------------- kinds */
 
-/* New: glass over the canvas, about half the screen tall. */
-.bd-new {
-  width: min(720px, calc(100vw - 2 * var(--dt-space-inset-md)));
-  height: max(50dvh, min(420px, calc(100dvh - 48px)));
-  max-height: calc(100dvh - 48px);
-  overflow-y: auto;
-  border-color: var(--dt-border-glass);
-  background: var(--dt-surface-glass-strong);
-  -webkit-backdrop-filter: var(--dt-backdrop-glass);
-  backdrop-filter: var(--dt-backdrop-glass);
-}
-
-/* On a phone half the screen is too little; it takes what it needs. */
-@media (max-width: 600px) {
-  .bd-new {
-    height: auto;
-  }
-}
-
-.bd-new::backdrop {
-  background: color-mix(in oklch, var(--dt-surface-scrim) 45%, transparent);
-}
-
-.bd-new .bd-code-head {
-  border-bottom-color: var(--dt-border-glass);
-}
-
-.bd-new .bd-new-kind,
-.bd-new .bd-new-item {
-  background: color-mix(in oklch, var(--dt-surface-base) 70%, transparent);
-}
-
-.bd-new-back {
-  align-self: flex-start;
-  margin-bottom: var(--dt-space-stack-2xs);
-}
-
-.bd-new-kinds {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-  gap: var(--dt-space-inline-sm);
-  padding: var(--dt-space-inset-md);
-}
-
-.bd-new-kind {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--dt-space-stack-2xs);
-  padding: var(--dt-space-inset-md);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-container);
-  background: var(--dt-surface-base);
-  color: var(--dt-text-primary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.bd-new-kind:hover {
-  border-color: var(--dt-border-default);
-  background: var(--dt-surface-raised);
-}
-
-.bd-new-kind:focus-visible,
-.bd-new-item:focus-visible,
 .bd-kind:focus-visible {
   outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
   outline-offset: 2px;
-}
-
-.bd-new-pic {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--dt-size-control-lg);
-  height: var(--dt-size-control-lg);
-  margin-bottom: var(--dt-space-stack-2xs);
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-sunken);
-}
-
-.bd-new-name {
-  font-weight: var(--dt-font-weight-semibold);
-}
-
-.bd-new-note {
-  color: var(--dt-text-secondary);
-  font-size: var(--dt-font-size-sm);
-}
-
-.bd-new-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--dt-space-stack-2xs);
-  margin: 0;
-  padding: var(--dt-space-inset-md);
-  list-style: none;
-}
-
-.bd-new-item {
-  display: flex;
-  align-items: center;
-  gap: var(--dt-space-inline-sm);
-  width: 100%;
-  min-height: var(--dt-size-control-md);
-  padding: 0 var(--dt-space-inset-sm);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-base);
-  color: var(--dt-text-primary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.bd-new-item:hover {
-  background: var(--dt-surface-raised);
-}
-
-.bd-new-hint {
-  margin-left: auto;
-  color: var(--dt-text-tertiary);
-  font-size: var(--dt-font-size-xs);
 }
 
 /* -------------------------------------------------------- drag preview */
@@ -3819,151 +3774,6 @@ span.bd-layer-twisty.is-open .bd-ic {
   -webkit-backdrop-filter: var(--dt-backdrop-glass);
   backdrop-filter: var(--dt-backdrop-glass);
   box-shadow: var(--dt-elevation-2);
-}
-
-/* ------------------------------------------------------------ new menu */
-
-/* New opens under its button, as glass over the canvas: kinds, templates
-   (each as a new frame or into the active one), then the rest. */
-.bd-newmenu {
-  position: fixed;
-  z-index: var(--dt-z-dropdown);
-  box-sizing: border-box;
-  width: min(400px, calc(100vw - 16px));
-  max-height: calc(100dvh - 72px);
-  padding: var(--dt-space-inset-xs);
-  overflow-y: auto;
-  border: var(--dt-border-width-default) solid var(--dt-border-glass);
-  border-radius: calc(var(--dt-radius-container) + 2px);
-  background: var(--dt-surface-glass-strong);
-  -webkit-backdrop-filter: var(--dt-backdrop-glass);
-  backdrop-filter: var(--dt-backdrop-glass);
-  color: var(--dt-text-primary);
-  box-shadow: var(--dt-elevation-3);
-}
-
-.bd-newmenu-h {
-  margin: var(--dt-space-stack-2xs) var(--dt-space-inset-xs) var(--dt-space-stack-2xs);
-  color: var(--dt-text-tertiary);
-  font-size: var(--dt-font-size-xs);
-  font-weight: var(--dt-font-weight-medium);
-}
-
-.bd-newmenu-kinds {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--dt-space-inline-2xs);
-}
-
-.bd-newmenu .bd-new-kind {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--dt-space-inline-xs);
-  padding: var(--dt-space-inset-xs);
-  border-radius: var(--dt-radius-control);
-  background: color-mix(in oklch, var(--dt-surface-base) 70%, transparent);
-}
-
-.bd-newmenu .bd-new-pic {
-  flex: none;
-  width: var(--dt-size-control-sm);
-  height: var(--dt-size-control-sm);
-  margin: 0;
-}
-
-.bd-new-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.bd-newmenu .bd-new-name {
-  font-size: var(--dt-font-size-sm);
-}
-
-.bd-newmenu .bd-new-note {
-  font-size: var(--dt-font-size-xs);
-  line-height: var(--dt-text-body-xs-line);
-}
-
-.bd-newmenu .bd-new-list {
-  gap: 2px;
-  padding: 0;
-}
-
-.bd-new-tpl {
-  display: flex;
-  align-items: center;
-  gap: var(--dt-space-inline-xs);
-  min-height: var(--dt-size-control-md);
-  padding: 0 var(--dt-space-inset-2xs) 0 var(--dt-space-inset-xs);
-  border-radius: var(--dt-radius-control);
-  font-size: var(--dt-font-size-sm);
-}
-
-.bd-new-tpl:hover {
-  background: color-mix(in oklch, var(--dt-surface-base) 70%, transparent);
-}
-
-.bd-new-tpl > .bd-ic {
-  flex: none;
-  color: var(--dt-text-tertiary);
-}
-
-.bd-new-tpl-name {
-  flex: 1;
-  min-width: 0;
-}
-
-.bd-new-add,
-.bd-new-into {
-  flex: none;
-  min-height: calc(var(--dt-size-control-sm) - 4px);
-  padding: 0 var(--dt-space-inset-xs);
-  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
-  border-radius: var(--dt-radius-pill);
-  background: var(--dt-surface-base);
-  color: var(--dt-text-primary);
-  font: inherit;
-  font-size: var(--dt-font-size-xs);
-  cursor: pointer;
-}
-
-.bd-new-add:hover,
-.bd-new-into:hover {
-  border-color: var(--dt-border-strong);
-}
-
-.bd-new-add:focus-visible,
-.bd-new-into:focus-visible,
-.bd-newmenu .bd-new-kind:focus-visible,
-.bd-newmenu .bd-new-item:focus-visible {
-  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
-  outline-offset: 1px;
-}
-
-.bd-newmenu-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: var(--dt-space-stack-2xs);
-  padding-top: var(--dt-space-stack-2xs);
-  border-top: var(--dt-border-width-default) solid var(--dt-border-glass);
-}
-
-.bd-newmenu .bd-new-item {
-  min-height: var(--dt-size-control-md);
-  border: 0;
-  background: transparent;
-  font-size: var(--dt-font-size-sm);
-}
-
-.bd-newmenu .bd-new-item:hover {
-  background: color-mix(in oklch, var(--dt-surface-base) 70%, transparent);
-}
-
-.bd-newmenu .bd-new-item.is-danger {
-  color: var(--dt-text-danger);
 }
 
 /* A template card: its name, then where it goes. */
