@@ -52,7 +52,7 @@
 
   function Scripted(props) {
     var c = useConversation(true);
-    return e(NS.VoiceInput, { layout: props.layout, state: c.state, transcript: c.transcript, response: c.response, assistantName: "Kiln & Co", onToggle: function () {}, onEnd: function () {} });
+    return e(NS.VoiceInput, { tone: TONE, layout: props.layout, state: c.state, transcript: c.transcript, response: c.response, assistantName: "Kiln & Co", onToggle: function () {}, onEnd: function () {} });
   }
 
   /* Pressed by hand: the microphone toggles listening, then a reply plays. */
@@ -66,7 +66,7 @@
       set("thinking");
       timer.current = setTimeout(function () { set("speaking"); timer.current = setTimeout(function () { set("idle"); }, 3200); }, 1200);
     }
-    return e(NS.VoiceInput, { layout: "panel", state: state,
+    return e(NS.VoiceInput, { tone: TONE, layout: "panel", state: state,
       transcript: state === "idle" ? "" : ASK, response: state === "speaking" ? REPLY : "",
       assistantName: "Kiln & Co", onToggle: toggle, onEnd: function () { clearTimeout(timer.current); set("idle"); } });
   }
@@ -75,7 +75,20 @@
     return e("div", { className: props.dark ? "dark" : undefined, style: { display: "grid", gap: "var(--dt-space-stack-lg)", padding: "var(--dt-space-inset-xl)", borderRadius: "var(--dt-radius-container)", background: "var(--dt-surface-base)", color: "var(--dt-text-primary)" } }, props.children);
   }
 
+  /* The tone every specimen on this card is drawn in, set by the switch at
+     the top. Read during render, so a change re-renders them all. */
+  var TONE = "brand";
+  function ToneSwitch(props) {
+    return e("div", { role: "group", "aria-label": "Tone", style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-xs)", alignItems: "center" } },
+      ["brand", "spectrum"].map(function (t) {
+        return e(NS.Button, { key: t, size: "sm", variant: props.value === t ? "primary" : "secondary", "aria-pressed": props.value === t, onClick: function () { props.onChange(t); } }, t === "brand" ? "Brand" : "Spectrum");
+      }),
+      e(NS.Text, { variant: "small", tone: "tertiary" }, props.value === "spectrum" ? 'tone="spectrum": a six-hue wheel; error stays danger' : 'tone="brand": each state in its own colours'));
+  }
+
   function Page() {
+    var ts = React.useState("brand");
+    TONE = ts[0];
     return e(Shelf, { name: "VoiceInput", summary: "Voice input for a conversation, at the size of a module: a bar where a composer would sit, or a panel that holds the exchange, with an ambient border that follows both voices.", props: [
         { name: "state", type: '"idle" | "listening" | "thinking" | "speaking" | "error"', default: '"idle"', notes: "Controlled: your app says which." },
         { name: "layout", type: '"bar" | "panel"', default: '"bar"' },
@@ -93,6 +106,7 @@
         "The status is a polite live region, and the microphone is a toggle with aria-pressed and a name that says what it does.",
         "Keep typing within reach. Voice should never be the only way in.",
       ] },
+      e(Specimen, { label: "Tone" }, e(ToneSwitch, { value: ts[0], onChange: ts[1] })),
       e(Specimen, { label: "Panel: press the microphone, then press it again to stop", bg: "var(--dt-surface-subtle)" },
         e("div", { style: { maxWidth: 420 } }, e(ByHand, null))),
       e(Specimen, { label: "Scripted, light and inside a dark band", bg: "var(--dt-surface-subtle)" },
@@ -101,17 +115,17 @@
           e(Band, { dark: true }, e(Scripted, { layout: "bar" }), e(Scripted, { layout: "panel" })))),
       e(Specimen, { label: "Bar in each state" },
         e("div", { style: { display: "grid", gap: "var(--dt-space-stack-md)", maxWidth: 520 } },
-          e(NS.VoiceInput, { state: "idle", onToggle: function () {} }),
-          e(NS.VoiceInput, { state: "listening", transcript: ASK, onToggle: function () {}, onEnd: function () {} }),
-          e(NS.VoiceInput, { state: "thinking", transcript: ASK, onToggle: function () {}, onEnd: function () {} }),
-          e(NS.VoiceInput, { state: "speaking", transcript: ASK, response: REPLY, onToggle: function () {}, onEnd: function () {} }),
-          e(NS.VoiceInput, { state: "error", response: "I didn't catch that. Try again?", onToggle: function () {}, onEnd: function () {} }))));
+          e(NS.VoiceInput, { tone: TONE, state: "idle", onToggle: function () {} }),
+          e(NS.VoiceInput, { tone: TONE, state: "listening", transcript: ASK, onToggle: function () {}, onEnd: function () {} }),
+          e(NS.VoiceInput, { tone: TONE, state: "thinking", transcript: ASK, onToggle: function () {}, onEnd: function () {} }),
+          e(NS.VoiceInput, { tone: TONE, state: "speaking", transcript: ASK, response: REPLY, onToggle: function () {}, onEnd: function () {} }),
+          e(NS.VoiceInput, { tone: TONE, state: "error", response: "I didn't catch that. Try again?", onToggle: function () {}, onEnd: function () {} }))));
   }
 
   var startedAt = Date.now();
   (function poll() {
     NS = window.BeamMobileDesignSystem_e33121 || {};
-    var need = ["VoiceInput", "Text"].filter(function (n) { return !NS[n]; });
+    var need = ["Button", "VoiceInput", "Text"].filter(function (n) { return !NS[n]; });
     if (!need.length && window.Shelf && window.Specimen && window.ReactDOM) {
       ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
       return;

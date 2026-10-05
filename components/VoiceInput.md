@@ -39,6 +39,7 @@ const [state, setState] = useState("idle");
 - **The microphone** calls `onToggle`. While listening it's a solid stop button named "Stop listening" and marked `aria-pressed`. Otherwise it's a microphone named "Speak".
 - **End** appears when you pass `onEnd` and the conversation isn't idle.
 - **Words.** `transcript` is what the person is saying, live or final. `response` is the assistant's reply. While listening, only the transcript shows. Otherwise the panel shows both lines, labelled "You" and `assistantName`, and the bar shows the reply.
+- **Tone.** `tone="spectrum"` turns the border into a six-hue wheel instead of the brand colours. Error stays danger. See `AmbientBorder`.
 - **Level.** As for `AmbientBorder`: a `level` prop first, otherwise `inputStream` while listening and `outputStream` while speaking, otherwise a built-in rhythm.
 
 ### Layouts
@@ -66,7 +67,7 @@ const [state, setState] = useState("idle");
 
 ```ts
 import * as React from "react";
-import type { VoiceState } from "./AmbientBorder";
+import type { VoiceState, VoiceTone } from "./AmbientBorder";
 
 /**
  * Voice input for a conversation, at the size of a module: a bar where a
@@ -78,6 +79,14 @@ import type { VoiceState } from "./AmbientBorder";
 export interface VoiceInputProps extends React.HTMLAttributes<HTMLElement> {
   /** Where the conversation is: idle, listening, thinking, speaking or error. @default "idle" */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default "brand"
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. */
   level?: number;
   /** The person's microphone, read while listening. */
@@ -304,6 +313,7 @@ function linesFor(state, transcript, response) {
 
 export function VoiceInput({
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -346,7 +356,7 @@ export function VoiceInput({
 
   if (layout === "panel") {
     return (
-      <AmbientBorder state={state} level={level} inputStream={inputStream} outputStream={outputStream} radius="container" role="group" aria-label={label} style={style} {...rest}>
+      <AmbientBorder state={state} tone={tone} level={level} inputStream={inputStream} outputStream={outputStream} radius="container" role="group" aria-label={label} style={style} {...rest}>
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-stack-group)", padding: "var(--dt-voice-panel-padding)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--dt-voice-gap)", minHeight: "var(--dt-size-control-sm)" }}>
             <span style={{ flex: 1 }}>{statusText}</span>
@@ -370,7 +380,7 @@ export function VoiceInput({
 
   const line = listening ? you : them || you;
   return (
-    <AmbientBorder state={state} level={level} inputStream={inputStream} outputStream={outputStream} radius="pill" role="group" aria-label={label} style={style} {...rest}>
+    <AmbientBorder state={state} tone={tone} level={level} inputStream={inputStream} outputStream={outputStream} radius="pill" role="group" aria-label={label} style={style} {...rest}>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--dt-voice-gap)", padding: "var(--dt-voice-padding)", minHeight: "var(--dt-size-control-lg)", boxSizing: "border-box" }}>
         {mic}
         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", ...voiceType("body-sm"), color: line ? "var(--dt-text-primary)" : "var(--dt-voice-placeholder-fg)" }}>

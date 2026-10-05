@@ -8,7 +8,8 @@
    container. Listening, the person talking, takes the brand colour;
    speaking, the assistant talking, takes the secondary brand colour, so the
    two voices read apart at a glance; thinking runs both with the info hue;
-   idle is the ordinary border scale; error is danger. */
+   idle is the ordinary border scale; error is danger. tone="spectrum"
+   swaps the per-state stops for one six-hue wheel; error keeps danger. */
 
 :root {
   /* The ring: thin around a module, thick around a screen. */
@@ -48,6 +49,18 @@
   --dt-voice-error-a: var(--dt-border-danger);
   --dt-voice-error-b: var(--dt-text-danger);
   --dt-voice-error-c: var(--dt-surface-danger-subtle);
+
+  /* Spectrum, for tone="spectrum": six hues round the wheel, from the
+     solid status fills and the two brand fills, which close the circle.
+     The fills, not the borders, because they stay saturated in both
+     modes; the border roles are pale in light and dim in dark. Every
+     state but error sweeps these instead of its own stops. */
+  --dt-voice-spectrum-1: var(--dt-surface-danger);
+  --dt-voice-spectrum-2: var(--dt-surface-warning);
+  --dt-voice-spectrum-3: var(--dt-surface-success);
+  --dt-voice-spectrum-4: var(--dt-surface-info);
+  --dt-voice-spectrum-5: var(--dt-surface-brand-secondary);
+  --dt-voice-spectrum-6: var(--dt-surface-brand);
 }
 
 .dark {
@@ -72,4 +85,11 @@
   --dt-voice-error-a: var(--dt-border-danger);
   --dt-voice-error-b: var(--dt-text-danger);
   --dt-voice-error-c: var(--dt-surface-danger-subtle);
+
+  --dt-voice-spectrum-1: var(--dt-surface-danger);
+  --dt-voice-spectrum-2: var(--dt-surface-warning);
+  --dt-voice-spectrum-3: var(--dt-surface-success);
+  --dt-voice-spectrum-4: var(--dt-surface-info);
+  --dt-voice-spectrum-5: var(--dt-surface-brand-secondary);
+  --dt-voice-spectrum-6: var(--dt-surface-brand);
 }

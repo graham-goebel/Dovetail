@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { VoiceState } from "./AmbientBorder";
+import type { VoiceState, VoiceTone } from "./AmbientBorder";
 
 /**
  * A voice conversation over the whole screen: the ambient border runs round
@@ -15,6 +15,14 @@ export interface VoiceOverlayProps extends React.HTMLAttributes<HTMLElement> {
   onClose?: () => void;
   /** Where the conversation is: idle, listening, thinking, speaking or error. @default "idle" */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default "brand"
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. */
   level?: number;
   /** The person's microphone, read while listening. */

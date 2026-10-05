@@ -3,6 +3,9 @@ import * as React from "react";
 /** Who has the floor in a voice conversation. */
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking" | "error";
 
+/** brand: each state in its own colours. spectrum: a six-hue wheel for every state but error. */
+export type VoiceTone = "brand" | "spectrum";
+
 /**
  * An ambient border: a gradient that turns around its container and answers
  * to a voice conversation. The state picks the colours (the person's brand
@@ -13,6 +16,14 @@ export type VoiceState = "idle" | "listening" | "thinking" | "speaking" | "error
 export interface AmbientBorderProps extends React.HTMLAttributes<HTMLElement> {
   /** idle: a slow, quiet turn. listening: the person's voice. thinking: two comets chase round a faint track. speaking: the assistant's voice. error: danger colours, still. @default "idle" */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default "brand"
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. Leave it out, with no stream, and listening and speaking follow a gentle synthesised level. */
   level?: number;
   /** The person's microphone. Read while listening, by analysing the stream, never playing it. */

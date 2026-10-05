@@ -36,6 +36,16 @@ const [mic, setMic] = useState(null);
 
 A change of state crossfades from the old colours to the new ones, and the ring keeps turning from where it was.
 
+### Tone
+- `brand`, the default: each state has its own colours, as above.
+- `spectrum`: every state sweeps one six-hue wheel, from the danger, warning, success and info roles and the two brand colours. The state still sets the speed and the glow. Thinking splits the wheel between its two marks. Error stays danger, so it still reads as an error.
+- Use `spectrum` when the assistant should feel like one system-wide presence rather than part of your brand, such as an assistant that works across the whole product. Without colour to tell them apart, listening and speaking rely on the status text even more, so keep it visible.
+- Changing tone crossfades, just like changing state.
+
+```jsx
+<AmbientBorder tone="spectrum" state={state} level={level}>…</AmbientBorder>
+```
+
 ### Level
 The glow and the speed of the turn follow a level from 0 to 1. The component looks for one in this order:
 1. **`level`**, a number you pass in every render. Use it when your speech SDK already reports loudness.
@@ -57,6 +67,7 @@ The level rises fast and falls slowly, so the glow doesn't flicker between words
 - Glow: `--dt-voice-glow-width`, `--dt-voice-glow-blur`, `--dt-voice-glow-spread`, `--dt-voice-glow-rest`.
 - Surface: `--dt-voice-surface`.
 - Colours, three stops per state: `--dt-voice-idle-a`, `-b` and `-c`, and the same for `listening`, `thinking`, `speaking` and `error`. Re-point them to give a brand its own voice colours.
+- Spectrum: `--dt-voice-spectrum-1` to `--dt-voice-spectrum-6`, read by `tone="spectrum"`. Re-point them to change the wheel.
 - The colours are repeated under `.dark`, so the ring follows a dark `Section` band.
 
 ### Accessibility
@@ -73,6 +84,9 @@ import * as React from "react";
 /** Who has the floor in a voice conversation. */
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking" | "error";
 
+/** brand: each state in its own colours. spectrum: a six-hue wheel for every state but error. */
+export type VoiceTone = "brand" | "spectrum";
+
 /**
  * An ambient border: a gradient that turns around its container and answers
  * to a voice conversation. The state picks the colours (the person's brand
@@ -83,6 +97,14 @@ export type VoiceState = "idle" | "listening" | "thinking" | "speaking" | "error
 export interface AmbientBorderProps extends React.HTMLAttributes<HTMLElement> {
   /** idle: a slow, quiet turn. listening: the person's voice. thinking: two comets chase round a faint track. speaking: the assistant's voice. error: danger colours, still. @default "idle" */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default "brand"
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. Leave it out, with no stream, and listening and speaking follow a gentle synthesised level. */
   level?: number;
   /** The person's microphone. Read while listening, by analysing the stream, never playing it. */
@@ -135,6 +157,12 @@ export declare function AmbientBorder(props: AmbientBorderProps): React.JSX.Elem
 | `--dt-voice-speaking-a` | component | `var(--dt-border-brand-secondary)` |
 | `--dt-voice-speaking-b` | component | `var(--dt-text-brand-secondary)` |
 | `--dt-voice-speaking-c` | component | `var(--dt-surface-brand-secondary-muted)` |
+| `--dt-voice-spectrum-1` | component | `var(--dt-surface-danger)` |
+| `--dt-voice-spectrum-2` | component | `var(--dt-surface-warning)` |
+| `--dt-voice-spectrum-3` | component | `var(--dt-surface-success)` |
+| `--dt-voice-spectrum-4` | component | `var(--dt-surface-info)` |
+| `--dt-voice-spectrum-5` | component | `var(--dt-surface-brand-secondary)` |
+| `--dt-voice-spectrum-6` | component | `var(--dt-surface-brand)` |
 | `--dt-voice-surface` | component | `var(--dt-surface-raised)` |
 | `--dt-voice-thinking-a` | component | `var(--dt-border-brand)` |
 | `--dt-voice-thinking-b` | component | `var(--dt-border-brand-secondary)` |
@@ -156,7 +184,8 @@ import React from "react";
    to a voice conversation. Its state says who has the floor (listening to
    the person, thinking, the assistant speaking) and picks the colours; the
    voice's level, from a level prop or a live audio stream, brightens the glow
-   and quickens the turn. The ring and the glow are drawn behind the content,
+   and quickens the turn. tone="spectrum" swaps the brand colours for a
+   six-hue wheel. The ring and the glow are drawn behind the content,
    so the container keeps its own layout, and the turning is written straight
    to the two layers each frame without re-rendering React.
 
@@ -199,11 +228,21 @@ function stops(state) {
   return [`var(--dt-voice-${s}-a)`, `var(--dt-voice-${s}-b)`, `var(--dt-voice-${s}-c)`];
 }
 
+const HUE = (n) => `var(--dt-voice-spectrum-${n})`;
+
 /* Thinking is two comets chasing round a faint track; every other state is
-   a full sweep of its colours. */
-function gradient(state, angle) {
-  const [a, b, c] = stops(state);
+   a full sweep of its colours. The spectrum tone runs the six-hue wheel
+   instead (thinking splits it between the two comets), except for error,
+   which stays danger so it still reads as one. */
+function gradient(state, angle, tone) {
   const at = `from ${angle.toFixed(2)}deg`;
+  if (tone === "spectrum" && state !== "error") {
+    if (state === "thinking") {
+      return `conic-gradient(${at}, transparent 0turn, ${HUE(1)} 0.12turn, ${HUE(2)} 0.2turn, ${HUE(3)} 0.28turn, transparent 0.38turn, transparent 0.5turn, ${HUE(4)} 0.62turn, ${HUE(5)} 0.7turn, ${HUE(6)} 0.78turn, transparent 0.88turn)`;
+    }
+    return `conic-gradient(${at}, ${HUE(1)}, ${HUE(2)} 0.167turn, ${HUE(3)} 0.333turn, ${HUE(4)} 0.5turn, ${HUE(5)} 0.667turn, ${HUE(6)} 0.833turn, ${HUE(1)})`;
+  }
+  const [a, b, c] = stops(state);
   if (state === "thinking") {
     return `conic-gradient(${at}, transparent 0turn, ${a} 0.14turn, ${b} 0.26turn, transparent 0.38turn, transparent 0.5turn, ${c} 0.64turn, ${a} 0.76turn, transparent 0.88turn)`;
   }
@@ -267,6 +306,7 @@ function useReducedMotion() {
 
 export function AmbientBorder({
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -285,8 +325,8 @@ export function AmbientBorder({
   const halo = React.useRef(null);
   const haloOut = React.useRef(null);
   const reduced = useReducedMotion();
-  const live = React.useRef({ state, level });
-  live.current = { state, level };
+  const live = React.useRef({ state, level, tone });
+  live.current = { state, level, tone };
   const meters = React.useRef({ input: null, output: null });
 
   /* A meter for each stream, opened when the stream arrives and closed when
@@ -309,14 +349,16 @@ export function AmbientBorder({
     let angle = 0;
     let lvl = 0;
     let shown = live.current.state;
+    let shownTone = live.current.tone;
     let prev = null;
+    let prevTone = null;
     let fade = 0;
     const start = typeof performance !== "undefined" ? performance.now() : 0;
     const draw = (now) => {
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
       last = now;
       const t = (now - start) / 1000;
-      const { state: st, level: given } = live.current;
+      const { state: st, level: given, tone: tn } = live.current;
       const m = MOTION[st] || MOTION.idle;
       /* Which voice to follow: the person's while listening, the
          assistant's while speaking. A level prop wins over a stream. */
@@ -324,16 +366,16 @@ export function AmbientBorder({
       const target = typeof given === "number" ? Math.max(0, Math.min(1, given)) : meter ? meter.read() : synth(st, t);
       lvl += (target - lvl) * (target > lvl ? 0.45 : 0.08);
       angle = (angle + 360 * m.turn * (1 + m.boost * lvl) * dt) % 360;
-      /* A change of state crossfades: the old colours fade out over the new. */
-      if (st !== shown) { prev = shown; shown = st; fade = 1; }
+      /* A change of state or tone crossfades: the old colours fade out over the new. */
+      if (st !== shown || tn !== shownTone) { prev = shown; prevTone = shownTone; shown = st; shownTone = tn; fade = 1; }
       if (fade > 0) fade = Math.max(0, fade - dt / 0.45);
-      const g = gradient(shown, angle);
+      const g = gradient(shown, angle, shownTone);
       const strength = `calc(var(--dt-voice-glow-rest) + ${(m.gain * lvl).toFixed(3)})`;
       const spread = `calc(var(--dt-voice-glow-spread) * ${(-lvl).toFixed(3)})`;
       if (ring.current) ring.current.style.backgroundImage = g;
       if (halo.current) { halo.current.style.backgroundImage = g; halo.current.parentNode.style.opacity = strength; halo.current.parentNode.style.inset = spread; }
-      if (ringOut.current) { ringOut.current.style.opacity = String(fade); if (fade > 0 && prev) ringOut.current.style.backgroundImage = gradient(prev, angle); }
-      if (haloOut.current) { haloOut.current.style.opacity = String(fade); if (fade > 0 && prev) haloOut.current.style.backgroundImage = gradient(prev, angle); }
+      if (ringOut.current) { ringOut.current.style.opacity = String(fade); if (fade > 0 && prev) ringOut.current.style.backgroundImage = gradient(prev, angle, prevTone); }
+      if (haloOut.current) { haloOut.current.style.opacity = String(fade); if (fade > 0 && prev) haloOut.current.style.backgroundImage = gradient(prev, angle, prevTone); }
       frame = requestAnimationFrame(draw);
     };
     frame = requestAnimationFrame(draw);
@@ -342,7 +384,7 @@ export function AmbientBorder({
        leave the ring at its last angle, part way through a crossfade. */
     return () => {
       cancelAnimationFrame(frame);
-      const rest = gradient(STATES.includes(live.current.state) ? live.current.state : "idle", 0);
+      const rest = gradient(STATES.includes(live.current.state) ? live.current.state : "idle", 0, live.current.tone);
       if (ring.current) ring.current.style.backgroundImage = rest;
       if (halo.current) { halo.current.style.backgroundImage = rest; halo.current.parentNode.style.opacity = "var(--dt-voice-glow-rest)"; halo.current.parentNode.style.inset = "0px"; }
       if (ringOut.current) ringOut.current.style.opacity = "0";
@@ -356,8 +398,8 @@ export function AmbientBorder({
      turns and crossfades. Re-rendering them on a change of state would snap
      the ring back to its starting angle for a frame, so only reduced motion,
      which has no loop, follows the state here. */
-  const first = React.useRef(gradient(STATES.includes(state) ? state : "idle", 0)).current;
-  const still = reduced ? gradient(STATES.includes(state) ? state : "idle", 0) : first;
+  const first = React.useRef(gradient(STATES.includes(state) ? state : "idle", 0, tone)).current;
+  const still = reduced ? gradient(STATES.includes(state) ? state : "idle", 0, tone) : first;
   const layer = { position: "absolute", inset: 0, borderRadius: r, pointerEvents: "none", boxSizing: "border-box" };
   const ringLayer = { ...layer, ...RING_MASK, padding: width, backgroundColor: state === "thinking" ? "var(--dt-voice-track)" : undefined, backgroundImage: still };
   const haloLayer = { ...layer, ...RING_MASK, padding: "var(--dt-voice-glow-width)", backgroundImage: still };
@@ -365,7 +407,7 @@ export function AmbientBorder({
      single line ellipsises instead of pushing the ring past the edge. */
 
   return (
-    <Tag data-voice-state={state} style={{ position: "relative", isolation: "isolate", borderRadius: r, padding: width, boxSizing: "border-box", minWidth: 0, ...style }} {...rest}>
+    <Tag data-voice-state={state} data-voice-tone={tone} style={{ position: "relative", isolation: "isolate", borderRadius: r, padding: width, boxSizing: "border-box", minWidth: 0, ...style }} {...rest}>
       {glow && (
         <span aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: -1, pointerEvents: "none", filter: "blur(var(--dt-voice-glow-blur))", opacity: "var(--dt-voice-glow-rest)" }}>
           <span ref={halo} style={haloLayer} />

@@ -56,7 +56,7 @@
   function Live(props) {
     var c = useConversation(true);
     return e("div", { className: props.dark ? "dark" : undefined, style: { padding: "var(--dt-space-inset-xl)", borderRadius: "var(--dt-radius-container)", background: "var(--dt-surface-base)", color: "var(--dt-text-primary)" } },
-      e(NS.AmbientBorder, { state: c.state, contentStyle: { padding: "var(--dt-space-inset-lg)", display: "grid", gap: "var(--dt-space-stack-xs)", minHeight: 140, alignContent: "start" } },
+      e(NS.AmbientBorder, { tone: TONE, state: c.state, contentStyle: { padding: "var(--dt-space-inset-lg)", display: "grid", gap: "var(--dt-space-stack-xs)", minHeight: 140, alignContent: "start" } },
         e(NS.Text, { variant: "eyebrow", tone: "tertiary" }, c.state),
         e(NS.Text, { tone: c.response ? "primary" : "secondary" }, c.response || c.transcript || "Ask about an order, a delivery or a return.")));
   }
@@ -64,22 +64,35 @@
   function Level() {
     var st = React.useState(0.3), level = st[0], set = st[1];
     return e("div", { style: { display: "grid", gap: "var(--dt-space-stack-md)", maxWidth: 420 } },
-      e(NS.AmbientBorder, { state: "listening", level: level, contentStyle: { padding: "var(--dt-space-inset-lg)" } },
+      e(NS.AmbientBorder, { tone: TONE, state: "listening", level: level, contentStyle: { padding: "var(--dt-space-inset-lg)" } },
         e(NS.Text, { tone: "secondary" }, "The glow and the turn follow level.")),
       e(NS.Slider, { label: "level", min: 0, max: 1, step: 0.05, value: level, onChange: set, showValue: true }));
   }
 
   function Shapes() {
     return e("div", { style: { display: "grid", gap: "var(--dt-space-stack-lg)" } },
-      e(NS.AmbientBorder, { state: "speaking", radius: "pill", contentStyle: { padding: "var(--dt-space-inset-sm) var(--dt-space-inset-lg)" } },
+      e(NS.AmbientBorder, { tone: TONE, state: "speaking", radius: "pill", contentStyle: { padding: "var(--dt-space-inset-sm) var(--dt-space-inset-lg)" } },
         e(NS.Text, { variant: "small" }, 'radius="pill"')),
-      e(NS.AmbientBorder, { state: "listening", radius: "control", thickness: "thick", contentStyle: { padding: "var(--dt-space-inset-md)" } },
+      e(NS.AmbientBorder, { tone: TONE, state: "listening", radius: "control", thickness: "thick", contentStyle: { padding: "var(--dt-space-inset-md)" } },
         e(NS.Text, { variant: "small" }, 'radius="control" thickness="thick"')),
-      e(NS.AmbientBorder, { state: "thinking", glow: false, surface: "sunken", contentStyle: { padding: "var(--dt-space-inset-md)" } },
+      e(NS.AmbientBorder, { tone: TONE, state: "thinking", glow: false, surface: "sunken", contentStyle: { padding: "var(--dt-space-inset-md)" } },
         e(NS.Text, { variant: "small" }, 'glow={false} surface="sunken"')));
   }
 
+  /* The tone every specimen on this card is drawn in, set by the switch at
+     the top. Read during render, so a change re-renders them all. */
+  var TONE = "brand";
+  function ToneSwitch(props) {
+    return e("div", { role: "group", "aria-label": "Tone", style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-xs)", alignItems: "center" } },
+      ["brand", "spectrum"].map(function (t) {
+        return e(NS.Button, { key: t, size: "sm", variant: props.value === t ? "primary" : "secondary", "aria-pressed": props.value === t, onClick: function () { props.onChange(t); } }, t === "brand" ? "Brand" : "Spectrum");
+      }),
+      e(NS.Text, { variant: "small", tone: "tertiary" }, props.value === "spectrum" ? 'tone="spectrum": a six-hue wheel; error stays danger' : 'tone="brand": each state in its own colours'));
+  }
+
   function Page() {
+    var ts = React.useState("brand");
+    TONE = ts[0];
     return e(Shelf, { name: "AmbientBorder", summary: "A gradient border that turns around its container and answers to a voice conversation: state picks the colours, the voice's level brightens the glow and quickens the turn.", props: [
         { name: "state", type: '"idle" | "listening" | "thinking" | "speaking" | "error"', default: '"idle"', notes: "Who has the floor. Changes crossfade." },
         { name: "level", type: "number", notes: "0 to 1, the live loudness. Wins over a stream." },
@@ -97,14 +110,15 @@
         "The ring is aria-hidden. Always pair it with a status in words; VoiceInput and VoiceOverlay do.",
         "Under reduced motion it stands still in its state's colours.",
       ] },
+      e(Specimen, { label: "Tone" }, e(ToneSwitch, { value: ts[0], onChange: ts[1] })),
       e(Specimen, { label: "Live: a scripted conversation, light and inside a dark band", bg: "var(--dt-surface-subtle)" },
         e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "var(--dt-space-inline-xl)" } },
           e(Live, null), e(Live, { dark: true }))),
       e(Specimen, { label: "Every state" },
         e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: "var(--dt-space-inline-lg)" } },
           STATES.map(function (s) {
-            return e(NS.AmbientBorder, { key: s, state: s, contentStyle: { padding: "var(--dt-space-inset-md)", display: "grid", gap: "var(--dt-space-stack-2xs)" } },
-              e(NS.Text, { variant: "label" }, s), e(NS.Text, { variant: "small", tone: "secondary" }, NOTES[s]));
+            return e(NS.AmbientBorder, { tone: TONE, key: s, state: s, contentStyle: { padding: "var(--dt-space-inset-md)", display: "grid", gap: "var(--dt-space-stack-2xs)" } },
+              e(NS.Text, { variant: "label" }, s), e(NS.Text, { variant: "small", tone: "secondary" }, TONE === "spectrum" && s !== "error" ? NOTES[s].replace(/, in (brand|secondary)$/, "") : NOTES[s]));
           }))),
       e(Specimen, { label: "Level from a prop" }, e(Level, null)),
       e(Specimen, { label: "Radius, thickness, glow and surface" }, e(Shapes, null)));
@@ -113,7 +127,7 @@
   var startedAt = Date.now();
   (function poll() {
     NS = window.BeamMobileDesignSystem_e33121 || {};
-    var need = ["AmbientBorder", "Text", "Slider"].filter(function (n) { return !NS[n]; });
+    var need = ["Button", "AmbientBorder", "Text", "Slider"].filter(function (n) { return !NS[n]; });
     if (!need.length && window.Shelf && window.Specimen && window.ReactDOM) {
       ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
       return;

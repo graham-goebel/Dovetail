@@ -83,11 +83,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/VoiceOverlay.html?v=f6d0ca556e&amp;b=c03cd0e2b5" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/VoiceOverlay.html?v=4b68158a21&amp;b=3b2a98b82f" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:980px">
-    <iframe src="../previews/VoiceOverlay.html?v=f6d0ca556e&amp;b=c03cd0e2b5" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/VoiceOverlay.html?v=4b68158a21&amp;b=3b2a98b82f" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -121,7 +121,7 @@
   onToggle={toggleListening}
 /&gt;</code></pre>
 <h3 id="behaviour">Behaviour</h3>
-<ul><li><strong>Controlled</strong>, like <code>VoiceInput</code>. The app opens and closes it and owns the microphone and the reply. <code>state</code> sets the border and the status.</li><li><strong>The words.</strong> While listening, the person's words are set large as they speak. Otherwise the assistant's reply is set large, with the person's last words underneath.</li><li><strong>The microphone</strong> calls <code>onToggle</code>. <strong>End</strong> calls <code>onClose</code>, and so does Escape.</li><li><code>children</code> go above the words, for example a <code>Thinking</code> orb, an avatar or the agent's name.</li><li><code>dark={false}</code> follows the page's own colour mode instead of forcing dark.</li></ul>
+<ul><li><strong>Controlled</strong>, like <code>VoiceInput</code>. The app opens and closes it and owns the microphone and the reply. <code>state</code> sets the border and the status.</li><li><strong>The words.</strong> While listening, the person's words are set large as they speak. Otherwise the assistant's reply is set large, with the person's last words underneath.</li><li><strong>The microphone</strong> calls <code>onToggle</code>. <strong>End</strong> calls <code>onClose</code>, and so does Escape.</li><li><code>children</code> go above the words, for example a <code>Thinking</code> orb, an avatar or the agent's name.</li><li><code>tone=&quot;spectrum&quot;</code> turns the border into a six-hue wheel instead of the brand colours. Error stays danger. See <code>AmbientBorder</code>.</li><li><code>dark={false}</code> follows the page's own colour mode instead of forcing dark.</li></ul>
 <h3 id="tokens">Tokens</h3>
 <ul><li><code>--dt-voice-overlay-bg</code> fills the screen.</li><li><code>--dt-voice-label-fg</code> and <code>--dt-voice-placeholder-fg</code> colour the status and the placeholder. Text uses the <code>eyebrow</code>, <code>heading-lg</code> and <code>body-md</code> roles.</li><li>The column is as wide as <code>--dt-layout-page-width-narrow</code> and padded by <code>--dt-layout-page-gutter</code>.</li><li>The border reads every <code>AmbientBorder</code> token. It uses the thick ring and the overlay radius.</li></ul>
 <h3 id="accessibility">Accessibility</h3>
@@ -134,7 +134,7 @@
   <h2 id="props">Props</h2>
   <p class="muted">The typed contract, from <code>VoiceOverlay.d.ts</code>.</p>
   <pre class="code" data-lang="ts" data-source="system/components/chat/VoiceOverlay.d.ts"><code>import * as React from &quot;react&quot;;
-import type { VoiceState } from &quot;./AmbientBorder&quot;;
+import type { VoiceState, VoiceTone } from &quot;./AmbientBorder&quot;;
 
 /**
  * A voice conversation over the whole screen: the ambient border runs round
@@ -150,6 +150,14 @@ export interface VoiceOverlayProps extends React.HTMLAttributes&lt;HTMLElement&g
   onClose?: () =&gt; void;
   /** Where the conversation is: idle, listening, thinking, speaking or error. @default &quot;idle&quot; */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default &quot;brand&quot;
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. */
   level?: number;
   /** The person's microphone, read while listening. */
@@ -228,6 +236,7 @@ export function VoiceOverlay({
   open,
   onClose,
   state = &quot;idle&quot;,
+  tone = &quot;brand&quot;,
   level,
   inputStream,
   outputStream,
@@ -264,6 +273,7 @@ export function VoiceOverlay({
     &gt;
       &lt;AmbientBorder
         state={state}
+        tone={tone}
         level={level}
         inputStream={inputStream}
         outputStream={outputStream}
@@ -358,7 +368,7 @@ export function VoiceOverlay({
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=c03cd0e2b5" defer></script>
+<script src="../system/components/bundle.js?v=3b2a98b82f" defer></script>
 <script src="../assets/specimens.js?v=9ea1123fda" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

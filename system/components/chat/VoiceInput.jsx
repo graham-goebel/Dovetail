@@ -37,6 +37,7 @@ function linesFor(state, transcript, response) {
 
 export function VoiceInput({
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -79,7 +80,7 @@ export function VoiceInput({
 
   if (layout === "panel") {
     return (
-      <AmbientBorder state={state} level={level} inputStream={inputStream} outputStream={outputStream} radius="container" role="group" aria-label={label} style={style} {...rest}>
+      <AmbientBorder state={state} tone={tone} level={level} inputStream={inputStream} outputStream={outputStream} radius="container" role="group" aria-label={label} style={style} {...rest}>
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--dt-layout-stack-group)", padding: "var(--dt-voice-panel-padding)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--dt-voice-gap)", minHeight: "var(--dt-size-control-sm)" }}>
             <span style={{ flex: 1 }}>{statusText}</span>
@@ -103,7 +104,7 @@ export function VoiceInput({
 
   const line = listening ? you : them || you;
   return (
-    <AmbientBorder state={state} level={level} inputStream={inputStream} outputStream={outputStream} radius="pill" role="group" aria-label={label} style={style} {...rest}>
+    <AmbientBorder state={state} tone={tone} level={level} inputStream={inputStream} outputStream={outputStream} radius="pill" role="group" aria-label={label} style={style} {...rest}>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--dt-voice-gap)", padding: "var(--dt-voice-padding)", minHeight: "var(--dt-size-control-lg)", boxSizing: "border-box" }}>
         {mic}
         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", ...voiceType("body-sm"), color: line ? "var(--dt-text-primary)" : "var(--dt-voice-placeholder-fg)" }}>

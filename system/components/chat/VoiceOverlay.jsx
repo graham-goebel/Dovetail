@@ -36,6 +36,7 @@ export function VoiceOverlay({
   open,
   onClose,
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -72,6 +73,7 @@ export function VoiceOverlay({
     >
       <AmbientBorder
         state={state}
+        tone={tone}
         level={level}
         inputStream={inputStream}
         outputStream={outputStream}

@@ -83,11 +83,11 @@
 <section class="card-block" id="live">
   <div class="card-head">
     <h2>Live</h2>
-    <a class="card-open" href="../previews/VoiceInput.html?v=eb481368b9&amp;b=c03cd0e2b5" target="_blank" rel="noopener">Open full card</a>
+    <a class="card-open" href="../previews/VoiceInput.html?v=5d3d39ef5d&amp;b=3b2a98b82f" target="_blank" rel="noopener">Open full card</a>
   </div>
   
   <div class="frame" style="height:1100px">
-    <iframe src="../previews/VoiceInput.html?v=eb481368b9&amp;b=c03cd0e2b5" title="Live preview" loading="lazy"></iframe>
+    <iframe src="../previews/VoiceInput.html?v=5d3d39ef5d&amp;b=3b2a98b82f" title="Live preview" loading="lazy"></iframe>
   </div>
 </section>
 
@@ -121,7 +121,7 @@
   onEnd={endConversation}
 /&gt;</code></pre>
 <h3 id="behaviour">Behaviour</h3>
-<ul><li><strong>Controlled.</strong> Your app owns the microphone, the speech recognition and the reply. It tells the component which <code>state</code> the conversation is in: <code>idle</code>, <code>listening</code>, <code>thinking</code>, <code>speaking</code> or <code>error</code>. The component draws that state and never changes it itself.</li><li><strong>The microphone</strong> calls <code>onToggle</code>. While listening it's a solid stop button named &quot;Stop listening&quot; and marked <code>aria-pressed</code>. Otherwise it's a microphone named &quot;Speak&quot;.</li><li><strong>End</strong> appears when you pass <code>onEnd</code> and the conversation isn't idle.</li><li><strong>Words.</strong> <code>transcript</code> is what the person is saying, live or final. <code>response</code> is the assistant's reply. While listening, only the transcript shows. Otherwise the panel shows both lines, labelled &quot;You&quot; and <code>assistantName</code>, and the bar shows the reply.</li><li><strong>Level.</strong> As for <code>AmbientBorder</code>: a <code>level</code> prop first, otherwise <code>inputStream</code> while listening and <code>outputStream</code> while speaking, otherwise a built-in rhythm.</li></ul>
+<ul><li><strong>Controlled.</strong> Your app owns the microphone, the speech recognition and the reply. It tells the component which <code>state</code> the conversation is in: <code>idle</code>, <code>listening</code>, <code>thinking</code>, <code>speaking</code> or <code>error</code>. The component draws that state and never changes it itself.</li><li><strong>The microphone</strong> calls <code>onToggle</code>. While listening it's a solid stop button named &quot;Stop listening&quot; and marked <code>aria-pressed</code>. Otherwise it's a microphone named &quot;Speak&quot;.</li><li><strong>End</strong> appears when you pass <code>onEnd</code> and the conversation isn't idle.</li><li><strong>Words.</strong> <code>transcript</code> is what the person is saying, live or final. <code>response</code> is the assistant's reply. While listening, only the transcript shows. Otherwise the panel shows both lines, labelled &quot;You&quot; and <code>assistantName</code>, and the bar shows the reply.</li><li><strong>Tone.</strong> <code>tone=&quot;spectrum&quot;</code> turns the border into a six-hue wheel instead of the brand colours. Error stays danger. See <code>AmbientBorder</code>.</li><li><strong>Level.</strong> As for <code>AmbientBorder</code>: a <code>level</code> prop first, otherwise <code>inputStream</code> while listening and <code>outputStream</code> while speaking, otherwise a built-in rhythm.</li></ul>
 <h3 id="layouts">Layouts</h3>
 <ul><li><code>bar</code>: a pill one control high, with the microphone, one line of words and the status. Put it where the composer goes.</li><li><code>panel</code>: a card with the status and End at the top, the exchange in the middle and a large microphone at the foot. Use it in a sidebar, a help panel or an empty chat.</li></ul>
 <h3 id="tokens">Tokens</h3>
@@ -136,7 +136,7 @@
   <h2 id="props">Props</h2>
   <p class="muted">The typed contract, from <code>VoiceInput.d.ts</code>.</p>
   <pre class="code" data-lang="ts" data-source="system/components/chat/VoiceInput.d.ts"><code>import * as React from &quot;react&quot;;
-import type { VoiceState } from &quot;./AmbientBorder&quot;;
+import type { VoiceState, VoiceTone } from &quot;./AmbientBorder&quot;;
 
 /**
  * Voice input for a conversation, at the size of a module: a bar where a
@@ -148,6 +148,14 @@ import type { VoiceState } from &quot;./AmbientBorder&quot;;
 export interface VoiceInputProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
   /** Where the conversation is: idle, listening, thinking, speaking or error. @default &quot;idle&quot; */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default &quot;brand&quot;
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. */
   level?: number;
   /** The person's microphone, read while listening. */
@@ -227,6 +235,7 @@ function linesFor(state, transcript, response) {
 
 export function VoiceInput({
   state = &quot;idle&quot;,
+  tone = &quot;brand&quot;,
   level,
   inputStream,
   outputStream,
@@ -269,7 +278,7 @@ export function VoiceInput({
 
   if (layout === &quot;panel&quot;) {
     return (
-      &lt;AmbientBorder state={state} level={level} inputStream={inputStream} outputStream={outputStream} radius=&quot;container&quot; role=&quot;group&quot; aria-label={label} style={style} {...rest}&gt;
+      &lt;AmbientBorder state={state} tone={tone} level={level} inputStream={inputStream} outputStream={outputStream} radius=&quot;container&quot; role=&quot;group&quot; aria-label={label} style={style} {...rest}&gt;
         &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot;, gap: &quot;var(--dt-layout-stack-group)&quot;, padding: &quot;var(--dt-voice-panel-padding)&quot; }}&gt;
           &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-voice-gap)&quot;, minHeight: &quot;var(--dt-size-control-sm)&quot; }}&gt;
             &lt;span style={{ flex: 1 }}&gt;{statusText}&lt;/span&gt;
@@ -293,7 +302,7 @@ export function VoiceInput({
 
   const line = listening ? you : them || you;
   return (
-    &lt;AmbientBorder state={state} level={level} inputStream={inputStream} outputStream={outputStream} radius=&quot;pill&quot; role=&quot;group&quot; aria-label={label} style={style} {...rest}&gt;
+    &lt;AmbientBorder state={state} tone={tone} level={level} inputStream={inputStream} outputStream={outputStream} radius=&quot;pill&quot; role=&quot;group&quot; aria-label={label} style={style} {...rest}&gt;
       &lt;div style={{ display: &quot;flex&quot;, alignItems: &quot;center&quot;, gap: &quot;var(--dt-voice-gap)&quot;, padding: &quot;var(--dt-voice-padding)&quot;, minHeight: &quot;var(--dt-size-control-lg)&quot;, boxSizing: &quot;border-box&quot; }}&gt;
         {mic}
         &lt;span style={{ flex: 1, minWidth: 0, overflow: &quot;hidden&quot;, textOverflow: &quot;ellipsis&quot;, whiteSpace: &quot;nowrap&quot;, ...voiceType(&quot;body-sm&quot;), color: line ? &quot;var(--dt-text-primary)&quot; : &quot;var(--dt-voice-placeholder-fg)&quot; }}&gt;
@@ -362,7 +371,7 @@ export function VoiceInput({
 </div>
 <script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
 <script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
-<script src="../system/components/bundle.js?v=c03cd0e2b5" defer></script>
+<script src="../system/components/bundle.js?v=3b2a98b82f" defer></script>
 <script src="../assets/specimens.js?v=9ea1123fda" defer></script>
 <script src="../assets/playground.js?v=b4c6d06582" defer></script>
 <script src="../assets/configure-data.js?v=a347e023ef" defer></script>

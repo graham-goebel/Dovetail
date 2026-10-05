@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"},{"name":"Carousel","sourcePath":"components/display/Carousel.jsx"},{"name":"MenuSheet","sourcePath":"components/navigation/MenuSheet.jsx"},{"name":"AmbientBorder","sourcePath":"components/chat/AmbientBorder.jsx"},{"name":"VoiceInput","sourcePath":"components/chat/VoiceInput.jsx"},{"name":"VoiceOverlay","sourcePath":"components/chat/VoiceOverlay.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"43addfe26287","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"17a32e0902cc","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"e2125883f0ea","components/feedback/Drawer.jsx":"7b91df7fb6eb","components/feedback/Popover.jsx":"5d1b67df4b0d","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"2761bb6db4d2","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"66f2fdee895a","components/forms/Field.jsx":"29b5e0fa7688","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"c60c12fd6807","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"567b42a6cb81","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"087162b6b91e","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"9cfb062e8282","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"24f6c8b9a12c","components/blocks/FaqBlock.jsx":"b582937195d6","components/blocks/FeatureGridBlock.jsx":"55df2dc6709f","components/blocks/HeroBlock.jsx":"bc4b2b50506b","components/blocks/SplitBlock.jsx":"02b007758d94","components/blocks/StatsBlock.jsx":"c52fb723e395","components/blocks/TestimonialBlock.jsx":"2e102dbd61f9","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"ca6ccce91863","components/commerce/BasketBar.jsx":"8f8b5b631062","components/display/Carousel.jsx":"b34dd628f4d8","components/navigation/MenuSheet.jsx":"0e7c30f63393","components/chat/AmbientBorder.jsx":"9f054e32d311","components/chat/VoiceInput.jsx":"ee2cab4218e4","components/chat/VoiceOverlay.jsx":"c651a0eb348b"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"},{"name":"Carousel","sourcePath":"components/display/Carousel.jsx"},{"name":"MenuSheet","sourcePath":"components/navigation/MenuSheet.jsx"},{"name":"AmbientBorder","sourcePath":"components/chat/AmbientBorder.jsx"},{"name":"VoiceInput","sourcePath":"components/chat/VoiceInput.jsx"},{"name":"VoiceOverlay","sourcePath":"components/chat/VoiceOverlay.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"43addfe26287","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"17a32e0902cc","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"e2125883f0ea","components/feedback/Drawer.jsx":"7b91df7fb6eb","components/feedback/Popover.jsx":"5d1b67df4b0d","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"2761bb6db4d2","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"66f2fdee895a","components/forms/Field.jsx":"29b5e0fa7688","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"c60c12fd6807","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"567b42a6cb81","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"087162b6b91e","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"9cfb062e8282","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"24f6c8b9a12c","components/blocks/FaqBlock.jsx":"b582937195d6","components/blocks/FeatureGridBlock.jsx":"55df2dc6709f","components/blocks/HeroBlock.jsx":"bc4b2b50506b","components/blocks/SplitBlock.jsx":"02b007758d94","components/blocks/StatsBlock.jsx":"c52fb723e395","components/blocks/TestimonialBlock.jsx":"2e102dbd61f9","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"ca6ccce91863","components/commerce/BasketBar.jsx":"8f8b5b631062","components/display/Carousel.jsx":"b34dd628f4d8","components/navigation/MenuSheet.jsx":"0e7c30f63393","components/chat/AmbientBorder.jsx":"ab81a52a0352","components/chat/VoiceInput.jsx":"3cfdc56eb258","components/chat/VoiceOverlay.jsx":"ffab236c0269"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -16900,7 +16900,8 @@ try { (() => {
    to a voice conversation. Its state says who has the floor (listening to
    the person, thinking, the assistant speaking) and picks the colours; the
    voice's level, from a level prop or a live audio stream, brightens the glow
-   and quickens the turn. The ring and the glow are drawn behind the content,
+   and quickens the turn. tone="spectrum" swaps the brand colours for a
+   six-hue wheel. The ring and the glow are drawn behind the content,
    so the container keeps its own layout, and the turning is written straight
    to the two layers each frame without re-rendering React.
 
@@ -16964,12 +16965,21 @@ function stops(state) {
   const s = STATES.includes(state) ? state : "idle";
   return [`var(--dt-voice-${s}-a)`, `var(--dt-voice-${s}-b)`, `var(--dt-voice-${s}-c)`];
 }
+const HUE = n => `var(--dt-voice-spectrum-${n})`;
 
 /* Thinking is two comets chasing round a faint track; every other state is
-   a full sweep of its colours. */
-function gradient(state, angle) {
-  const [a, b, c] = stops(state);
+   a full sweep of its colours. The spectrum tone runs the six-hue wheel
+   instead (thinking splits it between the two comets), except for error,
+   which stays danger so it still reads as one. */
+function gradient(state, angle, tone) {
   const at = `from ${angle.toFixed(2)}deg`;
+  if (tone === "spectrum" && state !== "error") {
+    if (state === "thinking") {
+      return `conic-gradient(${at}, transparent 0turn, ${HUE(1)} 0.12turn, ${HUE(2)} 0.2turn, ${HUE(3)} 0.28turn, transparent 0.38turn, transparent 0.5turn, ${HUE(4)} 0.62turn, ${HUE(5)} 0.7turn, ${HUE(6)} 0.78turn, transparent 0.88turn)`;
+    }
+    return `conic-gradient(${at}, ${HUE(1)}, ${HUE(2)} 0.167turn, ${HUE(3)} 0.333turn, ${HUE(4)} 0.5turn, ${HUE(5)} 0.667turn, ${HUE(6)} 0.833turn, ${HUE(1)})`;
+  }
+  const [a, b, c] = stops(state);
   if (state === "thinking") {
     return `conic-gradient(${at}, transparent 0turn, ${a} 0.14turn, ${b} 0.26turn, transparent 0.38turn, transparent 0.5turn, ${c} 0.64turn, ${a} 0.76turn, transparent 0.88turn)`;
   }
@@ -17041,6 +17051,7 @@ function useReducedMotion() {
 }
 function AmbientBorder({
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -17061,11 +17072,13 @@ function AmbientBorder({
   const reduced = useReducedMotion();
   const live = React.useRef({
     state,
-    level
+    level,
+    tone
   });
   live.current = {
     state,
-    level
+    level,
+    tone
   };
   const meters = React.useRef({
     input: null,
@@ -17097,7 +17110,9 @@ function AmbientBorder({
     let angle = 0;
     let lvl = 0;
     let shown = live.current.state;
+    let shownTone = live.current.tone;
     let prev = null;
+    let prevTone = null;
     let fade = 0;
     const start = typeof performance !== "undefined" ? performance.now() : 0;
     const draw = now => {
@@ -17106,7 +17121,8 @@ function AmbientBorder({
       const t = (now - start) / 1000;
       const {
         state: st,
-        level: given
+        level: given,
+        tone: tn
       } = live.current;
       const m = MOTION[st] || MOTION.idle;
       /* Which voice to follow: the person's while listening, the
@@ -17115,14 +17131,16 @@ function AmbientBorder({
       const target = typeof given === "number" ? Math.max(0, Math.min(1, given)) : meter ? meter.read() : synth(st, t);
       lvl += (target - lvl) * (target > lvl ? 0.45 : 0.08);
       angle = (angle + 360 * m.turn * (1 + m.boost * lvl) * dt) % 360;
-      /* A change of state crossfades: the old colours fade out over the new. */
-      if (st !== shown) {
+      /* A change of state or tone crossfades: the old colours fade out over the new. */
+      if (st !== shown || tn !== shownTone) {
         prev = shown;
+        prevTone = shownTone;
         shown = st;
+        shownTone = tn;
         fade = 1;
       }
       if (fade > 0) fade = Math.max(0, fade - dt / 0.45);
-      const g = gradient(shown, angle);
+      const g = gradient(shown, angle, shownTone);
       const strength = `calc(var(--dt-voice-glow-rest) + ${(m.gain * lvl).toFixed(3)})`;
       const spread = `calc(var(--dt-voice-glow-spread) * ${(-lvl).toFixed(3)})`;
       if (ring.current) ring.current.style.backgroundImage = g;
@@ -17133,11 +17151,11 @@ function AmbientBorder({
       }
       if (ringOut.current) {
         ringOut.current.style.opacity = String(fade);
-        if (fade > 0 && prev) ringOut.current.style.backgroundImage = gradient(prev, angle);
+        if (fade > 0 && prev) ringOut.current.style.backgroundImage = gradient(prev, angle, prevTone);
       }
       if (haloOut.current) {
         haloOut.current.style.opacity = String(fade);
-        if (fade > 0 && prev) haloOut.current.style.backgroundImage = gradient(prev, angle);
+        if (fade > 0 && prev) haloOut.current.style.backgroundImage = gradient(prev, angle, prevTone);
       }
       frame = requestAnimationFrame(draw);
     };
@@ -17147,7 +17165,7 @@ function AmbientBorder({
        leave the ring at its last angle, part way through a crossfade. */
     return () => {
       cancelAnimationFrame(frame);
-      const rest = gradient(STATES.includes(live.current.state) ? live.current.state : "idle", 0);
+      const rest = gradient(STATES.includes(live.current.state) ? live.current.state : "idle", 0, live.current.tone);
       if (ring.current) ring.current.style.backgroundImage = rest;
       if (halo.current) {
         halo.current.style.backgroundImage = rest;
@@ -17164,8 +17182,8 @@ function AmbientBorder({
      turns and crossfades. Re-rendering them on a change of state would snap
      the ring back to its starting angle for a frame, so only reduced motion,
      which has no loop, follows the state here. */
-  const first = React.useRef(gradient(STATES.includes(state) ? state : "idle", 0)).current;
-  const still = reduced ? gradient(STATES.includes(state) ? state : "idle", 0) : first;
+  const first = React.useRef(gradient(STATES.includes(state) ? state : "idle", 0, tone)).current;
+  const still = reduced ? gradient(STATES.includes(state) ? state : "idle", 0, tone) : first;
   const layer = {
     position: "absolute",
     inset: 0,
@@ -17191,6 +17209,7 @@ function AmbientBorder({
 
   return /*#__PURE__*/React.createElement(Tag, {
     "data-voice-state": state,
+    "data-voice-tone": tone,
     style: {
       position: "relative",
       isolation: "isolate",
@@ -17307,6 +17326,7 @@ function linesFor(state, transcript, response) {
 }
 function VoiceInput({
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -17360,6 +17380,7 @@ function VoiceInput({
   if (layout === "panel") {
     return /*#__PURE__*/React.createElement(__ds_scope.AmbientBorder, {
       state: state,
+      tone: tone,
       level: level,
       inputStream: inputStream,
       outputStream: outputStream,
@@ -17430,6 +17451,7 @@ function VoiceInput({
   const line = listening ? you : them || you;
   return /*#__PURE__*/React.createElement(__ds_scope.AmbientBorder, {
     state: state,
+    tone: tone,
     level: level,
     inputStream: inputStream,
     outputStream: outputStream,
@@ -17520,6 +17542,7 @@ function VoiceOverlay({
   open,
   onClose,
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -17560,6 +17583,7 @@ function VoiceOverlay({
     ...rest
   }, /*#__PURE__*/React.createElement(__ds_scope.AmbientBorder, {
     state: state,
+    tone: tone,
     level: level,
     inputStream: inputStream,
     outputStream: outputStream,

@@ -97,7 +97,8 @@
         the status, a polite live region, follows the state. VoiceOverlay
         opens as a dialog named by label with focus inside; Escape calls
         onClose and focus returns to the opener. AmbientBorder's ring turns
-        by itself and stands still under reduced motion.
+        by itself and stands still under reduced motion; tone="spectrum"
+        sweeps the six spectrum hues, and error stays danger.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -486,7 +487,9 @@ function VoiceApp() {
     h(VoiceInput, { label: "Test voice", state, transcript: state === "listening" ? "Hello" : "", onToggle: () => setState((s) => (s === "listening" ? "idle" : "listening")) }),
     h("button", { type: "button", onClick: () => setOpen(true) }, "Open test voice"),
     h(VoiceOverlay, { open, label: "Test conversation", state: "speaking", response: "Hi there", onToggle: () => {}, onClose: () => { window.__voice.closes += 1; setOpen(false); } }),
-    h(AmbientBorder, { "data-test": "ring", state: "thinking", glow: false }, "Ring"));
+    h(AmbientBorder, { "data-test": "ring", state: "thinking", glow: false }, "Ring"),
+    h(AmbientBorder, { "data-test": "ring-spectrum", tone: "spectrum", state: "listening", glow: false }, "Spectrum"),
+    h(AmbientBorder, { "data-test": "ring-spectrum-error", tone: "spectrum", state: "error", glow: false }, "Spectrum error"));
 }
 createRoot(document.getElementById("voice-root")).render(h(VoiceApp));
 window.__voiceReady = true;
@@ -1373,6 +1376,13 @@ try {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     expect(r0 === r1 && /from 0\.00deg/.test(r0), `under reduced motion the ring should stand still at its start, got ${r0} then ${r1}`);
     ok("the ring turns by itself, and under reduced motion stands still at its starting angle");
+
+    const look = (test) => page.locator(`[data-test="${test}"] > span`).first().evaluate((el) => el.style.backgroundImage);
+    const wheel = await look("ring-spectrum");
+    const err = await look("ring-spectrum-error");
+    expect([1, 2, 3, 4, 5, 6].every((n) => wheel.includes(`--dt-voice-spectrum-${n}`)) && !wheel.includes("--dt-voice-listening"), `tone="spectrum" should sweep all six spectrum hues, got ${wheel}`);
+    expect(err.includes("--dt-voice-error-a") && !err.includes("--dt-voice-spectrum"), `under tone="spectrum" error should stay danger, got ${err}`);
+    ok('tone="spectrum" sweeps all six hues, and error still draws in danger');
   });
 
   await step("page errors", () => {

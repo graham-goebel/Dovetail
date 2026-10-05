@@ -39,6 +39,7 @@ const [open, setOpen] = useState(false);
 - **The words.** While listening, the person's words are set large as they speak. Otherwise the assistant's reply is set large, with the person's last words underneath.
 - **The microphone** calls `onToggle`. **End** calls `onClose`, and so does Escape.
 - `children` go above the words, for example a `Thinking` orb, an avatar or the agent's name.
+- `tone="spectrum"` turns the border into a six-hue wheel instead of the brand colours. Error stays danger. See `AmbientBorder`.
 - `dark={false}` follows the page's own colour mode instead of forcing dark.
 
 ### Tokens
@@ -62,7 +63,7 @@ const [open, setOpen] = useState(false);
 
 ```ts
 import * as React from "react";
-import type { VoiceState } from "./AmbientBorder";
+import type { VoiceState, VoiceTone } from "./AmbientBorder";
 
 /**
  * A voice conversation over the whole screen: the ambient border runs round
@@ -78,6 +79,14 @@ export interface VoiceOverlayProps extends React.HTMLAttributes<HTMLElement> {
   onClose?: () => void;
   /** Where the conversation is: idle, listening, thinking, speaking or error. @default "idle" */
   state?: VoiceState;
+  /**
+   * brand: each state in its own colours, the person in the brand colour and
+   * the assistant in the secondary brand colour. spectrum: a six-hue wheel
+   * (--dt-voice-spectrum-1 to -6) for every state but error, which stays
+   * danger; the state still sets the speed, the glow and the comets.
+   * @default "brand"
+   */
+  tone?: VoiceTone;
   /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. */
   level?: number;
   /** The person's microphone, read while listening. */
@@ -305,6 +314,7 @@ export function VoiceOverlay({
   open,
   onClose,
   state = "idle",
+  tone = "brand",
   level,
   inputStream,
   outputStream,
@@ -341,6 +351,7 @@ export function VoiceOverlay({
     >
       <AmbientBorder
         state={state}
+        tone={tone}
         level={level}
         inputStream={inputStream}
         outputStream={outputStream}

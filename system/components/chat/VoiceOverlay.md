@@ -33,6 +33,7 @@ const [open, setOpen] = useState(false);
 - **The words.** While listening, the person's words are set large as they speak. Otherwise the assistant's reply is set large, with the person's last words underneath.
 - **The microphone** calls `onToggle`. **End** calls `onClose`, and so does Escape.
 - `children` go above the words, for example a `Thinking` orb, an avatar or the agent's name.
+- `tone="spectrum"` turns the border into a six-hue wheel instead of the brand colours. Error stays danger. See `AmbientBorder`.
 - `dark={false}` follows the page's own colour mode instead of forcing dark.
 
 ## Tokens
