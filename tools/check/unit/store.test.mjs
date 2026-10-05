@@ -159,3 +159,43 @@ test("pages: folders group pages, which move between and within them", async () 
   m = await s.setFolders(a.id, [{ id: "x1", name: "Given" }, { id: "bad id", name: "No" }, null]);
   assert.deepEqual(foldersOf(m), [{ id: "x1", name: "Given" }], "setFolders keeps only well-formed folders");
 });
+
+test("projects group files: made, renamed, moved into and out of, copied and deleted with or without their files", async () => {
+  const s = fresh();
+  const g = await s.createGroup("  Kiln & Co  ");
+  assert.equal(g.name, "Kiln & Co");
+  assert.equal((await s.createGroup("")).name, "Untitled project");
+  const a = await s.createProject("Landing", doc("Landing"), { group: g.id });
+  const b = await s.createProject("Loose", doc("Loose"));
+  assert.equal(a.group, g.id, "a file made in a project belongs to it");
+  assert.equal(b.group, undefined, "a file made on Home is loose");
+  assert.equal((await s.moveFile(b.id, "nope")), null, "a file can't move into a project that isn't there");
+  await s.moveFile(b.id, g.id);
+  assert.deepEqual((await s.filesIn(g.id)).map((f) => f.name).sort(), ["Landing", "Loose"]);
+  await s.moveFile(b.id, null);
+  assert.equal((await s.getProject(b.id)).group, undefined, "moving out leaves it loose");
+  const copyOfFile = await s.duplicateProject(a.id);
+  assert.equal(copyOfFile.group, g.id, "a copied file stays in its project");
+  assert.equal((await s.renameGroup(g.id, "Kiln")).name, "Kiln");
+  await s.setGroupThumb(g.id, "data:image/jpeg;base64,AAAA");
+  const copy = await s.duplicateGroup(g.id);
+  assert.equal(copy.name, "Kiln copy");
+  assert.equal(copy.thumb, "data:image/jpeg;base64,AAAA", "the copy keeps the project's picture");
+  assert.deepEqual((await s.filesIn(copy.id)).map((f) => f.name).sort(), ["Landing", "Landing copy"], "the copy has a copy of every file, with the same names");
+  assert.equal((await s.loadDoc((await s.filesIn(copy.id))[0].id)).frames[0].name, "Landing");
+  await s.deleteGroup(copy.id, true);
+  assert.equal(await s.getGroup(copy.id), undefined);
+  assert.equal((await s.listProjects()).filter((f) => !f.group).length, 3, "keeping the files leaves them loose on Home");
+  await s.deleteGroup(g.id, false);
+  assert.equal(await s.getProject(a.id), undefined, "deleting with the files takes them too");
+  assert.equal((await s.listGroups()).length, 1, "the untitled project is still there");
+});
+
+test("data saved before projects existed reads as loose files", async () => {
+  window.localStorage.setItem("dovetail-builder-store", JSON.stringify({ projects: { p1: { id: "p1", name: "Old", createdAt: 1, updatedAt: 1, frames: 0 } }, docs: {}, versions: {}, library: {}, seq: 0 }));
+  const s = makeStore(localBackend());
+  assert.deepEqual(await s.listGroups(), []);
+  assert.equal((await s.listProjects())[0].group, undefined);
+  const g = await s.createGroup("New");
+  assert.equal((await s.moveFile("p1", g.id)).group, g.id);
+});
