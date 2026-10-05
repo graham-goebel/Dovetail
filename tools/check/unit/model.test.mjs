@@ -56,6 +56,14 @@ test("cleaning keeps only known components, real props and token styles", () => 
   assert.equal(cleanNode({ type: "Button", props: { variant: "nope" } }, []).props.variant, undefined, "an unknown enum value goes");
 });
 
+test("a free layer's own opacity is a whole percent below 100", () => {
+  const report = [];
+  assert.equal(cleanNode({ type: "Text", props: { children: "Hi" }, style: { alpha: 37 } }, report).style.alpha, 37);
+  assert.equal(cleanNode({ type: "Text", props: { children: "Hi" }, style: { alpha: 0 } }, report).style.alpha, 0, "0% is allowed");
+  for (const bad of [100, -1, 12.5, "50"]) assert.equal(cleanNode({ type: "Text", style: { alpha: bad } }, report).style.alpha, undefined, `alpha ${JSON.stringify(bad)} goes`);
+  assert.ok(report.some((l) => /alpha is a whole percent from 0 to 99/.test(l)));
+});
+
 test("a link round-trips a layout, and cleaning a saved one keeps it", () => {
   const d = doc(make("Heading", { children: "Café ✓" }));
   const back = decode(encode(d));
