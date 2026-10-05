@@ -98,6 +98,8 @@ While you work on one thing, `ONLY=<words from a step's title> npm run check:bui
 
 In CI, pull requests also have to add a changelog entry when they touch shipped sources. Add `bump: none` or the `skip-changelog` label if there's truly nothing to say.
 
+CI runs the quick checks on every pull request, and only the browser checks the changed files need (`tools/check/changed.mjs` decides): a changelog entry, a doc or a release runs none of them, a builder change runs the builder check, a component or token change runs all three. A check that isn't needed still reports, as passed. Add the `run-all-checks` label to run every check anyway; a push to `main` always does.
+
 ## Working with Claude Code
 
 - Each person's session works on its own branch and opens its own pull request. Don't point two sessions at one branch.
