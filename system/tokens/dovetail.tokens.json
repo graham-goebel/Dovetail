@@ -920,6 +920,141 @@
             ]
           }
         }
+      },
+      "spectrum": {
+        "$description": "Six fixed hues round the wheel, for decoration with no meaning. No theme or brand changes them. 500 reads on light, 400 on dark.",
+        "red": {
+          "400": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.7,
+                0.2,
+                25
+              ]
+            }
+          },
+          "500": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.63,
+                0.23,
+                25
+              ]
+            }
+          }
+        },
+        "amber": {
+          "400": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.84,
+                0.15,
+                80
+              ]
+            }
+          },
+          "500": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.79,
+                0.165,
+                75
+              ]
+            }
+          }
+        },
+        "green": {
+          "400": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.78,
+                0.175,
+                150
+              ]
+            }
+          },
+          "500": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.7,
+                0.19,
+                150
+              ]
+            }
+          }
+        },
+        "cyan": {
+          "400": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.8,
+                0.13,
+                210
+              ]
+            }
+          },
+          "500": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.715,
+                0.14,
+                210
+              ]
+            }
+          }
+        },
+        "blue": {
+          "400": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.7,
+                0.18,
+                262
+              ]
+            }
+          },
+          "500": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.6,
+                0.215,
+                262
+              ]
+            }
+          }
+        },
+        "magenta": {
+          "400": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.72,
+                0.21,
+                335
+              ]
+            }
+          },
+          "500": {
+            "$value": {
+              "colorSpace": "oklch",
+              "components": [
+                0.64,
+                0.25,
+                335
+              ]
+            }
+          }
+        }
       }
     },
     "dimension": {
