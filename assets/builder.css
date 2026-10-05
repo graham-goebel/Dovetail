@@ -2958,6 +2958,11 @@ span.bd-layer-twisty.is-open .bd-ic {
   font-size: var(--dt-font-size-xs);
 }
 
+/* Whose content this is, under the panel's title and in line with it. */
+.bd-content-note.bd-content-scope {
+  padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-xs);
+}
+
 .bd-content-add {
   display: flex;
   flex-wrap: wrap;
