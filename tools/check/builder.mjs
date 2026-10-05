@@ -3798,6 +3798,8 @@ try {
     await page.keyboard.up("Alt");
     const cleared = await poll(opcStyle, (st) => !st.padding);
     expect(!cleared.padding && await page.locator(".bd-dd-list").count() === 0, `Alt-click on Padding clears every side without opening the list, got ${JSON.stringify(cleared)}`);
+    /* Once the box shows the cleared side in grey again. */
+    await page.waitForSelector(".bd-box-p > .bd-box-cell.is-right .bd-dd.is-inherited");
     await cell("right").focus();
     await page.keyboard.press("ArrowUp");
     const stepped = await poll(opcStyle, (st) => !!st.paddingRight);
