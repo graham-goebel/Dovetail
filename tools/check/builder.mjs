@@ -3249,7 +3249,9 @@ try {
     await page.locator(".bd-dd-opt", { hasText: /^Darken/ }).hover();
     await page.locator(".bd-dd-opt", { hasText: /^Multiply/ }).click();
     expect(await poll(async () => (await ba()).blend, (v) => v === "multiply") === "multiply" && (await steps(page)).past === blendSteps + 1, `a click keeps Multiply as one undo step, got ${(await ba()).blend} and ${(await steps(page)).past - blendSteps} steps`);
-    expect(await blendOn() === "multiply", "the canvas keeps it");
+    /* The frame repaints just after the change. */
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply", null, { timeout: 4000 }).catch(() => {});
+    expect(await blendOn() === "multiply", `the canvas keeps it, got ${await blendOn()}`);
     await release(page);
     await page.keyboard.press("Control+z");
     expect(!(await poll(async () => (await ba()).blend, (v) => !v)), "undo goes back to Normal, past the previews");
