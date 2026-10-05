@@ -3062,8 +3062,14 @@ try {
     const node = async () => (await free()).root.children.find((c) => c.id === "ba");
     const widthOf = () => page.evaluate(() => document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect("ba").width);
     const w0 = await widthOf(), stepsR = (await steps(page)).past;
+    /* A handle's place once the mark has caught up with the last edit. */
+    const settled = async (sel) => {
+      let b = null;
+      for (let i = 0; i < 10; i++) { const n = await page.locator(sel).boundingBox(); if (b && n && Math.abs(n.x - b.x) < 0.5 && Math.abs(n.y - b.y) < 0.5) return n; b = n; await page.waitForTimeout(100); }
+      return b;
+    };
     const pull = async (dir, dx, dy, hold) => {
-      const hb = await page.locator(".bd-mark-sel .bd-handle.is-" + dir).boundingBox();
+      const hb = await settled(".bd-mark-sel .bd-handle.is-" + dir);
       await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
       await page.mouse.down();
       if (hold) await page.keyboard.down(hold);
@@ -3074,21 +3080,129 @@ try {
       if (hold) await page.keyboard.up(hold);
       await page.waitForTimeout(250);
     };
-    await pull("e", 90, 0);
+    /* On a free canvas a handle gives any multiple of 4px (fw/fh, in 4px
+       steps), shows the size by the pointer, and holds the opposite side. */
+    const readoutDuring = async (dir, dx, dy) => {
+      const hb = await settled(".bd-mark-sel .bd-handle.is-" + dir);
+      await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(hb.x + hb.width / 2 + dx, hb.y + hb.height / 2 + dy, { steps: 6 });
+      const text = await page.locator(".bd-readout").textContent().catch(() => null);
+      const dimmed = await page.evaluate(() => { const hs = [...document.querySelectorAll(".bd-mark-sel .bd-handle")]; const on = hs.find((h) => h.classList.contains("is-active")); return !!on && hs.filter((h) => h !== on).every((h) => Number(getComputedStyle(h, "::after").opacity) < 0.5); });
+      await page.mouse.up();
+      await page.waitForTimeout(250);
+      return { text, dimmed };
+    };
+    const during = await readoutDuring("e", 90, 0);
     const grown = await node();
-    const sizes = await page.evaluate(() => ({ w: window.DovetailBuilderData.tokens.w.options.map((o) => o.value), h: window.DovetailBuilderData.tokens.height.options.map((o) => o.value) }));
-    expect(sizes.w.includes(grown.style.w), `the width becomes a size token, got ${JSON.stringify(grown.style.w)}`);
     const w1 = await widthOf();
+    expect(Number.isInteger(grown.style.fw) && !grown.style.w && Math.abs(w1 - grown.style.fw * 4) < 1, `the width becomes a multiple of 4px (fw ${grown.style.fw}), drawn ${w1}`);
     expect(w1 > w0 + 20, `and the Button is wider on the canvas, ${Math.round(w0)} to ${Math.round(w1)}`);
     expect((await steps(page)).past === stepsR + 1, "the whole pull is one undo step");
-    const x1 = grown.style.x;
+    expect(during.text && /^\d+ × \d+$/.test(during.text) && during.dimmed, `while it's pulled, the size shows by the pointer and the other handles dim, got ${JSON.stringify(during)}`);
+    const x1 = grown.style.x, right1 = (grown.style.x + grown.style.fw) * 4;
     await pull("w", -60, 0);
     const left = await node();
-    expect(left.style.x < x1 && sizes.w.includes(left.style.w), `pulling the left edge moves a free object as it grows: x ${x1} to ${left.style.x}, width ${left.style.w}`);
+    expect(left.style.x < x1 && left.style.fw > grown.style.fw && Math.abs((left.style.x + left.style.fw) * 4 - right1) <= 4, `pulling the left edge moves it left and keeps its right edge: x ${x1} to ${left.style.x}, right ${right1} to ${(left.style.x + left.style.fw) * 4}`);
+    const ratio = (await page.evaluate(() => document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.size("ba"))), k0 = ratio.height / ratio.width;
     await pull("se", 40, 40, "Shift");
     const kept = await node();
-    expect(sizes.w.includes(kept.style.w) && sizes.h.includes(kept.style.height), `Shift on a corner sets both width and height tokens, got ${kept.style.w} × ${kept.style.height}`);
-    ok(`handles resize to tokens: ${grown.style.w} wide, then the left edge moved it, then a Shift corner gave ${kept.style.w} × ${kept.style.height}`);
+    expect(kept.style.fw && kept.style.fh && Math.abs(kept.style.fh / kept.style.fw - k0) < 0.15, `Shift on a corner sets both and keeps the shape: ${kept.style.fw * 4} × ${kept.style.fh * 4}, was ${k0.toFixed(2)} tall per wide`);
+    ok(`free handles size in 4px steps: ${grown.style.fw * 4}px wide with the size by the pointer, then the left edge moved it and held the right, then a Shift corner gave ${kept.style.fw * 4} × ${kept.style.fh * 4}`);
+
+    /* W and H in the inspector: any multiple of 4, arrows 4 and 16. */
+    await tab(page, "Layout");
+    const wField = page.locator('.bd-right input[aria-label^="Width, in pixels"]');
+    await wField.fill("130");
+    await wField.press("Enter");
+    expect((await poll(node, (n) => n.style.fw === 33)).style.fw === 33, "130 typed rounds to 132, 33 steps");
+    await wField.press("ArrowUp");
+    expect((await poll(node, (n) => n.style.fw === 34)).style.fw === 34, "Up adds 4px");
+    await wField.press("Shift+ArrowUp");
+    expect((await poll(node, (n) => n.style.fw === 38)).style.fw === 38, "Shift+Up adds 16px");
+    ok("the W field takes any multiple of 4: 130 typed is 132, Up is 136, Shift+Up 152");
+
+    /* Turning: from just outside a corner, Shift snaps to 15°, the angle
+       shows by the pointer, and the field sets it too. */
+    const cornerTurn = async (deg, hold) => {
+      /* The mark settles once the canvas has drawn the last edit. */
+      let mark = null;
+      for (let i = 0; i < 10; i++) { await page.waitForTimeout(120); const m = await page.locator(".bd-mark-sel").first().boundingBox(); if (mark && m && Math.abs(m.width - mark.width) < 0.5 && Math.abs(m.x - mark.x) < 0.5) break; mark = m; }
+      mark = await page.locator(".bd-mark-sel").first().boundingBox();
+      const cx = mark.x + mark.width / 2, cy = mark.y + mark.height / 2;
+      /* The grip below and to the right: the layer may sit at the top. */
+      const rb = await page.locator(".bd-mark-sel .bd-rotate.is-se").boundingBox();
+      const sx = rb.x + rb.width / 2, sy = rb.y + rb.height / 2;
+      const r = Math.hypot(sx - cx, sy - cy), a0 = Math.atan2(sy - cy, sx - cx);
+      await page.mouse.move(sx, sy);
+      await page.mouse.down();
+      if (hold) await page.keyboard.down(hold);
+      for (let i = 1; i <= 8; i++) { const a = a0 + (deg * Math.PI / 180) * i / 8; await page.mouse.move(cx + r * Math.cos(a), cy + r * Math.sin(a)); }
+      const text = await page.locator(".bd-readout").textContent().catch(() => null);
+      await page.mouse.up();
+      if (hold) await page.keyboard.up(hold);
+      await page.waitForTimeout(250);
+      return text;
+    };
+    const turnSteps = (await steps(page)).past;
+    const turnText = await cornerTurn(47, "Shift");
+    const turned = await node();
+    expect(turned.style.rot === 45 && turnText === "45°" && (await steps(page)).past === turnSteps + 1, `a Shift turn from the corner snaps to 45° in one step, showing the angle, got ${turned.style.rot} and ${turnText}`);
+    expect(await frames(page)[1].evaluate(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).transform !== "none"), "the canvas draws it turned");
+    await tab(page, "Layout");
+    const rotField = page.locator('.bd-right input[aria-label="Rotation, in degrees"]');
+    expect(await rotField.inputValue() === "45", `the rotation field reads 45, got ${await rotField.inputValue()}`);
+    await rotField.fill("-30");
+    await rotField.press("Enter");
+    expect((await poll(node, (n) => n.style.rot === -30)).style.rot === -30, "typing -30 turns it back the other way");
+    await rotField.press("Shift+ArrowUp");
+    expect((await poll(node, (n) => n.style.rot === -15)).style.rot === -15, "Shift+Up adds 15°");
+    /* A turned layer resizes along its own sides: the far side stays put.
+       Away from the frame's top, so nothing clamps it at 0. */
+    const yField = page.locator('.bd-right input[aria-label="Y position"]');
+    await yField.fill("200");
+    await yField.press("Enter");
+    await poll(node, (n) => n.style.y === 50);
+    const westMid = (st) => { const W = st.fw * 4, H = st.fh * 4, t = (st.rot || 0) * Math.PI / 180; const cx = st.x * 4 + W / 2, cy = st.y * 4 + H / 2; return { x: cx - (W / 2) * Math.cos(t), y: cy - (W / 2) * Math.sin(t) }; };
+    const beforeTurned = await node();
+    await pull("e", 50, 0);
+    const afterTurned = await node();
+    const wa = westMid(beforeTurned.style), wb = westMid(afterTurned.style);
+    expect(afterTurned.style.fw > beforeTurned.style.fw && Math.hypot(wa.x - wb.x, wa.y - wb.y) <= 6, `pulling the right handle of a turned layer widens it and holds its left side: ${JSON.stringify(wa)} to ${JSON.stringify(wb)}`);
+    await rotField.fill("0");
+    await rotField.press("Enter");
+    expect((await poll(node, (n) => !n.style.rot)).style.rot === undefined, "0 turns it straight again, with nothing stored");
+    ok("a Shift turn from just outside a corner snaps to 45° with the angle by the pointer; the field takes -30 and Shift+Up 15°; a turned layer resizes along its own sides; 0 clears it");
+
+    /* Moving shows where it's going, in pixels. */
+    await settled(".bd-mark-sel");
+    const at0 = await canvasPoint(page, '[data-bf-id="ba"]', "center", 1);
+    await page.mouse.move(at0.x, at0.y);
+    await page.mouse.down();
+    await page.mouse.move(at0.x + 30, at0.y + 20, { steps: 8 });
+    const moveText = await page.locator(".bd-readout").textContent().catch(() => null);
+    await page.mouse.up();
+    await page.waitForTimeout(250);
+    expect(moveText && /^X \d+ {2}Y \d+$/.test(moveText), `a move shows X and Y by the pointer, got ${moveText}`);
+    ok(`a move shows its position by the pointer (${moveText})`);
+
+    /* Flush with the frame's right edge, its own handle still answers: the
+       frame's edge grip sits outside the frame. */
+    const frameW = (await free()).width;
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await tab(page, "Layout");
+    await wField.fill("120");
+    await wField.press("Enter");
+    await poll(node, (n) => n.style.fw === 30);
+    const xField = page.locator('.bd-right input[aria-label="X position"]');
+    await xField.fill(String(frameW - 120));
+    await xField.press("Enter");
+    const flush = await poll(node, (n) => (n.style.x + n.style.fw) * 4 === frameW);
+    expect((flush.style.x + flush.style.fw) * 4 === frameW, `the Button sits flush with the frame's right edge, ${(flush.style.x + flush.style.fw) * 4} of ${frameW}`);
+    await pull("e", -12, 0);
+    const pulled = await node();
+    expect(pulled.style.fw < 30 && (await free()).width === frameW, `its right handle resizes the Button, not the frame: ${pulled.style.fw * 4}px wide, the frame still ${(await free()).width}`);
+    ok("a layer flush with the frame's right edge resizes itself from its handle; the frame keeps its width");
 
     /* Hide and lock. Gamma hidden: gone from the canvas and the code, dim in
        Layers, back with the eye. Beta locked: a canvas press passes it by,
@@ -3262,14 +3376,14 @@ try {
     await page.evaluate(() => window.__builder.select(["ba"]));
     await release(page);
     const alpha = (await free()).root.children.find((c) => c.id === "ba");
-    expect(alpha.style.w && alpha.style.height, `Alpha carries size tokens to copy, got ${JSON.stringify(alpha.style)}`);
+    expect(alpha.style.fw && alpha.style.fh, `Alpha carries its own size to copy, got ${JSON.stringify(alpha.style)}`);
     await page.keyboard.press("Control+Alt+KeyC");
     await page.evaluate(() => window.__builder.select(["hc"]));
     const gammaBefore = (await free()).root.children.find((c) => c.id === "hc");
     const stepsP = (await steps(page)).past;
     await page.keyboard.press("Control+Alt+KeyV");
-    const gamma = await poll(async () => (await free()).root.children.find((c) => c.id === "hc"), (n) => n.style.w === alpha.style.w);
-    expect(gamma.style.w === alpha.style.w && gamma.style.height === alpha.style.height && gamma.style.x === gammaBefore.style.x && gamma.style.y === gammaBefore.style.y, `paste style gives Gamma Alpha's tokens and leaves its position, got ${JSON.stringify(gamma.style)} from ${JSON.stringify(gammaBefore.style)}`);
+    const gamma = await poll(async () => (await free()).root.children.find((c) => c.id === "hc"), (n) => n.style.fw === alpha.style.fw);
+    expect(gamma.style.fw === alpha.style.fw && gamma.style.fh === alpha.style.fh && gamma.style.x === gammaBefore.style.x && gamma.style.y === gammaBefore.style.y, `paste style gives Gamma Alpha's size and leaves its position, got ${JSON.stringify(gamma.style)} from ${JSON.stringify(gammaBefore.style)}`);
     expect((await steps(page)).past === stepsP + 1, "as one undo step");
     await page.evaluate(() => window.__builder.select(["bb"]));
     const buttons = (await free()).root.children.filter((c) => c.type === "Button").length;
@@ -3684,6 +3798,8 @@ try {
     await page.keyboard.up("Alt");
     const cleared = await poll(opcStyle, (st) => !st.padding);
     expect(!cleared.padding && await page.locator(".bd-dd-list").count() === 0, `Alt-click on Padding clears every side without opening the list, got ${JSON.stringify(cleared)}`);
+    /* Once the box shows the cleared side in grey again. */
+    await page.waitForSelector(".bd-box-p > .bd-box-cell.is-right .bd-dd.is-inherited");
     await cell("right").focus();
     await page.keyboard.press("ArrowUp");
     const stepped = await poll(opcStyle, (st) => !!st.paddingRight);

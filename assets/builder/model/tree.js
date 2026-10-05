@@ -314,6 +314,10 @@ function cleanNode(n, report) {
     if (k === "x" || k === "y") return;
     if (k === "dark") { if (st.dark === true) style.dark = true; return; }
     if (k === "fill" || k === "color") { if (HEX.test(String(st[k]))) style[k] = String(st[k]).toLowerCase(); else note(report, n.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k])); return; }
+    /* A free layer's own size, in steps of --dt-space-inset-2xs (4px), and
+       its turn in whole degrees. */
+    if (k === "fw" || k === "fh") { if (Number.isInteger(st[k]) && st[k] >= 1 && st[k] <= FREE_MAX) style[k] = st[k]; else note(report, n.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k])); return; }
+    if (k === "rot") { if (Number.isInteger(st.rot) && st.rot > -180 && st.rot <= 180 && st.rot !== 0) style.rot = st.rot; else if (st.rot !== 0) note(report, n.type + ": rot is whole degrees from -179 to 180, not " + JSON.stringify(st.rot)); return; }
     if (k === "alpha") { if (Number.isInteger(st.alpha) && st.alpha >= 0 && st.alpha < 100) style.alpha = st.alpha; else note(report, n.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha)); return; }
     if (tokenOption(k, st[k])) style[k] = st[k];
     else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function (o) { return o.value; }).join(", ") + ")");

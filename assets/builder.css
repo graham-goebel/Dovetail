@@ -1595,6 +1595,9 @@ span.bd-layer-twisty.is-open .bd-ic {
   box-shadow: var(--dt-elevation-2);
 }
 
+/* While a handle or a turn grip is held, the frames let the pointer pass,
+   so the move keeps reaching the builder over them. */
+.bd-stage.is-sizing .bd-frame,
 .bd-stage.is-dragging .bd-frame {
   pointer-events: none;
 }
@@ -2049,11 +2052,18 @@ span.bd-layer-twisty.is-open .bd-ic {
   color: var(--dt-text-secondary);
 }
 
+/* Above the frames' edge grips, so an object pushed against a frame's edge
+   still resizes itself. */
 .bd-marks {
   position: absolute;
   inset: 0;
+  z-index: 3;
   overflow: hidden;
   pointer-events: none;
+}
+
+.bd-stage.is-panning .bd-marks * {
+  pointer-events: none !important;
 }
 
 .bd-mark {
@@ -2083,18 +2093,27 @@ span.bd-layer-twisty.is-open .bd-ic {
   outline-style: dashed;
 }
 
-/* Resize handles on the selected object. */
+/* Handles: small and outline-only, with a grab area well beyond what
+   shows. Hovering one brings it forward and dims the rest. */
 .bd-handle {
   position: absolute;
   box-sizing: border-box;
-  width: 10px;
-  height: 10px;
-  margin: -5px;
-  border: var(--dt-border-width-default) solid var(--dt-text-primary);
-  border-radius: 2px;
-  background: var(--dt-surface-base);
+  width: 16px;
+  height: 16px;
+  margin: -8px;
   pointer-events: auto;
   touch-action: none;
+}
+
+.bd-handle::after {
+  content: "";
+  position: absolute;
+  inset: 4.5px;
+  box-sizing: border-box;
+  border: var(--dt-border-width-default) solid var(--dt-border-focus);
+  border-radius: 1.5px;
+  background: transparent;
+  transition: inset var(--dt-motion-micro), opacity var(--dt-motion-micro), background-color var(--dt-motion-micro);
 }
 
 .bd-handle.is-nw { left: 0; top: 0; cursor: nwse-resize; }
@@ -2106,18 +2125,77 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-handle.is-sw { left: 0; top: 100%; cursor: nesw-resize; }
 .bd-handle.is-w { left: 0; top: 50%; cursor: ew-resize; }
 
-.bd-handle:hover,
-.bd-handle:active {
-  border-color: var(--dt-border-focus);
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--dt-border-focus) 30%, transparent);
+/* Short or narrow on screen, the handles that would cover its middle step
+   outward, so the body still takes a press to move it. */
+.bd-mark-sel.is-short .bd-handle.is-n { transform: translateY(-6px); }
+.bd-mark-sel.is-short .bd-handle.is-s { transform: translateY(6px); }
+.bd-mark-sel.is-narrow .bd-handle.is-e { transform: translateX(6px); }
+.bd-mark-sel.is-narrow .bd-handle.is-w { transform: translateX(-6px); }
+.bd-mark-sel:is(.is-short, .is-narrow) .bd-handle.is-nw { transform: translate(-6px, -6px); }
+.bd-mark-sel:is(.is-short, .is-narrow) .bd-handle.is-ne { transform: translate(6px, -6px); }
+.bd-mark-sel:is(.is-short, .is-narrow) .bd-handle.is-se { transform: translate(6px, 6px); }
+.bd-mark-sel:is(.is-short, .is-narrow) .bd-handle.is-sw { transform: translate(-6px, 6px); }
+
+.bd-mark-sel:has(.bd-handle:hover) .bd-handle:not(:hover)::after,
+.bd-mark-sel.is-sizing .bd-handle:not(.is-active)::after {
+  opacity: 0.3;
+}
+
+.bd-handle:hover::after,
+.bd-handle.is-active::after {
+  inset: 3px;
+  background: var(--dt-surface-base);
 }
 
 @media (pointer: coarse) {
   .bd-handle {
-    width: 16px;
-    height: 16px;
-    margin: -8px;
+    width: 28px;
+    height: 28px;
+    margin: -14px;
   }
+
+  .bd-handle::after {
+    inset: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-handle::after {
+    transition: none;
+  }
+}
+
+/* Just outside each corner of a free layer: a grip that turns it. */
+.bd-rotate {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.bd-rotate:active {
+  cursor: grabbing;
+}
+
+.bd-rotate.is-nw { left: -24px; top: -24px; }
+.bd-rotate.is-ne { right: -24px; top: -24px; }
+.bd-rotate.is-se { right: -24px; bottom: -24px; }
+.bd-rotate.is-sw { left: -24px; bottom: -24px; }
+
+/* Size, position or angle by the pointer while it works. */
+.bd-readout {
+  position: fixed;
+  z-index: var(--dt-z-toast);
+  padding: 2px var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-inverse);
+  color: var(--dt-text-inverse);
+  font-size: var(--dt-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .bd-mark-tag {

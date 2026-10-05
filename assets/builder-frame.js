@@ -113,6 +113,11 @@
       delete out.right;
       delete out.bottom;
       delete out.transform;
+      /* Its own size in 4px steps, in place of a size token, and its turn
+         about its centre. */
+      if (st.fw) out.width = "calc(" + FREE_UNIT + " * " + st.fw + ")";
+      if (st.fh) out.height = "calc(" + FREE_UNIT + " * " + st.fh + ")";
+      if (st.rot) out.transform = "rotate(" + st.rot + "deg)";
     }
     return out;
   }
@@ -1106,7 +1111,11 @@
       if (!w) return;
       Array.prototype.forEach.call(w.children, function (c) {
         var on = dx != null;
-        c.style.transform = on ? "translate(" + dx + "px, " + dy + "px)" : "";
+        /* A turned layer keeps its turn while it travels. */
+        if (on && c.dataset.bfTurn === undefined) c.dataset.bfTurn = c.style.transform || "";
+        var turn = c.dataset.bfTurn || "";
+        c.style.transform = on ? ("translate(" + dx + "px, " + dy + "px) " + turn).trim() : turn;
+        if (!on) delete c.dataset.bfTurn;
         c.style.pointerEvents = on ? "none" : "";
         c.style.willChange = on ? "transform" : "";
       });
@@ -1121,6 +1130,13 @@
     /* The padding and margin a node has as drawn, in pixels: what it was
        given, what its component brings, or what it picks up around it. Its
        wrapper is display: contents, so that's its first element. */
+    /* A node's own box, before any turn: its first element's layout size. */
+    size: function (id) {
+      var w = wrapper(id);
+      var el = w && w.firstElementChild;
+      while (el && getComputedStyle(el).display === "contents") el = el.firstElementChild;
+      return el ? { width: el.offsetWidth, height: el.offsetHeight } : null;
+    },
     spacing: function (id) {
       var w = wrapper(id);
       var el = w && w.firstElementChild;

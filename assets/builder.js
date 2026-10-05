@@ -1926,6 +1926,16 @@
         else note(report, n.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k]));
         return;
       }
+      if (k === "fw" || k === "fh") {
+        if (Number.isInteger(st[k]) && st[k] >= 1 && st[k] <= FREE_MAX) style[k] = st[k];
+        else note(report, n.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k]));
+        return;
+      }
+      if (k === "rot") {
+        if (Number.isInteger(st.rot) && st.rot > -180 && st.rot <= 180 && st.rot !== 0) style.rot = st.rot;
+        else if (st.rot !== 0) note(report, n.type + ": rot is whole degrees from -179 to 180, not " + JSON.stringify(st.rot));
+        return;
+      }
       if (k === "alpha") {
         if (Number.isInteger(st.alpha) && st.alpha >= 0 && st.alpha < 100) style.alpha = st.alpha;
         else note(report, n.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha));
@@ -5335,6 +5345,10 @@
       setText(shown);
     }, [shown]);
     var live = useRef({ first: true });
+    var latest2 = useRef(props.value);
+    useEffect(function() {
+      latest2.current = props.value;
+    }, [props.value]);
     var clamp = function(n) {
       return Math.max(0, Math.min(100, Math.round(n)));
     };
@@ -5344,14 +5358,19 @@
         setText(shown);
         return;
       }
-      if (clamp(n) !== props.value) props.onChange(clamp(n));
-      else setText(shown);
+      if (clamp(n) !== props.value) {
+        latest2.current = clamp(n);
+        props.onChange(clamp(n));
+      } else setText(shown);
     };
     var step = function(ev, from) {
       if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown" && ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return false;
       ev.preventDefault();
       var by = (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" || ev.key === "ArrowRight" ? 1 : -1);
-      props.onChange(clamp((from == null ? 100 : from) + by));
+      var next = clamp((from == null ? 100 : from) + by);
+      latest2.current = next;
+      setText(String(next));
+      props.onChange(next);
       return true;
     };
     return e(
@@ -5379,7 +5398,7 @@
           live.current.first = true;
         },
         onKeyDown: function(ev) {
-          step(ev, props.value);
+          step(ev, latest2.current);
         }
       }),
       e(
@@ -5403,7 +5422,7 @@
               ev.preventDefault();
               ev.stopPropagation();
               setText(shown);
-            } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? props.value : Number(text));
+            } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? latest2.current : Number(text));
           }
         }),
         e("span", { className: "bd-num-l bd-opacity-unit", "aria-hidden": true }, "%")
@@ -5555,15 +5574,28 @@
     );
   }
   function NumberField(props) {
-    var textState = useState(String(props.value));
+    var step = props.step || 1, big = props.bigStep || (props.step ? props.step * 4 : 10);
+    var shown = props.value == null ? "" : String(props.value);
+    var textState = useState(shown);
     var text = textState[0], setText = textState[1];
     useEffect(function() {
-      setText(String(props.value));
-    }, [props.value]);
+      setText(shown);
+    }, [shown]);
+    var tidy = function(n) {
+      n = Math.round(n / step) * step;
+      if (props.min != null) n = Math.max(props.min, n);
+      if (props.max != null) n = Math.min(props.max, n);
+      return n;
+    };
     var commit = function() {
-      var n = Math.round(Number(text));
-      if (!text.trim() || !isFinite(n) || n === props.value) {
-        setText(String(props.value));
+      var raw = Number(text);
+      if (!String(text).trim() || text === "-" || !isFinite(raw)) {
+        setText(shown);
+        return;
+      }
+      var n = tidy(raw);
+      if (n === props.value) {
+        setText(shown);
         return;
       }
       props.onChange(n);
@@ -5578,7 +5610,9 @@
       }
       document.documentElement.classList.add("bd-scrubbing");
       var move = function(mv) {
-        var v = Math.max(0, Math.round(v0 + (mv.clientX - x0) * (mv.shiftKey ? 10 : 1)));
+        var dx = mv.clientX - x0;
+        var v = props.step ? tidy(v0 + Math.round(dx / 2) * (mv.shiftKey ? big : step)) : Math.round(v0 + dx * (mv.shiftKey ? 10 : 1));
+        if (!props.signed) v = Math.max(props.min != null ? props.min : 0, v);
         if (v === last) return;
         last = v;
         setText(String(v));
@@ -5601,11 +5635,12 @@
       e("span", { className: cx("bd-num-l", props.onScrub && "is-scrub"), "aria-hidden": true, onPointerDown: props.onScrub ? scrub : void 0 }, props.short),
       e("input", {
         type: "text",
-        inputMode: "numeric",
+        inputMode: props.signed ? "text" : "numeric",
         "aria-label": props.label,
         value: text,
+        placeholder: props.placeholder,
         onChange: function(ev) {
-          setText(ev.target.value.replace(/[^\d]/g, "").slice(0, 5));
+          setText(ev.target.value.replace(props.signed ? /[^\d-]/g : /[^\d]/g, "").replace(/(?!^)-/g, "").slice(0, 6));
         },
         onBlur: commit,
         onKeyDown: function(ev) {
@@ -5615,13 +5650,17 @@
           } else if (ev.key === "Escape") {
             ev.preventDefault();
             ev.stopPropagation();
-            setText(String(props.value));
+            setText(shown);
           } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
             ev.preventDefault();
-            props.onChange((Number(text) || props.value) + (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" ? 1 : -1));
+            var from = text !== "" && isFinite(Number(text)) ? Number(text) : Number(props.value) || 0;
+            var next = tidy(from + (ev.shiftKey ? big : step) * (ev.key === "ArrowUp" ? 1 : -1));
+            setText(String(next));
+            props.onChange(next);
           }
         }
-      })
+      }),
+      props.unit ? e("span", { className: "bd-num-l bd-num-unit", "aria-hidden": true }, props.unit) : null
     );
   }
   function clampZoom(z) {
@@ -5798,6 +5837,10 @@
     var heights = heightsState[0], setHeights = heightsState[1];
     var dragState = useState(null);
     var drag = dragState[0], setDrag = dragState[1];
+    var readoutState = useState(null);
+    var readout = readoutState[0], setReadout = readoutState[1];
+    var sizingState = useState(null);
+    var sizing = sizingState[0], setSizing = sizingState[1];
     var marksState = useState({ sel: [], hover: null, drop: null });
     var marks = marksState[0], setMarks = marksState[1];
     var listDropState = useState(null);
@@ -6554,7 +6597,12 @@
         return {
           sel: f ? selRef.current.map(function(id) {
             var r = toStage(f.rect(id), fid);
-            return r ? { id, r } : null;
+            if (!r) return null;
+            var at2 = locate(docRef.current, id), rot = at2 && at2.node.style && at2.node.style.rot;
+            var size = rot && f.size ? f.size(id) : null;
+            if (!size) return { id, r };
+            var z = camRef.current.z, cx2 = r.left + r.width / 2, cy = r.top + r.height / 2;
+            return { id, r, rot, box: { left: cx2 - size.width * z / 2, top: cy - size.height * z / 2, width: size.width * z, height: size.height * z } };
           }).filter(Boolean) : [],
           hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? toStage(hf.rect(h.id), h.f) : null,
           drop: m.drop
@@ -6822,6 +6870,7 @@
         out.guides = snapped.guides.length ? snapped.guides : null;
         var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
         out.free = { x: gx, y: gy };
+        out.readout = { x, y, text: "X " + Math.round(gx * unit) + "  Y " + Math.round(gy * unit) };
         out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at2.fid) || frame).root.children.length;
         out.line = null;
         out.box = { left: gx * unit, top: gy * unit, width: w, height: h };
@@ -6855,6 +6904,7 @@
     };
     var show = function(hit, ghosted) {
       setListDrop(hit && hit.where === "list" ? hit : null);
+      setReadout(hit && hit.readout ? hit.readout : null);
       setMarks(function(m) {
         var guides = hit && hit.where === "canvas" && hit.guides ? hit.guides.map(function(g) {
           var r = g.v !== void 0 ? toStage({ left: g.v, top: g.from, width: 0, height: g.to - g.from }, hit.frame) : toStage({ left: g.from, top: g.h, width: g.to - g.from, height: 0 }, hit.frame);
@@ -7986,7 +8036,7 @@
       var clipStyle = styleClip.current;
       if (!clipStyle || !selRef.current.length) return false;
       var patch = {};
-      Object.keys(DATA.tokens).concat(["fill", "color", "dark"]).forEach(function(k) {
+      Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rot"]).forEach(function(k) {
         if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k];
       });
       setStyles(selRef.current, patch);
@@ -8692,6 +8742,9 @@
             delete n.style.fill;
             delete n.style.color;
             delete n.style.alpha;
+            delete n.style.fw;
+            delete n.style.fh;
+            delete n.style.rot;
           }
           (n.children || []).forEach(unfree);
         })(f2.root);
@@ -11026,6 +11079,56 @@
       var field = function(key, prefix) {
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
+      if (frame.mode !== "structured" && nodes.every(function(n) {
+        return isFree(n.style);
+      })) {
+        var ids = nodes.map(function(n) {
+          return n.id;
+        });
+        var a = api();
+        var px = function(n, key) {
+          if (n.style[key]) return n.style[key] * 4;
+          var sz = a && a.size ? a.size(n.id) : null;
+          return sz ? Math.round((key === "fw" ? sz.width : sz.height) / 4) * 4 : null;
+        };
+        var free = function(key, short2, label, token) {
+          var vs = nodes.map(function(n) {
+            return px(n, key);
+          });
+          var set2 = function(v, first) {
+            var steps = Math.max(1, Math.min(FREE_MAX, Math.round(v / 4)));
+            var fn = function(d) {
+              ids.forEach(function(id) {
+                var at2 = locate(d, id);
+                if (!at2) return;
+                at2.node.style[key] = steps;
+                delete at2.node.style[token];
+              });
+              return void 0;
+            };
+            if (first === false) quiet(fn);
+            else change(fn, label + " " + steps * 4 + "px");
+          };
+          return e(NumberField, {
+            key,
+            short: short2,
+            label: label + ", in pixels, a multiple of 4",
+            value: same3(vs) ? vs[0] : null,
+            placeholder: "Mixed",
+            step: 4,
+            min: 4,
+            max: FREE_MAX * 4,
+            title: label + ": any multiple of 4px. Arrows step 4, Shift 16; drag the letter to scrub.",
+            onChange: function(v) {
+              set2(v);
+            },
+            onScrub: function(v, first) {
+              set2(v, first);
+            }
+          });
+        };
+        return e("div", { className: "bd-grid2" }, free("fw", "W", "Width", "w"), free("fh", "H", "Height", "height"), field("minW", "Min W"), field("h", "Min H"));
+      }
       return e("div", { className: "bd-grid2" }, field("w", "W"), field("height", "H"), field("minW", "Min W"), field("h", "Min H"));
     };
     var selfRow = function(nodes) {
@@ -13265,11 +13368,34 @@
               } }),
               e(NumberField, { short: "Y", label: "Y position", value: same3(ys) ? Math.round(ys[0] * unit) : "", onChange: function(v) {
                 setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) });
-              } })
+              } }),
+              (function() {
+                var rs = nodes.map(function(n) {
+                  return n.style.rot || 0;
+                });
+                return e(NumberField, {
+                  short: "↻",
+                  label: "Rotation, in degrees",
+                  value: same3(rs) ? rs[0] : null,
+                  placeholder: "Mixed",
+                  signed: true,
+                  step: 1,
+                  bigStep: 15,
+                  min: -179,
+                  max: 180,
+                  unit: "°",
+                  title: "Rotation: whole degrees. Arrows step 1°, Shift 15°. On the canvas, drag just outside a corner.",
+                  onChange: function(v) {
+                    var deg = ((v + 180) % 360 + 360) % 360 - 180;
+                    if (deg === -180) deg = 180;
+                    setStyles(ids, { rot: deg || void 0 });
+                  }
+                });
+              })()
             )
           ),
           e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
-            setStyles(ids, { x: void 0, y: void 0 });
+            setStyles(ids, { x: void 0, y: void 0, fw: void 0, fh: void 0, rot: void 0 });
           } }, "Put it in the flow")
         ];
       }
@@ -13730,7 +13856,7 @@
       else if (current2 === "layout") {
         body = [
           flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self"])),
+          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh"])),
           sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
           sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"]))
         ];
@@ -14110,7 +14236,63 @@
       var start = { x: ev.clientX, y: ev.clientY };
       var first = true, last = "";
       var corner = /[ns]/.test(dir) && /[ew]/.test(dir);
+      var horiz = /[ew]/.test(dir), vert = /[ns]/.test(dir);
+      setSizing({ id, dir });
+      var sz = free && f.size ? f.size(id) : null;
+      var W0 = sz ? sz.width : r0.width, H0 = sz ? sz.height : r0.height;
+      var turn = (at0.node.style.rot || 0) * Math.PI / 180, cos = Math.cos(turn), sin = Math.sin(turn);
+      var ax = /e/.test(dir) ? 0 : /w/.test(dir) ? 1 : 0.5, ay = /s/.test(dir) ? 0 : /n/.test(dir) ? 1 : 0.5;
+      var C0 = { x: x0 * unit + W0 / 2, y: y0 * unit + H0 / 2 };
+      var moveFree = function(mv) {
+        var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
+        var du = dx * cos + dy * sin, dv = -dx * sin + dy * cos;
+        var w = W0 + (/e/.test(dir) ? du : /w/.test(dir) ? -du : 0);
+        var h = H0 + (/s/.test(dir) ? dv : /n/.test(dir) ? -dv : 0);
+        if (corner && mv.shiftKey) {
+          var k = H0 / W0;
+          if (Math.abs(du) >= Math.abs(dv)) h = w * k;
+          else w = h / k;
+        }
+        var fw = Math.max(1, Math.min(FREE_MAX, Math.round(w / unit))), fh = Math.max(1, Math.min(FREE_MAX, Math.round(h / unit)));
+        var W = horiz ? fw * unit : W0, H = vert ? fh * unit : H0;
+        var a = (ax - 0.5) * (W0 - W), b = (ay - 0.5) * (H0 - H);
+        var cx2 = C0.x + a * cos - b * sin, cy = C0.y + a * sin + b * cos;
+        var xs = Math.max(0, Math.min(FREE_MAX, Math.round((cx2 - W / 2) / unit))), ys = Math.max(0, Math.min(FREE_MAX, Math.round((cy - H / 2) / unit)));
+        if (!turn && /w/.test(dir) && xs === 0) {
+          fw = Math.max(1, Math.round((x0 * unit + W0) / unit));
+          W = fw * unit;
+        }
+        if (!turn && /n/.test(dir) && ys === 0) {
+          fh = Math.max(1, Math.round((y0 * unit + H0) / unit));
+          H = fh * unit;
+        }
+        setReadout({ x: mv.clientX, y: mv.clientY, text: Math.round(W) + " × " + Math.round(H) });
+        var key = [horiz && fw, vert && fh, xs, ys].join("|");
+        if (key === last) return;
+        last = key;
+        var fn = function(d) {
+          var at2 = locate(d, id);
+          if (!at2) return null;
+          var st = at2.node.style;
+          if (horiz) {
+            st.fw = fw;
+            delete st.w;
+          }
+          if (vert) {
+            st.fh = fh;
+            delete st.height;
+          }
+          st.x = xs;
+          st.y = ys;
+          return void 0;
+        };
+        if (first) {
+          first = false;
+          change(fn);
+        } else quiet(fn);
+      };
       var move = function(mv) {
+        if (free) return moveFree(mv);
         var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
         var w = r0.width, h = r0.height;
         if (/e/.test(dir)) w = r0.width + dx;
@@ -14122,13 +14304,12 @@
           if (Math.abs(dx) >= Math.abs(dy)) h = w * k;
           else w = h / k;
         }
-        var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true, [at0.node]) : null;
-        var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true, [at0.node]) : null;
+        var tw = horiz ? sizeNear("w", Math.max(8, w), false, true, [at0.node]) : null;
+        var th = vert ? sizeNear("height", Math.max(8, h), false, true, [at0.node]) : null;
         if (!tw && !th) return;
         var wpx = tw ? pxMap["w|" + tw] : r0.width, hpx = th ? pxMap["height|" + th] : r0.height;
-        var xs = free && /w/.test(dir) && wpx != null ? Math.round((r0.width - wpx) / unit) : 0;
-        var ys = free && /n/.test(dir) && hpx != null ? Math.round((r0.height - hpx) / unit) : 0;
-        var key = [tw, th, xs, ys].join("|");
+        setReadout({ x: mv.clientX, y: mv.clientY, text: Math.round(wpx) + " × " + Math.round(hpx) });
+        var key = [tw, th].join("|");
         if (key === last) return;
         last = key;
         var fn = function(d) {
@@ -14136,8 +14317,6 @@
           if (!at2) return null;
           if (tw) at2.node.style.w = tw;
           if (th) at2.node.style.height = th;
-          if (xs) at2.node.style.x = Math.max(0, Math.min(FREE_MAX, x0 + xs));
-          if (ys) at2.node.style.y = Math.max(0, Math.min(FREE_MAX, y0 + ys));
           return void 0;
         };
         if (first) {
@@ -14149,10 +14328,60 @@
         window.removeEventListener("pointermove", move);
         window.removeEventListener("pointerup", up);
         window.removeEventListener("pointercancel", up);
-        if (!first) {
-          var n = locate(docRef.current, id);
-          if (n) announce(nameOf(n.node) + (n.node.style.w ? " is " + n.node.style.w + " wide" : "") + (n.node.style.height ? ", " + n.node.style.height + " tall" : ""));
-        }
+        setSizing(null);
+        setReadout(null);
+        if (first) return;
+        var n = locate(docRef.current, id);
+        if (!n) return;
+        var st = n.node.style;
+        announce(nameOf(n.node) + (st.fw ? " is " + st.fw * 4 + " wide" : st.w ? " is " + st.w + " wide" : "") + (st.fh ? ", " + st.fh * 4 + " tall" : st.height ? ", " + st.height + " tall" : ""));
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      window.addEventListener("pointercancel", up);
+    };
+    var startRotate = function(ev, id) {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      releaseFocus();
+      try {
+        ev.currentTarget.setPointerCapture(ev.pointerId);
+      } catch (err) {
+      }
+      var at0 = locate(docRef.current, id), box2 = ev.currentTarget.parentElement.getBoundingClientRect();
+      if (!at0) return;
+      var cx2 = box2.left + box2.width / 2, cy = box2.top + box2.height / 2;
+      var a0 = Math.atan2(ev.clientY - cy, ev.clientX - cx2), rot0 = at0.node.style.rot || 0;
+      var first = true, last = rot0;
+      setSizing({ id, dir: "rotate" });
+      var move = function(mv) {
+        var deg = rot0 + (Math.atan2(mv.clientY - cy, mv.clientX - cx2) - a0) * 180 / Math.PI;
+        deg = mv.shiftKey ? Math.round(deg / 15) * 15 : Math.round(deg);
+        deg = ((deg + 180) % 360 + 360) % 360 - 180;
+        if (deg === -180) deg = 180;
+        setReadout({ x: mv.clientX, y: mv.clientY, text: deg + "°" });
+        if (deg === last) return;
+        last = deg;
+        var fn = function(d) {
+          var at2 = locate(d, id);
+          if (!at2) return null;
+          if (deg) at2.node.style.rot = deg;
+          else delete at2.node.style.rot;
+          return void 0;
+        };
+        if (first) {
+          first = false;
+          change(fn);
+        } else quiet(fn);
+      };
+      var up = function() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        window.removeEventListener("pointercancel", up);
+        setSizing(null);
+        setReadout(null);
+        if (!first) announce("Turned to " + last + "°");
       };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
@@ -14336,13 +14565,13 @@
         return e(
           React.Fragment,
           { key: f.id },
-          e("div", { className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
+          e("div", { className: "bd-resize is-r", style: { left: X + W, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
             startResize(ev, f, "r");
           } }),
-          e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H - 4, width: W }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
+          e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H, width: W }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
             startResize(ev, f, "b");
           } }),
-          e("div", { className: "bd-resize is-c", style: { left: X + W - 7, top: Y + H - 7 }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
+          e("div", { className: "bd-resize is-c", style: { left: X + W - 3, top: Y + H - 3 }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
             startResize(ev, f, "c");
           } }),
           r ? e("div", { className: "bd-resize-tag", style: { left: X + W, top: Y + H } }, sizeName(r.w, r.h != null ? r.h : f.hug ? null : f.height)) : null
@@ -14392,7 +14621,7 @@
     var stage = e(
       "div",
       {
-        className: cx("bd-stage", drag && "is-dragging", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"),
+        className: cx("bd-stage", drag && "is-dragging", sizing && "is-sizing", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"),
         ref: stageRef,
         style: stageColor ? { backgroundColor: stageColor } : void 0,
         onPointerDown: function(ev) {
@@ -14524,9 +14753,17 @@
           var isMain = m.id === sel && !edit;
           var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
           var handles = isMain && !part && !fixedSpot(at2) && at2.node.type !== "Slot" && !at2.node.lock ? isFree(at2.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
+          var turnable = handles === HANDLES_FREE;
+          var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
+          var short2 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
           return e(
             "div",
-            { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+            { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", sizing && sizing.id === m.id && "is-sizing", handles && short2 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+            turnable ? ["nw", "ne", "se", "sw"].map(function(c) {
+              return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function(ev) {
+                startRotate(ev, at2.node.id);
+              } });
+            }) : null,
             isMain ? e("span", {
               className: "bd-mark-tag",
               title: "Drag to move",
@@ -14537,7 +14774,7 @@
               }
             }, nameOf(at2.node) + (part && part.id === m.id ? " › Title" : "")) : null,
             handles ? handles.map(function(dir) {
-              return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function(ev) {
+              return e("span", { key: dir, className: cx("bd-handle is-" + dir, sizing && sizing.id === m.id && sizing.dir === dir && "is-active"), title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function(ev) {
                 startNodeResize(ev, at2.node.id, dir);
               } });
             }) : null
@@ -15057,6 +15294,7 @@
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || void 0 }, inspector)
       ),
       homePage(),
+      readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
       drag && drag.ghost ? (function() {
         var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
         var x = drag.spot ? drag.spot.x : drag.x - grab.x * z, y = drag.spot ? drag.spot.y : drag.y - grab.y * z;

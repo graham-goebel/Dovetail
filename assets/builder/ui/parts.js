@@ -575,17 +575,24 @@ function OpacityField(props) {
   var text = textState[0], setText = textState[1];
   useEffect(function () { setText(shown); }, [shown]);
   var live = useRef({ first: true });
+  /* The value last asked for, so a quick next press builds on it before
+     the change comes back round. */
+  var latest = useRef(props.value);
+  useEffect(function () { latest.current = props.value; }, [props.value]);
   var clamp = function (n) { return Math.max(0, Math.min(100, Math.round(n))); };
   var commit = function () {
     var n = Number(String(text).replace(/[^\d]/g, ""));
     if (!String(text).trim() || !isFinite(n)) { setText(shown); return; }
-    if (clamp(n) !== props.value) props.onChange(clamp(n)); else setText(shown);
+    if (clamp(n) !== props.value) { latest.current = clamp(n); props.onChange(clamp(n)); } else setText(shown);
   };
   var step = function (ev, from) {
     if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown" && ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return false;
     ev.preventDefault();
     var by = (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" || ev.key === "ArrowRight" ? 1 : -1);
-    props.onChange(clamp((from == null ? 100 : from) + by));
+    var next = clamp((from == null ? 100 : from) + by);
+    latest.current = next;
+    setText(String(next));
+    props.onChange(next);
     return true;
   };
   return e("div", { className: "bd-opacity", role: "group", "aria-labelledby": props.labelledBy },
@@ -595,7 +602,7 @@ function OpacityField(props) {
       onPointerDown: function () { live.current.first = true; },
       onChange: function (ev) { var v = clamp(Number(ev.target.value)); setText(String(v)); props.onLive(v, live.current.first); live.current.first = false; },
       onPointerUp: function () { live.current.first = true; },
-      onKeyDown: function (ev) { step(ev, props.value); },
+      onKeyDown: function (ev) { step(ev, latest.current); },
     }),
     e("label", { className: "bd-num bd-opacity-num" },
       e("input", {
@@ -605,7 +612,7 @@ function OpacityField(props) {
         onKeyDown: function (ev) {
           if (ev.key === "Enter") { ev.preventDefault(); commit(); }
           else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setText(shown); }
-          else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? props.value : Number(text));
+          else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? latest.current : Number(text));
         },
       }),
       e("span", { className: "bd-num-l bd-opacity-unit", "aria-hidden": true }, "%")));
@@ -700,15 +707,29 @@ function SearchField(props) {
 /* A size typed in full before it applies: Enter or leaving the field
    commits it, Escape puts it back, the arrows step it (Shift by ten). */
 function NumberField(props) {
-  var textState = useState(String(props.value));
+  /* step: what the arrows add, and what typed values round to (Shift
+     takes bigStep, four steps, or ten without a step). signed: below zero
+     too. min and max bound what's typed. */
+  var step = props.step || 1, big = props.bigStep || (props.step ? props.step * 4 : 10);
+  var shown = props.value == null ? "" : String(props.value);
+  var textState = useState(shown);
   var text = textState[0], setText = textState[1];
-  useEffect(function () { setText(String(props.value)); }, [props.value]);
+  useEffect(function () { setText(shown); }, [shown]);
+  var tidy = function (n) {
+    n = Math.round(n / step) * step;
+    if (props.min != null) n = Math.max(props.min, n);
+    if (props.max != null) n = Math.min(props.max, n);
+    return n;
+  };
   var commit = function () {
-    var n = Math.round(Number(text));
-    if (!text.trim() || !isFinite(n) || n === props.value) { setText(String(props.value)); return; }
+    var raw = Number(text);
+    if (!String(text).trim() || text === "-" || !isFinite(raw)) { setText(shown); return; }
+    var n = tidy(raw);
+    if (n === props.value) { setText(shown); return; }
     props.onChange(n);
   };
-  /* Press the letter and drag sideways: a pixel a step, ten with Shift. */
+  /* Press the letter and drag sideways: a pixel a step, ten with Shift; with
+     a step, a step every two pixels, four with Shift. */
   var scrub = function (ev) {
     if (ev.button !== 0 || !props.onScrub) return;
     ev.preventDefault();
@@ -716,7 +737,9 @@ function NumberField(props) {
     try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
     document.documentElement.classList.add("bd-scrubbing");
     var move = function (mv) {
-      var v = Math.max(0, Math.round(v0 + (mv.clientX - x0) * (mv.shiftKey ? 10 : 1)));
+      var dx = mv.clientX - x0;
+      var v = props.step ? tidy(v0 + Math.round(dx / 2) * (mv.shiftKey ? big : step)) : Math.round(v0 + dx * (mv.shiftKey ? 10 : 1));
+      if (!props.signed) v = Math.max(props.min != null ? props.min : 0, v);
       if (v === last) return;
       last = v;
       setText(String(v));
@@ -736,18 +759,23 @@ function NumberField(props) {
   return e("label", { className: cx("bd-num", props.muted && "is-muted"), title: props.title },
     e("span", { className: cx("bd-num-l", props.onScrub && "is-scrub"), "aria-hidden": true, onPointerDown: props.onScrub ? scrub : undefined }, props.short),
     e("input", {
-      type: "text", inputMode: "numeric", "aria-label": props.label, value: text,
-      onChange: function (ev) { setText(ev.target.value.replace(/[^\d]/g, "").slice(0, 5)); },
+      type: "text", inputMode: props.signed ? "text" : "numeric", "aria-label": props.label, value: text, placeholder: props.placeholder,
+      onChange: function (ev) { setText(ev.target.value.replace(props.signed ? /[^\d-]/g : /[^\d]/g, "").replace(/(?!^)-/g, "").slice(0, 6)); },
       onBlur: commit,
       onKeyDown: function (ev) {
         if (ev.key === "Enter") { ev.preventDefault(); commit(); }
-        else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setText(String(props.value)); }
+        else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setText(shown); }
         else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
           ev.preventDefault();
-          props.onChange((Number(text) || props.value) + (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" ? 1 : -1));
+          var from = text !== "" && isFinite(Number(text)) ? Number(text) : Number(props.value) || 0;
+          var next = tidy(from + (ev.shiftKey ? big : step) * (ev.key === "ArrowUp" ? 1 : -1));
+          /* Shown at once, so a quick second press builds on it. */
+          setText(String(next));
+          props.onChange(next);
         }
       },
-    }));
+    }),
+    props.unit ? e("span", { className: "bd-num-l bd-num-unit", "aria-hidden": true }, props.unit) : null);
 }
 
 function clampZoom(z) { return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z)); }
