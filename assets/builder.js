@@ -2042,7 +2042,8 @@
 
   // assets/builder/model/store.js
   var DB_NAME = "dovetail-builder";
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
+  var STORES = ["projects", "docs", "versions", "library", "groups"];
   var VERSIONS_MAX = 30;
   var VERSION_EVERY = 10 * 60 * 1e3;
   var LAST_KEY = "dovetail-builder-last";
@@ -2101,6 +2102,7 @@
           if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", { keyPath: "id" });
           if (!db.objectStoreNames.contains("versions")) db.createObjectStore("versions", { keyPath: "key", autoIncrement: true }).createIndex("project", "project");
           if (!db.objectStoreNames.contains("library")) db.createObjectStore("library", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("groups")) db.createObjectStore("groups", { keyPath: "id" });
         };
         req.onsuccess = function() {
           finish(req.result);
@@ -2167,9 +2169,13 @@
   }
   function localBackend() {
     var read = function() {
-      return storage(function(s) {
+      var d = storage(function(s) {
         return JSON.parse(s.getItem(FALLBACK_KEY) || "null");
-      }) || { projects: {}, docs: {}, versions: {}, library: {}, seq: 0 };
+      }) || { seq: 0 };
+      STORES.forEach(function(name) {
+        if (!d[name] || typeof d[name] !== "object") d[name] = {};
+      });
+      return d;
     };
     var write = function(data) {
       var ok = storage(function(s) {
@@ -2266,6 +2272,7 @@
           page: MAIN,
           pageFrames: { main: count(doc) }
         }, settingsOf(extra));
+        if (extra && typeof extra.group === "string" && extra.group) meta.group = extra.group;
         return b.put("projects", meta).then(function() {
           return b.put("docs", { id: meta.id, doc });
         }).then(function() {
@@ -2626,6 +2633,105 @@
           return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
         }
         return b.put("library", { id: "library", value });
+      },
+      /* Projects: groups of files. A file names its group; the group holds a
+         name, its times and a picture of its own if one was chosen. */
+      listGroups: function() {
+        return b.all("groups").then(function(list) {
+          return (list || []).sort(function(x, y) {
+            return y.updatedAt - x.updatedAt;
+          });
+        });
+      },
+      getGroup: function(id) {
+        return b.get("groups", id);
+      },
+      createGroup: function(name) {
+        var g = { id: "g" + uid(), name: String(name || "").trim().slice(0, 80) || "Untitled project", createdAt: now(), updatedAt: now(), thumb: null };
+        return b.put("groups", g).then(function() {
+          return g;
+        });
+      },
+      renameGroup: function(id, name) {
+        return b.get("groups", id).then(function(g) {
+          if (!g) return null;
+          g.name = String(name || "").trim().slice(0, 80) || g.name;
+          g.updatedAt = now();
+          return b.put("groups", g).then(function() {
+            return g;
+          });
+        });
+      },
+      /* A picture of the person's own for the project's card; null goes back
+         to the files' own pictures. */
+      setGroupThumb: function(id, thumb) {
+        return b.get("groups", id).then(function(g) {
+          if (!g) return null;
+          g.thumb = thumb || null;
+          return b.put("groups", g).then(function() {
+            return g;
+          });
+        });
+      },
+      /* A file into a project, or (group null) out onto Home. */
+      moveFile: function(id, group) {
+        return Promise.all([b.get("projects", id), group ? b.get("groups", group) : Promise.resolve(null)]).then(function(got) {
+          var meta = got[0];
+          if (!meta || group && !got[1]) return null;
+          if (group) meta.group = group;
+          else delete meta.group;
+          var steps = b.put("projects", meta);
+          if (got[1]) {
+            got[1].updatedAt = now();
+            steps = steps.then(function() {
+              return b.put("groups", got[1]);
+            });
+          }
+          return steps.then(function() {
+            return meta;
+          });
+        });
+      },
+      filesIn: function(group) {
+        return api.listProjects().then(function(list) {
+          return list.filter(function(p) {
+            return p.group === group;
+          });
+        });
+      },
+      /* With its files, or (keepFiles) leaving them loose on Home. */
+      deleteGroup: function(id, keepFiles) {
+        return api.filesIn(id).then(function(files) {
+          return files.reduce(function(steps, f) {
+            return steps.then(function() {
+              return keepFiles ? api.moveFile(f.id, null) : api.deleteProject(f.id);
+            });
+          }, Promise.resolve());
+        }).then(function() {
+          return b.del("groups", id);
+        });
+      },
+      /* A new project with a copy of every file in it. */
+      duplicateGroup: function(id) {
+        return Promise.all([b.get("groups", id), api.filesIn(id)]).then(function(got) {
+          if (!got[0]) return null;
+          return api.createGroup(got[0].name + " copy").then(function(g) {
+            var steps = got[0].thumb ? api.setGroupThumb(g.id, got[0].thumb) : Promise.resolve();
+            got[1].slice().reverse().forEach(function(f) {
+              steps = steps.then(function() {
+                return api.duplicateProject(f.id);
+              }).then(function(copy2) {
+                if (!copy2) return null;
+                return api.renameProject(copy2.id, f.name).then(function() {
+                  return api.moveFile(copy2.id, g.id);
+                });
+              });
+            });
+            return steps.then(function() {
+              return b.get("groups", g.id);
+            });
+          });
+        });
       },
       lastOpened: function() {
         return storage(function(s) {
@@ -5348,6 +5454,8 @@
   }
 
   // assets/builder/app/App.js
+  var HOME_SORT_KEY = "dovetail-builder-home-sort";
+  var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
   var VIRTUAL_AFTER = 6;
   var LIVE_MAX = 8;
   var HISTORY_MAX = 200;
@@ -7934,8 +8042,16 @@
       if (accountRef.current && accountRef.current.open) return false;
       if (homeRef.current) {
         if (ev.key === "Escape") {
-          closeProjects();
+          if (homeViewRef.current) goHomeView(null);
+          else closeProjects();
           return true;
+        }
+        if (ev.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) && !ev.target.isContentEditable) {
+          var find = document.querySelector(".bd-home-search input");
+          if (find) {
+            find.focus();
+            return true;
+          }
         }
         return false;
       }
@@ -8730,17 +8846,61 @@
     var renamingProj = renamingState[0], setRenamingProj = renamingState[1];
     var confirmState = useState(null);
     var confirmDel = confirmState[0], setConfirmDel = confirmState[1];
+    var groupListState = useState([]);
+    var groupList = groupListState[0], setGroupList = groupListState[1];
+    var homeViewState = useState(null);
+    var homeView = homeViewState[0], setHomeView = homeViewState[1];
+    var homeViewRef = useRef(null);
+    homeViewRef.current = homeView;
+    var homeSortState = useState(function() {
+      var v = storage(function(st) {
+        return st.getItem(HOME_SORT_KEY);
+      });
+      return HOME_SORTS.some(function(o) {
+        return o.value === v;
+      }) ? v : "recent";
+    });
+    var homeSort = homeSortState[0], setHomeSortState = homeSortState[1];
+    var setHomeSort = function(v) {
+      setHomeSortState(v);
+      storage(function(st) {
+        st.setItem(HOME_SORT_KEY, v);
+      });
+    };
+    var renamingGroupState = useState(null);
+    var renamingGroup = renamingGroupState[0], setRenamingGroup = renamingGroupState[1];
+    var openingState = useState(null);
+    var opening = openingState[0], setOpeningState = openingState[1];
+    var openingRef = useRef(null);
+    var setOpening = function(id) {
+      openingRef.current = id;
+      setOpeningState(id);
+    };
+    var pictureRef = useRef(null);
+    var pictureFor = useRef(null);
+    var arrivingState = useState(false);
+    var arriving = arrivingState[0], setArriving = arrivingState[1];
     var versionsState = useState([]);
     var versions = versionsState[0], setVersions = versionsState[1];
     var shownState = useState(null);
     var shown = shownState[0], setShown = shownState[1];
     var importFileRef = useRef(null);
     var refreshProjects = function() {
-      return store.listProjects().then(function(list) {
-        setProjList(list);
-        return list;
+      return Promise.all([store.listProjects(), store.listGroups()]).then(function(got) {
+        setGroupList(got[1]);
+        setProjList(got[0]);
+        return got[0];
       });
     };
+    var groupById = function(id) {
+      return (groupList || []).filter(function(g) {
+        return g.id === id;
+      })[0] || null;
+    };
+    useEffect(function() {
+      store.listGroups().then(setGroupList, function() {
+      });
+    }, []);
     var captureThumb = function(byUser) {
       var pid = projectRef.current.id;
       if (projectRef.current.thumbSet && !byUser) return Promise.resolve();
@@ -8842,10 +9002,12 @@
         refreshProjects();
       });
     };
-    var openProjects = function() {
+    var openProjects = function(view2) {
       setProjQuery("");
       setRenamingProj(null);
+      setRenamingGroup(null);
       setConfirmDel(null);
+      setHomeView(typeof view2 === "string" ? view2 : null);
       setProjList(null);
       refreshProjects();
       setHome(true);
@@ -8855,6 +9017,14 @@
       setHome(false);
       setConfirmDel(null);
       setRenamingProj(null);
+      setRenamingGroup(null);
+    };
+    var goHomeView = function(view2) {
+      setProjQuery("");
+      setConfirmDel(null);
+      setRenamingProj(null);
+      setRenamingGroup(null);
+      setHomeView(view2 || null);
     };
     var switchTo = function(meta, d, message, pg) {
       var next = freeze(d, true);
@@ -8875,6 +9045,11 @@
       docRef.current = next;
       setDoc(next);
       closeProjects();
+      setOpening(null);
+      setArriving(true);
+      setTimeout(function() {
+        setArriving(false);
+      }, 420);
       if (message) announce(message);
       setTimeout(function() {
         showFrameRef.current(next.active);
@@ -8885,15 +9060,21 @@
         closeProjects();
         return;
       }
+      if (openingRef.current) return;
+      setOpening(meta.id);
       var pg = pageOf(meta);
       captureThumb().then(flush).then(function() {
         return store.loadDoc(meta.id, pg);
       }).then(function(d) {
         if (!d) {
-          announce("That project couldn't be opened.");
+          setOpening(null);
+          announce("That file couldn't be opened.");
           return;
         }
         switchTo(meta, d, "Opened " + meta.name, pg);
+      }, function() {
+        setOpening(null);
+        announce("That file couldn't be opened.");
       });
     };
     var newProject = function(starterId) {
@@ -8907,11 +9088,101 @@
       var name = s ? s[1] : "Untitled";
       for (var n = 2; taken.indexOf(name) >= 0; n++) name = (s ? s[1] : "Untitled") + " " + n;
       var P = window.DovetailConfigurePanel;
-      var settings = { stage: "", theme: P && P.theme ? P.theme() : void 0 };
+      var settings = { stage: "", theme: P && P.theme ? P.theme() : void 0, group: homeRef.current ? homeViewRef.current : projectRef.current.group };
       captureThumb().then(flush).then(function() {
         return store.createProject(name, d, settings);
       }).then(function(meta) {
-        switchTo(meta, d, "Made a new project, " + name);
+        switchTo(meta, d, "Made a new file, " + name);
+      });
+    };
+    var newGroup = function() {
+      var taken = (groupList || []).map(function(g) {
+        return g.name;
+      });
+      var name = "Untitled project";
+      for (var n = 2; taken.indexOf(name) >= 0; n++) name = "Untitled project " + n;
+      store.createGroup(name).then(function(g) {
+        return refreshProjects().then(function() {
+          goHomeView(g.id);
+          setRenamingGroup(g.id);
+          announce("Made a new project. Type its name.");
+        });
+      });
+    };
+    var renameGroup = function(id, name) {
+      setRenamingGroup(null);
+      if (!name) return;
+      store.renameGroup(id, name).then(refreshProjects);
+    };
+    var duplicateGroup = function(id) {
+      flush().then(function() {
+        return store.duplicateGroup(id);
+      }).then(function(g) {
+        if (g) announce("Made a copy, " + g.name);
+        refreshProjects();
+      });
+    };
+    var moveFile = function(id, group) {
+      var g = group ? groupById(group) : null;
+      var f = (projList || []).filter(function(p) {
+        return p.id === id;
+      })[0];
+      store.moveFile(id, group).then(function(meta) {
+        if (!meta) return;
+        if (id === projectRef.current.id) {
+          projectRef.current = meta;
+          setProject(meta);
+        }
+        announce((f ? f.name : "The file") + (g ? " is in " + g.name + " now" : " is on Home now"));
+        refreshProjects();
+      });
+    };
+    var afterCurrentGone = function(list) {
+      if (list.length) store.loadDoc(list[0].id, pageOf(list[0])).then(function(d2) {
+        switchTo(list[0], d2 || emptyDoc(), "Opened " + list[0].name, pageOf(list[0]));
+      });
+      else {
+        var d = starterDoc();
+        store.createProject("Untitled", d).then(function(meta) {
+          switchTo(meta, d, "Made a new file");
+          refreshProjects();
+        });
+      }
+    };
+    var deleteGroup = function(id, keepFiles) {
+      setConfirmDel(null);
+      var g = groupById(id);
+      var hadCurrent = projectRef.current.group === id;
+      store.deleteGroup(id, keepFiles).then(refreshProjects).then(function(list) {
+        announce("Deleted " + (g ? g.name : "the project") + (keepFiles ? "; its files are on Home" : ""));
+        if (homeViewRef.current === id) goHomeView(null);
+        if (!hadCurrent) return;
+        if (keepFiles) {
+          store.getProject(projectRef.current.id).then(function(meta) {
+            if (meta) {
+              projectRef.current = meta;
+              setProject(meta);
+            }
+          });
+          return;
+        }
+        afterCurrentGone(list);
+      });
+    };
+    var choosePicture = function(key) {
+      pictureFor.current = key;
+      if (pictureRef.current) pictureRef.current.click();
+    };
+    var setGroupPicture = function(id, file) {
+      pictureFrom(file).then(function(thumb) {
+        if (!thumb) {
+          announce("That file isn't a picture this browser can read.");
+          return;
+        }
+        store.setGroupThumb(id, thumb).then(function() {
+          announce("Picture set");
+          refreshProjects();
+        });
       });
     };
     var renameProject = function(id, name) {
@@ -8940,18 +9211,8 @@
         return p.id === id;
       })[0];
       store.deleteProject(id).then(refreshProjects).then(function(list) {
-        announce("Deleted " + (gone ? gone.name : "the project"));
-        if (id !== projectRef.current.id) return;
-        if (list.length) store.loadDoc(list[0].id, pageOf(list[0])).then(function(d2) {
-          switchTo(list[0], d2 || emptyDoc(), "Opened " + list[0].name, pageOf(list[0]));
-        });
-        else {
-          var d = starterDoc();
-          store.createProject("Untitled", d).then(function(meta) {
-            switchTo(meta, d, "Made a new project");
-            refreshProjects();
-          });
-        }
+        announce("Deleted " + (gone ? gone.name : "the file"));
+        if (id === projectRef.current.id) afterCurrentGone(list);
       });
     };
     var renamingPageState = useState(null);
@@ -9095,34 +9356,83 @@
       });
     };
     var PROJECT_FORMAT = "dovetail-project";
-    var exportProject = function(id) {
-      flush().then(function() {
-        return store.getProject(id);
-      }).then(function(meta) {
+    var BUNDLE_FORMAT = "dovetail-bundle";
+    var fileData = function(id) {
+      return store.getProject(id).then(function(meta) {
         if (!meta) return null;
         return Promise.all(pagesOf(meta).map(function(p) {
           return store.loadDoc(id, p.id);
         })).then(function(docs) {
-          return [meta, docs];
+          var pages = pagesOf(meta).map(function(p, i) {
+            return { name: p.name, doc: docs[i], folder: p.folder || void 0 };
+          }).filter(function(p) {
+            return p.doc;
+          });
+          if (!pages.length) return null;
+          return { format: PROJECT_FORMAT, version: 2, name: meta.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: pages[0].doc, pages, folders: foldersOf(meta), stage: meta.stage, theme: meta.theme };
         });
-      }).then(function(got) {
-        if (!got || !got[1][0]) return;
-        var pages = pagesOf(got[0]).map(function(p, i) {
-          return { name: p.name, doc: got[1][i], folder: p.folder || void 0 };
-        }).filter(function(p) {
-          return p.doc;
+      });
+    };
+    var download = function(data, name) {
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
+      link.download = (name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".dovetail";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function() {
+        URL.revokeObjectURL(link.href);
+      }, 4e3);
+      announce("Downloaded " + link.download);
+    };
+    var exportProject = function(id) {
+      flush().then(function() {
+        return fileData(id);
+      }).then(function(data) {
+        if (data) download(data, data.name);
+      });
+    };
+    var exportGroup = function(id) {
+      var g = groupById(id);
+      if (!g) return;
+      flush().then(function() {
+        return store.filesIn(id);
+      }).then(function(files) {
+        return Promise.all(files.map(function(f) {
+          return fileData(f.id);
+        }));
+      }).then(function(list) {
+        download({ format: BUNDLE_FORMAT, version: 1, name: g.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), files: list.filter(Boolean) }, g.name);
+      });
+    };
+    var fileFromData = function(data, fallback, group) {
+      if (!data || data.format !== PROJECT_FORMAT || !data.doc) return Promise.resolve(null);
+      var dropped = [];
+      var given = (Array.isArray(data.pages) && data.pages.length ? data.pages : [{ name: "Page 1", doc: data.doc }]).slice(0, 50).filter(function(p) {
+        return p && p.doc && typeof p.doc === "object";
+      });
+      if (!given.length) return Promise.resolve(null);
+      var pages = given.map(function(p, i) {
+        return { name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "Page " + (i + 1), doc: clean(p.doc, dropped), folder: typeof p.folder === "string" ? p.folder : null };
+      });
+      var d = pages[0].doc;
+      var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : fallback;
+      return store.createProject(name, d, { stage: data.stage, theme: data.theme, group: group || void 0 }).then(function(meta) {
+        var steps = store.setFolders(meta.id, data.folders).then(function() {
+          return store.renamePage(meta.id, pageOf(meta), pages[0].name);
+        }).then(function() {
+          return pages[0].folder ? store.placePage(meta.id, pageOf(meta), 0, pages[0].folder) : null;
         });
-        var file = JSON.stringify({ format: PROJECT_FORMAT, version: 2, name: got[0].name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: pages[0].doc, pages, folders: foldersOf(got[0]), stage: got[0].stage, theme: got[0].theme });
-        var link = document.createElement("a");
-        link.href = URL.createObjectURL(new Blob([file], { type: "application/json" }));
-        link.download = (got[0].name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + ".dovetail";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(function() {
-          URL.revokeObjectURL(link.href);
-        }, 4e3);
-        announce("Downloaded " + link.download);
+        pages.slice(1).forEach(function(p) {
+          steps = steps.then(function() {
+            return store.addPage(meta.id, p.name, p.doc, void 0, p.folder);
+          });
+        });
+        return steps.then(function() {
+          return store.getProject(meta.id);
+        });
+      }).then(function(meta) {
+        return { meta, doc: d, dropped: dropped.length, name };
       });
     };
     var importProject = function(file) {
@@ -9130,47 +9440,50 @@
       var reader = new FileReader();
       reader.onload = function() {
         var data;
+        var fallback = file.name.replace(/\.[\w]+$/, "");
         try {
           data = JSON.parse(String(reader.result));
         } catch (err) {
-          announce(file.name + " isn't a Dovetail project file.");
+          announce(file.name + " isn't a Dovetail file.");
+          return;
+        }
+        if (data && data.format === BUNDLE_FORMAT && Array.isArray(data.files)) {
+          var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : fallback;
+          var made = 0;
+          flush().then(function() {
+            return store.createGroup(name);
+          }).then(function(g) {
+            var steps = Promise.resolve();
+            data.files.slice(0, 100).forEach(function(f, i) {
+              steps = steps.then(function() {
+                return fileFromData(f, "File " + (i + 1), g.id);
+              }).then(function(got) {
+                if (got) made++;
+              });
+            });
+            return steps.then(function() {
+              return refreshProjects();
+            }).then(function() {
+              setHome(true);
+              goHomeView(g.id);
+              announce("Opened " + name + ", with " + made + (made === 1 ? " file" : " files"));
+            });
+          });
           return;
         }
         if (!data || data.format !== PROJECT_FORMAT || !data.doc) {
-          announce(file.name + " isn't a Dovetail project file.");
+          announce(file.name + " isn't a Dovetail file.");
           return;
         }
-        var dropped = [];
-        var given = (Array.isArray(data.pages) && data.pages.length ? data.pages : [{ name: "Page 1", doc: data.doc }]).slice(0, 50).filter(function(p) {
-          return p && p.doc && typeof p.doc === "object";
-        });
-        if (!given.length) {
-          announce(file.name + " isn't a Dovetail project file.");
-          return;
-        }
-        var pages = given.map(function(p, i) {
-          return { name: typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "Page " + (i + 1), doc: clean(p.doc, dropped), folder: typeof p.folder === "string" ? p.folder : null };
-        });
-        var d = pages[0].doc;
-        var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : file.name.replace(/\.[\w]+$/, "");
+        var group = homeRef.current ? homeViewRef.current : null;
         captureThumb().then(flush).then(function() {
-          return store.createProject(name, d, { stage: data.stage, theme: data.theme });
-        }).then(function(meta) {
-          var steps = store.setFolders(meta.id, data.folders).then(function() {
-            return store.renamePage(meta.id, pageOf(meta), pages[0].name);
-          }).then(function() {
-            return pages[0].folder ? store.placePage(meta.id, pageOf(meta), 0, pages[0].folder) : null;
-          });
-          pages.slice(1).forEach(function(p) {
-            steps = steps.then(function() {
-              return store.addPage(meta.id, p.name, p.doc, void 0, p.folder);
-            });
-          });
-          return steps.then(function() {
-            return store.getProject(meta.id);
-          });
-        }).then(function(meta) {
-          switchTo(meta, d, "Opened " + name + (dropped.length ? ". " + dropped.length + (dropped.length === 1 ? " thing" : " things") + " in it were left out." : ""));
+          return fileFromData(data, fallback, group);
+        }).then(function(got) {
+          if (!got) {
+            announce(file.name + " isn't a Dovetail file.");
+            return;
+          }
+          switchTo(got.meta, got.doc, "Opened " + got.name + (got.dropped ? ". " + got.dropped + (got.dropped === 1 ? " thing" : " things") + " in it were left out." : ""));
           refreshProjects();
         });
       };
@@ -9209,146 +9522,333 @@
         }, 0);
       });
     };
+    var sortWhen = function(x, files) {
+      if (homeSort === "created") return x.createdAt || 0;
+      return files ? files.reduce(function(t, f) {
+        return Math.max(t, f.updatedAt || 0);
+      }, x.updatedAt || 0) : x.updatedAt || 0;
+    };
+    var sortList = function(list, filesOf) {
+      return list.slice().sort(function(a, b) {
+        if (homeSort === "alpha") return a.name.localeCompare(b.name, void 0, { sensitivity: "base", numeric: true });
+        if (homeSort === "recent" && !filesOf) {
+          var cur = (b.id === project.id) - (a.id === project.id);
+          if (cur) return cur;
+        }
+        return sortWhen(b, filesOf ? filesOf(b) : null) - sortWhen(a, filesOf ? filesOf(a) : null);
+      });
+    };
+    var confirmRow = function(label, text, actions2) {
+      return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text), actions2);
+    };
+    var fileCard = function(p, showGroup) {
+      var current2 = p.id === project.id, isOpening = opening === p.id;
+      var g = showGroup && p.group ? groupById(p.group) : null;
+      var when = homeSort === "created" ? "Made " + ago(p.createdAt).toLowerCase() : ago(p.updatedAt);
+      var pages = pagesOf(p).length;
+      return e(
+        "li",
+        { key: p.id, className: cx("bd-proj", current2 && "is-current", isOpening && "is-opening"), "data-project": p.id },
+        e(
+          "button",
+          { type: "button", className: "bd-proj-open", onClick: function() {
+            openProject(p);
+          }, "aria-label": "Open " + p.name + (current2 ? ", open now" : ""), "aria-busy": isOpening ? "true" : void 0 },
+          e(
+            "span",
+            { className: "bd-proj-thumb", "aria-hidden": "true" },
+            p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" }),
+            isOpening ? e("span", { className: "bd-proj-loading" }, e("span", { className: "bd-spinner" })) : null
+          )
+        ),
+        e(
+          "div",
+          { className: "bd-proj-row" },
+          e(
+            "div",
+            { className: "bd-proj-info" },
+            renamingProj === p.id ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "File name", startEditing: true, onChange: function(v) {
+              renameProject(p.id, v);
+            } }) : e("span", { className: "bd-proj-name" }, p.name),
+            e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + when + (pages > 1 ? " · " + pages + " pages" : "") + " · " + p.frames + (p.frames === 1 ? " frame" : " frames") + (g ? " · in " + g.name : ""))
+          ),
+          e(Dropdown, {
+            menu: true,
+            label: "Actions for " + p.name,
+            placeholder: "File",
+            icon: "more",
+            iconOnly: true,
+            compact: true,
+            narrow: true,
+            alignEnd: true,
+            className: "bd-dd-icon bd-proj-menu",
+            options: [
+              { value: "open", label: "Open", icon: "exportOut" },
+              { value: "rename", label: "Rename", icon: "pencil" },
+              { value: "picture", label: "Choose a picture", icon: "image" },
+              { value: "duplicate", label: "Duplicate", icon: "copy" },
+              { value: "download", label: "Download as a file", icon: "upload" },
+              { value: "delete", label: "Delete", icon: "trash", danger: true }
+            ].concat((groupList || []).filter(function(x) {
+              return x.id !== p.group;
+            }).map(function(x) {
+              return { value: "into:" + x.id, label: "Move to " + x.name, icon: "folder", group: "Move" };
+            })).concat(p.group ? [{ value: "out", label: "Move out to Home", icon: "home", group: "Move" }] : []),
+            onChange: function(v) {
+              if (v === "open") openProject(p);
+              else if (v === "rename") setRenamingProj(p.id);
+              else if (v === "picture") choosePicture(p.id);
+              else if (v === "duplicate") duplicateProject(p.id);
+              else if (v === "out") moveFile(p.id, null);
+              else if (v === "download") exportProject(p.id);
+              else if (v === "delete") setConfirmDel(p.id);
+              else if (String(v).indexOf("into:") === 0) moveFile(p.id, v.slice(5));
+            }
+          })
+        ),
+        confirmDel === p.id ? confirmRow("Delete " + p.name, "Delete for good?", [
+          e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+            deleteProject(p.id);
+          } }, "Delete"),
+          e("button", { key: "k", type: "button", className: "bd-btn", onClick: function() {
+            setConfirmDel(null);
+          } }, "Keep")
+        ]) : null
+      );
+    };
+    var groupCard = function(g, files) {
+      var key = "g:" + g.id;
+      var pics = files.filter(function(f) {
+        return f.thumb;
+      }).slice(0, 4);
+      var n = files.length;
+      var when = homeSort === "created" ? "Made " + ago(g.createdAt).toLowerCase() : ago(sortWhen(g, files));
+      return e(
+        "li",
+        { key, className: "bd-proj is-group", "data-group": g.id },
+        e(
+          "button",
+          { type: "button", className: "bd-proj-open", onClick: function() {
+            goHomeView(g.id);
+          }, "aria-label": "Open " + g.name + ", " + n + (n === 1 ? " file" : " files") },
+          e(
+            "span",
+            { className: cx("bd-proj-thumb", !g.thumb && pics.length > 1 && "is-mosaic"), "aria-hidden": "true" },
+            g.thumb ? e("img", { src: g.thumb, alt: "" }) : pics.length > 1 ? pics.map(function(f) {
+              return e("img", { key: f.id, src: f.thumb, alt: "" });
+            }) : pics.length ? e("img", { src: pics[0].thumb, alt: "" }) : e(Icon, { name: "folder" }),
+            e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n + (n === 1 ? " file" : " files"))
+          )
+        ),
+        e(
+          "div",
+          { className: "bd-proj-row" },
+          e(
+            "div",
+            { className: "bd-proj-info" },
+            renamingGroup === g.id ? e(Renamable, { className: "bd-proj-name", value: g.name, label: "Project name", startEditing: true, onChange: function(v) {
+              renameGroup(g.id, v);
+            } }) : e("span", { className: "bd-proj-name" }, g.name),
+            e("span", { className: "bd-proj-meta" }, when)
+          ),
+          e(Dropdown, {
+            menu: true,
+            label: "Actions for " + g.name,
+            placeholder: "Project",
+            icon: "more",
+            iconOnly: true,
+            compact: true,
+            narrow: true,
+            alignEnd: true,
+            className: "bd-dd-icon bd-proj-menu",
+            options: [
+              { value: "open", label: "Open", icon: "folder" },
+              { value: "rename", label: "Rename", icon: "pencil" },
+              { value: "picture", label: "Choose a picture", icon: "image" }
+            ].concat(g.thumb ? [{ value: "auto", label: "Picture from its files", icon: "rotate" }] : []).concat([
+              { value: "duplicate", label: "Duplicate", icon: "copy" },
+              { value: "download", label: "Download as a file", icon: "upload" },
+              { value: "delete", label: "Delete", icon: "trash", danger: true }
+            ]),
+            onChange: function(v) {
+              if (v === "open") goHomeView(g.id);
+              else if (v === "rename") setRenamingGroup(g.id);
+              else if (v === "picture") choosePicture(key);
+              else if (v === "auto") store.setGroupThumb(g.id, null).then(refreshProjects);
+              else if (v === "duplicate") duplicateGroup(g.id);
+              else if (v === "download") exportGroup(g.id);
+              else if (v === "delete") setConfirmDel(key);
+            }
+          })
+        ),
+        confirmDel === key ? confirmRow("Delete " + g.name, n ? "Delete the project and its " + (n === 1 ? "file" : n + " files") + "?" : "Delete this empty project?", n ? [
+          e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+            deleteGroup(g.id, false);
+          } }, "Delete all"),
+          e("button", { key: "k", type: "button", className: "bd-btn", onClick: function() {
+            deleteGroup(g.id, true);
+          }, title: "Delete the project and keep its files on Home" }, "Keep files"),
+          e("button", { key: "c", type: "button", className: "bd-btn bd-btn-ghost", onClick: function() {
+            setConfirmDel(null);
+          } }, "Cancel")
+        ] : [
+          e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+            deleteGroup(g.id, false);
+          } }, "Delete"),
+          e("button", { key: "c", type: "button", className: "bd-btn", onClick: function() {
+            setConfirmDel(null);
+          } }, "Keep")
+        ]) : null
+      );
+    };
+    var skeleton = function() {
+      return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function(i) {
+        return e("li", { key: i, className: "bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
+      }));
+    };
     var homePage = function() {
       if (!home) return null;
       var q = projQuery.trim().toLowerCase();
-      var list = (projList || []).filter(function(p) {
-        return !q || p.name.toLowerCase().indexOf(q) >= 0;
-      }).sort(function(x, y) {
-        return (y.id === project.id) - (x.id === project.id) || y.updatedAt - x.updatedAt;
-      });
+      var files = projList || [], groups = groupList || [];
+      var inGroup = homeView ? groupById(homeView) : null;
+      var filesOf = function(g) {
+        return files.filter(function(f) {
+          return f.group === g.id;
+        });
+      };
+      var match = function(x) {
+        return !q || x.name.toLowerCase().indexOf(q) >= 0;
+      };
+      var shownGroups = inGroup ? [] : sortList(groups.filter(match), filesOf);
+      var shownFiles = sortList(files.filter(function(f) {
+        return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group;
+      }));
+      var count = shownGroups.length + shownFiles.length;
+      var section = function(title, list) {
+        return e(
+          "section",
+          { className: "bd-home-sec", "aria-label": title },
+          inGroup ? null : e("h2", { className: "bd-home-sec-title" }, title),
+          e("ul", { className: "bd-projects-grid", role: "list" }, list)
+        );
+      };
+      var empty = !projList ? null : q ? inGroup ? "No file in " + inGroup.name + " is called that." : "Nothing is called that." : inGroup ? "No files in this project yet. Make one with New, or move one here from Home with its ⋯ menu." : "Nothing here yet. Make a file or a project with New.";
       return e(
         "main",
         { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
         /* On a phone the bar lives in the canvas pane, under this page, so it comes along. */
         slot ? null : toolbar,
+        e("input", {
+          ref: pictureRef,
+          type: "file",
+          className: "visually-hidden",
+          accept: "image/*",
+          tabIndex: -1,
+          "aria-hidden": "true",
+          onChange: function(ev) {
+            var f = ev.target.files && ev.target.files[0];
+            ev.target.value = "";
+            var who = pictureFor.current;
+            pictureFor.current = null;
+            if (!who || !f) return;
+            if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f);
+            else setPicture(who, f);
+          }
+        }),
+        e("input", {
+          ref: importFileRef,
+          type: "file",
+          className: "visually-hidden",
+          accept: ".dovetail,application/json",
+          tabIndex: -1,
+          "aria-hidden": "true",
+          onChange: function(ev) {
+            var f = ev.target.files && ev.target.files[0];
+            ev.target.value = "";
+            importProject(f);
+          }
+        }),
         e(
           "div",
-          { className: "bd-home-inner" },
+          { className: "bd-home-inner", key: homeView || "home" },
           e(
             "div",
             { className: "bd-home-head" },
             e(
               "div",
-              { className: "bd-code-intro" },
-              e("h1", { id: "bd-projects-title", className: "bd-home-title" }, "Projects"),
-              e("p", { className: "bd-inspect-sub" }, "Each project has its own canvas, saved in this browser. Download one as a file to move it or keep a copy.")
+              { className: "bd-home-heading" },
+              inGroup ? e(
+                "nav",
+                { className: "bd-crumbs bd-home-crumbs", "aria-label": "Where you are" },
+                e("button", { type: "button", className: "bd-crumb", onClick: function() {
+                  goHomeView(null);
+                } }, "Home"),
+                e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
+                e("span", { className: "bd-crumb", "aria-current": "page" }, inGroup.name)
+              ) : null,
+              inGroup && renamingGroup === inGroup.id ? e(Renamable, { className: "bd-home-title", value: inGroup.name, label: "Project name", startEditing: true, onChange: function(v) {
+                renameGroup(inGroup.id, v);
+              } }) : e("h1", { id: "bd-projects-title", className: "bd-home-title", onDoubleClick: inGroup ? function() {
+                setRenamingGroup(inGroup.id);
+              } : void 0, title: inGroup ? "Double-click to rename" : void 0 }, inGroup ? inGroup.name : "Home")
             ),
             e(
               "div",
-              { className: "bd-code-actions" },
+              { className: "bd-code-actions bd-home-actions" },
               e(
                 "button",
                 { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account2.status === "in" ? "Signed in as " + account2.account.email : account2.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
                 e(Icon, { name: "user" }),
                 account2.status === "in" ? "Account" : "Sign in"
               ),
-              e(
-                "label",
-                { className: "bd-btn", title: "Open a .dovetail file as a new project" },
-                e(Icon, { name: "upload" }),
-                "Open file",
-                e("input", {
-                  ref: importFileRef,
-                  type: "file",
-                  className: "visually-hidden",
-                  accept: ".dovetail,application/json",
-                  onChange: function(ev) {
-                    var f = ev.target.files && ev.target.files[0];
-                    ev.target.value = "";
-                    importProject(f);
-                  }
-                })
-              )
+              e(Dropdown, {
+                menu: true,
+                label: "New",
+                placeholder: "New",
+                icon: "plus",
+                compact: true,
+                alignEnd: true,
+                className: "bd-home-new",
+                options: (inGroup ? [] : [{ value: "project", label: "New project", icon: "folder", hint: "A group of files" }]).concat([
+                  { value: "file", label: inGroup ? "New file in " + inGroup.name : "New file", icon: "file", hint: "A blank canvas" }
+                ]).concat(STARTERS.filter(function(st) {
+                  return st[0] !== "blank";
+                }).map(function(st) {
+                  return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" };
+                })).concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
+                onChange: function(v) {
+                  if (v === "project") newGroup();
+                  else if (v === "file") newProject(null);
+                  else if (v === "open") {
+                    if (importFileRef.current) importFileRef.current.click();
+                  } else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
+                }
+              })
             )
           ),
           e(
             "div",
-            { className: "bd-projects-bar" },
-            e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function() {
-              newProject(null);
-            } }, e(Icon, { name: "plus" }), "New project"),
+            { className: "bd-home-tools" },
+            e(SearchField, { className: "bd-projects-search bd-home-search", label: inGroup ? "Search " + inGroup.name : "Search projects and files", placeholder: inGroup ? "Search " + inGroup.name : "Search projects and files", value: projQuery, onChange: setProjQuery }),
             e(
-              "span",
-              { className: "bd-projects-tpl", role: "group", "aria-label": "New project from a template" },
-              STARTERS.filter(function(st) {
-                return st[0] !== "blank";
-              }).map(function(st) {
-                return e("button", { key: st[0], type: "button", className: "bd-btn bd-chip", onClick: function() {
-                  newProject(st[0]);
-                }, title: "A new project from the " + st[1] + " template" }, st[1]);
-              })
-            ),
-            e(SearchField, { className: "bd-projects-search", label: "Search projects", placeholder: "Search projects", value: projQuery, onChange: setProjQuery })
+              "div",
+              { className: "bd-home-bar" },
+              e(Segmented, { label: "Sort by", className: "bd-home-sort", value: homeSort, onChange: function(v) {
+                if (v) setHomeSort(v);
+              }, options: HOME_SORTS }),
+              projList ? e("span", { className: "bd-home-count", role: "status" }, count + (count === 1 ? " item" : " items")) : null
+            )
           ),
-          list.length ? e("ul", { className: "bd-projects-grid", role: "list" }, list.map(function(p) {
-            var current2 = p.id === project.id;
-            return e(
-              "li",
-              { key: p.id, className: cx("bd-proj", current2 && "is-current"), "data-project": p.id },
-              e(
-                "button",
-                { type: "button", className: "bd-proj-open", onClick: function() {
-                  openProject(p);
-                }, "aria-label": "Open " + p.name + (current2 ? ", open now" : "") },
-                e(
-                  "span",
-                  { className: "bd-proj-thumb", "aria-hidden": "true" },
-                  p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" })
-                )
-              ),
-              e(
-                "div",
-                { className: "bd-proj-info" },
-                renamingProj === p.id ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "Project name", startEditing: true, onChange: function(v) {
-                  renameProject(p.id, v);
-                } }) : e("span", { className: "bd-proj-name" }, p.name),
-                e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + ago(p.updatedAt) + " · " + (pagesOf(p).length > 1 ? pagesOf(p).length + " pages · " : "") + p.frames + (p.frames === 1 ? " frame" : " frames"))
-              ),
-              confirmDel === p.id ? e(
-                "div",
-                { className: "bd-proj-confirm", role: "group", "aria-label": "Delete " + p.name },
-                e("span", null, "Delete for good?"),
-                e("button", { type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
-                  deleteProject(p.id);
-                } }, "Delete"),
-                e("button", { type: "button", className: "bd-btn", onClick: function() {
-                  setConfirmDel(null);
-                } }, "Keep")
-              ) : e(
-                "span",
-                { className: "bd-proj-acts", role: "group", "aria-label": "Actions for " + p.name },
-                e("button", { type: "button", className: "bd-act", "aria-label": "Rename " + p.name, title: "Rename", onClick: function() {
-                  setRenamingProj(p.id);
-                } }, e(Icon, { name: "pencil" })),
-                e(
-                  "label",
-                  { className: "bd-act", title: "Choose a picture" },
-                  e(Icon, { name: "image" }),
-                  e("input", {
-                    type: "file",
-                    className: "visually-hidden",
-                    accept: "image/*",
-                    "aria-label": "Choose a picture for " + p.name,
-                    onChange: function(ev) {
-                      var f = ev.target.files && ev.target.files[0];
-                      ev.target.value = "";
-                      setPicture(p.id, f);
-                    }
-                  })
-                ),
-                e("button", { type: "button", className: "bd-act", "aria-label": "Duplicate " + p.name, title: "Duplicate", onClick: function() {
-                  duplicateProject(p.id);
-                } }, e(Icon, { name: "copy" })),
-                e("button", { type: "button", className: "bd-act", "aria-label": "Download " + p.name, title: "Download as a file", onClick: function() {
-                  exportProject(p.id);
-                } }, e(Icon, { name: "exportOut" })),
-                e("button", { type: "button", className: "bd-act", "aria-label": "Delete " + p.name, title: "Delete", onClick: function() {
-                  setConfirmDel(p.id);
-                } }, e(Icon, { name: "trash" }))
-              )
-            );
-          })) : e("p", { className: "bd-sec-empty bd-projects-empty", "aria-busy": projList ? void 0 : "true" }, !projList ? "Loading projects…" : q ? "No project is called that." : "No projects yet.")
+          !projList ? skeleton() : !count ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty) : e(
+            "div",
+            { className: "bd-home-lists" },
+            shownGroups.length ? section("Projects", shownGroups.map(function(g) {
+              return groupCard(g, filesOf(g));
+            })) : null,
+            shownFiles.length ? section("Files", shownFiles.map(function(f) {
+              return fileCard(f, !inGroup);
+            })) : null
+          )
         )
       );
     };
@@ -12863,9 +13363,13 @@
       var sep = function(k) {
         return e("span", { key: "s" + k, className: "bd-crumb-sep", "aria-hidden": true }, "›");
       };
-      var crumbs = [e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "Project name", hint: "Double-click to rename this project", focusable: true, onChange: function(v) {
+      var crumbs = [e(Renamable, { key: "project", className: "bd-project-name bd-crumb", value: project.name, label: "File name", hint: "Double-click to rename this file", focusable: true, onChange: function(v) {
         renameProject(project.id, v);
       } })];
+      var inGroup = project.group ? groupById(project.group) : null;
+      if (inGroup) crumbs.unshift(e("button", { key: "group", type: "button", className: "bd-crumb bd-tb-group", title: "Open " + inGroup.name + " on Home", onClick: function() {
+        openProjects(inGroup.id);
+      } }, inGroup.name), sep("group"));
       var last = sel ? locate(doc, sel) : null;
       if (last) {
         var many = selection.length > 1;
@@ -12887,7 +13391,7 @@
       "div",
       { className: "bd-toolbar is-home", role: "toolbar", "aria-label": "Builder" },
       e("span", { className: "bd-tb-side bd-tb-left" }),
-      e("div", { className: "bd-tb-title" }, e("span", { className: "bd-tb-home" }, "Projects")),
+      e("div", { className: "bd-tb-title" }, e("span", { className: "bd-tb-home" }, homeView && groupById(homeView) ? groupById(homeView).name : "Home")),
       e(
         "span",
         { className: "bd-tb-side bd-tb-right" },
@@ -12904,8 +13408,8 @@
         titleCrumbs(),
         e(Dropdown, {
           menu: true,
-          label: "Project actions",
-          placeholder: "Project",
+          label: "File actions",
+          placeholder: "File",
           icon: "more",
           iconOnly: true,
           compact: true,
@@ -12913,7 +13417,7 @@
           className: "bd-dd-icon bd-project-menu",
           options: [
             { value: "link", label: sel ? "Copy link to this layer" : "Copy link to " + frame.name, icon: "link" },
-            { value: "projects", label: "All projects", icon: "folder" },
+            { value: "projects", label: "Home", icon: "home" },
             { value: "versions", label: "Versions", icon: "rotate" },
             { value: "duplicate", label: "Duplicate", icon: "copy" },
             { value: "export", label: "Download file", icon: "exportOut" },
@@ -14035,7 +14539,7 @@
       ),
       e(
         "div",
-        { className: cx("bd-shell", hidePanels && "is-bare"), "data-pane": pane, inert: home ? "" : void 0, "aria-hidden": home ? "true" : void 0 },
+        { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving"), "data-pane": pane, inert: home ? "" : void 0, "aria-hidden": home ? "true" : void 0 },
         e(
           "aside",
           { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || void 0 },

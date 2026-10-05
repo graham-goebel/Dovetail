@@ -1,7 +1,9 @@
 /* Where projects live: IndexedDB, which holds far more than localStorage's
    few megabytes and stores documents as they are, without turning them into
-   text. Each project is a name and a document (its frames), with versions
-   kept beside it. The Content library lives here too. Where IndexedDB isn't
+   text. Each file (a "project" record, for history's sake) is a name and a
+   document (its frames), with versions kept beside it. A project, on Home,
+   is a group of files: a "groups" record that a file names as its group; a
+   file without one sits loose on Home. The Content library lives here too. Where IndexedDB isn't
    available (some private windows), the same calls fall back to
    localStorage, with its limits.
 
@@ -11,8 +13,8 @@ import { BACKUP_KEY, LIB_KEY, STORE_KEY, storage } from "../config.js";
 import { clean, emptyDoc, uid } from "./tree.js";
 
 var DB_NAME = "dovetail-builder";
-var DB_VERSION = 1;
-var STORES = ["projects", "docs", "versions", "library"];
+var DB_VERSION = 2;
+var STORES = ["projects", "docs", "versions", "library", "groups"];
 /* How many versions a project keeps, and how far apart automatic ones are. */
 var VERSIONS_MAX = 30;
 var VERSION_EVERY = 10 * 60 * 1000;
@@ -69,6 +71,7 @@ function idb() {
         if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", { keyPath: "id" });
         if (!db.objectStoreNames.contains("versions")) db.createObjectStore("versions", { keyPath: "key", autoIncrement: true }).createIndex("project", "project");
         if (!db.objectStoreNames.contains("library")) db.createObjectStore("library", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("groups")) db.createObjectStore("groups", { keyPath: "id" });
       };
       req.onsuccess = function () { finish(req.result); };
       req.onerror = function () { finish(null); };
@@ -100,7 +103,12 @@ function idbBackend(db) {
   };
 }
 function localBackend() {
-  var read = function () { return storage(function (s) { return JSON.parse(s.getItem(FALLBACK_KEY) || "null"); }) || { projects: {}, docs: {}, versions: {}, library: {}, seq: 0 }; };
+  /* Every store is there, even in data saved before one was added. */
+  var read = function () {
+    var d = storage(function (s) { return JSON.parse(s.getItem(FALLBACK_KEY) || "null"); }) || { seq: 0 };
+    STORES.forEach(function (name) { if (!d[name] || typeof d[name] !== "object") d[name] = {}; });
+    return d;
+  };
   var write = function (data) {
     var ok = storage(function (s) { s.setItem(FALLBACK_KEY, JSON.stringify(data)); return true; });
     return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
@@ -152,6 +160,7 @@ function makeStore(b) {
     createProject: function (name, doc, extra) {
       var meta = Object.assign({ id: "p" + uid(), name: (name || "Untitled").slice(0, 80), createdAt: now(), updatedAt: now(), frames: count(doc), thumb: null,
         pages: [{ id: MAIN, name: "Page 1" }], page: MAIN, pageFrames: { main: count(doc) } }, settingsOf(extra));
+      if (extra && typeof extra.group === "string" && extra.group) meta.group = extra.group;
       return b.put("projects", meta)
         .then(function () { return b.put("docs", { id: meta.id, doc: doc }); })
         .then(function () { return meta; });
@@ -394,6 +403,71 @@ function makeStore(b) {
         return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
       }
       return b.put("library", { id: "library", value: value });
+    },
+    /* Projects: groups of files. A file names its group; the group holds a
+       name, its times and a picture of its own if one was chosen. */
+    listGroups: function () {
+      return b.all("groups").then(function (list) { return (list || []).sort(function (x, y) { return y.updatedAt - x.updatedAt; }); });
+    },
+    getGroup: function (id) { return b.get("groups", id); },
+    createGroup: function (name) {
+      var g = { id: "g" + uid(), name: String(name || "").trim().slice(0, 80) || "Untitled project", createdAt: now(), updatedAt: now(), thumb: null };
+      return b.put("groups", g).then(function () { return g; });
+    },
+    renameGroup: function (id, name) {
+      return b.get("groups", id).then(function (g) {
+        if (!g) return null;
+        g.name = String(name || "").trim().slice(0, 80) || g.name;
+        g.updatedAt = now();
+        return b.put("groups", g).then(function () { return g; });
+      });
+    },
+    /* A picture of the person's own for the project's card; null goes back
+       to the files' own pictures. */
+    setGroupThumb: function (id, thumb) {
+      return b.get("groups", id).then(function (g) {
+        if (!g) return null;
+        g.thumb = thumb || null;
+        return b.put("groups", g).then(function () { return g; });
+      });
+    },
+    /* A file into a project, or (group null) out onto Home. */
+    moveFile: function (id, group) {
+      return Promise.all([b.get("projects", id), group ? b.get("groups", group) : Promise.resolve(null)]).then(function (got) {
+        var meta = got[0];
+        if (!meta || (group && !got[1])) return null;
+        if (group) meta.group = group; else delete meta.group;
+        var steps = b.put("projects", meta);
+        if (got[1]) { got[1].updatedAt = now(); steps = steps.then(function () { return b.put("groups", got[1]); }); }
+        return steps.then(function () { return meta; });
+      });
+    },
+    filesIn: function (group) {
+      return api.listProjects().then(function (list) { return list.filter(function (p) { return p.group === group; }); });
+    },
+    /* With its files, or (keepFiles) leaving them loose on Home. */
+    deleteGroup: function (id, keepFiles) {
+      return api.filesIn(id).then(function (files) {
+        return files.reduce(function (steps, f) {
+          return steps.then(function () { return keepFiles ? api.moveFile(f.id, null) : api.deleteProject(f.id); });
+        }, Promise.resolve());
+      }).then(function () { return b.del("groups", id); });
+    },
+    /* A new project with a copy of every file in it. */
+    duplicateGroup: function (id) {
+      return Promise.all([b.get("groups", id), api.filesIn(id)]).then(function (got) {
+        if (!got[0]) return null;
+        return api.createGroup(got[0].name + " copy").then(function (g) {
+          var steps = got[0].thumb ? api.setGroupThumb(g.id, got[0].thumb) : Promise.resolve();
+          got[1].slice().reverse().forEach(function (f) {
+            steps = steps.then(function () { return api.duplicateProject(f.id); }).then(function (copy) {
+              if (!copy) return null;
+              return api.renameProject(copy.id, f.name).then(function () { return api.moveFile(copy.id, g.id); });
+            });
+          });
+          return steps.then(function () { return b.get("groups", g.id); });
+        });
+      });
     },
     lastOpened: function () { return storage(function (s) { return s.getItem(LAST_KEY); }); },
     setLastOpened: function (id) { storage(function (s) { s.setItem(LAST_KEY, id); }); },

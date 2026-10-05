@@ -168,6 +168,10 @@ const layerNames = (page) => page.$$eval(".bd-layer[data-layer]:not([data-layer=
   rows.map((r) => r.getAttribute("data-depth") + ":" + r.querySelector(".bd-layer-name").textContent));
 const title = (page) => page.locator(".bd-inspect-title").first().textContent();
 const option = (page, text) => page.locator(".bd-dd-opt", { has: page.locator(".bd-dd-opt-label", { hasText: text }) }).first();
+/* Home: New's menu, a card by its exact name, and a card's ⋯ menu. */
+const homeNew = async (page, what) => { await page.locator(".bd-home-new").click(); await option(page, what).click(); };
+const homeCard = (page, name) => page.locator(".bd-proj").filter({ has: page.locator(".bd-proj-name", { hasText: new RegExp("^" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") }) });
+const cardMenu = async (page, name, what) => { await homeCard(page, name).locator(".bd-proj-menu").click(); await option(page, what).click(); };
 async function choose(page, fieldText, optionText) {
   await page.locator(".bd-right .bd-field", { hasText: fieldText }).first().locator(".bd-dd").first().click();
   await option(page, optionText).click();
@@ -1784,22 +1788,22 @@ try {
     ok("a first visit opens Untitled on the landing page; double-clicking its name in the bar renames it Kiln site");
 
     await openHome();
-    expect(await page.locator('.bd-toolbar [aria-label="Projects"]').count() === 0 && await page.locator(".bd-shell[inert]").count() === 1 && (await page.locator(".bd-toolbar .bd-tb-home").textContent()) === "Projects", "Home is a page over the canvas, named in the bar, with the canvas inert beneath");
+    expect(await page.locator('.bd-toolbar [aria-label="Projects"]').count() === 0 && await page.locator(".bd-shell[inert]").count() === 1 && (await page.locator(".bd-toolbar .bd-tb-home").textContent()) === "Home", "Home is a page over the canvas, named in the bar, with the canvas inert beneath");
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector(".bd-home") && !document.querySelector(".bd-shell[inert]"));
     ok("Home opens from the rail as a page over the canvas, and Escape goes back to it");
     await openHome();
     const listed = await cards(), meta0 = await page.locator(".bd-proj.is-current .bd-proj-meta").textContent();
     expect(listed.join() === "Kiln site" && /Open now/.test(meta0), `the home lists the one project, marked open now, got ${listed} / ${meta0}`);
-    await page.locator(".bd-projects .bd-btn-primary", { hasText: "New project" }).click();
+    await homeNew(page, "New file");
     await page.waitForFunction((id) => window.__builder.project().id !== id && !document.querySelector(".bd-home"), first.id);
     await ready();
-    expect(await page.locator(".bd-project-name").textContent() === "Untitled" && types(await doc()) === "", "New project opens a blank canvas of its own");
+    expect(await page.locator(".bd-project-name").textContent() === "Untitled" && types(await doc()) === "", "New file opens a blank canvas of its own");
     await category(page, "Typography");
     await page.locator('.bd-tile[data-type="Heading"]').click();
     await frame().waitForSelector('[data-bf-type="Heading"]');
     expect(await history(page).undo.isEnabled(), "an edit can be undone");
-    ok("New project opens a blank canvas, and a Heading goes onto it");
+    ok("New, then New file, opens a blank canvas, and a Heading goes onto it");
 
     await openHome();
     expect((await cards()).length === 2, "two projects now");
@@ -1811,10 +1815,10 @@ try {
     ok("opening Kiln site from the home brings its own canvas back, with nothing to undo from the other project");
 
     await openHome();
-    await page.locator('.bd-proj [aria-label="Duplicate Kiln site"]').click();
+    await cardMenu(page, "Kiln site", "Duplicate");
     await page.waitForFunction(() => document.querySelectorAll(".bd-projects .bd-proj").length === 3);
     expect((await cards()).includes("Kiln site copy"), "Duplicate makes Kiln site copy");
-    await page.locator('.bd-proj [aria-label="Delete Kiln site copy"]').click();
+    await cardMenu(page, "Kiln site copy", "Delete");
     await page.locator(".bd-proj-confirm .bd-btn-danger").click();
     await page.waitForFunction(() => document.querySelectorAll(".bd-projects .bd-proj").length === 2);
     await page.locator(".bd-projects-search input").fill("kiln");
@@ -1866,6 +1870,78 @@ try {
     await moved.page.close();
   });
 
+  await step("Projects on Home: a group of files, made from New, with files moved in and out, sorted, searched, downloaded and deleted", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const proj = () => page.evaluate(() => window.__builder.project());
+    const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
+    const openHome = async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click(); await page.locator(".bd-home .bd-proj").first().waitFor(); };
+    const names = (sel) => page.locator(sel + " .bd-proj-name").allTextContents();
+    const first = await proj();
+
+    await openHome();
+    const opts = await page.locator(".bd-home-new").click().then(() => page.locator(".bd-dd-opt-label").allTextContents());
+    await page.keyboard.press("Escape");
+    expect(opts.slice(0, 2).join() === "New project,New file" && opts.includes("Landing page") && opts.includes("Open a file…"), `New holds New project, New file, the templates and Open a file, got ${opts}`);
+    expect(await page.locator(".bd-proj .bd-act").count() === 0 && await page.locator(".bd-proj .bd-proj-menu").count() === 1, "a card's actions are in its ⋯ menu, with no buttons on its picture");
+    ok("New is one button holding New project, New file, the templates and Open a file; each card's actions are in its ⋯ menu");
+
+    await homeNew(page, "New project");
+    await page.locator(".bd-home-heading input.bd-home-title").waitFor();
+    await page.keyboard.press("Control+a");
+    await page.keyboard.type("Kiln & Co");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector(".bd-home-title") && document.querySelector(".bd-home-title").textContent === "Kiln & Co");
+    expect(await page.locator(".bd-home-crumbs").textContent() === "Home›Kiln & Co" && /No files in this project yet/.test(await page.locator(".bd-projects-empty").textContent()), "a new project opens on Home, named as you type, empty, with a path back");
+    ok("New project makes an empty project, opened on Home with its name ready to type, and a path back to Home");
+
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector(".bd-home-crumbs") && document.querySelector(".bd-home"));
+    expect((await names(".bd-home-sec[aria-label=Projects]")).join() === "Kiln & Co" && /0 files/.test(await homeCard(page, "Kiln & Co").textContent()), "Escape goes back to Home, which lists the project");
+    await cardMenu(page, "Untitled", "Move to Kiln & Co");
+    await page.waitForFunction(() => window.__builder.project().group);
+    expect(await page.locator(".bd-home-sec[aria-label=Files]").count() === 0 && /1 file/.test(await homeCard(page, "Kiln & Co").textContent()), "the file moves into the project and off Home");
+    await page.locator(".bd-home-search input").fill("untit");
+    expect((await names(".bd-home-sec[aria-label=Files]")).join() === "Untitled" && /in Kiln & Co/.test(await homeCard(page, "Untitled").textContent()), "searching Home finds a file inside a project, and says which");
+    await page.locator(".bd-home-search input").fill("");
+    ok("Escape goes back to Home; Move to Kiln & Co puts the file in the project, and searching Home still finds it, marked in Kiln & Co");
+
+    await homeCard(page, "Kiln & Co").locator(".bd-proj-open").click();
+    await homeNew(page, "New file in Kiln & Co");
+    await page.waitForFunction((id) => window.__builder.project().id !== id && !document.querySelector(".bd-home"), first.id);
+    await ready();
+    const second = await proj();
+    const firstNow = await page.evaluate((id) => window.__builder.store.getProject(id), first.id);
+    expect(second.group && second.group === firstNow.group, "a file made inside a project belongs to it");
+    expect(await page.locator(".bd-tb-crumbs .bd-tb-group").textContent() === "Kiln & Co", "the bar names the file's project first");
+    await page.locator(".bd-tb-crumbs .bd-tb-group").click();
+    await page.waitForFunction(() => document.querySelector(".bd-home-crumbs"));
+    await page.locator(".bd-home-sort .bd-seg-btn", { hasText: "A–Z" }).click();
+    expect((await names(".bd-home")).join() === "Untitled,Untitled 2", `A–Z sorts the project's files by name, got ${await names(".bd-home")}`);
+    await page.locator(".bd-home-sort .bd-seg-btn", { hasText: "Recent" }).click();
+    expect((await names(".bd-home")).join() === "Untitled 2,Untitled", "Recent puts the file on screen first");
+    ok("New file inside the project goes into it; the bar names the project first and opens it on Home; A–Z and Recent order its files");
+
+    const [dl] = await Promise.all([page.waitForEvent("download"), (async () => { await page.locator(".bd-home-crumbs .bd-crumb", { hasText: "Home" }).click(); await cardMenu(page, "Kiln & Co", "Download as a file"); })()]);
+    const file = path.join(os.tmpdir(), "kiln-co-" + Date.now() + ".dovetail");
+    await dl.saveAs(file);
+    const data = JSON.parse(fs.readFileSync(file, "utf8"));
+    expect(data.format === "dovetail-bundle" && data.name === "Kiln & Co" && data.files.length === 2 && data.files.every((f) => f.format === "dovetail-project"), `a project downloads as one bundle of its files, got ${JSON.stringify({ format: data.format, n: data.files && data.files.length })}`);
+    await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
+    await page.waitForFunction(() => document.querySelector(".bd-home-title") && document.querySelector(".bd-home-title").textContent === "Kiln & Co" && document.querySelectorAll(".bd-home .bd-proj").length === 2);
+    fs.unlinkSync(file);
+    ok("Download as a file saves the project as one bundle of its two files; opening it makes a new project with both, shown on Home");
+
+    await page.locator(".bd-home-crumbs .bd-crumb", { hasText: "Home" }).click();
+    expect((await names(".bd-home-sec[aria-label=Projects]")).length === 2, "two projects called Kiln & Co now");
+    await homeCard(page, "Kiln & Co").first().locator(".bd-proj-menu").click();
+    await option(page, "Delete").click();
+    expect(/Delete the project and its 2 files\?/.test(await page.locator(".bd-proj-confirm").textContent()), "deleting a project asks, and counts its files");
+    await page.locator(".bd-proj-confirm .bd-btn", { hasText: "Keep files" }).click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-home-sec[aria-label=Projects] .bd-proj").length === 1 && document.querySelectorAll(".bd-home-sec[aria-label=Files] .bd-proj").length === 2);
+    ok("deleting a project asks first; Keep files leaves its two files loose on Home");
+    await page.close();
+  });
+
   await step("Project settings: each project keeps its own canvas colour, theme and picture", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const proj = () => page.evaluate(() => window.__builder.project());
@@ -1898,7 +1974,7 @@ try {
     ok("a black canvas and a sharp-cornered theme are saved with the first project");
 
     await openHome();
-    await page.locator(".bd-projects .bd-btn-primary", { hasText: "New project" }).click();
+    await homeNew(page, "New file");
     await page.waitForFunction((id) => window.__builder.project().id !== id, first.id);
     await ready();
     expect(await stageBg() === "", `a new project starts on the builder's own canvas colour, got ${await stageBg()}`);
@@ -1923,7 +1999,8 @@ try {
     /* A picture of your own stays when the project is left and opened again. */
     const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==", "base64");
     await openHome();
-    await page.locator('.bd-proj input[type=file][aria-label="Choose a picture for Untitled"]').setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
+    const [chooser] = await Promise.all([page.waitForEvent("filechooser"), cardMenu(page, "Untitled", "Choose a picture")]);
+    await chooser.setFiles({ name: "cover.png", mimeType: "image/png", buffer: png });
     await page.waitForFunction(() => window.__builder.project().thumbSet === true);
     const chosen = (await proj()).thumb;
     await page.locator(".bd-proj", { hasText: "Untitled 2" }).locator(".bd-proj-open").click();

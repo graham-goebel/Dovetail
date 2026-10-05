@@ -4368,52 +4368,10 @@ input.bd-project-name {
   color: var(--dt-text-on-danger);
 }
 
-/* The projects home: new, search, and a card per project. */
-.bd-projects-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--dt-space-inline-xs);
-  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
-}
-
-.bd-projects-tpl {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--dt-space-inline-2xs);
-}
-
-/* A card's actions float over its picture: on hover or focus with a
-   pointer, always on touch. */
-.bd-proj-acts {
-  position: absolute;
-  top: var(--dt-space-inset-xs);
-  right: var(--dt-space-inset-xs);
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-overlay);
-  box-shadow: var(--dt-elevation-2);
-  opacity: 0;
-  transition: opacity var(--dt-motion-micro);
-}
-
-.bd-proj:hover .bd-proj-acts,
-.bd-proj:focus-within .bd-proj-acts {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .bd-proj-acts {
-    opacity: 1;
-  }
-}
-
+/* The projects home: New, a big search, a sort, and a card per project
+   and file. Every card's actions sit in a ⋯ menu beside its name. */
 .bd-projects-search {
-  flex: 1 1 12rem;
-  margin-left: auto;
-  max-width: 20rem;
+  margin: 0;
 }
 
 .bd-projects-grid {
@@ -4523,10 +4481,6 @@ input.bd-proj-name {
   padding: var(--dt-space-inset-md);
 }
 
-/* A picture that won't load (or a card being made) keeps its shape. */
-.bd-proj-acts label.bd-act {
-  cursor: pointer;
-}
 
 /* On a phone, each project is a row: its picture, its name, and its actions
    in plain view beside them, so a screen shows several at once. The dialog's
@@ -4558,17 +4512,6 @@ input.bd-proj-name {
 
   .bd-proj-open {
     grid-row: 1 / span 2;
-  }
-
-  .bd-proj-acts {
-    position: static;
-    grid-column: 2;
-    justify-self: start;
-    margin-top: var(--dt-space-stack-2xs);
-    padding: 0;
-    background: none;
-    box-shadow: none;
-    opacity: 1;
   }
 
   .bd-proj-confirm {
@@ -4874,8 +4817,7 @@ input.bd-folder-name {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bd-proj-open,
-  .bd-proj-acts {
+  .bd-proj-open {
     transition: none;
   }
 }
@@ -5022,6 +4964,219 @@ input.bd-folder-name {
 
 .bd-home-back {
   gap: var(--dt-space-inline-2xs);
+}
+
+/* Home and each project's page fade up as they arrive; a file's canvas
+   fades in as it opens. */
+@keyframes bd-home-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes bd-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes bd-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+@keyframes bd-spin {
+  to { transform: rotate(360deg); }
+}
+.bd-home {
+  animation: bd-fade-in 0.18s ease-out both;
+}
+.bd-home-inner {
+  animation: bd-home-in 0.24s ease-out both;
+}
+.bd-shell.is-arriving .bd-stage {
+  animation: bd-fade-in 0.36s ease-out both;
+}
+
+.bd-home-heading {
+  display: grid;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+}
+.bd-home-crumbs {
+  font-size: var(--dt-font-size-sm);
+}
+.bd-home-heading input.bd-home-title {
+  width: min(100%, 28rem);
+  height: auto;
+  padding: 2px var(--dt-space-inset-xs);
+  font: inherit;
+  font-size: var(--dt-text-heading-lg-size, 1.75rem);
+  font-weight: var(--dt-font-weight-semibold);
+}
+.bd-home-actions {
+  align-items: center;
+}
+
+/* New: the one primary button, a menu of what can be made. */
+.bd-home-new.bd-dd {
+  width: auto;
+  padding: 0 var(--dt-space-inset-sm);
+  border-color: var(--dt-surface-action);
+  background: var(--dt-surface-action);
+  color: var(--dt-text-on-action);
+  font-weight: var(--dt-font-weight-medium);
+}
+.bd-home-new.bd-dd:hover {
+  background: var(--dt-surface-action-hover, var(--dt-surface-action));
+}
+
+.bd-home-tools {
+  display: grid;
+  gap: var(--dt-space-stack-sm);
+  padding: 0 var(--dt-space-inset-md) var(--dt-space-inset-md);
+}
+.bd-home-search input {
+  height: calc(var(--dt-size-control-lg) + 4px);
+  border-radius: var(--dt-radius-container);
+  font-size: var(--dt-font-size-md, 1rem);
+}
+.bd-home-search .bd-ic {
+  left: var(--dt-space-inset-sm);
+  width: var(--dt-size-icon-md);
+  height: var(--dt-size-icon-md);
+}
+.bd-home-search input {
+  padding-left: calc(var(--dt-space-inset-sm) + var(--dt-size-icon-md) + var(--dt-space-inline-sm));
+}
+.bd-home-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dt-space-inline-sm);
+}
+.bd-home-sort.bd-seg {
+  width: auto;
+}
+.bd-home-count {
+  color: var(--dt-text-tertiary);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+}
+
+.bd-home-lists {
+  display: grid;
+  gap: var(--dt-space-stack-md);
+}
+.bd-home-sec-title {
+  margin: 0;
+  padding: 0 var(--dt-space-inset-md);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-semibold);
+}
+
+/* A card: its picture, then its name and meta beside its ⋯ menu. */
+.bd-proj-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
+}
+.bd-proj-row .bd-proj-info {
+  flex: 1;
+}
+.bd-proj-menu.bd-dd {
+  flex: none;
+}
+
+/* A project's picture: its own, or up to four of its files', two by two. */
+.bd-proj-thumb.is-mosaic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 2px;
+  place-items: stretch;
+}
+.bd-proj-thumb.is-mosaic img {
+  position: static;
+  min-height: 0;
+}
+.bd-proj-badge {
+  position: absolute;
+  top: var(--dt-space-inset-xs);
+  left: var(--dt-space-inset-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-pill);
+  background: var(--dt-surface-overlay);
+  box-shadow: var(--dt-elevation-1);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
+}
+.bd-proj-badge .bd-ic {
+  width: var(--dt-size-icon-xs);
+  height: var(--dt-size-icon-xs);
+}
+
+/* Opening a file: its card shows it loading and the rest wait. */
+.bd-proj-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--dt-surface-base) 55%, transparent);
+  animation: bd-fade-in 0.15s ease-out both;
+}
+.bd-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--dt-border-default);
+  border-top-color: var(--dt-text-primary);
+  border-radius: 50%;
+  animation: bd-spin 0.7s linear infinite;
+}
+.bd-projects:has(.bd-proj.is-opening) .bd-proj:not(.is-opening) {
+  opacity: 0.6;
+  transition: opacity var(--dt-motion-micro);
+}
+
+/* While the list is read: the shapes of cards, shimmering. */
+.bd-skel {
+  display: block;
+  border-radius: var(--dt-radius-control);
+  background: linear-gradient(90deg, var(--dt-surface-sunken) 0%, var(--dt-border-default) 50%, var(--dt-surface-sunken) 100%);
+  background-size: 200% 100%;
+  animation: bd-shimmer 1.2s linear infinite;
+}
+.bd-proj-skel {
+  display: grid;
+  align-content: start;
+  gap: var(--dt-space-stack-2xs);
+}
+.bd-skel-thumb {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--dt-radius-container);
+}
+.bd-skel-line {
+  width: 60%;
+  height: 0.75rem;
+}
+.bd-skel-line.is-short {
+  width: 35%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-home,
+  .bd-home-inner,
+  .bd-shell.is-arriving .bd-stage,
+  .bd-proj-loading {
+    animation: none;
+  }
+  .bd-skel {
+    animation: none;
+  }
+  .bd-spinner {
+    animation-duration: 2s;
+  }
 }
 
 @media (max-width: 900px) {
