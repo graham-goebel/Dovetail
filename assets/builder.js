@@ -5203,23 +5203,31 @@
     var holder = useRef(null);
     useEffect(function() {
       var el = holder.current;
-      var NS = window.BeamMobileDesignSystem_e33121;
-      var specs = window.DovetailSpecimens;
       if (!el) return;
       el.setAttribute("inert", "");
-      var build2 = specs && NS && !BUILDER_ICON[props.type] ? specs.samples && specs.samples[props.type] || specs.build[props.type] : null;
-      if (!build2) return;
-      var root = null, stage = null, io = null, done = false;
+      if (BUILDER_ICON[props.type]) return;
+      var root = null, stage = null, io = null, ro = null, done = false, gone = false, wait = 0;
+      var builder = function() {
+        var NS = window.BeamMobileDesignSystem_e33121;
+        var specs = window.DovetailSpecimens;
+        return specs && NS ? specs.samples && specs.samples[props.type] || specs.build[props.type] : null;
+      };
       var fit = function() {
         if (!stage) return;
-        var w = stage.scrollWidth || 1, h = stage.scrollHeight || 1;
+        var w = stage.scrollWidth, h = stage.scrollHeight;
         var W = el.clientWidth, H = el.clientHeight;
+        if (!w || !h || W <= 12 || H <= 12) return;
         var s = Math.min(props.wide ? 1 : 1.6, (W - 12) / w, (H - 12) / h);
         stage.style.transform = "translate(" + Math.max(0, (W - w * s) / 2) + "px, " + Math.max(0, (H - h * s) / 2) + "px) scale(" + s + ")";
         stage.style.opacity = "1";
       };
       var draw = function() {
-        if (done) return;
+        if (done || gone) return;
+        var build2 = builder();
+        if (!build2) {
+          if (wait++ < 40) setTimeout(draw, 250);
+          return;
+        }
         done = true;
         stage = document.createElement("div");
         stage.className = "bd-thumb-stage";
@@ -5240,6 +5248,14 @@
           requestAnimationFrame(fit);
         });
         setTimeout(fit, 400);
+        if (window.ResizeObserver) {
+          ro = new ResizeObserver(fit);
+          ro.observe(el);
+          ro.observe(stage);
+        }
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() {
+          if (!gone) fit();
+        });
       };
       if (window.IntersectionObserver) {
         io = new IntersectionObserver(function(entries) {
@@ -5253,7 +5269,9 @@
         io.observe(el);
       } else draw();
       return function() {
+        gone = true;
         if (io) io.disconnect();
+        if (ro) ro.disconnect();
         if (root) {
           var r = root;
           setTimeout(function() {
@@ -5578,6 +5596,12 @@
     var layerQueryState = useState("");
     var layerQuery = layerQueryState[0], setLayerQuery = layerQueryState[1];
     var contentQueryState = useState("");
+    var pageQueryState = useState("");
+    var configQueryState = useState("");
+    var configQuery = configQueryState[0], setConfigQuery = configQueryState[1];
+    var configNoneState = useState(false);
+    var configNone = configNoneState[0], setConfigNone = configNoneState[1];
+    var pageQuery = pageQueryState[0], setPageQuery = pageQueryState[1];
     var contentQuery = contentQueryState[0], setContentQuery = contentQueryState[1];
     var categoryState = useState(prefs.category);
     var category = categoryState[0], setCategory = categoryState[1];
@@ -5800,6 +5824,32 @@
         if (P && P.undock) P.undock();
       };
     }, [docked]);
+    useEffect(function() {
+      var root = dockRef.current;
+      if (!docked || !root) return void 0;
+      var q = configQuery.trim().toLowerCase();
+      var apply2 = function() {
+        var menu2 = root.querySelector(".configure-menu");
+        var panel = root.querySelector(".configure-panel");
+        var items = menu2 ? menu2.querySelectorAll(".configure-row") : panel ? panel.children : [];
+        var shown2 = 0;
+        Array.prototype.forEach.call(items, function(el) {
+          var hit = !q || el.textContent.toLowerCase().indexOf(q) >= 0;
+          el.classList.toggle("bd-cfg-out", !hit);
+          if (hit) shown2++;
+        });
+        setConfigNone(!!q && items.length > 0 && !shown2);
+      };
+      apply2();
+      var watch = new MutationObserver(apply2);
+      watch.observe(root, { childList: true, subtree: true });
+      return function() {
+        watch.disconnect();
+        Array.prototype.forEach.call(root.querySelectorAll(".bd-cfg-out"), function(el) {
+          el.classList.remove("bd-cfg-out");
+        });
+      };
+    }, [docked, configQuery]);
     var layersRef = useRef(null);
     var dragRef = useRef(null);
     var justDragged = useRef(false);
@@ -9323,6 +9373,7 @@
     var pageDragState = useState(null);
     var pageDrag = pageDragState[0], setPageDrag = pageDragState[1];
     var pageDragRef = useRef(null);
+    var pageDragEnded = useRef(false);
     var pagesListRef = useRef(null);
     var confirmPageState = useState(null);
     var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
@@ -11313,7 +11364,7 @@
                 "button",
                 {
                   type: "button",
-                  className: "bd-lib-thumb",
+                  className: cx("bd-lib-thumb", (h.kind === "images" || clip2) && !h.it.original && "is-fill"),
                   title: h.it.name + ": drag onto a frame, or press to add",
                   onPointerDown: function(ev) {
                     if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip2 ? "video" : "image" });
@@ -11452,7 +11503,7 @@
                 "button",
                 {
                   type: "button",
-                  className: "bd-lib-thumb",
+                  className: cx("bd-lib-thumb", (kind === "images" || kind === "video") && !it.original && "is-fill"),
                   title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
                   onPointerDown: function(ev) {
                     if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" });
@@ -11495,7 +11546,7 @@
     };
     var ASSET_KINDS = [
       ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
-      ["primitives", "Primitives", "shapes", "Groups, stacks, grids, shapes and type to build with"],
+      ["primitives", "Primitives", "swatch", "Groups, stacks, grids, shapes and type to build with"],
       ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
       ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
       ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
@@ -11716,21 +11767,8 @@
         }) : null
       );
     };
-    var kindPic = function(key, icon) {
-      if (key === "containers") return e("span", { className: "bd-kind-pics is-preview is-frames", "aria-hidden": true }, framePic(390, 844, null, 16, 36), framePic(768, 1024, null, 27, 36), framePic(1280, 800, null, 40, 36));
-      if (key === "variables") return e(
-        "span",
-        { className: "bd-kind-pics is-preview is-swatches", "aria-hidden": true },
-        ["--dt-surface-brand", "--dt-surface-brand-secondary", "--dt-text-primary", "--dt-surface-raised", "--dt-border-strong"].map(function(v) {
-          return e("span", { key: v, className: "bd-mini-swatch", style: { background: "var(" + v + ")" } });
-        })
-      );
-      if (key === "templates") return e("span", { className: "bd-kind-pics is-preview is-page", "aria-hidden": true }, e("span", { className: "bd-mini-page" }, [0, 1, 2, 3].map(function(i) {
-        return e("span", { key: i, className: "bd-mini-band" });
-      })));
-      var sample = { primitives: ["Stack", false], components: ["Button", false], blocks: ["HeroBlock", true] }[key];
-      if (sample && META[sample[0]]) return e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: sample[0], wide: sample[1] }));
-      return e("span", { className: "bd-kind-pics is-asset" }, e(Icon, { name: icon }));
+    var kindPic = function(icon) {
+      return e("span", { className: "bd-kind-pics is-asset", "aria-hidden": true }, e(Icon, { name: icon }));
     };
     var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
     var CONTAINER_KINDS = [
@@ -11893,7 +11931,7 @@
               { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
                 setAssetKind(k[0]);
               } },
-              kindPic(k[0], k[2]),
+              kindPic(k[2]),
               e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
             ));
           }))
@@ -12060,6 +12098,28 @@
       });
       return rows;
     };
+    var pageMatches = function(q) {
+      var byId2 = {};
+      foldersOf(project).forEach(function(f) {
+        byId2[f.id] = f;
+      });
+      var has2 = function(text) {
+        return String(text || "").toLowerCase().indexOf(q) >= 0;
+      };
+      var rows = [];
+      itemsOf(pagesOf(project)).forEach(function(it) {
+        var f = it.folder ? byId2[it.folder] : null;
+        var hits = it.pages.filter(function(p) {
+          return has2(p.name) || f && has2(f.name);
+        });
+        if (!hits.length) return;
+        if (f) rows.push({ kind: "folder", folder: f, open: true, count: hits.length, found: true });
+        hits.forEach(function(p) {
+          rows.push({ kind: "page", page: p, folder: f ? f.id : null });
+        });
+      });
+      return rows;
+    };
     var pageDropAt = function(x, y) {
       var list = pagesListRef.current;
       var dr = pageDragRef.current;
@@ -12122,35 +12182,55 @@
       var edge = slot2 < els.length ? els[slot2].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
       return { into: null, index, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
     };
-    var gripDown = function(p) {
+    var rowDown = function(p) {
       return function(ev) {
         if (ev.button !== void 0 && ev.button !== 0) return;
-        ev.preventDefault();
-        var el = ev.currentTarget;
-        try {
-          el.setPointerCapture(ev.pointerId);
-        } catch (err) {
+        if (renamingPage === p.id || pageDragRef.current || pageQuery.trim()) return;
+        var touch = ev.pointerType === "touch";
+        var dr = { id: p.id, name: p.name, pointer: ev.pointerId, x0: ev.clientX, y0: ev.clientY, live: false, armed: !touch, timer: 0, rows: pageRows(), drop: null };
+        pageDragRef.current = dr;
+        var holdScroll = function(tm) {
+          if (dr.armed && tm.cancelable) tm.preventDefault();
+        };
+        if (touch) {
+          dr.timer = setTimeout(function() {
+            dr.armed = true;
+            window.addEventListener("touchmove", holdScroll, { passive: false });
+            setPageDrag({ id: dr.id, name: dr.name, x: dr.x0, y: dr.y0, drop: null });
+          }, 350);
         }
-        pageDragRef.current = { id: p.id, name: p.name, pointer: ev.pointerId, x0: ev.clientX, y0: ev.clientY, live: false, rows: pageRows(), drop: null };
+        var stop = function() {
+          clearTimeout(dr.timer);
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", end);
+          window.removeEventListener("pointercancel", cancel);
+          window.removeEventListener("touchmove", holdScroll);
+          if (pageDragRef.current === dr) pageDragRef.current = null;
+          setPageDrag(null);
+        };
         var move = function(mv) {
-          var dr = pageDragRef.current;
-          if (!dr || mv.pointerId !== dr.pointer) return;
+          if (mv.pointerId !== dr.pointer) return;
+          var far = Math.abs(mv.clientX - dr.x0) + Math.abs(mv.clientY - dr.y0) >= 4;
+          if (!dr.armed) {
+            if (far) stop();
+            return;
+          }
           if (!dr.live) {
-            if (Math.abs(mv.clientX - dr.x0) + Math.abs(mv.clientY - dr.y0) < 4) return;
+            if (!far) return;
             dr.live = true;
           }
           dr.drop = pageDropAt(mv.clientX, mv.clientY);
           setPageDrag({ id: dr.id, name: dr.name, x: mv.clientX, y: mv.clientY, drop: dr.drop });
         };
         var end = function(up) {
-          var dr = pageDragRef.current;
-          if (!dr || up && up.pointerId !== dr.pointer) return;
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", end);
-          window.removeEventListener("pointercancel", cancel);
-          pageDragRef.current = null;
-          setPageDrag(null);
-          if (dr.live && dr.drop) {
+          if (up && up.pointerId !== dr.pointer) return;
+          stop();
+          if (!dr.live) return;
+          pageDragEnded.current = true;
+          setTimeout(function() {
+            pageDragEnded.current = false;
+          }, 0);
+          if (dr.drop) {
             var fname = dr.drop.folder ? (foldersOf(projectRef.current).filter(function(f) {
               return f.id === dr.drop.folder;
             })[0] || {}).name : null;
@@ -12159,12 +12239,8 @@
             });
           }
         };
-        var cancel = function() {
-          pageDragRef.current = null;
-          setPageDrag(null);
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", end);
-          window.removeEventListener("pointercancel", cancel);
+        var cancel = function(c) {
+          if (!c || c.pointerId === dr.pointer) stop();
         };
         window.addEventListener("pointermove", move);
         window.addEventListener("pointerup", end);
@@ -12172,7 +12248,8 @@
       };
     };
     var pagesPanel = function() {
-      var rows = pageRows();
+      var q = pageQuery.trim().toLowerCase();
+      var rows = q ? pageMatches(q) : pageRows();
       var folders = foldersOf(project);
       var items = itemsOf(pagesOf(project));
       var drop = pageDrag && pageDrag.drop;
@@ -12184,7 +12261,7 @@
         return e(
           "li",
           { key: "f" + f.id, className: cx("bd-folder", !r.open && "is-closed", drop && drop.into === f.id && "is-drop"), "data-row": i, "data-folder": f.id },
-          e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, onClick: function() {
+          e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, disabled: r.found || void 0, onClick: function() {
             foldFolder(f.id, !r.open);
           } }, e(Icon, { name: r.open ? "down" : "right" })),
           renamingFolder === f.id ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function(v) {
@@ -12227,7 +12304,6 @@
         return e(
           "li",
           { key: p.id, className: cx("bd-page", on && "is-current", r.folder && "is-nested", pageDrag && pageDrag.id === p.id && "is-moving"), "data-row": i },
-          e("button", { type: "button", className: "bd-page-grip", "aria-label": "Move " + p.name + ": drag it, or use its menu", title: "Drag to move", onPointerDown: gripDown(p) }, e(Icon, { name: "grip" })),
           renamingPage === p.id ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function(v) {
             renamePage(p.id, v);
           } }) : e(
@@ -12236,9 +12312,10 @@
               type: "button",
               className: "bd-page-open",
               "aria-current": on ? "page" : void 0,
-              title: "Double-click to rename",
+              title: "Drag to move, double-click to rename",
+              onPointerDown: rowDown(p),
               onClick: function() {
-                openPage(p.id);
+                if (!pageDragEnded.current) openPage(p.id);
               },
               onDoubleClick: function() {
                 setRenamingPage(p.id);
@@ -12299,6 +12376,7 @@
             e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" }))
           )
         ),
+        q && !rows.length ? e("p", { className: "bd-empty-note" }, "No pages match.") : null,
         e(
           "ul",
           { className: cx("bd-pages", pageDrag && "is-dragging"), role: "list", ref: pagesListRef },
@@ -14690,12 +14768,12 @@
           e(
             "div",
             { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
-            left === "configure" ? e("div", { className: "bd-config-dock", ref: dockRef }) : e(
-              React.Fragment,
-              null,
-              e("div", { className: "bd-left-main" }, left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()),
-              left === "pages" ? null : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
-            )
+            e(
+              "div",
+              { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()
+            ),
+            left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
         ),
         e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
