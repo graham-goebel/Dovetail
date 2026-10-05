@@ -2,7 +2,7 @@
 
 import { DATA, LIB_KINDS, PREFS_KEY, PRESET, mql, storage } from "../config.js";
 import { readLayout } from "./paste.js";
-import { pageOf } from "./store.js";
+import { libScopeOf, pageOf } from "./store.js";
 import { STARTERS } from "./starters.js";
 import { clean, cleanNode, copy, frameById, uid } from "./tree.js";
 
@@ -122,7 +122,7 @@ function openStart(store) {
     });
   }).then(function (init) {
     store.setLastOpened(init.project.id);
-    return store.loadLibrary().then(function (lib) {
+    return store.loadLibrary(libScopeOf(init.project)).then(function (lib) {
       init.library = loadLibrary(lib);
       return init;
     });

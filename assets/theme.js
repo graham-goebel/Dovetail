@@ -1035,6 +1035,9 @@
   }
 
   function applyBrand() {
+    /* An app page (the builder) keeps its own chrome: a brand uploaded there
+       belongs to the work on its canvas, not to the page's header. */
+    if (document.documentElement.hasAttribute("data-theme-fixed")) return;
     var name = brand.name || "Dovetail";
 
     /* A wordmark file stands in for the name; the brand mark sits beside

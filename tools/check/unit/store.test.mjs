@@ -4,7 +4,7 @@
 import "./setup.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { makeStore, localBackend, pagesOf, pageOf, foldersOf, itemsOf, MAIN, VERSIONS_MAX } from "../../../assets/builder/model/store.js";
+import { libScopeOf, makeStore, localBackend, pagesOf, pageOf, foldersOf, itemsOf, MAIN, VERSIONS_MAX } from "../../../assets/builder/model/store.js";
 import { make, makeFrame } from "../../../assets/builder/model/tree.js";
 
 const doc = (name = "Home") => { const f = makeFrame(name, "desktop"); f.root.children = [make("Heading", { children: name })]; return { frames: [f], active: f.id }; };
@@ -198,4 +198,49 @@ test("data saved before projects existed reads as loose files", async () => {
   assert.equal((await s.listProjects())[0].group, undefined);
   const g = await s.createGroup("New");
   assert.equal((await s.moveFile("p1", g.id)).group, g.id);
+});
+
+const pic = (id) => ({ id, name: id + ".png", src: "data:image/png;base64,AAAA" });
+
+test("content libraries are kept apart: a project's files share one, a loose file has its own, and moving brings content along", async () => {
+  const s = fresh();
+  window.localStorage.setItem("dovetail-builder-libs-kept-apart", "1");
+  const g = await s.createGroup("Kiln");
+  const a = await s.createProject("Landing", doc(), { group: g.id });
+  const b = await s.createProject("Store", doc(), { group: g.id });
+  const c = await s.createProject("Loose", doc());
+  assert.equal(libScopeOf(a), "g:" + g.id);
+  assert.equal(libScopeOf(a), libScopeOf(b), "files in one project share a library");
+  assert.equal(libScopeOf(c), "f:" + c.id, "a loose file has its own");
+  await s.saveLibrary({ images: [pic("mug")] }, libScopeOf(a));
+  await s.saveLibrary({ images: [pic("jug")] }, libScopeOf(c));
+  assert.deepEqual((await s.loadLibrary(libScopeOf(b))).images.map((i) => i.id), ["mug"]);
+  assert.equal(await s.loadLibrary("g:other"), null, "another project sees none of it");
+  const moved = await s.moveFile(c.id, g.id);
+  assert.deepEqual((await s.loadLibrary(libScopeOf(moved))).images.map((i) => i.id).sort(), ["jug", "mug"], "a file moved into a project brings its content");
+  const out = await s.moveFile(a.id, null);
+  assert.deepEqual((await s.loadLibrary(libScopeOf(out))).images.map((i) => i.id).sort(), ["jug", "mug"], "a file moved out keeps what its project had");
+  const copy = await s.duplicateGroup(g.id);
+  assert.deepEqual((await s.loadLibrary("g:" + copy.id)).images.map((i) => i.id).sort(), ["jug", "mug"], "a copied project copies its library");
+  await s.deleteGroup(copy.id, false);
+  assert.equal(await s.loadLibrary("g:" + copy.id), null, "a deleted project's library goes with it");
+});
+
+test("files made before libraries were kept apart go on sharing the one library, once", async () => {
+  window.localStorage.removeItem("dovetail-builder-store");
+  window.localStorage.removeItem("dovetail-builder-libs-kept-apart");
+  window.localStorage.setItem("dovetail-builder-library", JSON.stringify({ images: [pic("old")] }));
+  const s = makeStore(localBackend());
+  const before = await s.createProject("Old", doc());
+  await s.migrate();
+  const old = await s.getProject(before.id);
+  assert.equal(old.lib, "shared");
+  assert.equal(libScopeOf(old), "shared");
+  assert.deepEqual((await s.loadLibrary("shared")).images.map((i) => i.id), ["old"]);
+  assert.equal(window.localStorage.getItem("dovetail-builder-library"), null, "the old entry moves across");
+  const after = await s.createProject("New", doc());
+  await s.migrate();
+  assert.equal((await s.getProject(after.id)).lib, undefined, "a file made after has its own library");
+  const copy = await s.duplicateProject(before.id);
+  assert.equal(copy.lib, "shared", "a copy of an older file keeps sharing");
 });
