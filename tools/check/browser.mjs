@@ -72,6 +72,23 @@ function checkLinks() {
   return problems;
 }
 
+/* When a page is ready to be judged. A card draws into a React root once the
+   bundle has arrived (card-kit's dsReady polls for it), or writes an alert
+   when it can't; a static card and a site page are drawn at load. Then one
+   painted frame, so layout has settled. No fixed sleep: the old 400 to 900ms
+   per visit, over 1,300 visits, was nearly the whole of this check. */
+async function settle(pg) {
+  await pg.waitForFunction(
+    (failed) => {
+      const root = document.querySelector("#root, #root-ref");
+      return !root || root.firstElementChild || document.body.innerText.includes(failed);
+    },
+    CARD_FAILED,
+    { timeout: 10000 }
+  );
+  await pg.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+}
+
 async function visit(ctx, origin, url, kind) {
   const pg = await ctx.newPage();
   const errs = [];
@@ -85,7 +102,7 @@ async function visit(ctx, origin, url, kind) {
   });
   try {
     await pg.goto(`${origin}/${url}`, { waitUntil: "load", timeout: 30000 });
-    await pg.waitForTimeout(kind === "card" ? 900 : 400);
+    await settle(pg);
     if (kind === "card") {
       const state = await pg.evaluate(
         ([key, failed]) => ({
@@ -115,7 +132,7 @@ async function phone(ctx, origin, url) {
   const errs = [];
   try {
     await pg.goto(`${origin}/${url}`, { waitUntil: "load", timeout: 30000 });
-    await pg.waitForTimeout(500);
+    await settle(pg);
     const r = await pg.evaluate(() => ({ iw: innerWidth, sw: document.documentElement.scrollWidth, meta: !!document.querySelector('meta[name="viewport"]') }));
     if (!r.meta) errs.push("no viewport meta, so a phone lays it out at 980px");
     else if (r.sw > PHONE + 1) errs.push(`content is ${r.sw}px wide on a ${PHONE}px phone`);
@@ -127,11 +144,11 @@ async function phone(ctx, origin, url) {
 }
 
 async function phoneAll(browser, origin, urls) {
-  const ctx = await browser.newContext({ viewport: { width: PHONE, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+  const ctx = await offline(browser, { viewport: { width: PHONE, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
   const problems = [];
   let next = 0;
   await Promise.all(
-    Array.from({ length: 4 }, async () => {
+    Array.from({ length: WORKERS }, async () => {
       while (next < urls.length) problems.push(...(await phone(ctx, origin, urls[next++])));
     })
   );
@@ -139,12 +156,24 @@ async function phoneAll(browser, origin, urls) {
   return problems;
 }
 
+/* A context that never leaves the local server. The pages ask Google Fonts
+   for their type, and "load" waits for that round trip on every visit; it
+   was more than half of each visit's time, and the check already sets those
+   errors aside (THIRD_PARTY). Fallback type is a little narrower, which the
+   phone-width pass tolerates. */
+async function offline(browser, options) {
+  const ctx = await browser.newContext(options);
+  await ctx.route(/^https?:\/\/(?!localhost|127\.0\.0\.1)/, (route) => route.abort());
+  return ctx;
+}
+
 /* A few pages at a time: fast enough, and gentle on a small CI runner. */
+const WORKERS = Number(process.env.WORKERS) || 6;
 async function visitAll(ctx, origin, urls, kind) {
   const problems = [];
   let next = 0;
   await Promise.all(
-    Array.from({ length: 4 }, async () => {
+    Array.from({ length: WORKERS }, async () => {
       while (next < urls.length) problems.push(...(await visit(ctx, origin, urls[next++], kind)));
     })
   );
@@ -180,7 +209,7 @@ if (run("links")) problems.push(...checkLinks(), ...checkInlined());
 if (run("cards") || run("pages")) {
   const server = await serve(0);
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+  const ctx = await offline(browser, { viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
   try {
     if (run("cards")) {
       const list = cards();

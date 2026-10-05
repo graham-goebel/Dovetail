@@ -1,7 +1,7 @@
 name: Checks
 
 # Runs on every pull request, and on main after a merge. Branch protection
-# should require both jobs before a pull request can merge.
+# should require every job here before a pull request can merge.
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
@@ -60,9 +60,19 @@ jobs:
           BASE: ${{ github.base_ref }}
         run: node tools/changelog.mjs --check --base "origin/$BASE"
 
+  # The three browser checks share nothing, so each is its own job and the
+  # wall time is the longest of them rather than their sum. Chromium is
+  # cached by Playwright's version, so a run doesn't download it again.
   browser:
-    name: Every card and page loads cleanly
+    name: ${{ matrix.check.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - { name: "Every card and page loads cleanly", script: "check:browser" }
+          - { name: "Dialog, Drawer and Tabs behave in a real browser", script: "check:behavior" }
+          - { name: "The builder places, styles, exports and shares", script: "check:builder" }
     steps:
       - uses: actions/checkout@v4
 
@@ -73,12 +83,23 @@ jobs:
 
       - run: npm ci
 
-      - run: npx playwright install --with-deps chromium
+      - name: Playwright's version, for the browser cache
+        id: pw
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - run: npm run check:browser
+      - uses: actions/cache@v4
+        id: chromium
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
-      - name: Dialog, Drawer and Tabs behave in a real browser
-        run: npm run check:behavior
+      - name: Install Chromium
+        if: steps.chromium.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
 
-      - name: The builder places, styles, exports and shares
-        run: npm run check:builder
+      # The system libraries aren't cached with the browser; they're quick.
+      - name: Install Chromium's system libraries
+        if: steps.chromium.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - run: npm run ${{ matrix.check.script }}

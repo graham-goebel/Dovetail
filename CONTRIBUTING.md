@@ -39,8 +39,9 @@ npm run serve                        # the site at http://localhost:8099
 3. **Make the change**, then rebuild and check:
 
    ```sh
-   npm run build     # bundle, card kit, builder and site
-   npm run check     # generated files current, changelog entries valid, every card and page loads cleanly
+   npm run build        # bundle, card kit, builder and site
+   npm run check:fast   # about 15 seconds: build current, changelog, unit, server render, package, consumer
+   npm run check        # all of that, then the three browser checks side by side (a few minutes)
    ```
 
 4. **Add a changelog entry** if anything a consumer sees changed: `npm run change -- <slug>`, then fill it in. See [changes/README.md](changes/README.md). Tooling-only changes still get an entry, with `bump: none`.
@@ -90,7 +91,10 @@ Edit `assets/` or `tools/build-site.mjs`, run `npm run build`, and look at the r
 | `npm run check:changes` | Every entry in `changes/` is valid (fields, migration notes for majors) |
 | `npm run check:browser` | Every card and every site page loads with no script error, no missing local file and no bundle error; every local link resolves |
 | `npm run check:builder` | The builder page renders every palette component, drags, styles with tokens only, exports, undoes and opens share links safely |
-| `npm run check` | All of these, plus the server-render, package, consumer and behaviour checks |
+| `npm run check:fast` | The build, changelog, unit, server-render, package and consumer checks, in about fifteen seconds |
+| `npm run check` | All of these, then the browser, behaviour and builder checks side by side, with a timing per check |
+
+While you work on one thing, `ONLY=<words from a step's title> npm run check:builder` runs just that step of the builder check.
 
 In CI, pull requests also have to add a changelog entry when they touch shipped sources. Add `bump: none` or the `skip-changelog` label if there's truly nothing to say.
 
