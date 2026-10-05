@@ -92,6 +92,12 @@
         item by a keyword, announces the count, and Escape leaves search
         before it closes; Tab stays inside; choosing an item calls
         onSelect and closes with "select", and focus returns to the opener.
+      - Voice: VoiceInput is a group named by label; its microphone is a
+        toggle named "Speak", then "Stop listening" with aria-pressed, and
+        the status, a polite live region, follows the state. VoiceOverlay
+        opens as a dialog named by label with focus inside; Escape calls
+        onClose and focus returns to the opener. AmbientBorder's ring turns
+        by itself and stands still under reduced motion.
 
    Exits 1 if any assertion fails or the page logs a script error. Set
    KEEP_TMP=1 to keep dist/.behavior/. */
@@ -149,6 +155,7 @@ const PAGE = `<!doctype html>
 <div id="store-checkout-root"></div>
 <div id="carousel-root"></div>
 <div id="menu-root"></div>
+<div id="voice-root"></div>
 <div style="height:3000px"></div>
 <script type="module">
 import React from "react";
@@ -463,6 +470,26 @@ function MenuApp() {
 }
 createRoot(document.getElementById("menu-root")).render(h(MenuApp));
 window.__menuReady = true;
+</script>
+<script type="module">
+/* Voice: a bar that toggles listening, an overlay opened from a button, and
+   a bare ring to watch turn. */
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { VoiceInput, VoiceOverlay, AmbientBorder } from "@dovetail-ds/react";
+const h = React.createElement;
+window.__voice = { closes: 0 };
+function VoiceApp() {
+  const [state, setState] = React.useState("idle");
+  const [open, setOpen] = React.useState(false);
+  return h("div", null,
+    h(VoiceInput, { label: "Test voice", state, transcript: state === "listening" ? "Hello" : "", onToggle: () => setState((s) => (s === "listening" ? "idle" : "listening")) }),
+    h("button", { type: "button", onClick: () => setOpen(true) }, "Open test voice"),
+    h(VoiceOverlay, { open, label: "Test conversation", state: "speaking", response: "Hi there", onToggle: () => {}, onClose: () => { window.__voice.closes += 1; setOpen(false); } }),
+    h(AmbientBorder, { "data-test": "ring", state: "thinking", glow: false }, "Ring"));
+}
+createRoot(document.getElementById("voice-root")).render(h(VoiceApp));
+window.__voiceReady = true;
 </script>
 </body></html>
 `;
@@ -1298,6 +1325,54 @@ try {
     log = await page.evaluate(() => window.__menu);
     expect(log.closes.join(",") === "select,escape", `Escape should close it with "escape", got ${log.closes}`);
     ok('reopened, Escape closes it with "escape"');
+  });
+
+  await step("Voice: a named group with a pressed microphone and a live status, a modal overlay, and a ring that holds still under reduced motion", async () => {
+    await page.waitForFunction(() => window.__voiceReady === true);
+    const group = page.getByRole("group", { name: "Test voice" });
+    await group.scrollIntoViewIfNeeded();
+    const speak = group.getByRole("button", { name: "Speak", exact: true });
+    expect(await speak.getAttribute("aria-pressed") === "false", "the microphone should be a toggle, not pressed while idle");
+    await speak.click();
+    const stop = group.getByRole("button", { name: "Stop listening", exact: true });
+    await stop.waitFor();
+    const status = await group.locator('[role="status"]').textContent();
+    expect(await stop.getAttribute("aria-pressed") === "true" && status === "Listening", `listening should press the microphone and say "Listening", got ${await stop.getAttribute("aria-pressed")} / ${JSON.stringify(status)}`);
+    expect(await group.locator('[role="status"]').getAttribute("aria-live") === "polite", "the status should be a polite live region");
+    await stop.click();
+    await speak.waitFor();
+    ok('a group named "Test voice"; Speak presses into "Stop listening", the status says "Listening" politely, and back');
+
+    const opener = page.getByRole("button", { name: "Open test voice", exact: true });
+    await opener.click();
+    const dialog = page.getByRole("dialog", { name: "Test conversation" });
+    await dialog.waitFor();
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement)), "focus should move into the overlay");
+    expect(await dialog.locator('[role="status"]').textContent() === "Speaking", "the overlay's status should name the state");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement)), "Tab should stay inside the overlay");
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "detached" });
+    expect(await page.evaluate(() => window.__voice.closes) === 1, "Escape should call onClose once");
+    expect(await opener.evaluate((el) => el === document.activeElement), "focus should return to the button that opened it");
+    ok('opens as a dialog named "Test conversation" with focus inside and Tab kept there; Escape calls onClose and focus returns');
+
+    const ring = page.locator('[data-test="ring"] > span').first();
+    const angle = () => ring.evaluate((el) => el.style.backgroundImage);
+    const a0 = await angle();
+    await page.waitForTimeout(250);
+    const a1 = await angle();
+    expect(a0 !== a1, "the ring should turn by itself");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.waitForTimeout(100);
+    const r0 = await angle();
+    await page.waitForTimeout(250);
+    const r1 = await angle();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    expect(r0 === r1 && /from 0\.00deg/.test(r0), `under reduced motion the ring should stand still at its start, got ${r0} then ${r1}`);
+    ok("the ring turns by itself, and under reduced motion stands still at its starting angle");
   });
 
   await step("page errors", () => {

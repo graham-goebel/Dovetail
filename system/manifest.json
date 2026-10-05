@@ -384,9 +384,19 @@
     "components/chat/QuickReplies.d.ts",
     "components/chat/QuickReplies.jsx",
     "components/chat/QuickReplies.md",
+    "components/chat/AmbientBorder.d.ts",
+    "components/chat/AmbientBorder.jsx",
+    "components/chat/AmbientBorder.md",
+    "components/chat/VoiceInput.d.ts",
+    "components/chat/VoiceInput.jsx",
+    "components/chat/VoiceInput.md",
+    "components/chat/VoiceOverlay.d.ts",
+    "components/chat/VoiceOverlay.jsx",
+    "components/chat/VoiceOverlay.md",
     "tokens/component/chat.css",
     "tokens/component/carousel.css",
     "tokens/component/menu-sheet.css",
+    "tokens/component/voice.css",
     "components/commerce/ProductCard.d.ts",
     "components/commerce/ProductCard.jsx",
     "components/commerce/ProductCard.md",
@@ -732,6 +742,15 @@
     },
     {
       "name": "QuickReplies"
+    },
+    {
+      "name": "AmbientBorder"
+    },
+    {
+      "name": "VoiceInput"
+    },
+    {
+      "name": "VoiceOverlay"
     },
     {
       "name": "ProductCard"

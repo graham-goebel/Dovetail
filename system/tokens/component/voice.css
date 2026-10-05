@@ -1,0 +1,75 @@
+/* VOICE COMPONENT TOKENS
+   Tier 3 for the voice family: AmbientBorder, VoiceInput and VoiceOverlay.
+   Every value aliases a semantic role; none reads a primitive. The colour
+   aliases are repeated under .dark below, because custom properties resolve
+   where they are declared and a voice surface is often a dark band.
+
+   Each state has three stops for the gradient that turns around the
+   container. Listening, the person talking, takes the brand colour;
+   speaking, the assistant talking, takes the secondary brand colour, so the
+   two voices read apart at a glance; thinking runs both with the info hue;
+   idle is the ordinary border scale; error is danger. */
+
+:root {
+  /* The ring: thin around a module, thick around a screen. */
+  --dt-voice-ring-width: var(--dt-border-width-strong);
+  --dt-voice-ring-width-thick: calc(var(--dt-border-width-strong) * 2);
+
+  /* The glow: a wider ring behind it, blurred, that brightens with the
+     voice's level and spreads a little past the edge. Its resting opacity
+     is the ghost role; the level adds to it. */
+  --dt-voice-glow-width: calc(var(--dt-border-width-strong) * 4);
+  --dt-voice-glow-blur: var(--dt-space-inset-md);
+  --dt-voice-glow-spread: var(--dt-space-inset-xs);
+  --dt-voice-glow-rest: var(--dt-opacity-ghost);
+
+  /* Inside the ring, and around it in an overlay. */
+  --dt-voice-surface: var(--dt-surface-raised);
+  --dt-voice-overlay-bg: var(--dt-surface-base);
+  --dt-voice-track: var(--dt-border-subtle);
+  --dt-voice-gap: var(--dt-space-inline-sm);
+  --dt-voice-padding: var(--dt-space-inset-xs);
+  --dt-voice-panel-padding: var(--dt-space-inset-lg);
+  --dt-voice-label-fg: var(--dt-text-secondary);
+  --dt-voice-placeholder-fg: var(--dt-text-tertiary);
+
+  --dt-voice-idle-a: var(--dt-border-strong);
+  --dt-voice-idle-b: var(--dt-border-default);
+  --dt-voice-idle-c: var(--dt-border-subtle);
+  --dt-voice-listening-a: var(--dt-border-brand);
+  --dt-voice-listening-b: var(--dt-text-brand);
+  --dt-voice-listening-c: var(--dt-surface-brand-muted);
+  --dt-voice-thinking-a: var(--dt-border-brand);
+  --dt-voice-thinking-b: var(--dt-border-brand-secondary);
+  --dt-voice-thinking-c: var(--dt-border-info);
+  --dt-voice-speaking-a: var(--dt-border-brand-secondary);
+  --dt-voice-speaking-b: var(--dt-text-brand-secondary);
+  --dt-voice-speaking-c: var(--dt-surface-brand-secondary-muted);
+  --dt-voice-error-a: var(--dt-border-danger);
+  --dt-voice-error-b: var(--dt-text-danger);
+  --dt-voice-error-c: var(--dt-surface-danger-subtle);
+}
+
+.dark {
+  --dt-voice-surface: var(--dt-surface-raised);
+  --dt-voice-overlay-bg: var(--dt-surface-base);
+  --dt-voice-track: var(--dt-border-subtle);
+  --dt-voice-label-fg: var(--dt-text-secondary);
+  --dt-voice-placeholder-fg: var(--dt-text-tertiary);
+
+  --dt-voice-idle-a: var(--dt-border-strong);
+  --dt-voice-idle-b: var(--dt-border-default);
+  --dt-voice-idle-c: var(--dt-border-subtle);
+  --dt-voice-listening-a: var(--dt-border-brand);
+  --dt-voice-listening-b: var(--dt-text-brand);
+  --dt-voice-listening-c: var(--dt-surface-brand-muted);
+  --dt-voice-thinking-a: var(--dt-border-brand);
+  --dt-voice-thinking-b: var(--dt-border-brand-secondary);
+  --dt-voice-thinking-c: var(--dt-border-info);
+  --dt-voice-speaking-a: var(--dt-border-brand-secondary);
+  --dt-voice-speaking-b: var(--dt-text-brand-secondary);
+  --dt-voice-speaking-c: var(--dt-surface-brand-secondary-muted);
+  --dt-voice-error-a: var(--dt-border-danger);
+  --dt-voice-error-b: var(--dt-text-danger);
+  --dt-voice-error-c: var(--dt-surface-danger-subtle);
+}

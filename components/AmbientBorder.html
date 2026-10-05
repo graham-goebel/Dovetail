@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AmbientBorder · Dovetail</title>
+<meta name="description" content="A gradient border that turns around its container and answers to a voice conversation. The state says who has the floor and sets the colours. The voice&#39;s level brightens the glow behind the ring and speeds up the turn. VoiceInput and VoiceOverlay are built on it. Use it on its own to give any container the same voice treatment, such as a chat panel, a card or a call screen.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%231d4ed8%22%2F%3E%3Cpath%20d%3D%22M9%2022%2016%209l7%2013z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="../system/styles.css?v=310a015d7e">
+<link rel="stylesheet" href="../assets/site.css?v=155271ec65">
+<script>
+  /* The saved configure, applied before first paint so no page flashes the default
+     theme on its way to the chosen one. assets/theme.js owns everything after.
+     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
+     the theme reaches its frames instead. */
+  try {
+    var r = document.documentElement;
+    var fixed = r.hasAttribute("data-theme-fixed");
+    var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
+    var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
+    if (cfg && cfg.dark) r.classList.add("dark");
+    if (ctx) r.classList.add(ctx);
+    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="wordmark" href="../index.html">
+    <img class="wordmark-mark" alt="" hidden>
+    <img class="wordmark-logo" alt="" hidden>
+    <span class="wordmark-text">Dovetail</span>
+  </a>
+  <span class="wordmark-note">White-label design system</span>
+  <div class="header-controls">
+    <button type="button" class="search-btn" data-open-search aria-label="Search components and pages"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"/><path d="m20.5 20.5-5-5"/></svg><span>Search</span><kbd>/</kbd></button>
+    <button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button>
+  </div>
+</header>
+<header class="app-head" id="app-head">
+  <div class="h-txt"><p class="h-title" aria-hidden="true">AmbientBorder</p></div>
+  <div class="head-r"><button type="button" class="page-actions-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="page-sheet" aria-label="Page actions"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h.01"/><path d="M12 12h.01"/><path d="M19 12h.01"/></svg></button></div>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation">
+  <ul class="nav-top">
+    <li><a href="../index.html">Overview</a></li>
+    <li><a href="../downloads.html">Download</a></li>
+    <li><a href="../builder.html">Builder</a></li>
+  </ul>
+  <details class="nav-section" open><summary>Foundations</summary><ul><li><a href="../foundations/index.html">All foundations</a></li><li><a href="../foundations/foundations.html">Foundations</a></li><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/type.html">Type</a></li><li><a href="../foundations/layout.html">Layout</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/size.html">Size</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/themes.html">Themes</a></li><li><a href="../tokens.html">Tokens</a></li></ul></details>
+  <details class="nav-section" open><summary>Components</summary><ul><li><a href="../components/index.html">All components</a></li><li class="nav-group">Primitives</li><li><a href="../components/Divider.html">Divider</a></li><li><a href="../components/Grid.html">Grid</a></li><li><a href="../components/Inline.html">Inline</a></li><li><a href="../components/Spacer.html">Spacer</a></li><li><a href="../components/Stack.html">Stack</a></li><li><a href="../components/VisuallyHidden.html">VisuallyHidden</a></li><li><a href="../components/Section.html">Section</a></li><li class="nav-group">Typography</li><li><a href="../components/Heading.html">Heading</a></li><li><a href="../components/Text.html">Text</a></li><li class="nav-group">Actions</li><li><a href="../components/Button.html">Button</a></li><li><a href="../components/ButtonGroup.html">ButtonGroup</a></li><li><a href="../components/IconButton.html">IconButton</a></li><li><a href="../components/Link.html">Link</a></li><li class="nav-group">Forms</li><li><a href="../components/Checkbox.html">Checkbox</a></li><li><a href="../components/CheckboxGroup.html">CheckboxGroup</a></li><li><a href="../components/Field.html">Field</a></li><li><a href="../components/Input.html">Input</a></li><li><a href="../components/Radio.html">Radio</a></li><li><a href="../components/RadioGroup.html">RadioGroup</a></li><li><a href="../components/Select.html">Select</a></li><li><a href="../components/Slider.html">Slider</a></li><li><a href="../components/Switch.html">Switch</a></li><li><a href="../components/Textarea.html">Textarea</a></li><li><a href="../components/Combobox.html">Combobox</a></li><li class="nav-group">Display</li><li><a href="../components/Avatar.html">Avatar</a></li><li><a href="../components/AvatarGroup.html">AvatarGroup</a></li><li><a href="../components/Badge.html">Badge</a></li><li><a href="../components/Card.html">Card</a></li><li><a href="../components/Carousel.html">Carousel</a></li><li><a href="../components/Code.html">Code</a></li><li><a href="../components/EmptyState.html">EmptyState</a></li><li><a href="../components/List.html">List</a></li><li><a href="../components/Skeleton.html">Skeleton</a></li><li><a href="../components/Stat.html">Stat</a></li><li><a href="../components/Table.html">Table</a></li><li><a href="../components/Tag.html">Tag</a></li><li class="nav-group">Navigation</li><li><a href="../components/Breadcrumbs.html">Breadcrumbs</a></li><li><a href="../components/MenuSheet.html">MenuSheet</a></li><li><a href="../components/Navbar.html">Navbar</a></li><li><a href="../components/Pagination.html">Pagination</a></li><li><a href="../components/Sidebar.html">Sidebar</a></li><li><a href="../components/Stepper.html">Stepper</a></li><li><a href="../components/Tabs.html">Tabs</a></li><li><a href="../components/TabPanel.html">TabPanel</a></li><li><a href="../components/AppShell.html">AppShell</a></li><li><a href="../components/BottomNav.html">BottomNav</a></li><li class="nav-group">Feedback</li><li><a href="../components/Alert.html">Alert</a></li><li><a href="../components/Banner.html">Banner</a></li><li><a href="../components/Dialog.html">Dialog</a></li><li><a href="../components/Drawer.html">Drawer</a></li><li><a href="../components/Sheet.html">Sheet</a></li><li><a href="../components/Popover.html">Popover</a></li><li><a href="../components/Progress.html">Progress</a></li><li><a href="../components/Spinner.html">Spinner</a></li><li><a href="../components/Toast.html">Toast</a></li><li><a href="../components/ToastRegion.html">ToastRegion</a></li><li><a href="../components/Tooltip.html">Tooltip</a></li><li><a href="../components/Thinking.html">Thinking</a></li><li class="nav-group">Content</li><li><a href="../components/Accordion.html">Accordion</a></li><li><a href="../components/AspectRatio.html">AspectRatio</a></li><li><a href="../components/Cover.html">Cover</a></li><li><a href="../components/Callout.html">Callout</a></li><li><a href="../components/Figure.html">Figure</a></li><li><a href="../components/Image.html">Image</a></li><li><a href="../components/Video.html">Video</a></li><li><a href="../components/Media.html">Media</a></li><li><a href="../components/Prose.html">Prose</a></li><li><a href="../components/Quote.html">Quote</a></li><li><a href="../components/BlockRenderer.html">BlockRenderer</a></li><li><a href="../components/SocialPost.html">SocialPost</a></li><li class="nav-group">Commerce</li><li><a href="../components/Price.html">Price</a></li><li><a href="../components/Rating.html">Rating</a></li><li><a href="../components/QuantityStepper.html">QuantityStepper</a></li><li><a href="../components/ProductCard.html">ProductCard</a></li><li><a href="../components/ProductGallery.html">ProductGallery</a></li><li><a href="../components/VariantPicker.html">VariantPicker</a></li><li><a href="../components/StoreHeader.html">StoreHeader</a></li><li><a href="../components/FulfilmentToggle.html">FulfilmentToggle</a></li><li><a href="../components/MenuSection.html">MenuSection</a></li><li><a href="../components/MenuItem.html">MenuItem</a></li><li><a href="../components/ModifierGroup.html">ModifierGroup</a></li><li><a href="../components/CartLine.html">CartLine</a></li><li><a href="../components/OrderSummary.html">OrderSummary</a></li><li><a href="../components/PromoCode.html">PromoCode</a></li><li><a href="../components/AddressFields.html">AddressFields</a></li><li><a href="../components/PaymentFields.html">PaymentFields</a></li><li><a href="../components/OrderStatus.html">OrderStatus</a></li><li><a href="../components/BasketBar.html">BasketBar</a></li><li class="nav-group">Chat</li><li><a href="../components/ChatHeader.html">ChatHeader</a></li><li><a href="../components/MessageList.html">MessageList</a></li><li><a href="../components/MessageDivider.html">MessageDivider</a></li><li><a href="../components/MessageBubble.html">MessageBubble</a></li><li><a href="../components/Composer.html">Composer</a></li><li><a href="../components/TypingIndicator.html">TypingIndicator</a></li><li><a href="../components/QuickReplies.html">QuickReplies</a></li><li><a href="../components/AmbientBorder.html" aria-current="page">AmbientBorder</a></li><li><a href="../components/VoiceInput.html">VoiceInput</a></li><li><a href="../components/VoiceOverlay.html">VoiceOverlay</a></li></ul></details>
+  <details class="nav-section" open><summary>Blocks</summary><ul><li><a href="../components/index.html#blocks">All blocks</a></li><li><a href="../components/HeroBlock.html">HeroBlock</a></li><li><a href="../components/FeatureGridBlock.html">FeatureGridBlock</a></li><li><a href="../components/SplitBlock.html">SplitBlock</a></li><li><a href="../components/StatsBlock.html">StatsBlock</a></li><li><a href="../components/TestimonialBlock.html">TestimonialBlock</a></li><li><a href="../components/FaqBlock.html">FaqBlock</a></li><li><a href="../components/CtaBlock.html">CtaBlock</a></li><li><a href="../components/BlockHeader.html">BlockHeader</a></li><li><a href="../components/ChatBlock.html">ChatBlock</a></li><li><a href="../components/MenuBlock.html">MenuBlock</a></li><li><a href="../components/OrderTrackingBlock.html">OrderTrackingBlock</a></li><li><a href="../components/ProductGridBlock.html">ProductGridBlock</a></li><li><a href="../components/ProductDetailBlock.html">ProductDetailBlock</a></li><li><a href="../components/CartBlock.html">CartBlock</a></li><li><a href="../components/CheckoutBlock.html">CheckoutBlock</a></li></ul></details>
+  <details class="nav-section" open><summary>Templates</summary><ul><li><a href="../showcase/templates.html">All templates</a></li><li class="nav-group">Product</li><li><a href="../showcase/templates.html#chat">Chat</a></li><li><a href="../showcase/templates.html#dashboard-screen">Dashboard screen</a></li><li><a href="../showcase/templates.html#food-ordering">Food ordering</a></li><li><a href="../showcase/templates.html#settings-page">Settings page</a></li><li><a href="../showcase/templates.html#store">Store</a></li><li class="nav-group">Marketing</li><li><a href="../showcase/templates.html#landing-page-from-blocks">Landing page from blocks</a></li><li><a href="../showcase/templates.html#marketing-page">Marketing page</a></li><li class="nav-group">Social</li><li><a href="../showcase/templates.html#social-templates">Social templates</a></li></ul></details>
+  <details class="nav-section" open><summary>Guide</summary><ul><li><a href="../guide/readme.html">README</a></li><li><a href="../guide/tokens.html">Token reference</a></li><li><a href="../guide/theming.html">Theming</a></li><li><a href="../guide/accessibility.html">Accessibility</a></li><li><a href="../guide/headless-integration.html">Headless integration</a></li><li><a href="../guide/contributing.html">Contributing</a></li><li><a href="../guide/changelog.html">Changelog</a></li></ul></details>
+</nav>
+<main id="main" class="main has-toc">
+<div class="doc">
+
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../components/index.html">Components</a></li><li aria-current="page">AmbientBorder</li></ol></nav>
+<h1>AmbientBorder</h1>
+<p class="lede">A gradient border that turns around its container and answers to a voice conversation. The <code>state</code> says who has the floor and sets the colours. The voice's level brightens the glow behind the ring and speeds up the turn. VoiceInput and VoiceOverlay are built on it. Use it on its own to give any container the same voice treatment, such as a chat panel, a card or a call screen.</p>
+<p class="meta">
+  <span class="pill">Chat</span>
+  
+  <a href="../system/components/chat/AmbientBorder.jsx">AmbientBorder.jsx</a>
+  <a href="../system/components/chat/AmbientBorder.d.ts">AmbientBorder.d.ts</a>
+  <a href="../system/components/chat/AmbientBorder.md">AmbientBorder.md</a>
+</p>
+
+<section class="playground-wrap">
+  <h2 id="playground">Playground</h2>
+  <p class="muted">Change a prop and watch it. The code below follows along.</p>
+  <div class="playground" data-playground="AmbientBorder" data-props="[{&quot;name&quot;:&quot;level&quot;,&quot;kind&quot;:&quot;number&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;The voice&#39;s loudness, 0 to 1, from your own meter&quot;},{&quot;name&quot;:&quot;radius&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;control&quot;,&quot;container&quot;,&quot;overlay&quot;,&quot;pill&quot;],&quot;default&quot;:&quot;container&quot;,&quot;note&quot;:&quot;The corner, from the radius tokens.&quot;},{&quot;name&quot;:&quot;thickness&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;thin&quot;,&quot;thick&quot;],&quot;default&quot;:&quot;thin&quot;,&quot;note&quot;:&quot;thin (--dt-voice-ring-width) around a module, thick (--dt-voice-ring-width-thick) around a screen.&quot;},{&quot;name&quot;:&quot;surface&quot;,&quot;kind&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;raised&quot;,&quot;base&quot;,&quot;sunken&quot;,&quot;none&quot;],&quot;default&quot;:&quot;raised&quot;,&quot;note&quot;:&quot;What fills the ring: raised (--dt-voice-surface), base, sunken, or none to let the page and the glow show through.&quot;},{&quot;name&quot;:&quot;glow&quot;,&quot;kind&quot;:&quot;boolean&quot;,&quot;options&quot;:null,&quot;default&quot;:&quot;true&quot;,&quot;note&quot;:&quot;The blurred halo behind the ring that answers to the level.&quot;},{&quot;name&quot;:&quot;children&quot;,&quot;kind&quot;:&quot;node&quot;,&quot;options&quot;:null,&quot;default&quot;:null,&quot;note&quot;:&quot;&quot;}]">
+    <div class="pg-stage" aria-live="polite"></div>
+    <div class="pg-controls" role="group" aria-label="AmbientBorder props"></div>
+    <pre class="pg-code"><code></code></pre>
+  </div>
+</section>
+
+<section class="card-block" id="live">
+  <div class="card-head">
+    <h2>Live</h2>
+    <a class="card-open" href="../previews/AmbientBorder.html?v=65b5d6cd7f&amp;b=c03cd0e2b5" target="_blank" rel="noopener">Open full card</a>
+  </div>
+  
+  <div class="frame" style="height:1100px">
+    <iframe src="../previews/AmbientBorder.html?v=65b5d6cd7f&amp;b=c03cd0e2b5" title="Live preview" loading="lazy"></iframe>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="install">Install and import</h2>
+  <p>AmbientBorder is in <a href="https://www.npmjs.com/package/@dovetail-ds/react"><code>@dovetail-ds/react</code></a>. Install it with React, if you haven't:</p>
+</section>
+<pre class="code" data-lang="sh"><code>npm install @dovetail-ds/react react react-dom</code></pre>
+<pre class="code" data-lang="jsx"><code>import { AmbientBorder } from &quot;@dovetail-ds/react&quot;;</code></pre>
+<p class="muted">Import <code>@dovetail-ds/react/styles.css</code> once at your app's root, then your theme after it. <a href="../downloads.html#npm">Setup</a> covers the stylesheets, fonts and dark mode.</p>
+
+<section class="prose">
+  <h2 id="guidelines">Guidelines</h2>
+  <p>A gradient border that turns around its container and answers to a voice conversation. The <code>state</code> says who has the floor and sets the colours. The voice's level brightens the glow behind the ring and speeds up the turn. VoiceInput and VoiceOverlay are built on it. Use it on its own to give any container the same voice treatment, such as a chat panel, a card or a call screen.</p>
+<h3 id="use-it-when">Use it when</h3>
+<ul><li>A container should show that a voice conversation is live: whether the person is speaking, the assistant is thinking, or the assistant is answering.</li><li>You're building a voice surface that VoiceInput and VoiceOverlay don't cover, and it should match them.</li></ul>
+<h3 id="don-t-use-it-when">Don't use it when</h3>
+<ul><li>It's decoration with no conversation behind it. A border that moves draws the eye, so keep it for something that's actually happening.</li><li>You need a loading indicator with no voice. Use <code>Thinking</code> or <code>Spinner</code>.</li><li>You need a focus ring or a selected state. Use the system's focus and border roles.</li></ul>
+<h3 id="example">Example</h3>
+<pre class="code" data-lang="jsx"><code>const [state, setState] = useState(&quot;idle&quot;);
+const [mic, setMic] = useState(null);
+
+&lt;AmbientBorder state={state} inputStream={mic} contentStyle={{ padding: &quot;var(--dt-space-inset-lg)&quot; }}&gt;
+  &lt;Text&gt;Ask about an order, a delivery or a return.&lt;/Text&gt;
+&lt;/AmbientBorder&gt;</code></pre>
+<h3 id="states">States</h3>
+<ul><li><code>idle</code>: the plain border scale, turning slowly. The conversation is open but nobody is speaking.</li><li><code>listening</code>: the brand colour. Follows the person's voice.</li><li><code>thinking</code>: two marks chase each other round a faint track, faster than any other state, in the brand, secondary and info colours. The system is working and there's no voice to follow.</li><li><code>speaking</code>: the secondary brand colour. Follows the assistant's voice. The person and the assistant use different colours so they're easy to tell apart.</li><li><code>error</code>: the danger colours, standing still.</li></ul>
+<p>A change of state crossfades from the old colours to the new ones, and the ring keeps turning from where it was.</p>
+<h3 id="level">Level</h3>
+<p>The glow and the speed of the turn follow a level from 0 to 1. The component looks for one in this order:</p>
+<ol><li><strong><code>level</code></strong>, a number you pass in every render. Use it when your speech SDK already reports loudness.</li><li><strong>A stream.</strong> <code>inputStream</code> is used while listening and <code>outputStream</code> while speaking. Each is a <code>MediaStream</code> with an audio track, for example from <code>getUserMedia</code> or a WebRTC call. The component reads the stream's loudness with the Web Audio analyser. It never plays the stream, so the microphone doesn't echo.</li><li><strong>A built-in rhythm</strong>, so a demo or a prototype still looks alive: a restless hum while listening and a syllable rhythm while speaking.</li></ol>
+<p>The level rises fast and falls slowly, so the glow doesn't flicker between words.</p>
+<h3 id="composition">Composition</h3>
+<ul><li>The ring and glow are drawn behind the content. The container keeps its own layout, and <code>contentStyle</code> sets the inner box's padding, layout and height.</li><li><code>radius</code> matches the shape of what it wraps: <code>pill</code> for a bar, <code>container</code> for a panel, <code>overlay</code> for a screen. The inner box's radius is reduced by the ring's width so the curves stay parallel.</li><li><code>surface</code> fills the inner box. Use <code>none</code> when the container sits over a background of its own, as VoiceOverlay does.</li><li><code>thickness=&quot;thick&quot;</code> is for a whole screen, where a thin ring would be lost.</li><li><code>glow={false}</code> drops the blurred halo. Use it in dense layouts or where many rings would be on screen at once.</li><li>The animation writes straight to the ring each frame without re-rendering React, so a live level doesn't cause a render 60 times a second.</li></ul>
+<h3 id="tokens">Tokens</h3>
+<ul><li>Ring: <code>--dt-voice-ring-width</code>, <code>--dt-voice-ring-width-thick</code>, <code>--dt-voice-track</code>.</li><li>Glow: <code>--dt-voice-glow-width</code>, <code>--dt-voice-glow-blur</code>, <code>--dt-voice-glow-spread</code>, <code>--dt-voice-glow-rest</code>.</li><li>Surface: <code>--dt-voice-surface</code>.</li><li>Colours, three stops per state: <code>--dt-voice-idle-a</code>, <code>-b</code> and <code>-c</code>, and the same for <code>listening</code>, <code>thinking</code>, <code>speaking</code> and <code>error</code>. Re-point them to give a brand its own voice colours.</li><li>The colours are repeated under <code>.dark</code>, so the ring follows a dark <code>Section</code> band.</li></ul>
+<h3 id="accessibility">Accessibility</h3>
+<ul><li>The ring and glow are <code>aria-hidden</code>. The border is never the only signal: pair it with a visible, announced status. VoiceInput and VoiceOverlay do this for you.</li><li>Pass <code>role</code> and <code>aria-label</code> through when the container is a landmark or a group.</li><li>Under <code>prefers-reduced-motion</code> nothing turns, pulses or fades. The ring stays still in its state's colours, and the glow stays at its resting strength. The state still reads.</li><li>Colour alone doesn't tell listening from speaking for everyone. Name the state in text.</li></ul>
+</section>
+
+<section class="prose">
+  <h2 id="props">Props</h2>
+  <p class="muted">The typed contract, from <code>AmbientBorder.d.ts</code>.</p>
+  <pre class="code" data-lang="ts" data-source="system/components/chat/AmbientBorder.d.ts"><code>import * as React from &quot;react&quot;;
+
+/** Who has the floor in a voice conversation. */
+export type VoiceState = &quot;idle&quot; | &quot;listening&quot; | &quot;thinking&quot; | &quot;speaking&quot; | &quot;error&quot;;
+
+/**
+ * An ambient border: a gradient that turns around its container and answers
+ * to a voice conversation. The state picks the colours (the person's brand
+ * colour while listening, the secondary brand colour while the assistant
+ * speaks, both with the info hue while thinking); the voice's level brightens
+ * the glow and quickens the turn. With reduced motion the ring stands still.
+ */
+export interface AmbientBorderProps extends React.HTMLAttributes&lt;HTMLElement&gt; {
+  /** idle: a slow, quiet turn. listening: the person's voice. thinking: two comets chase round a faint track. speaking: the assistant's voice. error: danger colours, still. @default &quot;idle&quot; */
+  state?: VoiceState;
+  /** The voice's loudness, 0 to 1, from your own meter. Wins over the streams. Leave it out, with no stream, and listening and speaking follow a gentle synthesised level. */
+  level?: number;
+  /** The person's microphone. Read while listening, by analysing the stream, never playing it. */
+  inputStream?: MediaStream | null;
+  /** The assistant's voice, such as a WebRTC remote stream. Read while speaking. */
+  outputStream?: MediaStream | null;
+  /** The corner, from the radius tokens. @default &quot;container&quot; */
+  radius?: &quot;none&quot; | &quot;control&quot; | &quot;container&quot; | &quot;overlay&quot; | &quot;pill&quot;;
+  /** thin (--dt-voice-ring-width) around a module, thick (--dt-voice-ring-width-thick) around a screen. @default &quot;thin&quot; */
+  thickness?: &quot;thin&quot; | &quot;thick&quot;;
+  /** What fills the ring: raised (--dt-voice-surface), base, sunken, or none to let the page and the glow show through. @default &quot;raised&quot; */
+  surface?: &quot;raised&quot; | &quot;base&quot; | &quot;sunken&quot; | &quot;none&quot;;
+  /** The blurred halo behind the ring that answers to the level. @default true */
+  glow?: boolean;
+  /** The element to render. @default &quot;div&quot; */
+  as?: keyof React.JSX.IntrinsicElements;
+  /** Styles for the inner surface, inside the ring. */
+  contentStyle?: React.CSSProperties;
+  children?: React.ReactNode;
+}
+
+export declare function AmbientBorder(props: AmbientBorderProps): React.JSX.Element;</code></pre>
+</section>
+
+<section class="prose">
+  <h2 id="tokens-used">Tokens it reads</h2>
+  <p class="muted">Every custom property <code>AmbientBorder.jsx</code> resolves, read from the source: 29 component, 6 semantic. Component tier first, because that is the one to reach for.</p>
+  <p class="meta"><button type="button" class="btn-graph" data-graph="component:AmbientBorder">Open the graph</button></p>
+  <ul class="tier-key"><li><strong>component</strong> Its own tier. Override one of these and only this component moves.</li><li><strong>semantic</strong> Shared roles. Override one and everything using that role moves with it.</li></ul>
+  <div class="table-wrap"><table class="tokens"><thead><tr><th>Token</th><th>Tier</th><th>Declared as</th></tr></thead><tbody><tr id="uses-dt-voice-error-a"><th scope="row"><span class="token-cell"><code>--dt-voice-error-a</code><button type="button" class="graph-btn" data-graph="--dt-voice-error-a" title="Show what --dt-voice-error-a connects to" aria-label="Graph for --dt-voice-error-a"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-danger)</code></td></tr><tr id="uses-dt-voice-error-b"><th scope="row"><span class="token-cell"><code>--dt-voice-error-b</code><button type="button" class="graph-btn" data-graph="--dt-voice-error-b" title="Show what --dt-voice-error-b connects to" aria-label="Graph for --dt-voice-error-b"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-danger)</code></td></tr><tr id="uses-dt-voice-error-c"><th scope="row"><span class="token-cell"><code>--dt-voice-error-c</code><button type="button" class="graph-btn" data-graph="--dt-voice-error-c" title="Show what --dt-voice-error-c connects to" aria-label="Graph for --dt-voice-error-c"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-danger-subtle)</code></td></tr><tr id="uses-dt-voice-gap"><th scope="row"><span class="token-cell"><code>--dt-voice-gap</code><button type="button" class="graph-btn" data-graph="--dt-voice-gap" title="Show what --dt-voice-gap connects to" aria-label="Graph for --dt-voice-gap"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inline-sm)</code></td></tr><tr id="uses-dt-voice-glow-blur"><th scope="row"><span class="token-cell"><code>--dt-voice-glow-blur</code><button type="button" class="graph-btn" data-graph="--dt-voice-glow-blur" title="Show what --dt-voice-glow-blur connects to" aria-label="Graph for --dt-voice-glow-blur"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-md)</code></td></tr><tr id="uses-dt-voice-glow-rest"><th scope="row"><span class="token-cell"><code>--dt-voice-glow-rest</code><button type="button" class="graph-btn" data-graph="--dt-voice-glow-rest" title="Show what --dt-voice-glow-rest connects to" aria-label="Graph for --dt-voice-glow-rest"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-opacity-ghost)</code></td></tr><tr id="uses-dt-voice-glow-spread"><th scope="row"><span class="token-cell"><code>--dt-voice-glow-spread</code><button type="button" class="graph-btn" data-graph="--dt-voice-glow-spread" title="Show what --dt-voice-glow-spread connects to" aria-label="Graph for --dt-voice-glow-spread"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-xs)</code></td></tr><tr id="uses-dt-voice-glow-width"><th scope="row"><span class="token-cell"><code>--dt-voice-glow-width</code><button type="button" class="graph-btn" data-graph="--dt-voice-glow-width" title="Show what --dt-voice-glow-width connects to" aria-label="Graph for --dt-voice-glow-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>calc(var(--dt-border-width-strong) * 4)</code></td></tr><tr id="uses-dt-voice-idle-a"><th scope="row"><span class="token-cell"><code>--dt-voice-idle-a</code><button type="button" class="graph-btn" data-graph="--dt-voice-idle-a" title="Show what --dt-voice-idle-a connects to" aria-label="Graph for --dt-voice-idle-a"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-strong)</code></td></tr><tr id="uses-dt-voice-idle-b"><th scope="row"><span class="token-cell"><code>--dt-voice-idle-b</code><button type="button" class="graph-btn" data-graph="--dt-voice-idle-b" title="Show what --dt-voice-idle-b connects to" aria-label="Graph for --dt-voice-idle-b"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-default)</code></td></tr><tr id="uses-dt-voice-idle-c"><th scope="row"><span class="token-cell"><code>--dt-voice-idle-c</code><button type="button" class="graph-btn" data-graph="--dt-voice-idle-c" title="Show what --dt-voice-idle-c connects to" aria-label="Graph for --dt-voice-idle-c"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-voice-label-fg"><th scope="row"><span class="token-cell"><code>--dt-voice-label-fg</code><button type="button" class="graph-btn" data-graph="--dt-voice-label-fg" title="Show what --dt-voice-label-fg connects to" aria-label="Graph for --dt-voice-label-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-secondary)</code></td></tr><tr id="uses-dt-voice-listening-a"><th scope="row"><span class="token-cell"><code>--dt-voice-listening-a</code><button type="button" class="graph-btn" data-graph="--dt-voice-listening-a" title="Show what --dt-voice-listening-a connects to" aria-label="Graph for --dt-voice-listening-a"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-brand)</code></td></tr><tr id="uses-dt-voice-listening-b"><th scope="row"><span class="token-cell"><code>--dt-voice-listening-b</code><button type="button" class="graph-btn" data-graph="--dt-voice-listening-b" title="Show what --dt-voice-listening-b connects to" aria-label="Graph for --dt-voice-listening-b"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-brand)</code></td></tr><tr id="uses-dt-voice-listening-c"><th scope="row"><span class="token-cell"><code>--dt-voice-listening-c</code><button type="button" class="graph-btn" data-graph="--dt-voice-listening-c" title="Show what --dt-voice-listening-c connects to" aria-label="Graph for --dt-voice-listening-c"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-brand-muted)</code></td></tr><tr id="uses-dt-voice-overlay-bg"><th scope="row"><span class="token-cell"><code>--dt-voice-overlay-bg</code><button type="button" class="graph-btn" data-graph="--dt-voice-overlay-bg" title="Show what --dt-voice-overlay-bg connects to" aria-label="Graph for --dt-voice-overlay-bg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-base)</code></td></tr><tr id="uses-dt-voice-padding"><th scope="row"><span class="token-cell"><code>--dt-voice-padding</code><button type="button" class="graph-btn" data-graph="--dt-voice-padding" title="Show what --dt-voice-padding connects to" aria-label="Graph for --dt-voice-padding"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-xs)</code></td></tr><tr id="uses-dt-voice-panel-padding"><th scope="row"><span class="token-cell"><code>--dt-voice-panel-padding</code><button type="button" class="graph-btn" data-graph="--dt-voice-panel-padding" title="Show what --dt-voice-panel-padding connects to" aria-label="Graph for --dt-voice-panel-padding"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-space-inset-lg)</code></td></tr><tr id="uses-dt-voice-placeholder-fg"><th scope="row"><span class="token-cell"><code>--dt-voice-placeholder-fg</code><button type="button" class="graph-btn" data-graph="--dt-voice-placeholder-fg" title="Show what --dt-voice-placeholder-fg connects to" aria-label="Graph for --dt-voice-placeholder-fg"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-tertiary)</code></td></tr><tr id="uses-dt-voice-ring-width"><th scope="row"><span class="token-cell"><code>--dt-voice-ring-width</code><button type="button" class="graph-btn" data-graph="--dt-voice-ring-width" title="Show what --dt-voice-ring-width connects to" aria-label="Graph for --dt-voice-ring-width"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-width-strong)</code></td></tr><tr id="uses-dt-voice-ring-width-thick"><th scope="row"><span class="token-cell"><code>--dt-voice-ring-width-thick</code><button type="button" class="graph-btn" data-graph="--dt-voice-ring-width-thick" title="Show what --dt-voice-ring-width-thick connects to" aria-label="Graph for --dt-voice-ring-width-thick"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>calc(var(--dt-border-width-strong) * 2)</code></td></tr><tr id="uses-dt-voice-speaking-a"><th scope="row"><span class="token-cell"><code>--dt-voice-speaking-a</code><button type="button" class="graph-btn" data-graph="--dt-voice-speaking-a" title="Show what --dt-voice-speaking-a connects to" aria-label="Graph for --dt-voice-speaking-a"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-brand-secondary)</code></td></tr><tr id="uses-dt-voice-speaking-b"><th scope="row"><span class="token-cell"><code>--dt-voice-speaking-b</code><button type="button" class="graph-btn" data-graph="--dt-voice-speaking-b" title="Show what --dt-voice-speaking-b connects to" aria-label="Graph for --dt-voice-speaking-b"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-text-brand-secondary)</code></td></tr><tr id="uses-dt-voice-speaking-c"><th scope="row"><span class="token-cell"><code>--dt-voice-speaking-c</code><button type="button" class="graph-btn" data-graph="--dt-voice-speaking-c" title="Show what --dt-voice-speaking-c connects to" aria-label="Graph for --dt-voice-speaking-c"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-brand-secondary-muted)</code></td></tr><tr id="uses-dt-voice-surface"><th scope="row"><span class="token-cell"><code>--dt-voice-surface</code><button type="button" class="graph-btn" data-graph="--dt-voice-surface" title="Show what --dt-voice-surface connects to" aria-label="Graph for --dt-voice-surface"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-surface-raised)</code></td></tr><tr id="uses-dt-voice-thinking-a"><th scope="row"><span class="token-cell"><code>--dt-voice-thinking-a</code><button type="button" class="graph-btn" data-graph="--dt-voice-thinking-a" title="Show what --dt-voice-thinking-a connects to" aria-label="Graph for --dt-voice-thinking-a"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-brand)</code></td></tr><tr id="uses-dt-voice-thinking-b"><th scope="row"><span class="token-cell"><code>--dt-voice-thinking-b</code><button type="button" class="graph-btn" data-graph="--dt-voice-thinking-b" title="Show what --dt-voice-thinking-b connects to" aria-label="Graph for --dt-voice-thinking-b"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-brand-secondary)</code></td></tr><tr id="uses-dt-voice-thinking-c"><th scope="row"><span class="token-cell"><code>--dt-voice-thinking-c</code><button type="button" class="graph-btn" data-graph="--dt-voice-thinking-c" title="Show what --dt-voice-thinking-c connects to" aria-label="Graph for --dt-voice-thinking-c"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-info)</code></td></tr><tr id="uses-dt-voice-track"><th scope="row"><span class="token-cell"><code>--dt-voice-track</code><button type="button" class="graph-btn" data-graph="--dt-voice-track" title="Show what --dt-voice-track connects to" aria-label="Graph for --dt-voice-track"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>component</td><td><code>var(--dt-border-subtle)</code></td></tr><tr id="uses-dt-radius-container"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-container"><code>--dt-radius-container</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-container" title="Show what --dt-radius-container connects to" aria-label="Graph for --dt-radius-container"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-16)</code></td></tr><tr id="uses-dt-radius-control"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-control"><code>--dt-radius-control</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-control" title="Show what --dt-radius-control connects to" aria-label="Graph for --dt-radius-control"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-8)</code></td></tr><tr id="uses-dt-radius-overlay"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-overlay"><code>--dt-radius-overlay</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-overlay" title="Show what --dt-radius-overlay connects to" aria-label="Graph for --dt-radius-overlay"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-24)</code></td></tr><tr id="uses-dt-radius-pill"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-radius-pill"><code>--dt-radius-pill</code></a><button type="button" class="graph-btn" data-graph="--dt-radius-pill" title="Show what --dt-radius-pill connects to" aria-label="Graph for --dt-radius-pill"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-radius-raw-full)</code></td></tr><tr id="uses-dt-surface-base"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-base"><code>--dt-surface-base</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-base" title="Show what --dt-surface-base connects to" aria-label="Graph for --dt-surface-base"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-white)</code></td></tr><tr id="uses-dt-surface-sunken"><th scope="row"><span class="token-cell"><a href="../tokens.html#token-dt-surface-sunken"><code>--dt-surface-sunken</code></a><button type="button" class="graph-btn" data-graph="--dt-surface-sunken" title="Show what --dt-surface-sunken connects to" aria-label="Graph for --dt-surface-sunken"><svg class="icon" aria-hidden="true"><use href="#i-graph"/></svg></button></span></th><td>semantic</td><td><code>var(--dt-color-neutral-100)</code></td></tr></tbody></table></div>
+</section>
+
+<section class="prose">
+  <h2 id="source">Source</h2>
+  <p class="muted">React only, no dependencies, every value a token.</p>
+  <pre class="code" data-lang="jsx" data-source="system/components/chat/AmbientBorder.jsx"><code>import React from &quot;react&quot;;
+
+/* An ambient border: a gradient that turns around its container and answers
+   to a voice conversation. Its state says who has the floor (listening to
+   the person, thinking, the assistant speaking) and picks the colours; the
+   voice's level, from a level prop or a live audio stream, brightens the glow
+   and quickens the turn. The ring and the glow are drawn behind the content,
+   so the container keeps its own layout, and the turning is written straight
+   to the two layers each frame without re-rendering React.
+
+   With reduced motion the ring stands still at its state's colours and the
+   glow keeps its resting strength: the state still reads, nothing moves. */
+
+const STATES = [&quot;idle&quot;, &quot;listening&quot;, &quot;thinking&quot;, &quot;speaking&quot;, &quot;error&quot;];
+
+/* Turns per second, the glow's extra strength at full level, and how much
+   the level quickens the turn. Thinking turns fastest and on its own: it is
+   the system working, with no voice to follow. */
+const MOTION = {
+  idle: { turn: 1 / 14, gain: 0, boost: 0 },
+  listening: { turn: 1 / 6, gain: 0.7, boost: 1.6 },
+  thinking: { turn: 1 / 1.8, gain: 0.25, boost: 0 },
+  speaking: { turn: 1 / 4.5, gain: 0.7, boost: 1.2 },
+  error: { turn: 0, gain: 0.2, boost: 0 },
+};
+
+const RADII = {
+  none: &quot;0px&quot;,
+  control: &quot;var(--dt-radius-control)&quot;,
+  container: &quot;var(--dt-radius-container)&quot;,
+  overlay: &quot;var(--dt-radius-overlay)&quot;,
+  pill: &quot;var(--dt-radius-pill)&quot;,
+};
+
+const SURFACES = { raised: &quot;var(--dt-voice-surface)&quot;, base: &quot;var(--dt-surface-base)&quot;, sunken: &quot;var(--dt-surface-sunken)&quot;, none: &quot;transparent&quot; };
+
+/* Only the ring shows: the gradient is painted over the whole box and
+   masked to its padding. */
+const RING_MASK = {
+  WebkitMask: &quot;linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)&quot;,
+  WebkitMaskComposite: &quot;xor&quot;,
+  mask: &quot;linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)&quot;,
+};
+
+function stops(state) {
+  const s = STATES.includes(state) ? state : &quot;idle&quot;;
+  return [`var(--dt-voice-${s}-a)`, `var(--dt-voice-${s}-b)`, `var(--dt-voice-${s}-c)`];
+}
+
+/* Thinking is two comets chasing round a faint track; every other state is
+   a full sweep of its colours. */
+function gradient(state, angle) {
+  const [a, b, c] = stops(state);
+  const at = `from ${angle.toFixed(2)}deg`;
+  if (state === &quot;thinking&quot;) {
+    return `conic-gradient(${at}, transparent 0turn, ${a} 0.14turn, ${b} 0.26turn, transparent 0.38turn, transparent 0.5turn, ${c} 0.64turn, ${a} 0.76turn, transparent 0.88turn)`;
+  }
+  return `conic-gradient(${at}, ${a}, ${b} 0.25turn, ${c} 0.5turn, ${b} 0.75turn, ${a})`;
+}
+
+/* Smooth pseudo-noise in -1..1, so a synthesised level never visibly loops. */
+function noise(i, t) {
+  return 0.5 * Math.sin(t * (1.3 + i * 0.37) + i * 2.1) + 0.5 * Math.sin(t * (0.7 + i * 0.23) + i * 5.3);
+}
+
+/* What listening and speaking follow when no level or stream is given: a
+   restless hum, and a syllable rhythm. A demo still looks alive. */
+function synth(state, t) {
+  if (state === &quot;listening&quot;) return 0.35 + 0.25 * noise(9, t * 2.2);
+  if (state === &quot;speaking&quot;) return Math.min(1, 0.12 + Math.abs(Math.sin(t * 6.3)) * (0.55 + 0.45 * Math.sin(t * 1.7)));
+  return 0;
+}
+
+/* The loudness of a live stream, 0..1, read from its waveform. The stream is
+   analysed, never played, so a microphone doesn't echo. */
+function listen(stream) {
+  if (typeof window === &quot;undefined&quot; || !stream || typeof stream.getAudioTracks !== &quot;function&quot; || !stream.getAudioTracks().length) return null;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  try {
+    const ctx = new Ctx();
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    if (ctx.state === &quot;suspended&quot; &amp;&amp; ctx.resume) ctx.resume().catch(() =&gt; {});
+    const buf = new Uint8Array(analyser.fftSize);
+    return {
+      read() {
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i &lt; buf.length; i++) { const d = (buf[i] - 128) / 128; sum += d * d; }
+        return Math.min(1, Math.sqrt(sum / buf.length) * 3.2);
+      },
+      stop() { try { source.disconnect(); ctx.close(); } catch (err) { /* already closed */ } },
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+function useReducedMotion() {
+  const query = &quot;(prefers-reduced-motion: reduce)&quot;;
+  const [reduced, setReduced] = React.useState(() =&gt; typeof window !== &quot;undefined&quot; &amp;&amp; !!window.matchMedia &amp;&amp; window.matchMedia(query).matches);
+  React.useEffect(() =&gt; {
+    if (typeof window === &quot;undefined&quot; || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const on = () =&gt; setReduced(mq.matches);
+    on();
+    if (mq.addEventListener) mq.addEventListener(&quot;change&quot;, on); else mq.addListener(on);
+    return () =&gt; { if (mq.removeEventListener) mq.removeEventListener(&quot;change&quot;, on); else mq.removeListener(on); };
+  }, []);
+  return reduced;
+}
+
+export function AmbientBorder({
+  state = &quot;idle&quot;,
+  level,
+  inputStream,
+  outputStream,
+  radius = &quot;container&quot;,
+  thickness = &quot;thin&quot;,
+  surface = &quot;raised&quot;,
+  glow = true,
+  as: Tag = &quot;div&quot;,
+  children,
+  style,
+  contentStyle,
+  ...rest
+}) {
+  const ring = React.useRef(null);
+  const ringOut = React.useRef(null);
+  const halo = React.useRef(null);
+  const haloOut = React.useRef(null);
+  const reduced = useReducedMotion();
+  const live = React.useRef({ state, level });
+  live.current = { state, level };
+  const meters = React.useRef({ input: null, output: null });
+
+  /* A meter for each stream, opened when the stream arrives and closed when
+     it goes. */
+  React.useEffect(() =&gt; {
+    const m = listen(inputStream);
+    meters.current.input = m;
+    return () =&gt; { if (m) m.stop(); if (meters.current.input === m) meters.current.input = null; };
+  }, [inputStream]);
+  React.useEffect(() =&gt; {
+    const m = listen(outputStream);
+    meters.current.output = m;
+    return () =&gt; { if (m) m.stop(); if (meters.current.output === m) meters.current.output = null; };
+  }, [outputStream]);
+
+  React.useEffect(() =&gt; {
+    if (reduced || typeof requestAnimationFrame === &quot;undefined&quot;) return undefined;
+    let frame = 0;
+    let last = 0;
+    let angle = 0;
+    let lvl = 0;
+    let shown = live.current.state;
+    let prev = null;
+    let fade = 0;
+    const start = typeof performance !== &quot;undefined&quot; ? performance.now() : 0;
+    const draw = (now) =&gt; {
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+      last = now;
+      const t = (now - start) / 1000;
+      const { state: st, level: given } = live.current;
+      const m = MOTION[st] || MOTION.idle;
+      /* Which voice to follow: the person's while listening, the
+         assistant's while speaking. A level prop wins over a stream. */
+      const meter = st === &quot;listening&quot; ? meters.current.input : st === &quot;speaking&quot; ? meters.current.output : null;
+      const target = typeof given === &quot;number&quot; ? Math.max(0, Math.min(1, given)) : meter ? meter.read() : synth(st, t);
+      lvl += (target - lvl) * (target &gt; lvl ? 0.45 : 0.08);
+      angle = (angle + 360 * m.turn * (1 + m.boost * lvl) * dt) % 360;
+      /* A change of state crossfades: the old colours fade out over the new. */
+      if (st !== shown) { prev = shown; shown = st; fade = 1; }
+      if (fade &gt; 0) fade = Math.max(0, fade - dt / 0.45);
+      const g = gradient(shown, angle);
+      const strength = `calc(var(--dt-voice-glow-rest) + ${(m.gain * lvl).toFixed(3)})`;
+      const spread = `calc(var(--dt-voice-glow-spread) * ${(-lvl).toFixed(3)})`;
+      if (ring.current) ring.current.style.backgroundImage = g;
+      if (halo.current) { halo.current.style.backgroundImage = g; halo.current.parentNode.style.opacity = strength; halo.current.parentNode.style.inset = spread; }
+      if (ringOut.current) { ringOut.current.style.opacity = String(fade); if (fade &gt; 0 &amp;&amp; prev) ringOut.current.style.backgroundImage = gradient(prev, angle); }
+      if (haloOut.current) { haloOut.current.style.opacity = String(fade); if (fade &gt; 0 &amp;&amp; prev) haloOut.current.style.backgroundImage = gradient(prev, angle); }
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    /* Put back what React rendered. React only rewrites a style that changed
+       between renders, so a loop stopped by reduced motion would otherwise
+       leave the ring at its last angle, part way through a crossfade. */
+    return () =&gt; {
+      cancelAnimationFrame(frame);
+      const rest = gradient(STATES.includes(live.current.state) ? live.current.state : &quot;idle&quot;, 0);
+      if (ring.current) ring.current.style.backgroundImage = rest;
+      if (halo.current) { halo.current.style.backgroundImage = rest; halo.current.parentNode.style.opacity = &quot;var(--dt-voice-glow-rest)&quot;; halo.current.parentNode.style.inset = &quot;0px&quot;; }
+      if (ringOut.current) ringOut.current.style.opacity = &quot;0&quot;;
+      if (haloOut.current) haloOut.current.style.opacity = &quot;0&quot;;
+    };
+  }, [reduced]);
+
+  const r = RADII[radius] || RADII.container;
+  const width = thickness === &quot;thick&quot; ? &quot;var(--dt-voice-ring-width-thick)&quot; : &quot;var(--dt-voice-ring-width)&quot;;
+  /* What React renders: the first state's colours, which the frame loop then
+     turns and crossfades. Re-rendering them on a change of state would snap
+     the ring back to its starting angle for a frame, so only reduced motion,
+     which has no loop, follows the state here. */
+  const first = React.useRef(gradient(STATES.includes(state) ? state : &quot;idle&quot;, 0)).current;
+  const still = reduced ? gradient(STATES.includes(state) ? state : &quot;idle&quot;, 0) : first;
+  const layer = { position: &quot;absolute&quot;, inset: 0, borderRadius: r, pointerEvents: &quot;none&quot;, boxSizing: &quot;border-box&quot; };
+  const ringLayer = { ...layer, ...RING_MASK, padding: width, backgroundColor: state === &quot;thinking&quot; ? &quot;var(--dt-voice-track)&quot; : undefined, backgroundImage: still };
+  const haloLayer = { ...layer, ...RING_MASK, padding: &quot;var(--dt-voice-glow-width)&quot;, backgroundImage: still };
+  /* minWidth 0: as a grid or flex item it shrinks to its track, so a bar's
+     single line ellipsises instead of pushing the ring past the edge. */
+
+  return (
+    &lt;Tag data-voice-state={state} style={{ position: &quot;relative&quot;, isolation: &quot;isolate&quot;, borderRadius: r, padding: width, boxSizing: &quot;border-box&quot;, minWidth: 0, ...style }} {...rest}&gt;
+      {glow &amp;&amp; (
+        &lt;span aria-hidden=&quot;true&quot; style={{ position: &quot;absolute&quot;, inset: 0, zIndex: -1, pointerEvents: &quot;none&quot;, filter: &quot;blur(var(--dt-voice-glow-blur))&quot;, opacity: &quot;var(--dt-voice-glow-rest)&quot; }}&gt;
+          &lt;span ref={halo} style={haloLayer} /&gt;
+          &lt;span ref={haloOut} style={{ ...haloLayer, opacity: 0 }} /&gt;
+        &lt;/span&gt;
+      )}
+      &lt;span ref={ring} aria-hidden=&quot;true&quot; style={ringLayer} /&gt;
+      &lt;span ref={ringOut} aria-hidden=&quot;true&quot; style={{ ...ringLayer, backgroundColor: undefined, opacity: 0 }} /&gt;
+      &lt;div style={{ position: &quot;relative&quot;, borderRadius: `max(0px, calc(${r} - ${width}))`, background: SURFACES[surface] || SURFACES.raised, minHeight: &quot;100%&quot;, boxSizing: &quot;border-box&quot;, ...contentStyle }}&gt;
+        {children}
+      &lt;/div&gt;
+    &lt;/Tag&gt;
+  );
+}</code></pre>
+</section>
+
+
+
+</div>
+<aside class="page-toc" aria-labelledby="page-toc-title">
+  <p class="page-toc-title" id="page-toc-title">On this page</p>
+  <ol>
+    <li><a href="#playground">Playground</a></li>
+    <li><a href="#live">Live</a></li>
+    <li><a href="#install">Install and import</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li class="nested"><a href="#use-it-when">Use it when</a></li>
+    <li class="nested"><a href="#don-t-use-it-when">Don't use it when</a></li>
+    <li class="nested"><a href="#example">Example</a></li>
+    <li class="nested"><a href="#states">States</a></li>
+    <li class="nested"><a href="#level">Level</a></li>
+    <li class="nested"><a href="#composition">Composition</a></li>
+    <li class="nested"><a href="#tokens">Tokens</a></li>
+    <li class="nested"><a href="#accessibility">Accessibility</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tokens-used">Tokens it reads</a></li>
+    <li><a href="#source">Source</a></li>
+  </ol>
+</aside>
+</main>
+</div>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-graph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.2 10.9 16.8 7.1M7.2 13.1l9.6 3.8"/></symbol></svg>
+<footer class="site-footer">
+  <code class="colophon"><span class="colophon-mark" aria-hidden="true">/*</span>form follows function<span class="colophon-mark" aria-hidden="true">*/</span></code>
+</footer>
+<div class="fab" id="fab">
+  <button type="button" class="fab-btn fab-menu" data-fab-menu aria-haspopup="dialog" aria-label="Menu"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8.5h16"/><path d="M4 15.5h16"/></svg></button>
+</div>
+<div class="asheet-bg" id="page-sheet" hidden>
+  <div class="asheet" role="dialog" aria-modal="true" aria-labelledby="page-sheet-title">
+    <div class="asheet-head">
+      <div class="asheet-titles"><h2 class="asheet-title" id="page-sheet-title">AmbientBorder</h2></div>
+      <button type="button" class="asheet-x" data-sheet-close aria-label="Close"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></button>
+    </div>
+    <ul class="page-menu" id="page-menu">
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="AmbientBorder.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy page as Markdown</span></button></li>
+      <li><a class="page-menu-item" href="AmbientBorder.md" download="AmbientBorder.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5L16.5 10"/><path d="M4.5 20.5h15"/></svg><span>Download Markdown</span></a></li>
+      <li><a class="page-menu-item" href="AmbientBorder.md" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.5l-6-6Z"/><path d="M13.5 2.5v6h6"/></svg><span>View as Markdown</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-text" data-text="import { AmbientBorder } from &quot;@dovetail-ds/react&quot;;" data-done="Import copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy import</span></button></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/chat/AmbientBorder.jsx" data-done="JSX copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy AmbientBorder.jsx</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/chat/AmbientBorder.jsx" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View AmbientBorder.jsx</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-md" data-md="../system/components/chat/AmbientBorder.d.ts" data-done="Types copied"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy AmbientBorder.d.ts</span></button></li>
+      <li><a class="page-menu-item" href="../system/components/chat/AmbientBorder.d.ts" target="_blank" rel="noopener"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3H8a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M15 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg><span>View AmbientBorder.d.ts</span></a></li>
+      <li><a class="page-menu-item" href="https://claude.ai/new?q=I&#39;m%20building%20with%20Dovetail%2C%20a%20white-label%20React%20design%20system%3A%20primitive%20tokens%2C%20semantic%20roles%20and%20components%2C%20rebranded%20by%20a%20theme%20file%20of%20token%20overrides.%0A%0ARead%20these%20first%2C%20in%20order%3A%0A1.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fllms.txt%3A%20the%20map%20of%20the%20docs%2C%20with%20raw%20Markdown%20links%20to%20every%20guide%2C%20token%20file%20and%20component%20(its%20.md%20guide%2C%20.d.ts%20props%20and%20.jsx%20source).%0A2.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fcomponents%2FAmbientBorder.md%3A%20the%20%22AmbientBorder%22%20page%20I&#39;m%20looking%20at.%0A3.%20https%3A%2F%2Fgraham-goebel.github.io%2FDovetail%2Fsystem%2Fassets%2Fnotes%2FCLAUDE.from-standalone.md%3A%20the%20authoring%20rules.%20Follow%20them.%0A%0AWhen%20you%20write%20code%3A%0A-%20Use%20Dovetail&#39;s%20components%20and%20--dt-*%20tokens.%20No%20literal%20colours%2C%20sizes%2C%20radii%2C%20shadows%20or%20durations.%0A-%20Product%20code%20reads%20semantic%20(--dt-surface-*%2C%20--dt-text-*)%20or%20component%20tokens%2C%20never%20primitives%20(--dt-color-*).%0A-%20Check%20every%20prop%20against%20the%20component&#39;s%20.d.ts%2C%20and%20follow%20the%20rules%20in%20its%20.md.%0A-%20Rebrand%20by%20overriding%20tokens%20in%20a%20theme%20file%2C%20not%20by%20editing%20components.%0A-%20Make%20it%20work%20at%20390px%2C%20in%20dark%20mode%20(.dark)%20and%20with%20reduced%20motion.%0A-%20If%20the%20docs%20don&#39;t%20cover%20something%2C%20say%20so%20rather%20than%20inventing%20an%20API%20or%20a%20token.%0A%0AMy%20task%3A%20" target="_blank" rel="noopener" data-page-action="claude" data-title="AmbientBorder" data-md="AmbientBorder.md"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7Z"/><path d="M19 17.5v3"/><path d="M17.5 19h3"/></svg><span>Open in Claude</span></a></li>
+      <li><button type="button" class="page-menu-item" data-page-action="copy-link"><svg class="tile-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span>Copy link</span></button></li>
+    </ul>
+    <p class="page-actions-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script src="../system/components/lib/react.production.min.js?v=aa77ae4c49" defer></script>
+<script src="../system/components/lib/react-dom.production.min.js?v=feb8ddc9d0" defer></script>
+<script src="../system/components/bundle.js?v=c03cd0e2b5" defer></script>
+<script src="../assets/specimens.js?v=9ea1123fda" defer></script>
+<script src="../assets/playground.js?v=b4c6d06582" defer></script>
+<script src="../assets/configure-data.js?v=a347e023ef" defer></script>
+<script src="../assets/search-data.js?v=ccd74f29e4" defer></script>
+<script src="../assets/search.js?v=50ed93a581" defer></script>
+<script src="../assets/menu.js?v=105c15bc1c" defer></script>
+<script src="../assets/theme.js?v=20d8db1393" defer></script>
+<script src="../assets/site.js?v=94c1c9b8f0" defer></script>
+<script src="../assets/graph.js?v=3907d13676" defer></script>
+</body>
+</html>

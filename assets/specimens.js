@@ -5,7 +5,7 @@
    content, no scaffolding. They are rendered from the same bundle the preview
    cards use, so a specimen cannot drift from the component it shows.
 
-   Four components are missing on purpose. Dialog, Drawer, Sheet and ToastRegion
+   A few components are missing on purpose. Dialog, Drawer, Sheet and ToastRegion
    mount fixed to the viewport when open, so a specimen of them would cover the
    page rather than sit in a card; VisuallyHidden renders nothing by design.
    Those cards say so instead of showing an empty box. */
@@ -404,6 +404,13 @@
         onSelect: function () {},
       });
     },
+    AmbientBorder: function () {
+      return e("div", { style: { width: "100%", maxWidth: 220 } }, e(NS.AmbientBorder, { state: "speaking", contentStyle: { padding: "var(--dt-space-inset-md)" } },
+        e(NS.Text, { variant: "small", tone: "secondary" }, "The ring turns while the assistant speaks.")));
+    },
+    VoiceInput: function () {
+      return e("div", { style: { width: "100%", maxWidth: 260 } }, e(NS.VoiceInput, { state: "listening", transcript: "Is the tall jug back in stock?", onToggle: function () {} }));
+    },
     ProductCard: function () {
       return e("div", { style: { width: "100%", maxWidth: 200 } }, e(NS.ProductCard, {
         name: "Stoneware mug", subtitle: "Fern glaze", price: 24, compareAt: 30, locale: "en-US", badge: "-20%",
@@ -555,6 +562,7 @@
     Drawer: "Slides in over the page, so it is shown on its own card.",
     Sheet: "Rises over the page, so it is shown on its own card.",
     MenuSheet: "Grows out of a menu button over the page, so it is shown on its own card.",
+    VoiceOverlay: "Covers the whole screen for a voice conversation, so it is shown on its own card.",
     HeroBlock: "A full-width page section, so it is shown on its own card.",
     FeatureGridBlock: "A full-width page section, so it is shown on its own card.",
     SplitBlock: "A full-width page section, so it is shown on its own card.",

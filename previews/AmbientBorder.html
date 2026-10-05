@@ -1,0 +1,129 @@
+<!-- @dsCard group="Chat" height=1500 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
+</head><body><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+
+  /* A scripted conversation, so the card shows every state and both voices
+     without a microphone: the person asks, the assistant thinks, then
+     answers, and it starts again. The words arrive one at a time, as a live
+     transcript would. */
+  var ASK = "Is the tall jug back in stock, and can I collect it on Saturday?";
+  var REPLY = "It is, in terracotta. Saturday works: the studio is open ten till four.";
+  var SCRIPT = [["idle", 1200], ["listening", 3600], ["thinking", 1600], ["speaking", 4200], ["idle", 1400]];
+  var TOTAL = SCRIPT.reduce(function (n, s) { return n + s[1]; }, 0);
+  function words(text, part) { var w = text.split(" "); return w.slice(0, Math.max(1, Math.ceil(w.length * part))).join(" "); }
+  function useConversation(running) {
+    var st = React.useState(0), t = st[0], set = st[1];
+    React.useEffect(function () {
+      if (!running) return undefined;
+      var start = Date.now() - t;
+      var id = setInterval(function () { set((Date.now() - start) % TOTAL); }, 120);
+      return function () { clearInterval(id); };
+    }, [running]);
+    var at = 0, i = 0;
+    while (i < SCRIPT.length - 1 && t >= at + SCRIPT[i][1]) { at += SCRIPT[i][1]; i++; }
+    var state = SCRIPT[i][0], part = (t - at) / SCRIPT[i][1];
+    var heard = i >= 1 && i < 4;
+    return {
+      state: state,
+      transcript: i === 1 ? words(ASK, part) : heard ? ASK : "",
+      response: i === 3 ? words(REPLY, part) : "",
+    };
+  }
+
+  var STATES = ["idle", "listening", "thinking", "speaking", "error"];
+  var NOTES = { idle: "Open, nobody speaking", listening: "The person's voice, in brand", thinking: "Two comets, the system working", speaking: "The assistant's voice, in secondary", error: "Still, in danger" };
+
+  function Live(props) {
+    var c = useConversation(true);
+    return e("div", { className: props.dark ? "dark" : undefined, style: { padding: "var(--dt-space-inset-xl)", borderRadius: "var(--dt-radius-container)", background: "var(--dt-surface-base)", color: "var(--dt-text-primary)" } },
+      e(NS.AmbientBorder, { state: c.state, contentStyle: { padding: "var(--dt-space-inset-lg)", display: "grid", gap: "var(--dt-space-stack-xs)", minHeight: 140, alignContent: "start" } },
+        e(NS.Text, { variant: "eyebrow", tone: "tertiary" }, c.state),
+        e(NS.Text, { tone: c.response ? "primary" : "secondary" }, c.response || c.transcript || "Ask about an order, a delivery or a return.")));
+  }
+
+  function Level() {
+    var st = React.useState(0.3), level = st[0], set = st[1];
+    return e("div", { style: { display: "grid", gap: "var(--dt-space-stack-md)", maxWidth: 420 } },
+      e(NS.AmbientBorder, { state: "listening", level: level, contentStyle: { padding: "var(--dt-space-inset-lg)" } },
+        e(NS.Text, { tone: "secondary" }, "The glow and the turn follow level.")),
+      e(NS.Slider, { label: "level", min: 0, max: 1, step: 0.05, value: level, onChange: set, showValue: true }));
+  }
+
+  function Shapes() {
+    return e("div", { style: { display: "grid", gap: "var(--dt-space-stack-lg)" } },
+      e(NS.AmbientBorder, { state: "speaking", radius: "pill", contentStyle: { padding: "var(--dt-space-inset-sm) var(--dt-space-inset-lg)" } },
+        e(NS.Text, { variant: "small" }, 'radius="pill"')),
+      e(NS.AmbientBorder, { state: "listening", radius: "control", thickness: "thick", contentStyle: { padding: "var(--dt-space-inset-md)" } },
+        e(NS.Text, { variant: "small" }, 'radius="control" thickness="thick"')),
+      e(NS.AmbientBorder, { state: "thinking", glow: false, surface: "sunken", contentStyle: { padding: "var(--dt-space-inset-md)" } },
+        e(NS.Text, { variant: "small" }, 'glow={false} surface="sunken"')));
+  }
+
+  function Page() {
+    return e(Shelf, { name: "AmbientBorder", summary: "A gradient border that turns around its container and answers to a voice conversation: state picks the colours, the voice's level brightens the glow and quickens the turn.", props: [
+        { name: "state", type: '"idle" | "listening" | "thinking" | "speaking" | "error"', default: '"idle"', notes: "Who has the floor. Changes crossfade." },
+        { name: "level", type: "number", notes: "0 to 1, the live loudness. Wins over a stream." },
+        { name: "inputStream / outputStream", type: "MediaStream", notes: "Analysed, never played. Input while listening, output while speaking." },
+        { name: "radius", type: '"none" | "control" | "container" | "overlay" | "pill"', default: '"container"' },
+        { name: "thickness", type: '"thin" | "thick"', default: '"thin"' },
+        { name: "surface", type: '"raised" | "base" | "sunken" | "none"', default: '"raised"' },
+        { name: "glow", type: "boolean", default: "true", notes: "The blurred halo behind the ring." },
+        { name: "as", type: "ElementType", default: '"div"' },
+        { name: "contentStyle", type: "CSSProperties", notes: "The inner box: padding, layout, height." },
+      ], guidance: [
+        "Use it to show a voice conversation is live. Keep it for something happening: a moving border draws the eye.",
+        "Listening is the brand colour and speaking the secondary brand colour, so the person and the assistant read apart. Thinking turns fastest, as two comets on a track.",
+        "With no level or stream, listening and speaking follow a built-in rhythm, so a prototype still looks alive.",
+        "The ring is aria-hidden. Always pair it with a status in words; VoiceInput and VoiceOverlay do.",
+        "Under reduced motion it stands still in its state's colours.",
+      ] },
+      e(Specimen, { label: "Live: a scripted conversation, light and inside a dark band", bg: "var(--dt-surface-subtle)" },
+        e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "var(--dt-space-inline-xl)" } },
+          e(Live, null), e(Live, { dark: true }))),
+      e(Specimen, { label: "Every state" },
+        e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: "var(--dt-space-inline-lg)" } },
+          STATES.map(function (s) {
+            return e(NS.AmbientBorder, { key: s, state: s, contentStyle: { padding: "var(--dt-space-inset-md)", display: "grid", gap: "var(--dt-space-stack-2xs)" } },
+              e(NS.Text, { variant: "label" }, s), e(NS.Text, { variant: "small", tone: "secondary" }, NOTES[s]));
+          }))),
+      e(Specimen, { label: "Level from a prop" }, e(Level, null)),
+      e(Specimen, { label: "Radius, thickness, glow and surface" }, e(Shapes, null)));
+  }
+
+  var startedAt = Date.now();
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var need = ["AmbientBorder", "Text", "Slider"].filter(function (n) { return !NS[n]; });
+    if (!need.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) {
+      document.getElementById("root").textContent = "This card could not load " + (need.join(", ") || "card-kit.js") + ". A hard reload clears a cached copy.";
+      return;
+    }
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>
