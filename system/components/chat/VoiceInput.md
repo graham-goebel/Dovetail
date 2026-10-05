@@ -33,6 +33,7 @@ const [state, setState] = useState("idle");
 - **The microphone** calls `onToggle`. While listening it's a solid stop button named "Stop listening" and marked `aria-pressed`. Otherwise it's a microphone named "Speak".
 - **End** appears when you pass `onEnd` and the conversation isn't idle.
 - **Words.** `transcript` is what the person is saying, live or final. `response` is the assistant's reply. While listening, only the transcript shows. Otherwise the panel shows both lines, labelled "You" and `assistantName`, and the bar shows the reply.
+- **Tone.** `tone="spectrum"` turns the border into a six-hue wheel instead of the brand colours. Error stays danger. See `AmbientBorder`.
 - **Level.** As for `AmbientBorder`: a `level` prop first, otherwise `inputStream` while listening and `outputStream` while speaking, otherwise a built-in rhythm.
 
 ## Layouts

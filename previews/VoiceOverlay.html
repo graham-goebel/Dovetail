@@ -66,12 +66,25 @@
           e(NS.Heading, { level: 3, size: "display-sm" }, "Ask the studio"),
           e(NS.Text, { tone: "secondary" }, "Talk to the assistant about stock, collection and care."),
           e("div", null, e(NS.Button, { onClick: function () { set(true); } }, "Start talking"))),
-        e(NS.VoiceOverlay, { open: open, onClose: function () { set(false); }, dark: props.dark, state: c.state, transcript: c.transcript, response: c.response, assistantName: "Kiln & Co", onToggle: function () {} },
+        e(NS.VoiceOverlay, { tone: TONE, open: open, onClose: function () { set(false); }, dark: props.dark, state: c.state, transcript: c.transcript, response: c.response, assistantName: "Kiln & Co", onToggle: function () {} },
           props.withOrb ? e(NS.Thinking, { state: c.state === "idle" ? "connecting" : c.state === "error" ? "thinking" : c.state, shape: "orb", size: "lg", showLabel: false }) : null)),
       e(NS.Text, { variant: "small", tone: "tertiary" }, props.caption));
   }
 
+  /* The tone every specimen on this card is drawn in, set by the switch at
+     the top. Read during render, so a change re-renders them all. */
+  var TONE = "brand";
+  function ToneSwitch(props) {
+    return e("div", { role: "group", "aria-label": "Tone", style: { display: "flex", flexWrap: "wrap", gap: "var(--dt-space-inline-xs)", alignItems: "center" } },
+      ["brand", "spectrum"].map(function (t) {
+        return e(NS.Button, { key: t, size: "sm", variant: props.value === t ? "primary" : "secondary", "aria-pressed": props.value === t, onClick: function () { props.onChange(t); } }, t === "brand" ? "Brand" : "Spectrum");
+      }),
+      e(NS.Text, { variant: "small", tone: "tertiary" }, props.value === "spectrum" ? 'tone="spectrum": a six-hue wheel; error stays danger' : 'tone="brand": each state in its own colours'));
+  }
+
   function Page() {
+    var ts = React.useState("brand");
+    TONE = ts[0];
     return e(Shelf, { name: "VoiceOverlay", summary: "A voice conversation over the whole screen: the ambient border runs round its edge, the exchange is set large in the middle, and the microphone and End sit at the foot.", props: [
         { name: "open / onClose", type: "boolean / () => void", required: true, notes: "End and Escape call onClose." },
         { name: "state", type: '"idle" | "listening" | "thinking" | "speaking" | "error"', default: '"idle"' },
@@ -87,6 +100,7 @@
         "Show the words as well as speaking them, and keep the reply on screen short.",
         "Under reduced motion the border stands still; the status still names the state.",
       ] },
+      e(Specimen, { label: "Tone" }, e(ToneSwitch, { value: ts[0], onChange: ts[1] })),
       e(Specimen, { label: "In a phone: start talking, End or Escape closes it", bg: "var(--dt-surface-subtle)" },
         e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "var(--dt-space-inline-xl)" } },
           e(Phone, { startOpen: true, caption: "Dark, the default" }),
