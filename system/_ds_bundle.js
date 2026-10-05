@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"},{"name":"Carousel","sourcePath":"components/display/Carousel.jsx"},{"name":"MenuSheet","sourcePath":"components/navigation/MenuSheet.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"43addfe26287","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"17a32e0902cc","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"e2125883f0ea","components/feedback/Drawer.jsx":"7b91df7fb6eb","components/feedback/Popover.jsx":"5d1b67df4b0d","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"2761bb6db4d2","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"66f2fdee895a","components/forms/Field.jsx":"29b5e0fa7688","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"c60c12fd6807","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"567b42a6cb81","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"087162b6b91e","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"9cfb062e8282","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"24f6c8b9a12c","components/blocks/FaqBlock.jsx":"b582937195d6","components/blocks/FeatureGridBlock.jsx":"55df2dc6709f","components/blocks/HeroBlock.jsx":"bc4b2b50506b","components/blocks/SplitBlock.jsx":"02b007758d94","components/blocks/StatsBlock.jsx":"c52fb723e395","components/blocks/TestimonialBlock.jsx":"2e102dbd61f9","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"ca6ccce91863","components/commerce/BasketBar.jsx":"8f8b5b631062","components/display/Carousel.jsx":"b34dd628f4d8","components/navigation/MenuSheet.jsx":"0e7c30f63393"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"BeamMobileDesignSystem_e33121","components":[{"name":"Button","sourcePath":"components/actions/Button.jsx"},{"name":"ButtonGroup","sourcePath":"components/actions/ButtonGroup.jsx"},{"name":"IconButton","sourcePath":"components/actions/IconButton.jsx"},{"name":"Link","sourcePath":"components/actions/Link.jsx"},{"name":"Accordion","sourcePath":"components/content/Accordion.jsx"},{"name":"AspectRatio","sourcePath":"components/content/AspectRatio.jsx"},{"name":"Callout","sourcePath":"components/content/Callout.jsx"},{"name":"Figure","sourcePath":"components/content/Figure.jsx"},{"name":"Image","sourcePath":"components/content/Image.jsx"},{"name":"Media","sourcePath":"components/content/Media.jsx"},{"name":"Prose","sourcePath":"components/content/Prose.jsx"},{"name":"Quote","sourcePath":"components/content/Quote.jsx"},{"name":"Avatar","sourcePath":"components/display/Avatar.jsx"},{"name":"AvatarGroup","sourcePath":"components/display/AvatarGroup.jsx"},{"name":"Badge","sourcePath":"components/display/Badge.jsx"},{"name":"Card","sourcePath":"components/display/Card.jsx"},{"name":"Code","sourcePath":"components/display/Code.jsx"},{"name":"EmptyState","sourcePath":"components/display/EmptyState.jsx"},{"name":"List","sourcePath":"components/display/List.jsx"},{"name":"Skeleton","sourcePath":"components/display/Skeleton.jsx"},{"name":"Stat","sourcePath":"components/display/Stat.jsx"},{"name":"Table","sourcePath":"components/display/Table.jsx"},{"name":"Tag","sourcePath":"components/display/Tag.jsx"},{"name":"Alert","sourcePath":"components/feedback/Alert.jsx"},{"name":"Banner","sourcePath":"components/feedback/Banner.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"Drawer","sourcePath":"components/feedback/Drawer.jsx"},{"name":"Popover","sourcePath":"components/feedback/Popover.jsx"},{"name":"Progress","sourcePath":"components/feedback/Progress.jsx"},{"name":"Spinner","sourcePath":"components/feedback/Spinner.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"ToastRegion","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"CheckboxGroup","sourcePath":"components/forms/CheckboxGroup.jsx"},{"name":"Field","sourcePath":"components/forms/Field.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"RadioGroup","sourcePath":"components/forms/RadioGroup.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Slider","sourcePath":"components/forms/Slider.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumbs","sourcePath":"components/navigation/Breadcrumbs.jsx"},{"name":"Navbar","sourcePath":"components/navigation/Navbar.jsx"},{"name":"Pagination","sourcePath":"components/navigation/Pagination.jsx"},{"name":"Sidebar","sourcePath":"components/navigation/Sidebar.jsx"},{"name":"Stepper","sourcePath":"components/navigation/Stepper.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"},{"name":"TabPanel","sourcePath":"components/navigation/Tabs.jsx"},{"name":"Divider","sourcePath":"components/primitives/Divider.jsx"},{"name":"Grid","sourcePath":"components/primitives/Grid.jsx"},{"name":"Inline","sourcePath":"components/primitives/Inline.jsx"},{"name":"Spacer","sourcePath":"components/primitives/Spacer.jsx"},{"name":"Stack","sourcePath":"components/primitives/Stack.jsx"},{"name":"VisuallyHidden","sourcePath":"components/primitives/VisuallyHidden.jsx"},{"name":"Combobox","sourcePath":"components/forms/Combobox.jsx"},{"name":"BlockRenderer","sourcePath":"components/content/BlockRenderer.jsx"},{"name":"Video","sourcePath":"components/content/Video.jsx"},{"name":"Cover","sourcePath":"components/content/Cover.jsx"},{"name":"Heading","sourcePath":"components/typography/Heading.jsx"},{"name":"Text","sourcePath":"components/typography/Text.jsx"},{"name":"Section","sourcePath":"components/primitives/Section.jsx"},{"name":"Thinking","sourcePath":"components/feedback/Thinking.jsx"},{"name":"AppShell","sourcePath":"components/navigation/AppShell.jsx"},{"name":"BottomNav","sourcePath":"components/navigation/BottomNav.jsx"},{"name":"Sheet","sourcePath":"components/feedback/Sheet.jsx"},{"name":"BlockHeader","sourcePath":"components/blocks/BlockHeader.jsx"},{"name":"CtaBlock","sourcePath":"components/blocks/CtaBlock.jsx"},{"name":"FaqBlock","sourcePath":"components/blocks/FaqBlock.jsx"},{"name":"FeatureGridBlock","sourcePath":"components/blocks/FeatureGridBlock.jsx"},{"name":"HeroBlock","sourcePath":"components/blocks/HeroBlock.jsx"},{"name":"SplitBlock","sourcePath":"components/blocks/SplitBlock.jsx"},{"name":"StatsBlock","sourcePath":"components/blocks/StatsBlock.jsx"},{"name":"TestimonialBlock","sourcePath":"components/blocks/TestimonialBlock.jsx"},{"name":"SocialPost","sourcePath":"components/content/SocialPost.jsx"},{"name":"Price","sourcePath":"components/commerce/Price.jsx"},{"name":"QuantityStepper","sourcePath":"components/commerce/QuantityStepper.jsx"},{"name":"Rating","sourcePath":"components/commerce/Rating.jsx"},{"name":"ChatHeader","sourcePath":"components/chat/ChatHeader.jsx"},{"name":"Composer","sourcePath":"components/chat/Composer.jsx"},{"name":"MessageBubble","sourcePath":"components/chat/MessageBubble.jsx"},{"name":"MessageList","sourcePath":"components/chat/MessageList.jsx"},{"name":"MessageDivider","sourcePath":"components/chat/MessageList.jsx"},{"name":"QuickReplies","sourcePath":"components/chat/QuickReplies.jsx"},{"name":"TypingIndicator","sourcePath":"components/chat/TypingIndicator.jsx"},{"name":"ProductCard","sourcePath":"components/commerce/ProductCard.jsx"},{"name":"ProductGallery","sourcePath":"components/commerce/ProductGallery.jsx"},{"name":"VariantPicker","sourcePath":"components/commerce/VariantPicker.jsx"},{"name":"FulfilmentToggle","sourcePath":"components/commerce/FulfilmentToggle.jsx"},{"name":"MenuItem","sourcePath":"components/commerce/MenuItem.jsx"},{"name":"MenuSection","sourcePath":"components/commerce/MenuSection.jsx"},{"name":"ModifierGroup","sourcePath":"components/commerce/ModifierGroup.jsx"},{"name":"StoreHeader","sourcePath":"components/commerce/StoreHeader.jsx"},{"name":"AddressFields","sourcePath":"components/commerce/AddressFields.jsx"},{"name":"CartLine","sourcePath":"components/commerce/CartLine.jsx"},{"name":"OrderStatus","sourcePath":"components/commerce/OrderStatus.jsx"},{"name":"OrderSummary","sourcePath":"components/commerce/OrderSummary.jsx"},{"name":"PaymentFields","sourcePath":"components/commerce/PaymentFields.jsx"},{"name":"PromoCode","sourcePath":"components/commerce/PromoCode.jsx"},{"name":"CartBlock","sourcePath":"components/blocks/CartBlock.jsx"},{"name":"ChatBlock","sourcePath":"components/blocks/ChatBlock.jsx"},{"name":"CheckoutBlock","sourcePath":"components/blocks/CheckoutBlock.jsx"},{"name":"MenuBlock","sourcePath":"components/blocks/MenuBlock.jsx"},{"name":"OrderTrackingBlock","sourcePath":"components/blocks/OrderTrackingBlock.jsx"},{"name":"ProductDetailBlock","sourcePath":"components/blocks/ProductDetailBlock.jsx"},{"name":"ProductGridBlock","sourcePath":"components/blocks/ProductGridBlock.jsx"},{"name":"BasketBar","sourcePath":"components/commerce/BasketBar.jsx"},{"name":"Carousel","sourcePath":"components/display/Carousel.jsx"},{"name":"MenuSheet","sourcePath":"components/navigation/MenuSheet.jsx"},{"name":"AmbientBorder","sourcePath":"components/chat/AmbientBorder.jsx"},{"name":"VoiceInput","sourcePath":"components/chat/VoiceInput.jsx"},{"name":"VoiceOverlay","sourcePath":"components/chat/VoiceOverlay.jsx"}],"sourceHashes":{"components/actions/Button.jsx":"43addfe26287","components/actions/ButtonGroup.jsx":"4a3452383903","components/actions/IconButton.jsx":"e6e0f3218ecb","components/actions/Link.jsx":"56e4188f517e","components/content/Accordion.jsx":"86873e9b9883","components/content/AspectRatio.jsx":"14a1de22bd52","components/content/Callout.jsx":"da57dfab643c","components/content/Figure.jsx":"d1a863fbbfb7","components/content/Image.jsx":"4203327b5914","components/content/Media.jsx":"1ae880ad0d1e","components/content/Prose.jsx":"c29a086b072b","components/content/Quote.jsx":"2cab18cb6495","components/display/Avatar.jsx":"b4e0ce2919fc","components/display/AvatarGroup.jsx":"37ac3009dac3","components/display/Badge.jsx":"17a32e0902cc","components/display/Card.jsx":"e55c9388be38","components/display/Code.jsx":"c44b1c5ab364","components/display/EmptyState.jsx":"999dc3f6f81c","components/display/List.jsx":"22d400031a23","components/display/Skeleton.jsx":"4588400b2ac5","components/display/Stat.jsx":"ca6edbe1ffd6","components/display/Table.jsx":"b1c6d6e1a57f","components/display/Tag.jsx":"1b6bd261637c","components/feedback/Alert.jsx":"2a22ec92c484","components/feedback/Banner.jsx":"75b89b49fca1","components/feedback/Dialog.jsx":"e2125883f0ea","components/feedback/Drawer.jsx":"7b91df7fb6eb","components/feedback/Popover.jsx":"5d1b67df4b0d","components/feedback/Progress.jsx":"6bdf3e516b20","components/feedback/Spinner.jsx":"ed2cdb7fbe9b","components/feedback/Toast.jsx":"2761bb6db4d2","components/feedback/Tooltip.jsx":"fe735c99b80e","components/forms/Checkbox.jsx":"22faaa99b39e","components/forms/CheckboxGroup.jsx":"66f2fdee895a","components/forms/Field.jsx":"29b5e0fa7688","components/forms/Input.jsx":"12b022d4da7b","components/forms/Radio.jsx":"ea2d8c5c257e","components/forms/RadioGroup.jsx":"c60c12fd6807","components/forms/Select.jsx":"24404aa55429","components/forms/Slider.jsx":"2b033f808960","components/forms/Switch.jsx":"ee62606b9050","components/forms/Textarea.jsx":"462e90476756","components/navigation/Breadcrumbs.jsx":"eca6f374c3d8","components/navigation/Navbar.jsx":"567b42a6cb81","components/navigation/Pagination.jsx":"5b637b30f235","components/navigation/Sidebar.jsx":"4d7481316d1d","components/navigation/Stepper.jsx":"539fb234c443","components/navigation/Tabs.jsx":"66d63f930da4","components/primitives/Divider.jsx":"fa9b71db2fd9","components/primitives/Grid.jsx":"61acc3d6a495","components/primitives/Inline.jsx":"31d1ee3eb7df","components/primitives/Spacer.jsx":"3ee3344da447","components/primitives/Stack.jsx":"4075f032d6cb","components/primitives/VisuallyHidden.jsx":"395baa15b285","components/forms/Combobox.jsx":"8d91f2e01f66","components/content/BlockRenderer.jsx":"a76948a7888d","components/content/Video.jsx":"9845d52ac3ae","components/content/Cover.jsx":"035ed99643aa","components/typography/Heading.jsx":"90b133b9d0aa","components/typography/Text.jsx":"0fb8de32c34e","components/primitives/Section.jsx":"087162b6b91e","components/feedback/Thinking.jsx":"21d02923a2db","components/navigation/AppShell.jsx":"49349c019a59","components/navigation/BottomNav.jsx":"a96de8df2b53","components/feedback/Sheet.jsx":"9cfb062e8282","components/blocks/BlockHeader.jsx":"b8b85e20fec2","components/blocks/CtaBlock.jsx":"24f6c8b9a12c","components/blocks/FaqBlock.jsx":"b582937195d6","components/blocks/FeatureGridBlock.jsx":"55df2dc6709f","components/blocks/HeroBlock.jsx":"bc4b2b50506b","components/blocks/SplitBlock.jsx":"02b007758d94","components/blocks/StatsBlock.jsx":"c52fb723e395","components/blocks/TestimonialBlock.jsx":"2e102dbd61f9","components/content/SocialPost.jsx":"e1f79c71be4e","components/commerce/Price.jsx":"62fca2deb048","components/commerce/QuantityStepper.jsx":"da19afd6e85b","components/commerce/Rating.jsx":"f3a3c3a019e1","components/chat/ChatHeader.jsx":"e5582aaef0a0","components/chat/Composer.jsx":"c2e576daf5bc","components/chat/MessageBubble.jsx":"276980c906d6","components/chat/MessageList.jsx":"a2cbe63393f4","components/chat/QuickReplies.jsx":"be38b1de1e1c","components/chat/TypingIndicator.jsx":"4269e9bfc3dc","components/commerce/ProductCard.jsx":"7dd0cb1139c0","components/commerce/ProductGallery.jsx":"3d31a581d234","components/commerce/VariantPicker.jsx":"da99249eac2f","components/commerce/FulfilmentToggle.jsx":"bf053471e025","components/commerce/MenuItem.jsx":"0e48f071d387","components/commerce/MenuSection.jsx":"9278490283ca","components/commerce/ModifierGroup.jsx":"d15749fbb16d","components/commerce/StoreHeader.jsx":"d716e7d2f4a7","components/commerce/AddressFields.jsx":"05e4c129611e","components/commerce/CartLine.jsx":"4c6957c676c7","components/commerce/OrderStatus.jsx":"8b7636c27a67","components/commerce/OrderSummary.jsx":"9d8861096e8f","components/commerce/PaymentFields.jsx":"b3b72e76999a","components/commerce/PromoCode.jsx":"643bcd1017a3","components/blocks/CartBlock.jsx":"05d56d912151","components/blocks/ChatBlock.jsx":"aca3780ec706","components/blocks/CheckoutBlock.jsx":"9f6d9271a417","components/blocks/MenuBlock.jsx":"f3d1bebd84a3","components/blocks/OrderTrackingBlock.jsx":"72a9946fe1ed","components/blocks/ProductDetailBlock.jsx":"7916d2aab29d","components/blocks/ProductGridBlock.jsx":"ca6ccce91863","components/commerce/BasketBar.jsx":"8f8b5b631062","components/display/Carousel.jsx":"b34dd628f4d8","components/navigation/MenuSheet.jsx":"0e7c30f63393","components/chat/AmbientBorder.jsx":"9f054e32d311","components/chat/VoiceInput.jsx":"ee2cab4218e4","components/chat/VoiceOverlay.jsx":"c651a0eb348b"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -16894,6 +16894,759 @@ function inside(a, box) {
 }
 Object.assign(__ds_scope, { MenuSheet });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/navigation/MenuSheet.jsx", error: String((e && e.message) || e) }); }
+// components/chat/AmbientBorder.jsx
+try { (() => {
+/* An ambient border: a gradient that turns around its container and answers
+   to a voice conversation. Its state says who has the floor (listening to
+   the person, thinking, the assistant speaking) and picks the colours; the
+   voice's level, from a level prop or a live audio stream, brightens the glow
+   and quickens the turn. The ring and the glow are drawn behind the content,
+   so the container keeps its own layout, and the turning is written straight
+   to the two layers each frame without re-rendering React.
+
+   With reduced motion the ring stands still at its state's colours and the
+   glow keeps its resting strength: the state still reads, nothing moves. */
+
+const STATES = ["idle", "listening", "thinking", "speaking", "error"];
+
+/* Turns per second, the glow's extra strength at full level, and how much
+   the level quickens the turn. Thinking turns fastest and on its own: it is
+   the system working, with no voice to follow. */
+const MOTION = {
+  idle: {
+    turn: 1 / 14,
+    gain: 0,
+    boost: 0
+  },
+  listening: {
+    turn: 1 / 6,
+    gain: 0.7,
+    boost: 1.6
+  },
+  thinking: {
+    turn: 1 / 1.8,
+    gain: 0.25,
+    boost: 0
+  },
+  speaking: {
+    turn: 1 / 4.5,
+    gain: 0.7,
+    boost: 1.2
+  },
+  error: {
+    turn: 0,
+    gain: 0.2,
+    boost: 0
+  }
+};
+const RADII = {
+  none: "0px",
+  control: "var(--dt-radius-control)",
+  container: "var(--dt-radius-container)",
+  overlay: "var(--dt-radius-overlay)",
+  pill: "var(--dt-radius-pill)"
+};
+const SURFACES = {
+  raised: "var(--dt-voice-surface)",
+  base: "var(--dt-surface-base)",
+  sunken: "var(--dt-surface-sunken)",
+  none: "transparent"
+};
+
+/* Only the ring shows: the gradient is painted over the whole box and
+   masked to its padding. */
+const RING_MASK = {
+  WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+  WebkitMaskComposite: "xor",
+  mask: "linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)"
+};
+function stops(state) {
+  const s = STATES.includes(state) ? state : "idle";
+  return [`var(--dt-voice-${s}-a)`, `var(--dt-voice-${s}-b)`, `var(--dt-voice-${s}-c)`];
+}
+
+/* Thinking is two comets chasing round a faint track; every other state is
+   a full sweep of its colours. */
+function gradient(state, angle) {
+  const [a, b, c] = stops(state);
+  const at = `from ${angle.toFixed(2)}deg`;
+  if (state === "thinking") {
+    return `conic-gradient(${at}, transparent 0turn, ${a} 0.14turn, ${b} 0.26turn, transparent 0.38turn, transparent 0.5turn, ${c} 0.64turn, ${a} 0.76turn, transparent 0.88turn)`;
+  }
+  return `conic-gradient(${at}, ${a}, ${b} 0.25turn, ${c} 0.5turn, ${b} 0.75turn, ${a})`;
+}
+
+/* Smooth pseudo-noise in -1..1, so a synthesised level never visibly loops. */
+function noise(i, t) {
+  return 0.5 * Math.sin(t * (1.3 + i * 0.37) + i * 2.1) + 0.5 * Math.sin(t * (0.7 + i * 0.23) + i * 5.3);
+}
+
+/* What listening and speaking follow when no level or stream is given: a
+   restless hum, and a syllable rhythm. A demo still looks alive. */
+function synth(state, t) {
+  if (state === "listening") return 0.35 + 0.25 * noise(9, t * 2.2);
+  if (state === "speaking") return Math.min(1, 0.12 + Math.abs(Math.sin(t * 6.3)) * (0.55 + 0.45 * Math.sin(t * 1.7)));
+  return 0;
+}
+
+/* The loudness of a live stream, 0..1, read from its waveform. The stream is
+   analysed, never played, so a microphone doesn't echo. */
+function listen(stream) {
+  if (typeof window === "undefined" || !stream || typeof stream.getAudioTracks !== "function" || !stream.getAudioTracks().length) return null;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  try {
+    const ctx = new Ctx();
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    if (ctx.state === "suspended" && ctx.resume) ctx.resume().catch(() => {});
+    const buf = new Uint8Array(analyser.fftSize);
+    return {
+      read() {
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const d = (buf[i] - 128) / 128;
+          sum += d * d;
+        }
+        return Math.min(1, Math.sqrt(sum / buf.length) * 3.2);
+      },
+      stop() {
+        try {
+          source.disconnect();
+          ctx.close();
+        } catch (err) {/* already closed */}
+      }
+    };
+  } catch (err) {
+    return null;
+  }
+}
+function useReducedMotion() {
+  const query = "(prefers-reduced-motion: reduce)";
+  const [reduced, setReduced] = React.useState(() => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia(query).matches);
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const on = () => setReduced(mq.matches);
+    on();
+    if (mq.addEventListener) mq.addEventListener("change", on);else mq.addListener(on);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", on);else mq.removeListener(on);
+    };
+  }, []);
+  return reduced;
+}
+function AmbientBorder({
+  state = "idle",
+  level,
+  inputStream,
+  outputStream,
+  radius = "container",
+  thickness = "thin",
+  surface = "raised",
+  glow = true,
+  as: Tag = "div",
+  children,
+  style,
+  contentStyle,
+  ...rest
+}) {
+  const ring = React.useRef(null);
+  const ringOut = React.useRef(null);
+  const halo = React.useRef(null);
+  const haloOut = React.useRef(null);
+  const reduced = useReducedMotion();
+  const live = React.useRef({
+    state,
+    level
+  });
+  live.current = {
+    state,
+    level
+  };
+  const meters = React.useRef({
+    input: null,
+    output: null
+  });
+
+  /* A meter for each stream, opened when the stream arrives and closed when
+     it goes. */
+  React.useEffect(() => {
+    const m = listen(inputStream);
+    meters.current.input = m;
+    return () => {
+      if (m) m.stop();
+      if (meters.current.input === m) meters.current.input = null;
+    };
+  }, [inputStream]);
+  React.useEffect(() => {
+    const m = listen(outputStream);
+    meters.current.output = m;
+    return () => {
+      if (m) m.stop();
+      if (meters.current.output === m) meters.current.output = null;
+    };
+  }, [outputStream]);
+  React.useEffect(() => {
+    if (reduced || typeof requestAnimationFrame === "undefined") return undefined;
+    let frame = 0;
+    let last = 0;
+    let angle = 0;
+    let lvl = 0;
+    let shown = live.current.state;
+    let prev = null;
+    let fade = 0;
+    const start = typeof performance !== "undefined" ? performance.now() : 0;
+    const draw = now => {
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+      last = now;
+      const t = (now - start) / 1000;
+      const {
+        state: st,
+        level: given
+      } = live.current;
+      const m = MOTION[st] || MOTION.idle;
+      /* Which voice to follow: the person's while listening, the
+         assistant's while speaking. A level prop wins over a stream. */
+      const meter = st === "listening" ? meters.current.input : st === "speaking" ? meters.current.output : null;
+      const target = typeof given === "number" ? Math.max(0, Math.min(1, given)) : meter ? meter.read() : synth(st, t);
+      lvl += (target - lvl) * (target > lvl ? 0.45 : 0.08);
+      angle = (angle + 360 * m.turn * (1 + m.boost * lvl) * dt) % 360;
+      /* A change of state crossfades: the old colours fade out over the new. */
+      if (st !== shown) {
+        prev = shown;
+        shown = st;
+        fade = 1;
+      }
+      if (fade > 0) fade = Math.max(0, fade - dt / 0.45);
+      const g = gradient(shown, angle);
+      const strength = `calc(var(--dt-voice-glow-rest) + ${(m.gain * lvl).toFixed(3)})`;
+      const spread = `calc(var(--dt-voice-glow-spread) * ${(-lvl).toFixed(3)})`;
+      if (ring.current) ring.current.style.backgroundImage = g;
+      if (halo.current) {
+        halo.current.style.backgroundImage = g;
+        halo.current.parentNode.style.opacity = strength;
+        halo.current.parentNode.style.inset = spread;
+      }
+      if (ringOut.current) {
+        ringOut.current.style.opacity = String(fade);
+        if (fade > 0 && prev) ringOut.current.style.backgroundImage = gradient(prev, angle);
+      }
+      if (haloOut.current) {
+        haloOut.current.style.opacity = String(fade);
+        if (fade > 0 && prev) haloOut.current.style.backgroundImage = gradient(prev, angle);
+      }
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    /* Put back what React rendered. React only rewrites a style that changed
+       between renders, so a loop stopped by reduced motion would otherwise
+       leave the ring at its last angle, part way through a crossfade. */
+    return () => {
+      cancelAnimationFrame(frame);
+      const rest = gradient(STATES.includes(live.current.state) ? live.current.state : "idle", 0);
+      if (ring.current) ring.current.style.backgroundImage = rest;
+      if (halo.current) {
+        halo.current.style.backgroundImage = rest;
+        halo.current.parentNode.style.opacity = "var(--dt-voice-glow-rest)";
+        halo.current.parentNode.style.inset = "0px";
+      }
+      if (ringOut.current) ringOut.current.style.opacity = "0";
+      if (haloOut.current) haloOut.current.style.opacity = "0";
+    };
+  }, [reduced]);
+  const r = RADII[radius] || RADII.container;
+  const width = thickness === "thick" ? "var(--dt-voice-ring-width-thick)" : "var(--dt-voice-ring-width)";
+  /* What React renders: the first state's colours, which the frame loop then
+     turns and crossfades. Re-rendering them on a change of state would snap
+     the ring back to its starting angle for a frame, so only reduced motion,
+     which has no loop, follows the state here. */
+  const first = React.useRef(gradient(STATES.includes(state) ? state : "idle", 0)).current;
+  const still = reduced ? gradient(STATES.includes(state) ? state : "idle", 0) : first;
+  const layer = {
+    position: "absolute",
+    inset: 0,
+    borderRadius: r,
+    pointerEvents: "none",
+    boxSizing: "border-box"
+  };
+  const ringLayer = {
+    ...layer,
+    ...RING_MASK,
+    padding: width,
+    backgroundColor: state === "thinking" ? "var(--dt-voice-track)" : undefined,
+    backgroundImage: still
+  };
+  const haloLayer = {
+    ...layer,
+    ...RING_MASK,
+    padding: "var(--dt-voice-glow-width)",
+    backgroundImage: still
+  };
+  /* minWidth 0: as a grid or flex item it shrinks to its track, so a bar's
+     single line ellipsises instead of pushing the ring past the edge. */
+
+  return /*#__PURE__*/React.createElement(Tag, {
+    "data-voice-state": state,
+    style: {
+      position: "relative",
+      isolation: "isolate",
+      borderRadius: r,
+      padding: width,
+      boxSizing: "border-box",
+      minWidth: 0,
+      ...style
+    },
+    ...rest
+  }, glow && /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      zIndex: -1,
+      pointerEvents: "none",
+      filter: "blur(var(--dt-voice-glow-blur))",
+      opacity: "var(--dt-voice-glow-rest)"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    ref: halo,
+    style: haloLayer
+  }), /*#__PURE__*/React.createElement("span", {
+    ref: haloOut,
+    style: {
+      ...haloLayer,
+      opacity: 0
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    ref: ring,
+    "aria-hidden": "true",
+    style: ringLayer
+  }), /*#__PURE__*/React.createElement("span", {
+    ref: ringOut,
+    "aria-hidden": "true",
+    style: {
+      ...ringLayer,
+      backgroundColor: undefined,
+      opacity: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      borderRadius: `max(0px, calc(${r} - ${width}))`,
+      background: SURFACES[surface] || SURFACES.raised,
+      minHeight: "100%",
+      boxSizing: "border-box",
+      ...contentStyle
+    }
+  }, children));
+}
+Object.assign(__ds_scope, { AmbientBorder });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/AmbientBorder.jsx", error: String((e && e.message) || e) }); }
+// components/chat/VoiceInput.jsx
+try { (() => {
+/* Voice input for a conversation, at the size of a module: a bar that sits
+   where a composer would, or a panel that holds the exchange. Controlled: the
+   app owns the microphone, the recognition and the reply, and says which
+   state the conversation is in; the component draws it, with an ambient
+   border that turns in the person's colour while they speak and the
+   assistant's while it answers, and follows the voice's level. */
+
+/* A semantic text role, whole: family, size, line, weight and tracking. */
+function voiceType(role) {
+  return {
+    fontFamily: `var(--dt-text-${role}-family)`,
+    fontSize: `var(--dt-text-${role}-size)`,
+    lineHeight: `var(--dt-text-${role}-line)`,
+    fontWeight: `var(--dt-text-${role}-weight)`,
+    letterSpacing: `var(--dt-text-${role}-tracking)`
+  };
+}
+const VOICE_LABELS = {
+  idle: "Ready",
+  listening: "Listening",
+  thinking: "Thinking",
+  speaking: "Speaking",
+  error: "Didn't catch that"
+};
+const MIC = ["M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z", "M19 11a7 7 0 0 1-14 0", "M12 18v3"];
+const STOP = ["M8 8h8v8H8z"];
+const CLOSE = ["M6 6l12 12", "M18 6 6 18"];
+function VoiceGlyph({
+  paths
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    style: {
+      width: "var(--dt-size-icon-md)",
+      height: "var(--dt-size-icon-md)",
+      display: "block"
+    }
+  }, paths.map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+
+/* The words on screen: what the person is saying while they speak, the
+   assistant's reply while it answers, the last thing said otherwise. */
+function linesFor(state, transcript, response) {
+  return {
+    you: transcript,
+    them: state === "listening" ? "" : response
+  };
+}
+function VoiceInput({
+  state = "idle",
+  level,
+  inputStream,
+  outputStream,
+  transcript,
+  response,
+  placeholder = "Press the microphone and speak",
+  assistantName = "Assistant",
+  layout = "bar",
+  label = "Voice input",
+  onToggle,
+  onEnd,
+  disabled = false,
+  style,
+  ...rest
+}) {
+  const listening = state === "listening";
+  const active = state !== "idle";
+  const status = VOICE_LABELS[state] || VOICE_LABELS.idle;
+  const {
+    you,
+    them
+  } = linesFor(state, transcript, response);
+  const mic = /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: listening ? "Stop listening" : "Speak",
+    "aria-pressed": listening,
+    variant: listening ? "solid" : "ghost",
+    size: layout === "panel" ? "lg" : "md",
+    disabled: disabled,
+    onClick: onToggle
+  }, /*#__PURE__*/React.createElement(VoiceGlyph, {
+    paths: listening ? STOP : MIC
+  }));
+  const end = onEnd && active ? /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: "End voice",
+    size: "sm",
+    disabled: disabled,
+    onClick: onEnd
+  }, /*#__PURE__*/React.createElement(VoiceGlyph, {
+    paths: CLOSE
+  })) : null;
+  const statusText = /*#__PURE__*/React.createElement("span", {
+    role: "status",
+    "aria-live": "polite",
+    style: {
+      ...voiceType("eyebrow"),
+      color: "var(--dt-voice-label-fg)",
+      textTransform: "uppercase",
+      whiteSpace: "nowrap"
+    }
+  }, status);
+  if (layout === "panel") {
+    return /*#__PURE__*/React.createElement(__ds_scope.AmbientBorder, {
+      state: state,
+      level: level,
+      inputStream: inputStream,
+      outputStream: outputStream,
+      radius: "container",
+      role: "group",
+      "aria-label": label,
+      style: style,
+      ...rest
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-layout-stack-group)",
+        padding: "var(--dt-voice-panel-padding)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--dt-voice-gap)",
+        minHeight: "var(--dt-size-control-sm)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: 1
+      }
+    }, statusText), end), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--dt-layout-stack-related)",
+        minHeight: "calc(var(--dt-size-control-lg) * 2)"
+      }
+    }, you || them ? /*#__PURE__*/React.createElement(React.Fragment, null, you && /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...voiceType("body-sm"),
+        margin: 0,
+        color: "var(--dt-text-secondary)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "var(--dt-text-tertiary)"
+      }
+    }, "You: "), you), them && /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...voiceType("body-lg"),
+        margin: 0,
+        color: "var(--dt-text-primary)"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...voiceType("body-sm"),
+        color: "var(--dt-text-tertiary)"
+      }
+    }, assistantName, ": "), them)) : /*#__PURE__*/React.createElement("p", {
+      style: {
+        ...voiceType("body-lg"),
+        margin: 0,
+        color: "var(--dt-voice-placeholder-fg)"
+      }
+    }, placeholder)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "center"
+      }
+    }, mic)));
+  }
+  const line = listening ? you : them || you;
+  return /*#__PURE__*/React.createElement(__ds_scope.AmbientBorder, {
+    state: state,
+    level: level,
+    inputStream: inputStream,
+    outputStream: outputStream,
+    radius: "pill",
+    role: "group",
+    "aria-label": label,
+    style: style,
+    ...rest
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--dt-voice-gap)",
+      padding: "var(--dt-voice-padding)",
+      minHeight: "var(--dt-size-control-lg)",
+      boxSizing: "border-box"
+    }
+  }, mic, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      minWidth: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      ...voiceType("body-sm"),
+      color: line ? "var(--dt-text-primary)" : "var(--dt-voice-placeholder-fg)"
+    }
+  }, line || placeholder), active && statusText, end));
+}
+Object.assign(__ds_scope, { VoiceInput });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/VoiceInput.jsx", error: String((e && e.message) || e) }); }
+// components/chat/VoiceOverlay.jsx
+try { (() => {
+/* The same words, glyphs and text roles as VoiceInput, kept here so neither
+   file has to export its helpers. */
+const VOICE_LABELS = {
+  idle: "Ready",
+  listening: "Listening",
+  thinking: "Thinking",
+  speaking: "Speaking",
+  error: "Didn't catch that"
+};
+const MIC = ["M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z", "M19 11a7 7 0 0 1-14 0", "M12 18v3"];
+const STOP = ["M8 8h8v8H8z"];
+const CLOSE = ["M6 6l12 12", "M18 6 6 18"];
+function voiceType(role) {
+  return {
+    fontFamily: `var(--dt-text-${role}-family)`,
+    fontSize: `var(--dt-text-${role}-size)`,
+    lineHeight: `var(--dt-text-${role}-line)`,
+    fontWeight: `var(--dt-text-${role}-weight)`,
+    letterSpacing: `var(--dt-text-${role}-tracking)`
+  };
+}
+function VoiceGlyph({
+  paths
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    style: {
+      width: "var(--dt-size-icon-lg)",
+      height: "var(--dt-size-icon-lg)",
+      display: "block"
+    }
+  }, paths.map(d => /*#__PURE__*/React.createElement("path", {
+    key: d,
+    d: d
+  })));
+}
+
+/* A voice conversation over the whole screen: the ambient border runs round
+   the screen's edge and glows inward, the exchange is set large in the
+   middle, and the microphone and End sit at the foot within thumb's reach.
+   Controlled, like VoiceInput: the app owns the microphone and the reply.
+   It is modal, as Dialog is: focus moves in, Tab stays inside, Escape ends
+   the conversation, the page behind stops scrolling, and focus goes back
+   where it came from. It is scoped dark by default, so it reads the same
+   over any page. */
+
+function VoiceOverlay({
+  open,
+  onClose,
+  state = "idle",
+  level,
+  inputStream,
+  outputStream,
+  transcript,
+  response,
+  placeholder = "Go ahead, I'm listening",
+  assistantName = "Assistant",
+  label = "Voice conversation",
+  closeLabel = "End conversation",
+  onToggle,
+  dark = true,
+  children,
+  style,
+  ...rest
+}) {
+  const panel = React.useRef(null);
+  __ds_scope.useModalFocus(open, panel, onClose);
+  if (!open) return null;
+  const listening = state === "listening";
+  const status = VOICE_LABELS[state] || VOICE_LABELS.idle;
+  const said = listening ? transcript : response || transcript;
+  return /*#__PURE__*/React.createElement("div", {
+    ref: panel,
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": label,
+    tabIndex: -1,
+    className: dark ? "dark" : undefined,
+    style: {
+      position: "fixed",
+      inset: 0,
+      zIndex: "var(--dt-z-overlay)",
+      background: "var(--dt-voice-overlay-bg)",
+      color: "var(--dt-text-primary)",
+      outline: "none",
+      ...style
+    },
+    ...rest
+  }, /*#__PURE__*/React.createElement(__ds_scope.AmbientBorder, {
+    state: state,
+    level: level,
+    inputStream: inputStream,
+    outputStream: outputStream,
+    radius: "overlay",
+    thickness: "thick",
+    surface: "none",
+    style: {
+      position: "absolute",
+      inset: "var(--dt-space-inset-2xs)"
+    },
+    contentStyle: {
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "var(--dt-layout-stack-block)",
+      padding: "var(--dt-layout-page-gutter)",
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    role: "status",
+    "aria-live": "polite",
+    style: {
+      ...voiceType("eyebrow"),
+      color: "var(--dt-voice-label-fg)",
+      textTransform: "uppercase",
+      paddingTop: "var(--dt-layout-stack-group)"
+    }
+  }, status), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "var(--dt-layout-text-subcopy)",
+      maxWidth: "var(--dt-layout-page-width-narrow)",
+      width: "100%"
+    }
+  }, children, /*#__PURE__*/React.createElement("p", {
+    style: {
+      ...voiceType("heading-lg"),
+      margin: 0,
+      color: said ? "var(--dt-text-primary)" : "var(--dt-voice-placeholder-fg)",
+      overflowWrap: "anywhere"
+    }
+  }, said || placeholder), !listening && response && transcript && /*#__PURE__*/React.createElement("p", {
+    style: {
+      ...voiceType("body-md"),
+      margin: 0,
+      color: "var(--dt-text-secondary)"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "var(--dt-text-tertiary)"
+    }
+  }, "You: "), transcript), listening && response && /*#__PURE__*/React.createElement("p", {
+    style: {
+      ...voiceType("body-md"),
+      margin: 0,
+      color: "var(--dt-text-tertiary)"
+    }
+  }, assistantName, ": ", response)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "var(--dt-layout-inline-block)",
+      paddingBottom: "var(--dt-layout-stack-group)"
+    }
+  }, /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: listening ? "Stop listening" : "Speak",
+    "aria-pressed": listening,
+    variant: listening ? "solid" : "ghost",
+    size: "lg",
+    onClick: onToggle
+  }, /*#__PURE__*/React.createElement(VoiceGlyph, {
+    paths: listening ? STOP : MIC
+  })), /*#__PURE__*/React.createElement(__ds_scope.IconButton, {
+    label: closeLabel,
+    size: "lg",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement(VoiceGlyph, {
+    paths: CLOSE
+  })))));
+}
+Object.assign(__ds_scope, { VoiceOverlay });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/chat/VoiceOverlay.jsx", error: String((e && e.message) || e) }); }
 __ds_ns.Button = __ds_scope.Button;
 
 __ds_ns.ButtonGroup = __ds_scope.ButtonGroup;
@@ -17113,5 +17866,11 @@ __ds_ns.BasketBar = __ds_scope.BasketBar;
 __ds_ns.Carousel = __ds_scope.Carousel;
 
 __ds_ns.MenuSheet = __ds_scope.MenuSheet;
+
+__ds_ns.AmbientBorder = __ds_scope.AmbientBorder;
+
+__ds_ns.VoiceInput = __ds_scope.VoiceInput;
+
+__ds_ns.VoiceOverlay = __ds_scope.VoiceOverlay;
 
 })();

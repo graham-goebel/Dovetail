@@ -1,0 +1,127 @@
+<!-- @dsCard group="Chat" height=1500 -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:24px;background:var(--dt-surface-subtle)}#root{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}</style>
+<link rel="stylesheet" href="../system/styles.css">
+<script src="../system/templates/_support/theme-runtime.js"></script>
+<script src="../system/templates/_support/card-kit.js"></script>
+
+<link rel="stylesheet" href="../system/templates/_support/card-kit.css">
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
+</head><body><div id="root"></div>
+
+<script>(function () {
+  var e = React.createElement;
+  var NS = {};
+
+  /* A scripted conversation, so the card shows every state and both voices
+     without a microphone: the person asks, the assistant thinks, then
+     answers, and it starts again. The words arrive one at a time, as a live
+     transcript would. */
+  var ASK = "Is the tall jug back in stock, and can I collect it on Saturday?";
+  var REPLY = "It is, in terracotta. Saturday works: the studio is open ten till four.";
+  var SCRIPT = [["idle", 1200], ["listening", 3600], ["thinking", 1600], ["speaking", 4200], ["idle", 1400]];
+  var TOTAL = SCRIPT.reduce(function (n, s) { return n + s[1]; }, 0);
+  function words(text, part) { var w = text.split(" "); return w.slice(0, Math.max(1, Math.ceil(w.length * part))).join(" "); }
+  function useConversation(running) {
+    var st = React.useState(0), t = st[0], set = st[1];
+    React.useEffect(function () {
+      if (!running) return undefined;
+      var start = Date.now() - t;
+      var id = setInterval(function () { set((Date.now() - start) % TOTAL); }, 120);
+      return function () { clearInterval(id); };
+    }, [running]);
+    var at = 0, i = 0;
+    while (i < SCRIPT.length - 1 && t >= at + SCRIPT[i][1]) { at += SCRIPT[i][1]; i++; }
+    var state = SCRIPT[i][0], part = (t - at) / SCRIPT[i][1];
+    var heard = i >= 1 && i < 4;
+    return {
+      state: state,
+      transcript: i === 1 ? words(ASK, part) : heard ? ASK : "",
+      response: i === 3 ? words(REPLY, part) : "",
+    };
+  }
+
+  function Scripted(props) {
+    var c = useConversation(true);
+    return e(NS.VoiceInput, { layout: props.layout, state: c.state, transcript: c.transcript, response: c.response, assistantName: "Kiln & Co", onToggle: function () {}, onEnd: function () {} });
+  }
+
+  /* Pressed by hand: the microphone toggles listening, then a reply plays. */
+  function ByHand() {
+    var st = React.useState("idle"), state = st[0], set = st[1];
+    var timer = React.useRef(0);
+    React.useEffect(function () { return function () { clearTimeout(timer.current); }; }, []);
+    function toggle() {
+      clearTimeout(timer.current);
+      if (state !== "listening") { set("listening"); return; }
+      set("thinking");
+      timer.current = setTimeout(function () { set("speaking"); timer.current = setTimeout(function () { set("idle"); }, 3200); }, 1200);
+    }
+    return e(NS.VoiceInput, { layout: "panel", state: state,
+      transcript: state === "idle" ? "" : ASK, response: state === "speaking" ? REPLY : "",
+      assistantName: "Kiln & Co", onToggle: toggle, onEnd: function () { clearTimeout(timer.current); set("idle"); } });
+  }
+
+  function Band(props) {
+    return e("div", { className: props.dark ? "dark" : undefined, style: { display: "grid", gap: "var(--dt-space-stack-lg)", padding: "var(--dt-space-inset-xl)", borderRadius: "var(--dt-radius-container)", background: "var(--dt-surface-base)", color: "var(--dt-text-primary)" } }, props.children);
+  }
+
+  function Page() {
+    return e(Shelf, { name: "VoiceInput", summary: "Voice input for a conversation, at the size of a module: a bar where a composer would sit, or a panel that holds the exchange, with an ambient border that follows both voices.", props: [
+        { name: "state", type: '"idle" | "listening" | "thinking" | "speaking" | "error"', default: '"idle"', notes: "Controlled: your app says which." },
+        { name: "layout", type: '"bar" | "panel"', default: '"bar"' },
+        { name: "transcript / response", type: "ReactNode", notes: "What the person said, live; the assistant's reply." },
+        { name: "onToggle", type: "() => void", notes: "The microphone. Start or stop listening." },
+        { name: "onEnd", type: "() => void", notes: "Shows End while the conversation isn't idle." },
+        { name: "level / inputStream / outputStream", type: "number / MediaStream", notes: "As AmbientBorder." },
+        { name: "placeholder", type: "string", default: '"Press the microphone and speak"' },
+        { name: "assistantName", type: "string", default: '"Assistant"' },
+        { name: "label", type: "string", default: '"Voice input"', notes: "Names the group." },
+        { name: "disabled", type: "boolean", default: "false" },
+      ], guidance: [
+        "Use the bar where the composer goes, and the panel in a sidebar, a help panel or an empty chat. For voice over the whole screen, use VoiceOverlay.",
+        "Controlled: your app owns the microphone, the recognition and the reply. The component draws the state.",
+        "The status is a polite live region, and the microphone is a toggle with aria-pressed and a name that says what it does.",
+        "Keep typing within reach. Voice should never be the only way in.",
+      ] },
+      e(Specimen, { label: "Panel: press the microphone, then press it again to stop", bg: "var(--dt-surface-subtle)" },
+        e("div", { style: { maxWidth: 420 } }, e(ByHand, null))),
+      e(Specimen, { label: "Scripted, light and inside a dark band", bg: "var(--dt-surface-subtle)" },
+        e("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "var(--dt-space-inline-xl)" } },
+          e(Band, null, e(Scripted, { layout: "bar" }), e(Scripted, { layout: "panel" })),
+          e(Band, { dark: true }, e(Scripted, { layout: "bar" }), e(Scripted, { layout: "panel" })))),
+      e(Specimen, { label: "Bar in each state" },
+        e("div", { style: { display: "grid", gap: "var(--dt-space-stack-md)", maxWidth: 520 } },
+          e(NS.VoiceInput, { state: "idle", onToggle: function () {} }),
+          e(NS.VoiceInput, { state: "listening", transcript: ASK, onToggle: function () {}, onEnd: function () {} }),
+          e(NS.VoiceInput, { state: "thinking", transcript: ASK, onToggle: function () {}, onEnd: function () {} }),
+          e(NS.VoiceInput, { state: "speaking", transcript: ASK, response: REPLY, onToggle: function () {}, onEnd: function () {} }),
+          e(NS.VoiceInput, { state: "error", response: "I didn't catch that. Try again?", onToggle: function () {}, onEnd: function () {} }))));
+  }
+
+  var startedAt = Date.now();
+  (function poll() {
+    NS = window.BeamMobileDesignSystem_e33121 || {};
+    var need = ["VoiceInput", "Text"].filter(function (n) { return !NS[n]; });
+    if (!need.length && window.Shelf && window.Specimen && window.ReactDOM) {
+      ReactDOM.createRoot(document.getElementById("root")).render(e(Page));
+      return;
+    }
+    if (Date.now() - startedAt > 8000) {
+      document.getElementById("root").textContent = "This card could not load " + (need.join(", ") || "card-kit.js") + ". A hard reload clears a cached copy.";
+      return;
+    }
+    setTimeout(poll, 40);
+  })();
+})();
+</script>
+</body></html>

@@ -214,6 +214,8 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 - **Composer**: Write and send. Props: `value` (text), `label` (text), `placeholder` (text), `disabled` (boolean; default `false`).
 - **TypingIndicator**: They're typing. Props: `name` (text).
 - **QuickReplies**: Suggested answers. Props: `label` (text), `align` (one of `start`, `end`; default `end`), `options` (a list of { id, label }).
+- **AmbientBorder**: A gradient border that turns around its container and answers to a voice conversation. Props: `level` (number), `radius` (one of `none`, `control`, `container`, `overlay`, `pill`; default `container`), `thickness` (one of `thin`, `thick`; default `thin`), `surface` (one of `raised`, `base`, `sunken`, `none`; default `raised`), `glow` (boolean; default `true`), `state` (one of `idle`, `listening`, `thinking`, `speaking`, `error`; default `idle`).
+- **VoiceInput**: Voice input for a conversation, sized to sit in a page. Props: `level` (number), `transcript` (text), `response` (text), `placeholder` (text; default `Press the microphone and speak`), `assistantName` (text; default `Assistant`), `layout` (one of `bar`, `panel`; default `bar`), `label` (text; default `Voice input`), `disabled` (boolean; default `false`), `state` (one of `idle`, `listening`, `thinking`, `speaking`, `error`; default `idle`).
 
 ### Blocks
 
