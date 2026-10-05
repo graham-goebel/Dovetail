@@ -32,7 +32,7 @@ A change of state crossfades from the old colours to the new ones, and the ring 
 
 ## Tone
 - `brand`, the default: each state has its own colours, as above.
-- `spectrum`: every state sweeps one six-hue wheel, from the danger, warning, success and info roles and the two brand colours. The state still sets the speed and the glow. Thinking splits the wheel between its two marks. Error stays danger, so it still reads as an error.
+- `spectrum`: every state sweeps one six-hue wheel: red, amber, green, cyan, blue and magenta, from the semantic `--dt-spectrum-*` roles. They belong to no brand and mean no status, so the wheel looks the same under every theme. The state still sets the speed and the glow. Thinking splits the wheel between its two marks. Error stays danger, so it still reads as an error.
 - Use `spectrum` when the assistant should feel like one system-wide presence rather than part of your brand, such as an assistant that works across the whole product. Without colour to tell them apart, listening and speaking rely on the status text even more, so keep it visible.
 - Changing tone crossfades, just like changing state.
 
@@ -61,7 +61,7 @@ The level rises fast and falls slowly, so the glow doesn't flicker between words
 - Glow: `--dt-voice-glow-width`, `--dt-voice-glow-blur`, `--dt-voice-glow-spread`, `--dt-voice-glow-rest`.
 - Surface: `--dt-voice-surface`.
 - Colours, three stops per state: `--dt-voice-idle-a`, `-b` and `-c`, and the same for `listening`, `thinking`, `speaking` and `error`. Re-point them to give a brand its own voice colours.
-- Spectrum: `--dt-voice-spectrum-1` to `--dt-voice-spectrum-6`, read by `tone="spectrum"`. Re-point them to change the wheel.
+- Spectrum: `--dt-voice-spectrum-1` to `--dt-voice-spectrum-6`, read by `tone="spectrum"`. They alias `--dt-spectrum-1` to `-6`. Re-point the voice tokens to change only this wheel.
 - The colours are repeated under `.dark`, so the ring follows a dark `Section` band.
 
 ## Accessibility

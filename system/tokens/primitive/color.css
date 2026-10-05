@@ -122,4 +122,22 @@
   --dt-color-violet-800: oklch(0.444 0.158 305);
   --dt-color-violet-900: oklch(0.381 0.128 305);
   --dt-color-violet-950: oklch(0.279 0.095 305);
+
+  /* Spectrum — six fixed hues round the colour wheel, for decoration that
+     carries no meaning: not brand, not status. No theme and no brand colour
+     changes them, and Configure leaves them alone. 500 is set to read on a
+     light surface, 400 on a dark one. The ramps above stay the source for
+     anything that means something. */
+  --dt-color-spectrum-red-400: oklch(0.700 0.200 25);
+  --dt-color-spectrum-red-500: oklch(0.630 0.230 25);
+  --dt-color-spectrum-amber-400: oklch(0.840 0.150 80);
+  --dt-color-spectrum-amber-500: oklch(0.790 0.165 75);
+  --dt-color-spectrum-green-400: oklch(0.780 0.175 150);
+  --dt-color-spectrum-green-500: oklch(0.700 0.190 150);
+  --dt-color-spectrum-cyan-400: oklch(0.800 0.130 210);
+  --dt-color-spectrum-cyan-500: oklch(0.715 0.140 210);
+  --dt-color-spectrum-blue-400: oklch(0.700 0.180 262);
+  --dt-color-spectrum-blue-500: oklch(0.600 0.215 262);
+  --dt-color-spectrum-magenta-400: oklch(0.720 0.210 335);
+  --dt-color-spectrum-magenta-500: oklch(0.640 0.250 335);
 }

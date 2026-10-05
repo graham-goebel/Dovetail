@@ -618,6 +618,8 @@ const CARD_SECTIONS = {
       ["ColorSurfaces", "ColorText", "ColorBorders", "ColorPairs", "ColorActions", "ColorFeedback", "ColorDark"]],
     ["Brand and texture", "Full-bleed roles for a section, not a control: a solid or gradient fill, a muted tint, and a pattern built from two gradients rather than an image.",
       ["BrandFills"]],
+    ["Spectrum", "Six fixed hues round the wheel, for decoration that means nothing: not brand, not status. No theme or brand colour changes them.",
+      ["ColorSpectrum"]],
   ],
 };
 

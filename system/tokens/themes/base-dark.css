@@ -144,6 +144,14 @@
   --dt-viz-5: var(--dt-color-green-400);
   --dt-viz-6: var(--dt-color-red-400);
 
+  /* The spectrum steps up to 400, which reads as brightly on near-black. */
+  --dt-spectrum-1: var(--dt-color-spectrum-red-400);
+  --dt-spectrum-2: var(--dt-color-spectrum-amber-400);
+  --dt-spectrum-3: var(--dt-color-spectrum-green-400);
+  --dt-spectrum-4: var(--dt-color-spectrum-cyan-400);
+  --dt-spectrum-5: var(--dt-color-spectrum-blue-400);
+  --dt-spectrum-6: var(--dt-color-spectrum-magenta-400);
+
   /* Elevation as lightness. Shadows stay for depth cueing but carry less of the work. */
   --dt-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.4);
   --dt-elevation-2: 0 2px 6px -1px oklch(0 0 0 / 0.5);

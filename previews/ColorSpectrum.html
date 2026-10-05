@@ -1,0 +1,32 @@
+<!-- @dsCard group="Color" height=420 width=700 subtitle="Spectrum — Six fixed hues round the wheel, for decoration that means nothing: not brand, not status. No theme changes them." page -->
+<!DOCTYPE html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- dovetail-site-runtime: added by tools/build-site.mjs so this card runs on its own -->
+<script src="../system/components/lib/react.production.min.js"></script>
+<script src="../system/components/lib/react-dom.production.min.js"></script>
+<script>(function(){var b=/[?&]b=(\w+)/.exec(location.search);document.write('<script src="../system/components/bundle.js'+(b?'?v='+b[1]:'')+'"><\/script>')})()</script>
+<script src="../system/templates/_support/card-theme-sync.js"></script><meta charset="utf-8"><link rel="stylesheet" href="../system/styles.css"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap">
+<style>body{margin:0;padding:16px 20px;font-family:var(--dt-font-family-sans);color:var(--dt-text-primary);background:var(--dt-surface-base)}
+.row{display:flex;gap:8px}.col{display:flex;flex-direction:column;gap:8px}
+.sw{flex:1;height:96px;border-radius:var(--dt-radius-container);display:flex;flex-direction:column;justify-content:flex-end;padding:8px;box-sizing:border-box;font-size:11px;font-weight:500;line-height:1.3}
+.sw b{font-weight:600}@media(max-width:560px){.row{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}}.sw i{font-style:normal;opacity:.72;font-size:10px}
+.lbl{font-size:11px;color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono)}
+table{border-collapse:collapse;width:100%;font-size:12px}td{padding:4px 10px 4px 0;vertical-align:middle}
+td.k{font-family:var(--dt-font-family-mono);color:var(--dt-text-secondary);white-space:nowrap}
+td.v{color:var(--dt-text-tertiary);font-family:var(--dt-font-family-mono);white-space:nowrap}
+.band{padding:12px;border-radius:var(--dt-radius-container);background:var(--dt-surface-base)}
+.wheels{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.wheel{width:72px;height:72px;border-radius:50%;background:conic-gradient(var(--dt-spectrum-1),var(--dt-spectrum-2),var(--dt-spectrum-3),var(--dt-spectrum-4),var(--dt-spectrum-5),var(--dt-spectrum-6),var(--dt-spectrum-1));-webkit-mask:radial-gradient(circle,transparent 54%,#000 56%);mask:radial-gradient(circle,transparent 54%,#000 56%)}
+.note{font-size:12px;color:var(--dt-text-secondary);line-height:1.5;max-width:52ch;margin:0}</style>
+
+<link rel="stylesheet" href="../system/tokens/contexts/context-product.css"><link rel="stylesheet" href="../system/tokens/contexts/context-marketing.css"><link rel="stylesheet" href="../system/tokens/contexts/context-social.css"><link rel="stylesheet" href="../system/tokens/contexts/type-scale.css">
+</head><body>
+<div class="col">
+<div class="lbl">--dt-spectrum-1 to -6, on light: the 500 steps</div>
+<div class="row"><div class="sw" style="background:var(--dt-spectrum-1);color:var(--dt-color-neutral-950)"><b>spectrum-1</b><i>red-500</i></div><div class="sw" style="background:var(--dt-spectrum-2);color:var(--dt-color-neutral-950)"><b>spectrum-2</b><i>amber-500</i></div><div class="sw" style="background:var(--dt-spectrum-3);color:var(--dt-color-neutral-950)"><b>spectrum-3</b><i>green-500</i></div><div class="sw" style="background:var(--dt-spectrum-4);color:var(--dt-color-neutral-950)"><b>spectrum-4</b><i>cyan-500</i></div><div class="sw" style="background:var(--dt-spectrum-5);color:var(--dt-color-neutral-950)"><b>spectrum-5</b><i>blue-500</i></div><div class="sw" style="background:var(--dt-spectrum-6);color:var(--dt-color-neutral-950)"><b>spectrum-6</b><i>magenta-500</i></div></div>
+<div class="band dark col"><div class="lbl">inside .dark: the 400 steps</div><div class="row"><div class="sw" style="background:var(--dt-spectrum-1);color:var(--dt-color-neutral-950)"><b>spectrum-1</b><i>red-400</i></div><div class="sw" style="background:var(--dt-spectrum-2);color:var(--dt-color-neutral-950)"><b>spectrum-2</b><i>amber-400</i></div><div class="sw" style="background:var(--dt-spectrum-3);color:var(--dt-color-neutral-950)"><b>spectrum-3</b><i>green-400</i></div><div class="sw" style="background:var(--dt-spectrum-4);color:var(--dt-color-neutral-950)"><b>spectrum-4</b><i>cyan-400</i></div><div class="sw" style="background:var(--dt-spectrum-5);color:var(--dt-color-neutral-950)"><b>spectrum-5</b><i>blue-400</i></div><div class="sw" style="background:var(--dt-spectrum-6);color:var(--dt-color-neutral-950)"><b>spectrum-6</b><i>magenta-400</i></div></div></div>
+<div class="wheels"><div class="wheel" aria-hidden="true"></div><div class="band dark"><div class="wheel" aria-hidden="true"></div></div>
+<p class="note">Read by the voice border's <code>tone="spectrum"</code>. They follow no brand and say nothing about status, so never use one for success or danger. The primitives are <code>--dt-color-spectrum-&lt;hue&gt;-400</code> and <code>-500</code>.</p></div>
+</div>
+</body></html>
