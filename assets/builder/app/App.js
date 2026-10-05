@@ -5,8 +5,8 @@ import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
-import { copyText, encode, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
-import { ago, foldersOf, itemsOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
+import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
+import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
@@ -246,11 +246,26 @@ function App(props) {
   var setBrandTick = brandTickState[1];
   var brandErrState = useState(null);
   var brandErr = brandErrState[0], setBrandErr = brandErrState[1];
-  var libFirst = useRef(true);
+  /* Whose library is on screen: the file's project's, or its own (see
+     libScopeOf). A library just read in isn't written straight back. */
+  var libScopeRef = useRef(libScopeOf(init.project));
+  var libSkip = useRef(true);
   useEffect(function () {
-    if (libFirst.current) { libFirst.current = false; return; }
-    store.saveLibrary(library).catch(function () { announce("This browser is out of room for content. Remove something, or use smaller files."); });
+    if (libSkip.current) { libSkip.current = false; return; }
+    store.saveLibrary(library, libScopeRef.current).catch(function () { announce("This browser is out of room for content. Remove something, or use smaller files."); });
   }, [library]);
+  /* The library a file uses, read in when the file opens or moves. */
+  var readLibraryFor = function (meta) {
+    var scope = libScopeOf(meta);
+    if (scope === libScopeRef.current) return Promise.resolve();
+    libScopeRef.current = scope;
+    return store.loadLibrary(scope).then(function (v) {
+      if (libScopeRef.current !== scope) return;
+      libSkip.current = true;
+      setLibrary(loadLibrary(v));
+      setLibTab(null);
+    });
+  };
   var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
   useEffect(function () {
     if (!docked) return undefined;
@@ -2886,6 +2901,7 @@ function App(props) {
     lastSaved.current = next;
     projectRef.current = meta;
     setProject(meta);
+    readLibraryFor(meta);
     store.setLastOpened(meta.id);
     /* Its own canvas colour and theme come with it. */
     if (typeof meta.stage !== "string") meta.stage = "";
@@ -2949,7 +2965,7 @@ function App(props) {
     var f = (projList || []).filter(function (p) { return p.id === id; })[0];
     store.moveFile(id, group).then(function (meta) {
       if (!meta) return;
-      if (id === projectRef.current.id) { projectRef.current = meta; setProject(meta); }
+      if (id === projectRef.current.id) { projectRef.current = meta; setProject(meta); libScopeRef.current = null; readLibraryFor(meta); }
       announce((f ? f.name : "The file") + (g ? " is in " + g.name + " now" : " is on Home now"));
       refreshProjects();
     });
@@ -2967,7 +2983,7 @@ function App(props) {
       announce("Deleted " + (g ? g.name : "the project") + (keepFiles ? "; its files are on Home" : ""));
       if (homeViewRef.current === id) goHomeView(null);
       if (!hadCurrent) return;
-      if (keepFiles) { store.getProject(projectRef.current.id).then(function (meta) { if (meta) { projectRef.current = meta; setProject(meta); } }); return; }
+      if (keepFiles) { store.getProject(projectRef.current.id).then(function (meta) { if (meta) { projectRef.current = meta; setProject(meta); libScopeRef.current = null; readLibraryFor(meta); } }); return; }
       afterCurrentGone(list);
     });
   };
@@ -4151,7 +4167,7 @@ function App(props) {
       e("div", { className: "bd-panel-head bd-gallery-head" },
         e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { setLibTab(null); setBrandErr(null); } }, e(Icon, { name: "left" })),
         e("h2", { className: "bd-panel-title" }, "Brand")),
-      e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each project keeps its own. Drag one onto a frame, or press it to add it."),
+      e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
       e("section", { className: "bd-content-sec" },
         e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
         e("input", { id: "bd-brand-name", className: "bd-input", type: "text", maxLength: 80, placeholder: "Your brand", value: b.name,
@@ -4171,6 +4187,13 @@ function App(props) {
       e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function (src, i) { return e("img", { key: i, src: src, alt: "", draggable: false }); }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
       e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note)),
       e(Icon, { name: "right", className: "bd-kind-chev" })));
+  };
+  /* Content belongs to the file's project, or to a loose file alone. */
+  var contentScopeNote = function () {
+    var g = project.group ? groupById(project.group) : null;
+    if (g) return "Shared by the files in " + g.name + ". Other projects don't see it.";
+    if (project.lib === "shared") return "Shared by the files you made before projects. Moving this file into a project brings it along.";
+    return "This file's own. Moving it into a project brings it along.";
   };
   var contentPanel = function () {
     var q0 = contentQuery.trim().toLowerCase();
@@ -4192,6 +4215,7 @@ function App(props) {
     if (!libTab) {
       return e("div", { className: "bd-content" },
         e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+        e("p", { className: "bd-content-note bd-content-scope" }, contentScopeNote()),
         e("ul", { className: "bd-kinds", role: "list" }, [brandCard()].concat(LIB_TABS.map(function (t) {
           var items = library[t[0]];
           var note = t[0] === "icons" ? (items.length ? items.length + " of yours, and the icon library" : "The icon library, and yours") : items.length ? items.length + (items.length === 1 ? " item" : " items") : "Nothing yet";

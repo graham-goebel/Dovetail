@@ -2047,6 +2047,7 @@
   var VERSIONS_MAX = 30;
   var VERSION_EVERY = 10 * 60 * 1e3;
   var LAST_KEY = "dovetail-builder-last";
+  var LIBS_DONE_KEY = "dovetail-builder-libs-kept-apart";
   var MAIN = "main";
   function docKey(id, page) {
     return !page || page === MAIN ? id : id + ":" + page;
@@ -2078,6 +2079,27 @@
     }) ? meta.page : pages[0].id;
   }
   var FALLBACK_KEY = "dovetail-builder-store";
+  function libScopeOf(meta) {
+    if (!meta) return "shared";
+    if (meta.group) return "g:" + meta.group;
+    return meta.lib === "shared" ? "shared" : "f:" + meta.id;
+  }
+  function mergeLibs(a, b) {
+    a = a && typeof a === "object" ? a : {};
+    b = b && typeof b === "object" ? b : {};
+    var out = Object.assign({}, b, a);
+    Object.keys(out).forEach(function(k) {
+      if (!Array.isArray(a[k]) && !Array.isArray(b[k])) return;
+      var seen = {};
+      out[k] = [].concat(a[k] || [], b[k] || []).filter(function(it) {
+        var id = it && it.id;
+        if (!id || seen[id]) return false;
+        seen[id] = true;
+        return true;
+      });
+    });
+    return out;
+  }
   function idb() {
     return new Promise(function(resolve) {
       var done = false;
@@ -2273,6 +2295,7 @@
           pageFrames: { main: count(doc) }
         }, settingsOf(extra));
         if (extra && typeof extra.group === "string" && extra.group) meta.group = extra.group;
+        else if (extra && extra.lib === "shared") meta.lib = "shared";
         return b.put("projects", meta).then(function() {
           return b.put("docs", { id: meta.id, doc });
         }).then(function() {
@@ -2566,6 +2589,9 @@
                   return api.addPage(meta.id, p.name, docs[i + 1] || emptyDoc(), void 0, p.folder || null);
                 });
               });
+              steps = steps.then(function() {
+                return api.mergeLibrary(libScopeOf(src), libScopeOf(meta));
+              });
               return steps.then(function() {
                 return src.thumb ? api.setThumb(meta.id, src.thumb, src.thumbSet) : b.get("projects", meta.id);
               });
@@ -2583,6 +2609,8 @@
             return Promise.all(pagesOf(meta).map(function(p) {
               return b.del("docs", docKey(id, p.id));
             }));
+          }).then(function() {
+            return meta && !meta.group ? api.dropLibrary(libScopeOf(meta)) : null;
           }).then(function() {
             return b.del("projects", id);
           });
@@ -2615,24 +2643,46 @@
           return v ? clean(v.doc) : null;
         });
       },
-      /* The Content library. Without IndexedDB it stays where it always was. */
-      loadLibrary: function() {
+      /* A Content library, by scope (libScopeOf): a project's, a loose
+         file's, or the one shared by files made before they were kept apart.
+         Without IndexedDB they stay in localStorage, one entry each. */
+      loadLibrary: function(scope) {
+        scope = scope || "shared";
         if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
-          return JSON.parse(s.getItem(LIB_KEY) || "null");
+          return JSON.parse(s.getItem(LIB_KEY + ":" + scope) || "null");
         }));
-        return b.get("library", "library").then(function(rec) {
+        return b.get("library", "lib:" + scope).then(function(rec) {
           return rec ? rec.value : null;
         });
       },
-      saveLibrary: function(value) {
+      saveLibrary: function(value, scope) {
+        scope = scope || "shared";
         if (b.kind !== "indexeddb") {
           var ok = storage(function(s) {
-            s.setItem(LIB_KEY, JSON.stringify(value));
+            s.setItem(LIB_KEY + ":" + scope, JSON.stringify(value));
             return true;
           });
           return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
         }
-        return b.put("library", { id: "library", value });
+        return b.put("library", { id: "lib:" + scope, value });
+      },
+      dropLibrary: function(scope) {
+        if (!scope || scope === "shared") return Promise.resolve();
+        if (b.kind !== "indexeddb") {
+          storage(function(s) {
+            s.removeItem(LIB_KEY + ":" + scope);
+          });
+          return Promise.resolve();
+        }
+        return b.del("library", "lib:" + scope);
+      },
+      /* What one library holds, added to another (when a file moves). */
+      mergeLibrary: function(from, to) {
+        if (!from || !to || from === to) return Promise.resolve();
+        return Promise.all([api.loadLibrary(from), api.loadLibrary(to)]).then(function(got) {
+          if (!got[0]) return null;
+          return api.saveLibrary(mergeLibs(got[1], got[0]), to);
+        });
       },
       /* Projects: groups of files. A file names its group; the group holds a
          name, its times and a picture of its own if one was chosen. */
@@ -2678,9 +2728,12 @@
         return Promise.all([b.get("projects", id), group ? b.get("groups", group) : Promise.resolve(null)]).then(function(got) {
           var meta = got[0];
           if (!meta || group && !got[1]) return null;
+          var from = libScopeOf(meta);
           if (group) meta.group = group;
           else delete meta.group;
-          var steps = b.put("projects", meta);
+          var steps = api.mergeLibrary(from, libScopeOf(meta)).then(function() {
+            return b.put("projects", meta);
+          });
           if (got[1]) {
             got[1].updatedAt = now();
             steps = steps.then(function() {
@@ -2708,6 +2761,8 @@
             });
           }, Promise.resolve());
         }).then(function() {
+          return api.dropLibrary("g:" + id);
+        }).then(function() {
           return b.del("groups", id);
         });
       },
@@ -2716,7 +2771,9 @@
         return Promise.all([b.get("groups", id), api.filesIn(id)]).then(function(got) {
           if (!got[0]) return null;
           return api.createGroup(got[0].name + " copy").then(function(g) {
-            var steps = got[0].thumb ? api.setGroupThumb(g.id, got[0].thumb) : Promise.resolve();
+            var steps = (got[0].thumb ? api.setGroupThumb(g.id, got[0].thumb) : Promise.resolve()).then(function() {
+              return api.mergeLibrary("g:" + id, "g:" + g.id);
+            });
             got[1].slice().reverse().forEach(function(f) {
               steps = steps.then(function() {
                 return api.duplicateProject(f.id);
@@ -2786,18 +2843,45 @@
             });
           });
         }
-        if (lib && b.kind === "indexeddb") {
+        if (!storage(function(s) {
+          return s.getItem(LIBS_DONE_KEY);
+        })) {
           steps = steps.then(function() {
-            var value;
+            return api.listProjects();
+          }).then(function(files) {
+            return files.filter(function(f) {
+              return !f.group && !f.lib;
+            }).reduce(function(all, f) {
+              return all.then(function() {
+                f.lib = "shared";
+                return b.put("projects", f);
+              });
+            }, Promise.resolve());
+          }).then(function() {
+            if (b.kind === "indexeddb") return b.get("library", "library").then(function(rec) {
+              return rec ? rec.value : null;
+            });
+            return null;
+          }).then(function(old) {
+            var local = null;
             try {
-              value = JSON.parse(lib);
+              local = lib ? JSON.parse(lib) : null;
             } catch (err) {
-              return null;
+              local = null;
             }
-            return api.saveLibrary(value).then(function() {
-              storage(function(s) {
+            if (!old && !local) return null;
+            return api.loadLibrary("shared").then(function(have) {
+              return api.saveLibrary(mergeLibs(mergeLibs(have, old), local), "shared");
+            }).then(function() {
+              return b.kind === "indexeddb" && old ? b.del("library", "library") : null;
+            }).then(function() {
+              if (local) storage(function(s) {
                 s.removeItem(LIB_KEY);
               });
+            });
+          }).then(function() {
+            storage(function(s) {
+              s.setItem(LIBS_DONE_KEY, "1");
             });
           });
         }
@@ -3017,7 +3101,7 @@
       });
     }).then(function(init) {
       store.setLastOpened(init.project.id);
-      return store.loadLibrary().then(function(lib) {
+      return store.loadLibrary(libScopeOf(init.project)).then(function(lib) {
         init.library = loadLibrary(lib);
         return init;
       });
@@ -5679,16 +5763,28 @@
     var setBrandTick = brandTickState[1];
     var brandErrState = useState(null);
     var brandErr = brandErrState[0], setBrandErr = brandErrState[1];
-    var libFirst = useRef(true);
+    var libScopeRef = useRef(libScopeOf(init.project));
+    var libSkip = useRef(true);
     useEffect(function() {
-      if (libFirst.current) {
-        libFirst.current = false;
+      if (libSkip.current) {
+        libSkip.current = false;
         return;
       }
-      store.saveLibrary(library).catch(function() {
+      store.saveLibrary(library, libScopeRef.current).catch(function() {
         announce("This browser is out of room for content. Remove something, or use smaller files.");
       });
     }, [library]);
+    var readLibraryFor = function(meta) {
+      var scope = libScopeOf(meta);
+      if (scope === libScopeRef.current) return Promise.resolve();
+      libScopeRef.current = scope;
+      return store.loadLibrary(scope).then(function(v) {
+        if (libScopeRef.current !== scope) return;
+        libSkip.current = true;
+        setLibrary(loadLibrary(v));
+        setLibTab(null);
+      });
+    };
     var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
     useEffect(function() {
       if (!docked) return void 0;
@@ -9038,6 +9134,7 @@
       lastSaved.current = next;
       projectRef.current = meta;
       setProject(meta);
+      readLibraryFor(meta);
       store.setLastOpened(meta.id);
       if (typeof meta.stage !== "string") meta.stage = "";
       setStageColor(meta.stage);
@@ -9132,6 +9229,8 @@
         if (id === projectRef.current.id) {
           projectRef.current = meta;
           setProject(meta);
+          libScopeRef.current = null;
+          readLibraryFor(meta);
         }
         announce((f ? f.name : "The file") + (g ? " is in " + g.name + " now" : " is on Home now"));
         refreshProjects();
@@ -9162,6 +9261,8 @@
             if (meta) {
               projectRef.current = meta;
               setProject(meta);
+              libScopeRef.current = null;
+              readLibraryFor(meta);
             }
           });
           return;
@@ -11139,7 +11240,7 @@
           } }, e(Icon, { name: "left" })),
           e("h2", { className: "bd-panel-title" }, "Brand")
         ),
-        e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each project keeps its own. Drag one onto a frame, or press it to add it."),
+        e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
         e(
           "section",
           { className: "bd-content-sec" },
@@ -11184,6 +11285,12 @@
         e(Icon, { name: "right", className: "bd-kind-chev" })
       ));
     };
+    var contentScopeNote = function() {
+      var g = project.group ? groupById(project.group) : null;
+      if (g) return "Shared by the files in " + g.name + ". Other projects don't see it.";
+      if (project.lib === "shared") return "Shared by the files you made before projects. Moving this file into a project brings it along.";
+      return "This file's own. Moving it into a project brings it along.";
+    };
     var contentPanel = function() {
       var q0 = contentQuery.trim().toLowerCase();
       if (!libTab && q0) {
@@ -11227,6 +11334,7 @@
           "div",
           { className: "bd-content" },
           e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+          e("p", { className: "bd-content-note bd-content-scope" }, contentScopeNote()),
           e("ul", { className: "bd-kinds", role: "list" }, [brandCard()].concat(LIB_TABS.map(function(t) {
             var items2 = library[t[0]];
             var note3 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";

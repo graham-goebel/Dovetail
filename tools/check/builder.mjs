@@ -1942,6 +1942,58 @@ try {
     await page.close();
   });
 
+  await step("Content per project: a project's files share their uploads, other projects and loose files don't, and a moved file brings its own", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
+    const openHome = async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click(); await page.locator(".bd-home").waitFor(); };
+    const images = () => page.evaluate(() => window.__builder.library().images.map((i) => i.name).sort().join());
+    const png = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 40; c.height = 30; c.getContext("2d").fillRect(0, 0, 40, 30); return c.toDataURL("image/png"); });
+    const upload = async (name) => {
+      await page.locator(".bd-rail .bd-tab", { hasText: "Content" }).click();
+      if (await page.locator(".bd-gallery-head [aria-label='Back to Content']").count()) await page.locator(".bd-gallery-head [aria-label='Back to Content']").click();
+      await page.locator('.bd-kind[data-kind="images"]').click();
+      await page.setInputFiles("#bd-lib-file", { name, mimeType: "image/png", buffer: Buffer.from(png.split(",")[1], "base64") });
+      await page.waitForFunction((n) => window.__builder.library().images.some((i) => i.name.startsWith(n.replace(/\.png$/, ""))), name);
+    };
+
+    await openHome();
+    await homeNew(page, "New project");
+    await page.locator(".bd-home-heading input.bd-home-title").waitFor();
+    await page.keyboard.press("Control+a"); await page.keyboard.type("Kiln"); await page.keyboard.press("Enter");
+    await homeNew(page, "New file in Kiln");
+    await page.waitForFunction(() => !document.querySelector(".bd-home") && window.__builder.project().group);
+    await ready();
+    await page.locator(".bd-rail .bd-tab", { hasText: "Content" }).click();
+    expect(/Shared by the files in Kiln/.test(await page.locator(".bd-content-scope").textContent()), "Content says it's shared by the project's files");
+    await upload("mug.png");
+    ok("a file made in a project shows Content as shared by Kiln's files, and an upload lands there");
+
+    await openHome();
+    await homeCard(page, "Kiln").locator(".bd-proj-open").click();
+    await homeNew(page, "New file in Kiln");
+    await page.waitForFunction(() => !document.querySelector(".bd-home") && window.__builder.project().name === "Untitled 3");
+    await ready();
+    await page.waitForFunction(() => window.__builder.library().images.length === 1);
+    expect(/^mug/.test(await images()), `a second file in Kiln sees the same upload, got ${await images()}`);
+    ok("a second file in the same project sees mug.png");
+
+    await openHome();
+    await homeCard(page, "Untitled").locator(".bd-proj-open").click();
+    await page.waitForFunction(() => !document.querySelector(".bd-home") && window.__builder.project().name === "Untitled");
+    await ready();
+    await page.waitForFunction(() => window.__builder.library().images.length === 0);
+    expect(/made before projects|This file's own/.test(await page.evaluate(() => { const el = document.querySelector(".bd-content-scope"); return el ? el.textContent : "This file's own"; })), "the loose file keeps its own content");
+    await upload("jug.png");
+    ok("a loose file sees none of Kiln's uploads and keeps its own");
+
+    await openHome();
+    await cardMenu(page, "Untitled", "Move to Kiln");
+    await page.waitForFunction(() => window.__builder.project().group && window.__builder.library().images.length === 2);
+    expect(/^jug.*,mug/.test(await images()), `moved into Kiln, the file brings jug.png and now sees mug.png too, got ${await images()}`);
+    ok("moving the loose file into Kiln brings its upload along, and it now sees Kiln's too");
+    await page.close();
+  });
+
   await step("Project settings: each project keeps its own canvas colour, theme and picture", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const proj = () => page.evaluate(() => window.__builder.project());
@@ -2442,11 +2494,13 @@ try {
     const logos = []; (function w(n) { (n.children || []).forEach((c) => { if (c.name === "Logo") logos.push(c); w(c); }); })((await saved()).frames[0].root);
     const pic = logos.find((n) => n.type === "Image");
     expect(pic && pic.props.fit === "contain" && pic.props.ratio === "21:9" && pic.style.w === "x4" && pic.props.alt === "Acme", `with a logo file, the logo is that picture, got ${JSON.stringify(pic && pic.props.alt)}`);
+    const head = await page.evaluate(() => ({ text: document.querySelector(".wordmark-text").textContent, hidden: document.querySelector(".wordmark-text").hidden, logo: document.querySelector(".wordmark-logo").getAttribute("src") }));
+    expect(head.text === "Dovetail" && !head.hidden && !head.logo, `the builder's own header keeps the Dovetail name after a logo and name are set, got ${JSON.stringify(head)}`);
     await page.locator('.bd-brand-sec:has(#bd-brand-mark) .bd-btn', { hasText: "Remove" }).click();
     await page.waitForFunction(() => window.__builder.project().theme.brand.mark === "");
     await page.locator(".bd-gallery-head [aria-label='Back to Content']").click();
     expect(/Logo/.test(await card.textContent()) && await card.locator("img").count() === 1, `back in Content the Brand card shows the logo, got ${await card.textContent()}`);
-    ok("a logo file replaces the name: pressed, it adds an uncropped Image named Logo with the name as its alt; removing the mark saves that too, and the Brand card shows what's set");
+    ok("a logo file replaces the name: pressed, it adds an uncropped Image named Logo with the name as its alt; the builder's header still says Dovetail; removing the mark saves that too, and the Brand card shows what's set");
     await page.close();
   });
 
