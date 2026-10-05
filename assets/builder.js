@@ -1926,6 +1926,11 @@
         else note(report, n.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k]));
         return;
       }
+      if (k === "alpha") {
+        if (Number.isInteger(st.alpha) && st.alpha >= 0 && st.alpha < 100) style.alpha = st.alpha;
+        else note(report, n.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha));
+        return;
+      }
       if (tokenOption(k, st[k])) style[k] = st[k];
       else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function(o) {
         return o.value;
@@ -4765,25 +4770,39 @@
     var selected = options.filter(function(o) {
       return o.value === props.value;
     })[0];
-    var scrubDown = function(ev) {
-      if (ev.button !== 0) return;
-      var steps = options.filter(function(o) {
-        return o.px != null;
+    var stepList = function() {
+      var list2 = options.filter(function(o) {
+        return o.px != null && (!props.stepFilter || props.stepFilter(o));
       }).slice().sort(function(a, b) {
         return a.px - b.px;
       });
+      var byPx = {};
+      list2.forEach(function(o) {
+        if (!(o.px in byPx) || o === selected) byPx[o.px] = o;
+      });
+      return list2.filter(function(o) {
+        return byPx[o.px] === o;
+      });
+    };
+    var startAt = function(steps) {
+      var at2 = steps.indexOf(selected);
+      if (at2 >= 0) return at2;
+      var from = props.scrubFrom ? props.scrubFrom() : null;
+      if (from == null) return -1;
+      at2 = 0;
+      steps.forEach(function(o, i) {
+        if (Math.abs(o.px - from) < Math.abs(steps[at2].px - from)) at2 = i;
+      });
+      return at2;
+    };
+    var scrubDown = function(ev) {
+      if (ev.button !== 0) return;
+      var steps = stepList();
       if (!steps.length) return;
       ev.preventDefault();
       ev.stopPropagation();
-      var at2 = steps.indexOf(selected);
-      if (at2 < 0) {
-        var from = props.scrubFrom ? props.scrubFrom() : null;
-        at2 = 0;
-        if (from != null) steps.forEach(function(o, i) {
-          if (Math.abs(o.px - from) < Math.abs(steps[at2].px - from)) at2 = i;
-        });
-      }
-      var x0 = ev.clientX, last = steps.indexOf(selected), first = true;
+      var at2 = Math.max(0, startAt(steps));
+      var x0 = ev.clientX, last = steps.indexOf(selected), first = true, shift = ev.shiftKey;
       var el = ev.currentTarget;
       try {
         el.setPointerCapture(ev.pointerId);
@@ -4794,10 +4813,11 @@
         var moved = Math.round((mv.clientX - x0) / 12);
         if (!moved && last < 0) return;
         var i = Math.max(0, Math.min(steps.length - 1, at2 + moved));
-        if (i === last) return;
+        if (i === last && mv.shiftKey === shift) return;
         last = i;
+        shift = mv.shiftKey;
         scrubbed.current = true;
-        props.onScrub(steps[i].value, first);
+        props.onScrub(steps[i].value, first, mv);
         first = false;
       };
       var up = function() {
@@ -4805,6 +4825,7 @@
         window.removeEventListener("pointerup", up);
         window.removeEventListener("pointercancel", up);
         document.documentElement.classList.remove("bd-scrubbing");
+        if (!first && props.onScrubEnd) props.onScrubEnd();
         setTimeout(function() {
           scrubbed.current = false;
         }, 0);
@@ -4812,6 +4833,15 @@
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
       window.addEventListener("pointercancel", up);
+    };
+    var stepKey = function(ev) {
+      var steps = stepList();
+      if (!steps.length) return false;
+      var at2 = startAt(steps);
+      var i = ev.key === "ArrowUp" ? at2 + 1 : at2 < 0 ? -1 : at2 - 1;
+      if (i < 0 || i >= steps.length) return true;
+      props.onStep(steps[i].value, ev);
+      return true;
     };
     var place = function() {
       var r = btn.current.getBoundingClientRect();
@@ -4837,6 +4867,7 @@
       setOpen(true);
     };
     var close = function(refocus) {
+      if (props.onPreview) props.onPreview(null);
       setOpen(false);
       if (refocus && btn.current) btn.current.focus();
     };
@@ -4867,6 +4898,10 @@
         window.removeEventListener("resize", reflow);
       };
     }, [open]);
+    useEffect(function() {
+      if (!open || !props.onPreview || !options[activeI]) return;
+      props.onPreview(options[activeI].value);
+    }, [open, activeI]);
     useEffect(function() {
       if (!open || !list.current) return;
       var l = list.current;
@@ -4925,19 +4960,24 @@
           "aria-label": props.labelledBy ? void 0 : props.label,
           title: props.title,
           disabled: props.disabled,
-          onClick: function() {
+          onPointerDown: props.scrubBody && props.onScrub ? scrubDown : void 0,
+          onClick: function(ev) {
             if (scrubbed.current) {
               scrubbed.current = false;
+              return;
+            }
+            if (ev.altKey && props.onAltClick) {
+              props.onAltClick();
               return;
             }
             if (open) close(false);
             else show();
           },
           onKeyDown: function(ev) {
-            if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
-              ev.preventDefault();
-              show();
-            }
+            if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;
+            ev.preventDefault();
+            if (props.onStep && !open) stepKey(ev);
+            else show();
           }
         },
         props.prefix ? e("span", {
@@ -5285,6 +5325,89 @@
       "span",
       { className: "bd-thumb", ref: holder, "aria-hidden": true },
       BUILDER_ICON[props.type] ? e(Icon, { name: BUILDER_ICON[props.type], className: "bd-thumb-ic" }) : null
+    );
+  }
+  function OpacityField(props) {
+    var shown = props.value == null ? "" : String(props.value);
+    var textState = useState(shown);
+    var text = textState[0], setText = textState[1];
+    useEffect(function() {
+      setText(shown);
+    }, [shown]);
+    var live = useRef({ first: true });
+    var clamp = function(n) {
+      return Math.max(0, Math.min(100, Math.round(n)));
+    };
+    var commit = function() {
+      var n = Number(String(text).replace(/[^\d]/g, ""));
+      if (!String(text).trim() || !isFinite(n)) {
+        setText(shown);
+        return;
+      }
+      if (clamp(n) !== props.value) props.onChange(clamp(n));
+      else setText(shown);
+    };
+    var step = function(ev, from) {
+      if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown" && ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return false;
+      ev.preventDefault();
+      var by = (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" || ev.key === "ArrowRight" ? 1 : -1);
+      props.onChange(clamp((from == null ? 100 : from) + by));
+      return true;
+    };
+    return e(
+      "div",
+      { className: "bd-opacity", role: "group", "aria-labelledby": props.labelledBy },
+      e("input", {
+        type: "range",
+        min: 0,
+        max: 100,
+        step: 1,
+        className: "bd-opacity-range",
+        value: props.value == null ? 100 : props.value,
+        "aria-label": "Opacity",
+        "aria-valuetext": props.value == null ? "Mixed" : props.value + "%",
+        onPointerDown: function() {
+          live.current.first = true;
+        },
+        onChange: function(ev) {
+          var v = clamp(Number(ev.target.value));
+          setText(String(v));
+          props.onLive(v, live.current.first);
+          live.current.first = false;
+        },
+        onPointerUp: function() {
+          live.current.first = true;
+        },
+        onKeyDown: function(ev) {
+          step(ev, props.value);
+        }
+      }),
+      e(
+        "label",
+        { className: "bd-num bd-opacity-num" },
+        e("input", {
+          type: "text",
+          inputMode: "numeric",
+          "aria-label": "Opacity, percent",
+          value: text,
+          placeholder: props.value == null ? "Mixed" : "",
+          onChange: function(ev) {
+            setText(ev.target.value.replace(/[^\d]/g, "").slice(0, 3));
+          },
+          onBlur: commit,
+          onKeyDown: function(ev) {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              commit();
+            } else if (ev.key === "Escape") {
+              ev.preventDefault();
+              ev.stopPropagation();
+              setText(shown);
+            } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? props.value : Number(text));
+          }
+        }),
+        e("span", { className: "bd-num-l bd-opacity-unit", "aria-hidden": true }, "%")
+      )
     );
   }
   function InlineEditor(props) {
@@ -8337,6 +8460,11 @@
       }
       if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
         var digit = Number(ev.code.slice(5));
+        if (active(docRef.current).mode !== "structured") {
+          setAlpha(selRef.current.slice(), digit === 0 ? 100 : digit * 10);
+          announce(digit === 0 ? "Opaque" : "Opacity " + digit * 10 + "%");
+          return true;
+        }
         var role = digit === 0 ? void 0 : digit <= 2 ? "ghost" : digit <= 5 ? "disabled" : digit <= 7 ? "muted" : "strong";
         setStyle(selRef.current, "opacity", role);
         announce(role ? "Opacity " + role : "Opaque");
@@ -8445,6 +8573,44 @@
         sizeOn(active(d), w, h);
       });
     };
+    var setAlpha = function(ids, v, first) {
+      var val = v >= 100 ? void 0 : v;
+      var apply2 = function(d) {
+        var any = false;
+        ids.forEach(function(id) {
+          var at2 = locate(d, id);
+          if (!at2) return;
+          any = true;
+          delete at2.node.style.opacity;
+          if (val === void 0) delete at2.node.style.alpha;
+          else at2.node.style.alpha = val;
+        });
+        return any ? void 0 : null;
+      };
+      if (first === false) quiet(apply2);
+      else change(apply2, val === void 0 ? "Opaque" : "Opacity " + val + "%");
+    };
+    var previewStyle = function(ids, key, v) {
+      var p = stylePreviewRef.current;
+      if (v === null) {
+        stylePreviewRef.current = null;
+        if (p && docRef.current !== p.start) {
+          docRef.current = p.start;
+          setDoc(p.start);
+        }
+        return;
+      }
+      if (!p) p = stylePreviewRef.current = { start: docRef.current };
+      docRef.current = p.start;
+      if (!quiet(function(d) {
+        ids.forEach(function(id) {
+          var at2 = locate(d, id);
+          if (!at2) return;
+          if (v) at2.node.style[key] = v;
+          else delete at2.node.style[key];
+        });
+      })) setDoc(p.start);
+    };
     var scrubStyle = function(ids, key, v, first) {
       if (first) {
         setStyle(ids, key, v);
@@ -8525,6 +8691,7 @@
             delete n.style.y;
             delete n.style.fill;
             delete n.style.color;
+            delete n.style.alpha;
           }
           (n.children || []).forEach(unfree);
         })(f2.root);
@@ -9374,6 +9541,8 @@
     var pageDrag = pageDragState[0], setPageDrag = pageDragState[1];
     var pageDragRef = useRef(null);
     var pageDragEnded = useRef(false);
+    var boxScrubRef = useRef(null);
+    var stylePreviewRef = useRef(null);
     var pagesListRef = useRef(null);
     var confirmPageState = useState(null);
     var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
@@ -10593,11 +10762,20 @@
         icon: opts.icon,
         iconOnly: opts.iconOnly,
         alignEnd: opts.alignEnd,
-        title: (opts.label || def.label) + (order ? ": suggestions for " + ctx.name + " first" : ""),
-        onScrub: opts.scrub ? function(v, first) {
+        title: opts.title || (opts.label || def.label) + (order ? ": suggestions for " + ctx.name + " first" : ""),
+        onScrub: opts.onScrub || (opts.scrub ? function(v, first) {
           scrubStyle(ids0, key, v, first);
+        } : void 0),
+        scrubFrom: opts.scrubFrom || (opts.scrub ? measureFor : void 0),
+        onScrubEnd: opts.onScrubEnd,
+        scrubBody: opts.scrubBody,
+        onStep: opts.onStep,
+        onAltClick: opts.onAltClick,
+        onPreview: opts.onPreview,
+        /* Dragging and stepping keep to the families that suit the layer. */
+        stepFilter: order ? function(o) {
+          return o.group !== more;
         } : void 0,
-        scrubFrom: opts.scrub ? measureFor : void 0,
         onChange: opts.onChange || function(v) {
           if (v === "__fixed") fixSize(key, nodes);
           else setStyle(ids0, key, v);
@@ -10702,14 +10880,55 @@
         return any ? void 0 : null;
       });
     };
+    var boxApply = function(ids, key, all, v, every) {
+      return function(d) {
+        var any = false;
+        ids.forEach(function(id) {
+          var at2 = locate(d, id);
+          if (!at2) return;
+          any = true;
+          var st = at2.node.style;
+          if (every) {
+            if (v) st[all] = v;
+            else delete st[all];
+            DATA.tokens[all].sides.forEach(function(k) {
+              delete st[k];
+            });
+          } else if (v) st[key] = v;
+          else delete st[key];
+        });
+        return any ? void 0 : null;
+      };
+    };
+    var boxWord = function(key, all, v, every) {
+      var what = every ? (all === "padding" ? "Padding" : "Margin") + " on every side" : DATA.tokens[key].label;
+      return v ? what + " " + v : what + " cleared";
+    };
+    var scrubBox = function(ids, key, all, v, first, every) {
+      if (first || !boxScrubRef.current) boxScrubRef.current = { start: docRef.current };
+      var b = boxScrubRef.current;
+      b.last = [ids, key, all, v, every];
+      docRef.current = b.start;
+      quiet(boxApply(ids, key, all, v, every));
+    };
+    var endScrubBox = function() {
+      var b = boxScrubRef.current;
+      boxScrubRef.current = null;
+      if (!b || !b.last) return;
+      docRef.current = b.start;
+      change(boxApply.apply(null, b.last), boxWord(b.last[1], b.last[2], b.last[3], b.last[4]));
+    };
     var boxModel = function(nodes) {
       var ids = nodes.map(function(n) {
         return n.id;
       });
-      var ownPad = nodes.length && nodes.every(function(n) {
+      var oneType = nodes.length && nodes.every(function(n) {
         return n.type === nodes[0].type;
-      }) && META[nodes[0].type] ? META[nodes[0].type].ownPadding : null;
+      });
+      var ownPad = oneType && META[nodes[0].type] ? META[nodes[0].type].ownPadding : null;
       var ownLabel = ownPad ? "Default: " + ownPad.label : null;
+      var a = nodes.length === 1 ? api() : null;
+      var drawn = a && a.spacing ? a.spacing(nodes[0].id) : null;
       var side2 = function(key, all, where) {
         var allValues = nodes.map(function(n) {
           return n.style[all] || "";
@@ -10718,6 +10937,11 @@
         var own = nodes.some(function(n) {
           return n.style[key];
         });
+        var px = drawn ? drawn[key] : null;
+        var from = all === "padding" && ownPad ? ownPad.label + " (" + ownPad.token + ")" : oneType ? nodes[0].type + "'s own " + all : "";
+        var noneLabel = inherited ? "Same as every side (" + inherited + ")" : px ? "From " + (from || "the component") + ": " + px + "px" : all === "padding" && ownLabel ? ownLabel : "None";
+        var noneShort = inherited ? pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited : px ? String(px) : all === "padding" && ownLabel ? "Def" : "–";
+        var label = DATA.tokens[key].label;
         return e(
           "div",
           { key, className: "bd-box-cell is-" + where },
@@ -10727,8 +10951,23 @@
             mixedLabel: "~",
             pxOnly: true,
             className: cx("bd-box-val", !own && "is-inherited"),
-            noneLabel: inherited ? "Same as every side (" + inherited + ")" : all === "padding" && ownLabel ? ownLabel : "None",
-            noneShort: inherited ? pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited : all === "padding" && ownLabel ? "Def" : "–"
+            noneLabel,
+            noneShort,
+            title: label + (own ? "" : inherited ? ", from every side" : px ? ", " + px + "px from " + (from || "the component") : "") + ". Drag sideways or press Up and Down to step it; Shift sets every side; Alt-click clears it.",
+            scrubBody: true,
+            scrubFrom: function() {
+              return px != null ? px : null;
+            },
+            onScrub: function(v, first, ev) {
+              scrubBox(ids, key, all, v, first, !!(ev && ev.shiftKey));
+            },
+            onScrubEnd: endScrubBox,
+            onStep: function(v, ev) {
+              change(boxApply(ids, key, all, v, ev.shiftKey), boxWord(key, all, v, ev.shiftKey));
+            },
+            onAltClick: function() {
+              change(boxApply(ids, key, all, void 0, false), boxWord(key, all, void 0, false));
+            }
           })
         );
       };
@@ -10745,6 +10984,10 @@
           },
           className: "bd-box-all",
           noneLabel: key === "padding" && ownLabel ? ownLabel : void 0,
+          title: title + ", every side. Alt-click clears every side.",
+          onAltClick: function() {
+            change(boxApply(ids, key, key, void 0, true), boxWord(key, key, void 0, true));
+          },
           onChange: function(v) {
             var patch = {};
             patch[key] = v || void 0;
@@ -12570,20 +12813,21 @@
             } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
             text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null
           ),
+          /* Hiding lives in the inspector's Layer section; a hidden row keeps
+             a quiet eye-off, which also shows it again. */
           n.type !== "Slot" ? e(
             "span",
             { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-            e("button", {
+            n.hide ? e("button", {
               type: "button",
-              className: cx("bd-layer-flag", n.hide && "is-on"),
-              "aria-pressed": String(!!n.hide),
-              "aria-label": (n.hide ? "Show " : "Hide ") + nameOf(n),
-              title: n.hide ? "Hidden: press to show (Ctrl+Shift+H)" : "Hide (Ctrl+Shift+H)",
+              className: "bd-layer-flag is-hidden-mark",
+              "aria-label": "Show " + nameOf(n),
+              title: "Hidden: press to show (Ctrl+Shift+H)",
               onClick: function(ev) {
                 ev.stopPropagation();
                 flagLayer(n.id, f.id, "hide");
               }
-            }, e(Icon, { name: n.hide ? "eyeOff" : "eye" })),
+            }, e(Icon, { name: "eyeOff" })) : null,
             e("button", {
               type: "button",
               className: cx("bd-layer-flag", n.lock && "is-on"),
@@ -12872,7 +13116,19 @@
             { key: "blend", className: "bd-blend-row" },
             e("span", { className: "bd-field-label", id: lid }, "Blend"),
             e("span", { className: "bd-blend-now" }, blendNow === null ? "Mixed" : blendOpt ? blendOpt.label || blendOpt.value : "Normal"),
-            tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true })
+            tokenDropdown("blend", nodes, lid, {
+              label: "Blend mode",
+              noneLabel: "Normal",
+              className: "bd-dd-icon bd-blend-dd",
+              noPreview: true,
+              icon: "swatch",
+              iconOnly: true,
+              compact: true,
+              alignEnd: true,
+              onPreview: function(v) {
+                previewStyle(ids, "blend", v);
+              }
+            })
           ),
           picturesOnly ? e(
             Field,
@@ -12881,12 +13137,33 @@
               setStyle(ids, "invert", v ? "on" : void 0);
             } })
           ) : null,
-          e(
+          free ? (function() {
+            var alphas = nodes.map(function(n) {
+              return typeof n.style.alpha === "number" ? n.style.alpha : n.style.opacity ? null : 100;
+            });
+            var role = nodes.map(function(n) {
+              return n.style.opacity;
+            }).filter(Boolean)[0];
+            return e(
+              Field,
+              { key: "opacity", id: lid + "-op", label: "Opacity", hint: role ? "Set to the " + role + " role. Moving the slider replaces it with a percent." : "Any whole percent. Arrows step 1%, Shift 10%; keys 1 to 9 set 10% to 90%, 0 makes it opaque" },
+              e(OpacityField, { labelledBy: lid + "-op", value: same3(alphas) && alphas[0] !== null ? alphas[0] : null, onChange: function(v) {
+                setAlpha(ids, v);
+              }, onLive: function(v, first2) {
+                setAlpha(ids, v, first2);
+              } })
+            );
+          })() : e(
             Field,
             { key: "opacity", id: lid + "-op", label: "Opacity", hint: "Keys 1 to 9 step it; 0 makes it opaque again" },
             tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })
           )
-        ], null, styled(nodes, ["blend", "invert", "opacity"])),
+        ], (function() {
+          var hidden = nodes.every(function(n) {
+            return n.hide;
+          });
+          return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
+        })(), styled(nodes, ["blend", "invert", "opacity", "alpha"])),
         sec(
           "border",
           "Border",

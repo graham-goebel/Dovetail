@@ -106,6 +106,8 @@
     /* A free frame may give a layer its own colours, as six-digit hex. */
     if (HEX.test(st.fill || "")) out = Object.assign(out || {}, { background: st.fill });
     if (HEX.test(st.color || "")) out = Object.assign(out || {}, { color: st.color, "--dt-text-primary": st.color, "--dt-text-headline": st.color });
+    /* And its own opacity, in whole percents. */
+    if (typeof st.alpha === "number" && st.alpha >= 0 && st.alpha < 100) out = Object.assign(out || {}, { opacity: st.alpha / 100 });
     if (isFree(st)) {
       out = Object.assign(out || {}, { position: "absolute", left: "calc(" + FREE_UNIT + " * " + st.x + ")", top: "calc(" + FREE_UNIT + " * " + st.y + ")", margin: "0" });
       delete out.right;
@@ -1116,6 +1118,20 @@
     },
     anatomy: anatomy,
     snapshot: snapshot,
+    /* The padding and margin a node has as drawn, in pixels: what it was
+       given, what its component brings, or what it picks up around it. Its
+       wrapper is display: contents, so that's its first element. */
+    spacing: function (id) {
+      var w = wrapper(id);
+      var el = w && w.firstElementChild;
+      while (el && getComputedStyle(el).display === "contents") el = el.firstElementChild;
+      if (!el) return null;
+      var cs = getComputedStyle(el), out = {};
+      ["padding", "margin"].forEach(function (k) {
+        ["Top", "Right", "Bottom", "Left"].forEach(function (s) { out[k + s] = Math.round(parseFloat(cs[k + s]) || 0); });
+      });
+      return out;
+    },
     width: function () {
       var r = mount.firstElementChild;
       return r ? Math.ceil(r.getBoundingClientRect().width) : 0;

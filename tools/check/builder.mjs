@@ -3108,8 +3108,20 @@ try {
     await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
     const gammaRow = page.locator('.bd-layer[data-layer="hc"]');
     expect(await gammaRow.evaluate((r) => r.classList.contains("is-hidden")), "its layer row is dimmed");
-    await gammaRow.locator(".bd-layer-flag[aria-label^='Show']").click();
-    expect(!(await poll(() => flag("hc"), (v) => !v.hide)).hide, "the eye on the row shows it again");
+    expect(await page.locator('.bd-layer[data-layer="bb"] .bd-layer-flag[aria-label^="Hide"], .bd-layer[data-layer="bb"] .bd-layer-flag[aria-label^="Show"]').count() === 0, "a visible row has no eye of its own");
+    await gammaRow.locator(".bd-layer-flag.is-hidden-mark[aria-label^='Show']").click();
+    expect(!(await poll(() => flag("hc"), (v) => !v.hide)).hide, "the quiet eye-off on the hidden row shows it again");
+    await frames(page)[1].waitForSelector('[data-bf-id="hc"]');
+    /* The inspector's Layer section carries the eye now. */
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    await tab(page, "Appearance");
+    const eye = page.locator('.bd-right .bd-sec[data-sec="layer"] .bd-sec-head .bd-act');
+    expect(await eye.getAttribute("aria-pressed") === "false" && /^Visible/.test(await eye.getAttribute("aria-label")), "the Layer section's eye says the Heading is visible");
+    await eye.click();
+    expect((await poll(() => flag("hc"), (v) => v.hide)).hide, "the Layer section's eye hides it");
+    await page.waitForFunction(() => document.querySelector('.bd-right .bd-sec[data-sec="layer"] .bd-sec-head .bd-act')?.getAttribute("aria-pressed") === "true");
+    await page.locator('.bd-right .bd-sec[data-sec="layer"] .bd-sec-head .bd-act').click();
+    expect(!(await poll(() => flag("hc"), (v) => !v.hide)).hide, "and shows it again");
     await frames(page)[1].waitForSelector('[data-bf-id="hc"]');
     await page.evaluate(() => window.__builder.select(["bb"]));
     await page.keyboard.press("Control+Shift+KeyL");
@@ -3130,7 +3142,7 @@ try {
     expect((await page.evaluate(() => window.__builder.selection())).join() === "bb", "Layers still picks it");
     await page.locator('.bd-layer[data-layer="bb"] .bd-layer-flag[aria-label^="Unlock"]').click();
     expect(!(await poll(() => flag("bb"), (v) => !v.lock)).lock, "the lock on the row unlocks it");
-    ok("hide takes a layer off the canvas and out of the code; lock keeps the canvas and the arrows off it; the row's eye and lock turn both back");
+    ok("hide takes a layer off the canvas and out of the code; the Layer section's eye hides and shows it, and a hidden row keeps a quiet eye-off that shows it; lock keeps the canvas and the arrows off it, and the row's lock turns it back");
 
     /* The right-click menu: on a canvas layer, on a layer row, from the
        keyboard, and on empty canvas. */
@@ -3167,22 +3179,83 @@ try {
     await page.keyboard.press("Escape");
     ok("the right-click menu works on canvas layers, layer rows, from Shift+F10 and on empty canvas");
 
-    /* Opacity: the digit keys step it through the four roles, 0 makes it
-       opaque; the frame paints the token; the Layer section offers it. */
+    /* Opacity in a free frame: any whole percent. The digit keys set 10%
+       to 90% and 0 makes it opaque; the Layer section has a slider and a
+       number, arrows step 1% and Shift 10%, and a slider drag is one undo. */
     await page.evaluate(() => window.__builder.select(["ba"]));
     await release(page);
     await page.keyboard.press("Digit5");
-    const op = async () => ((await free()).root.children.find((c) => c.id === "ba").style.opacity);
-    expect(await poll(op, (v) => v === "disabled") === "disabled", `5 sets the opacity role disabled, got ${await op()}`);
-    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).opacity === "0.4");
-    ok("the canvas paints --dt-opacity-disabled as 0.4");
+    const ba = async () => (await free()).root.children.find((c) => c.id === "ba").style;
+    const alphaOf = async () => (await ba()).alpha;
+    const painted = (v) => frames(page)[1].waitForFunction((v) => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).opacity === v, v);
+    expect(await poll(alphaOf, (v) => v === 50) === 50, `5 sets 50%, got ${await alphaOf()}`);
+    await painted("0.5");
     await page.keyboard.press("Digit9");
-    expect(await poll(op, (v) => v === "strong") === "strong", "9 is strong");
+    expect(await poll(alphaOf, (v) => v === 90) === 90, "9 is 90%");
     await page.keyboard.press("Digit0");
-    expect(await poll(op, (v) => v === undefined) === undefined, "0 makes it opaque again");
+    expect(await poll(alphaOf, (v) => v === undefined) === undefined && (await ba()).opacity === undefined, "0 makes it opaque again");
     await tab(page, "Appearance");
-    expect(await page.locator(".bd-right .bd-field", { hasText: /^Opacity/ }).count() === 1, "the Layer section offers an Opacity dropdown");
-    ok("digits 1 to 9 step the opacity through ghost, disabled, muted and strong; 0 clears it; the canvas paints the token");
+    const num = page.locator('.bd-right .bd-opacity input[aria-label="Opacity, percent"]');
+    const range = page.locator(".bd-right .bd-opacity-range");
+    expect(await num.count() === 1 && await range.count() === 1 && await num.inputValue() === "100", "the Layer section has an opacity slider and a number at 100");
+    await num.fill("37");
+    await num.press("Enter");
+    expect(await poll(alphaOf, (v) => v === 37) === 37, `typing 37 sets 37%, got ${await alphaOf()}`);
+    await painted("0.37");
+    await num.press("Shift+ArrowUp");
+    expect(await poll(alphaOf, (v) => v === 47) === 47, "Shift+Up in the number adds 10%");
+    await range.focus();
+    await page.keyboard.press("ArrowLeft");
+    expect(await poll(alphaOf, (v) => v === 46) === 46, "Left on the slider takes 1%");
+    await page.keyboard.press("Shift+ArrowLeft");
+    expect(await poll(alphaOf, (v) => v === 36) === 36, "Shift+Left on the slider takes 10%");
+    const before = (await steps(page)).past;
+    const rb = await range.boundingBox();
+    await page.mouse.move(rb.x + rb.width * 0.36, rb.y + rb.height / 2);
+    await page.mouse.down();
+    for (const f of [0.5, 0.6, 0.7, 0.8]) await page.mouse.move(rb.x + rb.width * f, rb.y + rb.height / 2, { steps: 3 });
+    await page.mouse.up();
+    const dragged = await alphaOf();
+    expect(dragged >= 75 && dragged <= 85 && (await steps(page)).past === before + 1, `a drag on the slider lands near 80% as one undo step, got ${dragged}% and ${(await steps(page)).past - before} steps`);
+    await release(page);
+    await page.keyboard.press("Control+z");
+    expect(await poll(alphaOf, (v) => v === 36) === 36, `undo puts the drag back to 36%, got ${await alphaOf()}`);
+    await page.locator(".bd-export").click();
+    const opCode = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(/opacity: 0\.36/.test(opCode), "the exported code carries opacity: 0.36");
+    await num.fill("100");
+    await num.press("Enter");
+    expect(await poll(alphaOf, (v) => v === undefined) === undefined, "100% clears it");
+    ok("in a free frame, digits set 10% to 90% and 0 is opaque; the Layer section's slider and number take any percent, arrows step 1% and Shift 10%, a slider drag is one undo step, and the code carries it");
+
+    /* Blend modes show on the canvas while the menu is open: hover or the
+       arrows preview one, Escape puts back what was there, a click keeps it
+       as one undo step. */
+    const blendOn = () => frames(page)[1].evaluate(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode);
+    const blendSteps = (await steps(page)).past;
+    await page.locator(".bd-right .bd-blend-dd").click();
+    await page.locator(".bd-dd-opt", { hasText: /^Multiply/ }).hover();
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply");
+    await page.locator(".bd-dd-opt", { hasText: /^Screen/ }).hover();
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "screen");
+    await page.keyboard.press("ArrowDown");
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "overlay");
+    expect((await steps(page)).past === blendSteps, "previewing makes no undo step");
+    await page.keyboard.press("Escape");
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "normal");
+    expect(!(await ba()).blend, "Escape puts the blend mode back to Normal");
+    await page.locator(".bd-right .bd-blend-dd").click();
+    await page.locator(".bd-dd-opt", { hasText: /^Darken/ }).hover();
+    await page.locator(".bd-dd-opt", { hasText: /^Multiply/ }).click();
+    expect(await poll(async () => (await ba()).blend, (v) => v === "multiply") === "multiply" && (await steps(page)).past === blendSteps + 1, `a click keeps Multiply as one undo step, got ${(await ba()).blend} and ${(await steps(page)).past - blendSteps} steps`);
+    /* The frame repaints just after the change. */
+    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply", null, { timeout: 4000 }).catch(() => {});
+    expect(await blendOn() === "multiply", `the canvas keeps it, got ${await blendOn()}`);
+    await release(page);
+    await page.keyboard.press("Control+z");
+    expect(!(await poll(async () => (await ba()).blend, (v) => !v)), "undo goes back to Normal, past the previews");
+    ok("hovering or arrowing through blend modes shows each on the canvas without an undo step; Escape restores; a click keeps one as a single step");
 
     /* Copy and paste style: Alpha's size tokens land on Gamma. Select all
        of a kind: every Button in the frame. */
@@ -3575,6 +3648,54 @@ try {
     await page.waitForTimeout(200);
     expect(await page.locator(".bd-vars-sec", { hasText: "Padding" }).locator(".bd-var-own").count() === 0, "with a Text selected, Variables offers no component's padding");
     ok("Variables offers the Card's own padding as its default, which clears Padding; a Text gets none");
+
+    /* The box shows what the Card really has: its own card padding, in
+       grey, with where it comes from. A drag steps a side, Shift makes it
+       every side, Alt-click clears it, and Up steps it by keyboard. */
+    await selectOne("opc", "Card");
+    const cell = (where) => page.locator(`.bd-box-p > .bd-box-cell.is-${where} .bd-dd`);
+    const drawnPad = await frames(page)[0].evaluate(() => window.BuilderFrame.spacing("opc").paddingTop);
+    expect(drawnPad > 0, `the Card is drawn with padding, got ${drawnPad}`);
+    await page.waitForFunction((px) => document.querySelector(".bd-box-p > .bd-box-cell.is-top .bd-dd-label")?.textContent === String(px), drawnPad);
+    const topCell = cell("top");
+    expect(await topCell.evaluate((b) => b.classList.contains("is-inherited")) && /card padding \(--dt-card-padding\)/.test(await topCell.getAttribute("title")), `the unset top side shows ${drawnPad} in grey, from the card padding token, got title ${await topCell.getAttribute("title")}`);
+    const opcStyle = async () => (await page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())))).frames[0].root.children.find((c) => c.id === "opc").style;
+    const stepsBefore = (await steps(page)).past;
+    const tb = await topCell.boundingBox();
+    await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(tb.x + tb.width / 2 + 40, tb.y + tb.height / 2, { steps: 6 });
+    await page.mouse.up();
+    const afterDrag = await poll(opcStyle, (st) => !!st.paddingTop);
+    expect(afterDrag.paddingTop && !afterDrag.padding && (await steps(page)).past === stepsBefore + 1, `a drag on the top side sets paddingTop alone, as one undo step, got ${JSON.stringify(afterDrag)} and ${(await steps(page)).past - stepsBefore} steps`);
+    expect(!(await cell("top").evaluate((b) => b.classList.contains("is-inherited"))), "a side that's set reads in full ink");
+    expect(await page.locator(".bd-dd-list").count() === 0, "a drag doesn't open the list");
+    const lb = await cell("left").boundingBox();
+    await page.keyboard.down("Shift");
+    await page.mouse.move(lb.x + lb.width / 2, lb.y + lb.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(lb.x + lb.width / 2 + 30, lb.y + lb.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await page.keyboard.up("Shift");
+    const afterShift = await poll(opcStyle, (st) => !!st.padding && !st.paddingTop);
+    expect(afterShift.padding && !afterShift.paddingTop && !afterShift.paddingLeft, `Shift-drag sets padding on every side and clears the single sides, got ${JSON.stringify(afterShift)}`);
+    await page.keyboard.down("Alt");
+    await page.locator(".bd-box-p > .bd-box-all").click();
+    await page.keyboard.up("Alt");
+    const cleared = await poll(opcStyle, (st) => !st.padding);
+    expect(!cleared.padding && await page.locator(".bd-dd-list").count() === 0, `Alt-click on Padding clears every side without opening the list, got ${JSON.stringify(cleared)}`);
+    await cell("right").focus();
+    await page.keyboard.press("ArrowUp");
+    const stepped = await poll(opcStyle, (st) => !!st.paddingRight);
+    /* The size the inspector gives the token; a module token can draw
+       smaller inside a Card than at the frame's root. */
+    const rightPx = Number(await cell("right").locator(".bd-dd-label").textContent());
+    expect(rightPx > drawnPad, `Up on the right side steps up from the ${drawnPad}px it had, got ${stepped.paddingRight} (${rightPx}px)`);
+    await page.keyboard.down("Alt");
+    await cell("right").click();
+    await page.keyboard.up("Alt");
+    expect(!(await poll(opcStyle, (st) => !st.paddingRight)).paddingRight, "Alt-click on a side clears it");
+    ok(`the box shows the Card's own ${drawnPad}px in grey from --dt-card-padding; a drag sets one side in one undo step, Shift-drag every side, Up steps a side from what it had, and Alt-click clears`);
     await page.close();
   });
 

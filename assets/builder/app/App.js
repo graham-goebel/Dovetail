@@ -12,7 +12,7 @@ import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -2307,6 +2307,12 @@ function App(props) {
     /* 1 to 9 step the opacity through its roles, as Figma's keys do; 0 is opaque. */
     if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
       var digit = Number(ev.code.slice(5));
+      /* A free frame takes any percent: 1 is 10%, 9 is 90%. */
+      if (active(docRef.current).mode !== "structured") {
+        setAlpha(selRef.current.slice(), digit === 0 ? 100 : digit * 10);
+        announce(digit === 0 ? "Opaque" : "Opacity " + digit * 10 + "%");
+        return true;
+      }
       var role = digit === 0 ? undefined : digit <= 2 ? "ghost" : digit <= 5 ? "disabled" : digit <= 7 ? "muted" : "strong";
       setStyle(selRef.current, "opacity", role);
       announce(role ? "Opacity " + role : "Opaque");
@@ -2373,6 +2379,27 @@ function App(props) {
   var setSize = function (w, h) { change(function (d) { sizeOn(active(d), w, h); return undefined; }); };
   /* Scrubbing: the first step is the undo step, the rest follow it. */
   var setSizeLive = function (w, h, first) { if (first) setSize(w, h); else quiet(function (d) { sizeOn(active(d), w, h); }); };
+  /* A free frame's own opacity, in whole percents; 100 is opaque, which
+     needs nothing set. It takes the place of an opacity role. */
+  var setAlpha = function (ids, v, first) {
+    var val = v >= 100 ? undefined : v;
+    var apply = function (d) { var any = false; ids.forEach(function (id) { var at = locate(d, id); if (!at) return; any = true; delete at.node.style.opacity; if (val === undefined) delete at.node.style.alpha; else at.node.style.alpha = val; }); return any ? undefined : null; };
+    if (first === false) quiet(apply);
+    else change(apply, val === undefined ? "Opaque" : "Opacity " + val + "%");
+  };
+  /* A value shown on the canvas without becoming an edit: hovering a blend
+     mode. null puts things back as they were. */
+  var previewStyle = function (ids, key, v) {
+    var p = stylePreviewRef.current;
+    if (v === null) {
+      stylePreviewRef.current = null;
+      if (p && docRef.current !== p.start) { docRef.current = p.start; setDoc(p.start); }
+      return;
+    }
+    if (!p) p = stylePreviewRef.current = { start: docRef.current };
+    docRef.current = p.start;
+    if (!quiet(function (d) { ids.forEach(function (id) { var at = locate(d, id); if (!at) return; if (v) at.node.style[key] = v; else delete at.node.style[key]; }); })) setDoc(p.start);
+  };
   var scrubStyle = function (ids, key, v, first) {
     if (first) { setStyle(ids, key, v); return; }
     quiet(function (d) { ids.forEach(function (id) { var at = locate(d, id); if (at) at.node.style[key] = v; }); });
@@ -2419,7 +2446,7 @@ function App(props) {
       var kept = [];
       f.root.children.forEach(function (c) { if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c); else loose.push(c); });
       loose.sort(function (a, b) { return ((a.style.y || 0) - (b.style.y || 0)) || ((a.style.x || 0) - (b.style.x || 0)); });
-      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; } (n.children || []).forEach(unfree); })(f.root);
+      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; delete n.style.alpha; } (n.children || []).forEach(unfree); })(f.root);
       if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
       f.root.children = kept;
       if (!f.gap) f.gap = "block";
@@ -3068,6 +3095,8 @@ function App(props) {
   var pageDrag = pageDragState[0], setPageDrag = pageDragState[1];
   var pageDragRef = useRef(null);
   var pageDragEnded = useRef(false);
+  var boxScrubRef = useRef(null);
+  var stylePreviewRef = useRef(null);
   var pagesListRef = useRef(null);
   var confirmPageState = useState(null);
   var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
@@ -3829,8 +3858,11 @@ function App(props) {
     return e(Dropdown, {
       labelledBy: id || undefined, label: opts.label || def.label, value: value, mixed: mixed, mixedLabel: opts.mixedLabel, options: options,
       preview: opts.noPreview ? null : def.preview, compact: opts.compact, narrow: opts.compact, prefix: opts.prefix, className: opts.className, icon: opts.icon, iconOnly: opts.iconOnly, alignEnd: opts.alignEnd,
-      title: (opts.label || def.label) + (order ? ": suggestions for " + ctx.name + " first" : ""),
-      onScrub: opts.scrub ? function (v, first) { scrubStyle(ids0, key, v, first); } : undefined, scrubFrom: opts.scrub ? measureFor : undefined,
+      title: opts.title || (opts.label || def.label) + (order ? ": suggestions for " + ctx.name + " first" : ""),
+      onScrub: opts.onScrub || (opts.scrub ? function (v, first) { scrubStyle(ids0, key, v, first); } : undefined), scrubFrom: opts.scrubFrom || (opts.scrub ? measureFor : undefined),
+      onScrubEnd: opts.onScrubEnd, scrubBody: opts.scrubBody, onStep: opts.onStep, onAltClick: opts.onAltClick, onPreview: opts.onPreview,
+      /* Dragging and stepping keep to the families that suit the layer. */
+      stepFilter: order ? function (o) { return o.group !== more; } : undefined,
       onChange: opts.onChange || function (v) { if (v === "__fixed") fixSize(key, nodes); else setStyle(ids0, key, v); },
     });
   };
@@ -3900,29 +3932,81 @@ function App(props) {
   };
 
   /* Margin around padding around the item, each side its own token, the way
-     a box model reads. The name in each ring sets every side at once. */
+     a box model reads. The name in each ring sets every side at once.
+     A side left unset shows what the layer really has, measured on the
+     canvas, in grey with where it comes from; one set here is in full ink.
+     Drag sideways on a side to step through the spacing; Shift makes it
+     every side. Up and Down step it too, and Alt-click clears it. */
+  var boxApply = function (ids, key, all, v, every) {
+    return function (d) {
+      var any = false;
+      ids.forEach(function (id) {
+        var at = locate(d, id);
+        if (!at) return;
+        any = true;
+        var st = at.node.style;
+        if (every) { if (v) st[all] = v; else delete st[all]; DATA.tokens[all].sides.forEach(function (k) { delete st[k]; }); }
+        else if (v) st[key] = v; else delete st[key];
+      });
+      return any ? undefined : null;
+    };
+  };
+  var boxWord = function (key, all, v, every) {
+    var what = every ? (all === "padding" ? "Padding" : "Margin") + " on every side" : DATA.tokens[key].label;
+    return v ? what + " " + v : what + " cleared";
+  };
+  /* A drag is shown as it goes and kept as one change when it ends. */
+  var scrubBox = function (ids, key, all, v, first, every) {
+    if (first || !boxScrubRef.current) boxScrubRef.current = { start: docRef.current };
+    var b = boxScrubRef.current;
+    b.last = [ids, key, all, v, every];
+    docRef.current = b.start;
+    quiet(boxApply(ids, key, all, v, every));
+  };
+  var endScrubBox = function () {
+    var b = boxScrubRef.current;
+    boxScrubRef.current = null;
+    if (!b || !b.last) return;
+    docRef.current = b.start;
+    change(boxApply.apply(null, b.last), boxWord(b.last[1], b.last[2], b.last[3], b.last[4]));
+  };
   var boxModel = function (nodes) {
     var ids = nodes.map(function (n) { return n.id; });
     /* A component that pads itself from its own tier (Card's card padding)
        names that as the default, so "None" doesn't read as no padding. Only
        on that component: a mixed selection, or another type, never sees it. */
-    var ownPad = nodes.length && nodes.every(function (n) { return n.type === nodes[0].type; }) && META[nodes[0].type] ? META[nodes[0].type].ownPadding : null;
+    var oneType = nodes.length && nodes.every(function (n) { return n.type === nodes[0].type; });
+    var ownPad = oneType && META[nodes[0].type] ? META[nodes[0].type].ownPadding : null;
     var ownLabel = ownPad ? "Default: " + ownPad.label : null;
+    var a = nodes.length === 1 ? api() : null;
+    var drawn = a && a.spacing ? a.spacing(nodes[0].id) : null;
     var side = function (key, all, where) {
       var allValues = nodes.map(function (n) { return n.style[all] || ""; });
       var inherited = same(allValues) ? allValues[0] : "";
       var own = nodes.some(function (n) { return n.style[key]; });
+      var px = drawn ? drawn[key] : null;
+      var from = all === "padding" && ownPad ? ownPad.label + " (" + ownPad.token + ")" : oneType ? nodes[0].type + "'s own " + all : "";
+      var noneLabel = inherited ? "Same as every side (" + inherited + ")" : px ? "From " + (from || "the component") + ": " + px + "px" : all === "padding" && ownLabel ? ownLabel : "None";
+      var noneShort = inherited ? (pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited) : px ? String(px) : all === "padding" && ownLabel ? "Def" : "–";
+      var label = DATA.tokens[key].label;
       return e("div", { key: key, className: "bd-box-cell is-" + where },
         tokenDropdown(key, nodes, null, {
           compact: true, noPreview: true, mixedLabel: "~", pxOnly: true, className: cx("bd-box-val", !own && "is-inherited"),
-          noneLabel: inherited ? "Same as every side (" + inherited + ")" : all === "padding" && ownLabel ? ownLabel : "None",
-          noneShort: inherited ? (pxMap[all + "|" + inherited] != null ? String(Math.round(pxMap[all + "|" + inherited])) : inherited) : all === "padding" && ownLabel ? "Def" : "–",
+          noneLabel: noneLabel, noneShort: noneShort,
+          title: label + (own ? "" : inherited ? ", from every side" : px ? ", " + px + "px from " + (from || "the component") : "") + ". Drag sideways or press Up and Down to step it; Shift sets every side; Alt-click clears it.",
+          scrubBody: true, scrubFrom: function () { return px != null ? px : null; },
+          onScrub: function (v, first, ev) { scrubBox(ids, key, all, v, first, !!(ev && ev.shiftKey)); },
+          onScrubEnd: endScrubBox,
+          onStep: function (v, ev) { change(boxApply(ids, key, all, v, ev.shiftKey), boxWord(key, all, v, ev.shiftKey)); },
+          onAltClick: function () { change(boxApply(ids, key, all, undefined, false), boxWord(key, all, undefined, false)); },
         }));
     };
     var ring = function (key, title) {
       return tokenDropdown(key, nodes, null, {
         compact: true, noPreview: true, label: title + ", every side", prefix: title, mixedLabel: "", noneShort: "", short: function () { return ""; }, className: "bd-box-all",
         noneLabel: key === "padding" && ownLabel ? ownLabel : undefined,
+        title: title + ", every side. Alt-click clears every side.",
+        onAltClick: function () { change(boxApply(ids, key, key, undefined, true), boxWord(key, key, undefined, true)); },
         onChange: function (v) {
           var patch = {};
           patch[key] = v || undefined;
@@ -4923,9 +5007,11 @@ function App(props) {
             ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
             : e("span", { className: "bd-layer-name" }, nameOf(n)),
           text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
+        /* Hiding lives in the inspector's Layer section; a hidden row keeps
+           a quiet eye-off, which also shows it again. */
         n.type !== "Slot" ? e("span", { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-          e("button", { type: "button", className: cx("bd-layer-flag", n.hide && "is-on"), "aria-pressed": String(!!n.hide), "aria-label": (n.hide ? "Show " : "Hide ") + nameOf(n), title: n.hide ? "Hidden: press to show (Ctrl+Shift+H)" : "Hide (Ctrl+Shift+H)",
-            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "hide"); } }, e(Icon, { name: n.hide ? "eyeOff" : "eye" })),
+          n.hide ? e("button", { type: "button", className: "bd-layer-flag is-hidden-mark", "aria-label": "Show " + nameOf(n), title: "Hidden: press to show (Ctrl+Shift+H)",
+            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "hide"); } }, e(Icon, { name: "eyeOff" })) : null,
           e("button", { type: "button", className: cx("bd-layer-flag", n.lock && "is-on"), "aria-pressed": String(!!n.lock), "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n), title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
             onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "lock"); } }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))) : null);
     };
@@ -5062,12 +5148,24 @@ function App(props) {
         e("div", { key: "blend", className: "bd-blend-row" },
           e("span", { className: "bd-field-label", id: lid }, "Blend"),
           e("span", { className: "bd-blend-now" }, blendNow === null ? "Mixed" : blendOpt ? blendOpt.label || blendOpt.value : "Normal"),
-          tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true })),
+          tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true,
+            onPreview: function (v) { previewStyle(ids, "blend", v); } })),
         picturesOnly ? e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
           e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })) : null,
-        e(Field, { key: "opacity", id: lid + "-op", label: "Opacity", hint: "Keys 1 to 9 step it; 0 makes it opaque again" },
-          tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })),
-      ], null, styled(nodes, ["blend", "invert", "opacity"])),
+        free ? (function () {
+          /* A role set before (or in a structured frame) shows as mixed
+             until the slider replaces it. */
+          var alphas = nodes.map(function (n) { return typeof n.style.alpha === "number" ? n.style.alpha : n.style.opacity ? null : 100; });
+          var role = nodes.map(function (n) { return n.style.opacity; }).filter(Boolean)[0];
+          return e(Field, { key: "opacity", id: lid + "-op", label: "Opacity", hint: role ? "Set to the " + role + " role. Moving the slider replaces it with a percent." : "Any whole percent. Arrows step 1%, Shift 10%; keys 1 to 9 set 10% to 90%, 0 makes it opaque" },
+            e(OpacityField, { labelledBy: lid + "-op", value: same(alphas) && alphas[0] !== null ? alphas[0] : null, onChange: function (v) { setAlpha(ids, v); }, onLive: function (v, first) { setAlpha(ids, v, first); } }));
+        })()
+          : e(Field, { key: "opacity", id: lid + "-op", label: "Opacity", hint: "Keys 1 to 9 step it; 0 makes it opaque again" },
+            tokenDropdown("opacity", nodes, lid + "-op", { label: "Opacity", noneLabel: "Opaque", className: "bd-dd-field", noPreview: true })),
+      ], (function () {
+        var hidden = nodes.every(function (n) { return n.hide; });
+        return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
+      })(), styled(nodes, ["blend", "invert", "opacity", "alpha"])),
       sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),

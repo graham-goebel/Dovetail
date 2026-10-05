@@ -179,21 +179,36 @@ function Dropdown(props) {
   var options = props.options;
   var selected = options.filter(function (o) { return o.value === props.value; })[0];
 
-  /* Scrubbing: press the prefix (W, H) and drag sideways to step through
-     the sizes, smallest to largest, from the current one. */
+  /* The sizes in order, smallest first, and where the current one sits:
+     the chosen size, or else the one nearest what's measured. */
+  var stepList = function () {
+    var list = options.filter(function (o) { return o.px != null && (!props.stepFilter || props.stepFilter(o)); }).slice().sort(function (a, b) { return a.px - b.px; });
+    /* One step per size: where two names give the same pixels, the chosen
+       one stands for both, or else the first. */
+    var byPx = {};
+    list.forEach(function (o) { if (!(o.px in byPx) || o === selected) byPx[o.px] = o; });
+    return list.filter(function (o) { return byPx[o.px] === o; });
+  };
+  var startAt = function (steps) {
+    var at = steps.indexOf(selected);
+    if (at >= 0) return at;
+    var from = props.scrubFrom ? props.scrubFrom() : null;
+    if (from == null) return -1;
+    at = 0;
+    steps.forEach(function (o, i) { if (Math.abs(o.px - from) < Math.abs(steps[at].px - from)) at = i; });
+    return at;
+  };
+  /* Scrubbing: press the prefix (W, H), or the whole field where it asks
+     for that, and drag sideways to step through the sizes from the current
+     one. The callback hears the pointer too, so Shift can mean more. */
   var scrubDown = function (ev) {
     if (ev.button !== 0) return;
-    var steps = options.filter(function (o) { return o.px != null; }).slice().sort(function (a, b) { return a.px - b.px; });
+    var steps = stepList();
     if (!steps.length) return;
     ev.preventDefault();
     ev.stopPropagation();
-    var at = steps.indexOf(selected);
-    if (at < 0) {
-      var from = props.scrubFrom ? props.scrubFrom() : null;
-      at = 0;
-      if (from != null) steps.forEach(function (o, i) { if (Math.abs(o.px - from) < Math.abs(steps[at].px - from)) at = i; });
-    }
-    var x0 = ev.clientX, last = steps.indexOf(selected), first = true;
+    var at = Math.max(0, startAt(steps));
+    var x0 = ev.clientX, last = steps.indexOf(selected), first = true, shift = ev.shiftKey;
     var el = ev.currentTarget;
     try { el.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
     document.documentElement.classList.add("bd-scrubbing");
@@ -201,10 +216,11 @@ function Dropdown(props) {
       var moved = Math.round((mv.clientX - x0) / 12);
       if (!moved && last < 0) return;
       var i = Math.max(0, Math.min(steps.length - 1, at + moved));
-      if (i === last) return;
+      if (i === last && mv.shiftKey === shift) return;
       last = i;
+      shift = mv.shiftKey;
       scrubbed.current = true;
-      props.onScrub(steps[i].value, first);
+      props.onScrub(steps[i].value, first, mv);
       first = false;
     };
     var up = function () {
@@ -212,11 +228,22 @@ function Dropdown(props) {
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
       document.documentElement.classList.remove("bd-scrubbing");
+      if (!first && props.onScrubEnd) props.onScrubEnd();
       setTimeout(function () { scrubbed.current = false; }, 0);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", up);
+  };
+  /* Up and Down on a field that steps: the next size either way. */
+  var stepKey = function (ev) {
+    var steps = stepList();
+    if (!steps.length) return false;
+    var at = startAt(steps);
+    var i = ev.key === "ArrowUp" ? at + 1 : at < 0 ? -1 : at - 1;
+    if (i < 0 || i >= steps.length) return true;
+    props.onStep(steps[i].value, ev);
+    return true;
   };
 
   var place = function () {
@@ -241,6 +268,9 @@ function Dropdown(props) {
     setOpen(true);
   };
   var close = function (refocus) {
+    /* A preview ends before anything else happens, so a choice made next
+       starts from how things were. */
+    if (props.onPreview) props.onPreview(null);
     setOpen(false);
     if (refocus && btn.current) btn.current.focus();
   };
@@ -272,6 +302,13 @@ function Dropdown(props) {
       window.removeEventListener("resize", reflow);
     };
   }, [open]);
+
+  /* While the list is open, the option under the pointer or the arrow
+     keys can be shown live where it applies. */
+  useEffect(function () {
+    if (!open || !props.onPreview || !options[activeI]) return;
+    props.onPreview(options[activeI].value);
+  }, [open, activeI]);
 
   useEffect(function () {
     if (!open || !list.current) return;
@@ -307,8 +344,17 @@ function Dropdown(props) {
       "aria-haspopup": props.menu ? "menu" : "listbox", "aria-expanded": String(open), "aria-controls": open ? ids.list : undefined,
       "aria-labelledby": props.labelledBy ? props.labelledBy + " " + ids.btn : undefined, "aria-label": props.labelledBy ? undefined : props.label,
       title: props.title, disabled: props.disabled,
-      onClick: function () { if (scrubbed.current) { scrubbed.current = false; return; } if (open) close(false); else show(); },
-      onKeyDown: function (ev) { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); show(); } },
+      onPointerDown: props.scrubBody && props.onScrub ? scrubDown : undefined,
+      onClick: function (ev) {
+        if (scrubbed.current) { scrubbed.current = false; return; }
+        if (ev.altKey && props.onAltClick) { props.onAltClick(); return; }
+        if (open) close(false); else show();
+      },
+      onKeyDown: function (ev) {
+        if (ev.key !== "ArrowDown" && ev.key !== "ArrowUp") return;
+        ev.preventDefault();
+        if (props.onStep && !open) stepKey(ev); else show();
+      },
     },
       props.prefix ? e("span", { className: cx("bd-dd-prefix", props.onScrub && "is-scrub"), "aria-hidden": true, onPointerDown: props.onScrub ? scrubDown : undefined,
         title: props.onScrub ? "Drag sideways to step through the sizes" : undefined }, props.prefix) : null,
@@ -520,6 +566,51 @@ function Thumb(props) {
     BUILDER_ICON[props.type] ? e(Icon, { name: BUILDER_ICON[props.type], className: "bd-thumb-ic" }) : null);
 }
 
+/* Opacity in whole percents: a slider and a number beside it. Arrows step
+   1%, ten with Shift. A drag on the slider is one change; the steps on the
+   way show live. value is null when the selection differs. */
+function OpacityField(props) {
+  var shown = props.value == null ? "" : String(props.value);
+  var textState = useState(shown);
+  var text = textState[0], setText = textState[1];
+  useEffect(function () { setText(shown); }, [shown]);
+  var live = useRef({ first: true });
+  var clamp = function (n) { return Math.max(0, Math.min(100, Math.round(n))); };
+  var commit = function () {
+    var n = Number(String(text).replace(/[^\d]/g, ""));
+    if (!String(text).trim() || !isFinite(n)) { setText(shown); return; }
+    if (clamp(n) !== props.value) props.onChange(clamp(n)); else setText(shown);
+  };
+  var step = function (ev, from) {
+    if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown" && ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return false;
+    ev.preventDefault();
+    var by = (ev.shiftKey ? 10 : 1) * (ev.key === "ArrowUp" || ev.key === "ArrowRight" ? 1 : -1);
+    props.onChange(clamp((from == null ? 100 : from) + by));
+    return true;
+  };
+  return e("div", { className: "bd-opacity", role: "group", "aria-labelledby": props.labelledBy },
+    e("input", {
+      type: "range", min: 0, max: 100, step: 1, className: "bd-opacity-range", value: props.value == null ? 100 : props.value,
+      "aria-label": "Opacity", "aria-valuetext": props.value == null ? "Mixed" : props.value + "%",
+      onPointerDown: function () { live.current.first = true; },
+      onChange: function (ev) { var v = clamp(Number(ev.target.value)); setText(String(v)); props.onLive(v, live.current.first); live.current.first = false; },
+      onPointerUp: function () { live.current.first = true; },
+      onKeyDown: function (ev) { step(ev, props.value); },
+    }),
+    e("label", { className: "bd-num bd-opacity-num" },
+      e("input", {
+        type: "text", inputMode: "numeric", "aria-label": "Opacity, percent", value: text, placeholder: props.value == null ? "Mixed" : "",
+        onChange: function (ev) { setText(ev.target.value.replace(/[^\d]/g, "").slice(0, 3)); },
+        onBlur: commit,
+        onKeyDown: function (ev) {
+          if (ev.key === "Enter") { ev.preventDefault(); commit(); }
+          else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); setText(shown); }
+          else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? props.value : Number(text));
+        },
+      }),
+      e("span", { className: "bd-num-l bd-opacity-unit", "aria-hidden": true }, "%")));
+}
+
 /* A text field laid over the node whose text it edits, in the same type. */
 function InlineEditor(props) {
   var ref = useRef(null);
@@ -708,4 +799,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
