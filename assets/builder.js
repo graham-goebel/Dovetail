@@ -9703,7 +9703,7 @@
     };
     var skeleton = function() {
       return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function(i) {
-        return e("li", { key: i, className: "bd-proj bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
+        return e("li", { key: i, className: "bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
       }));
     };
     var homePage = function() {

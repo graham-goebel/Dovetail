@@ -5147,6 +5147,11 @@ input.bd-folder-name {
   background-size: 200% 100%;
   animation: bd-shimmer 1.2s linear infinite;
 }
+.bd-proj-skel {
+  display: grid;
+  align-content: start;
+  gap: var(--dt-space-stack-2xs);
+}
 .bd-skel-thumb {
   aspect-ratio: 4 / 3;
   border-radius: var(--dt-radius-container);
