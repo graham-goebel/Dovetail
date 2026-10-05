@@ -13,7 +13,8 @@ Dovetail is a white-label design system (`system/`) with a static documentation 
 ```sh
 npm ci                 # once per checkout
 npm run build          # tools/build-bundle.mjs, tools/build-builder.mjs, then tools/build-site.mjs
-npm run check          # must pass before you push
+npm run check:fast     # the quick checks, about fifteen seconds; run it often
+npm run check          # all of them, must pass before you push
 ```
 
 - Never hand-edit generated files:
