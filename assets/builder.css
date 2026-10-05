@@ -3053,6 +3053,13 @@ span.bd-layer-twisty.is-open .bd-ic {
   object-fit: contain;
 }
 
+/* Photos and clips fill their tile, so they're big enough to tell apart.
+   Illustrations and cut-outs stay whole, on the checkerboard. */
+.bd-lib-thumb.is-fill img,
+.bd-lib-thumb.is-fill video {
+  object-fit: cover;
+}
+
 .bd-lib-name {
   overflow: hidden;
   padding-right: var(--dt-size-control-sm);
@@ -3970,7 +3977,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 /* ------------------------------------------------------ the panel search */
 
 /* One search, floating at the foot of the left panel, in the same place on
-   Assets, Layers and Content; it searches whichever is open. */
+   every panel; it searches whichever is open. */
 .bd-left-body {
   position: relative;
 }
@@ -3986,6 +3993,17 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-left-main > * {
   flex: 1;
   min-height: 0;
+}
+
+/* Configure's search hides the groups and settings that don't match. */
+.bd-cfg-out {
+  display: none !important;
+}
+
+.bd-left-main > .bd-config-none {
+  flex: none;
+  margin: 0;
+  padding: var(--dt-space-inset-sm) var(--dt-space-inset-md);
 }
 
 .bd-search.bd-search-dock {
@@ -4573,6 +4591,9 @@ input.bd-proj-name {
   font-size: var(--dt-font-size-sm);
   text-align: left;
   cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .bd-page-open:focus-visible {
@@ -4682,8 +4703,7 @@ input.bd-page-name {
 }
 
 .bd-folder-open:focus-visible,
-.bd-folder-twisty:focus-visible,
-.bd-page-grip:focus-visible {
+.bd-folder-twisty:focus-visible {
   outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
   outline-offset: -2px;
 }
@@ -4714,42 +4734,6 @@ input.bd-folder-name {
 
 .bd-page.is-nested {
   margin-left: var(--dt-space-inset-md);
-}
-
-/* The grip moves a page. It shows on hover, and always where there is no
-   hover; it takes the touch, so the list still scrolls from anywhere else. */
-.bd-page-grip {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--dt-size-icon-md);
-  height: var(--dt-size-control-sm);
-  padding: 0;
-  border: 0;
-  border-radius: var(--dt-radius-control);
-  background: transparent;
-  color: var(--dt-text-tertiary);
-  opacity: 0;
-  cursor: grab;
-  touch-action: none;
-}
-
-.bd-page-grip .bd-ic {
-  width: var(--dt-size-icon-sm);
-  height: var(--dt-size-icon-sm);
-}
-
-.bd-page:hover .bd-page-grip,
-.bd-page:focus-within .bd-page-grip,
-.bd-page.is-current .bd-page-grip {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .bd-page-grip {
-    opacity: 1;
-  }
 }
 
 .bd-page.is-moving {

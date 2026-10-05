@@ -281,16 +281,15 @@ try {
     ok(`${types.length} components rendered from their starting props`);
   });
 
-  await step("Assets: five kinds, one named category at a time, search across all and clear it, live previews, grid and list", async () => {
+  await step("Assets: five kinds as icons, one named category at a time, search across all and clear it, live previews, grid and list", async () => {
     const kinds = await page.$$eval(".bd-assets [data-asset-kind] .bd-kind-name", (c) => c.map((x) => x.textContent));
     expect(kinds.join(",") === "Containers,Primitives,Variables,Components,Blocks,Templates", `Assets open on Containers, Primitives, Variables, Components, Blocks and Templates, got ${kinds.join(", ")}`);
     const heights = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => Math.round(x.getBoundingClientRect().height)));
     expect(new Set(heights).size === 1, `the kind cards are all one height, got ${heights.join(", ")}`);
-    await page.waitForFunction(() => ["components", "blocks", "primitives"].every((k) => document.querySelector(`.bd-assets [data-asset-kind="${k}"] .bd-thumb-stage`)));
-    const pics = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => x.getAttribute("data-asset-kind") + ":" + (x.querySelector(".bd-thumb-stage") ? "live" : x.querySelector(".bd-mini-frame, .bd-mini-swatch, .bd-mini-page") ? "drawn" : "icon")));
-    expect(pics.every((p) => !p.endsWith(":icon")), `every kind card shows a picture of what it holds, not an icon, got ${pics.join(", ")}`);
-    const fits = await page.$eval('.bd-assets [data-asset-kind="containers"] .bd-kind-pics', (el) => { const b = el.getBoundingClientRect(); return [...el.querySelectorAll(".bd-mini-frame")].every((f) => { const r = f.getBoundingClientRect(); return r.left >= b.left - 1 && r.right <= b.right + 1; }); });
-    expect(fits, "the Containers card's three frames fit inside it");
+    const pics = await page.$$eval(".bd-assets [data-asset-kind]", (c) => c.map((x) => x.getAttribute("data-asset-kind") + ":" + (x.querySelector(".bd-thumb-stage, .bd-mini-frame, .bd-mini-swatch, .bd-mini-page") ? "picture" : x.querySelector(".bd-kind-pics.is-asset .bd-ic") ? "icon" : "none")));
+    expect(pics.every((p) => p.endsWith(":icon")), `every kind card on the first level shows an icon, not a preview, got ${pics.join(", ")}`);
+    const prim = await page.$eval('.bd-assets [data-asset-kind="primitives"] .bd-kind-pics svg', (svg) => svg.innerHTML);
+    expect(prim.includes("M4.098 19.902"), "Primitives uses the blend modes' swatch icon");
     await category(page, "Actions");
     const named = await page.$$eval(".bd-cat", (c) => c.map((x) => x.querySelector(".bd-cat-label")?.textContent || ""));
     expect(named.length >= 8 && named.every(Boolean) && !named.includes("Blocks") && !named.includes("Layout"), `every component category carries its name, without the primitives' or blocks', got ${named.join(", ")}`);
@@ -304,7 +303,7 @@ try {
     expect(await page.locator(".bd-search-dock input").inputValue() === "" && await page.locator(".bd-search-clear").count() === 0, "the clear button empties the search and goes away");
     await category(page, "Actions");
     await page.waitForFunction(() => document.querySelector('.bd-tile[data-type="Button"] .bd-thumb-stage')?.children.length > 0);
-    ok("five kinds, categories are named, Blocks shows blocks, search finds Button and IconButton and clears, and the Button tile has a live preview");
+    ok("the kinds show as icons, Primitives with the blend swatch; categories are named, Blocks shows blocks, search finds Button and IconButton and clears, and the Button tile has a live preview");
     await page.locator('.bd-assets-head .bd-seg-btn[aria-label="List"]').click();
     expect(await page.locator(".bd-tiles.is-list").count() === 1, "list view");
     const list = await page.$$eval(".bd-tiles.is-list .bd-tile", (t) => t.map((x) => { const r = x.getBoundingClientRect(), p = x.querySelector(".bd-thumb").getBoundingClientRect(), n = x.querySelector(".bd-tile-text").getBoundingClientRect(); return [Math.round(r.height), p.bottom <= n.top + 1]; }));
@@ -2089,8 +2088,6 @@ try {
     const undo = history(page).undo;
     const menuFor = async (name, item) => { await page.locator(".bd-page", { hasText: name }).first().locator(".bd-page-menu").click(); await option(page, item).click(); };
 
-    const varIcon = await page.locator('.bd-assets [data-asset-kind="variables"] .bd-kind-pics .bd-mini-swatch').count();
-    expect(varIcon >= 4, "the Variables card in Assets shows the system's colours, as the others show what they hold");
     await rail("Pages").click();
     expect((await names()).join() === "Page 1" && await current() === "Page 1", `a project starts with one page, Page 1, got ${await names()}`);
     const landing = await types();
@@ -2362,17 +2359,24 @@ try {
     /* The rows as they read: [ marks a folder, * a page inside one. */
     const rows = () => page.evaluate(() => [...document.querySelectorAll(".bd-pages [data-row]")].map((r) => (r.classList.contains("bd-folder") ? "[" : "") + r.querySelector(".bd-page-name, .bd-folder-name").textContent + (r.classList.contains("is-nested") ? "*" : "")).join());
     const meta = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.project())));
-    const gripOf = async (name) => { const g = await page.locator(".bd-page", { hasText: name }).locator(".bd-page-grip").boundingBox(); return { x: g.x + g.width / 2, y: g.y + g.height / 2 }; };
+    /* A page moves by dragging its row; there's no grip. */
+    const gripOf = async (name) => { const g = await page.locator(".bd-page", { hasText: name }).locator(".bd-page-open").boundingBox(); return { x: g.x + 40, y: g.y + g.height / 2 }; };
     await rail("Pages").click();
     await page.locator('.bd-pages-panel [aria-label="Add a page"]').click();
     await page.waitForFunction(() => document.querySelectorAll(".bd-pages .bd-page").length === 2);
     await page.locator('.bd-pages-panel [aria-label="Add a page"]').click();
     await page.waitForFunction(() => document.querySelectorAll(".bd-pages .bd-page").length === 3);
     expect((await names()).join() === "Page 1,Page 2,Page 3", `three pages to start, got ${await names()}`);
+    await page.locator(".bd-page", { hasText: "Page 1" }).locator(".bd-page-open").click();
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name").textContent === "Page 1");
     const first = await page.locator(".bd-page", { hasText: "Page 1" }).boundingBox();
     await drag(page, await gripOf("Page 3"), { x: first.x + 60, y: first.y + 3 });
     await page.waitForFunction(() => [...document.querySelectorAll(".bd-pages .bd-page-name")].map((x) => x.textContent).join() === "Page 3,Page 1,Page 2");
-    ok("dragging Page 3 by its grip above Page 1 puts the pages in that order");
+    expect(await page.locator(".bd-page-grip").count() === 0, "the rows have no drag grips");
+    expect(await page.locator(".bd-page.is-current .bd-page-name").textContent() === "Page 1", `a drag doesn't also open the page it moved, got ${await page.locator(".bd-page.is-current .bd-page-name").textContent()}`);
+    await page.locator(".bd-page", { hasText: "Page 3" }).locator(".bd-page-open").click();
+    await page.waitForFunction(() => document.querySelector(".bd-page.is-current .bd-page-name").textContent === "Page 3");
+    ok("dragging the Page 3 row, with no grip, above Page 1 puts the pages in that order without opening it; a click still opens it");
 
     await page.locator('.bd-pages-panel [aria-label="New folder"]').click();
     await page.locator("input.bd-folder-name").waitFor();
@@ -2409,6 +2413,85 @@ try {
     await page.waitForFunction(() => document.querySelectorAll(".bd-folder").length === 0);
     expect(await rows() === "Page 3,Page 1,Page 2", `deleting the folder leaves its pages where they were, got ${await rows()}`);
     ok("the folder survives a reload; Out of the folder and Delete folder leave the pages in place");
+    await page.close();
+  });
+
+  await step("Left panels: component previews at 1440 and 1024, a search on Pages and Configure, photos filling their tiles", async () => {
+    /* Every preview in view has drawn, at a scale that fits its tile. */
+    const previews = (page) => page.evaluate(() => {
+      const list = document.querySelector(".bd-assets .bd-tiles");
+      const box = list.closest(".bd-assets").getBoundingClientRect();
+      return [...list.querySelectorAll(".bd-tile")].filter((t) => { const r = t.getBoundingClientRect(); return r.bottom > box.top && r.top < box.bottom - 60 && t.querySelector(".bd-thumb:not(.is-icon)"); }).map((t) => {
+        const holder = t.querySelector(".bd-thumb"), stage = holder.querySelector(".bd-thumb-stage");
+        const h = holder.getBoundingClientRect(), r = stage && stage.getBoundingClientRect();
+        const ok = !!stage && stage.style.opacity === "1" && r.width > 8 && r.height > 4 && r.right <= h.right + 1 && r.left >= h.left - 1;
+        return ok ? null : t.getAttribute("data-type") + (stage ? ` (${Math.round(r.width)}x${Math.round(r.height)} in ${Math.round(h.width)}x${Math.round(h.height)})` : " (not drawn)");
+      }).filter(Boolean);
+    });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1024, height: 768 }]) {
+      const { page } = await open(viewport);
+      for (const name of ["Actions", "Forms", "Display", "Navigation", "Feedback", "Commerce"]) {
+        await category(page, name);
+        await page.waitForFunction(() => document.querySelectorAll(".bd-assets .bd-tile").length > 0);
+        let bad = [];
+        for (let i = 0; i < 20; i++) { bad = await previews(page); if (!bad.length) break; await page.waitForTimeout(150); }
+        expect(!bad.length, `at ${viewport.width}px every ${name} preview in view draws and fits its tile, but not ${bad.join(", ")}`);
+      }
+      await page.setViewportSize({ width: viewport.width - 200, height: viewport.height });
+      let bad = [];
+      for (let i = 0; i < 20; i++) { bad = await previews(page); if (!bad.length) break; await page.waitForTimeout(150); }
+      expect(!bad.length, `after the window narrows from ${viewport.width}px the previews fit their tiles again, but not ${bad.join(", ")}`);
+      await page.close();
+    }
+    ok("at 1440 and 1024, every component preview in view draws and fits its tile, in six categories, and refits when the window narrows");
+
+    const { page } = await open({ width: 1440, height: 900 });
+    const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
+    await rail("Pages").click();
+    for (let i = 0; i < 2; i++) await page.locator('.bd-pages-panel [aria-label="Add a page"]').click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-pages .bd-page").length === 3);
+    await page.locator(".bd-page", { hasText: "Page 3" }).locator(".bd-page-menu").click();
+    await option(page, "Rename").click();
+    await page.keyboard.press("Control+a");
+    await page.keyboard.type("Checkout");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-page-name")].some((x) => x.textContent === "Checkout"));
+    const pageSearch = page.locator('.bd-search-dock input[aria-label="Filter pages"]');
+    expect(await pageSearch.count() === 1, "Pages has the floating search");
+    await pageSearch.fill("check");
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-pages .bd-page-name")].map((x) => x.textContent).join() === "Checkout");
+    await pageSearch.fill("nothing like it");
+    await page.locator(".bd-pages-panel .bd-empty-note", { hasText: "No pages match" }).waitFor();
+    await page.locator(".bd-search-dock .bd-search-clear").click();
+    await page.waitForFunction(() => document.querySelectorAll(".bd-pages .bd-page").length === 3);
+    ok("Pages has the floating search: \"check\" leaves Checkout, a miss says so, and clearing it brings every page back");
+
+    await rail("Configure").click();
+    await page.waitForSelector(".bd-config-dock .configure-row");
+    const cfgSearch = page.locator('.bd-search-dock input[aria-label="Search settings"]');
+    expect(await cfgSearch.count() === 1, "Configure has the floating search");
+    const shownRows = () => page.$$eval(".bd-config-dock .configure-row", (r) => r.filter((x) => x.offsetParent).map((x) => x.querySelector(".configure-row-label").textContent).join());
+    await cfgSearch.fill("radius");
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-config-dock .configure-row")].filter((x) => x.offsetParent).length === 1);
+    expect(await shownRows() === "Shape", `"radius" leaves the Shape group, got ${await shownRows()}`);
+    await page.locator(".bd-config-dock .configure-row", { hasText: "Shape" }).click();
+    await page.locator(".bd-config-dock [data-bid='back']").waitFor();
+    const fields = await page.$$eval(".bd-config-dock .configure-panel > *", (f) => f.filter((x) => x.offsetParent).map((x) => (x.querySelector(".configure-label") || x).textContent.trim().slice(0, 20)));
+    expect(fields.length >= 1 && fields.every((f) => /radius/i.test(f)), `inside Shape only the radius settings show, got ${fields.join(" | ")}`);
+    await cfgSearch.fill("zzz");
+    await page.locator(".bd-config-none", { hasText: "No settings match" }).waitFor();
+    await page.locator(".bd-search-dock .bd-search-clear").click();
+    await page.waitForFunction(() => !document.querySelector(".bd-config-dock .bd-cfg-out"));
+    ok("Configure has the floating search: \"radius\" narrows the groups to Shape and its settings to the radius ones, a miss says so, and clearing it shows everything");
+
+    await rail("Content").click();
+    await page.locator('.bd-kind[data-kind="images"]').click();
+    const photo = await page.evaluate(() => { const c = document.createElement("canvas"); c.width = 300; c.height = 100; const x = c.getContext("2d"); x.fillStyle = "#2a6"; x.fillRect(0, 0, 300, 100); return c.toDataURL("image/png"); });
+    await page.setInputFiles("#bd-lib-file", { name: "wide.png", mimeType: "image/png", buffer: Buffer.from(photo.split(",")[1], "base64") });
+    await page.waitForSelector(".bd-lib-item img");
+    const tile = await page.$eval(".bd-lib-thumb", (b) => ({ cols: getComputedStyle(b.closest(".bd-lib")).gridTemplateColumns.split(" ").length, ratio: b.clientWidth / b.clientHeight, fit: getComputedStyle(b.querySelector("img")).objectFit }));
+    expect(tile.cols === 2 && Math.abs(tile.ratio - 4 / 3) < 0.05 && tile.fit === "cover", `photos sit two across at 4:3 and fill their tile, got ${JSON.stringify(tile)}`);
+    ok("Content's photos sit two across at 4:3 and fill their tiles");
     await page.close();
   });
 

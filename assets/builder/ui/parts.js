@@ -464,23 +464,33 @@ function Thumb(props) {
   var holder = useRef(null);
   useEffect(function () {
     var el = holder.current;
-    var NS = window.BeamMobileDesignSystem_e33121;
-    var specs = window.DovetailSpecimens;
     if (!el) return;
     el.setAttribute("inert", "");
-    var build = specs && NS && !BUILDER_ICON[props.type] ? (specs.samples && specs.samples[props.type]) || specs.build[props.type] : null;
-    if (!build) return;
-    var root = null, stage = null, io = null, done = false;
+    if (BUILDER_ICON[props.type]) return;
+    var root = null, stage = null, io = null, ro = null, done = false, gone = false, wait = 0;
+    var builder = function () {
+      var NS = window.BeamMobileDesignSystem_e33121;
+      var specs = window.DovetailSpecimens;
+      return specs && NS ? (specs.samples && specs.samples[props.type]) || specs.build[props.type] : null;
+    };
+    /* Scaled to the tile each time the tile changes size: a tile measured
+       while its panel was closed, or before the fonts came in, would
+       otherwise keep a wrong or empty picture. */
     var fit = function () {
       if (!stage) return;
-      var w = stage.scrollWidth || 1, h = stage.scrollHeight || 1;
+      var w = stage.scrollWidth, h = stage.scrollHeight;
       var W = el.clientWidth, H = el.clientHeight;
+      if (!w || !h || W <= 12 || H <= 12) return;
       var s = Math.min(props.wide ? 1 : 1.6, (W - 12) / w, (H - 12) / h);
       stage.style.transform = "translate(" + Math.max(0, (W - w * s) / 2) + "px, " + Math.max(0, (H - h * s) / 2) + "px) scale(" + s + ")";
       stage.style.opacity = "1";
     };
     var draw = function () {
-      if (done) return;
+      if (done || gone) return;
+      var build = builder();
+      /* The bundle or the specimens may still be on their way; try again
+         shortly rather than leave the tile empty for good. */
+      if (!build) { if (wait++ < 40) setTimeout(draw, 250); return; }
       done = true;
       stage = document.createElement("div");
       stage.className = "bd-thumb-stage";
@@ -491,13 +501,17 @@ function Thumb(props) {
       try { root.render(e(ThumbGuard, null, build())); } catch (err) { return; }
       requestAnimationFrame(function () { requestAnimationFrame(fit); });
       setTimeout(fit, 400);
+      if (window.ResizeObserver) { ro = new ResizeObserver(fit); ro.observe(el); ro.observe(stage); }
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!gone) fit(); });
     };
     if (window.IntersectionObserver) {
       io = new IntersectionObserver(function (entries) { if (entries.some(function (x) { return x.isIntersecting; })) { draw(); io.disconnect(); } }, { rootMargin: "120px" });
       io.observe(el);
     } else draw();
     return function () {
+      gone = true;
       if (io) io.disconnect();
+      if (ro) ro.disconnect();
       if (root) { var r = root; setTimeout(function () { r.unmount(); }, 0); }
       if (stage && stage.parentNode) stage.parentNode.removeChild(stage);
     };
