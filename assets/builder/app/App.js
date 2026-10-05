@@ -139,6 +139,12 @@ function App(props) {
   var heights = heightsState[0], setHeights = heightsState[1];
   var dragState = useState(null);
   var drag = dragState[0], setDrag = dragState[1];
+  /* Size, position or angle by the pointer while it moves, resizes or
+     turns something; and the handle being pulled. */
+  var readoutState = useState(null);
+  var readout = readoutState[0], setReadout = readoutState[1];
+  var sizingState = useState(null);
+  var sizing = sizingState[0], setSizing = sizingState[1];
   var marksState = useState({ sel: [], hover: null, drop: null });
   var marks = marksState[0], setMarks = marksState[1];
   var listDropState = useState(null);
@@ -827,7 +833,16 @@ function App(props) {
     var hf = h ? api(h.f) : null;
     setMarks(function (m) {
       return {
-        sel: f ? selRef.current.map(function (id) { var r = toStage(f.rect(id), fid); return r ? { id: id, r: r } : null; }).filter(Boolean) : [],
+        sel: f ? selRef.current.map(function (id) {
+          var r = toStage(f.rect(id), fid);
+          if (!r) return null;
+          /* A turned layer: its own box, turned about the same centre. */
+          var at = locate(docRef.current, id), rot = at && at.node.style && at.node.style.rot;
+          var size = rot && f.size ? f.size(id) : null;
+          if (!size) return { id: id, r: r };
+          var z = camRef.current.z, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          return { id: id, r: r, rot: rot, box: { left: cx - size.width * z / 2, top: cy - size.height * z / 2, width: size.width * z, height: size.height * z } };
+        }).filter(Boolean) : [],
         hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? toStage(hf.rect(h.id), h.f) : null,
         drop: m.drop,
       };
@@ -1082,6 +1097,7 @@ function App(props) {
       out.guides = snapped.guides.length ? snapped.guides : null;
       var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
       out.free = { x: gx, y: gy };
+      out.readout = { x: x, y: y, text: "X " + Math.round(gx * unit) + "  Y " + Math.round(gy * unit) };
       out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at.fid) || frame).root.children.length;
       out.line = null;
       out.box = { left: gx * unit, top: gy * unit, width: w, height: h };
@@ -1122,6 +1138,7 @@ function App(props) {
      outline of its own. */
   var show = function (hit, ghosted) {
     setListDrop(hit && hit.where === "list" ? hit : null);
+    setReadout(hit && hit.readout ? hit.readout : null);
     setMarks(function (m) {
       var guides = hit && hit.where === "canvas" && hit.guides ? hit.guides.map(function (g) {
         var r = g.v !== undefined ? toStage({ left: g.v, top: g.from, width: 0, height: g.to - g.from }, hit.frame) : toStage({ left: g.from, top: g.h, width: g.to - g.from, height: 0 }, hit.frame);
@@ -2030,7 +2047,8 @@ function App(props) {
     var clipStyle = styleClip.current;
     if (!clipStyle || !selRef.current.length) return false;
     var patch = {};
-    Object.keys(DATA.tokens).concat(["fill", "color", "dark"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
+    /* A free layer's own size, turn and opacity come along too. */
+    Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rot"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
     setStyles(selRef.current, patch);
     announce("Pasted the style");
     return true;
@@ -2446,7 +2464,7 @@ function App(props) {
       var kept = [];
       f.root.children.forEach(function (c) { if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c); else loose.push(c); });
       loose.sort(function (a, b) { return ((a.style.y || 0) - (b.style.y || 0)) || ((a.style.x || 0) - (b.style.x || 0)); });
-      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; delete n.style.alpha; } (n.children || []).forEach(unfree); })(f.root);
+      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; delete n.style.alpha; delete n.style.fw; delete n.style.fh; delete n.style.rot; } (n.children || []).forEach(unfree); })(f.root);
       if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
       f.root.children = kept;
       if (!f.gap) f.gap = "block";
@@ -4030,6 +4048,30 @@ function App(props) {
     var field = function (key, prefix) {
       return e("div", { key: key }, tokenDropdown(key, nodes, null, { prefix: prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
     };
+    /* A free layer takes any multiple of 4px: typed (rounded to the nearest
+       4), dragged on the letter, or stepped with the arrows, 4 at a time or
+       16 with Shift. Empty means its own size. */
+    if (frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); })) {
+      var ids = nodes.map(function (n) { return n.id; });
+      var a = api();
+      var px = function (n, key) {
+        if (n.style[key]) return n.style[key] * 4;
+        var sz = a && a.size ? a.size(n.id) : null;
+        return sz ? Math.round((key === "fw" ? sz.width : sz.height) / 4) * 4 : null;
+      };
+      var free = function (key, short, label, token) {
+        var vs = nodes.map(function (n) { return px(n, key); });
+        var set = function (v, first) {
+          var steps = Math.max(1, Math.min(FREE_MAX, Math.round(v / 4)));
+          var fn = function (d) { ids.forEach(function (id) { var at = locate(d, id); if (!at) return; at.node.style[key] = steps; delete at.node.style[token]; }); return undefined; };
+          if (first === false) quiet(fn); else change(fn, label + " " + steps * 4 + "px");
+        };
+        return e(NumberField, { key: key, short: short, label: label + ", in pixels, a multiple of 4", value: same(vs) ? vs[0] : null, placeholder: "Mixed", step: 4, min: 4, max: FREE_MAX * 4,
+          title: label + ": any multiple of 4px. Arrows step 4, Shift 16; drag the letter to scrub.",
+          onChange: function (v) { set(v); }, onScrub: function (v, first) { set(v, first); } });
+      };
+      return e("div", { className: "bd-grid2" }, free("fw", "W", "Width", "w"), free("fh", "H", "Height", "height"), field("minW", "Min W"), field("h", "Min H"));
+    }
     return e("div", { className: "bd-grid2" }, field("w", "W"), field("height", "H"), field("minW", "Min W"), field("h", "Min H"));
   };
 
@@ -5202,8 +5244,15 @@ function App(props) {
         e(Field, { key: "free", id: fid2, label: "On the canvas", hint: "Placed where it was dropped, in steps of --dt-space-inset-2xs (" + Math.round(unit) + "px). Drag it to move it, or drop it into a stack to join the flow." },
           e("div", { className: "bd-size-row" },
             e(NumberField, { short: "X", label: "X position", value: same(xs) ? Math.round(xs[0] * unit) : "", onChange: function (v) { setStyles(ids, { x: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }),
-            e(NumberField, { short: "Y", label: "Y position", value: same(ys) ? Math.round(ys[0] * unit) : "", onChange: function (v) { setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }))),
-        e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined }); } }, "Put it in the flow"),
+            e(NumberField, { short: "Y", label: "Y position", value: same(ys) ? Math.round(ys[0] * unit) : "", onChange: function (v) { setStyles(ids, { y: Math.max(0, Math.min(FREE_MAX, Math.round(v / unit))) }); } }),
+            (function () {
+              /* Its turn, in whole degrees: arrows step 1, Shift 15. */
+              var rs = nodes.map(function (n) { return n.style.rot || 0; });
+              return e(NumberField, { short: "↻", label: "Rotation, in degrees", value: same(rs) ? rs[0] : null, placeholder: "Mixed", signed: true, step: 1, bigStep: 15, min: -179, max: 180, unit: "°",
+                title: "Rotation: whole degrees. Arrows step 1°, Shift 15°. On the canvas, drag just outside a corner.",
+                onChange: function (v) { var deg = ((((v + 180) % 360) + 360) % 360) - 180; if (deg === -180) deg = 180; setStyles(ids, { rot: deg || undefined }); } });
+            })())),
+        e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined, fw: undefined, fh: undefined, rot: undefined }); } }, "Put it in the flow"),
       ];
     }
     var pv = nodes.map(function (n) { return n.style.position || ""; });
@@ -5381,7 +5430,7 @@ function App(props) {
     else if (current === "layout") {
       body = [
         flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-        sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self"])),
+        sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh"])),
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
       ];
@@ -5634,19 +5683,59 @@ function App(props) {
     var start = { x: ev.clientX, y: ev.clientY };
     var first = true, last = "";
     var corner = /[ns]/.test(dir) && /[ew]/.test(dir);
+    var horiz = /[ew]/.test(dir), vert = /[ns]/.test(dir);
+    setSizing({ id: id, dir: dir });
+    /* On a free canvas: any multiple of 4px, the opposite side held where it
+       is, turned or not. */
+    var sz = free && f.size ? f.size(id) : null;
+    var W0 = sz ? sz.width : r0.width, H0 = sz ? sz.height : r0.height;
+    var turn = ((at0.node.style.rot || 0) * Math.PI) / 180, cos = Math.cos(turn), sin = Math.sin(turn);
+    var ax = /e/.test(dir) ? 0 : /w/.test(dir) ? 1 : 0.5, ay = /s/.test(dir) ? 0 : /n/.test(dir) ? 1 : 0.5;
+    var C0 = { x: x0 * unit + W0 / 2, y: y0 * unit + H0 / 2 };
+    var moveFree = function (mv) {
+      var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
+      var du = dx * cos + dy * sin, dv = -dx * sin + dy * cos;
+      var w = W0 + (/e/.test(dir) ? du : /w/.test(dir) ? -du : 0);
+      var h = H0 + (/s/.test(dir) ? dv : /n/.test(dir) ? -dv : 0);
+      if (corner && mv.shiftKey) { var k = H0 / W0; if (Math.abs(du) >= Math.abs(dv)) h = w * k; else w = h / k; }
+      var fw = Math.max(1, Math.min(FREE_MAX, Math.round(w / unit))), fh = Math.max(1, Math.min(FREE_MAX, Math.round(h / unit)));
+      var W = horiz ? fw * unit : W0, H = vert ? fh * unit : H0;
+      var a = (ax - 0.5) * (W0 - W), b = (ay - 0.5) * (H0 - H);
+      var cx = C0.x + a * cos - b * sin, cy = C0.y + a * sin + b * cos;
+      var xs = Math.max(0, Math.min(FREE_MAX, Math.round((cx - W / 2) / unit))), ys = Math.max(0, Math.min(FREE_MAX, Math.round((cy - H / 2) / unit)));
+      /* Pulled past the canvas's top or left edge, it stops there and the
+         far side still holds. */
+      if (!turn && /w/.test(dir) && xs === 0) { fw = Math.max(1, Math.round((x0 * unit + W0) / unit)); W = fw * unit; }
+      if (!turn && /n/.test(dir) && ys === 0) { fh = Math.max(1, Math.round((y0 * unit + H0) / unit)); H = fh * unit; }
+      setReadout({ x: mv.clientX, y: mv.clientY, text: Math.round(W) + " × " + Math.round(H) });
+      var key = [horiz && fw, vert && fh, xs, ys].join("|");
+      if (key === last) return;
+      last = key;
+      var fn = function (d) {
+        var at = locate(d, id);
+        if (!at) return null;
+        var st = at.node.style;
+        if (horiz) { st.fw = fw; delete st.w; }
+        if (vert) { st.fh = fh; delete st.height; }
+        st.x = xs;
+        st.y = ys;
+        return undefined;
+      };
+      if (first) { first = false; change(fn); } else quiet(fn);
+    };
     var move = function (mv) {
+      if (free) return moveFree(mv);
       var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
       var w = r0.width, h = r0.height;
       if (/e/.test(dir)) w = r0.width + dx; else if (/w/.test(dir)) w = r0.width - dx;
       if (/s/.test(dir)) h = r0.height + dy; else if (/n/.test(dir)) h = r0.height - dy;
       if (corner && mv.shiftKey) { var k = r0.height / r0.width; if (Math.abs(dx) >= Math.abs(dy)) h = w * k; else w = h / k; }
-      var tw = /[ew]/.test(dir) ? sizeNear("w", Math.max(8, w), false, true, [at0.node]) : null;
-      var th = /[ns]/.test(dir) ? sizeNear("height", Math.max(8, h), false, true, [at0.node]) : null;
+      var tw = horiz ? sizeNear("w", Math.max(8, w), false, true, [at0.node]) : null;
+      var th = vert ? sizeNear("height", Math.max(8, h), false, true, [at0.node]) : null;
       if (!tw && !th) return;
       var wpx = tw ? pxMap["w|" + tw] : r0.width, hpx = th ? pxMap["height|" + th] : r0.height;
-      var xs = free && /w/.test(dir) && wpx != null ? Math.round((r0.width - wpx) / unit) : 0;
-      var ys = free && /n/.test(dir) && hpx != null ? Math.round((r0.height - hpx) / unit) : 0;
-      var key = [tw, th, xs, ys].join("|");
+      setReadout({ x: mv.clientX, y: mv.clientY, text: Math.round(wpx) + " × " + Math.round(hpx) });
+      var key = [tw, th].join("|");
       if (key === last) return;
       last = key;
       var fn = function (d) {
@@ -5654,8 +5743,6 @@ function App(props) {
         if (!at) return null;
         if (tw) at.node.style.w = tw;
         if (th) at.node.style.height = th;
-        if (xs) at.node.style.x = Math.max(0, Math.min(FREE_MAX, x0 + xs));
-        if (ys) at.node.style.y = Math.max(0, Math.min(FREE_MAX, y0 + ys));
         return undefined;
       };
       if (first) { first = false; change(fn); } else quiet(fn);
@@ -5664,7 +5751,50 @@ function App(props) {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
-      if (!first) { var n = locate(docRef.current, id); if (n) announce(nameOf(n.node) + (n.node.style.w ? " is " + n.node.style.w + " wide" : "") + (n.node.style.height ? ", " + n.node.style.height + " tall" : "")); }
+      setSizing(null);
+      setReadout(null);
+      if (first) return;
+      var n = locate(docRef.current, id);
+      if (!n) return;
+      var st = n.node.style;
+      announce(nameOf(n.node) + (st.fw ? " is " + st.fw * 4 + " wide" : st.w ? " is " + st.w + " wide" : "") + (st.fh ? ", " + st.fh * 4 + " tall" : st.height ? ", " + st.height + " tall" : ""));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
+  /* Turning a free layer: from just outside a corner, about its centre,
+     in whole degrees; Shift snaps to 15°. */
+  var startRotate = function (ev, id) {
+    if (ev.button !== 0) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    releaseFocus();
+    try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+    var at0 = locate(docRef.current, id), box = ev.currentTarget.parentElement.getBoundingClientRect();
+    if (!at0) return;
+    var cx = box.left + box.width / 2, cy = box.top + box.height / 2;
+    var a0 = Math.atan2(ev.clientY - cy, ev.clientX - cx), rot0 = at0.node.style.rot || 0;
+    var first = true, last = rot0;
+    setSizing({ id: id, dir: "rotate" });
+    var move = function (mv) {
+      var deg = rot0 + ((Math.atan2(mv.clientY - cy, mv.clientX - cx) - a0) * 180) / Math.PI;
+      deg = mv.shiftKey ? Math.round(deg / 15) * 15 : Math.round(deg);
+      deg = ((((deg + 180) % 360) + 360) % 360) - 180;
+      if (deg === -180) deg = 180;
+      setReadout({ x: mv.clientX, y: mv.clientY, text: deg + "°" });
+      if (deg === last) return;
+      last = deg;
+      var fn = function (d) { var at = locate(d, id); if (!at) return null; if (deg) at.node.style.rot = deg; else delete at.node.style.rot; return undefined; };
+      if (first) { first = false; change(fn); } else quiet(fn);
+    };
+    var up = function () {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      setSizing(null);
+      setReadout(null);
+      if (!first) announce("Turned to " + last + "°");
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -5814,11 +5944,15 @@ function App(props) {
       var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
       var r = resizing && resizing.fid === f.id ? resizing : null;
       /* A loose object takes a width (its height follows what it holds). */
+      /* A frame's edge grips sit just outside it, so the handles of an
+         object flush with the edge stay the ones that answer; the corner
+         grip straddles the corner. */
+      /* A loose object is its own frame: its grip straddles its edge. */
       if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } });
       return e(React.Fragment, { key: f.id },
-        e("div", { className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } }),
-        e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H - 4, width: W }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "b"); } }),
-        e("div", { className: "bd-resize is-c", style: { left: X + W - 7, top: Y + H - 7 }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "c"); } }),
+        e("div", { className: "bd-resize is-r", style: { left: X + W, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } }),
+        e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H, width: W }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "b"); } }),
+        e("div", { className: "bd-resize is-c", style: { left: X + W - 3, top: Y + H - 3 }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "c"); } }),
         r ? e("div", { className: "bd-resize-tag", style: { left: X + W, top: Y + H } }, sizeName(r.w, r.h != null ? r.h : f.hug ? null : f.height)) : null);
     }));
 
@@ -5856,7 +5990,7 @@ function App(props) {
     liveRef.current = liveNow;
   })();
   var stage = e("div", {
-    className: cx("bd-stage", drag && "is-dragging", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"), ref: stageRef,
+    className: cx("bd-stage", drag && "is-dragging", sizing && "is-sizing", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"), ref: stageRef,
     style: stageColor ? { backgroundColor: stageColor } : undefined,
     onPointerDown: function (ev) {
       if (!isBackground(ev.target) && !spaceRef.current && ev.button !== 1) return;
@@ -5936,13 +6070,21 @@ function App(props) {
            sits), the tag goes inside the box. */
         var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
         var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? (isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW) : null;
-        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", at.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top"), style: m.r },
+        var turnable = handles === HANDLES_FREE;
+        var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
+        /* Short or narrow on screen: the handles step outward (in CSS), so
+           the body still takes a press to move it. */
+        var short = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
+        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", at.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", sizing && sizing.id === m.id && "is-sizing", handles && short && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+          turnable ? ["nw", "ne", "se", "sw"].map(function (c) {
+            return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function (ev) { startRotate(ev, at.node.id); } });
+          }) : null,
           isMain ? e("span", {
             className: "bd-mark-tag", title: "Drag to move",
             onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
           }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : "")) : null,
           handles ? handles.map(function (dir) {
-            return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function (ev) { startNodeResize(ev, at.node.id, dir); } });
+            return e("span", { key: dir, className: cx("bd-handle is-" + dir, sizing && sizing.id === m.id && sizing.dir === dir && "is-active"), title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function (ev) { startNodeResize(ev, at.node.id, dir); } });
           }) : null);
       }) : null,
       marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
@@ -6202,6 +6344,7 @@ function App(props) {
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
       e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
     homePage(),
+    readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
     drag && drag.ghost ? (function () {
       var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
       var x = drag.spot ? drag.spot.x : drag.x - grab.x * z, y = drag.spot ? drag.spot.y : drag.y - grab.y * z;

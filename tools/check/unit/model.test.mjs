@@ -64,6 +64,19 @@ test("a free layer's own opacity is a whole percent below 100", () => {
   assert.ok(report.some((l) => /alpha is a whole percent from 0 to 99/.test(l)));
 });
 
+test("a free layer's own size is whole 4px steps, and its turn whole degrees", () => {
+  const report = [];
+  const n = cleanNode({ type: "Button", props: { children: "Go" }, style: { x: 2, y: 3, fw: 30, fh: 12, rot: -45 } }, report);
+  assert.deepEqual([n.style.fw, n.style.fh, n.style.rot], [30, 12, -45]);
+  assert.equal(cleanNode({ type: "Button", style: { rot: 180 } }, report).style.rot, 180, "a half turn is 180");
+  for (const bad of [{ fw: 0 }, { fh: 2.5 }, { fw: "30" }, { rot: -180 }, { rot: 12.5 }, { rot: 400 }]) {
+    const out = cleanNode({ type: "Button", style: bad }, report).style;
+    assert.ok(out.fw === undefined && out.fh === undefined && out.rot === undefined, `${JSON.stringify(bad)} goes`);
+  }
+  assert.equal(cleanNode({ type: "Button", style: { rot: 0 } }, []).style.rot, undefined, "no turn stores nothing");
+  assert.ok(report.some((l) => /fw is a whole number of --dt-space-inset-2xs steps/.test(l)) && report.some((l) => /rot is whole degrees/.test(l)));
+});
+
 test("a link round-trips a layout, and cleaning a saved one keeps it", () => {
   const d = doc(make("Heading", { children: "Café ✓" }));
   const back = decode(encode(d));
