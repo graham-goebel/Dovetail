@@ -714,7 +714,7 @@
         /* With Alt (Option) held, a copy is what's dragged. */
         host().dragStart(press.id, press.alt || !!ev.altKey);
       }
-      if (press.active) { host().dragMove(ev.clientX, ev.clientY); return; }
+      if (press.active) { host().dragMove(ev.clientX, ev.clientY, ev.shiftKey); return; }
     }
     if (ev.pointerType === "mouse") host().hover(pick(ev.clientX, ev.clientY));
   }, true);
@@ -760,6 +760,14 @@
     if (host().key(ev)) ev.preventDefault();
   }, true);
   document.addEventListener("keyup", function (ev) { if (host() && host().keyup) host().keyup(ev); }, true);
+  /* A paste while this frame has the focus goes to the builder, which knows
+     what to make of a picture or of layers; typing in place keeps its own. */
+  document.addEventListener("paste", function (ev) {
+    if (!editing() || !host() || !host().paste) return;
+    var t = ev.target;
+    if (t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+    if (host().paste(ev.clipboardData)) ev.preventDefault();
+  });
 
   /* The wheel scrolls this frame while it can, then pans the canvas; with
      Ctrl or Cmd (a trackpad pinch) it zooms the canvas at the pointer. */
@@ -1098,7 +1106,8 @@
     return walk(w);
   }
 
-  /* The canvas as a picture, PNG or JPEG, at twice its size. The image
+  /* The canvas as a picture, PNG or JPEG, at twice its size unless asked
+     otherwise. The image
      library loads the first time it's asked for. */
   var imaging = null;
   /* opts.fonts false: skip fetching web fonts into the picture. It's quick
@@ -1116,10 +1125,12 @@
         document.head.appendChild(tag);
       });
     }
-    var target = mount.firstElementChild;
+    /* opts.id: just that layer, what it draws; opts.scale: 1 to 3 times. */
+    var held = opts && opts.id ? wrapper(opts.id) : null;
+    var target = held ? held.firstElementChild : mount.firstElementChild;
     if (!target) return Promise.reject(new Error("Nothing to export."));
     var bg = getComputedStyle(target).backgroundColor;
-    var options = { pixelRatio: 2, cacheBust: false, skipFonts: !!(opts && opts.fonts === false), backgroundColor: type === "jpeg" && (!bg || bg === "rgba(0, 0, 0, 0)") ? "#ffffff" : undefined,
+    var options = { pixelRatio: Math.max(1, Math.min(3, (opts && opts.scale) || 2)), cacheBust: false, skipFonts: !!(opts && opts.fonts === false), backgroundColor: type === "jpeg" && (!bg || bg === "rgba(0, 0, 0, 0)") ? "#ffffff" : undefined,
       filter: function (node) { return !(node.classList && node.classList.contains("bf-empty")); } };
     /* A web font it can't fetch (offline, or blocked) leaves the picture in
        the fallback face; the library says so on the console, which is noise

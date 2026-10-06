@@ -5089,13 +5089,15 @@ input.bd-proj-name {
    Close stays in its corner however the heading wraps. */
 @media (max-width: 600px) {
   .bd-projects .bd-code-head,
-  .bd-versions .bd-code-head {
+  .bd-versions .bd-code-head,
+  .bd-keys .bd-code-head {
     position: relative;
     padding-right: calc(var(--dt-space-inset-md) + var(--dt-size-control-md) + var(--dt-space-inline-xs));
   }
 
   .bd-projects .bd-code-actions .bd-act[aria-label="Close"],
-  .bd-versions .bd-code-actions .bd-act[aria-label="Close"] {
+  .bd-versions .bd-code-actions .bd-act[aria-label="Close"],
+  .bd-keys .bd-code-actions .bd-act[aria-label="Close"] {
     position: absolute;
     top: var(--dt-space-inset-md);
     right: var(--dt-space-inset-md);
@@ -5343,6 +5345,68 @@ input.bd-folder-name {
 
 .bd-page-drop.is-nested {
   left: calc(var(--dt-space-inset-xs) + var(--dt-space-inset-md));
+}
+
+/* Keyboard shortcuts: groups in columns, each a list of what and which keys. */
+.bd-keys {
+  width: min(960px, calc(100vw - 32px));
+  height: min(720px, calc(100dvh - 48px));
+}
+
+.bd-keys-groups {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md) var(--dt-space-inset-md);
+  columns: 3 260px;
+  column-gap: var(--dt-space-inline-lg);
+}
+
+.bd-keys-group {
+  break-inside: avoid;
+  margin-bottom: var(--dt-space-stack-md);
+}
+
+.bd-keys-group h3 {
+  margin: 0 0 var(--dt-space-stack-2xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-xs);
+  font-weight: var(--dt-font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bd-keys-group dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--dt-space-stack-2xs) var(--dt-space-inline-sm);
+  margin: 0;
+}
+
+.bd-keys-group dt {
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-keys-group dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--dt-space-inline-2xs);
+  margin: 0;
+}
+
+.bd-keys-group kbd {
+  padding: 0 var(--dt-space-inset-2xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+  color: var(--dt-text-secondary);
+  font-family: inherit;
+  font-size: var(--dt-font-size-xs);
+  line-height: 1.6;
+  white-space: nowrap;
 }
 
 /* Versions of the project on screen, newest first. */

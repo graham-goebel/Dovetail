@@ -56,6 +56,14 @@ test("cleaning keeps only known components, real props and token styles", () => 
   assert.equal(cleanNode({ type: "Button", props: { variant: "nope" } }, []).props.variant, undefined, "an unknown enum value goes");
 });
 
+test("any layer keeps the name it was given, trimmed and at most 60 characters", () => {
+  assert.equal(cleanNode({ type: "Button", name: "  Primary CTA ", props: {} }, []).name, "Primary CTA");
+  assert.equal(cleanNode({ type: "Image", name: "Logo", props: {} }, []).name, "Logo");
+  assert.equal(cleanNode({ type: "Group", name: "x".repeat(80), props: {}, children: [] }, []).name.length, 60);
+  assert.equal(cleanNode({ type: "Text", name: "   ", props: {} }, []).name, undefined, "a blank name goes");
+  assert.equal(cleanNode({ type: "Text", name: 42, props: {} }, []).name, undefined, "a name is text");
+});
+
 test("a free layer's own opacity is a whole percent below 100", () => {
   const report = [];
   assert.equal(cleanNode({ type: "Text", props: { children: "Hi" }, style: { alpha: 37 } }, report).style.alpha, 37);

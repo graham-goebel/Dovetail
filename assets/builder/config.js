@@ -47,6 +47,43 @@ function slotAccepts(ownerType, name, childType) {
 }
 function hasSlots(n) { return !!(n && n.children && n.children.some(function (c) { return c.type === "Slot"; })); }
 function nameOf(n) { return n.type === "Slot" ? words(n.props.name) : n.name || n.type; }
+/* Shortcuts are written once, the Windows way ("Ctrl+Shift+G", "Shift 1",
+   "Cmd-drag"), and shown the way this computer's keyboard says them: on a
+   Mac as symbols in Apple's order (⇧⌘G), elsewhere with Ctrl for Cmd. kbd()
+   finds every shortcut in a piece of text and rewrites it. */
+var IS_MAC = /Mac|iPhone|iPad|iPod/.test((typeof navigator !== "undefined" && (navigator.platform || (navigator.userAgentData && navigator.userAgentData.platform))) || "");
+var CHORD = /\b((?:(?:Ctrl|Cmd|Alt|Shift)(?:\+|-| (?=[A-Z0-9+\-−]\b|[+\-−]))){1,3})(F\d{1,2}\b|Up\b|Down\b|Left\b|Right\b|Arrows?\b|drag\b|click\b|[A-Z0-9](?![\w°])|[[\]\\=+\-−?/])/g;
+var MAC_MOD = { Ctrl: "⌘", Cmd: "⌘", Alt: "⌥", Shift: "⇧" };
+var MAC_KEY = { Up: "↑", Down: "↓", Left: "←", Right: "→" };
+function kbd(text) {
+  if (typeof text !== "string") return text;
+  /* A modifier held on its own. */
+  if (/^(Ctrl|Cmd|Alt|Shift)$/.test(text)) return IS_MAC ? MAC_MOD[text] : text === "Cmd" ? "Ctrl" : text;
+  return text.replace(CHORD, function (all, mods, key) {
+    var held = mods.split(/[+\- ]/).filter(Boolean);
+    if (!IS_MAC) return all.replace(/\bCmd\b/g, "Ctrl");
+    var sym = ["Alt", "Shift", "Ctrl"].filter(function (m) { return held.indexOf(m) >= 0 || (m === "Ctrl" && held.indexOf("Cmd") >= 0); }).map(function (m) { return MAC_MOD[m]; }).join("");
+    return sym + (/^(drag|click)$/.test(key) ? "-" + key : /^Arrows?$/.test(key) ? " " + key : MAC_KEY[key] || key);
+  });
+}
+/* Every shortcut, in groups, for the sheet ? opens. Written the Windows way;
+   kbd() shows them as this keyboard says them. The tools' own keys are
+   added from TOOL_INFO, so a new tool lists itself. */
+var SHORTCUTS = [
+  ["Edit", [["Undo", "Ctrl+Z"], ["Redo", "Ctrl+Shift+Z"], ["Cut, copy, paste", "Ctrl+X, Ctrl+C, Ctrl+V"], ["Paste a picture", "Ctrl+V"], ["Duplicate", "Ctrl+D"],
+    ["Copy style, paste style", "Ctrl+Alt+C, Ctrl+Alt+V"], ["Delete", "Del"], ["Rename", "F2"], ["Create component", "Ctrl+Alt+K"]]],
+  ["Select", [["Select all", "Ctrl+A"], ["Add to the selection", "Shift-click"], ["Into the selection", "Enter"], ["Out to its parent", "Shift+Enter"],
+    ["Deselect", "Esc"], ["Menu for the selection", "Shift+F10"]]],
+  ["View", [["Zoom in, zoom out", "Ctrl +, Ctrl −"], ["Zoom to fit", "Shift+1"], ["Zoom to the selection", "Shift+2"], ["Actual size", "Shift+0"],
+    ["Pan", "Space-drag"], ["Hide the panels", "Tab"], ["Measure the spacing, held", "Shift, Alt"], ["Search components", "/"], ["These shortcuts", "?"]]],
+  ["Arrange", [["Bring forward, send backward", "Ctrl+], Ctrl+["], ["Bring to front, send to back", "Ctrl+Shift+], Ctrl+Shift+["], ["Group, ungroup", "Ctrl+G, Ctrl+Shift+G"],
+    ["Hide, lock", "Ctrl+Shift+H, Ctrl+Shift+L"], ["Align left, centres, right", "Alt+A, Alt+H, Alt+D"], ["Align top, middles, bottom", "Alt+W, Alt+V, Alt+S"],
+    ["Spread across, down", "Shift+Alt+H, Shift+Alt+V"], ["Tidy up", "Shift+Alt+T"]]],
+  ["On a freeform canvas", [["Nudge, four steps", "Arrows, Shift+Arrows"], ["Opacity 10% to 90%, opaque", "1 to 9, 0"], ["Keep proportions while resizing", "Shift-drag"],
+    ["Resize from the centre", "Alt-drag"], ["Keep to one axis, once moving", "Shift"], ["Drag a copy", "Alt-drag"], ["Turn in 15° steps, while turning", "Shift"],
+    ["Move without snapping, held", "Ctrl"]]],
+  ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]],
+];
 var STYLE_KEYS = Object.keys(DATA.tokens);
 /* Properties first: everything a component has of its own. Appearance and
    Layout are the same for every layer. */
@@ -300,4 +337,4 @@ function isContainer(type) { return type === "Root" || !!(META[type] && META[typ
 function mql(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
 function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
 
-export { HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
+export { IS_MAC, SHORTCUTS, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };

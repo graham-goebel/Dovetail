@@ -178,7 +178,7 @@ function useComponents() {
 function keys() {
   var list = function (label, items) { return make("List", { divided: true, label: label, items: items.map(function (it) { return { title: it[0], trailing: it[1] }; }) }); };
   return doc(frame("Keys worth knowing", "desktop", [
-    guide("Reference", "Keys worth knowing", "Ctrl is Cmd on a Mac.", [
+    guide("Reference", "Keys worth knowing", "Ctrl is Cmd on a Mac. Press ? for every shortcut.", [
       make("Grid", { columns: 2, gap: "xl" }, [
         make("Stack", { layer: "related" }, [heading("Editing", "heading-sm"), list("Editing", [
           ["Undo, and redo", "Ctrl+Z, Ctrl+Shift+Z"], ["Duplicate", "Ctrl+D"], ["Copy, cut and paste", "Ctrl+C, X, V"],

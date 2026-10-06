@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, IS_MAC, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -174,6 +174,9 @@ function App(props) {
   var resizing = resizeState[0], setResizing = resizeState[1];
   var shiftState = useState(false);
   var shiftHeld = shiftState[0], setShiftHeld = shiftState[1];
+  /* Shift or Alt (Option) held shows the spacing, as Figma and Sketch have
+     it on Alt; either can be let go while the other still holds. */
+  var measureKeys = useRef({});
   var spacingState = useState(null);
   var spacing = spacingState[0], setSpacing = spacingState[1];
   var focusSecState = useState(null);
@@ -204,6 +207,12 @@ function App(props) {
   var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
   var codeTitleState = useState("");
   var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
+  /* What Export's picture takes: the one layer the Code shows, or the frame;
+     and at what scale, 1x to 3x. */
+  var codePickState = useState(null);
+  var codePick = codePickState[0], setCodePick = codePickState[1];
+  var scaleState = useState(2);
+  var exportScale = scaleState[0], setExportScale = scaleState[1];
   var clip = useRef(null);
   var layout = layoutOf(doc, heights, resizing, widths, movingFrame);
   var boxes = layout.boxes;
@@ -215,8 +224,14 @@ function App(props) {
   var pageId = pageState[0], setPageId = pageState[1];
   var pageRef = useRef(pageId); pageRef.current = pageId;
   var histories = useRef({});
-  var docRef = useRef(doc); docRef.current = doc;
-  var selRef = useRef(selection); selRef.current = selection;
+  /* The document and the selection are set on their refs first, then on
+     state (commit, quiet, place and select do both), so the refs are always
+     the newest. They aren't copied back from state while rendering: a render
+     React makes for a keypress can come before one for a canvas change made
+     from a frame, and copying would put the older document back under the
+     next edit. */
+  var docRef = useRef(doc);
+  var selRef = useRef(selection);
   var camRef = useRef(cam); camRef.current = cam;
   var layoutRef = useRef(layout); layoutRef.current = layout;
   var boxRef = useRef(box); boxRef.current = box;
@@ -1181,11 +1196,14 @@ function App(props) {
     }
   };
 
-  var dragMove = function (x, y) {
+  var dragMove = function (x, y, shift) {
     var dr = dragRef.current;
     if (!dr) return;
     /* A drag the frame started knows where it began from its first move. */
     if (dr.x === undefined) { dr.x = x; dr.y = y; }
+    /* Shift, once it's moving, keeps a layer to the axis it has moved along
+       most (Shift at the press adds to the selection instead). */
+    if (shift && dr.payload.kind === "move") { if (Math.abs(x - dr.x) >= Math.abs(y - dr.y)) y = dr.y; else x = dr.x; }
     dr.lastX = x;
     dr.lastY = y;
     var g = dr.ghost;
@@ -1533,7 +1551,7 @@ function App(props) {
         dr.ghost = ghostFor(dr.payload);
       }
       mv.preventDefault();
-      dragMove(mv.clientX, mv.clientY);
+      dragMove(mv.clientX, mv.clientY, mv.shiftKey);
     };
     var stop = function (commitIt) {
       return function (up) {
@@ -1611,8 +1629,9 @@ function App(props) {
             dragRef.current.ghost = ghostFor(pl);
             if (selRef.current.indexOf(id) < 0) select([id]);
           }),
-          dragMove: on(function (fid, x, y) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y); }),
+          dragMove: on(function (fid, x, y, shift) { if (!dragRef.current) return; var p = toPage(fid, x, y); dragMoveRef.current(p.x, p.y, shift); }),
           dragEnd: function (commitIt) { dragEndRef.current(commitIt); },
+          paste: function (cd) { return takePasteRef.current(cd); },
           frameDrag: on(function (fid, phase, x, y, dup) { var p = toPage(fid, x, y); return frameDragRef.current(fid, phase, p.x, p.y, dup); }),
           gesture: on(function (fid, phase, id, x, y, kind) { var p = toPage(fid, x, y); return gestureRef.current(phase, id, p.x, p.y, kind, fid); }),
           wheel: on(function (fid, x, y, dx, dy, zoom, mode) { var p = toPage(fid, x, y); wheelRef.current(p.x, p.y, dx, dy, zoom, mode); }),
@@ -2104,9 +2123,9 @@ function App(props) {
       { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
       { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" },
     ])
-    .concat(one && one.type === "Group" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : [])
+    .concat(one && one.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : [])
     .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }])
-    .concat(one ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }] : []);
+    .concat(one ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
   };
   var onMenu = function (v) {
     if (v === "cut") copySelection(true);
@@ -2126,6 +2145,7 @@ function App(props) {
     else if (v === "rename") actions.rename();
     else if (v === "component") openComponent();
     else if (v === "link") share(selRef.current[0]);
+    else if (v === "png") exportImage(docRef.current.active, "png", { scale: exportScale, id: selRef.current[0] });
     else if (v === "selectAll") actions.selectAll();
     else if (v === "fitAll") fitAll();
     else if (v === "fitFrame") showFrame(docRef.current.active);
@@ -2246,7 +2266,7 @@ function App(props) {
     rename: function () {
       var id = selRef.current[selRef.current.length - 1];
       var where = wide && left === "layers" && !bare ? "layer" : "title";
-      if (id) { var at = locate(docRef.current, id); if (at && at.node.type === "Group") setRenaming({ id: id, where: where }); }
+      if (id) { var at = locate(docRef.current, id); if (at && at.node.type !== "Slot") setRenaming({ id: id, where: where }); }
       else setRenaming({ id: "frame:" + docRef.current.active, where: wide && !bare ? "title" : "label" });
     },
     /* Tab, or Ctrl/Cmd+\, hides the side panels to give the canvas the room. */
@@ -2281,10 +2301,10 @@ function App(props) {
       }
       return false;
     }
-    if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (versionsRef.current && versionsRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open)) return false;
+    if ((dialogRef.current && dialogRef.current.open) || (importRef.current && importRef.current.open) || (versionsRef.current && versionsRef.current.open) || (keysRef.current && keysRef.current.open) || (playRef.current && playRef.current.open) || (compRef.current && compRef.current.open)) return false;
     var t = ev.target;
     var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
-    if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
+    if ((ev.key === "Shift" || ev.key === "Alt") && !ev.repeat) { measureKeys.current[ev.key] = true; setShiftHeld(true); }
     if (typing || (t && t.closest && t.closest(".bd-dd-list"))) return false;
     var free = !t || t === document.body || t === document.documentElement || t.ownerDocument !== document || (t.classList && t.classList.contains("bd-stage"));
     var mod = ev.metaKey || ev.ctrlKey;
@@ -2294,6 +2314,7 @@ function App(props) {
     if (mod && ev.key === "\\") { actions.panels(); return true; }
     if (ev.key === " " && free && !mod) { if (!spaceRef.current) { spaceRef.current = true; setSpace(true); } return true; }
     if (previewRef.current) return false;
+    if (ev.key === "?" && !ev.altKey) { openKeys(); return true; }
     if (ev.key === "Escape" && marqRef.current) { marqueeEnd(false); return true; }
     if (ev.key === "ContextMenu" || (ev.key === "F10" && ev.shiftKey)) { menuAtSelection(); return true; }
     if (ev.key === "Escape" && tray) { setTray(null); return true; }
@@ -2310,15 +2331,12 @@ function App(props) {
     if (mod && key === "a" && !ev.shiftKey && !ev.altKey) { actions.selectAll(); return true; }
     if (ev.key === "Enter") { (ev.shiftKey ? actions.out : actions.into)(); return true; }
     if (ev.key === "Escape") { if (!selRef.current.length) setFrameOn(false); select([]); return true; }
-    /* Paste: in this page, the paste event brings what the system clipboard
-       holds; from a frame, the builder's own clipboard. */
+    /* Paste: the paste event brings what the system clipboard holds, in this
+       page or (passed on) in a frame. */
     /* Copy and paste style come before the plain copy and paste. */
     if (mod && ev.altKey && ev.code === "KeyC") { copyStyle(); return true; }
     if (mod && ev.altKey && ev.code === "KeyV") { pasteStyle(); return true; }
-    if (mod && key === "v" && !ev.shiftKey && !ev.altKey) {
-      if (t && t.ownerDocument !== document) { if (clip.current) pasteNodes(clip.current.nodes); return true; }
-      return false;
-    }
+    if (mod && key === "v" && !ev.shiftKey && !ev.altKey) return false;
     if (ev.key === "F2") { actions.rename(); return true; }
     if (!selRef.current.length) return false;
     if (mod && key === "g") { (ev.shiftKey ? actions.ungroup : actions.group)(); return true; }
@@ -2363,7 +2381,7 @@ function App(props) {
   keyUpRef.current = function (ev) {
     if (ev.key === "Meta" || ev.key === "Control") snapOffRef.current = false;
     if (ev.key === " " && spaceRef.current) { spaceRef.current = false; setSpace(false); }
-    if (ev.key === "Shift") setShiftHeld(false);
+    if (ev.key === "Shift" || ev.key === "Alt") { delete measureKeys.current[ev.key]; setShiftHeld(!!(measureKeys.current.Shift || measureKeys.current.Alt)); }
   };
   useEffect(function () {
     var onKey = function (ev) {
@@ -2373,7 +2391,7 @@ function App(props) {
       if (keyRef.current(ev)) ev.preventDefault();
     };
     var onUp = function (ev) { keyUpRef.current(ev); };
-    var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } setShiftHeld(false); snapOffRef.current = false; };
+    var onBlur = function () { if (spaceRef.current) { spaceRef.current = false; setSpace(false); } measureKeys.current = {}; setShiftHeld(false); snapOffRef.current = false; };
     document.addEventListener("keydown", onKey);
     document.addEventListener("keyup", onUp);
     window.addEventListener("blur", onBlur);
@@ -2677,26 +2695,32 @@ function App(props) {
     if (parts.length && f.jsxNodes) {
       var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
       setCodeTitle(title);
+      setCodePick(parts.length === 1 ? parts[0].id : null);
       setCode(f.jsxNodes(withPageLinks(parts), parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts"));
     } else {
       setCodeTitle(fr.name);
+      setCodePick(null);
       setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: withPageLinks(fr.root) }, fr.name));
     }
     var dlg = dialogRef.current;
     if (dlg && dlg.showModal) dlg.showModal();
   };
 
-  /* A frame as a picture, downloaded: PNG keeps transparency, JPEG is
-     smaller and fills it white. */
-  var exportImage = function (fid, type) {
+  /* A frame, or one layer in it, as a picture, downloaded: PNG keeps
+     transparency, JPEG is smaller and fills it white. Twice the size unless
+     a scale is given; a scale other than 1x names itself in the file. */
+  var exportImage = function (fid, type, opts) {
     var a = api(fid);
     var f = frameById(docRef.current, fid);
     if (!a || !a.snapshot || !f) return;
+    var scale = (opts && opts.scale) || 2;
+    var at = opts && opts.id ? locate(docRef.current, opts.id, fid) : null;
+    var name = at ? nameOf(at.node) : f.name;
     announce("Making the " + (type === "jpeg" ? "JPG" : "PNG") + "…");
-    a.snapshot(type).then(function (url) {
+    a.snapshot(type, { scale: scale, id: at ? at.node.id : null }).then(function (url) {
       var link = document.createElement("a");
       link.href = url;
-      link.download = (f.name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "frame") + (type === "jpeg" ? ".jpg" : ".png");
+      link.download = (name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "frame") + (scale === 1 ? "" : "@" + scale + "x") + (type === "jpeg" ? ".jpg" : ".png");
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -2741,22 +2765,45 @@ function App(props) {
     if (same && clip.current) clip.current = { nodes: clip.current.nodes.map(function (n) { var c = copy(n); if (isFree(c.style)) { c.style.x += 4; c.style.y += 4; } return c; }), from: fid };
     return made.length > 0;
   };
-  /* Text pasted from elsewhere: the builder's own JSON for layers. */
+  /* A picture on the clipboard (a screenshot, an image copied from a page)
+     joins Content's images and lands as an Image, as in any design tool. */
+  var pastePictures = function (files) {
+    Promise.all(files.map(function (f) {
+      var kind = f.type === "image/svg+xml" ? "illustrations" : "images";
+      var base = (f.name || "").replace(/\.[a-z0-9]+$/i, "");
+      var name = !base || /^image$/i.test(base) ? "Pasted picture" : base;
+      return readForLibrary(f, kind).then(function (src) { return { kind: kind, item: { id: uid(), name: name, src: src } }; }, function (err) { announce(err.message); return null; });
+    })).then(function (made) {
+      made = made.filter(Boolean);
+      if (!made.length) return;
+      setLibrary(function (l) { var n = Object.assign({}, l); made.forEach(function (m) { n[m.kind] = [m.item].concat(l[m.kind] || []); }); return n; });
+      made.forEach(function (m) { add("Image", null, { src: m.item.src, alt: m.item.name }); });
+      announce("Pasted " + (made.length === 1 ? made[0].item.name : made.length + " pictures") + "; " + (made.length === 1 ? "it's" : "they're") + " in Content too");
+    });
+  };
+  /* What a paste brings, in this page or a frame: pictures first, then the
+     builder's own JSON for layers, then its own clipboard. */
+  var takePaste = function (cd) {
+    var pics = cd ? Array.prototype.filter.call(cd.files || [], function (f) { return /^image\//.test(f.type); }) : [];
+    if (pics.length) { pastePictures(pics); return true; }
+    var text = cd ? cd.getData("text/plain") : "";
+    var data = null;
+    try { data = JSON.parse(text); } catch (err) { data = null; }
+    if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) { pasteNodes(data.nodes); return true; }
+    if (clip.current) { pasteNodes(clip.current.nodes); return true; }
+    return false;
+  };
+  var takePasteRef = useRef(takePaste); takePasteRef.current = takePaste;
   useEffect(function () {
     var onPaste = function (ev) {
       var t = ev.target;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (!(mountEl.contains(t) || t === document.body)) return;
-      var text = ev.clipboardData ? ev.clipboardData.getData("text/plain") : "";
-      var data = null;
-      try { data = JSON.parse(text); } catch (err) { data = null; }
-      if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) { ev.preventDefault(); pasteRef.current(data.nodes); }
-      else if (clip.current) { ev.preventDefault(); pasteRef.current(clip.current.nodes); }
+      if (takePasteRef.current(ev.clipboardData)) ev.preventDefault();
     };
     document.addEventListener("paste", onPaste);
     return function () { document.removeEventListener("paste", onPaste); };
   }, []);
-  var pasteRef = useRef(pasteNodes); pasteRef.current = pasteNodes;
 
   /* Text one step up or down its type scale: a Heading through its sizes
      into display, a Text through its variants. */
@@ -2836,6 +2883,7 @@ function App(props) {
      home lists them; the bar names the one on screen. Switching saves this
      one first, then opens the other with a fresh history. */
   var versionsRef = useRef(null);
+  var keysRef = useRef(null);
   /* null while the list is being read, so an old list never shows. */
   var projListState = useState(null);
   var projList = projListState[0], setProjList = projListState[1];
@@ -3536,6 +3584,37 @@ function App(props) {
           : e("div", { className: "bd-home-lists" },
             shownGroups.length ? section("Projects", shownGroups.map(function (g) { return groupCard(g, filesOf(g)); })) : null,
             shownFiles.length ? section("Files", shownFiles.map(function (f) { return fileCard(f, !inGroup); })) : null)));
+  };
+
+  /* Every shortcut, as this keyboard says them: ? opens it, and so does the
+     File menu. */
+  var openKeys = function () {
+    setShown("keys");
+    var dlg = keysRef.current;
+    if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+  };
+  var keysDialog = function () {
+    var dialogProps = { className: "bd-code bd-keys", ref: keysRef, "aria-labelledby": "bd-keys-title", onClose: function () { setShown(null); } };
+    if (shown !== "keys") return e("dialog", dialogProps);
+    var tools = Object.keys(TOOL_INFO).map(function (k) { return TOOL_INFO[k]; }).filter(function (t) { return t.key; })
+      .map(function (t) { return [t.label.replace(/:.*$/, ""), t.key]; });
+    var groups = [["Tools", tools]].concat(SHORTCUTS);
+    return e("dialog", dialogProps,
+      e("div", { className: "bd-code-head" },
+        e("div", { className: "bd-code-intro" },
+          e("h2", { id: "bd-keys-title" }, "Keyboard shortcuts"),
+          e("p", { className: "bd-inspect-sub" }, IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.")),
+        e("div", { className: "bd-code-actions" },
+          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function () { keysRef.current.close(); } }, e(Icon, { name: "close" })))),
+      e("div", { className: "bd-keys-groups" }, groups.map(function (g) {
+        return e("section", { key: g[0], className: "bd-keys-group", "aria-labelledby": "bd-keys-" + g[0].replace(/\W+/g, "-") },
+          e("h3", { id: "bd-keys-" + g[0].replace(/\W+/g, "-") }, g[0]),
+          e("dl", null, g[1].map(function (row) {
+            return e(React.Fragment, { key: row[0] },
+              e("dt", null, row[0]),
+              e("dd", null, row[1].split(", ").map(function (k, i) { return e("kbd", { key: i }, kbd(k)); })));
+          })));
+      })));
   };
 
   var versionsDialog = function () {
@@ -4831,7 +4910,7 @@ function App(props) {
         })),
         e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
         mine.length ? mineList(mine) : e("div", { className: "bd-empty" }, e(Icon, { name: "component" }),
-          e("p", null, "Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not.")));
+          e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))));
     }
     return e("div", { className: "bd-assets" },
       head,
@@ -5156,7 +5235,7 @@ function App(props) {
       var owner = isOwner(n);
       var open = isOpen(n) || (!!q && !owner);
       var folds = !!n.children || owner;
-      var renameable = n.type === "Group";
+      var renameable = n.type !== "Slot";
       return e("div", {
         key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
         "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
@@ -5176,7 +5255,7 @@ function App(props) {
         },
           e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
           renameable && mine && isRenaming(n.id, "layer")
-            ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === "Group" ? "" : v); } })
+            ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === n.type ? "" : v); } })
             : e("span", { className: "bd-layer-name" }, nameOf(n)),
           text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
         /* Hiding lives in the inspector's Layer section; a hidden row keeps
@@ -5575,7 +5654,7 @@ function App(props) {
         e("div", { className: "bd-head-row" },
           e("h2", { className: "bd-inspect-title" }, e(Icon, { name: "heading" }), "Title"),
           e("div", { className: "bd-head-actions" }, headAction("left", "Back to " + nameOf(node), function () { setPart(null); }))),
-        e("p", { className: "bd-inspect-sub" }, "The heading " + nameOf(node) + " draws. Its words and size are the block's own props; Shift+Up and Shift+Down step the size.")),
+        e("p", { className: "bd-inspect-sub" }, kbd("The heading " + nameOf(node) + " draws. Its words and size are the block's own props; Shift+Up and Shift+Down step the size."))),
       e("div", { className: "bd-ipanel" },
         sec("part-title", "Text style", [
           e(Field, { key: "size", id: sid, label: "Size", hint: "--dt-text-" + cur + "-size" },
@@ -5637,8 +5716,8 @@ function App(props) {
       e("div", { className: "bd-inspect-head" },
         e("div", { className: "bd-head-row" },
           e("h2", { className: "bd-inspect-title" }, e(Icon, { name: (!many && first.inst) || !sameType ? "component" : typeIcon(first.type) }),
-            many ? title : isContainer(first.type) && first.type === "Group"
-              ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === "Group" ? "" : v); } })
+            many ? title : first.type !== "Slot"
+              ? e(Renamable, { value: first.name || first.type, label: "Layer name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function (v) { setRenaming(null); setName(first.id, v === first.type ? "" : v); } })
               : nameOf(first)),
           /* Everything a selection can do, in one menu, so a long name has
              the row to itself. */
@@ -5726,6 +5805,7 @@ function App(props) {
           { value: "projects", label: "Home", icon: "home" },
           { value: "mode", label: dark ? "Light mode" : "Dark mode", icon: dark ? "sun" : "moon", hint: "The builder's own tools" },
           { value: "versions", label: "Versions", icon: "rotate" },
+          { value: "keys", label: "Keyboard shortcuts", icon: "sliders", hint: "?" },
           { value: "duplicate", label: "Duplicate", icon: "copy" },
           { value: "export", label: "Download file", icon: "exportOut" },
           { value: "picture", label: "Use this frame as the picture", icon: "image" },
@@ -5741,6 +5821,7 @@ function App(props) {
           else if (v === "projects") openProjects();
           else if (v === "mode") setDark(!dark);
           else if (v === "versions") openVersions();
+          else if (v === "keys") openKeys();
           else if (v === "duplicate") duplicateProject(project.id);
           else if (v === "export") exportProject(project.id);
           else if (v === "import" || v === "blank") startFrom(v);
@@ -5890,18 +5971,20 @@ function App(props) {
     var moveFree = function (mv) {
       var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
       var du = dx * cos + dy * sin, dv = -dx * sin + dy * cos;
-      var w = W0 + (/e/.test(dir) ? du : /w/.test(dir) ? -du : 0);
-      var h = H0 + (/s/.test(dir) ? dv : /n/.test(dir) ? -dv : 0);
+      /* Alt grows it from its centre, both sides at once. */
+      var both = mv.altKey ? 2 : 1;
+      var w = W0 + (/e/.test(dir) ? du : /w/.test(dir) ? -du : 0) * both;
+      var h = H0 + (/s/.test(dir) ? dv : /n/.test(dir) ? -dv : 0) * both;
       if (corner && mv.shiftKey) { var k = H0 / W0; if (Math.abs(du) >= Math.abs(dv)) h = w * k; else w = h / k; }
       var fw = Math.max(1, Math.min(FREE_MAX, Math.round(w / unit))), fh = Math.max(1, Math.min(FREE_MAX, Math.round(h / unit)));
       var W = horiz ? fw * unit : W0, H = vert ? fh * unit : H0;
-      var a = (ax - 0.5) * (W0 - W), b = (ay - 0.5) * (H0 - H);
+      var a = (mv.altKey ? 0 : ax - 0.5) * (W0 - W), b = (mv.altKey ? 0 : ay - 0.5) * (H0 - H);
       var cx = C0.x + a * cos - b * sin, cy = C0.y + a * sin + b * cos;
       var xs = Math.max(0, Math.min(FREE_MAX, Math.round((cx - W / 2) / unit))), ys = Math.max(0, Math.min(FREE_MAX, Math.round((cy - H / 2) / unit)));
       /* Pulled past the canvas's top or left edge, it stops there and the
          far side still holds. */
-      if (!turn && /w/.test(dir) && xs === 0) { fw = Math.max(1, Math.round((x0 * unit + W0) / unit)); W = fw * unit; }
-      if (!turn && /n/.test(dir) && ys === 0) { fh = Math.max(1, Math.round((y0 * unit + H0) / unit)); H = fh * unit; }
+      if (!turn && !mv.altKey && /w/.test(dir) && xs === 0) { fw = Math.max(1, Math.round((x0 * unit + W0) / unit)); W = fw * unit; }
+      if (!turn && !mv.altKey && /n/.test(dir) && ys === 0) { fh = Math.max(1, Math.round((y0 * unit + H0) / unit)); H = fh * unit; }
       setReadout({ x: mv.clientX, y: mv.clientY, text: Math.round(W) + " × " + Math.round(H) });
       var key = [horiz && fw, vert && fh, xs, ys].join("|");
       if (key === last) return;
@@ -6592,18 +6675,21 @@ function App(props) {
       e("div", { className: "bd-code-head" },
         e("div", { className: "bd-code-intro" },
           e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame.name)),
-          e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + frame.name + " as a picture, or every frame as layout JSON.")),
+          e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (codePick ? codeTitle : frame.name) + " as a picture, or every frame as layout JSON.")),
         e("div", { className: "bd-code-actions" },
           e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { copyText(code).then(function () { announce("Code copied"); }); } }, e(Icon, { name: "copy" }), "Copy code"),
           e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "png"); }, title: frame.name + " as a PNG, at twice its size" }, e(Icon, { name: "image" }), "PNG"),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "jpeg"); }, title: frame.name + " as a JPG, at twice its size" }, "JPG"),
+          e(Segmented, { label: "Picture scale", className: "bd-export-scale", value: String(exportScale), onChange: function (v) { if (v) setExportScale(Number(v)); },
+            options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }] }),
+          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "png", { scale: exportScale, id: codePick }); }, title: (codeTitle || frame.name) + " as a PNG, at " + exportScale + "x" }, e(Icon, { name: "image" }), "PNG"),
+          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "jpeg", { scale: exportScale, id: codePick }); }, title: (codeTitle || frame.name) + " as a JPG, at " + exportScale + "x" }, "JPG"),
           e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
           e("button", { type: "button", className: "bd-btn", onClick: function () { share(); }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame.name }, e(Icon, { name: "link" }), "Copy link"),
           e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
       e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
     importDialog(),
     versionsDialog(),
+    keysDialog(),
     componentDialog(),
     playDialog(),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
