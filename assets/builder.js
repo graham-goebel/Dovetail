@@ -33,6 +33,11 @@
   function frameSize(f, boxes) {
     return f.width + " × " + (f.hug ? Math.round(((boxes || {})[f.id] || {}).h || f.height) : f.height);
   }
+  function allSame(values) {
+    return values.every(function(v) {
+      return JSON.stringify(v) === JSON.stringify(values[0]);
+    });
+  }
   function useEvent(fn) {
     var ref = useRef(fn);
     ref.current = fn;
@@ -7527,6 +7532,751 @@
     );
   });
 
+  // assets/builder/app/Assets.js
+  var ASSET_KINDS = [
+    ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
+    ["primitives", "Primitives", "swatch", "Groups, stacks, grids, shapes and type to build with"],
+    ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
+    ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
+    ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
+    ["templates", "Templates", "file", "Ready-made pages, as new frames or into one"]
+  ];
+  var KIND_GROUPS = { primitives: ["layout", "typography"], blocks: ["blocks"] };
+  function groupsOf(kind) {
+    if (KIND_GROUPS[kind]) return DATA.groups.filter(function(g) {
+      return KIND_GROUPS[kind].indexOf(g.id) >= 0;
+    });
+    if (kind === "components") return DATA.groups.filter(function(g) {
+      return g.id !== "blocks" && KIND_GROUPS.primitives.indexOf(g.id) < 0;
+    });
+    return [];
+  }
+  function usableIn(p, g) {
+    return g.items.filter(function(n) {
+      return !p.placeable || p.placeable[n];
+    });
+  }
+  var PLAIN = {};
+  groupsOf("primitives").forEach(function(g) {
+    g.items.forEach(function(n) {
+      PLAIN[n] = true;
+    });
+  });
+  function tileList(p, items) {
+    return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function(n) {
+      var meta = META[n];
+      var plain = PLAIN[n];
+      return e(
+        "li",
+        { key: n },
+        e(
+          "button",
+          {
+            type: "button",
+            className: cx("bd-tile", plain && "is-icon"),
+            "data-type": n,
+            "aria-label": "Add " + n,
+            title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
+            onPointerDown: function(ev) {
+              p.startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") });
+            },
+            onClick: function(ev) {
+              if (p.justDragged.current) return;
+              p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+            }
+          },
+          plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n, wide: meta.group === "blocks" }),
+          e(
+            "span",
+            { className: "bd-tile-text" },
+            e("span", { className: "bd-tile-name" }, n),
+            p.view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null
+          )
+        )
+      );
+    }));
+  }
+  function viewToggle(p) {
+    return e(Segmented, { label: "View", value: p.view, onChange: p.setView, options: [{ value: "grid", label: "Grid", icon: "gridView" }, { value: "list", label: "List", icon: "listView" }] });
+  }
+  var VAR_SETS = [
+    ["surface", "Fill", "color"],
+    ["border", "Border", "color"],
+    ["padding", "Padding", "space"],
+    ["radius", "Radius", "radius"],
+    ["elevation", "Shadow", "shadow"],
+    ["w", "Width", "size"]
+  ];
+  function variablesPanel(p, varScope, setVarScope) {
+    var picked = p.picked;
+    var sc = p.scope;
+    var own = picked.length && picked.every(function(n) {
+      return n.type === picked[0].type;
+    }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
+    return e(
+      "div",
+      { className: "bd-vars" },
+      e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
+      e(Segmented, {
+        key: "scope",
+        label: "Show",
+        wide: true,
+        className: "bd-vars-scope",
+        value: varScope,
+        onChange: function(v) {
+          if (v) setVarScope(v);
+        },
+        options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
+      }),
+      VAR_SETS.map(function(vs) {
+        var def = DATA.tokens[vs[0]];
+        if (!def) return null;
+        var keys2 = [vs[0]].concat(def.sides || []);
+        var opts = def.options.filter(function(o) {
+          return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(p.used, keys2, o.value));
+        });
+        if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
+        var cur = picked.length && allSame(picked.map(function(n) {
+          return n.style[vs[0]] || "";
+        })) ? picked[0].style[vs[0]] || "" : null;
+        return e(
+          "section",
+          { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
+          e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
+          e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, (vs[0] === "padding" && own ? [e(
+            "button",
+            {
+              key: "__own",
+              type: "button",
+              className: "bd-var bd-var-own",
+              "aria-pressed": String(cur === ""),
+              title: own.token + ": " + nameOf(picked[0]) + "'s own padding. Clears Padding so it applies",
+              onClick: function() {
+                var patch = { padding: void 0 };
+                DATA.tokens.padding.sides.forEach(function(k) {
+                  patch[k] = void 0;
+                });
+                p.setStyles(picked.map(function(n) {
+                  return n.id;
+                }), patch);
+                p.announce(nameOf(picked[0]) + " takes its own padding, " + own.label);
+              }
+            },
+            e("span", { className: "bd-var-name" }, "Default: " + own.label)
+          )] : []).concat(opts.map(function(o) {
+            var px = p.pxMap[vs[0] + "|" + o.value];
+            var tok = o.tokens[0];
+            return e(
+              "button",
+              {
+                key: o.value,
+                type: "button",
+                className: "bd-var",
+                "aria-pressed": String(cur === o.value),
+                title: (o.tokens.join(" · ") || o.value) + (picked.length ? ". Apply to the selection" : ""),
+                onClick: function() {
+                  p.applyVar(vs[0], o.value, vs[1]);
+                }
+              },
+              vs[2] === "color" && tok ? e("span", { className: "bd-sw", style: { background: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "radius" && tok ? e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "shadow" && tok ? e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + tok + ")" }, "aria-hidden": true }) : px != null ? e("span", { className: "bd-var-px" }, Math.round(px)) : null,
+              e("span", { className: "bd-var-name" }, o.label || o.value)
+            );
+          })))
+        );
+      })
+    );
+  }
+  function framePic(w, h, kind, maxW, maxH) {
+    var k = Math.min((maxW || 84) / w, (maxH || 52) / h);
+    var box = { width: Math.round(w * k) + "px", height: Math.round(h * k) + "px" };
+    return e(
+      "span",
+      { key: w + "x" + h, className: cx("bd-mini-frame", kind && "is-" + kind), style: box, "aria-hidden": true },
+      kind === "structured" ? [0, 1, 2].map(function(i) {
+        return e("span", { key: i, className: "bd-mini-bar" });
+      }) : kind === "free" ? [0, 1, 2].map(function(i) {
+        return e("span", { key: i, className: "bd-mini-dot" });
+      }) : null
+    );
+  }
+  function kindPic(icon) {
+    return e("span", { className: "bd-kind-pics is-asset", "aria-hidden": true }, e(Icon, { name: icon }));
+  }
+  var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
+  var CONTAINER_KINDS = [
+    ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
+    ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
+    ["page", "Tall frame", "file", "Grows as tall as what's on it"]
+  ];
+  function containerCard(p, key, name, pic, note3, payload, onAdd) {
+    return e(
+      "li",
+      { key },
+      e(
+        "button",
+        {
+          type: "button",
+          className: "bd-kind bd-container-card",
+          "data-container": key,
+          title: note3 + ". Press to add one beside your frames, or drag it onto the canvas.",
+          onPointerDown: function(ev) {
+            if (ev.pointerType !== "touch") p.startDrag(ev, payload);
+          },
+          onClick: function() {
+            if (!p.justDragged.current) onAdd();
+          }
+        },
+        pic,
+        e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note3))
+      )
+    );
+  }
+  function containersPanel(p) {
+    return e(
+      React.Fragment,
+      null,
+      e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
+      e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function(k) {
+        var page = k[0] === "page", opts = page ? null : { mode: k[0] };
+        var shape = page ? framePic(390, 900, "tall") : framePic(1280, 800, k[0]);
+        return containerCard(p, k[0], k[1], e("span", { className: "bd-kind-pics is-preview is-frames" }, shape), k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
+          p.frameAdd(null, page, null, opts);
+        });
+      })),
+      e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
+      e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function(p2) {
+        var opts = { preset: p2.id, mode: "free" };
+        return containerCard(p2, p2.id, p2.label, e("span", { className: "bd-kind-pics is-preview is-frames" }, framePic(p2.width, p2.height)), p2.width + " × " + p2.height, { kind: "tool", tool: "frame", label: p2.label, opts }, function() {
+          p2.frameAdd(null, false, null, opts);
+        });
+      }))
+    );
+  }
+  function templatesPanel(p) {
+    return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function(st) {
+      return st[0] !== "blank";
+    }).map(function(st) {
+      return e(
+        "li",
+        { key: st[0] },
+        e(
+          "div",
+          { className: "bd-kind bd-tpl-card", "data-template": st[0] },
+          TEMPLATE_PIC[st[0]] && META[TEMPLATE_PIC[st[0]][0]] ? e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: TEMPLATE_PIC[st[0]][0], wide: TEMPLATE_PIC[st[0]][1] })) : e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
+          e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
+          e(
+            "span",
+            { className: "bd-tpl-acts" },
+            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-new", onClick: function() {
+              p.addTemplate(st[0]);
+            }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
+            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function() {
+              p.addTemplate(st[0], true);
+            }, title: "At the end of " + p.frameName }, "Into " + p.frameName)
+          )
+        )
+      );
+    }));
+  }
+  function mineList(p, list) {
+    return e("ul", { className: "bd-mine", role: "list" }, list.map(function(c) {
+      var layers = 0;
+      (function walk(n) {
+        layers++;
+        (n.children || []).forEach(walk);
+      })(c.node);
+      return e(
+        "li",
+        { key: c.id, className: "bd-mine-item" },
+        e(
+          "button",
+          {
+            type: "button",
+            className: "bd-mine-btn",
+            "data-local": c.id,
+            title: c.name + ": drag onto a frame, or press to add. Built on " + c.tokens.slice(0, 6).join(", ") + (c.tokens.length > 6 ? "…" : ""),
+            onPointerDown: function(ev) {
+              p.startDrag(ev, { kind: "local", comp: c, type: c.node.type, label: c.name });
+            },
+            onClick: function() {
+              if (!p.justDragged.current) p.addLocal(c);
+            }
+          },
+          e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
+          e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))
+        ),
+        e(Dropdown, {
+          menu: true,
+          label: "Actions for " + c.name,
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          alignEnd: true,
+          className: "bd-dd-icon",
+          options: [{ value: "add", label: "Add to " + p.frameName, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
+          onChange: function(v) {
+            if (v === "add") p.addLocal(c);
+            else if (v === "rename") p.renameComponent(c.id);
+            else if (v === "delete") p.removeComponent(c.id);
+          }
+        })
+      );
+    }));
+  }
+  var Assets = React.memo(function Assets2(p) {
+    var scopeState = useState("all");
+    var varScope = scopeState[0], setVarScope = scopeState[1];
+    var q = p.query.trim().toLowerCase();
+    var head2 = null;
+    if (q) {
+      var found = [];
+      DATA.groups.forEach(function(g) {
+        usableIn(p, g).forEach(function(n) {
+          if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
+        });
+      });
+      var foundMine = (p.library.components || []).filter(function(c) {
+        return c.name.toLowerCase().indexOf(q) >= 0;
+      });
+      return e(
+        "div",
+        { className: "bd-assets" },
+        head2,
+        foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
+        foundMine.length ? mineList(p, foundMine) : null,
+        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle(p)),
+        found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
+        tileList(p, found)
+      );
+    }
+    if (!p.kind) {
+      return e(
+        "div",
+        { className: "bd-assets is-cards" },
+        head2,
+        e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
+          var note3 = k[3];
+          var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
+            return t + usableIn(p, g).length;
+          }, 0) + " to add";
+          return e("li", { key: k[0] }, e(
+            "button",
+            { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
+              p.setAssetKind(k[0]);
+            } },
+            kindPic(k[2]),
+            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
+          ));
+        }))
+      );
+    }
+    var kind = ASSET_KINDS.filter(function(k) {
+      return k[0] === p.kind;
+    })[0] || ASSET_KINDS[0];
+    var back = e(
+      "div",
+      { className: "bd-panel-head bd-gallery-head" },
+      e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Assets", title: "Back to Assets", onClick: function() {
+        p.setAssetKind(null);
+      } }, e(Icon, { name: "left" })),
+      e("h2", { className: "bd-panel-title" }, kind[1])
+    );
+    if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head2, back, variablesPanel(p, varScope, setVarScope));
+    if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head2, back, templatesPanel(p));
+    if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head2, back, containersPanel(p));
+    var groups = groupsOf(kind[0]);
+    if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
+    var current2 = groups.filter(function(x) {
+      return x.id === p.category;
+    })[0] || groups[kind[0] === "components" && (p.library.components || []).length ? 0 : kind[0] === "components" ? 1 : 0];
+    var items = usableIn(p, current2);
+    if (current2.id === "mine") {
+      var mine = p.library.components || [];
+      return e(
+        "div",
+        { className: "bd-assets" },
+        head2,
+        back,
+        e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function(g) {
+          return e(
+            "button",
+            { key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(current2.id === g.id), onClick: function() {
+              p.setCategory(g.id);
+            } },
+            e(Icon, { name: g.id === "mine" ? "component" : GROUP_ICON[g.id] || "box" }),
+            e("span", { className: "bd-cat-label" }, g.label)
+          );
+        })),
+        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
+        mine.length ? mineList(p, mine) : e(
+          "div",
+          { className: "bd-empty" },
+          e(Icon, { name: "component" }),
+          e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))
+        )
+      );
+    }
+    return e(
+      "div",
+      { className: "bd-assets" },
+      head2,
+      back,
+      groups.length > 1 ? e(
+        "div",
+        { className: "bd-cats", role: "group", "aria-label": "Categories" },
+        groups.map(function(g) {
+          var on = current2.id === g.id;
+          return e("button", {
+            key: g.id,
+            type: "button",
+            className: "bd-cat",
+            "aria-pressed": String(on),
+            title: g.label + ": " + usableIn(p, g).length + " to add",
+            onClick: function() {
+              p.setCategory(g.id);
+            }
+          }, e(Icon, { name: GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
+        })
+      ) : null,
+      e(
+        "div",
+        { className: "bd-assets-head" },
+        e("h3", { className: "bd-assets-title" }, current2.label, e("span", { className: "bd-count" }, items.length)),
+        viewToggle(p)
+      ),
+      items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
+      tileList(p, items)
+    );
+  });
+
+  // assets/builder/app/Content.js
+  var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
+  var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
+  function brandPieces(b) {
+    var name = b.name || "Your brand";
+    var P = window.DovetailConfigurePanel;
+    var tone = P && P.config ? WORDMARK_TONE[P.config().wordmarkColor] : null;
+    var logo = b.wordmark ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } } : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone } : {}), extra: { name: "Logo" } };
+    var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
+    return { logo, mark };
+  }
+  function brandPanel(p) {
+    var b = p.brand;
+    var pieces = brandPieces(b);
+    var tile = function(key, label, piece, preview, emptyNote, hint) {
+      var fileId = "bd-brand-" + key;
+      var hasFile = !!b[key];
+      return e(
+        "section",
+        {
+          className: "bd-content-sec bd-brand-sec",
+          "aria-labelledby": fileId + "-h",
+          onDragOver: function(ev) {
+            if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault();
+          },
+          onDrop: function(ev) {
+            if (!ev.dataTransfer.files.length) return;
+            ev.preventDefault();
+            p.readBrandFile(key, ev.dataTransfer.files[0]);
+          }
+        },
+        e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
+        piece ? e("button", {
+          type: "button",
+          className: cx("bd-brand-tile", key === "mark" && "is-mark"),
+          "data-brand": key,
+          title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
+          onPointerDown: function(ev) {
+            if (ev.pointerType !== "touch") p.startDrag(ev, piece);
+          },
+          onClick: function() {
+            if (!p.justDragged.current) p.placeBrand(piece);
+          }
+        }, preview) : e("div", { className: "bd-brand-tile is-empty" }, e(Icon, { name: "image" }), e("span", null, emptyNote)),
+        e(
+          "div",
+          { className: "bd-content-add" },
+          e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), hasFile ? "Replace" : "Upload"),
+          e("input", {
+            id: fileId,
+            type: "file",
+            className: "visually-hidden",
+            accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml",
+            onChange: function(ev) {
+              p.readBrandFile(key, ev.target.files[0]);
+              ev.target.value = "";
+            }
+          }),
+          hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function() {
+            var patch = {};
+            patch[key] = "";
+            if (p.setBrandPart(patch)) p.announce("Removed the " + label.toLowerCase() + ".");
+          } }, "Remove") : null
+        ),
+        hint ? e("p", { className: "bd-content-note" }, hint) : null
+      );
+    };
+    return e(
+      "div",
+      { className: "bd-content" },
+      e(
+        "div",
+        { className: "bd-panel-head bd-gallery-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
+          p.setLibTab(null);
+          p.setBrandErr(null);
+        } }, e(Icon, { name: "left" })),
+        e("h2", { className: "bd-panel-title" }, "Brand")
+      ),
+      e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
+      e(
+        "section",
+        { className: "bd-content-sec" },
+        e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
+        e("input", {
+          id: "bd-brand-name",
+          className: "bd-input",
+          type: "text",
+          maxLength: 80,
+          placeholder: "Your brand",
+          value: b.name,
+          onChange: function(ev) {
+            p.setBrandPart({ name: ev.target.value });
+          }
+        })
+      ),
+      p.brandErr ? e("p", { className: "bd-brand-err", role: "alert" }, p.brandErr) : null,
+      tile(
+        "wordmark",
+        "Logo",
+        pieces.logo,
+        b.wordmark ? e("img", { src: b.wordmark, alt: "", draggable: false }) : e("span", { className: "bd-brand-word" }, b.name || "Your brand"),
+        "",
+        b.wordmark ? null : "Without a logo file, the logo is the name, set in type. SVG or PNG, up to 512KB."
+      ),
+      tile("mark", "Brand mark", pieces.mark, b.mark ? e("img", { src: b.mark, alt: "", draggable: false }) : null, "No brand mark yet", "A small symbol for beside the logo, or on its own. SVG or PNG, up to 512KB.")
+    );
+  }
+  function brandCard(p) {
+    var b = p.brand;
+    var pics = [b.mark, b.wordmark].filter(Boolean);
+    var note3 = b.wordmark && b.mark ? "Logo and mark" : b.wordmark ? "Logo" : b.mark ? "Mark, and the name" : b.name ? "The name" : "Name, logo and mark";
+    return e("li", { key: "brand" }, e(
+      "button",
+      { type: "button", className: "bd-kind", "data-kind": "brand", onClick: function() {
+        p.setLibTab("brand");
+      } },
+      e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function(src, i) {
+        return e("img", { key: i, src, alt: "", draggable: false });
+      }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
+      e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note3)),
+      e(Icon, { name: "right", className: "bd-kind-chev" })
+    ));
+  }
+  var Content = React.memo(function Content2(p) {
+    var q0 = p.query.trim().toLowerCase();
+    if (!p.tab && q0) {
+      var hits = [];
+      LIB_KINDS.forEach(function(k) {
+        p.library[k].forEach(function(it) {
+          if (it.name.toLowerCase().indexOf(q0) >= 0) hits.push({ kind: k, it });
+        });
+      });
+      return e(
+        "div",
+        { className: "bd-content" },
+        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Results"), e("span", { className: "bd-count" }, hits.length)),
+        hits.length ? e("ul", { className: "bd-lib", role: "list" }, hits.map(function(h) {
+          var clip = h.kind === "video";
+          return e(
+            "li",
+            { key: h.it.id, className: "bd-lib-item" },
+            e(
+              "button",
+              {
+                type: "button",
+                className: cx("bd-lib-thumb", (h.kind === "images" || clip) && !h.it.original && "is-fill"),
+                title: h.it.name + ": drag onto a frame, or press to add",
+                onPointerDown: function(ev) {
+                  if (ev.pointerType !== "touch") p.startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip ? "video" : "image" });
+                },
+                onClick: function() {
+                  if (!p.justDragged.current) p.insertAsset(h.it, clip);
+                }
+              },
+              clip ? e("video", { src: h.it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: h.it.src, alt: "", draggable: false })
+            ),
+            e("span", { className: "bd-lib-name" }, h.it.name)
+          );
+        })) : e("p", { className: "bd-empty-note" }, "Nothing in your content matches.")
+      );
+    }
+    if (!p.tab) {
+      return e(
+        "div",
+        { className: "bd-content" },
+        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+        e("p", { className: "bd-content-note bd-content-scope" }, p.scopeNote),
+        e("ul", { className: "bd-kinds", role: "list" }, [brandCard(p)].concat(LIB_TABS.map(function(t) {
+          var items2 = p.library[t[0]];
+          var note3 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";
+          return e("li", { key: t[0] }, e(
+            "button",
+            { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function() {
+              p.setLibTab(t[0]);
+            } },
+            e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items2.length ? items2.slice(0, 3).map(function(it) {
+              return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false });
+            }) : e(Icon, { name: t[2] })),
+            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note3)),
+            e(Icon, { name: "right", className: "bd-kind-chev" })
+          ));
+        })))
+      );
+    }
+    if (p.tab === "brand") return brandPanel(p);
+    var kind = p.tab;
+    var cq = p.query.trim().toLowerCase();
+    var items = p.library[kind].filter(function(it) {
+      return !cq || it.name.toLowerCase().indexOf(cq) >= 0;
+    });
+    var fileId = "bd-lib-file";
+    var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
+    var icons = window.DovetailConfigure && window.DovetailConfigure.icons || {};
+    return e(
+      "div",
+      {
+        className: "bd-content",
+        onDragOver: function(ev) {
+          ev.preventDefault();
+          ev.currentTarget.classList.add("is-drop");
+        },
+        onDragLeave: function(ev) {
+          ev.currentTarget.classList.remove("is-drop");
+        },
+        onDrop: function(ev) {
+          ev.preventDefault();
+          ev.currentTarget.classList.remove("is-drop");
+          p.addToLibrary(kind, ev.dataTransfer.files);
+        }
+      },
+      e(
+        "div",
+        { className: "bd-panel-head bd-gallery-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
+          p.setLibTab(null);
+        } }, e(Icon, { name: "left" })),
+        e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function(t) {
+          return t[0] === kind;
+        })[0][1])
+      ),
+      kind === "icons" ? e(
+        "section",
+        { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
+        e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
+        e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
+        e(
+          "div",
+          { className: "bd-iconlibs", role: "radiogroup", "aria-labelledby": "bd-iconlib" },
+          Object.keys(icons).concat(["custom"]).map(function(k) {
+            var info = icons[k] || { label: "Custom", note: "Your own set, named in Configure's Media group." };
+            return e(
+              "button",
+              {
+                key: k,
+                type: "button",
+                role: "radio",
+                className: "bd-iconlib",
+                "aria-checked": String(lib === k),
+                onClick: function() {
+                  if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) {
+                    window.DovetailConfigurePanel.setIconLib(k);
+                    p.setThemeStamp(function(n) {
+                      return n + 1;
+                    });
+                  }
+                }
+              },
+              e("span", { className: "bd-iconlib-name" }, info.label),
+              e("span", { className: "bd-iconlib-note" }, info.note)
+            );
+          })
+        )
+      ) : null,
+      e(
+        "section",
+        { className: "bd-content-sec", "aria-label": "Your " + kind },
+        kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
+        e(
+          "div",
+          { className: "bd-content-add" },
+          e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind === "video" ? "clips" : kind)),
+          e("input", {
+            id: fileId,
+            type: "file",
+            multiple: true,
+            className: "visually-hidden",
+            accept: kind === "icons" ? "image/svg+xml,.svg" : kind === "video" ? "video/*" : "image/*",
+            onChange: function(ev) {
+              var f = ev.target.files;
+              p.addToLibrary(kind, f);
+              ev.target.value = "";
+            }
+          }),
+          e("span", { className: "bd-content-note" }, "or drop files here")
+        ),
+        p.busy ? e("p", { className: "bd-content-busy", role: "status" }, p.busy) : null,
+        items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function(it) {
+          return e(
+            "li",
+            { key: it.id, className: "bd-lib-item" },
+            e(
+              "button",
+              {
+                type: "button",
+                className: cx("bd-lib-thumb", (kind === "images" || kind === "video") && !it.original && "is-fill"),
+                title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
+                onPointerDown: function(ev) {
+                  if (ev.pointerType !== "touch") p.startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" });
+                },
+                onClick: function() {
+                  if (!p.justDragged.current) p.insertAsset(it, kind === "video");
+                }
+              },
+              kind === "video" ? e("video", { src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: it.src, alt: "", draggable: false })
+            ),
+            e("span", { className: "bd-lib-name" }, it.name),
+            e(Dropdown, {
+              menu: true,
+              label: "Actions for " + it.name,
+              icon: "more",
+              compact: true,
+              narrow: true,
+              className: "bd-dd-icon bd-lib-menu",
+              options: [{ value: "insert", label: "Add to " + p.frameName, icon: "plus" }].concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : []).concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : []).concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
+              onChange: function(v) {
+                if (v === "insert") p.insertAsset(it, kind === "video");
+                else if (v === "cut") p.cutBackground(it.src).then(function(url) {
+                  if (url) p.libUpdate(kind, it.id, { src: url, original: it.original || it.src });
+                });
+                else if (v === "restore") p.libUpdate(kind, it.id, { src: it.original, original: void 0 });
+                else if (v === "delete") p.libUpdate(kind, it.id, { removed: true });
+              }
+            })
+          );
+        })) : e(
+          "div",
+          { className: "bd-empty" },
+          e(Icon, { name: LIB_TABS.filter(function(t) {
+            return t[0] === kind;
+          })[0][2] }),
+          e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : kind === "video" ? "Upload clips up to 1.5 MB to reuse them: drag one onto a frame, or onto a Video to fill it." : "Upload " + kind + " to reuse them: drag one onto a frame, or onto a picture to fill it.")
+        )
+      )
+    );
+  });
+
   // assets/builder/cloud/config.js
   var CLOUD = {
     url: "",
@@ -11587,13 +12337,13 @@
       if (!f) return;
       var d = docRef.current;
       var fr = active(d);
-      var picked = selRef.current.map(function(id) {
+      var picked2 = selRef.current.map(function(id) {
         return locate(d, id);
       }).filter(Boolean).map(function(a) {
         return a.node;
       });
       var parts = [];
-      picked.forEach(function(n) {
+      picked2.forEach(function(n) {
         if (n.type === "Slot") parts = parts.concat(n.children);
         else parts.push(n);
       });
@@ -12853,11 +13603,7 @@
         return a.node;
       });
     };
-    var same3 = function(values) {
-      return values.every(function(v) {
-        return JSON.stringify(v) === JSON.stringify(values[0]);
-      });
-    };
+    var same3 = allSame;
     var frameMenu = function(f, where) {
       return e(Dropdown, {
         menu: true,
@@ -13807,7 +14553,6 @@
       } else return null;
       return e(Field, { key: p.name, id, label, note: p.note }, control);
     };
-    var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
     var addToLibrary = function(kind, files) {
       var list = Array.prototype.slice.call(files || []);
       if (!list.length) return;
@@ -13865,15 +14610,6 @@
       var P = window.DovetailConfigurePanel;
       return P && P.brand ? P.brand() : { name: "", mark: "", wordmark: "" };
     };
-    var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
-    var brandPieces = function(b) {
-      var name = b.name || "Your brand";
-      var P = window.DovetailConfigurePanel;
-      var tone = P && P.config ? WORDMARK_TONE[P.config().wordmarkColor] : null;
-      var logo = b.wordmark ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } } : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone } : {}), extra: { name: "Logo" } };
-      var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
-      return { logo, mark };
-    };
     var placeBrand = function(piece) {
       if (piece.kind === "asset") add("Image", null, Object.assign({ src: piece.src, alt: piece.label }, piece.props), piece.extra);
       else add(piece.type, null, piece.props, piece.extra);
@@ -13919,408 +14655,12 @@
       };
       reader.readAsDataURL(file);
     };
-    var brandPanel = function() {
-      var b = brandNow();
-      var pieces = brandPieces(b);
-      var tile = function(key, label, piece, preview2, emptyNote, hint) {
-        var fileId = "bd-brand-" + key;
-        var hasFile = !!b[key];
-        return e(
-          "section",
-          {
-            className: "bd-content-sec bd-brand-sec",
-            "aria-labelledby": fileId + "-h",
-            onDragOver: function(ev) {
-              if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault();
-            },
-            onDrop: function(ev) {
-              if (!ev.dataTransfer.files.length) return;
-              ev.preventDefault();
-              readBrandFile(key, ev.dataTransfer.files[0]);
-            }
-          },
-          e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
-          piece ? e("button", {
-            type: "button",
-            className: cx("bd-brand-tile", key === "mark" && "is-mark"),
-            "data-brand": key,
-            title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
-            onPointerDown: function(ev) {
-              if (ev.pointerType !== "touch") startDrag(ev, piece);
-            },
-            onClick: function() {
-              if (!justDragged.current) placeBrand(piece);
-            }
-          }, preview2) : e("div", { className: "bd-brand-tile is-empty" }, e(Icon, { name: "image" }), e("span", null, emptyNote)),
-          e(
-            "div",
-            { className: "bd-content-add" },
-            e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), hasFile ? "Replace" : "Upload"),
-            e("input", {
-              id: fileId,
-              type: "file",
-              className: "visually-hidden",
-              accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml",
-              onChange: function(ev) {
-                readBrandFile(key, ev.target.files[0]);
-                ev.target.value = "";
-              }
-            }),
-            hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function() {
-              var patch = {};
-              patch[key] = "";
-              if (setBrandPart(patch)) announce("Removed the " + label.toLowerCase() + ".");
-            } }, "Remove") : null
-          ),
-          hint ? e("p", { className: "bd-content-note" }, hint) : null
-        );
-      };
-      return e(
-        "div",
-        { className: "bd-content" },
-        e(
-          "div",
-          { className: "bd-panel-head bd-gallery-head" },
-          e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
-            setLibTab(null);
-            setBrandErr(null);
-          } }, e(Icon, { name: "left" })),
-          e("h2", { className: "bd-panel-title" }, "Brand")
-        ),
-        e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
-        e(
-          "section",
-          { className: "bd-content-sec" },
-          e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
-          e("input", {
-            id: "bd-brand-name",
-            className: "bd-input",
-            type: "text",
-            maxLength: 80,
-            placeholder: "Your brand",
-            value: b.name,
-            onChange: function(ev) {
-              setBrandPart({ name: ev.target.value });
-            }
-          })
-        ),
-        brandErr ? e("p", { className: "bd-brand-err", role: "alert" }, brandErr) : null,
-        tile(
-          "wordmark",
-          "Logo",
-          pieces.logo,
-          b.wordmark ? e("img", { src: b.wordmark, alt: "", draggable: false }) : e("span", { className: "bd-brand-word" }, b.name || "Your brand"),
-          "",
-          b.wordmark ? null : "Without a logo file, the logo is the name, set in type. SVG or PNG, up to 512KB."
-        ),
-        tile("mark", "Brand mark", pieces.mark, b.mark ? e("img", { src: b.mark, alt: "", draggable: false }) : null, "No brand mark yet", "A small symbol for beside the logo, or on its own. SVG or PNG, up to 512KB.")
-      );
-    };
-    var brandCard = function() {
-      var b = brandNow();
-      var pics = [b.mark, b.wordmark].filter(Boolean);
-      var note3 = b.wordmark && b.mark ? "Logo and mark" : b.wordmark ? "Logo" : b.mark ? "Mark, and the name" : b.name ? "The name" : "Name, logo and mark";
-      return e("li", { key: "brand" }, e(
-        "button",
-        { type: "button", className: "bd-kind", "data-kind": "brand", onClick: function() {
-          setLibTab("brand");
-        } },
-        e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function(src, i) {
-          return e("img", { key: i, src, alt: "", draggable: false });
-        }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
-        e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note3)),
-        e(Icon, { name: "right", className: "bd-kind-chev" })
-      ));
-    };
     var contentScopeNote = function() {
       var g = project.group ? groupById(project.group) : null;
       if (g) return "Shared by the files in " + g.name + ". Other projects don't see it.";
       if (project.lib === "shared") return "Shared by the files you made before projects. Moving this file into a project brings it along.";
       return "This file's own. Moving it into a project brings it along.";
     };
-    var contentPanel = function() {
-      var q0 = contentQuery.trim().toLowerCase();
-      if (!libTab && q0) {
-        var hits = [];
-        LIB_KINDS.forEach(function(k) {
-          library[k].forEach(function(it) {
-            if (it.name.toLowerCase().indexOf(q0) >= 0) hits.push({ kind: k, it });
-          });
-        });
-        return e(
-          "div",
-          { className: "bd-content" },
-          e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Results"), e("span", { className: "bd-count" }, hits.length)),
-          hits.length ? e("ul", { className: "bd-lib", role: "list" }, hits.map(function(h) {
-            var clip2 = h.kind === "video";
-            return e(
-              "li",
-              { key: h.it.id, className: "bd-lib-item" },
-              e(
-                "button",
-                {
-                  type: "button",
-                  className: cx("bd-lib-thumb", (h.kind === "images" || clip2) && !h.it.original && "is-fill"),
-                  title: h.it.name + ": drag onto a frame, or press to add",
-                  onPointerDown: function(ev) {
-                    if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip2 ? "video" : "image" });
-                  },
-                  onClick: function() {
-                    if (!justDragged.current) insertAsset(h.it, clip2);
-                  }
-                },
-                clip2 ? e("video", { src: h.it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: h.it.src, alt: "", draggable: false })
-              ),
-              e("span", { className: "bd-lib-name" }, h.it.name)
-            );
-          })) : e("p", { className: "bd-empty-note" }, "Nothing in your content matches.")
-        );
-      }
-      if (!libTab) {
-        return e(
-          "div",
-          { className: "bd-content" },
-          e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
-          e("p", { className: "bd-content-note bd-content-scope" }, contentScopeNote()),
-          e("ul", { className: "bd-kinds", role: "list" }, [brandCard()].concat(LIB_TABS.map(function(t) {
-            var items2 = library[t[0]];
-            var note3 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";
-            return e("li", { key: t[0] }, e(
-              "button",
-              { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function() {
-                setLibTab(t[0]);
-              } },
-              e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items2.length ? items2.slice(0, 3).map(function(it) {
-                return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false });
-              }) : e(Icon, { name: t[2] })),
-              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note3)),
-              e(Icon, { name: "right", className: "bd-kind-chev" })
-            ));
-          })))
-        );
-      }
-      if (libTab === "brand") return brandPanel();
-      var kind = libTab;
-      var cq = contentQuery.trim().toLowerCase();
-      var items = library[kind].filter(function(it) {
-        return !cq || it.name.toLowerCase().indexOf(cq) >= 0;
-      });
-      var fileId = "bd-lib-file";
-      var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
-      var icons = window.DovetailConfigure && window.DovetailConfigure.icons || {};
-      return e(
-        "div",
-        {
-          className: "bd-content",
-          onDragOver: function(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.add("is-drop");
-          },
-          onDragLeave: function(ev) {
-            ev.currentTarget.classList.remove("is-drop");
-          },
-          onDrop: function(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove("is-drop");
-            addToLibrary(kind, ev.dataTransfer.files);
-          }
-        },
-        e(
-          "div",
-          { className: "bd-panel-head bd-gallery-head" },
-          e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
-            setLibTab(null);
-          } }, e(Icon, { name: "left" })),
-          e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function(t) {
-            return t[0] === kind;
-          })[0][1])
-        ),
-        kind === "icons" ? e(
-          "section",
-          { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
-          e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
-          e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
-          e(
-            "div",
-            { className: "bd-iconlibs", role: "radiogroup", "aria-labelledby": "bd-iconlib" },
-            Object.keys(icons).concat(["custom"]).map(function(k) {
-              var info = icons[k] || { label: "Custom", note: "Your own set, named in Configure's Media group." };
-              return e(
-                "button",
-                {
-                  key: k,
-                  type: "button",
-                  role: "radio",
-                  className: "bd-iconlib",
-                  "aria-checked": String(lib === k),
-                  onClick: function() {
-                    if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) {
-                      window.DovetailConfigurePanel.setIconLib(k);
-                      setThemeStamp(function(n) {
-                        return n + 1;
-                      });
-                    }
-                  }
-                },
-                e("span", { className: "bd-iconlib-name" }, info.label),
-                e("span", { className: "bd-iconlib-note" }, info.note)
-              );
-            })
-          )
-        ) : null,
-        e(
-          "section",
-          { className: "bd-content-sec", "aria-label": "Your " + kind },
-          kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
-          e(
-            "div",
-            { className: "bd-content-add" },
-            e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind === "video" ? "clips" : kind)),
-            e("input", {
-              id: fileId,
-              type: "file",
-              multiple: true,
-              className: "visually-hidden",
-              accept: kind === "icons" ? "image/svg+xml,.svg" : kind === "video" ? "video/*" : "image/*",
-              onChange: function(ev) {
-                var f = ev.target.files;
-                addToLibrary(kind, f);
-                ev.target.value = "";
-              }
-            }),
-            e("span", { className: "bd-content-note" }, "or drop files here")
-          ),
-          libBusy ? e("p", { className: "bd-content-busy", role: "status" }, libBusy) : null,
-          items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function(it) {
-            return e(
-              "li",
-              { key: it.id, className: "bd-lib-item" },
-              e(
-                "button",
-                {
-                  type: "button",
-                  className: cx("bd-lib-thumb", (kind === "images" || kind === "video") && !it.original && "is-fill"),
-                  title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
-                  onPointerDown: function(ev) {
-                    if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" });
-                  },
-                  onClick: function() {
-                    if (!justDragged.current) insertAsset(it, kind === "video");
-                  }
-                },
-                kind === "video" ? e("video", { src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: it.src, alt: "", draggable: false })
-              ),
-              e("span", { className: "bd-lib-name" }, it.name),
-              e(Dropdown, {
-                menu: true,
-                label: "Actions for " + it.name,
-                icon: "more",
-                compact: true,
-                narrow: true,
-                className: "bd-dd-icon bd-lib-menu",
-                options: [{ value: "insert", label: "Add to " + frame2.name, icon: "plus" }].concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : []).concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : []).concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
-                onChange: function(v) {
-                  if (v === "insert") insertAsset(it, kind === "video");
-                  else if (v === "cut") cutBackground(it.src).then(function(url) {
-                    if (url) libUpdate(kind, it.id, { src: url, original: it.original || it.src });
-                  });
-                  else if (v === "restore") libUpdate(kind, it.id, { src: it.original, original: void 0 });
-                  else if (v === "delete") libUpdate(kind, it.id, { removed: true });
-                }
-              })
-            );
-          })) : e(
-            "div",
-            { className: "bd-empty" },
-            e(Icon, { name: LIB_TABS.filter(function(t) {
-              return t[0] === kind;
-            })[0][2] }),
-            e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : kind === "video" ? "Upload clips up to 1.5 MB to reuse them: drag one onto a frame, or onto a Video to fill it." : "Upload " + kind + " to reuse them: drag one onto a frame, or onto a picture to fill it.")
-          )
-        )
-      );
-    };
-    var ASSET_KINDS = [
-      ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
-      ["primitives", "Primitives", "swatch", "Groups, stacks, grids, shapes and type to build with"],
-      ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
-      ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
-      ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
-      ["templates", "Templates", "file", "Ready-made pages, as new frames or into one"]
-    ];
-    var KIND_GROUPS = { primitives: ["layout", "typography"], blocks: ["blocks"] };
-    var groupsOf = function(kind) {
-      if (KIND_GROUPS[kind]) return DATA.groups.filter(function(g) {
-        return KIND_GROUPS[kind].indexOf(g.id) >= 0;
-      });
-      if (kind === "components") return DATA.groups.filter(function(g) {
-        return g.id !== "blocks" && KIND_GROUPS.primitives.indexOf(g.id) < 0;
-      });
-      return [];
-    };
-    var usableIn = function(g) {
-      return g.items.filter(function(n) {
-        return !placeable || placeable[n];
-      });
-    };
-    var PLAIN = {};
-    groupsOf("primitives").forEach(function(g) {
-      g.items.forEach(function(n) {
-        PLAIN[n] = true;
-      });
-    });
-    var tileList = function(items) {
-      return e("ul", { className: cx("bd-tiles", view === "list" ? "is-list" : "is-grid") }, items.map(function(n) {
-        var meta = META[n];
-        var plain = PLAIN[n];
-        return e(
-          "li",
-          { key: n },
-          e(
-            "button",
-            {
-              type: "button",
-              className: cx("bd-tile", plain && "is-icon"),
-              "data-type": n,
-              "aria-label": "Add " + n,
-              title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
-              onPointerDown: function(ev) {
-                startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") });
-              },
-              onClick: function(ev) {
-                if (justDragged.current) return;
-                var s0 = selRef.current;
-                if ((ev.metaKey || ev.ctrlKey) && s0.length) {
-                  swapNode(s0[s0.length - 1], n, docRef.current.active);
-                  return;
-                }
-                add(n);
-              }
-            },
-            plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n, wide: meta.group === "blocks" }),
-            e(
-              "span",
-              { className: "bd-tile-text" },
-              e("span", { className: "bd-tile-name" }, n),
-              view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null
-            )
-          )
-        );
-      }));
-    };
-    var viewToggle = function() {
-      return e(Segmented, { label: "View", value: view, onChange: setView, options: [{ value: "grid", label: "Grid", icon: "gridView" }, { value: "list", label: "List", icon: "listView" }] });
-    };
-    var varScopeState = useState("all");
-    var varScope = varScopeState[0], setVarScope = varScopeState[1];
-    var VAR_SETS = [
-      ["surface", "Fill", "color"],
-      ["border", "Border", "color"],
-      ["padding", "Padding", "space"],
-      ["radius", "Radius", "radius"],
-      ["elevation", "Shadow", "shadow"],
-      ["w", "Width", "size"]
-    ];
     var applyVar = function(key, value, label) {
       var ids = selRef.current.filter(function(id) {
         var at2 = locate(docRef.current, id);
@@ -14335,87 +14675,6 @@
       if (key === "surface") patch.fill = void 0;
       setStyles(ids, patch);
       announce(label + " is " + value + " on " + (ids.length === 1 ? nameOf(locate(docRef.current, ids[0]).node) : ids.length + " layers"));
-    };
-    var variablesPanel = function() {
-      var picked = nodesOf2(selection).filter(function(n) {
-        return n.type !== "Slot";
-      });
-      var sc = picked.length ? scopeFor(picked) : null;
-      var own = picked.length && picked.every(function(n) {
-        return n.type === picked[0].type;
-      }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
-      return e(
-        "div",
-        { className: "bd-vars" },
-        e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
-        e(Segmented, {
-          key: "scope",
-          label: "Show",
-          wide: true,
-          className: "bd-vars-scope",
-          value: varScope,
-          onChange: function(v) {
-            if (v) setVarScope(v);
-          },
-          options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
-        }),
-        VAR_SETS.map(function(vs) {
-          var def = DATA.tokens[vs[0]];
-          if (!def) return null;
-          var keys2 = [vs[0]].concat(def.sides || []);
-          var opts = def.options.filter(function(o) {
-            return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(used, keys2, o.value));
-          });
-          if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
-          var cur = picked.length && same3(picked.map(function(n) {
-            return n.style[vs[0]] || "";
-          })) ? picked[0].style[vs[0]] || "" : null;
-          return e(
-            "section",
-            { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
-            e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
-            e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, (vs[0] === "padding" && own ? [e(
-              "button",
-              {
-                key: "__own",
-                type: "button",
-                className: "bd-var bd-var-own",
-                "aria-pressed": String(cur === ""),
-                title: own.token + ": " + nameOf(picked[0]) + "'s own padding. Clears Padding so it applies",
-                onClick: function() {
-                  var patch = { padding: void 0 };
-                  DATA.tokens.padding.sides.forEach(function(k) {
-                    patch[k] = void 0;
-                  });
-                  setStyles(picked.map(function(n) {
-                    return n.id;
-                  }), patch);
-                  announce(nameOf(picked[0]) + " takes its own padding, " + own.label);
-                }
-              },
-              e("span", { className: "bd-var-name" }, "Default: " + own.label)
-            )] : []).concat(opts.map(function(o) {
-              var px = pxMap[vs[0] + "|" + o.value];
-              var tok = o.tokens[0];
-              return e(
-                "button",
-                {
-                  key: o.value,
-                  type: "button",
-                  className: "bd-var",
-                  "aria-pressed": String(cur === o.value),
-                  title: (o.tokens.join(" · ") || o.value) + (picked.length ? ". Apply to the selection" : ""),
-                  onClick: function() {
-                    applyVar(vs[0], o.value, vs[1]);
-                  }
-                },
-                vs[2] === "color" && tok ? e("span", { className: "bd-sw", style: { background: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "radius" && tok ? e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "shadow" && tok ? e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + tok + ")" }, "aria-hidden": true }) : px != null ? e("span", { className: "bd-var-px" }, Math.round(px)) : null,
-                e("span", { className: "bd-var-name" }, o.label || o.value)
-              );
-            })))
-          );
-        })
-      );
     };
     var addTemplate = function(id, into) {
       var st = STARTERS.filter(function(x) {
@@ -14466,267 +14725,6 @@
       setTimeout(function() {
         if (first) showFrameRef.current(first, true);
       }, 0);
-    };
-    var framePic = function(w, h, kind, maxW, maxH) {
-      var k = Math.min((maxW || 84) / w, (maxH || 52) / h);
-      var box2 = { width: Math.round(w * k) + "px", height: Math.round(h * k) + "px" };
-      return e(
-        "span",
-        { key: w + "x" + h, className: cx("bd-mini-frame", kind && "is-" + kind), style: box2, "aria-hidden": true },
-        kind === "structured" ? [0, 1, 2].map(function(i) {
-          return e("span", { key: i, className: "bd-mini-bar" });
-        }) : kind === "free" ? [0, 1, 2].map(function(i) {
-          return e("span", { key: i, className: "bd-mini-dot" });
-        }) : null
-      );
-    };
-    var kindPic = function(icon) {
-      return e("span", { className: "bd-kind-pics is-asset", "aria-hidden": true }, e(Icon, { name: icon }));
-    };
-    var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
-    var CONTAINER_KINDS = [
-      ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
-      ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
-      ["page", "Tall frame", "file", "Grows as tall as what's on it"]
-    ];
-    var containerCard = function(key, name, pic, note3, payload, onAdd) {
-      return e(
-        "li",
-        { key },
-        e(
-          "button",
-          {
-            type: "button",
-            className: "bd-kind bd-container-card",
-            "data-container": key,
-            title: note3 + ". Press to add one beside your frames, or drag it onto the canvas.",
-            onPointerDown: function(ev) {
-              if (ev.pointerType !== "touch") startDrag(ev, payload);
-            },
-            onClick: function() {
-              if (!justDragged.current) onAdd();
-            }
-          },
-          pic,
-          e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note3))
-        )
-      );
-    };
-    var containersPanel = function() {
-      return e(
-        React.Fragment,
-        null,
-        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
-        e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function(k) {
-          var page = k[0] === "page", opts = page ? null : { mode: k[0] };
-          var shape = page ? framePic(390, 900, "tall") : framePic(1280, 800, k[0]);
-          return containerCard(k[0], k[1], e("span", { className: "bd-kind-pics is-preview is-frames" }, shape), k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
-            frameOps.add(null, page, null, opts);
-          });
-        })),
-        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
-        e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function(p) {
-          var opts = { preset: p.id, mode: "free" };
-          return containerCard(p.id, p.label, e("span", { className: "bd-kind-pics is-preview is-frames" }, framePic(p.width, p.height)), p.width + " × " + p.height, { kind: "tool", tool: "frame", label: p.label, opts }, function() {
-            frameOps.add(null, false, null, opts);
-          });
-        }))
-      );
-    };
-    var templatesPanel = function() {
-      return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function(st) {
-        return st[0] !== "blank";
-      }).map(function(st) {
-        return e(
-          "li",
-          { key: st[0] },
-          e(
-            "div",
-            { className: "bd-kind bd-tpl-card", "data-template": st[0] },
-            TEMPLATE_PIC[st[0]] && META[TEMPLATE_PIC[st[0]][0]] ? e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: TEMPLATE_PIC[st[0]][0], wide: TEMPLATE_PIC[st[0]][1] })) : e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
-            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
-            e(
-              "span",
-              { className: "bd-tpl-acts" },
-              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-new", onClick: function() {
-                addTemplate(st[0]);
-              }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
-              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function() {
-                addTemplate(st[0], true);
-              }, title: "At the end of " + frame2.name }, "Into " + frame2.name)
-            )
-          )
-        );
-      }));
-    };
-    var mineList = function(list) {
-      return e("ul", { className: "bd-mine", role: "list" }, list.map(function(c) {
-        var layers = 0;
-        (function walk(n) {
-          layers++;
-          (n.children || []).forEach(walk);
-        })(c.node);
-        return e(
-          "li",
-          { key: c.id, className: "bd-mine-item" },
-          e(
-            "button",
-            {
-              type: "button",
-              className: "bd-mine-btn",
-              "data-local": c.id,
-              title: c.name + ": drag onto a frame, or press to add. Built on " + c.tokens.slice(0, 6).join(", ") + (c.tokens.length > 6 ? "…" : ""),
-              onPointerDown: function(ev) {
-                startDrag(ev, { kind: "local", comp: c, type: c.node.type, label: c.name });
-              },
-              onClick: function() {
-                if (!justDragged.current) addLocal(c);
-              }
-            },
-            e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
-            e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))
-          ),
-          e(Dropdown, {
-            menu: true,
-            label: "Actions for " + c.name,
-            icon: "more",
-            iconOnly: true,
-            compact: true,
-            narrow: true,
-            alignEnd: true,
-            className: "bd-dd-icon",
-            options: [{ value: "add", label: "Add to " + frame2.name, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
-            onChange: function(v) {
-              if (v === "add") addLocal(c);
-              else if (v === "rename") renameComponent(c.id);
-              else if (v === "delete") removeComponent(c.id);
-            }
-          })
-        );
-      }));
-    };
-    var assetsPanel = function() {
-      var q = query.trim().toLowerCase();
-      var head2 = null;
-      if (q) {
-        var found = [];
-        DATA.groups.forEach(function(g) {
-          usableIn(g).forEach(function(n) {
-            if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
-          });
-        });
-        var foundMine = (library.components || []).filter(function(c) {
-          return c.name.toLowerCase().indexOf(q) >= 0;
-        });
-        return e(
-          "div",
-          { className: "bd-assets" },
-          head2,
-          foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
-          foundMine.length ? mineList(foundMine) : null,
-          e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle()),
-          found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
-          tileList(found)
-        );
-      }
-      if (!assetKind) {
-        return e(
-          "div",
-          { className: "bd-assets is-cards" },
-          head2,
-          e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
-            var note3 = k[3];
-            var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
-              return t + usableIn(g).length;
-            }, 0) + " to add";
-            return e("li", { key: k[0] }, e(
-              "button",
-              { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
-                setAssetKind(k[0]);
-              } },
-              kindPic(k[2]),
-              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
-            ));
-          }))
-        );
-      }
-      var kind = ASSET_KINDS.filter(function(k) {
-        return k[0] === assetKind;
-      })[0] || ASSET_KINDS[0];
-      var back = e(
-        "div",
-        { className: "bd-panel-head bd-gallery-head" },
-        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Assets", title: "Back to Assets", onClick: function() {
-          setAssetKind(null);
-        } }, e(Icon, { name: "left" })),
-        e("h2", { className: "bd-panel-title" }, kind[1])
-      );
-      if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head2, back, variablesPanel());
-      if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head2, back, templatesPanel());
-      if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head2, back, containersPanel());
-      var groups = groupsOf(kind[0]);
-      if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
-      var current2 = groups.filter(function(x) {
-        return x.id === category;
-      })[0] || groups[kind[0] === "components" && (library.components || []).length ? 0 : kind[0] === "components" ? 1 : 0];
-      var items = usableIn(current2);
-      if (current2.id === "mine") {
-        var mine = library.components || [];
-        return e(
-          "div",
-          { className: "bd-assets" },
-          head2,
-          back,
-          e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function(g) {
-            return e(
-              "button",
-              { key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(current2.id === g.id), onClick: function() {
-                setCategory(g.id);
-              } },
-              e(Icon, { name: g.id === "mine" ? "component" : GROUP_ICON[g.id] || "box" }),
-              e("span", { className: "bd-cat-label" }, g.label)
-            );
-          })),
-          e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
-          mine.length ? mineList(mine) : e(
-            "div",
-            { className: "bd-empty" },
-            e(Icon, { name: "component" }),
-            e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))
-          )
-        );
-      }
-      return e(
-        "div",
-        { className: "bd-assets" },
-        head2,
-        back,
-        groups.length > 1 ? e(
-          "div",
-          { className: "bd-cats", role: "group", "aria-label": "Categories" },
-          groups.map(function(g) {
-            var on = current2.id === g.id;
-            return e("button", {
-              key: g.id,
-              type: "button",
-              className: "bd-cat",
-              "aria-pressed": String(on),
-              title: g.label + ": " + usableIn(g).length + " to add",
-              onClick: function() {
-                setCategory(g.id);
-              }
-            }, e(Icon, { name: GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
-          })
-        ) : null,
-        e(
-          "div",
-          { className: "bd-assets-head" },
-          e("h3", { className: "bd-assets-title" }, current2.label, e("span", { className: "bd-count" }, items.length)),
-          viewToggle()
-        ),
-        items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
-        tileList(items)
-      );
     };
     var isOpen = function(n) {
       return nodeIsOpen(n, collapsed);
@@ -16546,12 +16544,12 @@
         if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function(ev) {
           startResize(ev, f, "r");
         } });
-        var picked = f.id === doc2.active && frameOn && !sel;
+        var picked2 = f.id === doc2.active && frameOn && !sel;
         var FRAME_EDGE = { nw: "lt", n: "t", ne: "rt", e: "r", se: "rb", s: "b", sw: "lb", w: "l" };
         return e(
           React.Fragment,
           { key: f.id },
-          picked ? e(
+          picked2 ? e(
             "div",
             { className: "bd-frame-box", style: { left: X, top: Y, width: W, height: H } },
             HANDLES_FREE.map(function(dir) {
@@ -17273,6 +17271,77 @@
       addPage: onAddPage,
       announce
     };
+    var onAddOrSwap = useEvent(function(type, swap) {
+      var s0 = selRef.current;
+      if (swap && s0.length) {
+        swapNode(s0[s0.length - 1], type, docRef.current.active);
+        return;
+      }
+      add(type);
+    });
+    var onAddLocal = useEvent(addLocal), onRenameComponent = useEvent(renameComponent), onRemoveComponent = useEvent(removeComponent), onApplyVar = useEvent(applyVar), onSetStyles = useEvent(setStyles), onAddTemplate = useEvent(addTemplate);
+    var onFrameAdd = useEvent(function(size, page, at2, opts) {
+      return frameOps.add(size, page, at2, opts);
+    });
+    var picked = useMemo(function() {
+      return nodesOf2(selection).filter(function(n) {
+        return n.type !== "Slot";
+      });
+    }, [selection, doc2]);
+    var pickedScope = useMemo(function() {
+      return picked.length ? scopeFor(picked) : null;
+    }, [picked]);
+    var assetsProps = {
+      query,
+      library,
+      kind: assetKind,
+      category,
+      view,
+      placeable,
+      picked,
+      scope: pickedScope,
+      pxMap,
+      used,
+      frameName: frame2.name,
+      justDragged,
+      setView,
+      setAssetKind,
+      setCategory,
+      startDrag: onStartDrag,
+      addOrSwap: onAddOrSwap,
+      addLocal: onAddLocal,
+      renameComponent: onRenameComponent,
+      removeComponent: onRemoveComponent,
+      applyVar: onApplyVar,
+      setStyles: onSetStyles,
+      announce,
+      addTemplate: onAddTemplate,
+      frameAdd: onFrameAdd
+    };
+    var onInsertAsset = useEvent(insertAsset), onAddToLibrary = useEvent(addToLibrary), onCutBackground = useEvent(cutBackground), onLibUpdate = useEvent(libUpdate), onReadBrandFile = useEvent(readBrandFile), onPlaceBrand = useEvent(placeBrand), onSetBrandPart = useEvent(setBrandPart);
+    var contentProps = {
+      query: contentQuery,
+      tab: libTab,
+      library,
+      busy: libBusy,
+      brandErr,
+      brand: brandNow(),
+      scopeNote: contentScopeNote(),
+      frameName: frame2.name,
+      justDragged,
+      startDrag: onStartDrag,
+      insertAsset: onInsertAsset,
+      addToLibrary: onAddToLibrary,
+      cutBackground: onCutBackground,
+      libUpdate: onLibUpdate,
+      readBrandFile: onReadBrandFile,
+      placeBrand: onPlaceBrand,
+      setBrandPart: onSetBrandPart,
+      announce,
+      setLibTab,
+      setBrandErr,
+      setThemeStamp
+    };
     var slot2 = wide ? document.getElementById("app-toolbar") : null;
     return e(
       React.Fragment,
@@ -17347,7 +17416,7 @@
             e(
               "div",
               { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? assetsPanel() : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : contentPanel()
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : e(Content, contentProps)
             ),
             left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
