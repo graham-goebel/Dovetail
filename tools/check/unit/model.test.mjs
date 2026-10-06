@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { produce } from "immer";
 import { make, makeFrame, locate, ops, cleanNode, clean, constrain } from "../../../assets/builder/model/tree.js";
 import { readLayout, readLiteral, readJsxElements } from "../../../assets/builder/model/paste.js";
-import { encode, decode } from "../../../assets/builder/model/share.js";
+import { encode, decode, cleanPanels } from "../../../assets/builder/model/share.js";
 
 const doc = (...children) => { const f = makeFrame("Home", "desktop"); f.root.children = children; return { frames: [f], active: f.id }; };
 const shape = (n) => { const kids = (n.children || []).filter((c) => c.type !== "Slot" || (c.children || []).length); return n.type + (kids.length ? "(" + kids.map(shape).join(",") + ")" : ""); };
@@ -249,4 +249,11 @@ test("a width or height relative to the parent or the screen is kept; anything e
     assert.equal(o.style.rw, undefined, JSON.stringify(bad) + " is dropped");
     assert.equal(r.length, 1, JSON.stringify(bad) + " is reported");
   }
+});
+
+test("saved panel widths are kept in range, in steps of 4, with the defaults for anything else", () => {
+  assert.deepEqual(cleanPanels(undefined), { left: 344, right: 312, leftClosed: false, rightClosed: false });
+  assert.deepEqual(cleanPanels({ left: 401, right: 9999, leftClosed: true, rightClosed: "yes" }), { left: 400, right: 480, leftClosed: true, rightClosed: false });
+  assert.deepEqual(cleanPanels({ left: 10, right: NaN }), { left: 280, right: 312, leftClosed: false, rightClosed: false });
+  assert.deepEqual(cleanPanels({ left: "500" }), { left: 344, right: 312, leftClosed: false, rightClosed: false });
 });

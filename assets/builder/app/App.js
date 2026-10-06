@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, IS_MAC, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -95,6 +95,11 @@ function App(props) {
   var canvasViewState = useState(prefs.canvas);
   var canvasView = canvasViewState[0], setCanvasView = canvasViewState[1];
   var viewRef = useRef(canvasView); viewRef.current = canvasView;
+  /* How wide the floating panels are, and which are folded away; kept per browser. */
+  var panelsState = useState(prefs.panels);
+  var panels = panelsState[0], setPanels = panelsState[1];
+  var railWState = useState(0);
+  var railW = railWState[0], setRailW = railWState[1];
   var guideDragState = useState(null);
   var guideDrag = guideDragState[0], setGuideDrag = guideDragState[1];
   var colInfoState = useState({});
@@ -508,8 +513,8 @@ function App(props) {
       saved: function () { return savedRef.current; } };
   }, []);
   useEffect(function () {
-    storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, canvas: canvasView })); });
-  }, [category, assetKind, view, tabByType, closedSecs, left, canvasView]);
+    storage(function (s) { s.setItem(PREFS_KEY, JSON.stringify({ category: category, kind: assetKind, view: view, tabs: tabByType, closed: closedSecs, left: left, canvas: canvasView, panels: panels })); });
+  }, [category, assetKind, view, tabByType, closedSecs, left, canvasView, panels]);
   useEffect(function () {
     var meta = projectRef.current;
     if (meta.stage === stageColor) return;
@@ -622,6 +627,68 @@ function App(props) {
     z = clampZoom(z);
     var wx = (sx - c.x) / c.z, wy = (sy - c.y) / c.z;
     setCam({ x: sx - wx * z, y: sy - wy * z, z: z });
+  };
+  /* Resizing a floating panel by its inner edge: steps of 4 between its
+     limits; past the minimum it folds away (the left one to its rail), and
+     back out of it opens it again. Double-click puts the default back. */
+  var PANEL_WORD = { left: "Left panel", right: "Inspector" };
+  var setPanel = function (side, w, closed) {
+    var b = PANELS[side];
+    setPanels(function (p) {
+      var n = Object.assign({}, p);
+      if (w != null) n[side] = Math.min(b.max, Math.max(b.min, Math.round(w / PANELS.step) * PANELS.step));
+      if (closed != null) n[side + "Closed"] = closed;
+      return n;
+    });
+  };
+  var startPanel = function (ev, side) {
+    if (ev.button !== 0) return;
+    ev.preventDefault();
+    var b = PANELS[side], p = panels, dir = side === "left" ? 1 : -1;
+    var from = p[side + "Closed"] ? (side === "left" ? railW : 0) : p[side];
+    var x0 = ev.clientX, last = null;
+    var move = function (mv) {
+      var raw = from + (mv.clientX - x0) * dir;
+      var closed = raw < b.min - PANELS.fold;
+      var w = Math.min(b.max, Math.max(b.min, Math.round(raw / PANELS.step) * PANELS.step));
+      last = { w: w, closed: closed };
+      /* Folded, it keeps the width it had before this drag, to open back to. */
+      setPanel(side, closed ? p[side] : w, closed);
+      setReadout({ x: mv.clientX, y: mv.clientY, text: closed ? "Fold away" : w + (w === b.min ? " · min" : w === b.max ? " · max" : "") });
+    };
+    var up = function () {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      document.documentElement.classList.remove("bd-is-resizing");
+      setReadout(null);
+      if (last) announce(last.closed ? PANEL_WORD[side] + " folded away" : PANEL_WORD[side] + " " + last.w + " wide");
+    };
+    document.documentElement.classList.add("bd-is-resizing");
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
+  var panelKey = function (ev, side) {
+    var b = PANELS[side], closed = panels[side + "Closed"], w = panels[side], dir = side === "left" ? 1 : -1, step = ev.shiftKey ? 16 : PANELS.step;
+    var to = null;
+    if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") to = (closed ? b.min : w + (ev.key === "ArrowRight" ? step : -step) * dir);
+    else if (ev.key === "Home") to = b.min;
+    else if (ev.key === "End") to = b.max;
+    else if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); setPanel(side, null, !closed); announce(PANEL_WORD[side] + (closed ? " open" : " folded away")); return; }
+    if (to == null) return;
+    ev.preventDefault();
+    setPanel(side, to, false);
+  };
+  var resetPanel = function (side) { setPanel(side, PANELS[side].def, false); announce(PANEL_WORD[side] + " back to " + PANELS[side].def + " wide"); };
+  var panelHandle = function (side) {
+    var b = PANELS[side], closed = panels[side + "Closed"];
+    if (side === "right" && closed) return e("button", { key: "show-right", type: "button", className: "bd-panel-show", title: "Show the inspector", "aria-label": "Show the inspector",
+      onClick: function () { setPanel("right", null, false); } }, e(Icon, { name: "panels" }));
+    return e("div", { key: "edge-" + side, className: cx("bd-panel-edge", "is-" + side), role: "separator", tabIndex: 0, "aria-orientation": "vertical",
+      "aria-label": "Resize the " + (side === "left" ? "left panel" : "inspector"), "aria-valuemin": b.min, "aria-valuemax": b.max, "aria-valuenow": closed ? b.min : panels[side],
+      "aria-valuetext": closed ? "Folded away" : panels[side] + " wide", title: closed ? "Drag to open · Double-click to reset" : "Drag to resize · Double-click to reset",
+      onPointerDown: function (ev) { startPanel(ev, side); }, onDoubleClick: function () { resetPanel(side); }, onKeyDown: function (ev) { panelKey(ev, side); } });
   };
   /* The floating panels cover the canvas's edges; what's left open between
      them is where frames are fitted and centred. */
@@ -5934,6 +6001,15 @@ function App(props) {
   var savedTitle = "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
   var hidePanels = wide && (bare || preview);
   hidePanelsRef.current = hidePanels;
+  var leftClosed = wide && panels.leftClosed, rightClosed = wide && panels.rightClosed;
+  /* A folded left panel is as wide as its rail; measure it once it's folded,
+     so the tool bar centres and a drag back out starts from there. */
+  useEffect(function () {
+    if (!leftClosed || !leftPanelRef.current) return;
+    var shell = leftPanelRef.current.parentNode;
+    var w = Math.round(leftPanelRef.current.getBoundingClientRect().right - shell.getBoundingClientRect().left);
+    if (w > 0 && w !== railW) setRailW(w);
+  }, [leftClosed, wide, home]);
   var zoomText = Math.round(cam.z * 100) + "%";
 
   /* The middle of the bar says where you are: the project, and with
@@ -6907,14 +6983,15 @@ function App(props) {
         return e("button", { key: t[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(pane === t[0]), onClick: function () { setPane(t[0]); } },
           t[1], t[0] === "edit" && selectedNodes.length ? e("span", { className: "bd-tab-note" }, " · " + (selectedNodes.length > 1 ? selectedNodes.length : selectedNodes[0].type)) : null);
       })),
-    e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined },
+    e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined,
+      style: wide ? { "--bd-left-w": (leftClosed ? railW || 88 : panels.left) + "px", "--bd-right-w": (rightClosed ? 0 : panels.right) + "px" } : undefined },
       e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || undefined },
         e("div", { className: "bd-left-tabs bd-rail" },
           e("div", { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
             RAIL.map(function (r) {
               var isHome = r[0] === "home";
-              return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(isHome ? home : !home && left === r[0]), "aria-controls": isHome ? undefined : "bd-left-body", title: r[2],
-                onClick: isHome ? openProjects : function () { setLeft(r[0]); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
+              return e("button", { key: r[0], type: "button", role: "tab", className: "bd-tab", "aria-selected": String(isHome ? home : !home && !leftClosed && left === r[0]), "aria-controls": isHome ? undefined : "bd-left-body", title: r[2],
+                onClick: isHome ? openProjects : function () { setLeft(r[0]); if (leftClosed) setPanel("left", null, false); } }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
             })),
           e("button", { type: "button", className: cx("bd-tab bd-rail-account", account.status === "in" && "is-in"), "aria-haspopup": "dialog", "aria-label": account.status === "in" ? "Account: signed in as " + account.account.email : "Account",
             title: account.status === "in" ? "Signed in as " + account.account.email : account.status === "off" ? "Account (the cloud isn't connected yet)" : "Sign in or create an account", onClick: openAccount },
@@ -6929,7 +7006,8 @@ function App(props) {
             : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery })
             : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery }))),
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
-      e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || undefined }, inspector)),
+      e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || undefined }, inspector),
+      wide && !hidePanels && !home ? [panelHandle("left"), panelHandle("right")] : null),
     homePage(),
     readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
     drag && drag.ghost ? (function () {

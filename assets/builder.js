@@ -34,6 +34,7 @@
   var MIN_ZOOM = 0.05;
   var MAX_ZOOM = 4;
   var ZOOM_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+  var PANELS = { left: { min: 280, max: 520, def: 344 }, right: { min: 280, max: 480, def: 312 }, step: 4, fold: 72 };
   var META = DATA.components;
   META.Slot = { blurb: "A part of a component that holds other components", group: null, container: true, builder: true, href: null, props: [] };
   var SLOT_ACCEPTS = {
@@ -3695,6 +3696,14 @@
       });
     });
   }
+  function cleanPanels(raw) {
+    var q = raw && typeof raw === "object" ? raw : {};
+    var width = function(side2) {
+      var b = PANELS[side2], v = q[side2];
+      return typeof v === "number" && isFinite(v) ? Math.min(b.max, Math.max(b.min, Math.round(v / PANELS.step) * PANELS.step)) : b.def;
+    };
+    return { left: width("left"), right: width("right"), leftClosed: q.leftClosed === true, rightClosed: q.rightClosed === true };
+  }
   function loadPrefs() {
     var p = storage(function(s) {
       return JSON.parse(s.getItem(PREFS_KEY) || "null");
@@ -3715,7 +3724,9 @@
           if (typeof p.canvas[k] === "boolean") o[k] = p.canvas[k];
           return o;
         }, {}) : {}
-      )
+      ),
+      /* How wide each floating panel is, and whether it's folded away. */
+      panels: cleanPanels(p.panels)
     };
   }
   function copyText(text2) {
@@ -6677,6 +6688,10 @@
     var canvasView = canvasViewState[0], setCanvasView = canvasViewState[1];
     var viewRef = useRef(canvasView);
     viewRef.current = canvasView;
+    var panelsState = useState(prefs.panels);
+    var panels = panelsState[0], setPanels = panelsState[1];
+    var railWState = useState(0);
+    var railW = railWState[0], setRailW = railWState[1];
     var guideDragState = useState(null);
     var guideDrag = guideDragState[0], setGuideDrag = guideDragState[1];
     var colInfoState = useState({});
@@ -7117,9 +7132,9 @@
     }, []);
     useEffect(function() {
       storage(function(s) {
-        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left, canvas: canvasView }));
+        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left, canvas: canvasView, panels }));
       });
-    }, [category, assetKind, view, tabByType, closedSecs, left, canvasView]);
+    }, [category, assetKind, view, tabByType, closedSecs, left, canvasView, panels]);
     useEffect(function() {
       var meta = projectRef.current;
       if (meta.stage === stageColor) return;
@@ -7251,6 +7266,98 @@
       z = clampZoom(z);
       var wx = (sx - c.x) / c.z, wy = (sy - c.y) / c.z;
       setCam({ x: sx - wx * z, y: sy - wy * z, z });
+    };
+    var PANEL_WORD = { left: "Left panel", right: "Inspector" };
+    var setPanel = function(side2, w, closed) {
+      var b = PANELS[side2];
+      setPanels(function(p) {
+        var n = Object.assign({}, p);
+        if (w != null) n[side2] = Math.min(b.max, Math.max(b.min, Math.round(w / PANELS.step) * PANELS.step));
+        if (closed != null) n[side2 + "Closed"] = closed;
+        return n;
+      });
+    };
+    var startPanel = function(ev, side2) {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      var b = PANELS[side2], p = panels, dir = side2 === "left" ? 1 : -1;
+      var from = p[side2 + "Closed"] ? side2 === "left" ? railW : 0 : p[side2];
+      var x0 = ev.clientX, last = null;
+      var move = function(mv) {
+        var raw = from + (mv.clientX - x0) * dir;
+        var closed = raw < b.min - PANELS.fold;
+        var w = Math.min(b.max, Math.max(b.min, Math.round(raw / PANELS.step) * PANELS.step));
+        last = { w, closed };
+        setPanel(side2, closed ? p[side2] : w, closed);
+        setReadout({ x: mv.clientX, y: mv.clientY, text: closed ? "Fold away" : w + (w === b.min ? " · min" : w === b.max ? " · max" : "") });
+      };
+      var up = function() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        window.removeEventListener("pointercancel", up);
+        document.documentElement.classList.remove("bd-is-resizing");
+        setReadout(null);
+        if (last) announce(last.closed ? PANEL_WORD[side2] + " folded away" : PANEL_WORD[side2] + " " + last.w + " wide");
+      };
+      document.documentElement.classList.add("bd-is-resizing");
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      window.addEventListener("pointercancel", up);
+    };
+    var panelKey = function(ev, side2) {
+      var b = PANELS[side2], closed = panels[side2 + "Closed"], w = panels[side2], dir = side2 === "left" ? 1 : -1, step = ev.shiftKey ? 16 : PANELS.step;
+      var to = null;
+      if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") to = closed ? b.min : w + (ev.key === "ArrowRight" ? step : -step) * dir;
+      else if (ev.key === "Home") to = b.min;
+      else if (ev.key === "End") to = b.max;
+      else if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        setPanel(side2, null, !closed);
+        announce(PANEL_WORD[side2] + (closed ? " open" : " folded away"));
+        return;
+      }
+      if (to == null) return;
+      ev.preventDefault();
+      setPanel(side2, to, false);
+    };
+    var resetPanel = function(side2) {
+      setPanel(side2, PANELS[side2].def, false);
+      announce(PANEL_WORD[side2] + " back to " + PANELS[side2].def + " wide");
+    };
+    var panelHandle = function(side2) {
+      var b = PANELS[side2], closed = panels[side2 + "Closed"];
+      if (side2 === "right" && closed) return e("button", {
+        key: "show-right",
+        type: "button",
+        className: "bd-panel-show",
+        title: "Show the inspector",
+        "aria-label": "Show the inspector",
+        onClick: function() {
+          setPanel("right", null, false);
+        }
+      }, e(Icon, { name: "panels" }));
+      return e("div", {
+        key: "edge-" + side2,
+        className: cx("bd-panel-edge", "is-" + side2),
+        role: "separator",
+        tabIndex: 0,
+        "aria-orientation": "vertical",
+        "aria-label": "Resize the " + (side2 === "left" ? "left panel" : "inspector"),
+        "aria-valuemin": b.min,
+        "aria-valuemax": b.max,
+        "aria-valuenow": closed ? b.min : panels[side2],
+        "aria-valuetext": closed ? "Folded away" : panels[side2] + " wide",
+        title: closed ? "Drag to open · Double-click to reset" : "Drag to resize · Double-click to reset",
+        onPointerDown: function(ev) {
+          startPanel(ev, side2);
+        },
+        onDoubleClick: function() {
+          resetPanel(side2);
+        },
+        onKeyDown: function(ev) {
+          panelKey(ev, side2);
+        }
+      });
     };
     var insets = function() {
       var st = stageRef.current, lp = leftPanelRef.current, rp = rightRef.current;
@@ -15535,6 +15642,13 @@
     var savedTitle = "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
     var hidePanels = wide && (bare || preview);
     hidePanelsRef.current = hidePanels;
+    var leftClosed = wide && panels.leftClosed, rightClosed = wide && panels.rightClosed;
+    useEffect(function() {
+      if (!leftClosed || !leftPanelRef.current) return;
+      var shell = leftPanelRef.current.parentNode;
+      var w = Math.round(leftPanelRef.current.getBoundingClientRect().right - shell.getBoundingClientRect().left);
+      if (w > 0 && w !== railW) setRailW(w);
+    }, [leftClosed, wide, home]);
     var zoomText = Math.round(cam.z * 100) + "%";
     var titleCrumbs = function() {
       var sep = function(k) {
@@ -17044,7 +17158,13 @@
       ),
       e(
         "div",
-        { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving"), "data-pane": pane, inert: home ? "" : void 0, "aria-hidden": home ? "true" : void 0 },
+        {
+          className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"),
+          "data-pane": pane,
+          inert: home ? "" : void 0,
+          "aria-hidden": home ? "true" : void 0,
+          style: wide ? { "--bd-left-w": (leftClosed ? railW || 88 : panels.left) + "px", "--bd-right-w": (rightClosed ? 0 : panels.right) + "px" } : void 0
+        },
         e(
           "aside",
           { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || void 0 },
@@ -17061,11 +17181,12 @@
                   type: "button",
                   role: "tab",
                   className: "bd-tab",
-                  "aria-selected": String(isHome ? home : !home && left === r[0]),
+                  "aria-selected": String(isHome ? home : !home && !leftClosed && left === r[0]),
                   "aria-controls": isHome ? void 0 : "bd-left-body",
                   title: r[2],
                   onClick: isHome ? openProjects : function() {
                     setLeft(r[0]);
+                    if (leftClosed) setPanel("left", null, false);
                   }
                 }, e(Icon, { name: r[3] }), e("span", { className: "bd-rail-label" }, r[1]));
               })
@@ -17096,7 +17217,8 @@
           )
         ),
         e("div", { className: "bd-center" }, slot2 ? null : toolbar, stage),
-        e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || void 0 }, inspector)
+        e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || void 0 }, inspector),
+        wide && !hidePanels && !home ? [panelHandle("left"), panelHandle("right")] : null
       ),
       homePage(),
       readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
