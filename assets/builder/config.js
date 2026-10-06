@@ -4,6 +4,13 @@ var mountEl = document.getElementById("builder");
 var DATA = window.DovetailBuilderData || { components: {}, tokens: {}, frames: [], groups: [], columnWidths: [], rootGaps: [] };
 
 var e = React.createElement;
+/* A function whose identity never changes and calls the latest one given,
+   so a handler made fresh each render can reach a memoized component. */
+function useEvent(fn) {
+  var ref = useRef(fn);
+  ref.current = fn;
+  return useCallback(function () { return ref.current.apply(null, arguments); }, []);
+}
 var useState = React.useState, useEffect = React.useEffect, useRef = React.useRef, useCallback = React.useCallback, useMemo = React.useMemo;
 
 var STORE_KEY = "dovetail-builder";
@@ -341,4 +348,4 @@ function isContainer(type) { return type === "Root" || !!(META[type] && META[typ
 function mql(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
 function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
 
-export { IS_MAC, PANELS, SHORTCUTS, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
+export { IS_MAC, PANELS, SHORTCUTS, useEvent, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
