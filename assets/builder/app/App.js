@@ -1,19 +1,20 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
-import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
+import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
+import { CodeDialog, ComponentDialog, ImportDialog, KeysDialog, PlayDialog, VersionsDialog, componentCheck } from "./dialogs.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide, ConstraintBox } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -3774,48 +3775,6 @@ function App(props) {
     var dlg = keysRef.current;
     if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
   };
-  var keysDialog = function () {
-    var dialogProps = { className: "bd-code bd-keys", ref: keysRef, "aria-labelledby": "bd-keys-title", onClose: function () { setShown(null); } };
-    if (shown !== "keys") return e("dialog", dialogProps);
-    var tools = Object.keys(TOOL_INFO).map(function (k) { return TOOL_INFO[k]; }).filter(function (t) { return t.key; })
-      .map(function (t) { return [t.label.replace(/:.*$/, ""), t.key]; });
-    var groups = [["Tools", tools]].concat(SHORTCUTS);
-    return e("dialog", dialogProps,
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-keys-title" }, "Keyboard shortcuts"),
-          e("p", { className: "bd-inspect-sub" }, IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function () { keysRef.current.close(); } }, e(Icon, { name: "close" })))),
-      e("div", { className: "bd-keys-groups" }, groups.map(function (g) {
-        return e("section", { key: g[0], className: "bd-keys-group", "aria-labelledby": "bd-keys-" + g[0].replace(/\W+/g, "-") },
-          e("h3", { id: "bd-keys-" + g[0].replace(/\W+/g, "-") }, g[0]),
-          e("dl", null, g[1].map(function (row) {
-            return e(React.Fragment, { key: row[0] },
-              e("dt", null, row[0]),
-              e("dd", null, row[1].split(", ").map(function (k, i) { return e("kbd", { key: i }, kbd(k)); })));
-          })));
-      })));
-  };
-
-  var versionsDialog = function () {
-    var dialogProps = { className: "bd-code bd-versions", ref: versionsRef, "aria-labelledby": "bd-versions-title", onClose: function () { setShown(null); } };
-    if (shown !== "versions") return e("dialog", dialogProps);
-    return e("dialog", dialogProps,
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-versions-title" }, "Versions of " + project.name),
-          e("p", { className: "bd-inspect-sub" }, "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-btn", onClick: keepVersion }, e(Icon, { name: "plus" }), "Keep this version"),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { versionsRef.current.close(); } }, e(Icon, { name: "close" })))),
-      versions.length ? e("ul", { className: "bd-versions-list", role: "list" }, versions.map(function (v) {
-        return e("li", { key: v.key, className: "bd-version" },
-          e("span", { className: "bd-version-when" }, new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })),
-          e("span", { className: "bd-version-what" }, v.label + " · " + v.frames + (v.frames === 1 ? " frame" : " frames")),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { restoreVersion(v); } }, "Restore"));
-      })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now."));
-  };
 
   /* Starting over, or a pasted layout. Templates add; only this replaces. */
   var startFrom = function (id) {
@@ -3837,35 +3796,6 @@ function App(props) {
   var compRef = useRef(null);
   var compState = useState(null);
   var compDraft = compState[0], setCompDraft = compState[1];
-  var componentCheck = function (node) {
-    var issues = [], tokens = {}, count = 0;
-    (function walk(n, depth) {
-      count++;
-      var label = nameOf(n);
-      if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
-      Object.keys(n.style || {}).forEach(function (k) {
-        var v = n.style[k];
-        if (k === "x" || k === "y") {
-          if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label + " is placed by position. A component's layers sit in its flow." });
-          return;
-        }
-        if (k === "fill" || k === "color") { issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." }); return; }
-        var def = DATA.tokens[k];
-        var o = def ? def.options.filter(function (x) { return x.value === v; })[0] : null;
-        if (o) o.tokens.forEach(function (t) { tokens[t] = 1; });
-      });
-      if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
-      Object.keys(n.props || {}).forEach(function (k) {
-        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
-      });
-      (n.children || []).forEach(function (c) { walk(c, depth + 1); });
-    })(node, 0);
-    var list = Object.keys(tokens);
-    if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
-    if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
-    if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
-    return { issues: issues, tokens: list, count: count };
-  };
   /* The selection as one node: itself, or several side by side in a Group. */
   var componentSource = function () {
     var d = docRef.current;
@@ -3917,34 +3847,6 @@ function App(props) {
     if (dlg && dlg.open) dlg.close();
     setCompDraft(null);
     announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
-  };
-  var componentDialog = function () {
-    var node = compDraft ? componentSource() : null;
-    var check = node ? componentCheck(node) : null;
-    var errors = check ? check.issues.filter(function (i) { return i.level === "error"; }) : [];
-    var warns = check ? check.issues.filter(function (i) { return i.level === "warn"; }) : [];
-    var fixable = errors.some(function (i) { return i.fix; });
-    return e("dialog", { className: "bd-code bd-comp-dlg", ref: compRef, "aria-labelledby": "bd-comp-title", onClose: function () { setCompDraft(null); } },
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-comp-title" }, "Create component"),
-          e("p", { className: "bd-inspect-sub" }, "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { compRef.current.close(); } }, e(Icon, { name: "close" })))),
-      check ? e("div", { className: "bd-comp-body" },
-        e("label", { className: "bd-field" }, e("span", { className: "bd-field-label" }, "Name"),
-          e("input", { className: "bd-input bd-comp-name", type: "text", maxLength: 60, value: compDraft.name, onChange: function (ev) { var v = ev.target.value; setCompDraft(function (c) { return c ? Object.assign({}, c, { name: v }) : c; }); } })),
-        e("div", { className: cx("bd-comp-status", errors.length ? "is-blocked" : "is-ready"), role: "status" },
-          e(Icon, { name: errors.length ? "alert" : "check" }),
-          errors.length ? errors.length + (errors.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check.count + (check.count === 1 ? " layer" : " layers") + " on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens")),
-        errors.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors.concat(warns).map(function (i, k) {
-          return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
-        })) : null,
-        check.tokens.length ? e("details", { className: "bd-comp-tokens" }, e("summary", null, "The tokens it's built on (" + check.tokens.length + ")"),
-          e("ul", null, check.tokens.map(function (t) { return e("li", { key: t }, e("code", null, t)); }))) : null,
-        e("div", { className: "bd-import-actions" },
-          e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !!errors.length, onClick: saveComponent }, e(Icon, { name: "component" }), "Create component"),
-          fixable ? e("button", { type: "button", className: "bd-btn", onClick: fixComponent, title: "Takes out custom colours and positions inside it, so it uses the system's" }, "Use the system's instead") : null)) : null);
   };
   var removeComponent = function (id) {
     setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).filter(function (c) { return c.id !== id; }); return n; });
@@ -6814,88 +6716,6 @@ function App(props) {
     if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale, pageWidth: fr.pageWidth, gutter: fr.gutter, flow: fr.flow, clip: fr.clip, scroll: fr.scroll }, root: fr.root }, { preview: true, hug: false });
   };
   useEffect(function () { if (play) renderPlay(); }, [play && play.fid, doc]);
-  var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
-  var playDialog = function () {
-    var fr = play && frameById(doc, play.fid);
-    if (!fr) return null;
-    var pageNow = pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0];
-    var canBack = !!(play.stack && play.stack.length);
-    /* How big the screen is drawn: at first no larger than itself and small
-       enough to fit; then fit to the stage, fit its width, its actual size,
-       or stepped in and out. Larger than the stage, it scrolls. */
-    var fitAll = playBox.w ? Math.min((playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
-    var fitW = playBox.w ? (playBox.w - 32) / fr.width : 0.5;
-    var zoom = play.zoom || "auto";
-    var sc = zoom === "fit" ? fitAll : zoom === "width" ? fitW : zoom === "actual" ? 1 : typeof zoom === "number" ? zoom : Math.min(1, fitAll);
-    sc = Math.max(0.1, Math.min(4, sc));
-    var stepZoom = function (dir) {
-      var next = dir > 0 ? PLAY_STEPS.filter(function (z) { return z > sc + 0.001; })[0] : PLAY_STEPS.filter(function (z) { return z < sc - 0.001; }).pop();
-      if (next) setPlay(Object.assign({}, play, { zoom: next }));
-    };
-    var hs = playHeights(fr.width);
-    /* A theater: the screen alone on a dark stage, its name and Close at
-       the top, and the screen sizes in a bar along the foot where the
-       canvas keeps its tools. */
-    return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: playClosed,
-      onKeyDown: function (ev) {
-        if (canBack && (ev.key === "Backspace" || (ev.altKey && ev.key === "ArrowLeft"))) { ev.preventDefault(); playBack(); return; }
-        if (ev.metaKey || ev.ctrlKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
-        var to = ev.key === "-" ? -1 : ev.key === "+" || ev.key === "=" ? 1 : 0;
-        if (to) { ev.preventDefault(); stepZoom(to); return; }
-        var mode = ev.shiftKey && { Digit1: "fit", Digit2: "width", Digit0: "actual" }[ev.code];
-        if (mode) { ev.preventDefault(); setPlay(Object.assign({}, play, { zoom: mode })); }
-      } },
-      e("div", { className: "bd-play-head" },
-        canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: playBack }, e(Icon, { name: "left" })) : null,
-        e("div", { className: "bd-play-intro" },
-          e("h2", { id: "bd-play-title" }, (pageNow && pagesOf(project).length > 1 ? pageNow.name + " › " : "") + fr.name),
-          e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")),
-        e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function () { playRef.current.close(); } }, e(Icon, { name: "close" }))),
-      e("div", { className: "bd-play-stage", ref: playStageRef },
-        e("div", { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
-          e("iframe", { ref: playFrameRef, src: frameSrc, title: fr.name + ", " + fr.width + " by " + play.h, onLoad: renderPlay,
-            style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))),
-      e("div", { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height and zoom" },
-        e(Segmented, { label: "Screen height", value: play.h, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { h: v })); },
-          options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) }),
-        e("span", { className: "bd-play-sep", "aria-hidden": true }),
-        e("div", { className: "bd-play-zoom", role: "group", "aria-label": "Zoom" },
-          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom out", title: "Zoom out (-)", disabled: sc <= PLAY_STEPS[0] + 0.001, onClick: function () { stepZoom(-1); } }, e(Icon, { name: "minus" })),
-          e("output", { className: "bd-play-pct", "aria-live": "polite" }, Math.round(sc * 100) + "%"),
-          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom in", title: "Zoom in (+)", disabled: sc >= PLAY_STEPS[PLAY_STEPS.length - 1] - 0.001, onClick: function () { stepZoom(1); } }, e(Icon, { name: "plus" }))),
-        e(Segmented, { label: "Fit", className: "bd-play-fit", value: typeof zoom === "string" && zoom !== "auto" ? zoom : undefined, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { zoom: v })); },
-          options: [{ value: "fit", label: "Fit", title: "Fit to screen (Shift+1)" }, { value: "width", label: "Width", title: "Fit width (Shift+2)" }, { value: "actual", label: "100%", title: "Actual size (Shift+0)" }] })));
-  };
-
-  var importDialog = function () {
-    var read = readLayout(importText);
-    var ok = read && !read.error;
-    var formatHref = mountEl.getAttribute("data-format") || "assets/builder-layouts.md";
-    return e("dialog", { className: "bd-code bd-import", ref: importRef, "aria-labelledby": "bd-import-title" },
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-import-title" }, "Paste a layout"),
-          e("p", { className: "bd-inspect-sub" }, "Paste builder JSON (from Claude, a teammate or Copy layout JSON), a builder link, or JSX with Dovetail components (from the docs or the Code dialog). Only the components, props and tokens the builder can set come in. ",
-            e("a", { href: formatHref, target: "_blank", rel: "noopener" }, "The layout format"), ".")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { importRef.current.close(); } }, e(Icon, { name: "close" })))),
-      e("div", { className: "bd-import-body" },
-        e("textarea", { className: "bd-import-text", "aria-label": "Layout JSON, JSX or link", spellCheck: false, value: importText, placeholder: '{ "frames": [ { "name": "Home", "width": 1280, "hug": true, "root": { "children": [ { "type": "HeroBlock" } ] } } ] }',
-          onChange: function (ev) { setImportText(ev.target.value); } }),
-        e("div", { className: "bd-import-report", role: "status", "aria-live": "polite" },
-          !read ? e("p", { className: "bd-sec-empty" }, "Nothing pasted yet.")
-            : read.error ? e("p", { className: "bd-import-error" }, e(Icon, { name: "alert" }), read.error)
-            : e(React.Fragment, null,
-              e("p", { className: "bd-import-ok" }, e(Icon, { name: "check" }),
-                read.doc.frames.length + (read.doc.frames.length === 1 ? " frame, " : " frames, ") + read.layers + (read.layers === 1 ? " layer" : " layers") + ": " + read.doc.frames.map(function (f) { return f.name + " (" + f.width + (f.hug ? " wide, hugging" : " × " + f.height) + ")"; }).join(", ")),
-              read.report.length ? e("div", { className: "bd-import-dropped" },
-                e("p", null, read.report.length + (read.report.length === 1 ? " thing will be left out:" : " things will be left out:")),
-                e("ul", null, read.report.slice(0, 12).map(function (line, i) { return e("li", { key: i }, line); })),
-                read.report.length > 12 ? e("p", null, "and " + (read.report.length - 12) + " more.") : null) : e("p", { className: "bd-sec-empty" }, "Everything in it comes in."))),
-        e("div", { className: "bd-import-actions" },
-          e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !ok, onClick: function () { importLayout("add"); } }, e(Icon, { name: "plus" }), ok ? "Add " + (read.doc.frames.length === 1 ? "the frame" : read.doc.frames.length + " frames") : "Add"),
-          e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function () { importLayout("replace"); } }, "Replace all frames"))));
-  };
 
   /* Nothing picked, not even a frame: the builder's own settings. */
   var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
@@ -6974,6 +6794,22 @@ function App(props) {
   var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
     : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes)
     : frameOn ? frameInspector() : builderInspector();
+  /* The dialogs (dialogs.js) are memoized, so what they take keeps one
+     identity across renders: handlers through useEvent, the component
+     draft's node remembered until the draft, document or selection change. */
+  var closeShown = useEvent(function () { setShown(null); });
+  var closeComponent = useEvent(function () { setCompDraft(null); });
+  var onKeepVersion = useEvent(keepVersion), onRestoreVersion = useEvent(restoreVersion);
+  var onSaveComponent = useEvent(saveComponent), onFixComponent = useEvent(fixComponent);
+  var onImportLayout = useEvent(importLayout);
+  var onCopyCode = useEvent(function () { copyText(code).then(function () { announce("Code copied"); }); });
+  var onExportImage = useEvent(function (type) { exportImage(frame.id, type, { scale: exportScale, id: codePick }); });
+  var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function () { share(); });
+  var onPlayClosed = useEvent(playClosed), onPlayBack = useEvent(playBack), onRenderPlay = useEvent(renderPlay);
+  var compNode = useMemo(function () { return compDraft ? componentSource() : null; }, [compDraft, doc, selection]);
+  var playPage = play ? pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0] : null;
+  var playPageName = playPage && pagesOf(project).length > 1 ? playPage.name : null;
+
   var slot = wide ? document.getElementById("app-toolbar") : null;
 
   return e(React.Fragment, null,
@@ -7016,27 +6852,14 @@ function App(props) {
       return e("div", { className: cx("bd-ghost-el", g.flat && "is-flat"), style: { left: x + "px", top: y + "px", width: g.w * z + "px", height: g.h * z + "px" }, "aria-hidden": true },
         e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } }));
     })() : drag && !drag.inside ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
-    e("dialog", { className: "bd-code", ref: dialogRef, "aria-labelledby": "bd-code-title" },
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame.name)),
-          e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (codePick ? codeTitle : frame.name) + " as a picture, or every frame as layout JSON.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { copyText(code).then(function () { announce("Code copied"); }); } }, e(Icon, { name: "copy" }), "Copy code"),
-          e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
-          e(Segmented, { label: "Picture scale", className: "bd-export-scale", value: String(exportScale), onChange: function (v) { if (v) setExportScale(Number(v)); },
-            options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }] }),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "png", { scale: exportScale, id: codePick }); }, title: (codeTitle || frame.name) + " as a PNG, at " + exportScale + "x" }, e(Icon, { name: "image" }), "PNG"),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "jpeg", { scale: exportScale, id: codePick }); }, title: (codeTitle || frame.name) + " as a JPG, at " + exportScale + "x" }, "JPG"),
-          e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { share(); }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame.name }, e(Icon, { name: "link" }), "Copy link"),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
-      e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
-    importDialog(),
-    versionsDialog(),
-    keysDialog(),
-    componentDialog(),
-    playDialog(),
+    e(CodeDialog, { dialogRef: dialogRef, code: code, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
+      onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare }),
+    e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
+    e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions: versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
+    e(KeysDialog, { dialogRef: keysRef, open: shown === "keys", onClose: closeShown }),
+    e(ComponentDialog, { dialogRef: compRef, draft: compDraft, setDraft: setCompDraft, node: compNode, onClose: closeComponent, onSave: onSaveComponent, onFix: onFixComponent }),
+    e(PlayDialog, { dialogRef: playRef, frameRef: playFrameRef, stageRef: playStageRef, play: play, setPlay: setPlay, box: playBox, frame: play ? frameById(doc, play.fid) : null,
+      pageName: playPageName, frameSrc: frameSrc, onClose: onPlayClosed, onBack: onPlayBack, onLoad: onRenderPlay }),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
     menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));
