@@ -870,13 +870,9 @@
     var root = doc.documentElement;
 
     /* An app page (the builder) keeps its own chrome fixed, so the tools look
-       the same whatever theme is being tried; only dark mode follows. Its
-       frames still take the whole theme. */
-    if (root.hasAttribute("data-theme-fixed")) {
-      root.setAttribute("data-theme", cfg.dark ? "dark" : "light");
-      root.classList.toggle("dark", !!cfg.dark);
-      return;
-    }
+       the same whatever theme is being tried, and chooses its own colour mode
+       (its Dark mode switch). Its frames still take the whole theme. */
+    if (root.hasAttribute("data-theme-fixed")) return;
 
     var previous = root.__dovetailApplied || [];
     previous.forEach(function (name) {

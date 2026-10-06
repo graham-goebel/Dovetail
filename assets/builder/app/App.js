@@ -16,6 +16,10 @@ import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PA
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
+/* The builder's own colour mode, dark unless this browser chose light. The
+   frames keep their own setting each, and Configure's dark mode reaches them,
+   not these tools. builder.html reads the same key before first paint. */
+var DARK_KEY = "dovetail-builder-dark";
 var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
 
 /* Past this many frames, only frames near the view stay live. */
@@ -2839,6 +2843,19 @@ function App(props) {
   var homeSortState = useState(function () { var v = storage(function (st) { return st.getItem(HOME_SORT_KEY); }); return HOME_SORTS.some(function (o) { return o.value === v; }) ? v : "recent"; });
   var homeSort = homeSortState[0], setHomeSortState = homeSortState[1];
   var setHomeSort = function (v) { setHomeSortState(v); storage(function (st) { st.setItem(HOME_SORT_KEY, v); }); };
+  var darkState = useState(function () { return storage(function (st) { return st.getItem(DARK_KEY); }) !== "0"; });
+  var dark = darkState[0];
+  var setDark = function (v) { darkState[1](!!v); storage(function (st) { st.setItem(DARK_KEY, v ? "1" : "0"); }); };
+  useEffect(function () {
+    var r = document.documentElement;
+    r.classList.toggle("dark", dark);
+    r.setAttribute("data-theme", dark ? "dark" : "light");
+  }, [dark]);
+  var modeSwitch = function (className) {
+    return e("span", { className: cx("bd-mode", className) },
+      e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
+      e(Switch, { value: dark, labelledBy: "bd-mode-label", onChange: setDark }));
+  };
   var renamingGroupState = useState(null);
   var renamingGroup = renamingGroupState[0], setRenamingGroup = renamingGroupState[1];
   /* The file being opened from Home, which shows it loading meanwhile. */
@@ -3475,6 +3492,7 @@ function App(props) {
               ? e(Renamable, { className: "bd-home-title", value: inGroup.name, label: "Project name", startEditing: true, onChange: function (v) { renameGroup(inGroup.id, v); } })
               : e("h1", { id: "bd-projects-title", className: "bd-home-title", onDoubleClick: inGroup ? function () { setRenamingGroup(inGroup.id); } : undefined, title: inGroup ? "Double-click to rename" : undefined }, inGroup ? inGroup.name : "Home")),
           e("div", { className: "bd-code-actions bd-home-actions" },
+            modeSwitch("bd-home-mode"),
             e("button", { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account.status === "in" ? "Signed in as " + account.account.email : account.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
               e(Icon, { name: "user" }), account.status === "in" ? "Account" : "Sign in"),
             e(Dropdown, { menu: true, label: "New", placeholder: "New", icon: "plus", compact: true, alignEnd: true, className: "bd-home-new",
@@ -5531,6 +5549,7 @@ function App(props) {
         options: [
           { value: "link", label: sel ? "Copy link to this layer" : "Copy link to " + frame.name, icon: "link" },
           { value: "projects", label: "Home", icon: "home" },
+          { value: "mode", label: dark ? "Light mode" : "Dark mode", icon: dark ? "sun" : "moon", hint: "The builder's own tools" },
           { value: "versions", label: "Versions", icon: "rotate" },
           { value: "duplicate", label: "Duplicate", icon: "copy" },
           { value: "export", label: "Download file", icon: "exportOut" },
@@ -5545,6 +5564,7 @@ function App(props) {
           else if (v === "picture") framePicture();
           else if (v === "auto-picture") autoPicture();
           else if (v === "projects") openProjects();
+          else if (v === "mode") setDark(!dark);
           else if (v === "versions") openVersions();
           else if (v === "duplicate") duplicateProject(project.id);
           else if (v === "export") exportProject(project.id);

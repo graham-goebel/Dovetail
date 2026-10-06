@@ -5120,6 +5120,25 @@ input.bd-folder-name {
   align-items: center;
 }
 
+/* Dark mode: the builder's own switch, beside Account on Home. */
+.bd-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-sm);
+}
+.bd-mode-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+}
+@media (max-width: 599px) {
+  .bd-home-mode .bd-mode-word {
+    display: none;
+  }
+}
+
 /* New: the one primary button, a menu of what can be made. */
 .bd-home-new.bd-dd {
   width: auto;

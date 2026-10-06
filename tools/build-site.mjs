@@ -934,17 +934,18 @@ function page({ title, lede, body, active, root, wide = false, home = false, app
 <script>
   /* The saved configure, applied before first paint so no page flashes the default
      theme on its way to the chosen one. assets/theme.js owns everything after.
-     An app page (data-theme-fixed) keeps its own chrome and takes only dark mode;
-     the theme reaches its frames instead. */
+     An app page (data-theme-fixed) keeps its own chrome, dark unless this browser
+     chose light for it (dovetail-builder-dark); the theme reaches its frames instead. */
   try {
     var r = document.documentElement;
     var fixed = r.hasAttribute("data-theme-fixed");
     var cfg = JSON.parse(localStorage.getItem("dovetail-theme-config") || "null");
     var ctx = fixed ? "" : localStorage.getItem("dovetail-docs-context") || "";
+    var dark = fixed ? localStorage.getItem("dovetail-builder-dark") !== "0" : !!(cfg && cfg.dark);
     if (cfg && cfg.vars && !fixed) for (var k in cfg.vars) r.style.setProperty(k, cfg.vars[k]);
-    if (cfg && cfg.dark) r.classList.add("dark");
+    if (dark) r.classList.add("dark");
     if (ctx) r.classList.add(ctx);
-    r.setAttribute("data-theme", cfg && cfg.dark ? "dark" : ctx || "light");
+    r.setAttribute("data-theme", dark ? "dark" : ctx || "light");
   } catch (e) {}
 </script>
 </head>

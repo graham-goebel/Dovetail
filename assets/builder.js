@@ -5719,6 +5719,7 @@
 
   // assets/builder/app/App.js
   var HOME_SORT_KEY = "dovetail-builder-home-sort";
+  var DARK_KEY = "dovetail-builder-dark";
   var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
   var VIRTUAL_AFTER = 6;
   var LIVE_MAX = 8;
@@ -9233,6 +9234,31 @@
         st.setItem(HOME_SORT_KEY, v);
       });
     };
+    var darkState = useState(function() {
+      return storage(function(st) {
+        return st.getItem(DARK_KEY);
+      }) !== "0";
+    });
+    var dark = darkState[0];
+    var setDark = function(v) {
+      darkState[1](!!v);
+      storage(function(st) {
+        st.setItem(DARK_KEY, v ? "1" : "0");
+      });
+    };
+    useEffect(function() {
+      var r = document.documentElement;
+      r.classList.toggle("dark", dark);
+      r.setAttribute("data-theme", dark ? "dark" : "light");
+    }, [dark]);
+    var modeSwitch = function(className) {
+      return e(
+        "span",
+        { className: cx("bd-mode", className) },
+        e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
+        e(Switch, { value: dark, labelledBy: "bd-mode-label", onChange: setDark })
+      );
+    };
     var renamingGroupState = useState(null);
     var renamingGroup = renamingGroupState[0], setRenamingGroup = renamingGroupState[1];
     var openingState = useState(null);
@@ -10169,6 +10195,7 @@
             e(
               "div",
               { className: "bd-code-actions bd-home-actions" },
+              modeSwitch("bd-home-mode"),
               e(
                 "button",
                 { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account2.status === "in" ? "Signed in as " + account2.account.email : account2.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
@@ -14007,6 +14034,7 @@
           options: [
             { value: "link", label: sel ? "Copy link to this layer" : "Copy link to " + frame.name, icon: "link" },
             { value: "projects", label: "Home", icon: "home" },
+            { value: "mode", label: dark ? "Light mode" : "Dark mode", icon: dark ? "sun" : "moon", hint: "The builder's own tools" },
             { value: "versions", label: "Versions", icon: "rotate" },
             { value: "duplicate", label: "Duplicate", icon: "copy" },
             { value: "export", label: "Download file", icon: "exportOut" },
@@ -14020,6 +14048,7 @@
             else if (v === "picture") framePicture();
             else if (v === "auto-picture") autoPicture();
             else if (v === "projects") openProjects();
+            else if (v === "mode") setDark(!dark);
             else if (v === "versions") openVersions();
             else if (v === "duplicate") duplicateProject(project.id);
             else if (v === "export") exportProject(project.id);

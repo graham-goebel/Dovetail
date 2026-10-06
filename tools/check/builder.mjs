@@ -2218,6 +2218,8 @@ try {
     await page.mouse.up();
     await page.waitForTimeout(700);
     const heading = (await saved()).frames.find((x) => x.bare && x.root.children[0].type === "Heading");
+    /* The loose Heading's frame draws its text on its own time, more so on a busy machine. */
+    if (heading) await page.waitForFunction((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); return !!(i && i.contentDocument && i.contentDocument.querySelector("h1, h2, h3, h4")); }, heading.name);
     const hb = heading && await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); return i ? parseFloat(i.style.width) : 0; }, heading.name);
     const textW = heading && await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); const h = i.contentDocument.querySelector("h1, h2, h3, h4"); const r = document.createRange(); r.selectNodeContents(h); return r.getBoundingClientRect().width; }, heading.name);
     expect(heading && hb > 140 && hb >= textW - 2, `a Heading put down loose is as wide as its text, got a box ${Math.round(hb)} wide for text ${Math.round(textW)} wide`);
@@ -3798,8 +3800,12 @@ try {
     await page.keyboard.up("Alt");
     const cleared = await poll(opcStyle, (st) => !st.padding);
     expect(!cleared.padding && await page.locator(".bd-dd-list").count() === 0, `Alt-click on Padding clears every side without opening the list, got ${JSON.stringify(cleared)}`);
-    /* Once the box shows the cleared side in grey again. */
+    /* Once the frame draws the Card's own padding again and the box shows
+       the cleared side in grey with that size: the inspector re-renders on
+       the frame's redraw, and Up before then has stale steps to step. */
     await page.waitForSelector(".bd-box-p > .bd-box-cell.is-right .bd-dd.is-inherited");
+    await frames(page)[0].waitForFunction((px) => window.BuilderFrame.spacing("opc").paddingRight === px, drawnPad);
+    await page.waitForFunction((px) => document.querySelector(".bd-box-p > .bd-box-cell.is-right .bd-dd-label")?.textContent === String(px), drawnPad);
     await cell("right").focus();
     await page.keyboard.press("ArrowUp");
     const stepped = await poll(opcStyle, (st) => !!st.paddingRight);
@@ -3812,6 +3818,31 @@ try {
     await page.keyboard.up("Alt");
     expect(!(await poll(opcStyle, (st) => !st.paddingRight)).paddingRight, "Alt-click on a side clears it");
     ok(`the box shows the Card's own ${drawnPad}px in grey from --dt-card-padding; a drag sets one side in one undo step, Shift-drag every side, Up steps a side from what it had, and Alt-click clears`);
+    await page.close();
+  });
+
+  await step("Dark mode: the builder's tools are dark unless this browser chose light, from the File menu or Home, and the frames and Configure keep their own", async () => {
+    const { page, frame } = await open({ width: 1280, height: 800 });
+    const chromeDark = () => page.evaluate(() => document.documentElement.classList.contains("dark") && document.documentElement.getAttribute("data-theme") === "dark");
+    const frameDark = () => frame().evaluate(() => document.documentElement.classList.contains("dark"));
+    const remembered = () => page.evaluate(() => localStorage.getItem("dovetail-builder-dark"));
+    expect(await chromeDark() && !(await frameDark()), "a fresh browser gets dark tools over a light frame");
+    await page.locator(".bd-project-menu").click();
+    await option(page, "Light mode").click();
+    await page.waitForFunction(() => !document.documentElement.classList.contains("dark"));
+    expect((await remembered()) === "0" && !(await frameDark()), "Light mode from the File menu is remembered, and the frame doesn't change");
+    await page.evaluate(() => localStorage.setItem("dovetail-theme-config", JSON.stringify({ dark: true })));
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => !!window.__builder);
+    expect(!(await chromeDark()), "after a reload the tools are still light, with Configure's dark mode on");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click();
+    const sw = page.locator(".bd-home-mode .bd-switch");
+    expect((await sw.getAttribute("aria-checked")) === "false", "Home's Dark mode switch shows off");
+    await sw.click();
+    await page.waitForFunction(() => document.documentElement.classList.contains("dark"));
+    expect((await remembered()) === "1" && (await sw.getAttribute("aria-checked")) === "true", "the switch turns the tools dark again and remembers it");
+    ok("dark by default, Light mode from the File menu, remembered across a reload apart from Configure, and switched back on Home");
     await page.close();
   });
 

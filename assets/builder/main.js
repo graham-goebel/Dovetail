@@ -9,7 +9,8 @@
    reports presses, drags, picks, gestures and double-clicks back through
    window.BuilderHost, bound to that frame. The frames share the docs site's
    origin, so the Configure panel's theme reaches them; this page's own chrome
-   stays fixed (data-theme-fixed) so the tools look the same whatever is tried.
+   stays fixed (data-theme-fixed) so the tools look the same whatever is tried;
+   it is dark unless this browser's Dark mode switch says otherwise.
 
    What the builder may place, each component's props (read from its .d.ts),
    the frame sizes and the token options with the declarations each sets come
