@@ -3140,9 +3140,13 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 @media (max-width: 900px) {
-  .builder {
-    height: auto;
+  /* The page stays still, so the pane under the tabs is what scrolls: the
+     inspector, Assets or Layers, however long. */
+  .bd-shell {
+    flex: 1;
     min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .bd-tabs {

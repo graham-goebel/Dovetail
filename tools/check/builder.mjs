@@ -4200,7 +4200,14 @@ try {
     expect(await phone.page.locator(".bd-tabs [role=tab][aria-selected=true]").textContent() === "Canvas", "adding returns to the canvas");
     await phone.frame().waitForSelector('[data-bf-type="Button"]');
     expect(await phone.page.evaluate(() => document.documentElement.scrollWidth) <= 390, "still no sideways scroll");
-    ok("tabs, inline toolbar, no overflow, a phone canvas, and tap to add");
+    /* The page stays still, so the pane under the tabs scrolls: the
+       inspector of a long block runs well past the screen. */
+    await phone.page.evaluate(() => { const r = window.__builder.doc().frames[0].root; const long = r.children.find((c) => c.type === "FeatureGridBlock") || r.children[0]; window.__builder.select([long.id]); });
+    await phone.page.locator(".bd-tabs [role=tab]", { hasText: "Edit" }).click();
+    await phone.page.waitForSelector(".bd-shell[data-pane=edit] .bd-right .bd-sec");
+    const pane = await phone.page.evaluate(() => { const s = document.querySelector(".bd-shell"); const before = s.scrollHeight - s.clientHeight; s.scrollTop = 200; return { room: before, top: s.scrollTop, overflow: getComputedStyle(s).overflowY }; });
+    expect(pane.overflow === "auto" && pane.room > 0 && pane.top > 0, `the Edit pane runs past the screen and scrolls, got ${JSON.stringify(pane)}`);
+    ok(`tabs, inline toolbar, no overflow, a phone canvas, tap to add, and an Edit pane that scrolls (${pane.room}px more than the screen)`);
     await phone.page.close();
   });
 
