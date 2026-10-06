@@ -58,7 +58,7 @@ function overrides(inst, master) {
   (function walk(a, b, path) {
     var o = { path: path };
     var props = diffObj(b.props, a.props);
-    var style = diffObj(b.style, a.style, path === "" ? ["x", "y"] : null);
+    var style = diffObj(b.style, a.style, path === "" ? ["x", "y", "ch", "cv"] : null);
     if (props) o.props = props;
     if (style) o.style = style;
     if (path !== "") {
@@ -108,8 +108,10 @@ function rebase(inst, was, next, rev) {
   out.id = inst.id;
   FLAGS.forEach(function (k) { if (inst[k] !== undefined) out[k] = inst[k]; else delete out[k]; });
   out.style = out.style || {};
-  if (inst.style && inst.style.x !== undefined) { out.style.x = inst.style.x; out.style.y = inst.style.y; }
-  else { delete out.style.x; delete out.style.y; }
+  if (inst.style && inst.style.x !== undefined) {
+    out.style.x = inst.style.x; out.style.y = inst.style.y;
+    ["ch", "cv"].forEach(function (k) { if (inst.style[k]) out.style[k] = inst.style[k]; else delete out.style[k]; });
+  } else { delete out.style.x; delete out.style.y; delete out.style.ch; delete out.style.cv; }
   out.inst = { of: inst.inst.of, rev: rev };
   return out;
 }

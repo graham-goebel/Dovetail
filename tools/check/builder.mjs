@@ -4408,6 +4408,102 @@ try {
     await mac.page.close();
   });
 
+  await step("Constraints: a free layer keeps to the edges it's pinned to as its frame changes size, live on the canvas, typed, and in the code", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const node = (id, type, props, x, y, extra) => ({ id, type, props, style: Object.assign({ x, y }, extra || {}) });
+      d.frames = [{ id: "pin", name: "Post", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        node("hd", "Heading", { children: "Autumn" }, 10, 10), node("bt", "Button", { children: "Order" }, 150, 100, { fw: 40 })] } }];
+      d.active = "pin";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(150);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => v === "pin", 8000);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="bt"]'));
+    const node = async (id) => (await saved()).frames[0].root.children.find((c) => c.id === id).style;
+    const rectOf = (id) => page.evaluate((id) => document.querySelector("iframe.bd-frame").contentWindow.BuilderFrame.rect(id), id);
+    await fitAll(page);
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["bt"]));
+    await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Layout");
+    const pins = page.locator(".bd-right .bd-pins");
+    await pins.waitFor();
+    expect(await pins.locator(".bd-pin-line.is-on").count() === 2, "a free layer starts pinned left and top");
+    await pins.locator(".bd-pin-line.is-right").click();
+    await pins.locator(".bd-pin-line.is-bottom").click();
+    let st = await poll(() => node("bt"), (s) => s.ch === "right" && s.cv === "bottom");
+    expect(st.ch === "right" && st.cv === "bottom", `the square pins it right and bottom, got ${st.ch} ${st.cv}`);
+    const hint = await page.locator(".bd-right .bd-field-hint", { hasText: "frame changes size" }).first().textContent();
+    expect(/right and bottom edges/.test(hint), `the hint says what it keeps to, got ${hint}`);
+    expect(await page.locator(".bd-pin-mark").count() === 2, "two dashed lines run from it to the right and bottom edges");
+    await pins.locator(".bd-pin-line.is-left").click({ modifiers: ["Shift"] });
+    st = await poll(() => node("bt"), (s) => s.ch === "both");
+    expect(st.ch === "both", `Shift on the left edge with right pinned makes it both, got ${st.ch}`);
+    await pins.locator(".bd-pin-line.is-right").click();
+    await poll(() => node("bt"), (s) => s.ch === "right");
+    ok("the square pins right and bottom, Shift makes both edges, the hint names them and dashed lines show them");
+
+    /* Dragging the frame's right edge: it follows as the frame grows, and
+       lands 100px further right once let go. */
+    const r0 = await rectOf("bt");
+    const fr = await page.locator("iframe.bd-frame").boundingBox();
+    const s0 = fr.width / 800;
+    const grip = await page.evaluate(({ x, y, h }) => {
+      const els = [...document.querySelectorAll(".bd-resize.is-r")];
+      const one = els.map((el) => ({ el, b: el.getBoundingClientRect() })).sort((a, b) => Math.abs(a.b.left - x) - Math.abs(b.b.left - x))[0];
+      return one ? { x: one.b.left + one.b.width / 2, y: one.b.top + one.b.height / 2 } : null;
+    }, { x: fr.x + fr.width, y: fr.y, h: fr.height });
+    await page.mouse.move(grip.x, grip.y);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + 50 * s0, grip.y, { steps: 4 });
+    await page.mouse.move(grip.x + 100 * s0, grip.y, { steps: 4 });
+    await page.waitForTimeout(150);
+    const live = await rectOf("bt");
+    await page.mouse.up();
+    const W1 = await poll(async () => (await saved()).frames[0].width, (w) => w !== 800);
+    st = await poll(() => node("bt"), (s) => s.x !== 150);
+    expect(live.left - r0.left > 60, `while the edge is dragged the Button follows it, ${Math.round(r0.left)} to ${Math.round(live.left)}`);
+    expect(st.x === 150 + Math.round((W1 - 800) / 4) && st.y === 100, `let go at ${W1} wide, it sits ${W1 - 800}px further right: x ${st.x}, y ${st.y}`);
+    const r1 = await rectOf("bt");
+    expect(Math.abs((W1 - r1.right) - (800 - r0.right)) <= 4, `it keeps its distance to the right edge: ${Math.round(800 - r0.right)} then ${Math.round(W1 - r1.right)}`);
+    ok(`a frame dragged from 800 to ${W1} wide carries the Button with it as it goes and keeps it ${Math.round(W1 - r1.right)}px from the right edge`);
+
+    /* Scale, from the dropdown, then a typed width: place and size grow
+       in proportion. */
+    await pick(page, "Constraint across", "Scale");
+    st = await poll(() => node("bt"), (s) => s.ch === "scale");
+    const fw0 = st.fw, x0 = st.x, Wn = (await saved()).frames[0].width;
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => window.__builder.select([]));
+    const wField = page.locator('.bd-right input[aria-label="Frame width"]');
+    await wField.waitFor();
+    await wField.fill(String(Wn * 2));
+    await wField.press("Enter");
+    st = await poll(() => node("bt"), (s) => s.fw !== fw0);
+    expect(Math.abs(st.x - x0 * 2) <= 1 && Math.abs(st.fw - fw0 * 2) <= 1, `twice the width doubles its place and width: ${x0},${fw0} to ${st.x},${st.fw}`);
+    ok(`Scale from the dropdown, then a typed width of ${Wn * 2}: the Button's place and width double`);
+
+    /* The code positions it the same way, in tokens. */
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    await page.keyboard.press("Escape");
+    expect(/left: "calc\(100% \* [\d.]+\)"/.test(code) && /width: "calc\(100% \* [\d.]+\)"/.test(code), "the exported Button scales with its page, in percentages of it");
+    const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
+    expect(!values.some(raw), `no raw values in the code, got ${values.filter(raw).join(", ")}`);
+    ok("the exported code places a scaling layer in percentages of its page, with no raw values");
+    await page.close();
+  });
+
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {
     const phone = await open({ width: 390, height: 844 });
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");

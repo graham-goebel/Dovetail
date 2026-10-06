@@ -111,6 +111,42 @@
     return st;
   }
   function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
+  /* The frame free layers keep their constraints to: its size in steps of
+     FREE_UNIT, set while a freeform frame renders or exports. A layer pinned
+     right is placed from its left edge plus however much wider the frame is
+     now than that size (100% less it), so it follows a resize as it happens
+     and, in the exported page, at any width. */
+  var freeBox = null;
+  function unitPx() {
+    var p = document.createElement("div");
+    p.style.cssText = "position:absolute;visibility:hidden;width:" + FREE_UNIT;
+    (document.querySelector(".bf-root") || document.body).appendChild(p);
+    var w = p.getBoundingClientRect().width;
+    p.remove();
+    return w || 4;
+  }
+  function boxFor(w, h) {
+    if (!(w > 0 && h > 0)) return null;
+    var u = unitPx(), r = function (v) { return Math.round(v * 1000) / 1000; };
+    return { w: r(w / u), h: r(h / u) };
+  }
+  function pinned(out, st) {
+    var b = freeBox, U = FREE_UNIT;
+    if (!b) return;
+    var r = function (v) { return Math.round(v * 10000) / 10000; };
+    var axis = function (pin, at, len, size, start, extent) {
+      var grow = "100% - " + U + " * " + size;
+      if (pin === "right" || pin === "bottom") out[start] = "calc(" + U + " * " + at + " + " + grow + ")";
+      else if (pin === "center") out[start] = "calc(" + U + " * " + at + " + (" + grow + ") / 2)";
+      else if (pin === "both" && len) out[extent] = "calc(" + U + " * " + len + " + " + grow + ")";
+      else if (pin === "scale") {
+        out[start] = "calc(100% * " + r(at / size) + ")";
+        if (len) out[extent] = "calc(100% * " + r(len / size) + ")";
+      }
+    };
+    axis(st.ch, st.x, st.fw, b.w, "left", "width");
+    axis(st.cv, st.y, st.fh, b.h, "top", "height");
+  }
   /* A size relative to the parent, or to the screen. On the canvas a frame
      that hugs its content has no screen height of its own, so vw and vh read
      the frame's size from the root; the export writes them as they are. */
@@ -144,6 +180,7 @@
       if (st.fw) out.width = "calc(" + FREE_UNIT + " * " + st.fw + ")";
       if (st.fh) out.height = "calc(" + FREE_UNIT + " * " + st.fh + ")";
       if (st.rot) out.transform = "rotate(" + st.rot + "deg)";
+      if (st.ch || st.cv) pinned(out, st);
     }
     var rw = relCss(st.rw), rh = relCss(st.rh);
     if (rw) { out = out || {}; out.width = rw; }
@@ -414,6 +451,7 @@
        stays still. A frame that hugs its content grows instead. */
     var over = !opts.hug && !opts.bare ? overflowStyle(page) : null;
     if (over) { Object.assign(style, over); html.style.overflow = "hidden"; }
+    freeBox = screen && !opts.hug && !opts.bare ? boxFor(screen.w, screen.h) : null;
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
     root.render(e(Painted, null, e("div", { className: cls.join(" "), "data-layout": page.spacing || undefined, "data-type-scale": page.typeScale === "social" ? "social" : undefined, "data-bf-id": "root", style: style }, kids)));
   }
@@ -901,7 +939,10 @@
     var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
     var page = tree.page || {};
     if (page.bare) return jsxNodes(tree.root.children, name);
+    var was = freeBox;
+    freeBox = page.mode !== "structured" && !page.hug ? boxFor(page.width, page.height) : null;
     var kids = tree.root.children.map(function (c) { return block(c, used, "      "); });
+    freeBox = was;
     var ps = pageStyle(page);
     delete ps.color;
     var rootStyle = Object.keys(ps).map(function (k) { return (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)) + ": " + JSON.stringify(ps[k]); });

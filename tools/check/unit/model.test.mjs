@@ -6,7 +6,7 @@ import "./setup.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { produce } from "immer";
-import { make, makeFrame, locate, ops, cleanNode, clean } from "../../../assets/builder/model/tree.js";
+import { make, makeFrame, locate, ops, cleanNode, clean, constrain } from "../../../assets/builder/model/tree.js";
 import { readLayout, readLiteral, readJsxElements } from "../../../assets/builder/model/paste.js";
 import { encode, decode } from "../../../assets/builder/model/share.js";
 
@@ -62,6 +62,41 @@ test("any layer keeps the name it was given, trimmed and at most 60 characters",
   assert.equal(cleanNode({ type: "Group", name: "x".repeat(80), props: {}, children: [] }, []).name.length, 60);
   assert.equal(cleanNode({ type: "Text", name: "   ", props: {} }, []).name, undefined, "a blank name goes");
   assert.equal(cleanNode({ type: "Text", name: 42, props: {} }, []).name, undefined, "a name is text");
+});
+
+test("constraints: kept on a free layer, one of the set, never the default", () => {
+  const report = [];
+  const free = (style) => cleanNode({ type: "Button", props: {}, style: Object.assign({ x: 10, y: 10 }, style) }, report).style;
+  assert.equal(free({ ch: "right", cv: "bottom" }).ch, "right");
+  assert.equal(free({ ch: "scale", cv: "center" }).cv, "center");
+  assert.equal(free({ ch: "left" }).ch, undefined, "left is the default, so it isn't stored");
+  assert.equal(free({ cv: "sideways" }).cv, undefined);
+  assert.ok(report.some((l) => /cv is one of bottom, both, center, scale/.test(l)));
+  assert.equal(cleanNode({ type: "Button", props: {}, style: { ch: "right" } }, []).style.ch, undefined, "a layer in the flow has none");
+});
+
+test("constrain moves and sizes free layers from where they were, by their constraints", () => {
+  const node = (id, style) => ({ id, type: "Button", props: {}, style });
+  const base = { width: 400, height: 400, mode: "free", root: { id: "root", children: [
+    node("l", { x: 10, y: 10, fw: 20, fh: 10 }), node("r", { x: 70, y: 80, fw: 20, fh: 10, ch: "right", cv: "bottom" }),
+    node("c", { x: 40, y: 45, fw: 20, fh: 10, ch: "center", cv: "center" }), node("b", { x: 10, y: 10, fw: 80, fh: 10, ch: "both" }),
+    node("s", { x: 20, y: 20, fw: 40, fh: 20, ch: "scale", cv: "scale" }), node("a", { x: 50, y: 10, ch: "right" })] } };
+  const frame = JSON.parse(JSON.stringify(base));
+  frame.width = 800; frame.height = 600;
+  const moved = constrain(frame, base, 4, (id) => (id === "a" ? { width: 60, height: 40 } : null));
+  const at = (id) => frame.root.children.find((c) => c.id === id).style;
+  assert.equal(moved, 5, "the default layer isn't touched");
+  assert.deepEqual([at("l").x, at("l").y], [10, 10]);
+  assert.deepEqual([at("r").x, at("r").y], [170, 130], "right and bottom keep their distance to those edges");
+  assert.deepEqual([at("c").x, at("c").y], [90, 70], "centre keeps its offset from the middle");
+  assert.deepEqual([at("b").x, at("b").fw], [10, 180], "left and right stretch with the width");
+  assert.deepEqual([at("s").x, at("s").y, at("s").fw, at("s").fh], [40, 30, 80, 30], "scale moves and grows in proportion");
+  assert.equal(at("a").x, 150, "a layer with no size of its own still keeps to the right");
+  /* Many small steps land where one does: each works from base. */
+  const step = JSON.parse(JSON.stringify(base));
+  for (let w = 401; w <= 800; w++) { step.width = w; constrain(step, base, 4, () => null); }
+  assert.equal(step.root.children.find((c) => c.id === "r").style.x, 170);
+  assert.equal(constrain(Object.assign({}, frame, { mode: "structured" }), base, 4), 0, "a structured frame has no free layers to keep");
 });
 
 test("a free layer's own opacity is a whole percent below 100", () => {
