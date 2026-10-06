@@ -391,6 +391,22 @@ function cleanFrame(f, i, report) {
   /* The page's column and gutter, re-pointed for this frame. */
   if (f.pageWidth === "narrow" || f.pageWidth === "wide") base.pageWidth = f.pageWidth;
   if (f.gutter === "wide" || f.gutter === "none") base.gutter = f.gutter;
+  /* The frame's own auto layout, as a Group's: which way what's in it runs,
+     the gap, alignment, wrap and the padding around it. */
+  if (f.flow && typeof f.flow === "object") {
+    var gp = function (name) { var p = META.Group.props.filter(function (x) { return x.name === name; })[0]; return p ? p.options : []; };
+    var fl = {};
+    if (gp("direction").indexOf(f.flow.direction) >= 0) fl.direction = f.flow.direction;
+    if (gp("gap").indexOf(f.flow.gap) >= 0) fl.gap = f.flow.gap;
+    if (gp("align").indexOf(f.flow.align) >= 0) fl.align = f.flow.align;
+    if (gp("justify").indexOf(f.flow.justify) >= 0) fl.justify = f.flow.justify;
+    if (f.flow.wrap === true) fl.wrap = true;
+    if (tokenOption("padding", f.flow.padding)) fl.padding = f.flow.padding;
+    if (Object.keys(fl).length) base.flow = fl;
+  }
+  /* What spills past a fixed frame: clipped, or scrolled one way. */
+  if (f.clip === true) base.clip = true;
+  if (f.scroll === "x" || f.scroll === "y") base.scroll = f.scroll;
   /* A frame may give its nodes as root.children or straight as children. */
   var kids = f.root && Array.isArray(f.root.children) ? f.root.children : Array.isArray(f.children) ? f.children : [];
   base.root.children = kids.map(function (c) { return cleanNode(c, report); }).filter(Boolean);

@@ -2025,6 +2025,24 @@
     if (f.typeScale === "social") base.typeScale = "social";
     if (f.pageWidth === "narrow" || f.pageWidth === "wide") base.pageWidth = f.pageWidth;
     if (f.gutter === "wide" || f.gutter === "none") base.gutter = f.gutter;
+    if (f.flow && typeof f.flow === "object") {
+      var gp = function(name) {
+        var p = META.Group.props.filter(function(x) {
+          return x.name === name;
+        })[0];
+        return p ? p.options : [];
+      };
+      var fl = {};
+      if (gp("direction").indexOf(f.flow.direction) >= 0) fl.direction = f.flow.direction;
+      if (gp("gap").indexOf(f.flow.gap) >= 0) fl.gap = f.flow.gap;
+      if (gp("align").indexOf(f.flow.align) >= 0) fl.align = f.flow.align;
+      if (gp("justify").indexOf(f.flow.justify) >= 0) fl.justify = f.flow.justify;
+      if (f.flow.wrap === true) fl.wrap = true;
+      if (tokenOption("padding", f.flow.padding)) fl.padding = f.flow.padding;
+      if (Object.keys(fl).length) base.flow = fl;
+    }
+    if (f.clip === true) base.clip = true;
+    if (f.scroll === "x" || f.scroll === "y") base.scroll = f.scroll;
     var kids = f.root && Array.isArray(f.root.children) ? f.root.children : Array.isArray(f.children) ? f.children : [];
     base.root.children = kids.map(function(c) {
       return cleanNode(c, report);
@@ -6103,7 +6121,7 @@
       var r = resizing && resizing.fid === f.id ? resizing : null;
       var w = r ? r.w : f.bare ? f.sized ? f.width : Math.max(24, widths && widths[f.id] || 120) : f.width;
       var h = r && r.h != null ? r.h : f.bare ? Math.max(16, heights[f.id] || 40) : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
-      var m = moving && moving.fid === f.id ? moving : null;
+      var m = moving && moving.fid === f.id ? moving : r && r.x != null ? r : null;
       var b;
       if (m) b = { x: m.x, y: m.y, w, h };
       else if (typeof f.x === "number") b = { x: f.x, y: f.y, w, h };
@@ -8016,7 +8034,7 @@
         if (last && last.frame === f && last.preview === preview) return;
         rendered.current[f.id] = { frame: f, preview };
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -9017,7 +9035,22 @@
     }, []);
     var setFrame = function(key, value, message) {
       change(function(d) {
-        active(d)[key] = value;
+        var f = active(d);
+        if (value === void 0) delete f[key];
+        else f[key] = value;
+        return void 0;
+      }, message);
+    };
+    var setFlow = function(patch, message) {
+      change(function(d) {
+        var f = active(d);
+        var fl = Object.assign({}, f.flow || {}, patch);
+        Object.keys(fl).forEach(function(k) {
+          if (fl[k] === void 0) delete fl[k];
+        });
+        if (patch.gap !== void 0 || "gap" in patch) delete f.gap;
+        if (Object.keys(fl).length) f.flow = fl;
+        else delete f.flow;
         return void 0;
       }, message);
     };
@@ -13899,6 +13932,119 @@
         ) : null
       ];
     };
+    var frameAuto = function() {
+      var fl = frame2.flow || {};
+      var fdir = fl.direction || "column";
+      var gapSpec = META.Group.props.filter(function(p) {
+        return p.name === "gap";
+      })[0];
+      var gapNow = fl.gap || frame2.gap || "none";
+      var a = fl.align || "stretch", j = fl.justify || "flex-start";
+      return sec("frame-auto", "Auto layout", [
+        e(
+          "div",
+          { key: "head", className: "bd-flex-head" },
+          e(Segmented, {
+            label: "Direction",
+            value: fdir,
+            onChange: function(v) {
+              if (v) setFlow({ direction: v }, frame2.name + " runs in a " + v);
+            },
+            options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }]
+          }),
+          e("button", {
+            type: "button",
+            className: "bd-act",
+            "aria-pressed": String(!!fl.wrap),
+            title: fl.wrap ? "Wraps onto new lines" : "Stays on one line",
+            "aria-label": "Wrap onto new lines",
+            onClick: function() {
+              setFlow({ wrap: fl.wrap ? void 0 : true });
+            }
+          }, e(Icon, { name: "wrapLines" }))
+        ),
+        e(
+          "div",
+          { key: "pad", className: "bd-flex-grid" },
+          e(AlignMatrix, { dir: fdir, align: a, justify: j, onChange: function(na, nj) {
+            setFlow({ align: na, justify: nj });
+          } }),
+          e(
+            "div",
+            { className: "bd-flex-side" },
+            e(Dropdown, {
+              label: "Gap",
+              prefix: "Gap",
+              value: gapNow,
+              className: "bd-dd-field",
+              narrow: true,
+              options: gapSpec.options.map(function(o) {
+                return { value: o, label: o === "none" ? "None" : o, hint: o === "none" ? void 0 : DATA.rootGaps.indexOf(o) >= 0 ? "--dt-layout-" + (fdir === "row" ? "inline" : "stack") + "-" + o : (fdir === "row" ? "--dt-space-inline-" : "--dt-space-stack-") + o };
+              }),
+              onChange: function(v) {
+                setFlow({ gap: v === "none" ? void 0 : v });
+              }
+            }),
+            e(Dropdown, {
+              label: "Padding",
+              prefix: "Padding",
+              value: fl.padding || "",
+              className: "bd-dd-field",
+              narrow: true,
+              options: [{ value: "", label: "None" }].concat(DATA.tokens.padding.options.map(function(o) {
+                return { value: o.value, label: o.value, hint: o.tokens[0] };
+              })),
+              onChange: function(v) {
+                setFlow({ padding: v || void 0 });
+              }
+            }),
+            e("button", {
+              type: "button",
+              className: "bd-btn bd-btn-sm",
+              "aria-pressed": String(a === "stretch"),
+              title: "Children fill the cross axis",
+              onClick: function() {
+                setFlow({ align: a === "stretch" ? "flex-start" : "stretch" });
+              }
+            }, e(Icon, { name: "alignStretch" }), "Stretch"),
+            e("button", {
+              type: "button",
+              className: "bd-btn bd-btn-sm",
+              "aria-pressed": String(j === "space-between"),
+              title: "Spread children along the main axis",
+              onClick: function() {
+                setFlow({ justify: j === "space-between" ? "flex-start" : "space-between" });
+              }
+            }, e(Icon, { name: "justifyBetween" }), "Space between")
+          )
+        )
+      ]);
+    };
+    var frameOverflow = function() {
+      var scroll = frame2.scroll || "none";
+      return sec("frame-overflow", "Overflow", [
+        e(
+          Field,
+          { key: "clip", id: "bd-fr-clip", label: "Clip content", hint: frame2.hug ? "It hugs its content, so nothing spills. Fix its height to clip." : frame2.clip ? "Whatever spills past the frame's edges is hidden." : "What spills past the frame's edges still shows." },
+          e(Switch, { value: !!frame2.clip, labelledBy: "bd-fr-clip", onChange: function(v) {
+            setFrame("clip", v ? true : void 0, v ? frame2.name + " clips its content" : frame2.name + " lets its content spill");
+          } })
+        ),
+        e(
+          Field,
+          { key: "scroll", id: "bd-fr-scroll", label: "Scroll", hint: frame2.hug ? "It hugs its content, so it grows instead. Fix its height to scroll." : scroll === "y" ? "Content taller than the frame scrolls down." : scroll === "x" ? "Content wider than the frame scrolls sideways." : "Nothing scrolls." },
+          e(Segmented, {
+            labelledBy: "bd-fr-scroll",
+            wide: true,
+            value: scroll,
+            onChange: function(v) {
+              if (v) setFrame("scroll", v === "none" ? void 0 : v, v === "none" ? frame2.name + " doesn't scroll" : frame2.name + " scrolls " + (v === "y" ? "vertically" : "horizontally"));
+            },
+            options: [{ value: "none", label: "None" }, { value: "y", label: "Vertical" }, { value: "x", label: "Horizontal" }]
+          })
+        )
+      ]);
+    };
     var frameInspector = function() {
       var surfaceOptions = DATA.tokens.surface.options.map(function(o) {
         return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens };
@@ -13997,23 +14143,10 @@
               },
               options: [{ value: "", label: "Page", hint: "--dt-layout-page-gutter, which follows the layout character" }, { value: "wide", label: "Wide", hint: "--dt-space-gutter-wide" }, { value: "none", label: "None", hint: "Edge to edge" }]
             })
-          ),
-          e(
-            Field,
-            { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame2.gap ? "--dt-layout-stack-" + frame2.gap : "None: blocks keep their own rhythm." },
-            e(Dropdown, {
-              labelledBy: "bd-pg-gap",
-              value: frame2.gap,
-              className: "bd-dd-field",
-              onChange: function(v) {
-                setFrame("gap", v || "");
-              },
-              options: [{ value: "", label: "None" }].concat(DATA.rootGaps.map(function(g) {
-                return { value: g, label: g, hint: "--dt-layout-stack-" + g };
-              }))
-            })
           )
-        ])
+        ]),
+        frameAuto(),
+        frameOverflow()
       ];
       return e(
         "div",
@@ -14851,7 +14984,7 @@
       window.addEventListener("pointerup", up);
       window.addEventListener("pointercancel", up);
     };
-    var HANDLES_FREE = ["nw", "n", "ne", "e", "se", "s", "sw", "w"], HANDLES_FLOW = ["e", "se", "s"];
+    var HANDLES_FREE = ["nw", "n", "ne", "e", "se", "s", "sw", "w"], HANDLES_FLOW = HANDLES_FREE;
     var startResize = function(ev, f, edge) {
       if (ev.button !== 0) return;
       ev.preventDefault();
@@ -14863,7 +14996,9 @@
       }
       var b = layoutRef.current.boxes[f.id];
       var z = camRef.current.z;
-      var start = { x: ev.clientX, y: ev.clientY, w: f.bare ? Math.round(b.w) : f.width, h: b.h };
+      if (edge === "c") edge = "rb";
+      var R = edge.indexOf("r") >= 0, L = edge.indexOf("l") >= 0, B = edge.indexOf("b") >= 0, T = edge.indexOf("t") >= 0;
+      var start = { x: ev.clientX, y: ev.clientY, w: f.bare ? Math.round(b.w) : f.width, h: b.h, bx: b.x, by: b.y };
       var cur = null;
       var lo = f.bare ? MIN_FREE : minSide(f), snaps = f.mode === "structured";
       var fit = function(v, list) {
@@ -14871,21 +15006,29 @@
       };
       var move = function(mv) {
         var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
-        var w = edge === "b" ? start.w : Math.max(lo, Math.min(MAX_WIDTH, fit(start.w + dx, VIEW_W)));
-        var h = edge === "r" ? null : Math.max(lo, Math.min(MAX_HEIGHT, fit(start.h + dy, VIEW_H)));
+        var ddx = L ? -dx : dx, ddy = T ? -dy : dy;
+        var horiz = R || L, vert = B || T;
+        var w = !horiz ? start.w : Math.max(lo, Math.min(MAX_WIDTH, fit(start.w + ddx, VIEW_W)));
+        var h = !vert ? null : Math.max(lo, Math.min(MAX_HEIGHT, fit(start.h + ddy, VIEW_H)));
         if (f.lock) {
           var k = start.h / start.w;
-          if (edge === "b") w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(h / k)));
-          else if (edge === "r") h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(w * k)));
-          else if (Math.abs(dx) >= Math.abs(dy)) {
-            w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(start.w + dx)));
+          if (!horiz) w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(h / k)));
+          else if (!vert) h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(w * k)));
+          else if (Math.abs(ddx) >= Math.abs(ddy)) {
+            w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(start.w + ddx)));
             h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(w * k)));
           } else {
-            h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(start.h + dy)));
+            h = Math.max(lo, Math.min(MAX_HEIGHT, Math.round(start.h + ddy)));
             w = Math.max(lo, Math.min(MAX_WIDTH, Math.round(h / k)));
           }
         }
         cur = { fid: f.id, w, h };
+        if (L) cur.x = Math.round(start.bx + start.w - w);
+        if (T && h != null) cur.y = Math.round(start.by + start.h - h);
+        if (cur.x != null || cur.y != null) {
+          if (cur.x == null) cur.x = start.bx;
+          if (cur.y == null) cur.y = start.by;
+        }
         setResizing(cur);
       };
       var up = function(ok) {
@@ -14896,9 +15039,20 @@
           setResizing(null);
           if (!ok || !cur) return;
           var done = cur;
+          var boxesNow = layoutRef.current.boxes;
           change(function(d) {
             var fr = frameById(d, f.id);
             if (!fr) return null;
+            if (done.x != null) {
+              d.frames.forEach(function(o) {
+                if (typeof o.x !== "number" && boxesNow[o.id]) {
+                  o.x = Math.round(boxesNow[o.id].x);
+                  o.y = Math.round(boxesNow[o.id].y);
+                }
+              });
+              fr.x = done.x;
+              fr.y = done.y;
+            }
             fr.width = done.w;
             if (fr.bare) {
               fr.sized = true;
@@ -15026,9 +15180,20 @@
         if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function(ev) {
           startResize(ev, f, "r");
         } });
+        var picked = f.id === doc2.active && frameOn && !sel;
+        var FRAME_EDGE = { nw: "lt", n: "t", ne: "rt", e: "r", se: "rb", s: "b", sw: "lb", w: "l" };
         return e(
           React.Fragment,
           { key: f.id },
+          picked ? e(
+            "div",
+            { className: "bd-frame-box", style: { left: X, top: Y, width: W, height: H } },
+            HANDLES_FREE.map(function(dir) {
+              return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
+                startResize(ev, f, FRAME_EDGE[dir]);
+              } });
+            })
+          ) : null,
           e("div", { className: "bd-resize is-r", style: { left: X + W, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function(ev) {
             startResize(ev, f, "r");
           } }),
@@ -15217,7 +15382,7 @@
           var isMain = m.id === sel && !edit;
           var frameTop = boxes[frame2.id] ? cam.y + boxes[frame2.id].y * cam.z : 0;
           var handles = isMain && !part && !fixedSpot(at2) && at2.node.type !== "Slot" && !at2.node.lock ? isFree(at2.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
-          var turnable = handles === HANDLES_FREE;
+          var turnable = !!handles && isFree(at2.node.style);
           var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
           var short2 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
           return e(
@@ -15228,15 +15393,40 @@
                 startRotate(ev, at2.node.id);
               } });
             }) : null,
-            isMain ? e("span", {
-              className: "bd-mark-tag",
-              title: "Drag to move",
-              onPointerDown: function(ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                startDrag(ev, { kind: "move", id: at2.node.id, label: at2.node.type });
-              }
-            }, nameOf(at2.node) + (part && part.id === m.id ? " › Title" : "")) : null,
+            isMain ? e(
+              "span",
+              {
+                className: "bd-mark-tag",
+                title: "Drag to move",
+                onPointerDown: function(ev) {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                  startDrag(ev, { kind: "move", id: at2.node.id, label: at2.node.type });
+                }
+              },
+              nameOf(at2.node) + (part && part.id === m.id ? " › Title" : ""),
+              /* Its actions, the same as a right-click on it. Keyboard users
+                 have them on Shift+F10. */
+              e(
+                "button",
+                {
+                  type: "button",
+                  className: "bd-mark-more",
+                  tabIndex: -1,
+                  title: "Actions for " + nameOf(at2.node),
+                  "aria-label": "Actions for " + nameOf(at2.node),
+                  onPointerDown: function(ev) {
+                    ev.stopPropagation();
+                  },
+                  onClick: function(ev) {
+                    ev.stopPropagation();
+                    var r = ev.currentTarget.getBoundingClientRect();
+                    openMenu(r.left, r.bottom + 4, at2.node.id, frame2.id);
+                  }
+                },
+                e(Icon, { name: "more" })
+              )
+            ) : null,
             handles ? handles.map(function(dir) {
               return e("span", { key: dir, className: cx("bd-handle is-" + dir, sizing && sizing.id === m.id && sizing.dir === dir && "is-active"), title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function(ev) {
                 startNodeResize(ev, at2.node.id, dir);
@@ -15348,7 +15538,7 @@
       } catch (err) {
         a = null;
       }
-      if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale, pageWidth: fr.pageWidth, gutter: fr.gutter }, root: fr.root }, { preview: true, hug: false });
+      if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale, pageWidth: fr.pageWidth, gutter: fr.gutter, flow: fr.flow, clip: fr.clip, scroll: fr.scroll }, root: fr.root }, { preview: true, hug: false });
     };
     useEffect(function() {
       if (play) renderPlay();

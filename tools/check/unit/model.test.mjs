@@ -163,3 +163,23 @@ test("in a structured frame, grouping or wrapping gives a Group auto layout", ()
   const g2 = ops.group(free, [free.frames[0].root.children[0].id]);
   assert.equal(locate(free, g2).node.props.direction, undefined, "a freeform frame's Group is left to the person");
 });
+
+test("a frame keeps its auto layout, clip and scroll, and drops what they don't take", () => {
+  const f = makeFrame("Home", "desktop");
+  f.flow = { direction: "row", gap: "group", align: "center", justify: "space-between", wrap: true, padding: "md", colour: "red" };
+  f.clip = true;
+  f.scroll = "y";
+  const report = [];
+  const out = clean({ frames: [f], active: f.id }, report).frames[0];
+  assert.deepEqual(out.flow, { direction: "row", gap: "group", align: "center", justify: "space-between", wrap: true, padding: "md" });
+  assert.equal(out.clip, true);
+  assert.equal(out.scroll, "y");
+  const bad = makeFrame("Bad", "desktop");
+  bad.flow = { direction: "diagonal", gap: "huge", padding: "12px" };
+  bad.clip = "yes";
+  bad.scroll = "both";
+  const out2 = clean({ frames: [bad], active: bad.id }).frames[0];
+  assert.equal(out2.flow, undefined, "nothing valid, no flow");
+  assert.equal(out2.clip, undefined);
+  assert.equal(out2.scroll, undefined);
+});

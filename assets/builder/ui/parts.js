@@ -812,7 +812,7 @@ function layoutOf(doc, heights, resizing, widths, moving) {
     var r = resizing && resizing.fid === f.id ? resizing : null;
     var w = r ? r.w : f.bare ? (f.sized ? f.width : Math.max(24, (widths && widths[f.id]) || 120)) : f.width;
     var h = r && r.h != null ? r.h : f.bare ? Math.max(16, heights[f.id] || 40) : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
-    var m = moving && moving.fid === f.id ? moving : null;
+    var m = moving && moving.fid === f.id ? moving : r && r.x != null ? r : null;
     var b;
     if (m) b = { x: m.x, y: m.y, w: w, h: h };
     else if (typeof f.x === "number") b = { x: f.x, y: f.y, w: w, h: h };

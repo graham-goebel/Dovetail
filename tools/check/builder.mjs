@@ -154,7 +154,7 @@ const canvasPoint = (page, selector, at = "center", index = null) => page.evalua
   const box = iframe.getBoundingClientRect();
   const s = box.width / parseFloat(iframe.style.width);
   const y = at === "bottom" ? r.bottom - 4 : r.top + Math.min(r.height / 2, 40);
-  const x = at === "left" ? r.left + 20 : r.left + r.width / 2;
+  const x = at === "left" ? r.left + 20 : at === "right" ? r.right - 12 : r.left + r.width / 2;
   return { x: box.left + x * s, y: Math.min(box.bottom - 4, box.top + y * s) };
 }, { selector, at, index });
 
@@ -336,7 +336,9 @@ try {
     await page.locator('.bd-tile[data-type="Text"]').click();
     await frame().waitForSelector('[data-bf-type="Stack"] [data-bf-type="Text"]');
     ok("with the Stack selected, Heading and then Text are added into it");
-    const at = await canvasPoint(page, '[data-bf-type="Heading"]');
+    /* Toward its right end: the selected Text's tag, with its ⋯, sits over
+       the Heading's left end. */
+    const at = await canvasPoint(page, '[data-bf-type="Heading"]', "right");
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
@@ -3870,6 +3872,61 @@ try {
     await page.waitForFunction(() => !!window.__builder);
     expect((await groups()).length === 2, "a reload adds no more");
     ok("New, then Playground, adds a fresh copy and shows it on Home; a reload adds none");
+    await page.close();
+  });
+
+  await step("Frames: a picked frame has a dot at each corner and resizes from its left edge; its auto layout, clip and scroll reach the frame and the code; a selection's tag has a ⋯ with its actions", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const sec = (key) => page.locator(`.bd-right .bd-sec[data-sec="${key}"]`);
+    await page.locator(".bd-flabel-btn").first().click();
+    await page.waitForSelector(".bd-frame-box .bd-handle.is-nw");
+    const dots = await page.$$eval(".bd-frame-box .bd-handle", (hs) => hs.filter((h) => getComputedStyle(h, "::after").display !== "none").map((h) => h.className.replace("bd-handle is-", "")).sort().join());
+    expect(dots === "ne,nw,se,sw", `a picked frame shows a dot at each corner and none on the edges, got ${dots}`);
+    const before = await saved();
+    const hw = await page.locator(".bd-frame-box .bd-handle.is-w").boundingBox();
+    await page.mouse.move(hw.x + hw.width / 2, hw.y + hw.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(hw.x + hw.width / 2 - 60, hw.y + hw.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await page.waitForFunction((w0) => window.__builder.doc().frames[0].width > w0, before.frames[0].width);
+    const after = (await saved()).frames[0];
+    expect(after.width > before.frames[0].width && typeof after.x === "number" && after.x < 0, `the left edge widens the frame and moves its left side, got ${after.width} at x ${after.x}`);
+    ok(`a picked frame shows its four corner dots, and its left edge takes it from ${before.frames[0].width} to ${after.width} wide`);
+
+    await tab(page, "Layout");
+    await sec("frame-auto").locator('[aria-label="Row"]').click();
+    await pick(page, "Gap", "md");
+    await pick(page, "Padding", "lg");
+    await frame().waitForFunction(() => { const r = getComputedStyle(document.querySelector(".bf-root")); return r.flexDirection === "row" && parseFloat(r.columnGap || r.gap) > 0 && parseFloat(r.paddingLeft) > 0; });
+    const flow = (await saved()).frames[0].flow;
+    expect(flow && flow.direction === "row" && flow.gap === "md" && flow.padding === "lg", `the frame keeps its auto layout, got ${JSON.stringify(flow)}`);
+    ok("the frame's Auto layout runs it in a row with an md gap and lg padding, on the canvas and in the saved layout");
+
+    await pick(page, "Resizing", "Fixed width and height");
+    await sec("frame-overflow").locator(".bd-switch").click();
+    await sec("frame-overflow").locator(".bd-seg-btn", { hasText: "Vertical" }).click();
+    await frame().waitForFunction(() => { const r = getComputedStyle(document.querySelector(".bf-root")); return r.overflowY === "auto" && r.overflowX === "hidden"; });
+    const fr = (await saved()).frames[0];
+    expect(fr.clip === true && fr.scroll === "y" && !fr.hug, `a fixed frame keeps clip and vertical scroll, got ${JSON.stringify({ clip: fr.clip, scroll: fr.scroll, hug: fr.hug })}`);
+    await release(page);
+    await page.keyboard.press("Escape");
+    await page.locator(".bd-export").click();
+    const code = await page.locator(".bd-code-pre code").textContent();
+    expect(code.includes('flexDirection: "row"') && code.includes('overflowY: "auto"') && code.includes('padding: "var(--dt-space-inset-lg)"'), "the exported code carries the frame's row, padding and vertical scroll");
+    await page.keyboard.press("Escape");
+    ok("Clip content and vertical scroll on a fixed frame: the root clips sideways and scrolls down, and the code says so");
+
+    const hero = await frame().evaluate(() => document.querySelector('[data-bf-type="HeroBlock"]').getAttribute("data-bf-id"));
+    await page.evaluate((id) => window.__builder.select([id]), hero);
+    await page.waitForSelector(".bd-mark-sel .bd-mark-more");
+    const corners = await page.$$eval(".bd-mark-sel .bd-handle", (hs) => hs.filter((h) => getComputedStyle(h, "::after").display !== "none").length);
+    expect(corners === 4, `a selected layer in the flow shows a dot at each corner, got ${corners}`);
+    await page.locator(".bd-mark-sel .bd-mark-more").click();
+    await page.waitForSelector(".bd-ctx");
+    expect(await page.locator(".bd-ctx .bd-dd-opt", { hasText: /^Duplicate/ }).count() === 1, "the tag's ⋯ opens the layer's actions");
+    await page.keyboard.press("Escape");
+    ok("a selected layer shows its four corner dots, and its tag's ⋯ opens its actions");
     await page.close();
   });
 
