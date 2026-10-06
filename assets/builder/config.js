@@ -75,7 +75,7 @@ var SHORTCUTS = [
   ["Select", [["Select all", "Ctrl+A"], ["Add to the selection", "Shift-click"], ["Into the selection", "Enter"], ["Out to its parent", "Shift+Enter"],
     ["Deselect", "Esc"], ["Menu for the selection", "Shift+F10"]]],
   ["View", [["Zoom in, zoom out", "Ctrl +, Ctrl −"], ["Zoom to fit", "Shift+1"], ["Zoom to the selection", "Shift+2"], ["Actual size", "Shift+0"],
-    ["Pan", "Space-drag"], ["Hide the panels", "Tab"], ["Measure the spacing, held", "Shift, Alt"], ["Search components", "/"], ["These shortcuts", "?"]]],
+    ["Pan", "Space-drag"], ["Rulers", "Shift+R"], ["Layout columns", "Shift+G"], ["Hide the panels", "Tab"], ["Measure the spacing, held", "Shift, Alt"], ["Search components", "/"], ["These shortcuts", "?"]]],
   ["Arrange", [["Bring forward, send backward", "Ctrl+], Ctrl+["], ["Bring to front, send to back", "Ctrl+Shift+], Ctrl+Shift+["], ["Group, ungroup", "Ctrl+G, Ctrl+Shift+G"],
     ["Hide, lock", "Ctrl+Shift+H, Ctrl+Shift+L"], ["Align left, centres, right", "Alt+A, Alt+H, Alt+D"], ["Align top, middles, bottom", "Alt+W, Alt+V, Alt+S"],
     ["Spread across, down", "Shift+Alt+H, Shift+Alt+V"], ["Tidy up", "Shift+Alt+T"]]],

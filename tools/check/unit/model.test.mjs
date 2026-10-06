@@ -64,6 +64,15 @@ test("any layer keeps the name it was given, trimmed and at most 60 characters",
   assert.equal(cleanNode({ type: "Text", name: 42, props: {} }, []).name, undefined, "a name is text");
 });
 
+test("a frame keeps its guides, each across or down at a whole pixel, and a column count from 1 to 24", () => {
+  const f = clean({ frames: [{ name: "A", width: 800, height: 600, guides: [{ x: 120.4 }, { y: 40 }, { x: 1, y: 2 }, { x: "no" }, null, { y: -5 }], columns: 6 }] }, []).frames[0];
+  assert.deepEqual(f.guides, [{ x: 120 }, { y: 40 }, { y: 0 }]);
+  assert.equal(f.columns, 6);
+  const g = clean({ frames: [{ name: "B", width: 800, height: 600, guides: Array.from({ length: 80 }, (_, i) => ({ x: i })), columns: 30 }] }, []).frames[0];
+  assert.equal(g.guides.length, 60, "at most sixty guides");
+  assert.equal(g.columns, undefined, "more than 24 columns isn't kept");
+});
+
 test("constraints: kept on a free layer, one of the set, never the default", () => {
   const report = [];
   const free = (style) => cleanNode({ type: "Button", props: {}, style: Object.assign({ x: 10, y: 10 }, style) }, report).style;

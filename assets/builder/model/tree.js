@@ -237,6 +237,9 @@ function note(report, line) { if (report && report.indexOf(line) < 0) report.pus
 /* A node placed freely on a frame's canvas: x and y in steps of the smallest
    inset. Anything inside a container stays in its flow. */
 var FREE_MAX = 1200;
+var GUIDES_MAX = 60, COLUMNS_MAX = 24;
+/* Layout columns a frame shows unless it says: fewer on a narrower screen. */
+function columnsOf(f) { return f.columns || (f.width < 600 ? 4 : f.width < 1024 ? 8 : 12); }
 var HEX = /^#[0-9a-f]{6}$/i;
 function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
 
@@ -464,6 +467,18 @@ function cleanFrame(f, i, report) {
     if (tokenOption("padding", f.flow.padding)) fl.padding = f.flow.padding;
     if (Object.keys(fl).length) base.flow = fl;
   }
+  /* Guides dragged out of the rulers, at whole pixels of the frame, each
+     across (x) or down (y); and how many layout columns it shows. */
+  if (Array.isArray(f.guides)) {
+    var at = function (v, max) { return typeof v === "number" && isFinite(v) ? Math.max(0, Math.min(max, Math.round(v))) : null; };
+    var gs = f.guides.map(function (g) {
+      if (!g || typeof g !== "object" || (g.x === undefined) === (g.y === undefined)) return null;
+      var v = g.x !== undefined ? at(g.x, MAX_WIDTH) : at(g.y, MAX_HEIGHT);
+      return v === null ? null : g.x !== undefined ? { x: v } : { y: v };
+    }).filter(Boolean).slice(0, GUIDES_MAX);
+    if (gs.length) base.guides = gs;
+  }
+  if (Number.isInteger(f.columns) && f.columns >= 1 && f.columns <= COLUMNS_MAX) base.columns = f.columns;
   /* What spills past a fixed frame: clipped, or scrolled one way. */
   if (f.clip === true) base.clip = true;
   if (f.scroll === "x" || f.scroll === "y") base.scroll = f.scroll;
@@ -486,4 +501,4 @@ function clean(doc, report) {
   return out;
 }
 
-export { H_PINS, V_PINS, constrain, CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };
+export { COLUMNS_MAX, GUIDES_MAX, columnsOf, H_PINS, V_PINS, constrain, CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };

@@ -3000,7 +3000,11 @@ try {
   });
 
   await step("A theme tried in Configure reaches the frames, not the builder's chrome", async () => {
-    const themed = await open({ width: 1280, height: 900 }, { store: { "dovetail-theme-config": JSON.stringify({ vars: { "--dt-surface-subtle": "rgb(255, 0, 0)", "--dt-surface-base": "rgb(0, 0, 255)" } }) } });
+    /* The theme is there from the first load: a project keeps its own theme,
+       so one saved on the first visit, before the store below is set, would
+       otherwise win when it opens again. */
+    const theme = JSON.stringify({ vars: { "--dt-surface-subtle": "rgb(255, 0, 0)", "--dt-surface-base": "rgb(0, 0, 255)" } });
+    const themed = await open({ width: 1280, height: 900 }, { store: { "dovetail-theme-config": theme }, before: (p) => p.addInitScript((t) => { try { if (!sessionStorage.getItem("themed")) { sessionStorage.setItem("themed", "1"); localStorage.setItem("dovetail-theme-config", t); } } catch (err) { /* no storage */ } }, theme) });
     await themed.frame().waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 255)");
     const chrome = await themed.page.evaluate(() => [document.documentElement.hasAttribute("data-theme-fixed"), getComputedStyle(document.querySelector(".bd-left")).backgroundColor]);
     expect(chrome[0] && chrome[1] !== "rgb(255, 0, 0)", `the builder's panels should keep their own colours, got ${chrome[1]}`);
@@ -4501,6 +4505,126 @@ try {
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `no raw values in the code, got ${values.filter(raw).join(", ")}`);
     ok("the exported code places a scaling layer in percentages of its page, with no raw values");
+    await page.close();
+  });
+
+  await step("View: its own menu, rulers, guides dragged out and snapped to, layout columns you can count, snapping switched off, kept per browser", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "vw", name: "Post", width: 800, height: 600, mode: "free", guides: [{ x: 300 }], root: { id: "root", type: "Root", children: [
+        { id: "bt", type: "Button", props: { children: "Go" }, style: { x: 10, y: 100 } }] } });
+      d.active = "vw";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(150);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => /vw/.test(v), 8000);
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="bt"]'));
+    const vw = async () => (await saved()).frames.find((f) => f.id === "vw");
+    await page.evaluate(() => window.__builder.select([]));
+    await page.keyboard.press("Shift+2");
+    await page.waitForTimeout(400);
+    await release(page);
+
+    /* The View menu: its own button, switches that say whether they're on. */
+    await page.locator(".bd-view-menu").click();
+    const items = await page.$$eval(".bd-dd-list [role=menuitemcheckbox]", (o) => o.map((x) => x.querySelector(".bd-dd-opt-label").textContent + "=" + x.getAttribute("aria-checked")));
+    expect(items.join() === "Rulers=false,Guides=true,Layout columns=false,Snap to objects=true,Snap to guides=true", `the menu lists what the canvas shows and snaps to, got ${items.join()}`);
+    await option(page, "Rulers").click();
+    await page.locator(".bd-ruler.is-top").waitFor();
+    expect(await page.locator(".bd-ruler.is-top .bd-ruler-num").count() >= 4, "the top ruler is numbered");
+    await page.keyboard.press("Shift+R");
+    await page.waitForFunction(() => !document.querySelector(".bd-ruler"));
+    await page.keyboard.press("Shift+R");
+    await page.locator(".bd-ruler.is-left").waitFor();
+    ok(`a View button of its own (${items.length} switches); Rulers from it, and Shift+R hides and shows them`);
+
+    /* A guide dragged out of the left ruler lands where it's let go. */
+    const fb = await page.locator("iframe.bd-frame.is-active").boundingBox();
+    const s = fb.width / 800;
+    const lr = await page.locator(".bd-ruler.is-left").boundingBox();
+    await page.mouse.move(lr.x + lr.width / 2, fb.y + 200 * s);
+    await page.mouse.down();
+    await page.mouse.move(fb.x + 300 * s, fb.y + 200 * s, { steps: 6 });
+    await page.mouse.move(fb.x + 500 * s, fb.y + 200 * s, { steps: 6 });
+    await page.waitForTimeout(100);
+    await page.mouse.up();
+    let g = await poll(async () => (await vw()).guides || [], (list) => list.length === 2);
+    expect(g.length === 2 && Math.abs(g[1].x - 500) <= 2, `a guide comes out of the left ruler at x 500, got ${JSON.stringify(g)}`);
+    expect(await page.locator(".bd-rguide.is-x").count() === 2, "both guides are drawn");
+    await page.keyboard.press("Control+z");
+    g = await poll(async () => (await vw()).guides || [], (list) => list.length === 1);
+    expect(g.length === 1, "undo takes the new guide back");
+    ok(`a guide dragged from the left ruler lands at x ${Math.round(500)}, drawn across the frame, and undo takes it back`);
+
+    /* Dragging the Button so its left edge comes 5px short of the guide at
+       300: it snaps to it; with Snap to guides off, it doesn't. */
+    const dragTo = async (left) => {
+      const r = await page.evaluate(() => document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect("bt"));
+      const sx = fb.x + (r.left + r.width / 2) * s, sy = fb.y + (r.top + r.height / 2) * s;
+      await page.mouse.move(sx, sy);
+      await page.mouse.down();
+      /* A drag counts from where it first moves past the threshold. */
+      await page.mouse.move(sx + 8, sy, { steps: 2 });
+      await page.mouse.move(sx + 8 + (left - r.left) * s, sy, { steps: 8 });
+      await page.waitForTimeout(120);
+      await page.mouse.up();
+      await page.waitForTimeout(250);
+      return (await vw()).root.children.find((c) => c.id === "bt").style.x * 4;
+    };
+    const snapped = await dragTo(295);
+    expect(Math.abs(snapped - 300) <= 2, `let go 5px short of the guide, the Button's left edge snaps to x 300, got ${snapped}`);
+    await page.keyboard.press("Control+z");
+    await page.waitForTimeout(200);
+    await page.locator(".bd-view-menu").click();
+    await option(page, "Snap to guides").click();
+    const loose = await dragTo(295);
+    expect(Math.abs(loose - 300) >= 3, `with Snap to guides off it stays where it was let go, got ${loose}`);
+    ok(`the Button snaps to the guide (x ${snapped}), and lands at x ${loose} with Snap to guides off`);
+
+    /* Dragged onto the ruler, a guide goes. */
+    const gl = await page.locator(".bd-rguide.is-x").first().boundingBox();
+    await page.mouse.move(gl.x + gl.width / 2, gl.y + 40);
+    await page.mouse.down();
+    await page.mouse.move(lr.x + 30, gl.y + 40, { steps: 4 });
+    await page.mouse.move(lr.x + lr.width / 2, gl.y + 40, { steps: 4 });
+    await page.mouse.up();
+    g = await poll(async () => (await vw()).guides, (list) => !list);
+    expect(!g, `dragged back onto the ruler, the guide goes, got ${JSON.stringify(g)}`);
+    ok("a guide dragged back onto the ruler is removed");
+
+    /* Layout columns: Shift+G lays them over the frame; the frame's own
+       count changes how many. */
+    await page.keyboard.press("Shift+G");
+    const cols = page.locator('.bd-cols[data-frame="vw"] .bd-col');
+    await cols.first().waitFor();
+    expect(await cols.count() === 8, `an 800-wide frame shows 8 columns by default, got ${await cols.count()}`);
+    await page.evaluate(() => window.__builder.select([]));
+    const colField = page.locator('.bd-right input[aria-label="Layout columns"]');
+    await colField.waitFor();
+    await colField.fill("6");
+    await colField.press("Enter");
+    await poll(() => cols.count(), (n) => n === 6);
+    expect((await cols.count()) === 6 && (await vw()).columns === 6, `six typed in shows six columns and keeps them on the frame, got ${await cols.count()}`);
+    ok("Shift+G lays 8 columns over an 800-wide frame; typing 6 in Layout columns shows 6, kept on the frame");
+
+    /* Kept per browser. */
+    await page.evaluate(() => window.__builder.flush());
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.locator(".bd-ruler.is-top").waitFor();
+    const kept = await page.evaluate(() => JSON.parse(localStorage.getItem("dovetail-builder-prefs")).canvas);
+    expect(kept.rulers === true && kept.columns === true && kept.snapGuides === false, `the switches outlast a reload, got ${JSON.stringify(kept)}`);
+    ok("rulers, columns and the snapping switch outlast a reload");
     await page.close();
   });
 
