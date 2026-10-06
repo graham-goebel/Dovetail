@@ -104,17 +104,21 @@ const expect = (cond, m) => { if (!cond) throw new Error(m); };
 const seconds = (ms) => (ms / 1000).toFixed(1).replace(/\.0$/, "") + "s";
 
 /* The steps, as this file declares them; they run once every one is known.
-   ONLY=<text> keeps just the steps whose title has it, to work on one. */
+   ONLY=<text> keeps just the steps whose title has it, to work on one; a
+   step that shares a page runs with the ones before it, which it builds on. */
 const queue = [];
 let chain = null;
+const wanted = (title) => !process.env.ONLY || title.includes(process.env.ONLY) || title === "page errors";
 function step(title, fn, opts = {}) {
-  if (process.env.ONLY && !title.includes(process.env.ONLY) && title !== "page errors") return;
   const item = { title, fn, ...opts };
-  if (chain && !opts.alone && !opts.last) chain.steps.push(item); else queue.push(item);
+  if (chain && !opts.alone && !opts.last) chain.steps.push(item);
+  else if (wanted(title)) queue.push(item);
 }
 /* Steps declared between inOrder(name, after) and inOrder(null) share a
-   page, so they run in order as one task; `after` runs when they're done. */
+   page, so they run in order as one task; `after` runs when they're done.
+   Under ONLY the task keeps its steps up to the last one wanted. */
 function inOrder(name, after) {
+  if (chain) { const last = chain.steps.map((s) => wanted(s.title)).lastIndexOf(true); chain.steps = chain.steps.slice(0, last + 1); }
   chain = name ? { title: name, steps: [], after } : null;
   if (chain) queue.push(chain);
 }
