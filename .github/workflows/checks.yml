@@ -60,46 +60,89 @@ jobs:
           BASE: ${{ github.base_ref }}
         run: node tools/changelog.mjs --check --base "origin/$BASE"
 
+  # Which browser checks this change needs, from the files it touches
+  # (tools/check/changed.mjs). A changelog entry, a doc, or the release itself
+  # needs none; a builder change needs the builder's; a component needs all.
+  # A push to main, a manual run and the run-all-checks label run everything.
+  changes:
+    name: Which checks this change needs
+    runs-on: ubuntu-latest
+    outputs:
+      site: ${{ steps.decide.outputs.site }}
+      behavior: ${{ steps.decide.outputs.behavior }}
+      builder: ${{ steps.decide.outputs.builder }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - id: decide
+        env:
+          BASE: ${{ github.base_ref }}
+          ALL: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'run-all-checks') }}
+        run: |
+          if [ "$ALL" = "true" ]; then node tools/check/changed.mjs --all
+          else node tools/check/changed.mjs "origin/$BASE"; fi
+
   # The three browser checks share nothing, so each is its own job and the
   # wall time is the longest of them rather than their sum. Chromium is
   # cached by Playwright's version, so a run doesn't download it again.
+  # A check the change doesn't need still reports, as passed, so that branch
+  # protection can require all three: its steps are skipped, not the job.
   browser:
     name: ${{ matrix.check.name }}
+    needs: changes
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         check:
-          - { name: "Every card and page loads cleanly", script: "check:browser" }
-          - { name: "Dialog, Drawer and Tabs behave in a real browser", script: "check:behavior" }
-          - { name: "The builder places, styles, exports and shares", script: "check:builder" }
+          - { name: "Every card and page loads cleanly", script: "check:browser", when: "site" }
+          - { name: "Dialog, Drawer and Tabs behave in a real browser", script: "check:behavior", when: "behavior" }
+          - { name: "The builder places, styles, exports and shares", script: "check:builder", when: "builder" }
+    env:
+      NEEDED: ${{ needs.changes.outputs[matrix.check.when] }}
     steps:
+      - name: Nothing this check looks at changed
+        if: env.NEEDED != 'true'
+        run: echo "No file this check covers changed; add the run-all-checks label to run it anyway."
+
       - uses: actions/checkout@v4
+        if: env.NEEDED == 'true'
 
       - uses: actions/setup-node@v4
+        if: env.NEEDED == 'true'
         with:
           node-version: "22"
           cache: npm
 
       - run: npm ci
+        if: env.NEEDED == 'true'
 
       - name: Playwright's version, for the browser cache
+        if: env.NEEDED == 'true'
         id: pw
         run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
+        if: env.NEEDED == 'true'
         id: chromium
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
 
       - name: Install Chromium
-        if: steps.chromium.outputs.cache-hit != 'true'
+        if: env.NEEDED == 'true' && steps.chromium.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       # The system libraries aren't cached with the browser; they're quick.
       - name: Install Chromium's system libraries
-        if: steps.chromium.outputs.cache-hit == 'true'
+        if: env.NEEDED == 'true' && steps.chromium.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
       - run: npm run ${{ matrix.check.script }}
+        if: env.NEEDED == 'true'
