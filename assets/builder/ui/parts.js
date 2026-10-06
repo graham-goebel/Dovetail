@@ -535,8 +535,8 @@ function Dropdown(props) {
       var head = o.group && (i === 0 || options[i - 1].group !== o.group)
         ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
       return [head, e("li", {
-        key: String(o.value), id: ids.list + "-" + i, "data-i": i, role: props.menu ? "menuitem" : "option",
-        "aria-selected": props.menu ? undefined : String(isSel), "aria-disabled": o.disabled ? "true" : undefined,
+        key: String(o.value), id: ids.list + "-" + i, "data-i": i, role: props.menu ? (o.checked !== undefined ? "menuitemcheckbox" : "menuitem") : "option",
+        "aria-selected": props.menu ? undefined : String(isSel), "aria-checked": props.menu && o.checked !== undefined ? String(!!o.checked) : undefined, "aria-disabled": o.disabled ? "true" : undefined,
         className: cx("bd-dd-opt", i === activeI && "is-active", isSel && "is-selected", o.disabled && "is-disabled", o.danger && "is-danger"),
         onPointerMove: function () { if (activeI !== i) setActive(i); },
         onClick: function () { choose(o); },
@@ -546,7 +546,7 @@ function Dropdown(props) {
         e("span", { className: "bd-dd-opt-text" },
           e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
           o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null),
-        isSel ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null)];
+        isSel || o.checked ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null)];
     })), document.body) : null);
 }
 
