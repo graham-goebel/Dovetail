@@ -13,7 +13,7 @@ import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -5255,6 +5255,19 @@ function App(props) {
       return names.some(function (k) { var v = n.props[k]; return v !== undefined && v !== base[k]; });
     });
   };
+  /* The Fill swatches, grouped, in the frame's own colours. */
+  var SURFACE_NAME = { base: "Base", subtle: "Subtle", raised: "Raised", sunken: "Sunken", brand: "Brand", "brand-muted": "Brand muted", "brand-secondary": "Brand secondary", "brand-secondary-muted": "Brand secondary muted", "success-subtle": "Success", "warning-subtle": "Warning", "danger-subtle": "Danger", "info-subtle": "Info" };
+  var surfaceGroups = function () {
+    var a = api();
+    var look = function (o) { var l = a && a.look ? a.look(o.css) : null; return l && l.bg ? l : { bg: "var(" + o.tokens[0] + ")", fg: "var(--dt-text-primary)" }; };
+    var groups = [{ name: "Neutral", options: [{ value: "", name: "None", tokens: [] }] }, { name: "Brand", options: [] }, { name: "Status", options: [] }];
+    DATA.tokens.surface.options.forEach(function (o) {
+      var l = look(o);
+      var item = { value: o.value, name: SURFACE_NAME[o.value] || o.label || o.value, tokens: o.tokens, bg: l.bg, fg: l.fg };
+      (/^brand/.test(o.value) ? groups[1] : /^(success|warning|danger|info)-/.test(o.value) ? groups[2] : groups[0]).options.push(item);
+    });
+    return groups.filter(function (g) { return g.options.length; });
+  };
   var headAction = function (icon, label, onClick, pressed) {
     return e("button", { type: "button", className: "bd-act bd-act-ghost", title: label, "aria-label": label, "aria-pressed": pressed === undefined ? undefined : String(pressed), onClick: onClick }, e(Icon, { name: icon }));
   };
@@ -5288,18 +5301,19 @@ function App(props) {
     var blendNow = same(blendValues) ? blendValues[0] : null;
     var blendOpt = blendNow ? DATA.tokens.blend.options.filter(function (o) { return o.value === blendNow; })[0] : null;
     var darkOn = same(darkValues) && darkValues[0];
+    var surfaces = nodes.map(function (n) { return n.style.surface || ""; });
+    var surfaceNow = same(surfaces) ? surfaces[0] : null;
     var darkToggle = headAction("moon", darkOn ? "Dark band: everything inside resolves dark. Press for inherit." : "Make this a dark band", function () { setStyle(ids, "dark", darkOn ? undefined : true); }, !!darkOn);
     return [
       sec("fill", "Fill", [extra || null,
-        free ? e("div", { key: "fillrow", className: "bd-canvas-row" },
-          tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: fillHex ? "Custom colour" : "None", className: "bd-dd-field bd-dd-swatch", onChange: function (v) { setStyles(ids, { surface: v || undefined, fill: undefined }); } }),
-          picker("fill", fillHex, "Custom fill colour", "surface"))
-          : tokenDropdown("surface", nodes, null, { label: "Fill", noneLabel: "None", className: "bd-dd-field bd-dd-swatch" }),
+        e(SwatchField, { key: "fill", id: "bd-fill-" + first.id, label: "Fill", groups: surfaceGroups(), value: surfaceNow, mixed: surfaceNow === null, custom: free && !surfaceNow && fillHex ? fillHex : null,
+          noneHint: "Takes the surface around it",
+          onChange: function (v) { if (free) setStyles(ids, { surface: v || undefined, fill: undefined }); else setStyle(ids, "surface", v || undefined); } }),
         free && textOnly ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
           e("div", { className: "bd-canvas-row" },
             picker("color", inkHex, "Custom text colour"),
             inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyle(ids, "color", undefined); } }, "Use the system's") : null)) : null,
-      ], darkToggle, styled(nodes, ["surface", "fill", "color", "dark"])),
+      ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark"])),
       sec("layer", "Layer", [
         e("div", { key: "blend", className: "bd-blend-row" },
           e("span", { className: "bd-field-label", id: lid }, "Blend"),

@@ -760,6 +760,104 @@ html.bd-configure-docked .configure-open-btn {
   white-space: nowrap;
 }
 
+/* Fill swatches in labelled rows: Neutral, Brand, Status. */
+.bd-swatch-rows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px var(--dt-space-inline-xs);
+  align-items: center;
+}
+
+.bd-swatch-group {
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 0.7rem);
+  font-weight: var(--dt-font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bd-swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 3px;
+  border-radius: var(--dt-radius-control);
+  background: var(--bd-field);
+}
+
+.bd-swatch {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) color-mix(in oklab, currentColor 18%, transparent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: var(--dt-font-weight-semibold, 600);
+  cursor: pointer;
+}
+
+.bd-swatch.is-none {
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  box-shadow: inset 0 0 0 var(--dt-border-width-default) var(--dt-border-default);
+}
+
+.bd-swatch.is-none::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 1.5px;
+  background: currentColor;
+  transform: rotate(-45deg);
+}
+
+.bd-swatch[aria-pressed="true"] {
+  outline: 2px solid var(--bd-select);
+  outline-offset: 1px;
+}
+
+.bd-swatch:focus-visible {
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+  outline-offset: 2px;
+}
+
+.bd-swatch-tokens {
+  min-height: 1.4em;
+  overflow: hidden;
+  color: var(--dt-text-tertiary);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs, 0.7rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Two actions in a section's head: the eyedropper and the moon. */
+.bd-sec-acts {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bd-sec-acts .bd-canvas-custom:not(.is-on) {
+  border-color: transparent;
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-swatch {
+    transition: transform var(--dt-motion-micro);
+  }
+
+  .bd-swatch:hover {
+    transform: scale(1.08);
+  }
+}
+
 .bd-field-val.is-preview {
   color: color-mix(in oklab, var(--bd-select) 75%, var(--dt-text-primary));
   font-style: italic;

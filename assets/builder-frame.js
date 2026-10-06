@@ -1173,6 +1173,19 @@
        given, what its component brings, or what it picks up around it. Its
        wrapper is display: contents, so that's its first element. */
     /* A node's own box, before any turn: its first element's layout size. */
+    /* How a fill looks on this frame: the background and text colour an
+       element with these styles takes here, light or dark, for swatches. */
+    look: function (css) {
+      var host = document.querySelector(".bf-root") || document.body;
+      var el = document.createElement("div");
+      el.style.color = "var(--dt-text-primary)";
+      Object.keys(css || {}).forEach(function (k) { el.style.setProperty(k.indexOf("--") === 0 ? k : k.replace(/[A-Z]/g, function (m) { return "-" + m.toLowerCase(); }), css[k]); });
+      host.appendChild(el);
+      var c = getComputedStyle(el);
+      var out = { bg: c.backgroundColor, fg: c.color };
+      el.remove();
+      return out;
+    },
     size: function (id) {
       var w = wrapper(id);
       var el = w && w.firstElementChild;

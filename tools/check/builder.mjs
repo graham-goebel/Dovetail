@@ -2542,6 +2542,42 @@ try {
     await page.close();
   });
 
+  await step("Fill swatches: grouped rows in the frame's own colours, the name after the label, tokens only on hover, the eyedropper beside the moon", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const last = () => page.evaluate(() => { const r = window.__builder.doc().frames[0].root; return JSON.parse(JSON.stringify(r.children[1].style)); });
+    await page.evaluate(() => { const r = window.__builder.doc().frames[0].root; window.__builder.select([r.children[1].id]); });
+    await tab(page, "Appearance");
+    const sec = page.locator('.bd-right .bd-sec[data-sec="fill"]');
+    await sec.waitFor();
+    const groups = await sec.locator(".bd-swatch-group").allTextContents();
+    expect(groups.join() === "Neutral,Brand,Status", `the swatches are grouped Neutral, Brand, Status, got ${groups.join()}`);
+    expect(await sec.locator(".bd-swatch").count() === 13 && await sec.locator(".bd-dd").count() === 0, "13 swatches (None and 12 surfaces), and no dropdown");
+    /* The frame's own colours: base is the frame's white, not the dark builder's. */
+    const base = await sec.locator('.bd-swatch[aria-label="Fill: Base"]').evaluate((b) => b.style.background);
+    const frameBase = await page.evaluate(() => { const d = document.querySelector("iframe.bd-frame").contentDocument; return getComputedStyle(d.querySelector(".bf-root")).backgroundColor; });
+    expect(base && !/var\(/.test(base), `a swatch shows a real colour, got ${base}`);
+    ok(`grouped ${groups.join(", ")}; Base shows ${base} (the frame's root is ${frameBase})`);
+    const val = () => sec.locator(".bd-field-val").textContent();
+    const toks = () => sec.locator(".bd-swatch-tokens").textContent();
+    expect(await toks() === "", "no tokens show until a swatch is pointed at");
+    await sec.locator('.bd-swatch[aria-label="Fill: Brand muted"]').hover();
+    expect(await val() === "Brand muted" && /--dt-surface-brand-muted/.test(await toks()), `hovering names Brand muted and shows its tokens, got "${await val()}" / "${await toks()}"`);
+    await page.mouse.move(5, 5);
+    await page.waitForFunction(() => document.querySelector('.bd-sec[data-sec="fill"] .bd-swatch-tokens')?.textContent === "");
+    await sec.locator('.bd-swatch[aria-label="Fill: Brand"]').click();
+    await page.waitForFunction(() => window.__builder.doc().frames[0].root.children[1].style.surface === "brand");
+    expect(await sec.locator('.bd-swatch[aria-label="Fill: Brand"]').getAttribute("aria-pressed") === "true" && await val() === "Brand", "Brand is pressed and named after the label");
+    await sec.locator('.bd-swatch[aria-label="Fill: None"]').click();
+    await page.waitForFunction(() => !window.__builder.doc().frames[0].root.children[1].style.surface);
+    expect(await val() === "None", "None clears it");
+    ok("hovering Brand muted names it and shows --dt-surface-brand-muted; Brand sets surface: brand; None clears it");
+    /* The eyedropper sits in the head, beside the moon. */
+    const head = await sec.locator(".bd-sec-head .bd-sec-acts > *").evaluateAll((els) => els.map((x) => x.className));
+    expect(head.length === 2 && /bd-canvas-custom/.test(head[0]) && /bd-act/.test(head[1]), `the head holds the eyedropper then the moon, got ${JSON.stringify(head)}`);
+    ok("the custom-colour eyedropper sits in the Fill head, beside the moon");
+    await page.close();
+  });
+
   await step("Edit in place: any text on the canvas, including an item of a component's list, is typed into where it is", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
