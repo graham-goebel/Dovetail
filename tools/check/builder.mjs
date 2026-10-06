@@ -417,7 +417,7 @@ try {
     expect(code.includes('paddingTop: "var(--dt-space-inset-2xl)"'), "the code should carry the per-side token");
     const values = [...code.matchAll(/style=\{\{([^}]*)\}\}/g)].flatMap((m) => [...m[1].matchAll(/:\s*"([^"]*)"/g)].map((v) => v[1]));
     expect(!values.some(raw), `style values that aren't tokens: ${values.filter(raw).join(", ")}`);
-    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-acct)").boundingBox();
+    const box = await page.locator(".bd-code:not(.bd-import):not(.bd-new):not(.bd-comp-dlg):not(.bd-projects):not(.bd-versions):not(.bd-keys):not(.bd-acct)").boundingBox();
     expect(box.height > 700, `the code overlay should use most of the screen, got ${Math.round(box.height)}px`);
     ok(`exported code is named after the frame, its ${values.length} style values are tokens or keywords, and the overlay is ${Math.round(box.height)}px tall`);
     await page.keyboard.press("Escape");
@@ -932,7 +932,14 @@ try {
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the label opens the Stack's Layout tab");
     await page.keyboard.up("Shift");
     await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
-    ok(`Shift and a hover show the space between two items ("${said}"); its label opens the Stack's gap, and letting go clears it`);
+    /* Alt (Option) measures too, as in Figma and Sketch. */
+    await page.mouse.move(tp.x + 30, tp.y + 30, { steps: 2 });
+    await page.keyboard.down("Alt");
+    await page.mouse.move(tp.x, tp.y, { steps: 4 });
+    await page.locator(".bd-spacing-tag").first().waitFor();
+    await page.keyboard.up("Alt");
+    await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
+    ok(`Shift or Alt and a hover show the space between two items ("${said}"); its label opens the Stack's gap, and letting go clears it`);
 
     await page.locator("[aria-label='Play']").first().click();
     await page.locator(".bd-play[open]").waitFor();
@@ -4235,6 +4242,170 @@ try {
     expect((await remembered()) === "1" && (await sw.getAttribute("aria-checked")) === "true", "the switch turns the tools dark again and remembers it");
     ok("dark by default, Light mode from the File menu, remembered across a reload apart from Configure, and switched back on Home");
     await page.close();
+  });
+
+  await step("Conventions: shortcuts as this keyboard says them, a sheet of them, any layer renamed, Alt resizes from the centre, Shift keeps a move to one axis, a pasted picture, pictures at 1x to 3x", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const node = (id, type, props, x, y) => ({ id, type, props, style: { x, y } });
+      d.frames.push({ id: "conv", name: "Free", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        node("ba", "Button", { children: "Alpha" }, 40, 40), node("bb", "Button", { children: "Beta" }, 40, 100), node("hc", "Heading", { children: "Gamma" }, 40, 140)] } });
+      d.active = "conv";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.waitForTimeout(150);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => /conv/.test(v), 8000);
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    const free = async () => (await saved()).frames.find((f) => f.id === "conv");
+    const nodeOf = async (id) => (await free()).root.children.find((c) => c.id === id);
+    await fitAll(page);
+    await release(page);
+
+    /* The shortcuts sheet: ? opens it, so does the File menu; the tools list
+       their own keys; on this keyboard Ctrl stays Ctrl. */
+    await page.keyboard.press("?");
+    const sheet = page.locator("dialog.bd-keys[open]");
+    await sheet.waitFor();
+    const sheetText = await sheet.textContent();
+    const groups = await sheet.locator(".bd-keys-group").count();
+    expect(groups >= 7 && /Ctrl\+Shift\+G/.test(sheetText) && /Select\s*V/.test(sheetText) && !/⌘/.test(sheetText.replace("On a Mac, Ctrl is ⌘ and Alt is ⌥.", "")), `? opens a sheet of ${groups} groups with Ctrl+Shift+G and the tools' keys, got ${sheetText.slice(0, 160)}`);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("dialog.bd-keys[open]"));
+    await page.locator(".bd-project-menu").click();
+    await option(page, "Keyboard shortcuts").click();
+    await sheet.waitFor();
+    await sheet.locator(".bd-act[aria-label=Close]").click();
+    await page.waitForFunction(() => !document.querySelector("dialog.bd-keys[open]"));
+    ok(`? and the File menu open the shortcuts, ${groups} groups, the tools listing their own keys`);
+
+    /* Any layer renames: F2 on a Heading names it in the inspector's title;
+       a double-click on a Button's row in Layers names that; both survive a
+       reload. */
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await release(page);
+    await page.keyboard.press("F2");
+    const titleInput = page.locator(".bd-inspect-title input");
+    await titleInput.waitFor();
+    await titleInput.fill("Big title");
+    await titleInput.press("Enter");
+    expect((await poll(() => nodeOf("hc"), (n) => n.name === "Big title")).name === "Big title", "F2 renames a Heading from the inspector's title");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Layers" }).click();
+    await page.locator('.bd-layer[data-layer="bb"] .bd-layer-main').dblclick();
+    const rowInput = page.locator('.bd-layer[data-layer="bb"] input');
+    await rowInput.waitFor();
+    await rowInput.fill("Secondary");
+    await rowInput.press("Enter");
+    expect((await poll(() => nodeOf("bb"), (n) => n.name === "Secondary")).name === "Secondary", "a double-click on a Button's row renames it");
+    await page.evaluate(() => window.__builder.flush());
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => /conv/.test(v), 8000);
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    const kept = [(await nodeOf("hc")).name, (await nodeOf("bb")).name];
+    expect(kept.join() === "Big title,Secondary", `the names outlast a reload, got ${kept}`);
+    ok("F2 renames a Heading, a double-click renames a Button's row, and both names outlast a reload");
+
+    /* Alt on a handle grows a free object from its centre; Shift once a move
+       has begun keeps it to the axis it moved along most. */
+    await fitAll(page);
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["ba"]));
+    await page.waitForSelector(".bd-mark-sel .bd-handle.is-e");
+    const settled = async (sel) => {
+      let b = null;
+      for (let i = 0; i < 10; i++) { const n = await page.locator(sel).boundingBox(); if (b && n && Math.abs(n.x - b.x) < 0.5 && Math.abs(n.y - b.y) < 0.5) return n; b = n; await page.waitForTimeout(100); }
+      return b;
+    };
+    const rectOf = (id) => page.evaluate((id) => document.querySelectorAll("iframe.bd-frame")[1].contentWindow.BuilderFrame.rect(id), id);
+    const r0 = await rectOf("ba");
+    const hb = await settled(".bd-mark-sel .bd-handle.is-e");
+    await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
+    await page.mouse.down();
+    await page.keyboard.down("Alt");
+    await page.mouse.move(hb.x + hb.width / 2 + 6, hb.y + hb.height / 2, { steps: 3 });
+    await page.mouse.move(hb.x + hb.width / 2 + 12, hb.y + hb.height / 2, { steps: 3 });
+    await page.waitForTimeout(120);
+    await page.mouse.up();
+    await page.keyboard.up("Alt");
+    await page.waitForTimeout(250);
+    const r1 = await rectOf("ba");
+    const mid0 = r0.left + r0.width / 2, mid1 = r1.left + r1.width / 2;
+    expect(r1.width > r0.width + 20 && Math.abs(mid1 - mid0) <= 4 && r1.left < r0.left - 8, `Alt widens Alpha on both sides, keeping its centre: ${Math.round(r0.left)}+${Math.round(r0.width)} to ${Math.round(r1.left)}+${Math.round(r1.width)}`);
+
+    const bb0 = await nodeOf("bb");
+    const bp = await canvasPoint(page, '[data-bf-id="bb"] button');
+    await page.mouse.move(bp.x, bp.y);
+    await page.mouse.down();
+    await page.mouse.move(bp.x + 20, bp.y + 8, { steps: 4 });
+    await page.keyboard.down("Shift");
+    await page.mouse.move(bp.x + 120, bp.y + 40, { steps: 8 });
+    await page.waitForTimeout(120);
+    await page.mouse.up();
+    await page.keyboard.up("Shift");
+    const bb1 = await poll(() => nodeOf("bb"), (n) => n.style.x !== bb0.style.x);
+    expect(bb1.style.x > bb0.style.x && bb1.style.y === bb0.style.y, `with Shift held once moving, Beta goes across and not down: ${bb0.style.x},${bb0.style.y} to ${bb1.style.x},${bb1.style.y}`);
+    ok(`Alt resizes from the centre (${Math.round(r0.width)} to ${Math.round(r1.width)}px wide, centre held), and Shift keeps a move to one axis`);
+
+    /* A picture on the clipboard lands as an Image and joins Content. */
+    await page.evaluate(() => window.__builder.select([]));
+    const before = (await free()).root.children.length;
+    await page.evaluate(async () => {
+      const c = document.createElement("canvas");
+      c.width = 40; c.height = 30;
+      const g = c.getContext("2d"); g.fillStyle = "#3355ff"; g.fillRect(0, 0, 40, 30);
+      const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+      const dt = new DataTransfer();
+      dt.items.add(new File([blob], "image.png", { type: "image/png" }));
+      document.body.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
+    });
+    const pasted = await poll(async () => (await free()).root.children, (k) => k.length === before + 1);
+    const pic = pasted[pasted.length - 1];
+    const lib = await page.evaluate(() => (window.__builder.library().images || []).map((i) => i.name));
+    expect(pic && pic.type === "Image" && /^data:image\/png/.test(pic.props.src || "") && lib[0] === "Pasted picture", `a pasted PNG becomes an Image, first in Content's images, got ${pic && pic.type} ${String(pic && pic.props.src).slice(0, 22)}, library ${lib.slice(0, 2)}`);
+    ok("a picture pasted from the clipboard lands as an Image and joins Content as \"Pasted picture\"");
+
+    /* Export takes the one layer it shows, at the scale chosen. */
+    await page.evaluate(() => window.__builder.select(["hc"]));
+    await page.waitForFunction(() => /Big title/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator(".bd-export").click();
+    const dlg = page.locator("dialog.bd-code[open]").filter({ has: page.locator("#bd-code-title") });
+    await dlg.waitFor();
+    expect(/Export: Big title/.test(await dlg.locator("#bd-code-title").textContent()), "Export names the layer it shows");
+    await dlg.locator(".bd-export-scale .bd-seg-btn", { hasText: "3x" }).click();
+    const download = page.waitForEvent("download", { timeout: 20000 });
+    await dlg.locator(".bd-code-actions .bd-btn", { hasText: "PNG" }).click();
+    const file = await download;
+    expect(/^Big-title@3x\.png$/.test(file.suggestedFilename()), `the layer downloads at 3x, named after it, got ${file.suggestedFilename()}`);
+    await page.keyboard.press("Escape");
+    ok(`Export takes just the selected layer at 3x: ${file.suggestedFilename()}`);
+    await page.close();
+
+    /* On a Mac the same shortcuts read as its keyboard has them. */
+    const mac = await open({ width: 1440, height: 900 }, { before: (p) => p.addInitScript(() => { Object.defineProperty(Navigator.prototype, "platform", { get: () => "MacIntel" }); }) });
+    await mac.page.locator(".bd-zoom").click();
+    const hints = await mac.page.$$eval(".bd-dd-list .bd-dd-opt-hint", (h) => h.map((x) => x.textContent));
+    await mac.page.keyboard.press("Escape");
+    expect(hints.includes("⌘+") && hints.includes("⇧1") && !hints.some((h) => /Ctrl|Shift/.test(h)), `the zoom menu says ⌘+ and ⇧1 on a Mac, got ${hints.join(" | ")}`);
+    await release(mac.page);
+    await mac.page.keyboard.press("?");
+    const macSheet = mac.page.locator("dialog.bd-keys[open]");
+    await macSheet.waitFor();
+    const macText = await macSheet.textContent();
+    expect(/⇧⌘G/.test(macText) && /⌥⇧T/.test(macText) && /⌘-drag/.test(macText) && !/Ctrl\+/.test(macText), `the sheet on a Mac reads ⇧⌘G, ⌥⇧T and ⌘-drag, got ${macText.slice(0, 200)}`);
+    ok(`on a Mac the zoom menu reads ${hints.slice(0, 4).join(", ")} and the sheet ⇧⌘G, ⌥⇧T, ⌘-drag`);
+    await mac.page.close();
   });
 
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {

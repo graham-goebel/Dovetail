@@ -329,9 +329,9 @@ function cleanNode(n, report) {
     else note(report, n.type + ": style " + k + " isn't one the builder sets");
   });
   var out = { id: typeof n.id === "string" && /^[\w-]{1,40}$/.test(n.id) ? n.id : uid(), type: n.type, props: props, style: style };
-  /* A Group can be named by hand; a detached component keeps its old name
-     on whatever container it became. */
-  if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
+  /* Any layer can be named by hand (a Slot's name is its prop); a detached
+     component keeps its old name on whatever container it became. */
+  if (n.type !== "Slot" && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
   /* Locked: left alone on the canvas. Hidden: not drawn, not exported. */
   if (n.lock === true) out.lock = true;
   if (n.hide === true) out.hide = true;

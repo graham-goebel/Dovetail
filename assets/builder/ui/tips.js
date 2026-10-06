@@ -1,6 +1,6 @@
 /* Tooltips in the builder's own style. */
 
-import { mountEl } from "../config.js";
+import { kbd, mountEl } from "../config.js";
 
 /* Tooltips: a resting pointer on anything with a title shows it after a
    beat, in the builder's own style. The title moves to data-tip so the
@@ -40,7 +40,7 @@ function installTips() {
     tip = document.createElement("div");
     tip.className = "bd-tip";
     tip.setAttribute("role", "tooltip");
-    tip.textContent = text;
+    tip.textContent = kbd(text);
     (el.closest("dialog[open]") || document.body).appendChild(tip);
     var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 8;
     var top = r.top - h - gap < 8 ? r.bottom + gap : r.top - h - gap;

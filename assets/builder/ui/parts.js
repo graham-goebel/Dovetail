@@ -1,6 +1,6 @@
 /* Small controls the panels are built from: dropdowns, switches, fields, thumbnails. */
 
-import { FRAME_GAP, MAX_ZOOM, MEDIA_URL, MIN_SIDE, MIN_ZOOM, cx, e, useEffect, useMemo, useRef, useState, words } from "../config.js";
+import { FRAME_GAP, MAX_ZOOM, MEDIA_URL, MIN_SIDE, MIN_ZOOM, cx, e, useEffect, useMemo, useRef, useState, words, kbd } from "../config.js";
 import { SAFE_HREF } from "../model/tree.js";
 import { Icon } from "./icons.js";
 
@@ -545,7 +545,7 @@ function Dropdown(props) {
         o.px != null ? e("span", { className: "bd-dd-px" }, o.px) : null,
         e("span", { className: "bd-dd-opt-text" },
           e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
-          o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null),
+          o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null),
         isSel ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null)];
     })), document.body) : null);
 }
@@ -605,7 +605,7 @@ function ContextMenu(props) {
       o.icon ? e(Icon, { name: o.icon }) : e("span", { className: "bd-dd-noicon" }),
       e("span", { className: "bd-dd-opt-text" },
         e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
-        o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null))];
+        o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null))];
   })), document.body);
 }
 
@@ -613,7 +613,7 @@ function Field(props) {
   return e("div", { className: cx("bd-field", props.inline && "bd-field-inline") },
     e("span", { className: "bd-field-label", id: props.id, title: props.note || undefined }, props.label),
     props.children,
-    props.hint ? e("span", { className: "bd-field-hint" }, props.hint) : null);
+    props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null);
 }
 
 /* A titled group of controls that folds away. Its title row can carry an

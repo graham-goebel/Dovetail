@@ -72,6 +72,77 @@
   function nameOf(n) {
     return n.type === "Slot" ? words(n.props.name) : n.name || n.type;
   }
+  var IS_MAC = /Mac|iPhone|iPad|iPod/.test(typeof navigator !== "undefined" && (navigator.platform || navigator.userAgentData && navigator.userAgentData.platform) || "");
+  var CHORD = /\b((?:(?:Ctrl|Cmd|Alt|Shift)(?:\+|-| (?=[A-Z0-9+\-−]\b|[+\-−]))){1,3})(F\d{1,2}\b|Up\b|Down\b|Left\b|Right\b|Arrows?\b|drag\b|click\b|[A-Z0-9](?![\w°])|[[\]\\=+\-−?/])/g;
+  var MAC_MOD = { Ctrl: "⌘", Cmd: "⌘", Alt: "⌥", Shift: "⇧" };
+  var MAC_KEY = { Up: "↑", Down: "↓", Left: "←", Right: "→" };
+  function kbd(text2) {
+    if (typeof text2 !== "string") return text2;
+    if (/^(Ctrl|Cmd|Alt|Shift)$/.test(text2)) return IS_MAC ? MAC_MOD[text2] : text2 === "Cmd" ? "Ctrl" : text2;
+    return text2.replace(CHORD, function(all, mods, key) {
+      var held = mods.split(/[+\- ]/).filter(Boolean);
+      if (!IS_MAC) return all.replace(/\bCmd\b/g, "Ctrl");
+      var sym = ["Alt", "Shift", "Ctrl"].filter(function(m) {
+        return held.indexOf(m) >= 0 || m === "Ctrl" && held.indexOf("Cmd") >= 0;
+      }).map(function(m) {
+        return MAC_MOD[m];
+      }).join("");
+      return sym + (/^(drag|click)$/.test(key) ? "-" + key : /^Arrows?$/.test(key) ? " " + key : MAC_KEY[key] || key);
+    });
+  }
+  var SHORTCUTS = [
+    ["Edit", [
+      ["Undo", "Ctrl+Z"],
+      ["Redo", "Ctrl+Shift+Z"],
+      ["Cut, copy, paste", "Ctrl+X, Ctrl+C, Ctrl+V"],
+      ["Paste a picture", "Ctrl+V"],
+      ["Duplicate", "Ctrl+D"],
+      ["Copy style, paste style", "Ctrl+Alt+C, Ctrl+Alt+V"],
+      ["Delete", "Del"],
+      ["Rename", "F2"],
+      ["Create component", "Ctrl+Alt+K"]
+    ]],
+    ["Select", [
+      ["Select all", "Ctrl+A"],
+      ["Add to the selection", "Shift-click"],
+      ["Into the selection", "Enter"],
+      ["Out to its parent", "Shift+Enter"],
+      ["Deselect", "Esc"],
+      ["Menu for the selection", "Shift+F10"]
+    ]],
+    ["View", [
+      ["Zoom in, zoom out", "Ctrl +, Ctrl −"],
+      ["Zoom to fit", "Shift+1"],
+      ["Zoom to the selection", "Shift+2"],
+      ["Actual size", "Shift+0"],
+      ["Pan", "Space-drag"],
+      ["Hide the panels", "Tab"],
+      ["Measure the spacing, held", "Shift, Alt"],
+      ["Search components", "/"],
+      ["These shortcuts", "?"]
+    ]],
+    ["Arrange", [
+      ["Bring forward, send backward", "Ctrl+], Ctrl+["],
+      ["Bring to front, send to back", "Ctrl+Shift+], Ctrl+Shift+["],
+      ["Group, ungroup", "Ctrl+G, Ctrl+Shift+G"],
+      ["Hide, lock", "Ctrl+Shift+H, Ctrl+Shift+L"],
+      ["Align left, centres, right", "Alt+A, Alt+H, Alt+D"],
+      ["Align top, middles, bottom", "Alt+W, Alt+V, Alt+S"],
+      ["Spread across, down", "Shift+Alt+H, Shift+Alt+V"],
+      ["Tidy up", "Shift+Alt+T"]
+    ]],
+    ["On a freeform canvas", [
+      ["Nudge, four steps", "Arrows, Shift+Arrows"],
+      ["Opacity 10% to 90%, opaque", "1 to 9, 0"],
+      ["Keep proportions while resizing", "Shift-drag"],
+      ["Resize from the centre", "Alt-drag"],
+      ["Keep to one axis, once moving", "Shift"],
+      ["Drag a copy", "Alt-drag"],
+      ["Turn in 15° steps, while turning", "Shift"],
+      ["Move without snapping, held", "Ctrl"]
+    ]],
+    ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]]
+  ];
   var STYLE_KEYS = Object.keys(DATA.tokens);
   var TABS = [["content", "Properties"], ["appearance", "Appearance"], ["layout", "Layout"]];
   var TOOLBAR = [
@@ -1958,7 +2029,7 @@
       else note(report, n.type + ": style " + k + " isn't one the builder sets");
     });
     var out = { id: typeof n.id === "string" && /^[\w-]{1,40}$/.test(n.id) ? n.id : uid(), type: n.type, props, style };
-    if (isContainer(n.type) && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
+    if (n.type !== "Slot" && typeof n.name === "string" && n.name.trim()) out.name = n.name.trim().slice(0, 60);
     if (n.lock === true) out.lock = true;
     if (n.hide === true) out.hide = true;
     if (n.inst && typeof n.inst === "object" && typeof n.inst.of === "string" && /^[\w-]{1,40}$/.test(n.inst.of)) {
@@ -3190,7 +3261,7 @@
       }) });
     };
     return doc(frame("Keys worth knowing", "desktop", [
-      guide("Reference", "Keys worth knowing", "Ctrl is Cmd on a Mac.", [
+      guide("Reference", "Keys worth knowing", "Ctrl is Cmd on a Mac. Press ? for every shortcut.", [
         make("Grid", { columns: 2, gap: "xl" }, [
           make("Stack", { layer: "related" }, [heading("Editing", "heading-sm"), list("Editing", [
             ["Undo, and redo", "Ctrl+Z, Ctrl+Shift+Z"],
@@ -5718,7 +5789,7 @@
             "span",
             { className: "bd-dd-opt-text" },
             e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
-            o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null
+            o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null
           ),
           isSel ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null
         )];
@@ -5822,7 +5893,7 @@
           "span",
           { className: "bd-dd-opt-text" },
           e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
-          o.hint ? e("span", { className: "bd-dd-opt-hint" }, o.hint) : null
+          o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null
         )
       )];
     })), document.body);
@@ -5833,7 +5904,7 @@
       { className: cx("bd-field", props.inline && "bd-field-inline") },
       e("span", { className: "bd-field-label", id: props.id, title: props.note || void 0 }, props.label),
       props.children,
-      props.hint ? e("span", { className: "bd-field-hint" }, props.hint) : null
+      props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null
     );
   }
   function Section(props) {
@@ -6566,6 +6637,7 @@
     var resizing = resizeState[0], setResizing = resizeState[1];
     var shiftState = useState(false);
     var shiftHeld = shiftState[0], setShiftHeld = shiftState[1];
+    var measureKeys = useRef({});
     var spacingState = useState(null);
     var spacing = spacingState[0], setSpacing = spacingState[1];
     var focusSecState = useState(null);
@@ -6591,6 +6663,10 @@
     var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
     var codeTitleState = useState("");
     var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
+    var codePickState = useState(null);
+    var codePick = codePickState[0], setCodePick = codePickState[1];
+    var scaleState = useState(2);
+    var exportScale = scaleState[0], setExportScale = scaleState[1];
     var clip = useRef(null);
     var layout = layoutOf(doc2, heights, resizing, widths, movingFrame);
     var boxes = layout.boxes;
@@ -6601,9 +6677,7 @@
     pageRef.current = pageId;
     var histories = useRef({});
     var docRef = useRef(doc2);
-    docRef.current = doc2;
     var selRef = useRef(selection);
-    selRef.current = selection;
     var camRef = useRef(cam);
     camRef.current = cam;
     var layoutRef = useRef(layout);
@@ -7639,12 +7713,16 @@
         }
       }
     };
-    var dragMove = function(x, y) {
+    var dragMove = function(x, y, shift) {
       var dr = dragRef.current;
       if (!dr) return;
       if (dr.x === void 0) {
         dr.x = x;
         dr.y = y;
+      }
+      if (shift && dr.payload.kind === "move") {
+        if (Math.abs(x - dr.x) >= Math.abs(y - dr.y)) y = dr.y;
+        else x = dr.x;
       }
       dr.lastX = x;
       dr.lastY = y;
@@ -8054,7 +8132,7 @@
           dr.ghost = ghostFor(dr.payload);
         }
         mv.preventDefault();
-        dragMove(mv.clientX, mv.clientY);
+        dragMove(mv.clientX, mv.clientY, mv.shiftKey);
       };
       var stop = function(commitIt) {
         return function(up) {
@@ -8174,13 +8252,16 @@
               dragRef.current.ghost = ghostFor(pl);
               if (selRef.current.indexOf(id) < 0) select([id]);
             }),
-            dragMove: on(function(fid, x, y) {
+            dragMove: on(function(fid, x, y, shift) {
               if (!dragRef.current) return;
               var p = toPage(fid, x, y);
-              dragMoveRef.current(p.x, p.y);
+              dragMoveRef.current(p.x, p.y, shift);
             }),
             dragEnd: function(commitIt) {
               dragEndRef.current(commitIt);
+            },
+            paste: function(cd) {
+              return takePasteRef.current(cd);
             },
             frameDrag: on(function(fid, phase, x, y, dup) {
               var p = toPage(fid, x, y);
@@ -8800,7 +8881,7 @@
         one2 && one2.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
         { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
         { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" }
-      ]).concat(one2 && one2.type === "Group" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }] : []);
+      ]).concat(one2 && one2.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
     };
     var onMenu = function(v) {
       if (v === "cut") copySelection(true);
@@ -8821,6 +8902,7 @@
       else if (v === "rename") actions.rename();
       else if (v === "component") openComponent();
       else if (v === "link") share(selRef.current[0]);
+      else if (v === "png") exportImage(docRef.current.active, "png", { scale: exportScale, id: selRef.current[0] });
       else if (v === "selectAll") actions.selectAll();
       else if (v === "fitAll") fitAll();
       else if (v === "fitFrame") showFrame(docRef.current.active);
@@ -9036,7 +9118,7 @@
         var where = wide && left === "layers" && !bare ? "layer" : "title";
         if (id) {
           var at2 = locate(docRef.current, id);
-          if (at2 && at2.node.type === "Group") setRenaming({ id, where });
+          if (at2 && at2.node.type !== "Slot") setRenaming({ id, where });
         } else setRenaming({ id: "frame:" + docRef.current.active, where: wide && !bare ? "title" : "label" });
       },
       /* Tab, or Ctrl/Cmd+\, hides the side panels to give the canvas the room. */
@@ -9075,10 +9157,13 @@
         }
         return false;
       }
-      if (dialogRef.current && dialogRef.current.open || importRef.current && importRef.current.open || versionsRef.current && versionsRef.current.open || playRef.current && playRef.current.open || compRef.current && compRef.current.open) return false;
+      if (dialogRef.current && dialogRef.current.open || importRef.current && importRef.current.open || versionsRef.current && versionsRef.current.open || keysRef.current && keysRef.current.open || playRef.current && playRef.current.open || compRef.current && compRef.current.open) return false;
       var t = ev.target;
       var typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
-      if (ev.key === "Shift" && !ev.repeat) setShiftHeld(true);
+      if ((ev.key === "Shift" || ev.key === "Alt") && !ev.repeat) {
+        measureKeys.current[ev.key] = true;
+        setShiftHeld(true);
+      }
       if (typing || t && t.closest && t.closest(".bd-dd-list")) return false;
       var free = !t || t === document.body || t === document.documentElement || t.ownerDocument !== document || t.classList && t.classList.contains("bd-stage");
       var mod = ev.metaKey || ev.ctrlKey;
@@ -9103,6 +9188,10 @@
         return true;
       }
       if (previewRef.current) return false;
+      if (ev.key === "?" && !ev.altKey) {
+        openKeys();
+        return true;
+      }
       if (ev.key === "Escape" && marqRef.current) {
         marqueeEnd(false);
         return true;
@@ -9176,13 +9265,7 @@
         pasteStyle();
         return true;
       }
-      if (mod && key === "v" && !ev.shiftKey && !ev.altKey) {
-        if (t && t.ownerDocument !== document) {
-          if (clip.current) pasteNodes(clip.current.nodes);
-          return true;
-        }
-        return false;
-      }
+      if (mod && key === "v" && !ev.shiftKey && !ev.altKey) return false;
       if (ev.key === "F2") {
         actions.rename();
         return true;
@@ -9263,7 +9346,10 @@
         spaceRef.current = false;
         setSpace(false);
       }
-      if (ev.key === "Shift") setShiftHeld(false);
+      if (ev.key === "Shift" || ev.key === "Alt") {
+        delete measureKeys.current[ev.key];
+        setShiftHeld(!!(measureKeys.current.Shift || measureKeys.current.Alt));
+      }
     };
     useEffect(function() {
       var onKey = function(ev) {
@@ -9279,6 +9365,7 @@
           spaceRef.current = false;
           setSpace(false);
         }
+        measureKeys.current = {};
         setShiftHeld(false);
         snapOffRef.current = false;
       };
@@ -9725,23 +9812,28 @@
       if (parts.length && f.jsxNodes) {
         var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
         setCodeTitle(title);
+        setCodePick(parts.length === 1 ? parts[0].id : null);
         setCode(f.jsxNodes(withPageLinks(parts), parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts"));
       } else {
         setCodeTitle(fr.name);
+        setCodePick(null);
         setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: withPageLinks(fr.root) }, fr.name));
       }
       var dlg = dialogRef.current;
       if (dlg && dlg.showModal) dlg.showModal();
     };
-    var exportImage = function(fid, type) {
+    var exportImage = function(fid, type, opts) {
       var a = api(fid);
       var f = frameById(docRef.current, fid);
       if (!a || !a.snapshot || !f) return;
+      var scale = opts && opts.scale || 2;
+      var at2 = opts && opts.id ? locate(docRef.current, opts.id, fid) : null;
+      var name = at2 ? nameOf(at2.node) : f.name;
       announce("Making the " + (type === "jpeg" ? "JPG" : "PNG") + "…");
-      a.snapshot(type).then(function(url) {
+      a.snapshot(type, { scale, id: at2 ? at2.node.id : null }).then(function(url) {
         var link = document.createElement("a");
         link.href = url;
-        link.download = (f.name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "frame") + (type === "jpeg" ? ".jpg" : ".png");
+        link.download = (name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "frame") + (scale === 1 ? "" : "@" + scale + "x") + (type === "jpeg" ? ".jpg" : ".png");
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -9812,33 +9904,72 @@
       }), from: fid };
       return made.length > 0;
     };
+    var pastePictures = function(files) {
+      Promise.all(files.map(function(f) {
+        var kind = f.type === "image/svg+xml" ? "illustrations" : "images";
+        var base = (f.name || "").replace(/\.[a-z0-9]+$/i, "");
+        var name = !base || /^image$/i.test(base) ? "Pasted picture" : base;
+        return readForLibrary(f, kind).then(function(src) {
+          return { kind, item: { id: uid(), name, src } };
+        }, function(err) {
+          announce(err.message);
+          return null;
+        });
+      })).then(function(made) {
+        made = made.filter(Boolean);
+        if (!made.length) return;
+        setLibrary(function(l) {
+          var n = Object.assign({}, l);
+          made.forEach(function(m) {
+            n[m.kind] = [m.item].concat(l[m.kind] || []);
+          });
+          return n;
+        });
+        made.forEach(function(m) {
+          add("Image", null, { src: m.item.src, alt: m.item.name });
+        });
+        announce("Pasted " + (made.length === 1 ? made[0].item.name : made.length + " pictures") + "; " + (made.length === 1 ? "it's" : "they're") + " in Content too");
+      });
+    };
+    var takePaste = function(cd) {
+      var pics = cd ? Array.prototype.filter.call(cd.files || [], function(f) {
+        return /^image\//.test(f.type);
+      }) : [];
+      if (pics.length) {
+        pastePictures(pics);
+        return true;
+      }
+      var text2 = cd ? cd.getData("text/plain") : "";
+      var data = null;
+      try {
+        data = JSON.parse(text2);
+      } catch (err) {
+        data = null;
+      }
+      if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) {
+        pasteNodes(data.nodes);
+        return true;
+      }
+      if (clip.current) {
+        pasteNodes(clip.current.nodes);
+        return true;
+      }
+      return false;
+    };
+    var takePasteRef = useRef(takePaste);
+    takePasteRef.current = takePaste;
     useEffect(function() {
       var onPaste = function(ev) {
         var t = ev.target;
         if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
         if (!(mountEl.contains(t) || t === document.body)) return;
-        var text2 = ev.clipboardData ? ev.clipboardData.getData("text/plain") : "";
-        var data = null;
-        try {
-          data = JSON.parse(text2);
-        } catch (err) {
-          data = null;
-        }
-        if (data && data.kind === CLIP_MARK && Array.isArray(data.nodes)) {
-          ev.preventDefault();
-          pasteRef.current(data.nodes);
-        } else if (clip.current) {
-          ev.preventDefault();
-          pasteRef.current(clip.current.nodes);
-        }
+        if (takePasteRef.current(ev.clipboardData)) ev.preventDefault();
       };
       document.addEventListener("paste", onPaste);
       return function() {
         document.removeEventListener("paste", onPaste);
       };
     }, []);
-    var pasteRef = useRef(pasteNodes);
-    pasteRef.current = pasteNodes;
     var TITLE_STEPS = ["heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"];
     var hasTitlePart = function(type) {
       var m = META[type];
@@ -9920,6 +10051,7 @@
       frameOps.add(null, false, null, { mode: mode === "structured" ? "structured" : "free" });
     };
     var versionsRef = useRef(null);
+    var keysRef = useRef(null);
     var projListState = useState(null);
     var projList = projListState[0], setProjList = projListState[1];
     var projQueryState = useState("");
@@ -10977,6 +11109,63 @@
             })) : null
           )
         )
+      );
+    };
+    var openKeys = function() {
+      setShown("keys");
+      var dlg = keysRef.current;
+      if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
+    };
+    var keysDialog = function() {
+      var dialogProps = { className: "bd-code bd-keys", ref: keysRef, "aria-labelledby": "bd-keys-title", onClose: function() {
+        setShown(null);
+      } };
+      if (shown !== "keys") return e("dialog", dialogProps);
+      var tools2 = Object.keys(TOOL_INFO).map(function(k) {
+        return TOOL_INFO[k];
+      }).filter(function(t) {
+        return t.key;
+      }).map(function(t) {
+        return [t.label.replace(/:.*$/, ""), t.key];
+      });
+      var groups = [["Tools", tools2]].concat(SHORTCUTS);
+      return e(
+        "dialog",
+        dialogProps,
+        e(
+          "div",
+          { className: "bd-code-head" },
+          e(
+            "div",
+            { className: "bd-code-intro" },
+            e("h2", { id: "bd-keys-title" }, "Keyboard shortcuts"),
+            e("p", { className: "bd-inspect-sub" }, IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.")
+          ),
+          e(
+            "div",
+            { className: "bd-code-actions" },
+            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function() {
+              keysRef.current.close();
+            } }, e(Icon, { name: "close" }))
+          )
+        ),
+        e("div", { className: "bd-keys-groups" }, groups.map(function(g) {
+          return e(
+            "section",
+            { key: g[0], className: "bd-keys-group", "aria-labelledby": "bd-keys-" + g[0].replace(/\W+/g, "-") },
+            e("h3", { id: "bd-keys-" + g[0].replace(/\W+/g, "-") }, g[0]),
+            e("dl", null, g[1].map(function(row) {
+              return e(
+                React.Fragment,
+                { key: row[0] },
+                e("dt", null, row[0]),
+                e("dd", null, row[1].split(", ").map(function(k, i) {
+                  return e("kbd", { key: i }, kbd(k));
+                }))
+              );
+            }))
+          );
+        }))
       );
     };
     var versionsDialog = function() {
@@ -13212,7 +13401,7 @@
             "div",
             { className: "bd-empty" },
             e(Icon, { name: "component" }),
-            e("p", null, "Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not.")
+            e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))
           )
         );
       }
@@ -13751,7 +13940,7 @@
         var owner = isOwner(n);
         var open = isOpen(n) || !!q && !owner;
         var folds = !!n.children || owner;
-        var renameable = n.type === "Group";
+        var renameable = n.type !== "Slot";
         return e(
           "div",
           {
@@ -13797,9 +13986,9 @@
               }
             },
             e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
-            renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || "Group", label: "Group name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
+            renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
               setRenaming(null);
-              setName(n.id, v === "Group" ? "" : v);
+              setName(n.id, v === n.type ? "" : v);
             } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
             text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null
           ),
@@ -14770,7 +14959,7 @@
               setPart(null);
             }))
           ),
-          e("p", { className: "bd-inspect-sub" }, "The heading " + nameOf(node) + " draws. Its words and size are the block's own props; Shift+Up and Shift+Down step the size.")
+          e("p", { className: "bd-inspect-sub" }, kbd("The heading " + nameOf(node) + " draws. Its words and size are the block's own props; Shift+Up and Shift+Down step the size."))
         ),
         e(
           "div",
@@ -14901,9 +15090,9 @@
               "h2",
               { className: "bd-inspect-title" },
               e(Icon, { name: !many && first.inst || !sameType ? "component" : typeIcon(first.type) }),
-              many ? title : isContainer(first.type) && first.type === "Group" ? e(Renamable, { value: first.name || "Group", label: "Group name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function(v) {
+              many ? title : first.type !== "Slot" ? e(Renamable, { value: first.name || first.type, label: "Layer name", focusable: true, className: "bd-title-name", startEditing: isRenaming(first.id, "title"), onChange: function(v) {
                 setRenaming(null);
-                setName(first.id, v === "Group" ? "" : v);
+                setName(first.id, v === first.type ? "" : v);
               } }) : nameOf(first)
             ),
             /* Everything a selection can do, in one menu, so a long name has
@@ -15032,6 +15221,7 @@
             { value: "projects", label: "Home", icon: "home" },
             { value: "mode", label: dark ? "Light mode" : "Dark mode", icon: dark ? "sun" : "moon", hint: "The builder's own tools" },
             { value: "versions", label: "Versions", icon: "rotate" },
+            { value: "keys", label: "Keyboard shortcuts", icon: "sliders", hint: "?" },
             { value: "duplicate", label: "Duplicate", icon: "copy" },
             { value: "export", label: "Download file", icon: "exportOut" },
             { value: "picture", label: "Use this frame as the picture", icon: "image" }
@@ -15046,6 +15236,7 @@
             else if (v === "projects") openProjects();
             else if (v === "mode") setDark(!dark);
             else if (v === "versions") openVersions();
+            else if (v === "keys") openKeys();
             else if (v === "duplicate") duplicateProject(project.id);
             else if (v === "export") exportProject(project.id);
             else if (v === "import" || v === "blank") startFrom(v);
@@ -15271,8 +15462,9 @@
       var moveFree = function(mv) {
         var dx = (mv.clientX - start.x) / z, dy = (mv.clientY - start.y) / z;
         var du = dx * cos + dy * sin, dv = -dx * sin + dy * cos;
-        var w = W0 + (/e/.test(dir) ? du : /w/.test(dir) ? -du : 0);
-        var h = H0 + (/s/.test(dir) ? dv : /n/.test(dir) ? -dv : 0);
+        var both = mv.altKey ? 2 : 1;
+        var w = W0 + (/e/.test(dir) ? du : /w/.test(dir) ? -du : 0) * both;
+        var h = H0 + (/s/.test(dir) ? dv : /n/.test(dir) ? -dv : 0) * both;
         if (corner && mv.shiftKey) {
           var k = H0 / W0;
           if (Math.abs(du) >= Math.abs(dv)) h = w * k;
@@ -15280,14 +15472,14 @@
         }
         var fw = Math.max(1, Math.min(FREE_MAX, Math.round(w / unit))), fh = Math.max(1, Math.min(FREE_MAX, Math.round(h / unit)));
         var W = horiz ? fw * unit : W0, H = vert ? fh * unit : H0;
-        var a = (ax - 0.5) * (W0 - W), b = (ay - 0.5) * (H0 - H);
+        var a = (mv.altKey ? 0 : ax - 0.5) * (W0 - W), b = (mv.altKey ? 0 : ay - 0.5) * (H0 - H);
         var cx2 = C0.x + a * cos - b * sin, cy = C0.y + a * sin + b * cos;
         var xs = Math.max(0, Math.min(FREE_MAX, Math.round((cx2 - W / 2) / unit))), ys = Math.max(0, Math.min(FREE_MAX, Math.round((cy - H / 2) / unit)));
-        if (!turn && /w/.test(dir) && xs === 0) {
+        if (!turn && !mv.altKey && /w/.test(dir) && xs === 0) {
           fw = Math.max(1, Math.round((x0 * unit + W0) / unit));
           W = fw * unit;
         }
-        if (!turn && /n/.test(dir) && ys === 0) {
+        if (!turn && !mv.altKey && /n/.test(dir) && ys === 0) {
           fh = Math.max(1, Math.round((y0 * unit + H0) / unit));
           H = fh * unit;
         }
@@ -16403,7 +16595,7 @@
             "div",
             { className: "bd-code-intro" },
             e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame2.name)),
-            e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + frame2.name + " as a picture, or every frame as layout JSON.")
+            e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (codePick ? codeTitle : frame2.name) + " as a picture, or every frame as layout JSON.")
           ),
           e(
             "div",
@@ -16414,12 +16606,21 @@
               });
             } }, e(Icon, { name: "copy" }), "Copy code"),
             e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame2.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
+            e(Segmented, {
+              label: "Picture scale",
+              className: "bd-export-scale",
+              value: String(exportScale),
+              onChange: function(v) {
+                if (v) setExportScale(Number(v));
+              },
+              options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }]
+            }),
             e("button", { type: "button", className: "bd-btn", onClick: function() {
-              exportImage(frame2.id, "png");
-            }, title: frame2.name + " as a PNG, at twice its size" }, e(Icon, { name: "image" }), "PNG"),
+              exportImage(frame2.id, "png", { scale: exportScale, id: codePick });
+            }, title: (codeTitle || frame2.name) + " as a PNG, at " + exportScale + "x" }, e(Icon, { name: "image" }), "PNG"),
             e("button", { type: "button", className: "bd-btn", onClick: function() {
-              exportImage(frame2.id, "jpeg");
-            }, title: frame2.name + " as a JPG, at twice its size" }, "JPG"),
+              exportImage(frame2.id, "jpeg", { scale: exportScale, id: codePick });
+            }, title: (codeTitle || frame2.name) + " as a JPG, at " + exportScale + "x" }, "JPG"),
             e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
             e("button", { type: "button", className: "bd-btn", onClick: function() {
               share();
@@ -16433,6 +16634,7 @@
       ),
       importDialog(),
       versionsDialog(),
+      keysDialog(),
       componentDialog(),
       playDialog(),
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1] }),
@@ -16483,7 +16685,7 @@
       tip = document.createElement("div");
       tip.className = "bd-tip";
       tip.setAttribute("role", "tooltip");
-      tip.textContent = text2;
+      tip.textContent = kbd(text2);
       (el.closest("dialog[open]") || document.body).appendChild(tip);
       var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 8;
       var top = r.top - h - gap < 8 ? r.bottom + gap : r.top - h - gap;
