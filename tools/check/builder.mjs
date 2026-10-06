@@ -71,8 +71,14 @@
      chrome;
    - at 390px the panels sit behind tabs and nothing is wider than the screen.
 
+   Steps run side by side, as many as BUILDER_WORKERS (half the cores, up to
+   four); the first ten share one page and run in order on one of them, the
+   Performance step runs on its own afterwards. Each step's lines print when
+   it ends, with how long it took.
+
    Chromium comes from Playwright; set CHROMIUM_PATH to use a local binary. */
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -81,27 +87,70 @@ import { chromium } from "playwright";
 import { serve } from "./serve.mjs";
 
 let failures = 0;
-const ok = (m) => console.log(`  ok    ${m}`);
-let stepNow = "";
+/* Steps run side by side, so each one's lines are kept in its own lane and
+   printed together when it ends; with one worker they print as they come. */
+const lane = new AsyncLocalStorage();
+const say = (line) => { const l = lane.getStore(); if (l && !l.live) l.lines.push(line); else console.log(line); };
+const ok = (m) => say(`  ok    ${m}`);
 /* On GitHub Actions a failure is also an annotation, so it reads from the
    checks page without opening the log. */
 const fail = (m) => {
   failures++;
-  console.log(`  FAIL  ${m}`);
-  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Builder check::${(stepNow + ": " + m).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`);
+  say(`  FAIL  ${m}`);
+  const title = (lane.getStore() || {}).title || "";
+  if (process.env.GITHUB_ACTIONS) say(`::error title=Builder check::${(title + ": " + m).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")}`);
 };
 const expect = (cond, m) => { if (!cond) throw new Error(m); };
-/* ONLY=<text> runs just the steps whose title has it, to work on one. */
-async function step(title, fn) {
+const seconds = (ms) => (ms / 1000).toFixed(1).replace(/\.0$/, "") + "s";
+
+/* The steps, as this file declares them; they run once every one is known.
+   ONLY=<text> keeps just the steps whose title has it, to work on one. */
+const queue = [];
+let chain = null;
+function step(title, fn, opts = {}) {
   if (process.env.ONLY && !title.includes(process.env.ONLY) && title !== "page errors") return;
-  console.log(title);
-  stepNow = title;
-  try { await fn(); } catch (err) {
-    if (process.env.DEBUG) console.log(err);
-    /* A timeout doesn't say which wait it was; the line in this file does. */
-    const at = /builder\.mjs:(\d+)/.exec((err && err.stack) || "");
-    fail(String(err && err.message ? err.message : err).split("\n")[0] + (at && /Timeout/.test(String(err && err.message)) ? ` (line ${at[1]})` : ""));
-  }
+  const item = { title, fn, ...opts };
+  if (chain && !opts.alone && !opts.last) chain.steps.push(item); else queue.push(item);
+}
+/* Steps declared between inOrder(name, after) and inOrder(null) share a
+   page, so they run in order as one task; `after` runs when they're done. */
+function inOrder(name, after) {
+  chain = name ? { title: name, steps: [], after } : null;
+  if (chain) queue.push(chain);
+}
+async function runStep(s, live) {
+  const l = { title: s.title, lines: [], live };
+  const started = Date.now();
+  if (live) console.log(s.title);
+  await lane.run(l, async () => {
+    try { await s.fn(); } catch (err) {
+      if (process.env.DEBUG) say(String(err && err.stack || err));
+      /* A timeout doesn't say which wait it was; the line in this file does. */
+      const at = /builder\.mjs:(\d+)/.exec((err && err.stack) || "");
+      fail(String(err && err.message ? err.message : err).split("\n")[0] + (at && /Timeout/.test(String(err && err.message)) ? ` (line ${at[1]})` : ""));
+    }
+  });
+  if (live) console.log(`  (${seconds(Date.now() - started)})`);
+  else { console.log(`${s.title} (${seconds(Date.now() - started)})`); for (const line of l.lines) console.log(line); }
+}
+async function runTask(t, live) {
+  if (!t.steps) return runStep(t, live);
+  for (const s of t.steps) await runStep(s, live);
+  if (t.after) await t.after();
+}
+/* As many at once as there are workers; what must run alone goes after,
+   and the last step, which reads what the others left, after that. */
+async function runAll() {
+  const cores = typeof os.availableParallelism === "function" ? os.availableParallelism() : os.cpus().length;
+  const workers = Math.max(1, Number(process.env.BUILDER_WORKERS) || Math.min(4, Math.floor(cores / 2)));
+  const pool = queue.filter((t) => !t.alone && !t.last), alone = queue.filter((t) => t.alone), last = queue.filter((t) => t.last);
+  const live = workers === 1;
+  if (!live) console.log(`${pool.length + alone.length} tasks on ${workers} workers\n`);
+  let i = 0;
+  const worker = async () => { while (i < pool.length) await runTask(pool[i++], live); };
+  await Promise.all(Array.from({ length: Math.min(workers, pool.length) }, worker));
+  for (const t of alone) await runTask(t, live);
+  for (const t of last) await runTask(t, live);
 }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -114,8 +163,9 @@ const RAW = /\d(px|rem|em|vh|vw|ch)\b|#[0-9a-f]{3,8}\b|rgba?\(|oklch\(|hsla?\(/i
 const raw = (v) => RAW.test(String(v).replace(/var\(--dt-[\w-]+\)/g, ""));
 
 function watch(page) {
-  page.on("pageerror", (e) => errors.push("script error: " + String(e.message || e).split("\n")[0]));
-  page.on("console", (m) => { if (m.type() === "error" && !THIRD_PARTY.test(m.text())) errors.push("console: " + m.text().slice(0, 160)); });
+  const where = lane.getStore() ? `[${lane.getStore().title.slice(0, 40)}] ` : "";
+  page.on("pageerror", (e) => errors.push(where + "script error: " + String(e.message || e).split("\n")[0]));
+  page.on("console", (m) => { if (m.type() === "error" && !THIRD_PARTY.test(m.text())) errors.push(where + "console: " + m.text().slice(0, 160)); });
   page.on("dialog", (d) => d.accept());
 }
 
@@ -279,6 +329,7 @@ async function fitAll(page) {
 
 try {
   const { page, frame } = await open({ width: 1440, height: 900 });
+  inOrder("the first page", () => page.close());
 
   await step("The toolbar lives in the header; search and the page menu don't", async () => {
     expect(await page.locator("#app-toolbar .bd-toolbar").count() === 1, "the toolbar should render into #app-toolbar");
@@ -539,7 +590,7 @@ try {
     ok("preview hides them too, and Escape returns to editing");
   });
 
-  await page.close();
+  inOrder(null);
 
   await step("Layers: frames, drag to reorder, filter, Ctrl+Up, shift-select and group, rename, detach, media", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
@@ -2961,7 +3012,7 @@ try {
     await page.waitForFunction(() => [...document.querySelectorAll("iframe.bd-frame")].some((f) => /Page 24/.test(f.title)), null, { timeout: 15000 });
     ok("selecting Page 24 brings it alive on the canvas");
     await page.close();
-  });
+  }, { alone: true });
 
   await step("Share links open what they encode, and nothing the inspector can't set", async () => {
     const doc = { frames: [
@@ -4723,7 +4774,9 @@ try {
   await step("page errors", () => {
     if (errors.length) throw new Error(errors.join("\n"));
     ok("no script or console errors");
-  });
+  }, { last: true });
+
+  await runAll();
 } finally {
   await browser.close();
   server.close();
