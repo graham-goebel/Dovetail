@@ -368,8 +368,10 @@ html.bd-configure-docked .configure-open-btn {
 
 /* Segmented: one pressed, icons where a picture says it. */
 .bd-seg {
+  position: relative;
   display: inline-flex;
   padding: 2px;
+  touch-action: pan-y;
   border-radius: var(--dt-radius-control);
   background: var(--bd-field);
 }
@@ -408,6 +410,41 @@ html.bd-configure-docked .configure-open-btn {
   background: var(--bd-field-on);
   color: var(--dt-text-primary);
   box-shadow: var(--dt-elevation-1);
+}
+
+/* The sliding thumb behind the pressed choice, in segmented rows and the
+   inspector's tabs. Once it is measured the pressed button stops drawing its
+   own fill. */
+.bd-seg-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: calc(var(--dt-radius-control) - 2px);
+  background: var(--bd-field-on);
+  box-shadow: var(--dt-elevation-1);
+  pointer-events: none;
+}
+
+.bd-seg > .bd-seg-btn,
+.bd-itabs > .bd-itab {
+  position: relative;
+  z-index: 1;
+}
+
+.bd-seg.is-sliding > .bd-seg-btn[aria-pressed="true"],
+.bd-itabs.is-sliding > .bd-itab[aria-selected="true"] {
+  background: transparent;
+  box-shadow: none;
+}
+
+.bd-seg.is-dragging,
+.bd-itabs.is-dragging {
+  cursor: grabbing;
+}
+
+.bd-seg.is-dragging > .bd-seg-btn,
+.bd-itabs.is-dragging > .bd-itab {
+  cursor: inherit;
 }
 
 .bd-switch {
@@ -954,12 +991,20 @@ html.bd-configure-docked .configure-open-btn {
   padding-left: 2px;
 }
 
-.bd-box-all .bd-dd-prefix {
-  color: var(--dt-text-secondary);
-  font-family: var(--dt-font-family-mono);
-  font-size: var(--dt-font-size-2xs, 0.7rem);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+/* Every side at once: a small icon in the ring's corner, no words. */
+.bd-right .bd-box .bd-box-all {
+  min-height: 0;
+  padding: 2px;
+  color: var(--dt-text-tertiary);
+}
+
+.bd-box-all .bd-ic {
+  width: var(--dt-size-icon-xs);
+  height: var(--dt-size-icon-xs);
+}
+
+.bd-box-all .bd-dd-chev {
+  display: none;
 }
 
 .bd-box-all .bd-dd-label:empty {
@@ -1335,6 +1380,25 @@ html.bd-configure-docked .configure-open-btn {
 
 button.bd-layer-twisty.is-open .bd-ic {
   transform: rotate(90deg);
+}
+
+/* A layer that folds shows its twisty on hover or focus, and always on a
+   touch screen. */
+button.bd-layer-twisty {
+  opacity: 0;
+  transition: opacity var(--dt-motion-micro);
+}
+
+.bd-layer:hover button.bd-layer-twisty,
+.bd-layer:focus-within button.bd-layer-twisty,
+button.bd-layer-twisty:focus-visible {
+  opacity: 0.6;
+}
+
+@media (hover: none) {
+  button.bd-layer-twisty {
+    opacity: 0.6;
+  }
 }
 
 .bd-layer-main {
@@ -2561,8 +2625,9 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-itabs {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
   display: flex;
+  touch-action: pan-y;
   gap: 2px;
   margin: 0;
   padding: var(--dt-space-inset-xs) var(--dt-space-inset-md);
@@ -2584,8 +2649,8 @@ span.bd-layer-twisty.is-open .bd-ic {
   cursor: pointer;
 }
 
-.bd-itabs {
-  box-shadow: inset 0 0 0 0 transparent;
+.bd-itabs .bd-seg-thumb {
+  border-radius: var(--dt-radius-control);
 }
 
 .bd-itab:hover:not(:disabled) {
@@ -2593,7 +2658,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-itab[aria-selected="true"] {
-  background: var(--dt-surface-base);
+  background: var(--bd-field-on);
   color: var(--dt-text-primary);
   box-shadow: var(--dt-elevation-1);
 }
@@ -2606,6 +2671,43 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-size-row {
   display: flex;
   gap: var(--dt-space-inline-2xs);
+}
+
+/* W and H with their unit beside them: px, or a share of the parent (%) or
+   of the screen (vw, vh). */
+.bd-size-unit {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bd-size-unit > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.bd-dd.bd-dd-unit {
+  flex: none;
+  gap: 0;
+  width: auto;
+  min-width: 0;
+  padding-inline: 4px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--dt-text-tertiary);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-2xs, 0.7rem);
+}
+
+.bd-dd.bd-dd-unit:hover,
+.bd-dd.bd-dd-unit[aria-expanded="true"] {
+  color: var(--dt-text-primary);
+  background: var(--bd-field);
+}
+
+.bd-dd-unit .bd-dd-chev {
+  display: none;
 }
 
 .bd-num {
@@ -2686,11 +2788,27 @@ span.bd-layer-twisty.is-open .bd-ic {
   cursor: pointer;
 }
 
+/* The fold's chevron sits right after the title and shows on hover or
+   focus; a closed section keeps it, so it can be found again. On a touch
+   screen it always shows. */
 .bd-sec-chev {
   width: var(--dt-size-icon-xs);
   height: var(--dt-size-icon-xs);
-  margin-left: auto;
   color: var(--dt-text-tertiary);
+  opacity: 0;
+  transition: opacity var(--dt-motion-micro);
+}
+
+.bd-sec-head:hover .bd-sec-chev,
+.bd-sec-h:focus-visible .bd-sec-chev,
+.bd-sec.is-closed .bd-sec-chev {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .bd-sec-chev {
+    opacity: 1;
+  }
 }
 
 .bd-sec.is-closed .bd-sec-chev {
@@ -3027,6 +3145,10 @@ span.bd-layer-twisty.is-open .bd-ic {
 
   span.bd-layer-twisty .bd-ic {
     transition: transform var(--dt-motion-micro);
+  }
+
+  .bd-seg-thumb {
+    transition: transform var(--dt-motion-micro), width var(--dt-motion-micro), height var(--dt-motion-micro);
   }
 
   .bd-tab,
@@ -3605,6 +3727,10 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-play-bar .bd-seg-btn[aria-pressed="true"] {
   background: var(--dt-color-neutral-050);
   color: var(--dt-color-neutral-950);
+}
+
+.bd-play-bar .bd-seg-thumb {
+  background: var(--dt-color-neutral-050);
 }
 
 /* The screen: the frame at its own width, cut to a device's height. */
@@ -5682,4 +5808,9 @@ input.bd-folder-name {
   .bd-rail-account .bd-rail-label {
     display: none;
   }
+}
+
+/* Variables in Assets: this project's or everything. */
+.bd-vars-scope {
+  margin: 0 var(--dt-space-inset-sm) var(--dt-space-stack-sm);
 }

@@ -1775,6 +1775,11 @@
   function isFree(st) {
     return !!st && typeof st.x === "number" && typeof st.y === "number";
   }
+  var REL_SIZE = /^([1-9]\d{0,2})(%|vw|vh)$/;
+  function relSize(v) {
+    var m = typeof v === "string" ? REL_SIZE.exec(v) : null;
+    return m ? { n: Number(m[1]), unit: m[2] } : null;
+  }
   var SAFE_HREF = /^(https?:\/\/|\/|#|mailto:|tel:|\.{0,2}\/?[\w-][\w./?=&%#-]*$)/;
   function cleanList(spec, v) {
     if (!Array.isArray(v) || v.length > 60) return null;
@@ -1929,6 +1934,11 @@
       if (k === "fw" || k === "fh") {
         if (Number.isInteger(st[k]) && st[k] >= 1 && st[k] <= FREE_MAX) style[k] = st[k];
         else note(report, n.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k]));
+        return;
+      }
+      if (k === "rw" || k === "rh") {
+        if (relSize(st[k])) style[k] = st[k];
+        else note(report, n.type + ": " + k + " is a whole number from 1 to 999 followed by %, vw or vh, not " + JSON.stringify(st[k]));
         return;
       }
       if (k === "rot") {
@@ -5140,10 +5150,108 @@
       mode === "url" ? e(UrlInput, { labelledBy: props.labelledBy, value: onPage ? "" : props.value, placeholder: props.placeholder || "https://", ok: props.ok || SAFE_HREF, onChange: props.onChange }) : null
     );
   }
+  function useSlide(onPick) {
+    var ref = useRef(null);
+    var drag = useRef(null);
+    var swallow = useRef(false);
+    var boxState = useState(null), box = boxState[0], setBox = boxState[1];
+    var overState = useState(-1), over = overState[0], setOver = overState[1];
+    var buttons = function() {
+      return ref.current ? Array.prototype.slice.call(ref.current.children).filter(function(c) {
+        return c.tagName === "BUTTON";
+      }) : [];
+    };
+    var measure = function() {
+      var list = buttons();
+      var b = over >= 0 ? list[over] : list.find(function(c) {
+        return c.getAttribute("aria-pressed") === "true" || c.getAttribute("aria-selected") === "true";
+      });
+      var next = b && b.offsetWidth ? { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight } : null;
+      setBox(function(was) {
+        return was && next && was.x === next.x && was.y === next.y && was.w === next.w && was.h === next.h ? was : next;
+      });
+    };
+    React.useLayoutEffect(measure);
+    useEffect(function() {
+      if (!ref.current || typeof ResizeObserver === "undefined") return void 0;
+      var ro = new ResizeObserver(function() {
+        measure();
+      });
+      ro.observe(ref.current);
+      buttons().forEach(function(b) {
+        ro.observe(b);
+      });
+      return function() {
+        ro.disconnect();
+      };
+    });
+    var under = function(x) {
+      var list = buttons(), best = -1, gap = Infinity;
+      list.forEach(function(b, i) {
+        if (b.disabled) return;
+        var r = b.getBoundingClientRect();
+        var d = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+        if (d < gap) {
+          gap = d;
+          best = i;
+        }
+      });
+      return best;
+    };
+    var handlers = {
+      onPointerDown: function(ev) {
+        if (ev.button !== 0 || !ev.isPrimary) return;
+        drag.current = { id: ev.pointerId, x: ev.clientX, moved: false };
+      },
+      onPointerMove: function(ev) {
+        var d = drag.current;
+        if (!d || d.id !== ev.pointerId) return;
+        if (!d.moved) {
+          if (Math.abs(ev.clientX - d.x) < 4) return;
+          d.moved = true;
+          try {
+            ref.current.setPointerCapture(ev.pointerId);
+          } catch (err) {
+          }
+        }
+        var i = under(ev.clientX);
+        if (i >= 0) setOver(i);
+      },
+      onPointerUp: function(ev) {
+        var d = drag.current;
+        drag.current = null;
+        if (!d || !d.moved) return;
+        swallow.current = true;
+        setTimeout(function() {
+          swallow.current = false;
+        }, 0);
+        var i = under(ev.clientX);
+        setOver(-1);
+        if (i >= 0) onPick(i);
+      },
+      onPointerCancel: function() {
+        drag.current = null;
+        setOver(-1);
+      },
+      onClickCapture: function(ev) {
+        if (!swallow.current) return;
+        swallow.current = false;
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    };
+    var thumb = box ? e("span", { className: "bd-seg-thumb", "aria-hidden": true, style: { width: box.w + "px", height: box.h + "px", transform: "translate(" + box.x + "px, " + box.y + "px)" } }) : null;
+    return { ref, thumb, sliding: !!box, dragging: over >= 0, handlers };
+  }
   function Segmented(props) {
+    var slide = useSlide(function(i) {
+      var o = props.options[i];
+      if (o && props.value !== o.value) props.onChange(o.value);
+    });
     return e(
       "div",
-      { className: cx("bd-seg", props.wide && "bd-seg-wide", props.className), role: "group", "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? void 0 : props.label },
+      Object.assign({ ref: slide.ref, className: cx("bd-seg", props.wide && "bd-seg-wide", slide.sliding && "is-sliding", slide.dragging && "is-dragging", props.className), role: "group", "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? void 0 : props.label }, slide.handlers),
+      slide.thumb,
       props.options.map(function(o) {
         var pressed = props.value === o.value;
         var pictured = o.icon || o.picture;
@@ -5158,6 +5266,51 @@
             props.onChange(pressed && props.clearable ? void 0 : o.value);
           }
         }, o.picture || (o.icon ? e(Icon, { name: o.icon }) : o.label));
+      })
+    );
+  }
+  function TabStrip(props) {
+    var tabs = props.tabs;
+    var slide = useSlide(function(i) {
+      var t = tabs[i];
+      if (t && !t.disabled && t.id !== props.current) props.onPick(t.id);
+    });
+    return e(
+      "div",
+      Object.assign({ ref: slide.ref, className: cx("bd-itabs", slide.sliding && "is-sliding", slide.dragging && "is-dragging"), role: "tablist", "aria-label": props.label }, slide.handlers),
+      slide.thumb,
+      tabs.map(function(t) {
+        var on = props.current === t.id;
+        return e("button", {
+          key: t.id,
+          type: "button",
+          role: "tab",
+          id: "bd-itab-" + t.id,
+          className: "bd-itab",
+          "aria-selected": String(on),
+          "aria-controls": props.panel,
+          disabled: t.disabled,
+          tabIndex: on ? 0 : -1,
+          onClick: function() {
+            props.onPick(t.id);
+          },
+          onKeyDown: function(ev) {
+            if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+            ev.preventDefault();
+            var list = tabs.filter(function(x) {
+              return !x.disabled;
+            }).map(function(x) {
+              return x.id;
+            });
+            var i = list.indexOf(props.current) + (ev.key === "ArrowRight" ? 1 : -1);
+            var next = list[(i + list.length) % list.length];
+            props.onPick(next);
+            setTimeout(function() {
+              var b = document.getElementById("bd-itab-" + next);
+              if (b) b.focus();
+            }, 0);
+          }
+        }, t.label);
       })
     );
   }
@@ -8034,7 +8187,7 @@
         if (last && last.frame === f && last.preview === preview) return;
         rendered.current[f.id] = { frame: f, preview };
         grows.current[f.id] = 0;
-        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
+        a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized), screen: f.bare ? null : { w: f.width, h: f.height } });
       });
       if (any && !placeable) {
         var ok = {}, sc = {}, det = {};
@@ -8479,7 +8632,7 @@
       var clipStyle = styleClip.current;
       if (!clipStyle || !selRef.current.length) return false;
       var patch = {};
-      Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rot"]).forEach(function(k) {
+      Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rw", "rh", "rot"]).forEach(function(k) {
         if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k];
       });
       setStyles(selRef.current, patch);
@@ -11524,7 +11677,8 @@
           compact: true,
           noPreview: true,
           label: title + ", every side",
-          prefix: title,
+          icon: "sides",
+          iconOnly: true,
           mixedLabel: "",
           noneShort: "",
           short: function() {
@@ -11570,42 +11724,119 @@
         )
       );
     };
+    var SIZE_UNITS = [{ value: "px", label: "px" }, { value: "%", label: "%" }, { value: "vw", label: "vw" }, { value: "vh", label: "vh" }];
     var sizeGrid = function(nodes) {
+      var ids = nodes.map(function(n) {
+        return n.id;
+      });
+      var a = api();
+      var free = frame2.mode !== "structured" && nodes.every(function(n) {
+        return isFree(n.style);
+      });
+      var measured = function(id, wide2) {
+        var sz = a && a.size ? a.size(id) : null;
+        return sz ? wide2 ? sz.width : sz.height : null;
+      };
+      var per = function(id, wide2, unit) {
+        if (unit === "vw") return frame2.width / 100;
+        if (unit === "vh") return frame2.height / 100;
+        var at2 = locate(doc2, id);
+        var box2 = at2 && at2.parent ? measured(at2.parent.id, wide2) : null;
+        return (box2 || (wide2 ? frame2.width : frame2.height)) / 100;
+      };
       var field = function(key, prefix) {
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
-      if (frame2.mode !== "structured" && nodes.every(function(n) {
-        return isFree(n.style);
-      })) {
-        var ids = nodes.map(function(n) {
-          return n.id;
+      var dim = function(wide2) {
+        var short2 = wide2 ? "W" : "H", label = wide2 ? "Width" : "Height";
+        var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
+        var units = nodes.map(function(n) {
+          var r = relSize(n.style[rkey]);
+          return r ? r.unit : "px";
         });
-        var a = api();
-        var px = function(n, key) {
-          if (n.style[key]) return n.style[key] * 4;
-          var sz = a && a.size ? a.size(n.id) : null;
-          return sz ? Math.round((key === "fw" ? sz.width : sz.height) / 4) * 4 : null;
+        var unit = same3(units) ? units[0] : null;
+        var apply2 = function(patchFor, message, live) {
+          var fn = function(d) {
+            ids.forEach(function(id) {
+              var at2 = locate(d, id);
+              if (!at2) return;
+              Object.assign(at2.node.style, patchFor(id));
+              Object.keys(at2.node.style).forEach(function(k) {
+                if (at2.node.style[k] === void 0) delete at2.node.style[k];
+              });
+            });
+            return void 0;
+          };
+          if (live) quiet(fn);
+          else change(fn, message);
         };
-        var free = function(key, short2, label, token) {
-          var vs = nodes.map(function(n) {
-            return px(n, key);
+        var clear = {};
+        clear[fkey] = void 0;
+        clear[tkey] = void 0;
+        clear[rkey] = void 0;
+        var setRel = function(n, u, live) {
+          n = Math.max(1, Math.min(999, Math.round(n)));
+          apply2(function() {
+            var p = Object.assign({}, clear);
+            p[rkey] = n + u;
+            return p;
+          }, label + " " + n + u, live);
+        };
+        var onUnit = function(u) {
+          if (u === unit) return;
+          if (u === "px") {
+            apply2(function(id) {
+              var p = Object.assign({}, clear);
+              var px2 = measured(id, wide2);
+              if (free && px2) p[fkey] = Math.max(1, Math.min(FREE_MAX, Math.round(px2 / 4)));
+              return p;
+            }, label + " in pixels");
+            return;
+          }
+          apply2(function(id) {
+            var p = Object.assign({}, clear);
+            var px2 = measured(id, wide2), one2 = per(id, wide2, u);
+            p[rkey] = Math.max(1, Math.min(999, Math.round(px2 && one2 ? px2 / one2 : 100))) + u;
+            return p;
+          }, label + " in " + u);
+        };
+        var picker = e(Dropdown, { label: label + " unit", value: unit, mixed: !unit, mixedLabel: "~", options: SIZE_UNITS, compact: true, narrow: true, alignEnd: true, className: "bd-dd-unit", onChange: onUnit });
+        var body;
+        if (unit && unit !== "px") {
+          var ns = nodes.map(function(n) {
+            return relSize(n.style[rkey]).n;
           });
+          body = e(NumberField, {
+            short: short2,
+            label: label + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
+            value: same3(ns) ? ns[0] : null,
+            placeholder: "Mixed",
+            min: 1,
+            max: 999,
+            title: label + ": " + (unit === "%" ? "a share of its parent" : "a share of the screen's " + (unit === "vw" ? "width" : "height")) + ". Arrows step 1, Shift 10; drag the letter to scrub.",
+            onChange: function(v) {
+              setRel(v, unit);
+            },
+            onScrub: function(v, first) {
+              setRel(v, unit, !first);
+            }
+          });
+        } else if (free) {
+          var px = function(n) {
+            if (n.style[fkey]) return n.style[fkey] * 4;
+            var m = measured(n.id, wide2);
+            return m ? Math.round(m / 4) * 4 : null;
+          };
+          var vs = nodes.map(px);
           var set2 = function(v, first) {
             var steps = Math.max(1, Math.min(FREE_MAX, Math.round(v / 4)));
-            var fn = function(d) {
-              ids.forEach(function(id) {
-                var at2 = locate(d, id);
-                if (!at2) return;
-                at2.node.style[key] = steps;
-                delete at2.node.style[token];
-              });
-              return void 0;
-            };
-            if (first === false) quiet(fn);
-            else change(fn, label + " " + steps * 4 + "px");
+            apply2(function() {
+              var p = Object.assign({}, clear);
+              p[fkey] = steps;
+              return p;
+            }, label + " " + steps * 4 + "px", first === false);
           };
-          return e(NumberField, {
-            key,
+          body = e(NumberField, {
             short: short2,
             label: label + ", in pixels, a multiple of 4",
             value: same3(vs) ? vs[0] : null,
@@ -11621,10 +11852,12 @@
               set2(v, first);
             }
           });
-        };
-        return e("div", { className: "bd-grid2" }, free("fw", "W", "Width", "w"), free("fh", "H", "Height", "height"), field("minW", "Min W"), field("h", "Min H"));
-      }
-      return e("div", { className: "bd-grid2" }, field("w", "W"), field("height", "H"), field("minW", "Min W"), field("h", "Min H"));
+        } else {
+          body = tokenDropdown(tkey, nodes, null, { prefix: short2, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
+        }
+        return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
+      };
+      return e("div", { className: "bd-grid2" }, dim(true), dim(false), field("minW", "Min W"), field("h", "Min H"));
     };
     var selfRow = function(nodes) {
       var ids = nodes.map(function(n) {
@@ -12456,6 +12689,8 @@
     var viewToggle = function() {
       return e(Segmented, { label: "View", value: view, onChange: setView, options: [{ value: "grid", label: "Grid", icon: "gridView" }, { value: "list", label: "List", icon: "listView" }] });
     };
+    var varScopeState = useState("all");
+    var varScope = varScopeState[0], setVarScope = varScopeState[1];
     var VAR_SETS = [
       ["surface", "Fill", "color"],
       ["border", "Border", "color"],
@@ -12491,12 +12726,25 @@
         "div",
         { className: "bd-vars" },
         e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
+        e(Segmented, {
+          key: "scope",
+          label: "Show",
+          wide: true,
+          className: "bd-vars-scope",
+          value: varScope,
+          onChange: function(v) {
+            if (v) setVarScope(v);
+          },
+          options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
+        }),
         VAR_SETS.map(function(vs) {
           var def = DATA.tokens[vs[0]];
           if (!def) return null;
+          var keys2 = [vs[0]].concat(def.sides || []);
           var opts = def.options.filter(function(o) {
-            return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc));
+            return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(used, keys2, o.value));
           });
+          if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
           var cur = picked.length && same3(picked.map(function(n) {
             return n.style[vs[0]] || "";
           })) ? picked[0].style[vs[0]] || "" : null;
@@ -13509,45 +13757,17 @@
       );
     };
     var tabBar = function(have, current2) {
-      return e(
-        "div",
-        { className: "bd-itabs", role: "tablist", "aria-label": "Inspector" },
-        TABS.filter(function(t) {
+      return e(TabStrip, {
+        label: "Inspector",
+        panel: "bd-ipanel",
+        current: current2,
+        onPick: setTab,
+        tabs: TABS.filter(function(t) {
           return have[t[0]] !== void 0;
         }).map(function(t) {
-          var on = current2 === t[0];
-          return e("button", {
-            key: t[0],
-            type: "button",
-            role: "tab",
-            id: "bd-itab-" + t[0],
-            className: "bd-itab",
-            "aria-selected": String(on),
-            "aria-controls": "bd-ipanel",
-            disabled: !have[t[0]],
-            tabIndex: on ? 0 : -1,
-            onClick: function() {
-              setTab(t[0]);
-            },
-            onKeyDown: function(ev) {
-              if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-              ev.preventDefault();
-              var list = TABS.filter(function(x) {
-                return have[x[0]];
-              }).map(function(x) {
-                return x[0];
-              });
-              var i = list.indexOf(current2) + (ev.key === "ArrowRight" ? 1 : -1);
-              var next = list[(i + list.length) % list.length];
-              setTab(next);
-              setTimeout(function() {
-                var b = document.getElementById("bd-itab-" + next);
-                if (b) b.focus();
-              }, 0);
-            }
-          }, t[1]);
+          return { id: t[0], label: t[1], disabled: !have[t[0]] };
         })
-      );
+      });
     };
     var tabPanel = function(current2, children) {
       return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current2 }, children);
@@ -14451,7 +14671,7 @@
       else if (current2 === "layout") {
         body = [
           flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh"])),
+          sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
           sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
           sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"]))
         ];
@@ -14874,10 +15094,12 @@
           if (horiz) {
             st.fw = fw;
             delete st.w;
+            delete st.rw;
           }
           if (vert) {
             st.fh = fh;
             delete st.height;
+            delete st.rh;
           }
           st.x = xs;
           st.y = ys;
@@ -15693,8 +15915,6 @@
       );
     };
     var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
-    var sysScopeState = useState("used");
-    var sysScope = sysScopeState[0], setSysScope = sysScopeState[1];
     var otherUseState = useState(null);
     var otherUse = otherUseState[0], setOtherUse = otherUseState[1];
     var pageKey = pagesOf(project).map(function(p) {
@@ -15719,7 +15939,7 @@
     }, [doc2, otherUse]);
     var builderInspector = function() {
       var bid = "bd-stage-bg";
-      var onlyUsed = sysScope === "used";
+      var onlyUsed = false;
       var prims = DATA.groups.filter(function(g) {
         return g.id === "layout" || g.id === "typography";
       }).reduce(function(a, g) {
@@ -15767,49 +15987,9 @@
               )
             )
           ]),
-          /* Nothing selected: what the system offers, rather than a list of
-             frames (Layers has those). */
-          sec("builder-vars", "Variables", [
-            e(Segmented, {
-              key: "scope",
-              label: "Show",
-              wide: true,
-              value: sysScope,
-              onChange: function(v) {
-                if (v) setSysScope(v);
-              },
-              options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
-            }),
-            sysGroup("colour", "Colour", DATA.tokens.surface.options.filter(function(o, i) {
-              return onlyUsed ? usesToken(used, "surface", o.value) : i < 16;
-            }).map(function(o) {
-              return sysRow(o.value, e("span", { className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
-            })),
-            sysGroup("space", "Spacing", DATA.tokens.padding.options.filter(function(o) {
-              return !o.family || o.family === "inset";
-            }).filter(function(o, i) {
-              return onlyUsed ? usesToken(used, PADDING_KEYS, o.value) : i < 8;
-            }).map(function(o) {
-              var px = pxMap["padding|" + o.value];
-              return sysRow(o.value, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(28, Math.round(px)) + "px" : "8px" } }), o.value, px != null ? Math.round(px) + "px" : o.tokens[0]);
-            })),
-            sysGroup("radius", "Radius", DATA.tokens.radius.options.filter(function(o) {
-              return !onlyUsed || usesToken(used, "radius", o.value);
-            }).map(function(o) {
-              return sysRow(o.value, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
-            })),
-            e(
-              "div",
-              { key: "acts", className: "bd-media-actions" },
-              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
-                setLeft("assets");
-                setAssetKind("variables");
-              } }, e(Icon, { name: "variable" }), "Apply from Assets"),
-              e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
-                setLeft("configure");
-              } }, e(Icon, { name: "sliders" }), "Change in Configure")
-            )
-          ]),
+          /* Nothing selected: the primitives and styles the system offers.
+             Variables live in the left panel's Assets, with the choice of this
+             project's or all of them. */
           sec("builder-prims", "Primitives", [
             e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame2.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
             e("ul", { key: "list", className: "bd-sys-list", role: "list" }, prims.map(function(n) {

@@ -126,18 +126,122 @@ function LinkTo(props) {
     mode === "url" ? e(UrlInput, { labelledBy: props.labelledBy, value: onPage ? "" : props.value, placeholder: props.placeholder || "https://", ok: props.ok || SAFE_HREF, onChange: props.onChange }) : null);
 }
 
+/* A row of choices with a thumb that slides to the chosen one. Drag along the
+   row and the thumb follows the pointer; letting go picks what it is on, so a
+   drag makes one change, not one per option passed. The click that ends a drag
+   is swallowed. The thumb is measured after each paint and when the row
+   resizes; until then the pressed button draws itself, so nothing flashes. */
+function useSlide(onPick) {
+  var ref = useRef(null);
+  var drag = useRef(null);
+  var swallow = useRef(false);
+  var boxState = useState(null), box = boxState[0], setBox = boxState[1];
+  var overState = useState(-1), over = overState[0], setOver = overState[1];
+  var buttons = function () { return ref.current ? Array.prototype.slice.call(ref.current.children).filter(function (c) { return c.tagName === "BUTTON"; }) : []; };
+  var measure = function () {
+    var list = buttons();
+    var b = over >= 0 ? list[over] : list.find(function (c) { return c.getAttribute("aria-pressed") === "true" || c.getAttribute("aria-selected") === "true"; });
+    var next = b && b.offsetWidth ? { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight } : null;
+    setBox(function (was) { return was && next && was.x === next.x && was.y === next.y && was.w === next.w && was.h === next.h ? was : next; });
+  };
+  React.useLayoutEffect(measure);
+  useEffect(function () {
+    if (!ref.current || typeof ResizeObserver === "undefined") return undefined;
+    var ro = new ResizeObserver(function () { measure(); });
+    ro.observe(ref.current);
+    buttons().forEach(function (b) { ro.observe(b); });
+    return function () { ro.disconnect(); };
+  });
+  var under = function (x) {
+    var list = buttons(), best = -1, gap = Infinity;
+    list.forEach(function (b, i) {
+      if (b.disabled) return;
+      var r = b.getBoundingClientRect();
+      var d = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+      if (d < gap) { gap = d; best = i; }
+    });
+    return best;
+  };
+  var handlers = {
+    onPointerDown: function (ev) {
+      if (ev.button !== 0 || !ev.isPrimary) return;
+      drag.current = { id: ev.pointerId, x: ev.clientX, moved: false };
+    },
+    onPointerMove: function (ev) {
+      var d = drag.current;
+      if (!d || d.id !== ev.pointerId) return;
+      if (!d.moved) {
+        if (Math.abs(ev.clientX - d.x) < 4) return;
+        d.moved = true;
+        try { ref.current.setPointerCapture(ev.pointerId); } catch (err) { /* not capturable */ }
+      }
+      var i = under(ev.clientX);
+      if (i >= 0) setOver(i);
+    },
+    onPointerUp: function (ev) {
+      var d = drag.current;
+      drag.current = null;
+      if (!d || !d.moved) return;
+      swallow.current = true;
+      setTimeout(function () { swallow.current = false; }, 0);
+      var i = under(ev.clientX);
+      setOver(-1);
+      if (i >= 0) onPick(i);
+    },
+    onPointerCancel: function () { drag.current = null; setOver(-1); },
+    onClickCapture: function (ev) {
+      if (!swallow.current) return;
+      swallow.current = false;
+      ev.preventDefault();
+      ev.stopPropagation();
+    },
+  };
+  var thumb = box ? e("span", { className: "bd-seg-thumb", "aria-hidden": true, style: { width: box.w + "px", height: box.h + "px", transform: "translate(" + box.x + "px, " + box.y + "px)" } }) : null;
+  return { ref: ref, thumb: thumb, sliding: !!box, dragging: over >= 0, handlers: handlers };
+}
+
 /* One pressed, icons or pictures where they say it. clearable: pressing
    the pressed one again unsets it. */
 function Segmented(props) {
-  return e("div", { className: cx("bd-seg", props.wide && "bd-seg-wide", props.className), role: "group", "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? undefined : props.label },
+  var slide = useSlide(function (i) {
+    var o = props.options[i];
+    if (o && props.value !== o.value) props.onChange(o.value);
+  });
+  return e("div", Object.assign({ ref: slide.ref, className: cx("bd-seg", props.wide && "bd-seg-wide", slide.sliding && "is-sliding", slide.dragging && "is-dragging", props.className), role: "group", "aria-labelledby": props.labelledBy, "aria-label": props.labelledBy ? undefined : props.label }, slide.handlers),
+    slide.thumb,
     props.options.map(function (o) {
       var pressed = props.value === o.value;
       var pictured = o.icon || o.picture;
-      return e("button", {
-        key: String(o.value), type: "button", className: "bd-seg-btn", "aria-pressed": String(pressed),
+      return e("button", { key: String(o.value), type: "button", className: "bd-seg-btn", "aria-pressed": String(pressed),
         title: o.title || (pictured ? o.label : undefined), "aria-label": pictured ? o.label : undefined,
         onClick: function () { props.onChange(pressed && props.clearable ? undefined : o.value); },
       }, o.picture || (o.icon ? e(Icon, { name: o.icon }) : o.label));
+    }));
+}
+
+/* Tabs that slide like a segmented row. Arrow keys move between the ones that
+   are on; each tab is `bd-itab-<id>` and controls `panel`. */
+function TabStrip(props) {
+  var tabs = props.tabs;
+  var slide = useSlide(function (i) { var t = tabs[i]; if (t && !t.disabled && t.id !== props.current) props.onPick(t.id); });
+  return e("div", Object.assign({ ref: slide.ref, className: cx("bd-itabs", slide.sliding && "is-sliding", slide.dragging && "is-dragging"), role: "tablist", "aria-label": props.label }, slide.handlers),
+    slide.thumb,
+    tabs.map(function (t) {
+      var on = props.current === t.id;
+      return e("button", {
+        key: t.id, type: "button", role: "tab", id: "bd-itab-" + t.id, className: "bd-itab", "aria-selected": String(on), "aria-controls": props.panel,
+        disabled: t.disabled, tabIndex: on ? 0 : -1,
+        onClick: function () { props.onPick(t.id); },
+        onKeyDown: function (ev) {
+          if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+          ev.preventDefault();
+          var list = tabs.filter(function (x) { return !x.disabled; }).map(function (x) { return x.id; });
+          var i = list.indexOf(props.current) + (ev.key === "ArrowRight" ? 1 : -1);
+          var next = list[(i + list.length) % list.length];
+          props.onPick(next);
+          setTimeout(function () { var b = document.getElementById("bd-itab-" + next); if (b) b.focus(); }, 0);
+        },
+      }, t.label);
     }));
 }
 
@@ -845,4 +949,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
