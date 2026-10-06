@@ -1417,15 +1417,11 @@ try {
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect(await page.locator(".bd-ring").count() === 0 && await page.locator(".bd-mark-sel").count() === 0, "a press on the canvas lets go of the layer and the frame");
     const secs = await page.$$eval(".bd-right .bd-sec-h", (h) => h.map((x) => x.textContent.trim()));
-    expect(["Variables", "Primitives", "Styles"].every((x) => secs.includes(x)) && !secs.includes("Frames"), `with nothing selected the inspector shows Variables, Primitives and Styles, got ${secs.join(", ")}`);
-    const tint = await page.locator(".bd-sys-sw").first().evaluate((el) => el.style.background);
-    expect(tint && !/var\(/.test(tint), `the colour swatches show the frame's own colours, got ${tint}`);
+    expect(["Primitives", "Styles"].every((x) => secs.includes(x)) && !secs.includes("Variables") && !secs.includes("Frames"), `with nothing selected the inspector shows Primitives and Styles, and Variables only on the left, got ${secs.join(", ")}`);
     const before = (await saved()).frames[0].root.children.length;
-    /* The whole system, not only what's in the project. */
-    await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
     await page.locator('.bd-sys-prim[data-type="Stack"]').click();
     await poll(async () => (await saved()).frames[0].root.children.length, (n) => n === before + 1);
-    ok(`a press on the canvas lets go of everything; the inspector then shows Variables, Primitives and Styles (sections: ${secs.join(", ")}), and a primitive adds itself`);
+    ok(`a press on the canvas lets go of everything; the inspector then shows Primitives and Styles (sections: ${secs.join(", ")}), and a primitive adds itself`);
 
     await assetKind(page, "templates");
     await page.locator('.bd-tpl-card[data-template="store"] .bd-tpl-into').click();
@@ -1487,9 +1483,8 @@ try {
 
     { const sb = await stageBox(page); await page.mouse.click(sb.x + sb.width / 2, sb.y + 8); }
     await page.waitForFunction(() => /^Canvas$/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
     const rows = await page.$$eval(".bd-right .bd-sys-list .bd-sys-item", (r) => r.map((x) => { const b = x.getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }));
-    expect(rows.length > 10 && rows.every(([w, h]) => w > 200 && h < 56), `variables, primitives and styles list as full-width rows, got ${rows.length} rows, first ${JSON.stringify(rows[0])}`);
+    expect(rows.length > 10 && rows.every(([w, h]) => w > 200 && h < 56), `primitives and styles list as full-width rows, got ${rows.length} rows, first ${JSON.stringify(rows[0])}`);
     const kinds = await page.$$eval(".bd-asset-kinds .bd-kind", (k) => k.map((x) => Math.round(x.getBoundingClientRect().width)));
     expect(kinds.length === 6 && Math.abs(kinds[0] - kinds[1]) < 2 && await page.locator(".bd-asset-kinds .bd-kind-note").count() === 0, `the Assets kinds are two columns of icon and name, got widths ${kinds.join(", ")}`);
     await page.locator('.bd-assets [data-asset-kind="primitives"]').click();
@@ -2318,6 +2313,133 @@ try {
     await page.close();
   });
 
+  await step("Sliding choices: tabs and segmented rows slide a thumb to the chosen one, and a drag along the row picks once", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await category(page, "Typography");
+    await page.locator('.bd-tile[data-type="Heading"]').click();
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    /* The thumb sits on the selected tab. */
+    const under = (row, on) => page.evaluate(({ row, on }) => {
+      const r = document.querySelector(row), t = r && r.querySelector(".bd-seg-thumb"), b = r && r.querySelector(on);
+      if (!t || !b) return null;
+      const a = t.getBoundingClientRect(), c = b.getBoundingClientRect();
+      return { dx: Math.round(Math.abs(a.left - c.left)), dw: Math.round(Math.abs(a.width - c.width)), sliding: r.classList.contains("is-sliding") };
+    }, { row, on });
+    await tab(page, "Layout");
+    await page.waitForFunction(() => document.querySelector(".bd-itab[aria-selected=true]")?.textContent === "Layout");
+    await page.waitForTimeout(100);
+    let at = await under(".bd-itabs", ".bd-itab[aria-selected=true]");
+    expect(at && at.dx <= 1 && at.dw <= 1 && at.sliding, `the tab thumb covers the selected tab, got ${JSON.stringify(at)}`);
+    /* Drag from Layout to Appearance: one change, made on letting go. */
+    const box = async (sel) => { const b = await page.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
+    const from = await box(".bd-itab#bd-itab-layout"), to = await box(".bd-itab#bd-itab-appearance");
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move((from.x + to.x) / 2, from.y, { steps: 4 });
+    await page.mouse.move(to.x, to.y, { steps: 6 });
+    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the tab does not change until the drag lets go");
+    await page.mouse.up();
+    await page.waitForFunction(() => document.querySelector(".bd-itab[aria-selected=true]")?.textContent === "Appearance");
+    await page.waitForTimeout(100);
+    at = await under(".bd-itabs", ".bd-itab[aria-selected=true]");
+    expect(at && at.dx <= 1, `the thumb follows to Appearance, got ${JSON.stringify(at)}`);
+    ok("the tab thumb sits on the selected tab, and dragging it from Layout to Appearance changes the tab once, on letting go");
+    /* A segmented row: the frame's kind. */
+    await page.locator(".bd-flabel-btn").first().click();
+    const kind = '.bd-right [aria-labelledby="bd-fr-kind"]';
+    await page.waitForSelector(kind);
+    at = await under(kind, ".bd-seg-btn[aria-pressed=true]");
+    expect(at && at.dx <= 1 && at.dw <= 1 && at.sliding, `the segmented thumb covers the pressed choice, got ${JSON.stringify(at)}`);
+    const before = await page.evaluate(() => window.__builder.doc().frames[0].mode || "free");
+    const pressed = await page.locator(kind + " .bd-seg-btn[aria-pressed=true]").textContent();
+    const other = await page.locator(kind + " .bd-seg-btn[aria-pressed=false]").first();
+    const a = await box(kind + " .bd-seg-btn[aria-pressed=true]"), bb = await other.boundingBox();
+    await page.mouse.move(a.x, a.y);
+    await page.mouse.down();
+    await page.mouse.move(bb.x + bb.width / 2, a.y, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForFunction(({ kind, pressed }) => document.querySelector(kind + " .bd-seg-btn[aria-pressed=true]")?.textContent !== pressed, { kind, pressed });
+    const after = await page.evaluate(() => window.__builder.doc().frames[0].mode || "free");
+    expect(after !== before, `dragging along the row changes the frame's kind, ${before} → ${after}`);
+    ok(`the segmented thumb sits on ${pressed}, and a drag along the row picks the other choice (${before} → ${after})`);
+    await page.close();
+  });
+
+  await step("Units: width and height take px, a share of the parent (%) or of the screen (vw, vh), on free layers and in the flow", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await category(page, "Layout");
+    const f0 = await page.evaluate(() => { const f = window.__builder.doc().frames[0]; return { w: f.width, h: f.height }; });
+    const last = () => page.evaluate(() => { const r = window.__builder.doc().frames[0].root; return JSON.parse(JSON.stringify(r.children[r.children.length - 1])); });
+    const size = (id) => { let el = document.querySelector(`[data-bf-id="${id}"]`); while (el && getComputedStyle(el).display === "contents") el = el.firstElementChild; return { w: el.offsetWidth, h: el.offsetHeight }; };
+    const drawn = (id) => frame().evaluate(size, id);
+    /* The size once the canvas has drawn it, or as it stands after a wait. */
+    const drawnAs = async (id, side, px) => {
+      await frame().waitForFunction(({ id, side, px, src }) => Math.abs((0, eval)("(" + src + ")")(id)[side] - px) <= 1, { id, side, px, src: size.toString() }, { timeout: 3000 }).catch(() => {});
+      return drawn(id);
+    };
+    const unit = async (which, u) => {
+      await page.locator(`.bd-right .bd-dd-unit[aria-label="${which} unit"]`).click();
+      await page.locator(".bd-dd-opt", { has: page.locator(".bd-dd-opt-label", { hasText: new RegExp("^" + u + "$") }) }).first().click();
+    };
+    const type = async (label, v) => { const f = page.locator(`.bd-right input[aria-label^="${label}"]`); await f.fill(String(v)); await f.press("Enter"); };
+    /* Saved, and drawn: the canvas writes vw and vh against the frame's size. */
+    const until = async (key, v) => {
+      await page.waitForFunction(({ key, v }) => { const r = window.__builder.doc().frames[0].root; return r.children[r.children.length - 1].style[key] === v; }, { key, v });
+      const css = /%$/.test(v) ? v : "* " + parseInt(v, 10) + ")";
+      await frame().waitForFunction(({ css }) => [...document.querySelectorAll("[data-bf-id] > *")].some((el) => (el.getAttribute("style") || "").includes(css)), { css });
+    };
+    /* A Shape dropped on the canvas is free. */
+    const tile = await page.locator('.bd-tile[data-type="Shape"]').boundingBox();
+    const fb = await page.locator("iframe.bd-frame").boundingBox();
+    await drag(page, { x: tile.x + tile.width / 2, y: tile.y + tile.height / 2 }, { x: fb.x + fb.width * 0.3, y: fb.y + fb.height * 0.3 });
+    let n = await last();
+    expect(n.type === "Shape" && Number.isInteger(n.style.x), `the Shape is placed freely, got ${JSON.stringify(n)}`);
+    await tab(page, "Layout");
+    await unit("Width", "vw");
+    n = await last();
+    expect(/^\d+vw$/.test(n.style.rw || "") && n.style.fw === undefined, `switching W to vw keeps its size as a share of the screen, got ${JSON.stringify(n.style)}`);
+    await type("Width, in percent", 50);
+    await until("rw", "50vw");
+    let d = await drawnAs(n.id, "w", f0.w / 2);
+    expect(Math.abs(d.w - f0.w / 2) <= 1, `50vw draws half the frame's ${f0.w}px width, got ${d.w}`);
+    ok(`a free layer in vw: 50vw draws ${d.w}px on a ${f0.w}px frame`);
+    await unit("Height", "vh");
+    await type("Height, in percent", 25);
+    await until("rh", "25vh");
+    d = await drawnAs(n.id, "h", f0.h / 4);
+    expect(Math.abs(d.h - f0.h / 4) <= 1, `25vh draws a quarter of the frame's ${f0.h}px height, got ${d.h}`);
+    ok(`and in vh: 25vh draws ${d.h}px on a ${f0.h}px frame`);
+    /* The code writes the units as they are. */
+    const tree = await page.evaluate(() => JSON.parse(JSON.stringify({ page: {}, root: window.__builder.doc().frames[0].root })));
+    const code = await frame().evaluate((t) => window.BuilderFrame.jsx(t, "Units"), tree);
+    expect(/"50vw"/.test(code) && /"25vh"/.test(code) && !/--bf-v/.test(code), `the code writes 50vw and 25vh, not the canvas's stand-in: ${code.slice(0, 500)}`);
+    ok("the code writes width \"50vw\" and height \"25vh\" as they are");
+    /* Back to px: 4px steps, the size it has now. */
+    await unit("Width", "px");
+    n = await last();
+    expect(n.style.rw === undefined && n.style.fw === Math.round(f0.w / 2 / 4), `back to px keeps the width, in 4px steps, got ${JSON.stringify(n.style)}`);
+    ok(`back to px: ${n.style.fw * 4}px, in 4px steps`);
+    /* In the flow: the size token, or a share of the parent. */
+    await page.locator('.bd-tile[data-type="Shape"]').click();
+    await page.waitForFunction(() => window.__builder.doc().frames[0].root.children.length === 2);
+    n = await last();
+    expect(n.style.x === undefined, `a clicked Shape goes in the flow, got ${JSON.stringify(n.style)}`);
+    await tab(page, "Layout");
+    expect(await page.locator('.bd-right .bd-dd-field[aria-label^="W"], .bd-right .bd-size-unit .bd-dd-field').count() >= 1, "in the flow, W is the size token");
+    await unit("Width", "%");
+    await type("Width, in percent", 40);
+    await until("rw", "40%");
+    const parent = await drawn("root");
+    d = await drawnAs(n.id, "w", parent.w * 0.4);
+    expect(Math.abs(d.w - parent.w * 0.4) <= 1, `40% draws 40% of the ${parent.w}px root, got ${d.w}`);
+    ok(`in the flow, 40% draws ${d.w}px of the root's ${parent.w}px`);
+    await page.close();
+  });
+
   await step("Edit in place: any text on the canvas, including an item of a component's list, is typed into where it is", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
@@ -2503,38 +2625,33 @@ try {
     await page.close();
   });
 
-  await step("The project's own system: with nothing selected, variables, primitives and styles are the ones the project uses", async () => {
+  await step("Variables: Assets lists this project's or every variable; with nothing selected, the Canvas panel offers primitives and styles, and no Variables", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const clickStage = async () => {
       for (let tries = 0; tries < 4; tries++) {
         const pt = await page.evaluate(() => { const st = document.querySelector(".bd-stage").getBoundingClientRect(); for (let y = st.bottom - 20; y > st.top; y -= 30) for (let x = st.left + st.width / 2; x < st.right - 10; x += 30) { const el = document.elementFromPoint(x, y); if (el && (el.classList.contains("bd-stage") || el.classList.contains("bd-world"))) return { x, y }; } return null; });
         expect(pt, "there's empty canvas to click");
         await page.mouse.click(pt.x, pt.y);
-        if (await page.locator(".bd-sys-prim, .bd-right .bd-sys-none, .bd-right .bd-sec-empty").first().waitFor({ timeout: 1500 }).then(() => true, () => false)) return;
+        if (await page.locator(".bd-sys-prim").first().waitFor({ timeout: 1500 }).then(() => true, () => false)) return;
       }
       throw new Error("a click on empty canvas should show the canvas settings");
     };
-    const prims = () => page.locator(".bd-right .bd-sys-prim").evaluateAll((els) => els.map((x) => x.getAttribute("data-type")));
     await frame().waitForSelector('[data-bf-type="HeroBlock"]');
     await clickStage();
-    expect(await page.locator('.bd-right .bd-seg-btn[aria-pressed="true"]', { hasText: "In this project" }).count() === 1, "the inspector starts on what's in this project");
-    /* The primitives on the canvas, however deep (a hero's buttons sit in an Inline). */
-    const placed = () => page.evaluate(() => { const out = new Set(); (function w(n) { (n.children || []).forEach((c) => { out.add(c.type); w(c); }); })(window.__builder.doc().frames[0].root); return [...out]; });
-    const before = await prims();
-    const has = await placed();
-    expect(before.every((t) => has.includes(t)) && !before.includes("Heading") && !before.includes("Stack"), `Primitives lists only what's placed, got ${before}`);
-    const textStyles = await page.locator('.bd-right .bd-sys-row:has(.bd-sys-label:text-is("Text")) .bd-sys-item').count();
-    expect(textStyles >= 1, `the hero's title style is listed, got ${textStyles} text styles`);
-    await category(page, "Typography");
-    await page.locator('.bd-tile[data-type="Heading"]').click();
-    await frame().waitForSelector('[data-bf-type="Heading"]');
-    await clickStage();
-    await page.waitForFunction(() => [...document.querySelectorAll(".bd-right .bd-sys-prim")].some((x) => x.getAttribute("data-type") === "Heading"));
-    const after = await prims();
-    expect(after.includes("Heading") && after.length === before.length + 1, `with a Heading placed, Primitives adds the Heading, got ${after}`);
-    await page.locator(".bd-right .bd-seg-btn", { hasText: "Everything" }).click();
-    await page.waitForFunction(() => document.querySelectorAll(".bd-right .bd-sys-prim").length > 3);
-    ok(`with nothing selected the inspector lists what this project uses: ${before.join(", ") || "no primitives"} on the landing page, then the Heading too once one's placed, and ${textStyles} text style(s); Everything shows the whole system again`);
+    expect(await page.locator('.bd-right .bd-sec[data-sec="builder-vars"]').count() === 0 && await page.locator(".bd-right .bd-seg-btn", { hasText: "In this project" }).count() === 0, "the Canvas panel has no Variables and no scope switch");
+    const prims = await page.locator(".bd-right .bd-sys-prim").count();
+    expect(prims > 3 && await page.locator('.bd-right .bd-sys-row:has(.bd-sys-label:text-is("Text")) .bd-sys-item').count() > 3, `it offers every primitive and text style, got ${prims} primitives`);
+    ok(`with nothing selected the Canvas panel offers ${prims} primitives and the text styles, with no Variables section`);
+
+    await assetKind(page, "variables");
+    const swatches = () => page.locator(".bd-vars-sec").filter({ has: page.locator('.bd-content-h:text-is("Fill")') }).locator(".bd-var").count();
+    const all = await swatches();
+    await page.locator(".bd-vars-scope .bd-seg-btn", { hasText: "In this project" }).click();
+    const usedFills = await swatches();
+    expect(usedFills < all, `In this project lists fewer fills than Everything, got ${usedFills} of ${all}`);
+    await page.locator(".bd-vars-scope .bd-seg-btn", { hasText: "Everything" }).click();
+    expect(await swatches() === all, "Everything brings them all back");
+    ok(`Variables in Assets: In this project lists ${usedFills} of the ${all} fills, and Everything all of them`);
     await page.close();
   });
 

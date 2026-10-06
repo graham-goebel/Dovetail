@@ -183,3 +183,18 @@ test("a frame keeps its auto layout, clip and scroll, and drops what they don't 
   assert.equal(out2.clip, undefined);
   assert.equal(out2.scroll, undefined);
 });
+
+test("a width or height relative to the parent or the screen is kept; anything else is dropped", () => {
+  const n = make("Heading", {}, undefined, { rw: "50%", rh: "40vh" });
+  const report = [];
+  const out = cleanNode(n, report);
+  assert.equal(out.style.rw, "50%");
+  assert.equal(out.style.rh, "40vh");
+  assert.equal(report.length, 0);
+  for (const bad of ["0%", "50px", "1000vw", "12.5vw", 50, "vw"]) {
+    const r = [];
+    const o = cleanNode(make("Heading", {}, undefined, { rw: bad }), r);
+    assert.equal(o.style.rw, undefined, JSON.stringify(bad) + " is dropped");
+    assert.equal(r.length, 1, JSON.stringify(bad) + " is reported");
+  }
+});

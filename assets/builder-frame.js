@@ -111,6 +111,16 @@
     return st;
   }
   function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
+  /* A size relative to the parent, or to the screen. On the canvas a frame
+     that hugs its content has no screen height of its own, so vw and vh read
+     the frame's size from the root; the export writes them as they are. */
+  var REL_SIZE = /^([1-9]\d{0,2})(%|vw|vh)$/;
+  var SCREEN_UNIT = /calc\(var\(--bf-v([wh]), 1v[wh]\) \* (\d+)\)/g;
+  function relCss(v) {
+    var m = typeof v === "string" ? REL_SIZE.exec(v) : null;
+    if (!m) return null;
+    return m[2] === "%" ? m[1] + "%" : "calc(var(--bf-" + m[2] + ", 1" + m[2] + ") * " + m[1] + ")";
+  }
   function styleFor(st) {
     if (!st) return null;
     var out = null;
@@ -135,6 +145,9 @@
       if (st.fh) out.height = "calc(" + FREE_UNIT + " * " + st.fh + ")";
       if (st.rot) out.transform = "rotate(" + st.rot + "deg)";
     }
+    var rw = relCss(st.rw), rh = relCss(st.rh);
+    if (rw) { out = out || {}; out.width = rw; }
+    if (rh) { out = out || {}; out.height = rh; }
     return out;
   }
 
@@ -383,12 +396,14 @@
     /* A frame that hugs its content grows to it, so nothing here may fill the
        window, and nothing scrolls. */
     if (opts.hug) cls.push("bf-hug");
+    var screen = opts.screen && opts.screen.w > 0 && opts.screen.h > 0 ? opts.screen : null;
     html.style.overflow = opts.hug ? "hidden" : "";
     /* While editing, a finger pans and pinches the builder's canvas. */
     html.style.touchAction = opts.preview ? "" : "none";
     /* A custom canvas colour is the one raw value a frame takes: the page's own
        backdrop, outside the system. */
     var style = pageStyle(page);
+    if (screen) { style["--bf-vw"] = screen.w / 100 + "px"; style["--bf-vh"] = screen.h / 100 + "px"; }
     /* A loose object on the builder's canvas: no page around it, as wide as
        what it holds. */
     if (opts.bare) { cls.push("bf-bare"); style.background = "transparent"; if (opts.sized) cls.push("bf-sized"); }
@@ -793,7 +808,7 @@
   function value(v, used, depth) {
     if (v === null) return "null";
     if (v === undefined) return "undefined";
-    if (typeof v === "string") return JSON.stringify(v);
+    if (typeof v === "string") return JSON.stringify(v.replace(SCREEN_UNIT, "$2v$1"));
     if (typeof v === "number" || typeof v === "boolean") return String(v);
     if (typeof v === "function") return "() => {}";
     if (isElement(v)) return inline(v, used);
