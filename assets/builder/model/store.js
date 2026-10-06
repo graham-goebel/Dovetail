@@ -456,8 +456,10 @@ function makeStore(b) {
       return b.all("groups").then(function (list) { return (list || []).sort(function (x, y) { return y.updatedAt - x.updatedAt; }); });
     },
     getGroup: function (id) { return b.get("groups", id); },
-    createGroup: function (name) {
+    /* extra.kind marks a project the builder made itself (the Playground). */
+    createGroup: function (name, extra) {
       var g = { id: "g" + uid(), name: String(name || "").trim().slice(0, 80) || "Untitled project", createdAt: now(), updatedAt: now(), thumb: null };
+      if (extra && typeof extra.kind === "string") g.kind = extra.kind;
       return b.put("groups", g).then(function () { return g; });
     },
     renameGroup: function (id, name) {

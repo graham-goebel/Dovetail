@@ -8,6 +8,7 @@ import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
 import { STARTERS } from "../model/starters.js";
+import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
@@ -3035,6 +3036,12 @@ function App(props) {
       switchTo(meta, d, "Made a new file, " + name);
     });
   };
+  /* A fresh copy of the Playground, shown on Home. */
+  var newPlayground = function () {
+    flush().then(function () { return addPlayground(store); }).then(function (made) {
+      return refreshProjects().then(function () { goHomeView(made.group.id); announce("Added the Playground: Start here and the examples."); });
+    });
+  };
   /* A new project is empty: it opens on Home with its name ready to type. */
   var newGroup = function () {
     var taken = (groupList || []).map(function (g) { return g.name; });
@@ -3499,11 +3506,13 @@ function App(props) {
               options: (inGroup ? [] : [{ value: "project", label: "New project", icon: "folder", hint: "A group of files" }]).concat([
                 { value: "file", label: inGroup ? "New file in " + inGroup.name : "New file", icon: "file", hint: "A blank canvas" },
               ]).concat(STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) { return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" }; }))
+                .concat(inGroup ? [] : [{ value: "playground", label: "Playground", icon: "star", hint: "Getting started and live examples", group: "Learn" }])
                 .concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
               onChange: function (v) {
                 if (v === "project") newGroup();
                 else if (v === "file") newProject(null);
                 else if (v === "open") { if (importFileRef.current) importFileRef.current.click(); }
+                else if (v === "playground") newPlayground();
                 else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
               } }))),
         e("div", { className: "bd-home-tools" },

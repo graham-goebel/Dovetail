@@ -5,6 +5,7 @@ import { readLayout } from "./paste.js";
 import { libScopeOf, pageOf } from "./store.js";
 import { STARTERS } from "./starters.js";
 import { clean, cleanNode, copy, frameById, uid } from "./tree.js";
+import { seedPlayground } from "./playground.js";
 
 /* ---------------------------------------------------- share and storage */
 
@@ -82,10 +83,14 @@ function starterDoc() {
 
 /* The project a visit opens, and its document: a share link opens as a new
    project, an example from the docs joins the last project as a frame, and
-   otherwise the last project opens (or a first one is made). */
+   otherwise the last project opens. A browser's first visit also gets the
+   Playground, and opens its Start here file. */
 function openStart(store) {
   var hash = readHash();
   return store.listProjects().then(function (projects) {
+    return seedPlayground(store).then(function (seeded) { return [projects, seeded]; });
+  }).then(function (got) {
+    var projects = got[0], seeded = got[1];
     var last = store.lastOpened();
     var pick = projects.filter(function (p) { return p.id === last; })[0] || projects[0] || null;
     var current = function () {
@@ -118,7 +123,9 @@ function openStart(store) {
       });
     }
     return current().then(function (cur) {
-      return cur ? Object.assign(cur, { from: "saved" }) : fresh("Untitled", starterDoc(), { from: "starter" });
+      if (cur) return Object.assign(cur, { from: "saved" });
+      if (seeded && seeded.first) return { project: seeded.first, page: pageOf(seeded.first), doc: seeded.doc, from: "playground" };
+      return fresh("Untitled", starterDoc(), { from: "starter" });
     });
   }).then(function (init) {
     store.setLastOpened(init.project.id);

@@ -122,8 +122,12 @@ function watch(page) {
 /* The canvas frames, in the order they sit on the canvas. */
 const frames = (page) => page.frames().filter((f) => f.url().includes("builder-frame"));
 
-async function open(viewport, { hash = "", store = null, before = null } = {}) {
+async function open(viewport, { hash = "", store = null, before = null, playground = false } = {}) {
   const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
+  /* Each step starts from an empty browser; the Playground a first visit
+     makes has a step of its own. The script runs before every load, so it
+     outlasts the clear below. */
+  if (!playground) await page.context().addInitScript(() => { try { if (!localStorage.getItem("dovetail-builder-playground")) localStorage.setItem("dovetail-builder-playground", "1"); } catch (err) { /* no storage */ } });
   page.setDefaultTimeout(8000);
   watch(page);
   if (before) await before(page);
@@ -3818,6 +3822,54 @@ try {
     await page.keyboard.up("Alt");
     expect(!(await poll(opcStyle, (st) => !st.paddingRight)).paddingRight, "Alt-click on a side clears it");
     ok(`the box shows the Card's own ${drawnPad}px in grey from --dt-card-padding; a drag sets one side in one undo step, Shift-drag every side, Up steps a side from what it had, and Alt-click clears`);
+    await page.close();
+  });
+
+  await step("Playground: a first visit makes it on Home and opens Start here; its pages and examples open whole; New adds a fresh copy; a reload adds none", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 }, { playground: true });
+    const proj = () => page.evaluate(() => window.__builder.project());
+    const groups = () => page.evaluate(() => window.__builder.store.listGroups().then((gs) => gs.map((g) => g.name + ":" + (g.kind || ""))));
+    const pageNames = () => page.locator(".bd-pages .bd-page-name").allTextContents();
+    const ready = () => page.waitForFunction(() => { const i = document.querySelector("iframe.bd-frame"); try { return !!(i && i.contentWindow.BuilderFrame && i.contentDocument.querySelector("[data-bf-id=root]")); } catch (err) { return false; } });
+    const openHome = async () => { await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click(); await page.locator(".bd-home .bd-proj").first().waitFor(); };
+
+    const start = await proj();
+    expect(start.name === "Start here" && !!start.group, `a first visit opens Start here, in a project, got ${start.name}`);
+    expect((await groups()).join() === "Playground:playground", `there's one Playground, got ${await groups()}`);
+    await frame().waitForSelector('[data-bf-type="Heading"]');
+    expect(/Welcome to the builder/.test(await frame().evaluate(() => document.body.innerText)), "Start here opens on its Welcome page");
+    await page.locator(".bd-rail .bd-tab", { hasText: "Pages" }).click();
+    expect((await pageNames()).join() === "Welcome,Style a card,Lay out a row,Freeform and structured,Light, dark and themes,Use the components,Keys worth knowing", `Start here has its seven pages, got ${await pageNames()}`);
+    ok("a first visit makes the Playground and opens Start here on Welcome, with its seven pages");
+
+    await page.locator(".bd-page", { hasText: "Freeform and structured" }).first().locator(".bd-page-open").click();
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await ready();
+    const kinds = await page.evaluate(() => window.__builder.doc().frames.map((f) => f.name + ":" + f.mode));
+    expect(kinds.join() === "Freeform:free,Structured:structured", `the page shows a freeform and a structured frame, got ${kinds}`);
+    ok("Freeform and structured shows one frame of each kind");
+
+    await openHome();
+    await homeCard(page, "Playground").locator(".bd-proj-open").click();
+    await page.waitForFunction(() => document.querySelector(".bd-home-title")?.textContent === "Playground");
+    const files = await page.locator(".bd-home .bd-proj-name").allTextContents();
+    expect(files[0] === "Start here" && files.filter((f) => f.startsWith("Example: ")).length === 6, `the Playground holds Start here and six examples, got ${files}`);
+    await homeCard(page, "Example: Builder screens").locator(".bd-proj-open").click();
+    await page.waitForFunction(() => window.__builder.project().name === "Example: Builder screens");
+    await ready();
+    const ws = await page.evaluate(() => { const f = window.__builder.doc().frames[0]; return { name: f.name, dark: f.dark, mode: f.mode, n: f.root.children.length }; });
+    expect(ws.name === "Workspace" && ws.dark && ws.mode === "free" && ws.n >= 6, `Builder screens opens a dark freeform Workspace of positioned panels, got ${JSON.stringify(ws)}`);
+    ok("the Playground lists Start here first, then six examples; Builder screens opens a dark freeform frame of positioned panels");
+
+    await openHome();
+    await page.locator(".bd-home-crumbs .bd-crumb", { hasText: "Home" }).click().catch(() => {});
+    await homeNew(page, "Playground");
+    await page.waitForFunction(() => document.querySelector(".bd-home-title")?.textContent === "Playground");
+    expect((await groups()).length === 2, "New, then Playground, adds a fresh copy");
+    await page.reload();
+    await page.waitForFunction(() => !!window.__builder);
+    expect((await groups()).length === 2, "a reload adds no more");
+    ok("New, then Playground, adds a fresh copy and shows it on Home; a reload adds none");
     await page.close();
   });
 
