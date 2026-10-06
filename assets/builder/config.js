@@ -4,6 +4,34 @@ var mountEl = document.getElementById("builder");
 var DATA = window.DovetailBuilderData || { components: {}, tokens: {}, frames: [], groups: [], columnWidths: [], rootGaps: [] };
 
 var e = React.createElement;
+/* ------------------------------------------------ nodes, as the panels read them */
+
+/* What a layer is called in a list: its name, else its own words, else the
+   sample's (scalars: each type's starting props). */
+function nodeLabel(n, scalars) {
+  if (n.name) return n.name;
+  var base = (scalars || {})[n.type] || {};
+  var text = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
+  return typeof text === "string" || typeof text === "number" ? String(text) : "";
+}
+/* The icon for a type: its own, its group's, else a box or a component. */
+function typeIcon(type) {
+  if (TYPE_ICON[type]) return TYPE_ICON[type];
+  var g = META[type] && META[type].group;
+  if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
+  return isContainer(type) ? "box" : "component";
+}
+/* A component with parts of its own, shown in Layers: not a container and
+   not one of the builder's primitives. */
+function isOwner(n) { var m = META[n.type]; return !!m && !m.builder && !isContainer(n.type); }
+/* Whether a type has a title part (its titleSize prop) to pick in Layers. */
+function hasTitlePart(type) { var m = META[type]; return !!m && m.props.some(function (p) { return p.name === "titleSize"; }); }
+/* Whether a layer's children show in Layers: containers open unless folded,
+   components closed unless opened. */
+function nodeIsOpen(n, collapsed) { return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false; }
+/* A frame's size as a label; a hugging frame's height is as measured. */
+function frameSize(f, boxes) { return f.width + " × " + (f.hug ? Math.round(((boxes || {})[f.id] || {}).h || f.height) : f.height); }
+
 /* A function whose identity never changes and calls the latest one given,
    so a handler made fresh each render can reach a memoized component. */
 function useEvent(fn) {
@@ -348,4 +376,4 @@ function isContainer(type) { return type === "Root" || !!(META[type] && META[typ
 function mql(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
 function cx() { return Array.prototype.filter.call(arguments, Boolean).join(" "); }
 
-export { IS_MAC, PANELS, SHORTCUTS, useEvent, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
+export { IS_MAC, PANELS, SHORTCUTS, useEvent, nodeLabel, typeIcon, isOwner, hasTitlePart, nodeIsOpen, frameSize, kbd, HEIGHT_KEYS, ROLE_FAMILIES, SIDE_KEYS, optionAllowed, roleOf, scopeOf, BACKUP_KEY, BAND_ROOT, BAND_TYPES, BUILDER_SRC, CAROUSEL_ITEMS, CAROUSEL_STEPS, CONTROL_TYPES, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KEY, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MAX_ZOOM, MEDIA_LIMIT, MEDIA_TYPES, MEDIA_URL, META, MIN_FREE, MIN_SIDE, MIN_ZOOM, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SLOT_ACCEPTS, SPACINGS, STAGE_PAD, STORE_KEY, STYLE_KEYS, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, removerLoading, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words };
