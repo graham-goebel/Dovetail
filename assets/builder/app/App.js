@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, VIRTUAL_AFTER, LIVE_MAX, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -13,6 +13,7 @@ import { Layers } from "./Layers.js";
 import { Pages } from "./Pages.js";
 import { Assets } from "./Assets.js";
 import { Content } from "./Content.js";
+import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
@@ -29,9 +30,7 @@ var HOME_SORT_KEY = "dovetail-builder-home-sort";
 var DARK_KEY = "dovetail-builder-dark";
 
 /* Past this many frames, only frames near the view stay live. */
-var VIRTUAL_AFTER = 6;
 /* However far out the view is zoomed, at most this many frames are live. */
-var LIVE_MAX = 8;
 /* How many steps undo goes back. A step holds only what changed. */
 var HISTORY_MAX = 200;
 /* Documents are frozen: a write outside change() fails loudly instead of
@@ -155,9 +154,9 @@ function App(props) {
   var homeRef = useRef(false); homeRef.current = home;
   var boxState = useState({ w: 0, h: 0 });
   var box = boxState[0], setBox = boxState[1];
-  var camState = useState(null);
-  var cam = camState[0] || { x: STAGE_PAD, y: STAGE_PAD + LABEL_ROOM, z: 1 };
-  var setCamState = camState[1];
+  /* The camera lives in Stage.js; the zoom, rounded, is state so the toolbar shows it. */
+  var zoomPctState = useState(100);
+  var zoomPct = zoomPctState[0], setZoomPct = zoomPctState[1];
   var heightsState = useState({});
   var heights = heightsState[0], setHeights = heightsState[1];
   var dragState = useState(null);
@@ -252,7 +251,10 @@ function App(props) {
      next edit. */
   var docRef = useRef(doc);
   var selRef = useRef(selection);
-  var camRef = useRef(cam); camRef.current = cam;
+  var camRef = useRef(camera.get());
+  /* Whether the camera has been placed yet: the first fit waits on the stage's size. */
+  var camSetRef = useRef(false);
+  var zoomPctRef = useRef(100);
   var layoutRef = useRef(layout); layoutRef.current = layout;
   var boxRef = useRef(box); boxRef.current = box;
   var heightsRef = useRef(heights); heightsRef.current = heights;
@@ -620,7 +622,10 @@ function App(props) {
   var setCam = function (c) {
     var next = { x: c.x, y: c.y, z: clampZoom(c.z) };
     camRef.current = next;
-    setCamState(next);
+    camSetRef.current = true;
+    camera.set(next);
+    var pct = Math.round(next.z * 100);
+    if (pct !== zoomPctRef.current) { zoomPctRef.current = pct; setZoomPct(pct); }
   };
   var stageXY = function (clientX, clientY) {
     var el = stageRef.current;
@@ -758,7 +763,7 @@ function App(props) {
 
   /* The first view: the active frame on its own, or every frame across. */
   useEffect(function () {
-    if (camState[0] || !box.w) return;
+    if (camSetRef.current || !box.w) return;
     /* A big project opens on its active frame, not the whole board. */
     if (doc.frames.length > 1 && doc.frames.length <= VIRTUAL_AFTER && wide) fitWidth(); else showFrame(doc.active);
   }, [box.w]);
@@ -901,7 +906,8 @@ function App(props) {
   var openMenuRef = useRef(openMenu); openMenuRef.current = openMenu;
   var menuAtSelection = function () {
     var st = stageRef.current && stageRef.current.getBoundingClientRect();
-    var m = marks.sel.filter(function (s) { return s.id === sel; })[0] || marks.sel[0];
+    var placed = placeMarks(marksRaw, layoutRef.current.boxes, camRef.current).sel;
+    var m = placed.filter(function (s) { return s.id === sel; })[0] || placed[0];
     if (st && m) openMenu(st.left + m.r.left + Math.min(m.r.width, 160) / 2, st.top + m.r.top + Math.min(m.r.height, 40) / 2, undefined);
     else if (st) openMenu(st.left + st.width / 2, st.top + st.height / 3, selRef.current.length ? undefined : null);
   };
@@ -920,11 +926,6 @@ function App(props) {
   /* ------------------------------------------------- measuring */
 
   /* A node's box in stage coordinates, from its frame's own. */
-  /* A rect in a frame's pixels, on the stage: through the frame's box and
-     the camera. */
-  var onStage = function (r, b, c) {
-    return { left: c.x + (b.x + r.left) * c.z, top: c.y + (b.y + r.top) * c.z, width: r.width * c.z, height: r.height * c.z };
-  };
   var toStage = useCallback(function (r, fid) {
     if (!r) return null;
     var b = layoutRef.current.boxes[fid || docRef.current.active];
@@ -4981,7 +4982,7 @@ function App(props) {
     var w = Math.round(leftPanelRef.current.getBoundingClientRect().right - shell.getBoundingClientRect().left);
     if (w > 0 && w !== railW) setRailW(w);
   }, [leftClosed, wide, home]);
-  var zoomText = Math.round(cam.z * 100) + "%";
+  var zoomText = zoomPct + "%";
 
   /* The middle of the bar says where you are: the project, and with
      something selected, the path down to it. The project's name renames on
@@ -5464,149 +5465,21 @@ function App(props) {
     var p = PRESETS.filter(function (x) { return x.width === w && (h == null || x.height === h); })[0];
     return w + " × " + (h == null ? "hug" : h) + (p ? " · " + p.label : "");
   };
-  var resizers = e("div", { className: "bd-resizers", "aria-hidden": true },
-    doc.frames.map(function (f) {
-      var b = boxes[f.id];
-      if (!b) return null;
-      var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
-      var r = resizing && resizing.fid === f.id ? resizing : null;
-      /* A loose object takes a width (its height follows what it holds). */
-      /* A frame's edge grips sit just outside it, so the handles of an
-         object flush with the edge stay the ones that answer; the corner
-         grip straddles the corner. */
-      /* A loose object is its own frame: its grip straddles its edge. */
-      if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } });
-      /* The frame picked, with nothing in it picked: the same box as any
-         selection, a dot at each corner and edges that take a drag. */
-      var picked = f.id === doc.active && frameOn && !sel;
-      var FRAME_EDGE = { nw: "lt", n: "t", ne: "rt", e: "r", se: "rb", s: "b", sw: "lb", w: "l" };
-      return e(React.Fragment, { key: f.id },
-        picked ? e("div", { className: "bd-frame-box", style: { left: X, top: Y, width: W, height: H } },
-          HANDLES_FREE.map(function (dir) {
-            return e("span", { key: dir, className: "bd-handle is-" + dir, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, FRAME_EDGE[dir]); } });
-          })) : null,
-        e("div", { className: "bd-resize is-r", style: { left: X + W, top: Y, height: H }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "r"); } }),
-        e("div", { className: "bd-resize is-b", style: { left: X, top: Y + H, width: W }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "b"); } }),
-        e("div", { className: "bd-resize is-c", style: { left: X + W - 3, top: Y + H - 3 }, title: "Drag to resize " + f.name, onPointerDown: function (ev) { startResize(ev, f, "c"); } }),
-        r ? e("div", { className: "bd-resize-tag", style: { left: X + W, top: Y + H } }, sizeName(r.w, r.h != null ? r.h : f.hug ? null : f.height)) : null);
-    }));
 
-  /* The marks on the stage: what was measured, through each frame's box and
-     the camera, so a pan places them again without measuring. */
-  var marks = (function () {
-    var place = function (w) {
-      var b = boxes[w.fid];
-      if (!b) return null;
-      var r = onStage(w.r, b, cam);
-      if (!w.size) return { id: w.id, r: r };
-      var z = cam.z, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      return { id: w.id, r: r, rot: w.rot, box: { left: cx - w.size.width * z / 2, top: cy - w.size.height * z / 2, width: w.size.width * z, height: w.size.height * z } };
-    };
-    var hv = marksRaw.hover;
-    return { sel: marksRaw.sel.map(place).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: marksRaw.drop };
-  })();
-  var editBox = edit && edit.rect && boxes[edit.fid] ? onStage(edit.rect, boxes[edit.fid], cam) : null;
   var isBackground = function (t) { return t === stageRef.current || (t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"))); };
   var frameSrc = mountEl.getAttribute("data-frame");
   var anyReady = doc.frames.some(function (f) { return ready[f.id]; });
 
   var stageDark = stageColor && (function (h) { var r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b2 = parseInt(h.slice(5, 7), 16); return (0.2126 * r + 0.7152 * g + 0.0722 * b2) / 255 < 0.5; })(stageColor);
-  /* Big projects keep only frames near the view live. A frame comes alive
-     within half a screen of the view and is let go past a screen and a
-     half, so panning doesn't make frames flicker in and out. The active
-     frame is always live; up to VIRTUAL_AFTER frames, all are, and past
-     that never more than LIVE_MAX. */
-  var liveNow = {};
-  (function () {
-    var many = doc.frames.length > VIRTUAL_AFTER;
-    var keep = liveRef.current;
-    var near = function (b, k) {
-      if (!cam || !box.w || !b) return true;
-      var vx = -cam.x / cam.z, vy = -cam.y / cam.z, vw = box.w / cam.z, vh = box.h / cam.z;
-      return b.x < vx + vw * (1 + k) && b.x + b.w > vx - vw * k && b.y < vy + vh * (1 + k) && b.y + b.h > vy - vh * k;
-    };
-    var mid = { x: (box.w / 2 - cam.x) / cam.z, y: (box.h / 2 - cam.y) / cam.z };
-    var gap = function (b) { return b ? Math.hypot(b.x + b.w / 2 - mid.x, b.y + b.h / 2 - mid.y) : Infinity; };
-    var wanted = doc.frames.filter(function (f) {
-      return !many || f.id === doc.active || near(boxes[f.id], keep[f.id] ? 1.5 : 0.5);
-    });
-    /* Zoomed far out, the nearest to the middle win: the active frame,
-       then frames already live (so they don't reload), then by distance. */
-    if (many && wanted.length > LIVE_MAX) {
-      var rank = function (f) { return f.id === doc.active ? 0 : keep[f.id] ? 1 : 2; };
-      wanted = wanted.slice().sort(function (x, y) { return rank(x) - rank(y) || gap(boxes[x.id]) - gap(boxes[y.id]); }).slice(0, LIVE_MAX);
-    }
-    wanted.forEach(function (f) { liveNow[f.id] = true; });
-    liveRef.current = liveNow;
-  })();
-  /* Layout columns over each frame, and the guides on it, under the
-     selection's marks so its handles stay on top. */
-  var viewMarks = function () {
-    if (preview) return null;
-    var z = cam.z, parts = [];
-    if (canvasView.columns) doc.frames.forEach(function (f) {
-      var b = boxes[f.id], m = colInfo[f.id];
-      if (!b || f.bare || !m) return;
-      var n = columnsOf(f), inner = Math.max(0, Math.min(m.pw, b.w - 2 * m.gut)), x0 = (b.w - inner) / 2, cw = (inner - (n - 1) * m.gap) / n;
-      if (!(cw > 0)) return;
-      var cols = [];
-      for (var i = 0; i < n; i++) cols.push(e("span", { key: i, className: "bd-col", style: { left: (x0 + i * (cw + m.gap)) * z, width: cw * z } }));
-      parts.push(e("div", { key: "cols-" + f.id, className: "bd-cols", "data-frame": f.id, style: { left: cam.x + b.x * z, top: cam.y + b.y * z, width: b.w * z, height: b.h * z } },
-        e("span", { className: "bd-col-gut", style: { left: 0, width: x0 * z } }), e("span", { className: "bd-col-gut", style: { right: 0, width: (b.w - x0 - inner) * z } }), cols));
-    });
-    var line = function (key, f, axis, v, i, b, dragging) {
-      var L = cam.x + b.x * z, T = cam.y + b.y * z;
-      var style = axis === "x" ? { left: L + v * z, top: T, height: b.h * z } : { top: T + v * z, left: L, width: b.w * z };
-      return e("div", { key: key, className: cx("bd-rguide", "is-" + axis, dragging && "is-dragging"), style: style, "data-guide": axis + v,
-        title: dragging ? undefined : "Guide at " + axis + " " + v + ". Drag to move it, or onto a ruler to remove it",
-        onPointerDown: dragging ? undefined : function (ev) { startGuide(ev, f.id, axis, i); } });
-    };
-    if (canvasView.guides || guideDrag) doc.frames.forEach(function (f) {
-      var b = boxes[f.id];
-      if (!b || !f.guides || !canvasView.guides) return;
-      f.guides.forEach(function (g, i) {
-        if (guideDrag && guideDrag.fid === f.id && guideDrag.i === i) return;
-        parts.push(line(f.id + "-" + i, f, g.x !== undefined ? "x" : "y", g.x !== undefined ? g.x : g.y, i, b, false));
-      });
-    });
-    if (guideDrag && !guideDrag.off && boxes[guideDrag.fid]) parts.push(line("drag", frameById(doc, guideDrag.fid), guideDrag.axis, guideDrag.v, -1, boxes[guideDrag.fid], true));
-    return parts.length ? e("div", { className: "bd-view" }, parts) : null;
-  };
-  /* Rulers along the open canvas, numbered in the active frame's pixels,
-     the selection's span lit; a press on one drags out a guide. */
-  var rulersEl = function () {
-    var b = boxes[frame.id];
-    if (preview || !canvasView.rulers || !wide || !b) return null;
-    var ins = insets(), z = cam.z, X0 = cam.x + b.x * z, Y0 = cam.y + b.y * z;
-    var w = Math.max(0, box.w - ins.l - ins.r - RULER), h = Math.max(0, box.h - RULER);
-    var step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000].filter(function (n) { return n * z >= 56; })[0] || 5000;
-    var ticks = function (from, len, origin) {
-      var out = [];
-      for (var v = Math.floor((from - origin) / z / step) * step; origin + v * z <= from + len; v += step) if (origin + v * z >= from) out.push(v);
-      return out;
-    };
-    var span = null;
-    marks.sel.forEach(function (m) {
-      var r = m.r;
-      if (!r) return;
-      span = span ? { l: Math.min(span.l, r.left), t: Math.min(span.t, r.top), r: Math.max(span.r, r.left + r.width), b: Math.max(span.b, r.top + r.height) } : { l: r.left, t: r.top, r: r.left + r.width, b: r.top + r.height };
-    });
-    var canGuide = !frame.bare;
-    var x0 = ins.l + RULER;
-    var dragAt = guideDrag && guideDrag.fid === frame.id && !guideDrag.off ? guideDrag : null;
-    return e("div", { className: "bd-rulers" },
-      e("div", { className: "bd-ruler-corner", style: { left: ins.l }, "aria-hidden": true }),
-      e("div", { className: "bd-ruler is-top", style: { left: x0, width: w }, title: canGuide ? "Drag down for a guide across " + frame.name : undefined,
-        onPointerDown: canGuide ? function (ev) { startGuide(ev, frame.id, "y", -1); } : undefined },
-        span ? e("span", { className: "bd-ruler-span", style: { left: span.l - x0, width: span.r - span.l } }) : null,
-        dragAt && dragAt.axis === "x" ? e("span", { className: "bd-ruler-at", style: { left: X0 + dragAt.v * z - x0 } }) : null,
-        ticks(x0, w, X0).map(function (v) { return e("span", { key: v, className: "bd-ruler-tick", style: { left: X0 + v * z - x0 } }, e("span", { className: "bd-ruler-num" }, v)); })),
-      e("div", { className: "bd-ruler is-left", style: { left: ins.l, height: h }, title: canGuide ? "Drag right for a guide down " + frame.name : undefined,
-        onPointerDown: canGuide ? function (ev) { startGuide(ev, frame.id, "x", -1); } : undefined },
-        span ? e("span", { className: "bd-ruler-span", style: { top: span.t - RULER, height: span.b - span.t } }) : null,
-        dragAt && dragAt.axis === "y" ? e("span", { className: "bd-ruler-at", style: { top: Y0 + dragAt.v * z - RULER } }) : null,
-        ticks(RULER, h, Y0).map(function (v) { return e("span", { key: v, className: "bd-ruler-tick", style: { top: Y0 + v * z - RULER } }, e("span", { className: "bd-ruler-num" }, v)); })));
-  };
+  /* What the stage's pieces (Stage.js) draw from; they read the camera themselves. */
+  var worldProps = { box: box, boxes: boxes, doc: doc, frameEls: frameEls, frameReady: frameReady, frameSrc: frameSrc, liveRef: liveRef };
+  var labelsProps = { boxes: boxes, doc: doc, frameMenu: frameMenu, frameOn: frameOn, frameOps: frameOps, isRenaming: isRenaming, justDragged: justDragged, preview: preview, sel: sel, setRenaming: setRenaming, sizeText: sizeText, startFrameMove: startFrameMove };
+  var viewProps = { boxes: boxes, canvasView: canvasView, colInfo: colInfo, doc: doc, guideDrag: guideDrag, preview: preview, startGuide: startGuide };
+  var rulersProps = { RULER: RULER, box: box, boxes: boxes, canvasView: canvasView, frame: frame, guideDrag: guideDrag, insets: insets, marksRaw: marksRaw, preview: preview, startGuide: startGuide, wide: wide };
+  var marksProps = { HANDLES_FLOW: HANDLES_FLOW, HANDLES_FREE: HANDLES_FREE, boxes: boxes, doc: doc, dupFrame: dupFrame, edit: edit, frame: frame, frameOn: frameOn, marksRaw: marksRaw, marquee: marquee, openMenu: openMenu, part: part, preview: preview, sel: sel, sizing: sizing, startDrag: startDrag, startNodeResize: startNodeResize, startRotate: startRotate };
+  var spacingProps = { boxes: boxes, openToken: openToken, spacing: spacing };
+  var editorProps = { boxes: boxes, edit: edit, editChange: editChange, editDone: editDone };
+  var resizersProps = { HANDLES_FREE: HANDLES_FREE, boxes: boxes, doc: doc, frameOn: frameOn, resizing: resizing, sel: sel, sizeName: sizeName, startResize: startResize };
   var stage = e("div", {
     className: cx("bd-stage", drag && "is-dragging", sizing && "is-sizing", (space || panning || tool === "hand") && "is-panning", preview && "is-preview", stageDark && "is-dark"), ref: stageRef,
     style: stageColor ? { backgroundColor: stageColor } : undefined,
@@ -5638,119 +5511,16 @@ function App(props) {
     },
     onContextMenu: function (ev) { if (!previewRef.current && isBackground(ev.target)) { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, null); } },
   },
-    e("div", { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
-      doc.frames.map(function (f) {
-        var b = boxes[f.id];
-        if (!liveNow[f.id]) {
-          /* Far from view in a big project: a light stand-in until it's panned to. */
-          return e("div", {
-            key: f.id, className: cx("bd-frame", "bd-frame-ghost", f.bare && "is-bare"), "aria-hidden": "true",
-            style: { left: b.x + "px", top: b.y + "px", width: b.w + "px", height: b.h + "px" },
-          }, e("span", { className: "bd-frame-ghost-name" }, f.name));
-        }
-        return e("iframe", {
-          key: f.id, className: cx("bd-frame", f.id === doc.active && "is-active", f.bare && "is-bare"),
-          ref: function (el) { if (el) frameEls.current[f.id] = el; else delete frameEls.current[f.id]; },
-          title: "Frame " + f.name + ", " + f.width + " by " + Math.round(b.h) + " pixels", src: frameSrc,
-          onLoad: function () { frameReady(f.id); },
-          style: { left: b.x + "px", top: b.y + "px", width: b.w + "px", height: b.h + "px" },
-        });
-      })),
-    e("div", { className: "bd-labels" },
-      doc.frames.map(function (f) {
-        var b = boxes[f.id];
-        var on = f.id === doc.active;
-        if (f.bare) return null;
-        return e("div", {
-          key: f.id, className: cx("bd-flabel", on && "is-current", on && !sel && frameOn && "is-selected"),
-          style: { left: cam.x + b.x * cam.z + "px", top: cam.y + b.y * cam.z + "px", maxWidth: Math.max(80, b.w * cam.z) + "px" },
-        },
-          isRenaming("frame:" + f.id, "label")
-            ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-flabel-name", onChange: function (v) { frameOps.rename(f.id, v); } })
-            : e("button", {
-              type: "button", className: "bd-flabel-btn", title: f.name + ", " + sizeText(f) + ". Drag to move it, Cmd-Shift-drag to drop a copy, double-click to rename.",
-              onPointerDown: function (ev) { startFrameMove(ev, f); },
-              onClick: function () { if (!justDragged.current) frameOps.pick(f.id); },
-              onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "label" }); },
-            }, e("span", { className: "bd-flabel-name" }, f.name)),
-          e("span", { className: "bd-flabel-size" }, sizeText(f)),
-          on && !preview ? frameMenu(f, "label") : null);
-      })),
-    viewMarks(),
-    e("div", { className: "bd-marks", "aria-hidden": true },
-      !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
-      marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
-      !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
-      /* A selected free layer pinned to an edge: a dashed line to it. */
-      !preview && sel && marks.sel.length === 1 && marks.sel[0].r && boxes[frame.id] && !frame.bare && frame.mode !== "structured" ? (function () {
-        var at = locate(doc, sel), st = at && at.node.style;
-        if (!st || !isFree(st) || (!st.ch && !st.cv)) return null;
-        var m = marks.sel[0].r, fb = boxes[frame.id];
-        var L = cam.x + fb.x * cam.z, T = cam.y + fb.y * cam.z, R = L + fb.w * cam.z, B = T + fb.h * cam.z;
-        var mx = m.left + m.width / 2, my = m.top + m.height / 2, out = [];
-        var across = function (k, x1, x2) { if (x2 - x1 > 1) out.push(e("div", { key: k, className: "bd-pin-mark is-x", style: { left: x1, top: my, width: x2 - x1 } })); };
-        var down = function (k, y1, y2) { if (y2 - y1 > 1) out.push(e("div", { key: k, className: "bd-pin-mark is-y", style: { left: mx, top: y1, height: y2 - y1 } })); };
-        if (st.ch === "right" || st.ch === "both") across("r", m.left + m.width, R);
-        if (st.ch === "both") across("l", L, m.left);
-        if (st.cv === "bottom" || st.cv === "both") down("b", m.top + m.height, B);
-        if (st.cv === "both") down("t", T, m.top);
-        return out;
-      })() : null,
-      !preview ? marks.sel.map(function (m) {
-        var at = locate(doc, m.id);
-        if (!at) return null;
-        var isMain = m.id === sel && !edit;
-        /* At the top of the stage, or of its frame (where the frame's name
-           sits), the tag goes inside the box. */
-        var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
-        var handles = isMain && !part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? (isFree(at.node.style) ? HANDLES_FREE : HANDLES_FLOW) : null;
-        var turnable = !!handles && isFree(at.node.style);
-        var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
-        /* Short or narrow on screen: the handles step outward (in CSS), so
-           the body still takes a press to move it. */
-        var short = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
-        return e("div", { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== sel && "is-extra", at.node.lock && "is-locked", at.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", sizing && sizing.id === m.id && "is-sizing", handles && short && "is-short", handles && narrow && "is-narrow"), style: markStyle },
-          turnable ? ["nw", "ne", "se", "sw"].map(function (c) {
-            return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function (ev) { startRotate(ev, at.node.id); } });
-          }) : null,
-          isMain ? e("span", {
-            className: "bd-mark-tag", title: "Drag to move",
-            onPointerDown: function (ev) { ev.preventDefault(); ev.stopPropagation(); startDrag(ev, { kind: "move", id: at.node.id, label: at.node.type }); },
-          }, nameOf(at.node) + (part && part.id === m.id ? " › Title" : ""),
-            /* Its actions, the same as a right-click on it. Keyboard users
-               have them on Shift+F10. */
-            e("button", { type: "button", className: "bd-mark-more", tabIndex: -1, title: "Actions for " + nameOf(at.node), "aria-label": "Actions for " + nameOf(at.node),
-              onPointerDown: function (ev) { ev.stopPropagation(); },
-              onClick: function (ev) { ev.stopPropagation(); var r = ev.currentTarget.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, at.node.id, frame.id); } },
-              e(Icon, { name: "more" }))) : null,
-          handles ? handles.map(function (dir) {
-            return e("span", { key: dir, className: cx("bd-handle is-" + dir, sizing && sizing.id === m.id && sizing.dir === dir && "is-active"), title: "Drag to resize" + (dir.length === 2 ? "; Shift keeps the shape" : ""), onPointerDown: function (ev) { startNodeResize(ev, at.node.id, dir); } });
-          }) : null);
-      }) : null,
-      marks.drop && marks.drop.line ? e("div", { className: "bd-mark-line", style: marks.drop.line }) : null,
-      marks.drop && marks.drop.guides ? marks.drop.guides.map(function (g, i) {
-        return e("div", { key: i, className: cx("bd-guide", g.gap && "is-gap", g.v ? "is-v" : "is-h"), style: { left: g.left + "px", top: g.top + "px", width: g.width + "px", height: g.height + "px" } },
-          g.label !== undefined ? e("span", { className: "bd-guide-label" }, g.label) : null);
-      }) : null,
-      marks.drop && marks.drop.box ? e("div", { className: cx("bd-mark-box", marks.drop.swap && "is-swap"), style: marks.drop.box }) : null,
-      dupFrame ? e("div", { className: "bd-dup", style: { left: cam.x + dupFrame.x * cam.z, top: cam.y + dupFrame.y * cam.z, width: dupFrame.w * cam.z, height: dupFrame.h * cam.z } },
-        e("span", { className: "bd-dup-tag" }, e(Icon, { name: "copy" }), dupFrame.name + " copy")) : null),
-    spacing ? e("div", { className: "bd-spacing" }, spacing.lines.map(function (l, i) {
-      var r = toStage({ left: Math.min(l.x1, l.x2), top: Math.min(l.y1, l.y2), width: Math.abs(l.x2 - l.x1), height: Math.abs(l.y2 - l.y1) }, spacing.fid);
-      if (!r) return null;
-      var across = Math.abs(l.x2 - l.x1) >= Math.abs(l.y2 - l.y1);
-      return e(React.Fragment, { key: i },
-        e("div", { className: cx("bd-spacing-line", across ? "is-x" : "is-y"), style: across ? { left: r.left, top: r.top, width: r.width } : { left: r.left, top: r.top, height: r.height }, "aria-hidden": true }),
-        e("button", { type: "button", className: "bd-spacing-tag", disabled: !l.owner, title: l.owner ? "Open this in the inspector" : "Not set by a token on either item",
-          style: { left: r.left + (across ? r.width / 2 : 0), top: r.top + (across ? 0 : r.height / 2) },
-          onPointerDown: function (ev) { ev.stopPropagation(); },
-          onClick: function () { if (l.owner) openToken(l.owner, l.sec); } }, l.label));
-    })) : null,
+    e(World, worldProps),
+    e(Labels, labelsProps),
+    e(ViewMarks, viewProps),
+    e(Marks, marksProps),
+    e(SpacingLines, spacingProps),
     !preview && tool === "hand" ? e("div", Object.assign({ className: "bd-draw is-hand" }, handHandlers)) : null,
-    !preview ? resizers : null,
-    rulersEl(),
+    !preview ? e(Resizers, resizersProps) : null,
+    e(Rulers, rulersProps),
     !preview ? tools : null,
-    edit && editBox ? e(InlineEditor, { key: edit.id, value: edit.value, box: editBox, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
+    e(EditorAt, editorProps),
     preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
     anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
 
@@ -5972,7 +5742,7 @@ function App(props) {
       newGroup: homeNewGroup, newProject: homeNewProject, newPlayground: homeNewPlayground, openAccount: homeOpenAccount }),
     readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
     drag && drag.ghost ? (function () {
-      var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
+      var g = drag.ghost, z = g.flat ? 1 : camRef.current.z, grab = g.grab || { x: 0, y: 0 };
       var x = drag.spot ? drag.spot.x : drag.x - grab.x * z, y = drag.spot ? drag.spot.y : drag.y - grab.y * z;
       return e("div", { className: cx("bd-ghost-el", g.flat && "is-flat"), style: { left: x + "px", top: y + "px", width: g.w * z + "px", height: g.h * z + "px" }, "aria-hidden": true },
         e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } }));
