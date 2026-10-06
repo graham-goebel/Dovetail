@@ -176,8 +176,12 @@ const option = (page, text) => page.locator(".bd-dd-opt", { has: page.locator(".
 const homeNew = async (page, what) => { await page.locator(".bd-home-new").click(); await option(page, what).click(); };
 const homeCard = (page, name) => page.locator(".bd-proj").filter({ has: page.locator(".bd-proj-name", { hasText: new RegExp("^" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") }) });
 const cardMenu = async (page, name, what) => { await homeCard(page, name).locator(".bd-proj-menu").click(); await option(page, what).click(); };
+/* A component's own options live under Properties: when the field isn't on
+   the tab that's open, look there. */
 async function choose(page, fieldText, optionText) {
-  await page.locator(".bd-right .bd-field", { hasText: fieldText }).first().locator(".bd-dd").first().click();
+  const field = () => page.locator(".bd-right .bd-field", { hasText: fieldText }).first();
+  if (!(await field().count()) && await page.locator(".bd-itab", { hasText: "Properties" }).count()) await tab(page, "Properties");
+  await field().locator(".bd-dd").first().click();
   await option(page, optionText).click();
 }
 /* Selects a layer by the text on its row in Layers, which it opens. */
@@ -196,7 +200,17 @@ async function pressButton(page, text, i = 0) {
   await page.mouse.click(at.x, at.y);
 }
 const row = (page, name) => page.locator(`.bd-layer[data-layer]:has(.bd-layer-name:text-is("${name}")) .bd-layer-main`);
-const tab = (page, name) => page.locator(".bd-itab", { hasText: name }).click();
+/* The inspector's tabs. Properties (once Content) opens with its Style and
+   Arrangement folded; this unfolds them, so their fields can be found. */
+const tab = async (page, name) => {
+  if (name === "Content") name = "Properties";
+  await page.locator(".bd-itab", { hasText: name }).click();
+  if (name !== "Properties") return;
+  for (const key of ["props-style", "props-arrange"]) {
+    const head = page.locator(`.bd-right .bd-sec.is-closed[data-sec="${key}"] .bd-sec-h`);
+    if (await head.count()) await head.click();
+  }
+};
 /* Assets open on five kinds; a category lives in one of them. */
 const KIND_OF = { Layout: "primitives", Typography: "primitives", Blocks: "blocks" };
 async function category(page, name) {
@@ -341,8 +355,8 @@ try {
     const at = await canvasPoint(page, '[data-bf-type="Heading"]', "right");
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
-    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Content" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Content opens first, with the Text field");
+    expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Properties,Appearance,Layout", "the inspector has Properties, Appearance and Layout tabs, in that order");
+    expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Properties" && await page.locator(".bd-ipanel .bd-field-label", { hasText: /^Text$/ }).count() === 1, "Properties opens first, with the Text field");
     expect(await page.locator(".bd-inspect-head .bd-head-actions > *").count() === 1, "the head has one menu beside the name, not a row of buttons");
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
     const actions = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents();
@@ -419,10 +433,10 @@ try {
     await row(page, "Button").nth(0).click();
     await row(page, "Button").nth(1).click({ modifiers: ["Shift"] });
     expect(await title(page) === "2 Buttons", `two Buttons selected should read "2 Buttons", got ${await title(page)}`);
-    await tab(page, "Appearance");
+    await tab(page, "Properties");
     await choose(page, /^Variant/, /^ghost$/);
     await frame().waitForFunction(() => { const bs = [...document.querySelectorAll('[data-bf-type="Button"] button')]; return bs.length === 2 && bs.every((b) => getComputedStyle(b).backgroundColor === "oklch(0 0 0 / 0)" || getComputedStyle(b).backgroundColor === "rgba(0, 0, 0, 0)"); });
-    ok("two Buttons selected read \"2 Buttons\"; setting Variant ghost, under Appearance, changes both");
+    ok("two Buttons selected read \"2 Buttons\"; setting Variant ghost, under Properties, changes both");
   });
 
   await step("Double-click text on the canvas to type in place", async () => {
@@ -733,7 +747,7 @@ try {
     await page.mouse.up();
     await frame().waitForSelector('[data-bf-type="Image"]', { timeout: 4000 }).catch(() => { throw new Error("an Image dropped from its tray doesn't land on the frame"); });
     await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Content", `an Image opens on Content, got ${await current()}`);
+    expect(await current() === "Properties", `an Image opens on Properties, got ${await current()}`);
     ok("an Image dragged from its tray lands on the frame, selected, with the inspector on Content");
 
     await category(page, "Layout");
@@ -761,7 +775,7 @@ try {
     await page.locator('.bd-tile[data-type="Button"]').click();
     await frame().waitForSelector('[data-bf-type="Section"] [data-bf-type="Button"]');
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    expect(await current() === "Content", `a Button opens on Content, got ${await current()}`);
+    expect(await current() === "Properties", `a Button opens on Properties, got ${await current()}`);
     const tint = await frame().evaluate(() => {
       const btn = document.querySelector('[data-bf-type="Button"] button, [data-bf-type="Button"] a, button');
       const probe = document.createElement("div");
@@ -1245,12 +1259,13 @@ try {
     await page.locator(".bd-search-dock input").fill("Badge");
     await page.locator('.bd-tile[data-type="Badge"]').click();
     await page.locator(".bd-search-dock .bd-search-clear").click();
-    await tab(page, "Appearance");
+    await tab(page, "Properties");
     await page.locator(".bd-right .bd-field", { hasText: "Tone" }).locator(".bd-dd").first().click();
     const swatches = await page.locator(".bd-dd-list .bd-sw").count();
     await page.keyboard.press("Escape");
     expect(swatches >= 5, `the tone list shows a swatch for each colour, got ${swatches}`);
     expect(await page.locator(".bd-right .bd-field", { hasText: "Invert colours" }).count() === 0 && await page.locator(".bd-right .bd-field", { hasText: "Text colour" }).count() === 0, "a Badge has neither Invert colours (pictures only) nor Text colour (text only)");
+    await tab(page, "Appearance");
     await page.locator(".bd-right .bd-blend-dd").click();
     await option(page, "Multiply").click();
     await frames(page)[0].waitForFunction(() => { const b = [...document.querySelectorAll('[data-bf-type="Badge"]')].pop(); return getComputedStyle(b.firstElementChild).mixBlendMode === "multiply"; });
@@ -1609,7 +1624,7 @@ try {
     await tab(page, "Layout");
     await choose(page, "Layout", "ring");
     await frame().waitForFunction(() => /ring · 5 items/.test(document.querySelector(".bf-carousel-head").textContent));
-    await tab(page, "Appearance");
+    await tab(page, "Properties");
     expect(await page.locator(".bd-right .bd-field", { hasText: "Pace" }).first().locator(".bd-dd").count() === 1, "Pace is a set of steps, not a number box");
     await choose(page, "Pace", "1.5×");
     c = await carousel();
@@ -2507,7 +2522,7 @@ try {
     await category(page, "Content");
     await page.locator('.bd-tile[data-type="Image"]').click();
     await frame().waitForSelector('[data-bf-type="Image"]');
-    await tab(page, "Appearance");
+    await tab(page, "Properties");
     const field = (name) => page.locator(".bd-right .bd-field").filter({ has: page.locator(".bd-field-label", { hasText: new RegExp("^" + name + "$") }) });
     const row = (name) => field(name).locator(".bd-seg-tiles");
     const tile = (name, value) => row(name).locator(`.bd-seg-btn[aria-label="${name}: ${value}"]`);
@@ -3903,9 +3918,9 @@ try {
     const hero = findIn((await saved()).frames[0].root, "HeroBlock");
     await page.evaluate((id) => window.__builder.select([id]), hero.id);
     await page.waitForFunction(() => /HeroBlock/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
-    await tab(page, "Layout");
+    await tab(page, "Properties");
     const fields = await page.$$eval(".bd-right .bd-field-label", (l) => l.map((x) => x.textContent.trim()));
-    expect(fields.some((f) => /Spacing top/i.test(f)) && fields.some((f) => /Spacing bottom/i.test(f)) && fields.some((f) => /Bleed/i.test(f)), `a block's Layout tab offers Spacing top, Spacing bottom and Bleed, got ${fields.join(", ")}`);
+    expect(fields.some((f) => /Spacing top/i.test(f)) && fields.some((f) => /Spacing bottom/i.test(f)) && fields.some((f) => /Bleed/i.test(f)), `a block's Properties tab offers Spacing top, Spacing bottom and Bleed, under Arrangement, got ${fields.join(", ")}`);
     await page.evaluate((id) => window.__builder.edit(id, "spacingTop", "xl"), hero.id);
     const m2 = await poll(measure, (m) => m.secTop === "128px");
     expect(m2.secTop === "128px", `spacingTop xl is --dt-layout-module-padding-xl, 128px at tight, got ${m2.secTop}`);

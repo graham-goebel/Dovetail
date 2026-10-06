@@ -5241,10 +5241,14 @@ function App(props) {
     return have[want] ? want : have.layout ? "layout" : TABS.filter(function (t) { return have[t[0]]; }).map(function (t) { return t[0]; })[0];
   };
 
-  /* A section that remembers whether it's folded, per title. */
+  /* A section that remembers whether it's folded, per title. A few start
+     folded until opened once: a component's style options and arrangement,
+     under Properties, below its content. */
+  var FOLDED_FIRST = { "props-style": true, "props-arrange": true };
+  var isClosed = function (key) { return FOLDED_FIRST[key] ? closedSecs[key] !== false : !!closedSecs[key]; };
   var sec = function (key, title, children, action, changed) {
-    return e(Section, { key: key, id: key, title: title, action: action, changed: changed, closed: !!closedSecs[key],
-      onToggle: function () { setClosedSecs(function (c) { var n = Object.assign({}, c); if (n[key]) delete n[key]; else n[key] = true; return n; }); } }, children);
+    return e(Section, { key: key, id: key, title: title, action: action, changed: changed, closed: isClosed(key),
+      onToggle: function () { setClosedSecs(function (c) { var n = Object.assign({}, c), was = isClosed(key); if (FOLDED_FIRST[key]) n[key] = !was; else if (was) delete n[key]; else n[key] = true; return n; }); } }, children);
   };
   /* Whether a section holds anything set on these items, for its dot. */
   var SPACING_KEYS = Object.keys(DATA.tokens).filter(function (k) { return DATA.tokens[k].section === "spacing"; });
@@ -5605,22 +5609,27 @@ function App(props) {
       e(Dropdown, { labelledBy: columnsId, value: first.props.minColumnWidth || "", className: "bd-dd-field", onChange: function (v) { setProp(ids, "minColumnWidth", v || undefined); },
         options: [{ value: "", label: "Off" }].concat(DATA.columnWidths.map(function (w) { return { value: w.value, label: w.label, hint: w.token }; })) }))]);
     var styleRows = byTab("appearance").map(function (p) { return propControl(p, nodes); }).filter(Boolean);
-    var toned = meta.props.some(function (p) { return p.name === "tone"; });
-    var have = { appearance: true, layout: true, content: contentRows.length > 0 };
+    /* Properties holds everything the component has of its own: its
+       content, its style options and its arrangement. A container's auto
+       layout is the same on every container, so it stays under Layout. */
+    var arrange = !meta.container && flex && flex.filter(Boolean).length ? flex : null;
+    var have = { content: contentRows.length > 0 || styleRows.length > 0 || !!arrange, appearance: true, layout: true };
     var current = pickTab(have);
     var body;
     var propNames = function (t) { return byTab(t).map(function (p) { return p.name; }).concat(t === "content" && hasText ? ["children"] : []).concat(t === "layout" && first.type === "Grid" ? ["minColumnWidth"] : []); };
-    if (current === "content") body = [sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content")))];
+    if (current === "content") body = [
+      contentRows.length ? sec("content", "Content", contentRows, null, propsSet(nodes, propNames("content"))) : null,
+      styleRows.length ? sec("props-style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null,
+      arrange ? sec("props-arrange", "Arrangement", arrange, null, propsSet(nodes, propNames("layout"))) : null];
     else if (current === "layout") {
       body = [
-        flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
+        meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
         sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
       ];
     } else {
-      body = [styleRows.length ? sec("style", "Style", styleRows, null, propsSet(nodes, propNames("appearance"))) : null]
-        .concat(lookSections(nodes, toned ? e("p", { key: "note", className: "bd-note" }, "Tone, under Style, paints this one's own background. Fill sits underneath it.") : null));
+      body = lookSections(nodes, null);
     }
     var title = many ? nodes.length + " " + (sameType ? first.type + (first.type.endsWith("s") ? "" : "s") : "items") : null;
     var arrangeTools = arrangeRow(nodes);
