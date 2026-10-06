@@ -5,6 +5,34 @@
   var mountEl = document.getElementById("builder");
   var DATA = window.DovetailBuilderData || { components: {}, tokens: {}, frames: [], groups: [], columnWidths: [], rootGaps: [] };
   var e = React.createElement;
+  function nodeLabel(n, scalars) {
+    if (n.name) return n.name;
+    var base = (scalars || {})[n.type] || {};
+    var text2 = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
+    return typeof text2 === "string" || typeof text2 === "number" ? String(text2) : "";
+  }
+  function typeIcon(type) {
+    if (TYPE_ICON[type]) return TYPE_ICON[type];
+    var g = META[type] && META[type].group;
+    if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
+    return isContainer(type) ? "box" : "component";
+  }
+  function isOwner(n) {
+    var m = META[n.type];
+    return !!m && !m.builder && !isContainer(n.type);
+  }
+  function hasTitlePart(type) {
+    var m = META[type];
+    return !!m && m.props.some(function(p) {
+      return p.name === "titleSize";
+    });
+  }
+  function nodeIsOpen(n, collapsed) {
+    return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false;
+  }
+  function frameSize(f, boxes) {
+    return f.width + " × " + (f.hug ? Math.round(((boxes || {})[f.id] || {}).h || f.height) : f.height);
+  }
   function useEvent(fn) {
     var ref = useRef(fn);
     ref.current = fn;
@@ -6867,6 +6895,302 @@
     );
   });
 
+  // assets/builder/app/Layers.js
+  var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
+  var Layers = React.memo(function Layers2(p) {
+    var doc2 = p.doc, q = p.query.trim().toLowerCase();
+    var labelOf = function(n) {
+      return nodeLabel(n, p.scalars);
+    };
+    var isOpen = function(n) {
+      return nodeIsOpen(n, p.collapsed);
+    };
+    var frameIsOpen = function(f) {
+      return p.openFrames[f.id] !== void 0 ? p.openFrames[f.id] : f.id === doc2.active;
+    };
+    var isRenaming = function(id, where) {
+      return !!p.renaming && p.renaming.id === id && p.renaming.where === where;
+    };
+    var toggle = function(id) {
+      var at2 = locate(doc2, id);
+      var owner = at2 && !isContainer(at2.node.type);
+      p.setCollapsed(function(c) {
+        var n = Object.assign({}, c);
+        if (owner) {
+          if (n[id] === false) delete n[id];
+          else n[id] = false;
+        } else if (n[id]) delete n[id];
+        else n[id] = true;
+        return n;
+      });
+    };
+    var rowsFor = function(f) {
+      var keep = null;
+      if (q) {
+        keep = {};
+        (function walk2(n, path) {
+          (n.children || []).forEach(function(c) {
+            var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
+            if (hit) {
+              keep[c.id] = true;
+              path.forEach(function(x) {
+                keep[x] = true;
+              });
+            }
+            if (c.children) walk2(c, path.concat([c.id]));
+          });
+        })(f.root, []);
+      }
+      var rows = [];
+      var walk = function(n, depth) {
+        (n.children || []).forEach(function(c) {
+          if (keep && !keep[c.id]) return;
+          rows.push({ n: c, depth });
+          if (!(q || isOpen(c))) return;
+          if (isOwner(c) && !q) walkOwner(c, depth + 1);
+          else if (c.children) walk(c, depth + 1);
+        });
+      };
+      var walkOwner = function(c, depth) {
+        var slots = (c.children || []).filter(function(k) {
+          return k.type === "Slot";
+        });
+        var placed = {};
+        var tree = p.anatomyOf(f.id, c.id) || [];
+        var seq0 = 0;
+        (function parts(list, d) {
+          list.forEach(function(it) {
+            if (it.slot) {
+              var sl = slots.filter(function(x) {
+                return x.id === it.slot;
+              })[0];
+              if (!sl || placed[sl.id]) return;
+              placed[sl.id] = true;
+              rows.push({ n: sl, depth: d });
+              if (isOpen(sl)) walk(sl, d + 1);
+              return;
+            }
+            rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + seq0++ });
+            parts(it.children || [], d + 1);
+          });
+        })(tree, depth);
+        slots.forEach(function(sl) {
+          if (placed[sl.id]) return;
+          rows.push({ n: sl, depth });
+          if (isOpen(sl)) walk(sl, depth + 1);
+        });
+      };
+      walk(f.root, 1);
+      return rows;
+    };
+    var partRow = function(r, f) {
+      var it = r.part;
+      if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
+        var onPart = p.partId != null && p.partId === r.owner.id && f.id === doc2.active;
+        return e(
+          "div",
+          {
+            key: r.key,
+            className: cx("bd-layer is-part is-pickable", onPart && "is-current"),
+            role: "treeitem",
+            "aria-level": r.depth + 1,
+            "aria-selected": String(!!onPart),
+            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" }
+          },
+          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+          e(
+            "button",
+            { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function() {
+              p.pick(r.owner.id, false, false, "layers", f.id, "title");
+            } },
+            e(Icon, { name: "heading" }),
+            e("span", { className: "bd-layer-name" }, "Title"),
+            it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
+          )
+        );
+      }
+      return e(
+        "div",
+        {
+          key: r.key,
+          className: "bd-layer is-part",
+          role: "treeitem",
+          "aria-level": r.depth + 1,
+          "aria-disabled": "true",
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
+          title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector"
+        },
+        e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+        e(
+          "span",
+          { className: "bd-layer-main is-static" },
+          e(Icon, { name: PART_ICON[it.kind] || "component" }),
+          e("span", { className: "bd-layer-name" }, it.kind),
+          it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
+        )
+      );
+    };
+    var nodeRow = function(f, r) {
+      if (r.part) return partRow(r, f);
+      var n = r.n;
+      var mine = f.id === doc2.active;
+      var text2 = labelOf(n);
+      var on = mine && p.selection.indexOf(n.id) >= 0;
+      var owner = isOwner(n);
+      var open = isOpen(n) || !!q && !owner;
+      var folds = !!n.children || owner;
+      var renameable = n.type !== "Slot";
+      var listDrop2 = p.listDrop, hover = p.hover;
+      return e(
+        "div",
+        {
+          key: n.id,
+          className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop2 && listDrop2.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+          "data-layer": mine ? n.id : void 0,
+          "data-frame-row": mine ? void 0 : f.id,
+          "data-depth": r.depth,
+          role: "treeitem",
+          "aria-selected": String(on),
+          "aria-level": r.depth + 1,
+          "aria-expanded": folds ? String(open) : void 0,
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
+          onPointerEnter: function() {
+            p.setHover({ f: f.id, id: n.id });
+          },
+          onPointerLeave: function() {
+            p.setHover(null);
+          },
+          onContextMenu: function(ev) {
+            if (n.type !== "Slot") {
+              ev.preventDefault();
+              p.openMenu(ev.clientX, ev.clientY, n.id, f.id);
+            }
+          }
+        },
+        folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : void 0, onClick: function() {
+          toggle(n.id);
+        } }, e(Icon, { name: "right" })) : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+        e(
+          "button",
+          {
+            type: "button",
+            className: "bd-layer-main",
+            onClick: function(ev) {
+              if (!p.justDragged.current) p.pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id);
+            },
+            onDoubleClick: function() {
+              if (renameable && mine) p.setRenaming({ id: n.id, where: "layer" });
+            },
+            onPointerDown: function(ev) {
+              if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) p.startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
+            }
+          },
+          e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
+          renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
+            p.setRenaming(null);
+            p.setName(n.id, v === n.type ? "" : v);
+          } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
+          text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null
+        ),
+        /* Hiding lives in the inspector's Layer section; a hidden row keeps
+           a quiet eye-off, which also shows it again. */
+        n.type !== "Slot" ? e(
+          "span",
+          { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
+          n.hide ? e("button", {
+            type: "button",
+            className: "bd-layer-flag is-hidden-mark",
+            "aria-label": "Show " + nameOf(n),
+            title: "Hidden: press to show (Ctrl+Shift+H)",
+            onClick: function(ev) {
+              ev.stopPropagation();
+              p.flagLayer(n.id, f.id, "hide");
+            }
+          }, e(Icon, { name: "eyeOff" })) : null,
+          e("button", {
+            type: "button",
+            className: cx("bd-layer-flag", n.lock && "is-on"),
+            "aria-pressed": String(!!n.lock),
+            "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n),
+            title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
+            onClick: function(ev) {
+              ev.stopPropagation();
+              p.flagLayer(n.id, f.id, "lock");
+            }
+          }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))
+        ) : null
+      );
+    };
+    var listDrop = p.listDrop;
+    return e(
+      "div",
+      { className: "bd-layers-panel" },
+      e(
+        "div",
+        { className: "bd-layers", ref: p.layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
+        doc2.frames.map(function(f) {
+          var on = f.id === doc2.active;
+          var open = frameIsOpen(f) || !!q;
+          var head2 = e(
+            "div",
+            {
+              key: "frame-" + f.id,
+              className: cx("bd-layer bd-layer-frame", on && !p.hasSel && p.frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
+              "data-layer": on ? "root" : void 0,
+              "data-frame-row": f.id,
+              role: "treeitem",
+              "aria-level": 1,
+              "aria-selected": String(on && !p.hasSel && p.frameOn),
+              "aria-expanded": String(open)
+            },
+            e("button", {
+              type: "button",
+              className: cx("bd-layer-twisty", open && "is-open"),
+              "aria-label": (open ? "Collapse " : "Expand ") + f.name,
+              onClick: function() {
+                p.setOpenFrames(function(m) {
+                  var nx = Object.assign({}, m);
+                  nx[f.id] = !open;
+                  return nx;
+                });
+              }
+            }, e(Icon, { name: "right" })),
+            e(
+              "button",
+              {
+                type: "button",
+                className: "bd-layer-main",
+                title: on ? "Double-click to rename" : "Show " + f.name,
+                onClick: function() {
+                  p.framePick(f.id, true);
+                },
+                onDoubleClick: function() {
+                  p.setRenaming({ id: "frame:" + f.id, where: "layer" });
+                }
+              },
+              e(Icon, { name: f.bare ? "component" : "frame" }),
+              isRenaming("frame:" + f.id, "layer") ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
+                p.frameRename(f.id, v);
+              } }) : e("span", { className: "bd-layer-name" }, f.name),
+              e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : frameSize(f, p.boxes))
+            )
+          );
+          if (!open) return head2;
+          var rows = rowsFor(f);
+          return e(
+            React.Fragment,
+            { key: "frame-" + f.id },
+            head2,
+            rows.length ? rows.map(function(r) {
+              return nodeRow(f, r);
+            }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets.")
+          );
+        }),
+        listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null
+      )
+    );
+  });
+
   // assets/builder/cloud/config.js
   var CLOUD = {
     url: "",
@@ -11101,12 +11425,6 @@
       };
     }, []);
     var TITLE_STEPS = ["heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"];
-    var hasTitlePart = function(type) {
-      var m = META[type];
-      return !!m && m.props.some(function(p) {
-        return p.name === "titleSize";
-      });
-    };
     var TYPE_SCALE = {
       Heading: { prop: "size", steps: ["heading-xs", "heading-sm", "heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"] },
       Text: { prop: "variant", steps: ["fine", "small", "body", "lead"] }
@@ -12205,16 +12523,7 @@
       });
     };
     var labelOf = function(n) {
-      if (n.name) return n.name;
-      var base = scalars[n.type] || {};
-      var text2 = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
-      return typeof text2 === "string" || typeof text2 === "number" ? String(text2) : "";
-    };
-    var typeIcon = function(type) {
-      if (TYPE_ICON[type]) return TYPE_ICON[type];
-      var g = META[type] && META[type].group;
-      if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
-      return isContainer(type) ? "box" : "component";
+      return nodeLabel(n, scalars);
     };
     var nodesOf2 = function(ids) {
       return ids.map(function(id) {
@@ -12264,7 +12573,7 @@
       });
     };
     var sizeText = function(f) {
-      return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height);
+      return frameSize(f, boxes);
     };
     var scopeFor = function(nodes) {
       var d = docRef.current;
@@ -14099,7 +14408,7 @@
       );
     };
     var isOpen = function(n) {
-      return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false;
+      return nodeIsOpen(n, collapsed);
     };
     useEffect(function() {
       var opens = {};
@@ -14127,14 +14436,6 @@
     var isRenaming = function(id, where) {
       return !!renaming && renaming.id === id && renaming.where === where;
     };
-    var frameIsOpen = function(f) {
-      return openFrames[f.id] !== void 0 ? openFrames[f.id] : f.id === doc2.active;
-    };
-    var isOwner = function(n) {
-      var m = META[n.type];
-      return !!m && !m.builder && !isContainer(n.type);
-    };
-    var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
     var anatomyOf = function(fid, id) {
       try {
         var a = api(fid);
@@ -14469,285 +14770,6 @@
           drop && drop.line ? e("li", { className: cx("bd-page-drop", drop.line.depth && "is-nested"), "aria-hidden": true, style: { top: drop.line.top + "px" } }) : null
         ),
         pageDrag ? e("div", { className: "bd-ghost", style: { left: pageDrag.x + "px", top: pageDrag.y + "px" }, "aria-hidden": true }, pageDrag.name) : null
-      );
-    };
-    var layersPanel = function() {
-      var q = layerQuery.trim().toLowerCase();
-      var toggle = function(id) {
-        var at2 = locate(doc2, id);
-        var owner = at2 && !isContainer(at2.node.type);
-        setCollapsed(function(c) {
-          var n = Object.assign({}, c);
-          if (owner) {
-            if (n[id] === false) delete n[id];
-            else n[id] = false;
-          } else if (n[id]) delete n[id];
-          else n[id] = true;
-          return n;
-        });
-      };
-      var rowsFor = function(f) {
-        var keep = null;
-        if (q) {
-          keep = {};
-          (function walk2(n, path) {
-            (n.children || []).forEach(function(c) {
-              var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
-              if (hit) {
-                keep[c.id] = true;
-                path.forEach(function(x) {
-                  keep[x] = true;
-                });
-              }
-              if (c.children) walk2(c, path.concat([c.id]));
-            });
-          })(f.root, []);
-        }
-        var rows = [];
-        var walk = function(n, depth) {
-          (n.children || []).forEach(function(c) {
-            if (keep && !keep[c.id]) return;
-            rows.push({ n: c, depth });
-            if (!(q || isOpen(c))) return;
-            if (isOwner(c) && !q) walkOwner(c, depth + 1);
-            else if (c.children) walk(c, depth + 1);
-          });
-        };
-        var walkOwner = function(c, depth) {
-          var slots = (c.children || []).filter(function(k) {
-            return k.type === "Slot";
-          });
-          var placed = {};
-          var tree = anatomyOf(f.id, c.id) || [];
-          var seq0 = 0;
-          (function parts(list, d) {
-            list.forEach(function(it) {
-              if (it.slot) {
-                var sl = slots.filter(function(x) {
-                  return x.id === it.slot;
-                })[0];
-                if (!sl || placed[sl.id]) return;
-                placed[sl.id] = true;
-                rows.push({ n: sl, depth: d });
-                if (isOpen(sl)) walk(sl, d + 1);
-                return;
-              }
-              rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + seq0++ });
-              parts(it.children || [], d + 1);
-            });
-          })(tree, depth);
-          slots.forEach(function(sl) {
-            if (placed[sl.id]) return;
-            rows.push({ n: sl, depth });
-            if (isOpen(sl)) walk(sl, depth + 1);
-          });
-        };
-        walk(f.root, 1);
-        return rows;
-      };
-      var partRow = function(r, f) {
-        var it = r.part;
-        if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-          var onPart = part && part.id === r.owner.id && f.id === doc2.active;
-          return e(
-            "div",
-            {
-              key: r.key,
-              className: cx("bd-layer is-part is-pickable", onPart && "is-current"),
-              role: "treeitem",
-              "aria-level": r.depth + 1,
-              "aria-selected": String(!!onPart),
-              style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" }
-            },
-            e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-            e(
-              "button",
-              { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function() {
-                pick(r.owner.id, false, false, "layers", f.id, "title");
-              } },
-              e(Icon, { name: "heading" }),
-              e("span", { className: "bd-layer-name" }, "Title"),
-              it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
-            )
-          );
-        }
-        return e(
-          "div",
-          {
-            key: r.key,
-            className: "bd-layer is-part",
-            role: "treeitem",
-            "aria-level": r.depth + 1,
-            "aria-disabled": "true",
-            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-            title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector"
-          },
-          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e(
-            "span",
-            { className: "bd-layer-main is-static" },
-            e(Icon, { name: PART_ICON[it.kind] || "component" }),
-            e("span", { className: "bd-layer-name" }, it.kind),
-            it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
-          )
-        );
-      };
-      var nodeRow = function(f, r) {
-        if (r.part) return partRow(r, f);
-        var n = r.n;
-        var mine = f.id === doc2.active;
-        var text2 = labelOf(n);
-        var on = mine && selection.indexOf(n.id) >= 0;
-        var owner = isOwner(n);
-        var open = isOpen(n) || !!q && !owner;
-        var folds = !!n.children || owner;
-        var renameable = n.type !== "Slot";
-        return e(
-          "div",
-          {
-            key: n.id,
-            className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
-            "data-layer": mine ? n.id : void 0,
-            "data-frame-row": mine ? void 0 : f.id,
-            "data-depth": r.depth,
-            role: "treeitem",
-            "aria-selected": String(on),
-            "aria-level": r.depth + 1,
-            "aria-expanded": folds ? String(open) : void 0,
-            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-            onPointerEnter: function() {
-              setHover({ f: f.id, id: n.id });
-            },
-            onPointerLeave: function() {
-              setHover(null);
-            },
-            onContextMenu: function(ev) {
-              if (n.type !== "Slot") {
-                ev.preventDefault();
-                openMenu(ev.clientX, ev.clientY, n.id, f.id);
-              }
-            }
-          },
-          folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : void 0, onClick: function() {
-            toggle(n.id);
-          } }, e(Icon, { name: "right" })) : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e(
-            "button",
-            {
-              type: "button",
-              className: "bd-layer-main",
-              onClick: function(ev) {
-                if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id);
-              },
-              onDoubleClick: function() {
-                if (renameable && mine) setRenaming({ id: n.id, where: "layer" });
-              },
-              onPointerDown: function(ev) {
-                if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
-              }
-            },
-            e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
-            renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
-              setRenaming(null);
-              setName(n.id, v === n.type ? "" : v);
-            } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
-            text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null
-          ),
-          /* Hiding lives in the inspector's Layer section; a hidden row keeps
-             a quiet eye-off, which also shows it again. */
-          n.type !== "Slot" ? e(
-            "span",
-            { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-            n.hide ? e("button", {
-              type: "button",
-              className: "bd-layer-flag is-hidden-mark",
-              "aria-label": "Show " + nameOf(n),
-              title: "Hidden: press to show (Ctrl+Shift+H)",
-              onClick: function(ev) {
-                ev.stopPropagation();
-                flagLayer(n.id, f.id, "hide");
-              }
-            }, e(Icon, { name: "eyeOff" })) : null,
-            e("button", {
-              type: "button",
-              className: cx("bd-layer-flag", n.lock && "is-on"),
-              "aria-pressed": String(!!n.lock),
-              "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n),
-              title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
-              onClick: function(ev) {
-                ev.stopPropagation();
-                flagLayer(n.id, f.id, "lock");
-              }
-            }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))
-          ) : null
-        );
-      };
-      return e(
-        "div",
-        { className: "bd-layers-panel" },
-        e(
-          "div",
-          { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
-          doc2.frames.map(function(f) {
-            var on = f.id === doc2.active;
-            var open = frameIsOpen(f) || !!q;
-            var head2 = e(
-              "div",
-              {
-                key: "frame-" + f.id,
-                className: cx("bd-layer bd-layer-frame", on && !sel && frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
-                "data-layer": on ? "root" : void 0,
-                "data-frame-row": f.id,
-                role: "treeitem",
-                "aria-level": 1,
-                "aria-selected": String(on && !sel && frameOn),
-                "aria-expanded": String(open)
-              },
-              e("button", {
-                type: "button",
-                className: cx("bd-layer-twisty", open && "is-open"),
-                "aria-label": (open ? "Collapse " : "Expand ") + f.name,
-                onClick: function() {
-                  setOpenFrames(function(m) {
-                    var nx = Object.assign({}, m);
-                    nx[f.id] = !open;
-                    return nx;
-                  });
-                }
-              }, e(Icon, { name: "right" })),
-              e(
-                "button",
-                {
-                  type: "button",
-                  className: "bd-layer-main",
-                  title: on ? "Double-click to rename" : "Show " + f.name,
-                  onClick: function() {
-                    frameOps.pick(f.id, true);
-                  },
-                  onDoubleClick: function() {
-                    setRenaming({ id: "frame:" + f.id, where: "layer" });
-                  }
-                },
-                e(Icon, { name: f.bare ? "component" : "frame" }),
-                isRenaming("frame:" + f.id, "layer") ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
-                  frameOps.rename(f.id, v);
-                } }) : e("span", { className: "bd-layer-name" }, f.name),
-                e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : sizeText(f))
-              )
-            );
-            if (!open) return head2;
-            var rows = rowsFor(f);
-            return e(
-              React.Fragment,
-              { key: "frame-" + f.id },
-              head2,
-              rows.length ? rows.map(function(r) {
-                return nodeRow(f, r);
-              }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets.")
-            );
-          }),
-          listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null
-        )
       );
     };
     var tabBar = function(have, current2) {
@@ -17186,6 +17208,41 @@
       store.setGroupThumb(id, null).then(refreshProjects);
     });
     var homeNewGroup = useEvent(newGroup), homeNewProject = useEvent(newProject), homeNewPlayground = useEvent(newPlayground), homeOpenAccount = useEvent(openAccount);
+    var onPick = useEvent(pick), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
+    var onFramePick = useEvent(function(fid, v) {
+      frameOps.pick(fid, v);
+    }), onFrameRename = useEvent(function(fid, v) {
+      frameOps.rename(fid, v);
+    }), onAnatomy = useEvent(anatomyOf);
+    var layersProps = {
+      doc: doc2,
+      selection,
+      partId: part ? part.id : null,
+      listDrop,
+      hover,
+      frameOn,
+      hasSel: !!sel,
+      query: layerQuery,
+      collapsed,
+      openFrames,
+      renaming,
+      boxes,
+      scalars,
+      layersRef,
+      justDragged,
+      setCollapsed,
+      setHover,
+      setRenaming,
+      setOpenFrames,
+      pick: onPick,
+      openMenu: onOpenMenu,
+      startDrag: onStartDrag,
+      setName: onSetName,
+      flagLayer: onFlagLayer,
+      framePick: onFramePick,
+      frameRename: onFrameRename,
+      anatomyOf: onAnatomy
+    };
     var slot2 = wide ? document.getElementById("app-toolbar") : null;
     return e(
       React.Fragment,
@@ -17260,7 +17317,7 @@
             e(
               "div",
               { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? e(Layers, layersProps) : contentPanel()
             ),
             left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )

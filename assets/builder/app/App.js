@@ -1,6 +1,6 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
@@ -9,6 +9,7 @@ import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUpl
 import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
 import { CodeDialog, ComponentDialog, ImportDialog, KeysDialog, PlayDialog, VersionsDialog, componentCheck } from "./dialogs.js";
 import { HOME_SORTS, Home } from "./Home.js";
+import { Layers } from "./Layers.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
@@ -2991,7 +2992,6 @@ function App(props) {
      into display, a Text through its variants. */
   /* A block's title: its text and its size, set through the block's props. */
   var TITLE_STEPS = ["heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"];
-  var hasTitlePart = function (type) { var m = META[type]; return !!m && m.props.some(function (p) { return p.name === "titleSize"; }); };
   var TYPE_SCALE = {
     Heading: { prop: "size", steps: ["heading-xs", "heading-sm", "heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"] },
     Text: { prop: "variant", steps: ["fine", "small", "body", "lead"] },
@@ -3793,18 +3793,7 @@ function App(props) {
 
   /* ------------------------------------------------- rendering helpers */
 
-  var labelOf = function (n) {
-    if (n.name) return n.name;
-    var base = scalars[n.type] || {};
-    var text = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
-    return typeof text === "string" || typeof text === "number" ? String(text) : "";
-  };
-  var typeIcon = function (type) {
-    if (TYPE_ICON[type]) return TYPE_ICON[type];
-    var g = META[type] && META[type].group;
-    if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
-    return isContainer(type) ? "box" : "component";
-  };
+  var labelOf = function (n) { return nodeLabel(n, scalars); };
   var nodesOf = function (ids) { return ids.map(function (id) { return locate(doc, id); }).filter(Boolean).map(function (a) { return a.node; }); };
   var same = function (values) { return values.every(function (v) { return JSON.stringify(v) === JSON.stringify(values[0]); }); };
   /* A frame's actions, behind its ellipsis. */
@@ -3831,7 +3820,7 @@ function App(props) {
         if (v === "delete") frameOps.remove(f.id);
       } });
   };
-  var sizeText = function (f) { return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height); };
+  var sizeText = function (f) { return frameSize(f, boxes); };
 
   /* ------------------------------------------------- inspector controls */
 
@@ -4878,7 +4867,7 @@ function App(props) {
   };
 
   /* Containers start open in Layers; a component's slots start folded. */
-  var isOpen = function (n) { return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false; };
+  var isOpen = function (n) { return nodeIsOpen(n, collapsed); };
   useEffect(function () {
     var opens = {};
     selection.forEach(function (id) {
@@ -4895,9 +4884,6 @@ function App(props) {
      starts open. A component folds open onto what it's made of: its slots,
      which hold real layers, and its own parts, which are set through its
      props and so are shown but can't be picked. */
-  var frameIsOpen = function (f) { return openFrames[f.id] !== undefined ? openFrames[f.id] : f.id === doc.active; };
-  var isOwner = function (n) { var m = META[n.type]; return !!m && !m.builder && !isContainer(n.type); };
-  var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
   var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
   var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
   /* The pages as rows: a folder, then the pages in it (unless it's closed),
@@ -5097,151 +5083,6 @@ function App(props) {
         rows.map(function (r, i) { return r.kind === "folder" ? folderRow(r, i) : pageRow(r, i); }),
         drop && drop.line ? e("li", { className: cx("bd-page-drop", drop.line.depth && "is-nested"), "aria-hidden": true, style: { top: drop.line.top + "px" } }) : null),
       pageDrag ? e("div", { className: "bd-ghost", style: { left: pageDrag.x + "px", top: pageDrag.y + "px" }, "aria-hidden": true }, pageDrag.name) : null);
-  };
-
-  var layersPanel = function () {
-    var q = layerQuery.trim().toLowerCase();
-    var toggle = function (id) {
-      var at = locate(doc, id);
-      var owner = at && !isContainer(at.node.type);
-      setCollapsed(function (c) { var n = Object.assign({}, c); if (owner) { if (n[id] === false) delete n[id]; else n[id] = false; } else if (n[id]) delete n[id]; else n[id] = true; return n; });
-    };
-    var rowsFor = function (f) {
-      var keep = null;
-      if (q) {
-        keep = {};
-        (function walk(n, path) {
-          (n.children || []).forEach(function (c) {
-            var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
-            if (hit) { keep[c.id] = true; path.forEach(function (x) { keep[x] = true; }); }
-            if (c.children) walk(c, path.concat([c.id]));
-          });
-        })(f.root, []);
-      }
-      var rows = [];
-      var walk = function (n, depth) {
-        (n.children || []).forEach(function (c) {
-          if (keep && !keep[c.id]) return;
-          rows.push({ n: c, depth: depth });
-          if (!(q || isOpen(c))) return;
-          if (isOwner(c) && !q) walkOwner(c, depth + 1);
-          else if (c.children) walk(c, depth + 1);
-        });
-      };
-      var walkOwner = function (c, depth) {
-        var slots = (c.children || []).filter(function (k) { return k.type === "Slot"; });
-        var placed = {};
-        var tree = anatomyOf(f.id, c.id) || [];
-        var seq0 = 0;
-        (function parts(list, d) {
-          list.forEach(function (it) {
-            if (it.slot) {
-              var sl = slots.filter(function (x) { return x.id === it.slot; })[0];
-              if (!sl || placed[sl.id]) return;
-              placed[sl.id] = true;
-              rows.push({ n: sl, depth: d });
-              if (isOpen(sl)) walk(sl, d + 1);
-              return;
-            }
-            rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + (seq0++) });
-            parts(it.children || [], d + 1);
-          });
-        })(tree, depth);
-        slots.forEach(function (sl) { if (placed[sl.id]) return; rows.push({ n: sl, depth: depth }); if (isOpen(sl)) walk(sl, depth + 1); });
-      };
-      walk(f.root, 1);
-      return rows;
-    };
-    var partRow = function (r, f) {
-      var it = r.part;
-      if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-        var onPart = part && part.id === r.owner.id && f.id === doc.active;
-        return e("div", { key: r.key, className: cx("bd-layer is-part is-pickable", onPart && "is-current"), role: "treeitem", "aria-level": r.depth + 1, "aria-selected": String(!!onPart),
-          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" } },
-          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e("button", { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function () { pick(r.owner.id, false, false, "layers", f.id, "title"); } },
-            e(Icon, { name: "heading" }), e("span", { className: "bd-layer-name" }, "Title"), it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
-      }
-      return e("div", {
-        key: r.key, className: "bd-layer is-part", role: "treeitem", "aria-level": r.depth + 1, "aria-disabled": "true",
-        style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-        title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector",
-      },
-        e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-        e("span", { className: "bd-layer-main is-static" },
-          e(Icon, { name: PART_ICON[it.kind] || "component" }),
-          e("span", { className: "bd-layer-name" }, it.kind),
-          it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
-    };
-    var nodeRow = function (f, r) {
-      if (r.part) return partRow(r, f);
-      var n = r.n;
-      var mine = f.id === doc.active;
-      var text = labelOf(n);
-      var on = mine && selection.indexOf(n.id) >= 0;
-      var owner = isOwner(n);
-      var open = isOpen(n) || (!!q && !owner);
-      var folds = !!n.children || owner;
-      var renameable = n.type !== "Slot";
-      return e("div", {
-        key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
-        "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
-        "aria-expanded": folds ? String(open) : undefined,
-        style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-        onPointerEnter: function () { setHover({ f: f.id, id: n.id }); },
-        onPointerLeave: function () { setHover(null); },
-        onContextMenu: function (ev) { if (n.type !== "Slot") { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, n.id, f.id); } },
-      },
-        folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : undefined, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
-          : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-        e("button", {
-          type: "button", className: "bd-layer-main",
-          onClick: function (ev) { if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id); },
-          onDoubleClick: function () { if (renameable && mine) setRenaming({ id: n.id, where: "layer" }); },
-          onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
-        },
-          e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
-          renameable && mine && isRenaming(n.id, "layer")
-            ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === n.type ? "" : v); } })
-            : e("span", { className: "bd-layer-name" }, nameOf(n)),
-          text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
-        /* Hiding lives in the inspector's Layer section; a hidden row keeps
-           a quiet eye-off, which also shows it again. */
-        n.type !== "Slot" ? e("span", { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-          n.hide ? e("button", { type: "button", className: "bd-layer-flag is-hidden-mark", "aria-label": "Show " + nameOf(n), title: "Hidden: press to show (Ctrl+Shift+H)",
-            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "hide"); } }, e(Icon, { name: "eyeOff" })) : null,
-          e("button", { type: "button", className: cx("bd-layer-flag", n.lock && "is-on"), "aria-pressed": String(!!n.lock), "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n), title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
-            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "lock"); } }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))) : null);
-    };
-    return e("div", { className: "bd-layers-panel" },
-      e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
-        doc.frames.map(function (f) {
-          var on = f.id === doc.active;
-          var open = frameIsOpen(f) || !!q;
-          var head = e("div", {
-            key: "frame-" + f.id, className: cx("bd-layer bd-layer-frame", on && !sel && frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
-            "data-layer": on ? "root" : undefined, "data-frame-row": f.id, role: "treeitem", "aria-level": 1,
-            "aria-selected": String(on && !sel && frameOn), "aria-expanded": String(open),
-          },
-            e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + f.name,
-              onClick: function () { setOpenFrames(function (m) { var nx = Object.assign({}, m); nx[f.id] = !open; return nx; }); } }, e(Icon, { name: "right" })),
-            e("button", {
-              type: "button", className: "bd-layer-main", title: on ? "Double-click to rename" : "Show " + f.name,
-              onClick: function () { frameOps.pick(f.id, true); },
-              onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "layer" }); },
-            },
-              e(Icon, { name: f.bare ? "component" : "frame" }),
-              isRenaming("frame:" + f.id, "layer")
-                ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function (v) { frameOps.rename(f.id, v); } })
-                : e("span", { className: "bd-layer-name" }, f.name),
-              e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : sizeText(f))));
-          if (!open) return head;
-          var rows = rowsFor(f);
-          return e(React.Fragment, { key: "frame-" + f.id },
-            head,
-            rows.length ? rows.map(function (r) { return nodeRow(f, r); }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets."));
-        }),
-        listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null));
   };
 
   /* The inspector's tabs. One with nothing to set for this selection is off,
@@ -6632,6 +6473,13 @@ function App(props) {
   var homeAutoPicture = useEvent(function (id) { store.setGroupThumb(id, null).then(refreshProjects); });
   var homeNewGroup = useEvent(newGroup), homeNewProject = useEvent(newProject), homeNewPlayground = useEvent(newPlayground), homeOpenAccount = useEvent(openAccount);
 
+  /* Layers (Layers.js) is memoized: handlers through useEvent, data as it is. */
+  var onPick = useEvent(pick), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
+  var onFramePick = useEvent(function (fid, v) { frameOps.pick(fid, v); }), onFrameRename = useEvent(function (fid, v) { frameOps.rename(fid, v); }), onAnatomy = useEvent(anatomyOf);
+  var layersProps = { doc: doc, selection: selection, partId: part ? part.id : null, listDrop: listDrop, hover: hover, frameOn: frameOn, hasSel: !!sel, query: layerQuery, collapsed: collapsed, openFrames: openFrames, renaming: renaming, boxes: boxes, scalars: scalars,
+    layersRef: layersRef, justDragged: justDragged, setCollapsed: setCollapsed, setHover: setHover, setRenaming: setRenaming, setOpenFrames: setOpenFrames,
+    pick: onPick, openMenu: onOpenMenu, startDrag: onStartDrag, setName: onSetName, flagLayer: onFlagLayer, framePick: onFramePick, frameRename: onFrameRename, anatomyOf: onAnatomy };
+
   var slot = wide ? document.getElementById("app-toolbar") : null;
 
   return e(React.Fragment, null,
@@ -6657,7 +6505,7 @@ function App(props) {
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
-              : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()),
+              : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? e(Layers, layersProps) : contentPanel()),
           left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery })
             : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery })
             : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
