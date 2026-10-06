@@ -2440,6 +2440,66 @@ try {
     await page.close();
   });
 
+  await step("Preview and ratios: Play zooms in and out, fits the screen or its width, shows actual size; a social frame takes Square, 4:3 or 16:9", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    await page.locator(".bd-flabel.is-current .bd-flabel-btn").click();
+    await page.waitForFunction(() => /Landing/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    expect(await page.locator('.bd-right [aria-labelledby="bd-fr-ratio"]').count() === 0, "a page frame has no Ratio");
+    await pick(page, "Device", /^Social post$/);
+    await page.waitForFunction(() => window.__builder.doc().frames[0].typeScale === "social");
+    await tab(page, "Layout");
+    const ratio = '.bd-right [aria-labelledby="bd-fr-ratio"]';
+    await page.waitForSelector(ratio);
+    expect(await page.locator(ratio + " .bd-seg-btn[aria-pressed=true]").count() === 0, "a 1080 × 1350 post matches none of the ratios");
+    const sizes = [];
+    for (const [label, h] of [["Square", 1080], ["4:3", 810], ["16:9", 608]]) {
+      await page.locator(ratio + " .bd-seg-btn", { hasText: label }).click();
+      await page.waitForFunction((h) => window.__builder.doc().frames[0].height === h, h);
+      const f = (await saved()).frames[0];
+      expect(f.width === 1080 && !f.hug && await page.locator(ratio + " .bd-seg-btn[aria-pressed=true]").textContent() === label, `${label} makes it 1080 × ${h}, got ${f.width} × ${f.height}`);
+      sizes.push(`${label} ${f.width} × ${f.height}`);
+    }
+    ok(`a social frame's Ratio: ${sizes.join(", ")}; a page frame has none`);
+
+    /* Play: back to a desktop frame, which fits at first. */
+    await pick(page, "Device", /^Desktop$/);
+    await page.waitForFunction(() => window.__builder.doc().frames[0].width === 1280);
+    await page.locator("[aria-label='Play']").first().click();
+    await page.locator(".bd-play[open]").waitFor();
+    /* Once the screen is drawn at the size it was given. */
+    const state = async () => { await page.waitForFunction(() => { const d = document.querySelector(".bd-play-device"); return d && Math.abs(d.getBoundingClientRect().width - parseFloat(d.style.width)) <= 1; }, null, { timeout: 3000 }).catch(() => {}); await page.waitForTimeout(50); return page.evaluate(() => {
+      const st = document.querySelector(".bd-play-stage"), dev = document.querySelector(".bd-play-device"), f = dev.querySelector("iframe");
+      const m = /scale\(([\d.]+)\)/.exec(f.style.transform);
+      return { pct: document.querySelector(".bd-play-pct").textContent, sc: m ? Number(m[1]) : null, devW: Math.round(dev.getBoundingClientRect().width), stageW: st.clientWidth, scrollW: st.scrollWidth, scrollH: st.scrollHeight, stageH: st.clientHeight };
+    }); };
+    const first = await state();
+    expect(first.sc <= 1 && first.devW <= first.stageW && first.scrollH <= first.stageH + 1, `Play opens with the whole screen in view, got ${JSON.stringify(first)}`);
+    await page.locator(".bd-play-fit .bd-seg-btn", { hasText: "100%" }).click();
+    let s = await state();
+    expect(s.sc === 1 && s.pct === "100%" && s.devW === 1280, `100% draws it at its own size, got ${JSON.stringify(s)}`);
+    expect(s.scrollH > s.stageH, `at 100% a screen taller than the stage scrolls, got ${JSON.stringify(s)}`);
+    await page.locator(".bd-play-fit .bd-seg-btn", { hasText: "Width" }).click();
+    s = await state();
+    expect(Math.abs(s.devW - (s.stageW - 32)) <= 2, `Width fits its width to the stage, got ${JSON.stringify(s)}`);
+    await page.locator(".bd-play-fit .bd-seg-btn", { hasText: "Fit" }).click();
+    s = await state();
+    expect(s.devW <= s.stageW && s.scrollH <= s.stageH + 1, `Fit shows all of it, got ${JSON.stringify(s)}`);
+    const fit = s.sc;
+    await page.locator(".bd-play-step[aria-label='Zoom in']").click();
+    s = await state();
+    expect(s.sc > fit && await page.locator(".bd-play-fit .bd-seg-btn[aria-pressed=true]").count() === 0, `Zoom in steps up from ${fit}, got ${JSON.stringify(s)}`);
+    await page.keyboard.press("-");
+    await page.keyboard.press("-");
+    const out = await state();
+    expect(out.sc < s.sc, `minus steps back out, ${s.sc} to ${out.sc}`);
+    await page.keyboard.press("Shift+Digit0");
+    expect((await state()).sc === 1, "Shift+0 is actual size");
+    ok(`Play opens at ${Math.round(first.sc * 100)}%; 100% draws 1280px and scrolls, Width fills the stage, Fit shows it all, + and - step, Shift+0 is actual size`);
+    await page.keyboard.press("Escape");
+    await page.close();
+  });
+
   await step("Edit in place: any text on the canvas, including an item of a component's list, is typed into where it is", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
@@ -3363,6 +3423,8 @@ try {
     expect(!(await poll(() => flag("hc"), (v) => !v.hide)).hide, "and shows it again");
     await frames(page)[1].waitForSelector('[data-bf-id="hc"]');
     await page.evaluate(() => window.__builder.select(["bb"]));
+    /* Pressed once Beta shows as selected, as a person would. */
+    await page.waitForSelector('.bd-layer[data-layer="bb"].is-current');
     await page.keyboard.press("Control+Shift+KeyL");
     expect((await poll(() => flag("bb"), (v) => v.lock)).lock, "Ctrl+Shift+L locks Beta");
     await page.waitForSelector(".bd-mark-sel.is-locked");
