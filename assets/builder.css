@@ -3694,15 +3694,26 @@ span.bd-layer-twisty.is-open .bd-ic {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 0 var(--dt-space-inset-md);
-  overflow: hidden;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
-/* Screen sizes, in a bar where the canvas keeps its tools. */
+/* Centred while it fits; larger than the stage, it scrolls from its top
+   left corner rather than spilling off both sides. */
+.bd-play-stage > .bd-play-device {
+  flex: none;
+  margin: auto;
+}
+
+/* Screen sizes and zoom, in a bar where the canvas keeps its tools. */
 .bd-play-bar {
   flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   align-self: center;
   margin: var(--dt-space-inset-sm) 0 var(--dt-space-inset-md);
   max-width: calc(100% - 2 * var(--dt-space-inset-md));
@@ -3731,6 +3742,46 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-play-bar .bd-seg-thumb {
   background: var(--dt-color-neutral-050);
+}
+
+.bd-play-sep {
+  align-self: stretch;
+  width: var(--dt-border-width-default);
+  margin: 4px 2px;
+  background: color-mix(in oklch, var(--dt-color-neutral-100) 16%, transparent);
+}
+
+/* On a phone the bar wraps to two rows, and the divider would dangle. */
+@media (max-width: 600px) {
+  .bd-play-sep {
+    display: none;
+  }
+}
+
+.bd-play-zoom {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bd-play-bar .bd-play-step {
+  color: var(--dt-color-neutral-300);
+}
+
+.bd-play-bar .bd-play-step:hover:not(:disabled) {
+  color: var(--dt-color-neutral-050);
+}
+
+.bd-play-pct {
+  min-width: 4ch;
+  color: var(--dt-color-neutral-100);
+  font-family: var(--dt-font-family-mono);
+  font-size: var(--dt-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.bd-play-bar .bd-play-fit .bd-seg-btn {
+  min-width: calc(var(--dt-size-control-md) * 1.2);
 }
 
 /* The screen: the frame at its own width, cut to a device's height. */

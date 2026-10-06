@@ -5406,6 +5406,21 @@ function App(props) {
           options: [{ value: "none", label: "None" }, { value: "y", label: "Vertical" }, { value: "x", label: "Horizontal" }] })),
     ]);
   };
+  /* A social frame's shape: square, 4:3 or 16:9 at its width. One whose
+     height matches none of them shows none pressed. */
+  var SOCIAL_RATIOS = [["square", "Square", 1], ["4:3", "4:3", 3 / 4], ["16:9", "16:9", 9 / 16]];
+  var frameRatio = function () {
+    var now = frame.hug ? null : SOCIAL_RATIOS.filter(function (r) { return Math.abs(frame.height - Math.round(frame.width * r[2])) <= 1; })[0];
+    return sec("frame-ratio", "Ratio", e(Field, { key: "ratio", id: "bd-fr-ratio", label: "Shape", hint: now ? frame.width + " × " + frame.height + ", " + now[1] + "." : "Pick one to set its height from its width, " + frame.width + "." },
+      e(Segmented, { labelledBy: "bd-fr-ratio", wide: true, value: now ? now[0] : undefined,
+        onChange: function (v) {
+          var r = SOCIAL_RATIOS.filter(function (x) { return x[0] === v; })[0];
+          if (!r) return;
+          var h = Math.round(frame.width * r[2]);
+          change(function (d) { sizeOn(active(d), active(d).width, h); return undefined; }, frame.name + " is " + r[1] + ", " + frame.width + " by " + h);
+        },
+        options: SOCIAL_RATIOS.map(function (r) { return { value: r[0], label: r[1], title: r[1] + ": " + frame.width + " × " + Math.round(frame.width * r[2]) }; }) })));
+  };
   var frameInspector = function () {
     var surfaceOptions = DATA.tokens.surface.options.map(function (o) { return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens }; });
     var b = boxes[frame.id] || { h: frame.height };
@@ -5423,6 +5438,7 @@ function App(props) {
       : [          sec("frame-mode", "Kind", e(Field, { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
           e(Segmented, { labelledBy: "bd-fr-kind", wide: true, value: frame.mode === "structured" ? "structured" : "free", onChange: function (v) { if (v) setMode(v); },
             options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }] }))),
+        frame.typeScale === "social" ? frameRatio() : null,
         sec("frame-flow", "Page layout", [
           e(Field, { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
             e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function (v) { setFrame("spacing", v || ""); }, options: SPACINGS.map(function (s) { return { value: s[0], label: s[1] }; }) })),
@@ -6324,18 +6340,37 @@ function App(props) {
     if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale, pageWidth: fr.pageWidth, gutter: fr.gutter, flow: fr.flow, clip: fr.clip, scroll: fr.scroll }, root: fr.root }, { preview: true, hug: false });
   };
   useEffect(function () { if (play) renderPlay(); }, [play && play.fid, doc]);
+  var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
   var playDialog = function () {
     var fr = play && frameById(doc, play.fid);
     if (!fr) return null;
     var pageNow = pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0];
     var canBack = !!(play.stack && play.stack.length);
-    var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
+    /* How big the screen is drawn: at first no larger than itself and small
+       enough to fit; then fit to the stage, fit its width, its actual size,
+       or stepped in and out. Larger than the stage, it scrolls. */
+    var fitAll = playBox.w ? Math.min((playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
+    var fitW = playBox.w ? (playBox.w - 32) / fr.width : 0.5;
+    var zoom = play.zoom || "auto";
+    var sc = zoom === "fit" ? fitAll : zoom === "width" ? fitW : zoom === "actual" ? 1 : typeof zoom === "number" ? zoom : Math.min(1, fitAll);
+    sc = Math.max(0.1, Math.min(4, sc));
+    var stepZoom = function (dir) {
+      var next = dir > 0 ? PLAY_STEPS.filter(function (z) { return z > sc + 0.001; })[0] : PLAY_STEPS.filter(function (z) { return z < sc - 0.001; }).pop();
+      if (next) setPlay(Object.assign({}, play, { zoom: next }));
+    };
     var hs = playHeights(fr.width);
     /* A theater: the screen alone on a dark stage, its name and Close at
        the top, and the screen sizes in a bar along the foot where the
        canvas keeps its tools. */
     return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: playClosed,
-      onKeyDown: function (ev) { if (canBack && (ev.key === "Backspace" || (ev.altKey && ev.key === "ArrowLeft"))) { ev.preventDefault(); playBack(); } } },
+      onKeyDown: function (ev) {
+        if (canBack && (ev.key === "Backspace" || (ev.altKey && ev.key === "ArrowLeft"))) { ev.preventDefault(); playBack(); return; }
+        if (ev.metaKey || ev.ctrlKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
+        var to = ev.key === "-" ? -1 : ev.key === "+" || ev.key === "=" ? 1 : 0;
+        if (to) { ev.preventDefault(); stepZoom(to); return; }
+        var mode = ev.shiftKey && { Digit1: "fit", Digit2: "width", Digit0: "actual" }[ev.code];
+        if (mode) { ev.preventDefault(); setPlay(Object.assign({}, play, { zoom: mode })); }
+      } },
       e("div", { className: "bd-play-head" },
         canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: playBack }, e(Icon, { name: "left" })) : null,
         e("div", { className: "bd-play-intro" },
@@ -6346,9 +6381,16 @@ function App(props) {
         e("div", { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
           e("iframe", { ref: playFrameRef, src: frameSrc, title: fr.name + ", " + fr.width + " by " + play.h, onLoad: renderPlay,
             style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))),
-      e("div", { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height" },
+      e("div", { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height and zoom" },
         e(Segmented, { label: "Screen height", value: play.h, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { h: v })); },
-          options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) })));
+          options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) }),
+        e("span", { className: "bd-play-sep", "aria-hidden": true }),
+        e("div", { className: "bd-play-zoom", role: "group", "aria-label": "Zoom" },
+          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom out", title: "Zoom out (-)", disabled: sc <= PLAY_STEPS[0] + 0.001, onClick: function () { stepZoom(-1); } }, e(Icon, { name: "minus" })),
+          e("output", { className: "bd-play-pct", "aria-live": "polite" }, Math.round(sc * 100) + "%"),
+          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom in", title: "Zoom in (+)", disabled: sc >= PLAY_STEPS[PLAY_STEPS.length - 1] - 0.001, onClick: function () { stepZoom(1); } }, e(Icon, { name: "plus" }))),
+        e(Segmented, { label: "Fit", className: "bd-play-fit", value: typeof zoom === "string" && zoom !== "auto" ? zoom : undefined, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { zoom: v })); },
+          options: [{ value: "fit", label: "Fit", title: "Fit to screen (Shift+1)" }, { value: "width", label: "Width", title: "Fit width (Shift+2)" }, { value: "actual", label: "100%", title: "Actual size (Shift+0)" }] })));
   };
 
   var importDialog = function () {

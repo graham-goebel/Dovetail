@@ -14265,6 +14265,35 @@
         )
       ]);
     };
+    var SOCIAL_RATIOS = [["square", "Square", 1], ["4:3", "4:3", 3 / 4], ["16:9", "16:9", 9 / 16]];
+    var frameRatio = function() {
+      var now = frame2.hug ? null : SOCIAL_RATIOS.filter(function(r) {
+        return Math.abs(frame2.height - Math.round(frame2.width * r[2])) <= 1;
+      })[0];
+      return sec("frame-ratio", "Ratio", e(
+        Field,
+        { key: "ratio", id: "bd-fr-ratio", label: "Shape", hint: now ? frame2.width + " × " + frame2.height + ", " + now[1] + "." : "Pick one to set its height from its width, " + frame2.width + "." },
+        e(Segmented, {
+          labelledBy: "bd-fr-ratio",
+          wide: true,
+          value: now ? now[0] : void 0,
+          onChange: function(v) {
+            var r = SOCIAL_RATIOS.filter(function(x) {
+              return x[0] === v;
+            })[0];
+            if (!r) return;
+            var h = Math.round(frame2.width * r[2]);
+            change(function(d) {
+              sizeOn(active(d), active(d).width, h);
+              return void 0;
+            }, frame2.name + " is " + r[1] + ", " + frame2.width + " by " + h);
+          },
+          options: SOCIAL_RATIOS.map(function(r) {
+            return { value: r[0], label: r[1], title: r[1] + ": " + frame2.width + " × " + Math.round(frame2.width * r[2]) };
+          })
+        })
+      ));
+    };
     var frameInspector = function() {
       var surfaceOptions = DATA.tokens.surface.options.map(function(o) {
         return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens };
@@ -14315,6 +14344,7 @@
             options: [{ value: "free", label: "Freeform" }, { value: "structured", label: "Structured" }]
           })
         )),
+        frame2.typeScale === "social" ? frameRatio() : null,
         sec("frame-flow", "Page layout", [
           e(
             Field,
@@ -15765,6 +15795,7 @@
     useEffect(function() {
       if (play) renderPlay();
     }, [play && play.fid, doc2]);
+    var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
     var playDialog = function() {
       var fr = play && frameById(doc2, play.fid);
       if (!fr) return null;
@@ -15772,7 +15803,19 @@
         return pg.id === pageId;
       })[0];
       var canBack = !!(play.stack && play.stack.length);
-      var sc = playBox.w ? Math.min(1, (playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
+      var fitAll2 = playBox.w ? Math.min((playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
+      var fitW = playBox.w ? (playBox.w - 32) / fr.width : 0.5;
+      var zoom = play.zoom || "auto";
+      var sc = zoom === "fit" ? fitAll2 : zoom === "width" ? fitW : zoom === "actual" ? 1 : typeof zoom === "number" ? zoom : Math.min(1, fitAll2);
+      sc = Math.max(0.1, Math.min(4, sc));
+      var stepZoom = function(dir) {
+        var next = dir > 0 ? PLAY_STEPS.filter(function(z) {
+          return z > sc + 1e-3;
+        })[0] : PLAY_STEPS.filter(function(z) {
+          return z < sc - 1e-3;
+        }).pop();
+        if (next) setPlay(Object.assign({}, play, { zoom: next }));
+      };
       var hs = playHeights(fr.width);
       return e(
         "dialog",
@@ -15785,6 +15828,19 @@
             if (canBack && (ev.key === "Backspace" || ev.altKey && ev.key === "ArrowLeft")) {
               ev.preventDefault();
               playBack();
+              return;
+            }
+            if (ev.metaKey || ev.ctrlKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
+            var to = ev.key === "-" ? -1 : ev.key === "+" || ev.key === "=" ? 1 : 0;
+            if (to) {
+              ev.preventDefault();
+              stepZoom(to);
+              return;
+            }
+            var mode = ev.shiftKey && { Digit1: "fit", Digit2: "width", Digit0: "actual" }[ev.code];
+            if (mode) {
+              ev.preventDefault();
+              setPlay(Object.assign({}, play, { zoom: mode }));
             }
           }
         },
@@ -15819,7 +15875,7 @@
         ),
         e(
           "div",
-          { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height" },
+          { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height and zoom" },
           e(Segmented, {
             label: "Screen height",
             value: play.h,
@@ -15829,6 +15885,27 @@
             options: hs.map(function(x) {
               return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" };
             })
+          }),
+          e("span", { className: "bd-play-sep", "aria-hidden": true }),
+          e(
+            "div",
+            { className: "bd-play-zoom", role: "group", "aria-label": "Zoom" },
+            e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom out", title: "Zoom out (-)", disabled: sc <= PLAY_STEPS[0] + 1e-3, onClick: function() {
+              stepZoom(-1);
+            } }, e(Icon, { name: "minus" })),
+            e("output", { className: "bd-play-pct", "aria-live": "polite" }, Math.round(sc * 100) + "%"),
+            e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom in", title: "Zoom in (+)", disabled: sc >= PLAY_STEPS[PLAY_STEPS.length - 1] - 1e-3, onClick: function() {
+              stepZoom(1);
+            } }, e(Icon, { name: "plus" }))
+          ),
+          e(Segmented, {
+            label: "Fit",
+            className: "bd-play-fit",
+            value: typeof zoom === "string" && zoom !== "auto" ? zoom : void 0,
+            onChange: function(v) {
+              if (v) setPlay(Object.assign({}, play, { zoom: v }));
+            },
+            options: [{ value: "fit", label: "Fit", title: "Fit to screen (Shift+1)" }, { value: "width", label: "Width", title: "Fit width (Shift+2)" }, { value: "actual", label: "100%", title: "Actual size (Shift+0)" }]
           })
         )
       );
