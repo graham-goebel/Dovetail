@@ -6,8 +6,9 @@ import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.
 import { readLayout } from "../model/paste.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
-import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
+import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
 import { CodeDialog, ComponentDialog, ImportDialog, KeysDialog, PlayDialog, VersionsDialog, componentCheck } from "./dialogs.js";
+import { HOME_SORTS, Home } from "./Home.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
@@ -22,7 +23,6 @@ var HOME_SORT_KEY = "dovetail-builder-home-sort";
    frames keep their own setting each, and Configure's dark mode reaches them,
    not these tools. builder.html reads the same key before first paint. */
 var DARK_KEY = "dovetail-builder-dark";
-var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
 
 /* Past this many frames, only frames near the view stay live. */
 var VIRTUAL_AFTER = 6;
@@ -3093,11 +3093,6 @@ function App(props) {
     r.classList.toggle("dark", dark);
     r.setAttribute("data-theme", dark ? "dark" : "light");
   }, [dark]);
-  var modeSwitch = function (className) {
-    return e("span", { className: cx("bd-mode", className) },
-      e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
-      e(Switch, { value: dark, labelledBy: "bd-mode-label", onChange: setDark }));
-  };
   var renamingGroupState = useState(null);
   var renamingGroup = renamingGroupState[0], setRenamingGroup = renamingGroupState[1];
   /* The file being opened from Home, which shows it loading meanwhile. */
@@ -3106,8 +3101,6 @@ function App(props) {
   var openingRef = useRef(null);
   var setOpening = function (id) { openingRef.current = id; setOpeningState(id); };
   /* One picture input serves every card: whose picture it is waits here. */
-  var pictureRef = useRef(null);
-  var pictureFor = useRef(null);
   /* The canvas fades in after a file opens. */
   var arrivingState = useState(false);
   var arriving = arrivingState[0], setArriving = arrivingState[1];
@@ -3116,7 +3109,6 @@ function App(props) {
   /* Which of the two dialogs is open; their contents render only then. */
   var shownState = useState(null);
   var shown = shownState[0], setShown = shownState[1];
-  var importFileRef = useRef(null);
 
   var refreshProjects = function () {
     return Promise.all([store.listProjects(), store.listGroups()]).then(function (got) { setGroupList(got[1]); setProjList(got[0]); return got[0]; });
@@ -3331,10 +3323,6 @@ function App(props) {
     });
   };
   /* A picture for a card, from the one shared file input. */
-  var choosePicture = function (key) {
-    pictureFor.current = key;
-    if (pictureRef.current) pictureRef.current.click();
-  };
   var setGroupPicture = function (id, file) {
     pictureFrom(file).then(function (thumb) {
       if (!thumb) { announce("That file isn't a picture this browser can read."); return; }
@@ -3592,181 +3580,6 @@ function App(props) {
   /* Home: every project and loose file, over the canvas, which stays where
      it was underneath. A project opens to its files; a file opens the
      canvas. Escape goes back a level, then back to the canvas. */
-  var sortWhen = function (x, files) {
-    if (homeSort === "created") return x.createdAt || 0;
-    return files ? files.reduce(function (t, f) { return Math.max(t, f.updatedAt || 0); }, x.updatedAt || 0) : x.updatedAt || 0;
-  };
-  var sortList = function (list, filesOf) {
-    return list.slice().sort(function (a, b) {
-      if (homeSort === "alpha") return a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true });
-      /* Recent: the file on screen first, then by last edit. */
-      if (homeSort === "recent" && !filesOf) { var cur = (b.id === project.id) - (a.id === project.id); if (cur) return cur; }
-      return sortWhen(b, filesOf ? filesOf(b) : null) - sortWhen(a, filesOf ? filesOf(a) : null);
-    });
-  };
-  var confirmRow = function (label, text, actions) {
-    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text), actions);
-  };
-  var fileCard = function (p, showGroup) {
-    var current = p.id === project.id, isOpening = opening === p.id;
-    var g = showGroup && p.group ? groupById(p.group) : null;
-    var when = homeSort === "created" ? "Made " + ago(p.createdAt).toLowerCase() : ago(p.updatedAt);
-    var pages = pagesOf(p).length;
-    return e("li", { key: p.id, className: cx("bd-proj", current && "is-current", isOpening && "is-opening"), "data-project": p.id },
-      e("button", { type: "button", className: "bd-proj-open", onClick: function () { openProject(p); }, "aria-label": "Open " + p.name + (current ? ", open now" : ""), "aria-busy": isOpening ? "true" : undefined },
-        e("span", { className: "bd-proj-thumb", "aria-hidden": "true" },
-          p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" }),
-          isOpening ? e("span", { className: "bd-proj-loading" }, e("span", { className: "bd-spinner" })) : null)),
-      e("div", { className: "bd-proj-row" },
-        e("div", { className: "bd-proj-info" },
-          renamingProj === p.id
-            ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "File name", startEditing: true, onChange: function (v) { renameProject(p.id, v); } })
-            : e("span", { className: "bd-proj-name" }, p.name),
-          e("span", { className: "bd-proj-meta" }, (current ? "Open now · " : "") + when + (pages > 1 ? " · " + pages + " pages" : "") + " · " + p.frames + (p.frames === 1 ? " frame" : " frames") + (g ? " · in " + g.name : ""))),
-        e(Dropdown, { menu: true, label: "Actions for " + p.name, placeholder: "File", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-proj-menu",
-          options: [
-            { value: "open", label: "Open", icon: "exportOut" },
-            { value: "rename", label: "Rename", icon: "pencil" },
-            { value: "picture", label: "Choose a picture", icon: "image" },
-            { value: "duplicate", label: "Duplicate", icon: "copy" },
-            { value: "download", label: "Download as a file", icon: "upload" },
-            { value: "delete", label: "Delete", icon: "trash", danger: true },
-          ].concat((groupList || []).filter(function (x) { return x.id !== p.group; }).map(function (x) { return { value: "into:" + x.id, label: "Move to " + x.name, icon: "folder", group: "Move" }; }))
-            .concat(p.group ? [{ value: "out", label: "Move out to Home", icon: "home", group: "Move" }] : []),
-          onChange: function (v) {
-            if (v === "open") openProject(p);
-            else if (v === "rename") setRenamingProj(p.id);
-            else if (v === "picture") choosePicture(p.id);
-            else if (v === "duplicate") duplicateProject(p.id);
-            else if (v === "out") moveFile(p.id, null);
-            else if (v === "download") exportProject(p.id);
-            else if (v === "delete") setConfirmDel(p.id);
-            else if (String(v).indexOf("into:") === 0) moveFile(p.id, v.slice(5));
-          } })),
-      confirmDel === p.id ? confirmRow("Delete " + p.name, "Delete for good?", [
-        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteProject(p.id); } }, "Delete"),
-        e("button", { key: "k", type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep")]) : null);
-  };
-  var groupCard = function (g, files) {
-    var key = "g:" + g.id;
-    var pics = files.filter(function (f) { return f.thumb; }).slice(0, 4);
-    var n = files.length;
-    var when = homeSort === "created" ? "Made " + ago(g.createdAt).toLowerCase() : ago(sortWhen(g, files));
-    return e("li", { key: key, className: "bd-proj is-group", "data-group": g.id },
-      e("button", { type: "button", className: "bd-proj-open", onClick: function () { goHomeView(g.id); }, "aria-label": "Open " + g.name + ", " + n + (n === 1 ? " file" : " files") },
-        e("span", { className: cx("bd-proj-thumb", !g.thumb && pics.length > 1 && "is-mosaic"), "aria-hidden": "true" },
-          g.thumb ? e("img", { src: g.thumb, alt: "" })
-            : pics.length > 1 ? pics.map(function (f) { return e("img", { key: f.id, src: f.thumb, alt: "" }); })
-            : pics.length ? e("img", { src: pics[0].thumb, alt: "" }) : e(Icon, { name: "folder" }),
-          e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n + (n === 1 ? " file" : " files")))),
-      e("div", { className: "bd-proj-row" },
-        e("div", { className: "bd-proj-info" },
-          renamingGroup === g.id
-            ? e(Renamable, { className: "bd-proj-name", value: g.name, label: "Project name", startEditing: true, onChange: function (v) { renameGroup(g.id, v); } })
-            : e("span", { className: "bd-proj-name" }, g.name),
-          e("span", { className: "bd-proj-meta" }, when)),
-        e(Dropdown, { menu: true, label: "Actions for " + g.name, placeholder: "Project", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-proj-menu",
-          options: [
-            { value: "open", label: "Open", icon: "folder" },
-            { value: "rename", label: "Rename", icon: "pencil" },
-            { value: "picture", label: "Choose a picture", icon: "image" },
-          ].concat(g.thumb ? [{ value: "auto", label: "Picture from its files", icon: "rotate" }] : []).concat([
-            { value: "duplicate", label: "Duplicate", icon: "copy" },
-            { value: "download", label: "Download as a file", icon: "upload" },
-            { value: "delete", label: "Delete", icon: "trash", danger: true },
-          ]),
-          onChange: function (v) {
-            if (v === "open") goHomeView(g.id);
-            else if (v === "rename") setRenamingGroup(g.id);
-            else if (v === "picture") choosePicture(key);
-            else if (v === "auto") store.setGroupThumb(g.id, null).then(refreshProjects);
-            else if (v === "duplicate") duplicateGroup(g.id);
-            else if (v === "download") exportGroup(g.id);
-            else if (v === "delete") setConfirmDel(key);
-          } })),
-      confirmDel === key ? confirmRow("Delete " + g.name, n ? "Delete the project and its " + (n === 1 ? "file" : n + " files") + "?" : "Delete this empty project?", n ? [
-        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteGroup(g.id, false); } }, "Delete all"),
-        e("button", { key: "k", type: "button", className: "bd-btn", onClick: function () { deleteGroup(g.id, true); }, title: "Delete the project and keep its files on Home" }, "Keep files"),
-        e("button", { key: "c", type: "button", className: "bd-btn bd-btn-ghost", onClick: function () { setConfirmDel(null); } }, "Cancel")] : [
-        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteGroup(g.id, false); } }, "Delete"),
-        e("button", { key: "c", type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep")]) : null);
-  };
-  var skeleton = function () {
-    return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function (i) {
-      /* Not a .bd-proj: a card stand-in, never mistaken for a card. */
-      return e("li", { key: i, className: "bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
-    }));
-  };
-  var homePage = function () {
-    if (!home) return null;
-    var q = projQuery.trim().toLowerCase();
-    var files = projList || [], groups = groupList || [];
-    var inGroup = homeView ? groupById(homeView) : null;
-    var filesOf = function (g) { return files.filter(function (f) { return f.group === g.id; }); };
-    var match = function (x) { return !q || x.name.toLowerCase().indexOf(q) >= 0; };
-    /* On Home: projects and loose files; searching finds files in projects too. */
-    var shownGroups = inGroup ? [] : sortList(groups.filter(match), filesOf);
-    var shownFiles = sortList(files.filter(function (f) { return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group; }));
-    var count = shownGroups.length + shownFiles.length;
-    var section = function (title, list) {
-      return e("section", { className: "bd-home-sec", "aria-label": title },
-        inGroup ? null : e("h2", { className: "bd-home-sec-title" }, title),
-        e("ul", { className: "bd-projects-grid", role: "list" }, list));
-    };
-    var empty = !projList ? null
-      : q ? (inGroup ? "No file in " + inGroup.name + " is called that." : "Nothing is called that.")
-      : inGroup ? "No files in this project yet. Make one with New, or move one here from Home with its ⋯ menu."
-      : "Nothing here yet. Make a file or a project with New.";
-    return e("main", { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
-      /* On a phone the bar lives in the canvas pane, under this page, so it comes along. */
-      slot ? null : toolbar,
-      e("input", { ref: pictureRef, type: "file", className: "visually-hidden", accept: "image/*", tabIndex: -1, "aria-hidden": "true",
-        onChange: function (ev) {
-          var f = ev.target.files && ev.target.files[0]; ev.target.value = "";
-          var who = pictureFor.current; pictureFor.current = null;
-          if (!who || !f) return;
-          if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f); else setPicture(who, f);
-        } }),
-      e("input", { ref: importFileRef, type: "file", className: "visually-hidden", accept: ".dovetail,application/json", tabIndex: -1, "aria-hidden": "true",
-        onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; importProject(f); } }),
-      e("div", { className: "bd-home-inner", key: homeView || "home" },
-        e("div", { className: "bd-home-head" },
-          e("div", { className: "bd-home-heading" },
-            inGroup ? e("nav", { className: "bd-crumbs bd-home-crumbs", "aria-label": "Where you are" },
-              e("button", { type: "button", className: "bd-crumb", onClick: function () { goHomeView(null); } }, "Home"),
-              e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
-              e("span", { className: "bd-crumb", "aria-current": "page" }, inGroup.name)) : null,
-            inGroup && renamingGroup === inGroup.id
-              ? e(Renamable, { className: "bd-home-title", value: inGroup.name, label: "Project name", startEditing: true, onChange: function (v) { renameGroup(inGroup.id, v); } })
-              : e("h1", { id: "bd-projects-title", className: "bd-home-title", onDoubleClick: inGroup ? function () { setRenamingGroup(inGroup.id); } : undefined, title: inGroup ? "Double-click to rename" : undefined }, inGroup ? inGroup.name : "Home")),
-          e("div", { className: "bd-code-actions bd-home-actions" },
-            modeSwitch("bd-home-mode"),
-            e("button", { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account.status === "in" ? "Signed in as " + account.account.email : account.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
-              e(Icon, { name: "user" }), account.status === "in" ? "Account" : "Sign in"),
-            e(Dropdown, { menu: true, label: "New", placeholder: "New", icon: "plus", compact: true, alignEnd: true, className: "bd-home-new",
-              options: (inGroup ? [] : [{ value: "project", label: "New project", icon: "folder", hint: "A group of files" }]).concat([
-                { value: "file", label: inGroup ? "New file in " + inGroup.name : "New file", icon: "file", hint: "A blank canvas" },
-              ]).concat(STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) { return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" }; }))
-                .concat(inGroup ? [] : [{ value: "playground", label: "Playground", icon: "star", hint: "Getting started and live examples", group: "Learn" }])
-                .concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
-              onChange: function (v) {
-                if (v === "project") newGroup();
-                else if (v === "file") newProject(null);
-                else if (v === "open") { if (importFileRef.current) importFileRef.current.click(); }
-                else if (v === "playground") newPlayground();
-                else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
-              } }))),
-        e("div", { className: "bd-home-tools" },
-          e(SearchField, { className: "bd-projects-search bd-home-search", label: inGroup ? "Search " + inGroup.name : "Search projects and files", placeholder: inGroup ? "Search " + inGroup.name : "Search projects and files", value: projQuery, onChange: setProjQuery }),
-          e("div", { className: "bd-home-bar" },
-            e(Segmented, { label: "Sort by", className: "bd-home-sort", value: homeSort, onChange: function (v) { if (v) setHomeSort(v); }, options: HOME_SORTS }),
-            projList ? e("span", { className: "bd-home-count", role: "status" }, count + (count === 1 ? " item" : " items")) : null)),
-        !projList ? skeleton()
-          : !count ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty)
-          : e("div", { className: "bd-home-lists" },
-            shownGroups.length ? section("Projects", shownGroups.map(function (g) { return groupCard(g, filesOf(g)); })) : null,
-            shownFiles.length ? section("Files", shownFiles.map(function (f) { return fileCard(f, !inGroup); })) : null)));
-  };
 
   /* Every shortcut, as this keyboard says them: ? opens it, and so does the
      File menu. */
@@ -6810,6 +6623,15 @@ function App(props) {
   var playPage = play ? pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0] : null;
   var playPageName = playPage && pagesOf(project).length > 1 ? playPage.name : null;
 
+  /* Home (Home.js) is memoized too, so its handlers go through useEvent. */
+  var homeSetSort = useEvent(setHomeSort), homeGoView = useEvent(goHomeView), homeSetDark = useEvent(setDark);
+  var homeOpen = useEvent(openProject), homeRename = useEvent(renameProject), homeDuplicate = useEvent(duplicateProject), homeDelete = useEvent(deleteProject);
+  var homeMove = useEvent(moveFile), homeExport = useEvent(exportProject), homeImport = useEvent(importProject);
+  var homePicture = useEvent(function (who, f) { if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f); else setPicture(who, f); });
+  var homeRenameGroup = useEvent(renameGroup), homeDuplicateGroup = useEvent(duplicateGroup), homeExportGroup = useEvent(exportGroup), homeDeleteGroup = useEvent(deleteGroup);
+  var homeAutoPicture = useEvent(function (id) { store.setGroupThumb(id, null).then(refreshProjects); });
+  var homeNewGroup = useEvent(newGroup), homeNewProject = useEvent(newProject), homeNewPlayground = useEvent(newPlayground), homeOpenAccount = useEvent(openAccount);
+
   var slot = wide ? document.getElementById("app-toolbar") : null;
 
   return e(React.Fragment, null,
@@ -6844,7 +6666,12 @@ function App(props) {
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
       e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || undefined }, inspector),
       wide && !hidePanels && !home ? [panelHandle("left"), panelHandle("right")] : null),
-    homePage(),
+    e(Home, { open: home, projects: projList, groups: groupList, currentId: project.id, opening: opening, query: projQuery, view: homeView, sort: homeSort,
+      renamingProj: renamingProj, renamingGroup: renamingGroup, confirmDel: confirmDel, dark: dark, account: account, toolbar: slot ? null : toolbar,
+      setQuery: setProjQuery, setSort: homeSetSort, setRenamingProj: setRenamingProj, setRenamingGroup: setRenamingGroup, setConfirmDel: setConfirmDel, goView: homeGoView, setDark: homeSetDark,
+      openProject: homeOpen, renameProject: homeRename, duplicateProject: homeDuplicate, deleteProject: homeDelete, moveFile: homeMove, exportProject: homeExport, onPicture: homePicture, importProject: homeImport,
+      renameGroup: homeRenameGroup, duplicateGroup: homeDuplicateGroup, exportGroup: homeExportGroup, deleteGroup: homeDeleteGroup, autoGroupPicture: homeAutoPicture,
+      newGroup: homeNewGroup, newProject: homeNewProject, newPlayground: homeNewPlayground, openAccount: homeOpenAccount }),
     readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
     drag && drag.ghost ? (function () {
       var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
