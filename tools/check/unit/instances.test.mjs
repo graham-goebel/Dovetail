@@ -127,3 +127,16 @@ test("masterOf finds the component in the library, or nothing", () => {
   assert.equal(at(master(), "1").type, "Text");
   assert.equal(at(master(), "9"), null);
 });
+
+test("holdsInstanceOf: an instance anywhere below a node, never the node itself", async () => {
+  const { holdsInstanceOf } = await import("../../../assets/builder/model/instances.js");
+  const m = master();
+  const i = instance(m, "i1");
+  assert.equal(holdsInstanceOf(i, "c1"), false, "an instance doesn't hold itself");
+  const wrap = make("Section", {}, [make("Group", { direction: "column" }, [instance(m, "i2")])]);
+  assert.equal(holdsInstanceOf(wrap, "c1"), true, "two levels down counts");
+  assert.equal(holdsInstanceOf(wrap, "c2"), false, "another component's instance doesn't");
+  const nested = instance(m, "i3");
+  nested.children.push(instance(m, "i4"));
+  assert.equal(holdsInstanceOf(nested, "c1"), true, "an instance inside an instance of the same component is caught");
+});

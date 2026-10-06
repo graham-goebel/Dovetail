@@ -2,7 +2,7 @@
 
 import { DATA, LIB_KINDS, PANELS, PREFS_KEY, PRESET, mql, storage } from "../config.js";
 import { readLayout } from "./paste.js";
-import { libScopeOf, pageOf } from "./store.js";
+import { libScopeOf, mergeLibs, pageOf } from "./store.js";
 import { STARTERS } from "./starters.js";
 import { clean, cleanNode, copy, frameById, uid } from "./tree.js";
 import { seedPlayground } from "./playground.js";
@@ -19,13 +19,45 @@ function loadLibrary(saved) {
     }).map(function (it) { return { id: it.id, name: it.name.slice(0, 80), src: it.src, original: typeof it.original === "string" && /^data:image\//.test(it.original) ? it.original : undefined }; });
   });
   /* Local components: layers kept to reuse, cleaned like anything else
-     that comes in, with the tokens they're built on. */
+     that comes in, with the tokens they're built on, their revision and
+     the one before (model/instances.js). */
   out.components = (Array.isArray(raw.components) ? raw.components : []).map(function (c) {
-    if (!c || typeof c.id !== "string" || typeof c.name !== "string" || !c.node || typeof c.node !== "object") return null;
+    if (!c || typeof c.id !== "string" || !/^[\w-]{1,40}$/.test(c.id) || typeof c.name !== "string" || !c.node || typeof c.node !== "object") return null;
     var node = cleanNode(c.node, null);
-    return node ? { id: c.id, name: c.name.slice(0, 60), node: node, tokens: Array.isArray(c.tokens) ? c.tokens.filter(function (t) { return typeof t === "string" && /^--dt-[\w-]+$/.test(t); }).slice(0, 300) : [], made: typeof c.made === "number" ? c.made : 0 } : null;
+    if (!node) return null;
+    var prev = c.prev && typeof c.prev === "object" ? cleanNode(c.prev, null) : null;
+    var kept = { id: c.id, name: c.name.slice(0, 60), node: node, tokens: Array.isArray(c.tokens) ? c.tokens.filter(function (t) { return typeof t === "string" && /^--dt-[\w-]+$/.test(t); }).slice(0, 300) : [], rev: Number.isInteger(c.rev) && c.rev >= 1 ? c.rev : 1, made: typeof c.made === "number" ? c.made : 0 };
+    if (prev) kept.prev = prev;
+    return kept;
   }).filter(Boolean);
   return out;
+}
+
+/* The components these documents' instances are made from, as they go into a
+   file or a link: the current revision only, without uploaded files. */
+function componentsFor(docs, library) {
+  var want = {};
+  docs.forEach(function (d) {
+    (function walk(n) {
+      if (n.inst && typeof n.inst.of === "string") want[n.inst.of] = 1;
+      (n.children || []).forEach(walk);
+    })({ children: (d && d.frames ? d.frames : []).map(function (f) { return f.root; }) });
+  });
+  return ((library && library.components) || []).filter(function (c) { return want[c.id]; }).map(function (c) {
+    var node = withoutUploads({ frames: [{ root: { children: [c.node] } }] }).doc.frames[0].root.children[0];
+    return { id: c.id, name: c.name, node: node, tokens: c.tokens || [], rev: c.rev || 1, made: c.made || 0 };
+  });
+}
+
+/* Components that came with a file or a link, kept in a library: what's
+   already there stays as it is. Resolves to the library as saved. */
+function absorbComponents(store, scope, components) {
+  var incoming = loadLibrary({ components: components }).components;
+  if (!incoming.length) return store.loadLibrary(scope);
+  return store.loadLibrary(scope).then(function (lib) {
+    var merged = mergeLibs(lib, { components: incoming });
+    return store.saveLibrary(merged, scope).then(function () { return merged; });
+  });
 }
 
 function encode(doc) {
@@ -66,10 +98,12 @@ function readHash() {
       return { kind: "jsx", src: new TextDecoder().decode(bytes) };
     } catch (err) { return { kind: "jsx", src: null }; }
   }
-  var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40})*)$/.exec(location.hash);
+  var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40}|&c=[\w-]+)*)$/.exec(location.hash);
   if (m) {
-    var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]);
-    return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null };
+    var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]), c = /&c=([\w-]+)/.exec(m[2]);
+    /* &c= carries the components the layout's instances are made from. */
+    var comps = c ? decode(c[1]) : null;
+    return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null, components: Array.isArray(comps) ? comps : null };
   }
   return null;
 }
@@ -105,7 +139,7 @@ function openStart(store) {
       var dropped = [];
       var d = clean(hash.data, dropped);
       if (hash.frame && frameById(d, hash.frame)) d.active = hash.frame;
-      return fresh(d.frames.length === 1 ? d.frames[0].name : "Shared layout", d, { from: "link", dropped: dropped, focus: hash.node });
+      return fresh(d.frames.length === 1 ? d.frames[0].name : "Shared layout", d, { from: "link", dropped: dropped, focus: hash.node, components: hash.components });
     }
     if (hash && hash.kind === "jsx") {
       var read = hash.src ? readLayout(hash.src) : null;
@@ -129,8 +163,12 @@ function openStart(store) {
     });
   }).then(function (init) {
     store.setLastOpened(init.project.id);
-    return store.loadLibrary(libScopeOf(init.project)).then(function (lib) {
-      init.library = loadLibrary(lib);
+    var scope = libScopeOf(init.project);
+    /* A link's components join the new project's library first. */
+    var lib = init.components ? absorbComponents(store, scope, init.components) : store.loadLibrary(scope);
+    return lib.then(function (v) {
+      init.library = loadLibrary(v);
+      delete init.components;
       return init;
     });
   });
@@ -181,4 +219,4 @@ function thick(r) {
   return r;
 }
 
-export { cleanPanels, copyText, decode, encode, loadLibrary, loadPrefs, openStart, readHash, starterDoc, thick, withoutUploads };
+export { absorbComponents, cleanPanels, componentsFor, copyText, decode, encode, loadLibrary, loadPrefs, openStart, readHash, starterDoc, thick, withoutUploads };

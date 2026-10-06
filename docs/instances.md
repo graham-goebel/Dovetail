@@ -60,6 +60,21 @@ Making a component from a single selected layer links that layer as the
 component's first instance, so the natural flow is: build it, Create
 component, add it elsewhere, edit any copy, Update component.
 
+A component can't hold itself. Added into one of its own instances (from My
+components, or dropped there), the new instance goes right after that
+instance instead, and *Update component from this* refuses an instance that
+has an instance of the same component inside it.
+
+## Travelling
+
+A downloaded `.dovetail` file carries, under `components`, the components
+its pages' instances are made from (the current revision, without uploaded
+files), and a share link carries the same under `&c=`. Opened elsewhere,
+they join the library the new file uses; a component already there, by id,
+stays as it is. `componentsFor(docs, library)` picks them and
+`absorbComponents(store, scope, components)` takes them in, both in
+`model/share.js`.
+
 ## Checks
 
 `tools/check/unit/instances.test.mjs` covers overrides, rebase, document

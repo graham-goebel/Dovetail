@@ -130,8 +130,12 @@
     open();
   });
 
+  /* The Builder has a search and shortcuts of its own (Ctrl+Alt+K makes a
+     component; / finds a component), so the site's keys stay out of its way. */
+  var builderPage = !!document.getElementById("builder");
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && bg && !bg.hidden) { e.preventDefault(); close(); return; }
+    if (builderPage || e.altKey) return;
     var typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "") || (e.target && e.target.isContentEditable);
     if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
       e.preventDefault();
