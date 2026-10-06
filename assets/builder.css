@@ -46,11 +46,57 @@
   padding: 0;
 }
 
+/* The builder is an app: the page itself never scrolls. Its header (the
+   site's, or the app head on a phone) takes what it needs and the builder
+   fills the rest, so there's nothing below to scroll into. The site's
+   floating menu button and the room kept for it go too. */
+body.page-app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.page-app .layout {
+  flex: 1;
+  min-height: 0;
+}
+
+.page-app .main.app,
+.page-app .main.app > .doc {
+  height: 100%;
+  min-height: 0;
+}
+
+.page-app .fab {
+  display: none;
+}
+
 .builder {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - var(--site-header));
-  min-height: 520px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Fields sit darker than the panel they're on in light chrome, and lighter
+   in dark, where the darkest surface is black and a field there reads as a
+   hole. --dt-input-bg follows, for the inputs that read it. */
+.page-app {
+  /* The canvas's selection colour: outlines, handles, guides and the tag
+     over what's picked. One fixed hue, clear on a white frame and on the
+     dark canvas alike; the chrome takes no theme, so it stays put. */
+  --bd-select: var(--dt-color-cyan-500);
+  --bd-select-ink: var(--dt-color-white);
+  --bd-field: var(--dt-surface-sunken);
+  --bd-field-on: var(--dt-surface-raised);
+}
+
+:root.dark .page-app {
+  --bd-field: var(--dt-surface-overlay);
+  --bd-field-on: color-mix(in oklab, var(--dt-surface-overlay) 80%, var(--dt-text-primary));
+  --dt-input-bg: var(--bd-field);
 }
 
 .builder-loading,
@@ -325,7 +371,7 @@ html.bd-configure-docked .configure-open-btn {
   display: inline-flex;
   padding: 2px;
   border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-sunken);
+  background: var(--bd-field);
 }
 
 .bd-seg-wide {
@@ -359,7 +405,7 @@ html.bd-configure-docked .configure-open-btn {
 }
 
 .bd-seg-btn[aria-pressed="true"] {
-  background: var(--dt-surface-base);
+  background: var(--bd-field-on);
   color: var(--dt-text-primary);
   box-shadow: var(--dt-elevation-1);
 }
@@ -698,7 +744,7 @@ html.bd-configure-docked .configure-open-btn {
 .bd-right .bd-input,
 .bd-right .bd-num {
   border-color: transparent;
-  background: var(--dt-surface-sunken);
+  background: var(--bd-field);
 }
 
 .bd-right .bd-dd:hover,
@@ -956,7 +1002,7 @@ html.bd-configure-docked .configure-open-btn {
   gap: 2px;
   padding: 4px;
   border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-sunken);
+  background: var(--bd-field);
 }
 
 .bd-mx-cell {
@@ -1172,7 +1218,6 @@ html.bd-configure-docked .configure-open-btn {
   top: 0;
   left: 0;
   transform-origin: 0 0;
-  opacity: 0;
 }
 
 .bd-thumb-ic {
@@ -1568,8 +1613,9 @@ span.bd-layer-twisty.is-open .bd-ic {
   overscroll-behavior: contain;
   touch-action: none;
   background-color: var(--dt-surface-sunken);
-  background-image: radial-gradient(var(--dt-border-subtle) 1px, transparent 1px);
-  background-size: var(--dt-space-inset-lg) var(--dt-space-inset-lg);
+  /* A faint grid: there to place things by, not to look at. */
+  background-image: radial-gradient(color-mix(in oklab, var(--dt-border-subtle) 45%, transparent) 1px, transparent 1px);
+  background-size: var(--dt-space-inset-xl) var(--dt-space-inset-xl);
   cursor: default;
 }
 
@@ -1659,7 +1705,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-ring.is-selected {
-  outline: var(--dt-border-width-default) solid var(--dt-text-primary);
+  outline: var(--dt-border-width-default) solid var(--bd-select);
 }
 
 /* The tool bar, floating along the canvas's foot: square-ish buttons in a
@@ -2075,7 +2121,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-marquee {
   position: absolute;
   box-sizing: border-box;
-  border: var(--dt-border-width-default) solid var(--dt-border-focus);
+  border: var(--dt-border-width-default) solid var(--bd-select);
   background: var(--dt-surface-selected);
   opacity: 0.35;
   pointer-events: none;
@@ -2086,7 +2132,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 }
 
 .bd-mark-sel {
-  outline: var(--dt-border-width-default) solid var(--dt-text-primary);
+  outline: var(--dt-border-width-default) solid var(--bd-select);
 }
 
 .bd-mark-sel.is-extra {
@@ -2105,15 +2151,23 @@ span.bd-layer-twisty.is-open .bd-ic {
   touch-action: none;
 }
 
+/* A small white square at each corner, edged in the focus colour, so it
+   shows on a light frame and on the dark canvas alike. The edges between
+   take a drag without a dot of their own. */
 .bd-handle::after {
   content: "";
   position: absolute;
   inset: 4.5px;
   box-sizing: border-box;
-  border: var(--dt-border-width-default) solid var(--dt-border-focus);
+  border: var(--dt-border-width-default) solid var(--bd-select);
   border-radius: 1.5px;
-  background: transparent;
-  transition: inset var(--dt-motion-micro), opacity var(--dt-motion-micro), background-color var(--dt-motion-micro);
+  background: var(--dt-color-white);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--dt-color-neutral-950) 18%, transparent);
+  transition: inset var(--dt-motion-micro), opacity var(--dt-motion-micro);
+}
+
+.bd-handle:is(.is-n, .is-e, .is-s, .is-w)::after {
+  display: none;
 }
 
 .bd-handle.is-nw { left: 0; top: 0; cursor: nwse-resize; }
@@ -2143,8 +2197,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 
 .bd-handle:hover::after,
 .bd-handle.is-active::after {
-  inset: 3px;
-  background: var(--dt-surface-base);
+  inset: 2px;
 }
 
 @media (pointer: coarse) {
@@ -2207,8 +2260,8 @@ span.bd-layer-twisty.is-open .bd-ic {
   gap: var(--dt-space-inline-2xs);
   padding: 2px var(--dt-space-inset-xs);
   border-radius: var(--dt-radius-control) var(--dt-radius-control) 0 0;
-  background: var(--dt-surface-inverse);
-  color: var(--dt-text-inverse);
+  background: var(--bd-select);
+  color: var(--bd-select-ink);
   font-size: var(--dt-font-size-xs);
   font-weight: var(--dt-font-weight-medium);
   white-space: nowrap;
@@ -2236,12 +2289,12 @@ span.bd-layer-twisty.is-open .bd-ic {
   position: absolute;
   min-width: 1px;
   min-height: 1px;
-  background: var(--dt-border-focus);
+  background: var(--bd-select);
   pointer-events: none;
 }
 
 .bd-guide.is-gap {
-  background: color-mix(in oklch, var(--dt-border-focus) 40%, transparent);
+  background: color-mix(in oklch, var(--bd-select) 40%, transparent);
 }
 
 .bd-guide.is-gap.is-h {
@@ -2260,7 +2313,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   top: 50%;
   padding: 0 var(--dt-space-inset-2xs);
   border-radius: var(--dt-radius-control);
-  background: var(--dt-border-focus);
+  background: var(--bd-select);
   color: var(--dt-surface-base);
   font-size: var(--dt-font-size-2xs);
   font-weight: var(--dt-font-weight-medium);
@@ -2272,7 +2325,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-mark-box {
   position: absolute;
   box-sizing: border-box;
-  outline: var(--dt-border-width-default) dashed var(--dt-text-primary);
+  outline: var(--dt-border-width-default) dashed var(--bd-select);
   background: color-mix(in oklch, var(--dt-text-primary) 8%, transparent);
 }
 
@@ -2286,7 +2339,7 @@ span.bd-layer-twisty.is-open .bd-ic {
 .bd-dup {
   position: absolute;
   box-sizing: border-box;
-  outline: var(--dt-border-width-default) dashed var(--dt-text-primary);
+  outline: var(--dt-border-width-default) dashed var(--bd-select);
   background: color-mix(in oklch, var(--dt-surface-base) 55%, transparent);
 }
 
@@ -2736,7 +2789,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   resize: none;
   border: 0;
   border-radius: 2px;
-  outline: var(--dt-border-width-strong) solid var(--dt-text-primary);
+  outline: var(--dt-border-width-strong) solid var(--bd-select);
   outline-offset: 2px;
   background: transparent;
   caret-color: var(--dt-text-primary);
@@ -2957,7 +3010,7 @@ span.bd-layer-twisty.is-open .bd-ic {
   resize: none;
   border: var(--dt-border-width-default) solid var(--dt-border-default);
   border-radius: var(--dt-radius-control);
-  background: var(--dt-surface-sunken);
+  background: var(--bd-field);
   color: var(--dt-text-primary);
   font-family: var(--dt-font-family-mono);
   font-size: var(--dt-font-size-xs);

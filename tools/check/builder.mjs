@@ -2430,7 +2430,7 @@ try {
       return [...list.querySelectorAll(".bd-tile")].filter((t) => { const r = t.getBoundingClientRect(); return r.bottom > box.top && r.top < box.bottom - 60 && t.querySelector(".bd-thumb:not(.is-icon)"); }).map((t) => {
         const holder = t.querySelector(".bd-thumb"), stage = holder.querySelector(".bd-thumb-stage");
         const h = holder.getBoundingClientRect(), r = stage && stage.getBoundingClientRect();
-        const ok = !!stage && stage.style.opacity === "1" && r.width > 8 && r.height > 4 && r.right <= h.right + 1 && r.left >= h.left - 1;
+        const ok = !!stage && /scale\(/.test(stage.style.transform) && r.width > 8 && r.height > 4 && r.right <= h.right + 1 && r.left >= h.left - 1;
         return ok ? null : t.getAttribute("data-type") + (stage ? ` (${Math.round(r.width)}x${Math.round(r.height)} in ${Math.round(h.width)}x${Math.round(h.height)})` : " (not drawn)");
       }).filter(Boolean);
     });
@@ -3879,6 +3879,16 @@ try {
     const frameDark = () => frame().evaluate(() => document.documentElement.classList.contains("dark"));
     const remembered = () => page.evaluate(() => localStorage.getItem("dovetail-builder-dark"));
     expect(await chromeDark() && !(await frameDark()), "a fresh browser gets dark tools over a light frame");
+    /* In dark, a field sits lighter than the panel it's on, not darker. */
+    const shade = await page.evaluate(() => {
+      const rgba = (el) => getComputedStyle(el).backgroundColor.match(/[\d.]+/g).map(Number);
+      const lum = (el) => { const m = rgba(el); return 0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]; };
+      /* A filled field: icon menus and the like are transparent. */
+      const field = [...document.querySelectorAll(".bd-right .bd-dd, .bd-right .bd-input")].find((el) => { const m = rgba(el); return m.length < 4 || m[3] > 0; });
+      const panel = document.querySelector(".bd-shell > .bd-right");
+      return field && panel ? { field: lum(field), panel: lum(panel) } : null;
+    });
+    expect(shade && shade.field > shade.panel, `in dark, the inspector's fields are lighter than its panel, got ${JSON.stringify(shade)}`);
     await page.locator(".bd-project-menu").click();
     await option(page, "Light mode").click();
     await page.waitForFunction(() => !document.documentElement.classList.contains("dark"));
@@ -3903,6 +3913,8 @@ try {
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");
     expect(await phone.page.locator(".bd-center .bd-toolbar").count() === 1, "the toolbar is in the canvas pane on a phone");
     expect(await phone.page.evaluate(() => document.documentElement.scrollWidth) <= 390, "the page should not scroll sideways");
+    const fits = await phone.page.evaluate(() => ({ bottom: Math.round(document.querySelector(".layout").getBoundingClientRect().bottom), h: innerHeight, overflow: getComputedStyle(document.body).overflow, fab: !!document.querySelector(".fab") && getComputedStyle(document.querySelector(".fab")).display !== "none" }));
+    expect(fits.bottom <= fits.h + 1 && fits.overflow === "hidden" && !fits.fab, `the builder fills the phone's screen with nothing below to scroll into and no floating menu button, got ${JSON.stringify(fits)}`);
     expect(await phone.frame().evaluate(() => innerWidth) === 390, "the default canvas on a phone is the phone frame");
     await phone.page.locator(".bd-tabs [role=tab]", { hasText: "Add" }).click();
     await category(phone.page, "Actions");

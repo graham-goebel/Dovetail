@@ -525,11 +525,13 @@ function Thumb(props) {
     var fit = function () {
       if (!stage) return;
       var w = stage.scrollWidth, h = stage.scrollHeight;
-      var W = el.clientWidth, H = el.clientHeight;
+      var box = el.getBoundingClientRect();
+      var W = el.clientWidth || box.width;
+      /* The tile is 4:3; a browser that hasn't sized it yet gets that. */
+      var H = el.clientHeight > 12 ? el.clientHeight : W * 0.75;
       if (!w || !h || W <= 12 || H <= 12) return;
       var s = Math.min(props.wide ? 1 : 1.6, (W - 12) / w, (H - 12) / h);
       stage.style.transform = "translate(" + Math.max(0, (W - w * s) / 2) + "px, " + Math.max(0, (H - h * s) / 2) + "px) scale(" + s + ")";
-      stage.style.opacity = "1";
     };
     var draw = function () {
       if (done || gone) return;
@@ -544,18 +546,34 @@ function Thumb(props) {
       else { stage.style.width = "fit-content"; stage.style.maxWidth = "360px"; stage.style.minWidth = "120px"; }
       el.appendChild(stage);
       root = ReactDOM.createRoot(stage);
-      try { root.render(e(ThumbGuard, null, build())); } catch (err) { return; }
+      /* Drawn and scaled in one go, before the browser paints it: Safari
+         could miss a picture that faded in after it was scaled. */
+      var now = ReactDOM.flushSync || function (f) { f(); };
+      try { now(function () { root.render(e(ThumbGuard, null, build())); }); } catch (err) { return; }
+      fit();
       requestAnimationFrame(function () { requestAnimationFrame(fit); });
       setTimeout(fit, 400);
       if (window.ResizeObserver) { ro = new ResizeObserver(fit); ro.observe(el); ro.observe(stage); }
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!gone) fit(); });
     };
+    /* In view (or nearly): drawn when the observer says so, or when a check
+       of its own place finds it there, for a browser whose observer stays
+       quiet inside a floating, scrolling panel. */
+    var near = function () {
+      var r = el.getBoundingClientRect();
+      return r.width > 0 && r.bottom > -120 && r.top < window.innerHeight + 120 && r.right > 0 && r.left < window.innerWidth;
+    };
+    var poll = setInterval(function () {
+      if (done || gone) { clearInterval(poll); return; }
+      if (near()) draw();
+    }, 500);
     if (window.IntersectionObserver) {
       io = new IntersectionObserver(function (entries) { if (entries.some(function (x) { return x.isIntersecting; })) { draw(); io.disconnect(); } }, { rootMargin: "120px" });
       io.observe(el);
-    } else draw();
+    } else setTimeout(draw, 0);
     return function () {
       gone = true;
+      clearInterval(poll);
       if (io) io.disconnect();
       if (ro) ro.disconnect();
       if (root) { var r = root; setTimeout(function () { r.unmount(); }, 0); }
