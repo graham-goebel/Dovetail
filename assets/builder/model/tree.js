@@ -86,7 +86,7 @@ function autoLayout(n) {
 }
 function settle(frame, parentId, n) {
   if (!frame || frame.mode !== "structured") return n;
-  (function unfree(x) { if (x.style) { delete x.style.x; delete x.style.y; } (x.children || []).forEach(unfree); })(n);
+  (function unfree(x) { if (x.style) { delete x.style.x; delete x.style.y; delete x.style.ch; delete x.style.cv; } (x.children || []).forEach(unfree); })(n);
   autoLayout(n);
   if (parentId !== "root" || joinsFlow(n.type) || isContainer(n.type)) return n;
   return make("Group", { direction: "column", gap: "md" }, [n], { padding: "md" });
@@ -239,6 +239,53 @@ function note(report, line) { if (report && report.indexOf(line) < 0) report.pus
 var FREE_MAX = 1200;
 var HEX = /^#[0-9a-f]{6}$/i;
 function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
+
+/* Constraints, as Figma has them: across, a free layer keeps to its frame's
+   left edge (the default), its right, both (it stretches), its centre, or
+   scales with it; down, the same with top and bottom. */
+var H_PINS = ["left", "right", "both", "center", "scale"];
+var V_PINS = ["top", "bottom", "both", "center", "scale"];
+
+/* A frame that changed size from base: each free layer at its top level
+   takes its place (and, stretching or scaling, its size) from where it was
+   in base, by its constraints. Worked from base so a resize in many small
+   steps lands exactly where one big step would. unit is the step's pixels;
+   sizeOf(id) gives a layer's drawn size, for one that has no size of its
+   own. Returns how many layers moved. */
+function constrain(frame, base, unit, sizeOf) {
+  if (!frame || !base || frame.mode === "structured" || frame.bare) return 0;
+  var W0 = base.width, H0 = base.height, W1 = frame.width, H1 = frame.height;
+  if (!(W0 > 0 && H0 > 0 && W1 > 0 && H1 > 0) || (W0 === W1 && H0 === H1)) return 0;
+  var u = unit || 4, moved = 0;
+  var was = {};
+  base.root.children.forEach(function (c) { was[c.id] = c; });
+  var steps = function (px) { return Math.max(0, Math.min(FREE_MAX, Math.round(px / u))); };
+  var span = function (px) { return Math.max(1, Math.min(FREE_MAX, Math.round(px / u))); };
+  frame.root.children.forEach(function (n) {
+    var b = was[n.id];
+    if (!b || !isFree(n.style) || !isFree(b.style)) return;
+    var ch = b.style.ch, cv = b.style.cv;
+    if (!ch && !cv) return;
+    var size = (!b.style.fw || !b.style.fh) && sizeOf ? sizeOf(n.id) : null;
+    var w = b.style.fw ? b.style.fw * u : size ? size.width : 0;
+    var h = b.style.fh ? b.style.fh * u : size ? size.height : 0;
+    var axis = function (pin, at, len, has, from, to) {
+      if (pin === "right" || pin === "bottom") return { at: at + (to - from) };
+      if (pin === "center") return { at: at + (to - from) / 2 };
+      if (pin === "both") return has ? { at: at, len: len + (to - from) } : { at: at };
+      if (pin === "scale") return { at: at * to / from, len: has ? len * to / from : undefined };
+      return { at: at };
+    };
+    var x = axis(ch, b.style.x * u, w, !!b.style.fw, W0, W1);
+    var y = axis(cv, b.style.y * u, h, !!b.style.fh, H0, H1);
+    n.style.x = steps(x.at);
+    n.style.y = steps(y.at);
+    if (x.len !== undefined) n.style.fw = span(x.len);
+    if (y.len !== undefined) n.style.fh = span(y.len);
+    moved++;
+  });
+  return moved;
+}
 /* A width or height relative to the parent (%) or to the screen (vw, vh), in
    place of a size token or 4px steps: a whole number from 1 to 999. */
 var REL_SIZE = /^([1-9]\d{0,2})(%|vw|vh)$/;
@@ -316,6 +363,14 @@ function cleanNode(n, report) {
   }
   Object.keys(st).forEach(function (k) {
     if (k === "x" || k === "y") return;
+    /* A free layer's constraints: what it keeps to when its frame changes
+       size. Left and top are the default, so they're never stored. */
+    if (k === "ch" || k === "cv") {
+      if (!isFree(style)) return;
+      if ((k === "ch" ? H_PINS : V_PINS).indexOf(st[k]) > 0) style[k] = st[k];
+      else note(report, n.type + ": " + k + " is one of " + (k === "ch" ? H_PINS : V_PINS).slice(1).join(", ") + ", not " + JSON.stringify(st[k]));
+      return;
+    }
     if (k === "dark") { if (st.dark === true) style.dark = true; return; }
     if (k === "fill" || k === "color") { if (HEX.test(String(st[k]))) style[k] = String(st[k]).toLowerCase(); else note(report, n.type + ": " + k + " takes a #rrggbb colour, not " + JSON.stringify(st[k])); return; }
     /* A free layer's own size, in steps of --dt-space-inset-2xs (4px), and
@@ -431,4 +486,4 @@ function clean(doc, report) {
   return out;
 }
 
-export { CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };
+export { H_PINS, V_PINS, constrain, CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };

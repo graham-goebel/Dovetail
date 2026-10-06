@@ -6107,3 +6107,135 @@ input.bd-folder-name {
 .bd-vars-scope {
   margin: 0 var(--dt-space-inset-sm) var(--dt-space-stack-sm);
 }
+
+/* Constraints: the pin square beside its two dropdowns. Each line is a
+   button; a pinned one is solid in the selection colour. */
+.bd-pins-row {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-sm);
+}
+
+.bd-pins-dds {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  min-width: 0;
+}
+
+.bd-pins {
+  position: relative;
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: var(--dt-radius-control);
+  background: var(--dt-surface-sunken);
+}
+
+.bd-pins-layer {
+  position: absolute;
+  inset: 26px;
+  border: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-radius: 3px;
+  background: var(--dt-surface-raised);
+}
+
+.bd-pin-line {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bd-pin-line::before {
+  content: "";
+  position: absolute;
+  border-radius: 1px;
+  background: var(--dt-border-strong);
+}
+
+.bd-pin-line.is-left,
+.bd-pin-line.is-right,
+.bd-pin-line.is-hcenter {
+  height: 12px;
+}
+
+.bd-pin-line.is-left::before,
+.bd-pin-line.is-right::before,
+.bd-pin-line.is-hcenter::before {
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 1px;
+}
+
+.bd-pin-line.is-top,
+.bd-pin-line.is-bottom,
+.bd-pin-line.is-vcenter {
+  width: 12px;
+}
+
+.bd-pin-line.is-top::before,
+.bd-pin-line.is-bottom::before,
+.bd-pin-line.is-vcenter::before {
+  top: 2px;
+  bottom: 2px;
+  left: 50%;
+  width: 1px;
+}
+
+.bd-pin-line.is-left { left: 3px; top: 30px; width: 22px; }
+.bd-pin-line.is-right { left: 47px; top: 30px; width: 22px; }
+.bd-pin-line.is-top { top: 3px; left: 30px; height: 22px; }
+.bd-pin-line.is-bottom { top: 47px; left: 30px; height: 22px; }
+.bd-pin-line.is-hcenter { left: 28px; top: 30px; width: 16px; }
+.bd-pin-line.is-vcenter { left: 30px; top: 28px; height: 16px; }
+
+.bd-pin-line:hover::before {
+  background: var(--dt-text-secondary);
+}
+
+.bd-pin-line.is-on::before {
+  background: var(--bd-select);
+}
+
+.bd-pin-line.is-on.is-left::before,
+.bd-pin-line.is-on.is-right::before,
+.bd-pin-line.is-on.is-hcenter::before {
+  height: 2px;
+  margin-top: -0.5px;
+}
+
+.bd-pin-line.is-on.is-top::before,
+.bd-pin-line.is-on.is-bottom::before,
+.bd-pin-line.is-on.is-vcenter::before {
+  width: 2px;
+  margin-left: -0.5px;
+}
+
+.bd-pin-line:focus-visible {
+  outline: var(--dt-focus-ring-width, 2px) solid var(--dt-focus-ring-color);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+/* On the canvas: dashed lines from a selected free layer to the edges it
+   keeps to. */
+.bd-pin-mark {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.bd-pin-mark.is-x {
+  height: 0;
+  border-top: 1px dashed var(--bd-select);
+}
+
+.bd-pin-mark.is-y {
+  width: 0;
+  border-left: 1px dashed var(--bd-select);
+}

@@ -10,10 +10,10 @@ import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf, VERSIONS_MAX } fr
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
-import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid } from "../model/tree.js";
+import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide, ConstraintBox } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -1332,6 +1332,8 @@ function App(props) {
         if (!from || fixedSpot(from) || !canHold(to, from.node)) return null;
         delete from.node.style.x;
         delete from.node.style.y;
+        delete from.node.style.ch;
+        delete from.node.style.cv;
         from.parent.children.splice(from.index, 1);
         var idx = hit.index;
         if (to.node === from.parent && from.index < idx) idx--;
@@ -1473,7 +1475,7 @@ function App(props) {
     var n = cleanNode(copy(comp.node), null);
     if (!n) return null;
     n = fresh(n);
-    delete n.style.x; delete n.style.y;
+    delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv;
     n.name = comp.name;
     /* Linked: the component's changes reach it (model/instances.js). */
     n.inst = { of: comp.id, rev: comp.rev || 1 };
@@ -2056,7 +2058,7 @@ function App(props) {
      where it sits); paste style puts that look on the selection, replacing
      what was there. */
   var styleClip = useRef(null);
-  var POSITION_KEYS = ["x", "y", "position", "anchor", "offset"];
+  var POSITION_KEYS = ["x", "y", "ch", "cv", "position", "anchor", "offset"];
   var copyStyle = function () {
     var at = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
     if (!at) return false;
@@ -2428,9 +2430,21 @@ function App(props) {
       if (f.lock && w === undefined) f.width = side(Math.round(f.height / ratio), MAX_WIDTH, f.width, lo);
     }
   };
-  var setSize = function (w, h) { change(function (d) { sizeOn(active(d), w, h); return undefined; }); };
+  /* A frame that changes size: its free layers keep to their constraints,
+     worked from base, the frame as it was before (or, while a size is
+     scrubbed, before the scrub began). */
+  var sizeBase = useRef(null);
+  var keepPins = function (d, fid, base) {
+    var f = frameById(d, fid), b = base || frameById(docRef.current, fid), a = api(fid);
+    if (!f || !b) return;
+    constrain(f, b, pxMap["padding|2xs"] || 4, function (id) { var r = a && a.rect ? a.rect(id) : null; return r ? { width: r.width, height: r.height } : null; });
+  };
+  var setSize = function (w, h) { change(function (d) { sizeOn(active(d), w, h); keepPins(d, d.active); return undefined; }); };
   /* Scrubbing: the first step is the undo step, the rest follow it. */
-  var setSizeLive = function (w, h, first) { if (first) setSize(w, h); else quiet(function (d) { sizeOn(active(d), w, h); }); };
+  var setSizeLive = function (w, h, first) {
+    if (first) { sizeBase.current = active(docRef.current); setSize(w, h); return; }
+    quiet(function (d) { sizeOn(active(d), w, h); keepPins(d, d.active, sizeBase.current); });
+  };
   /* A free frame's own opacity, in whole percents; 100 is opaque, which
      needs nothing set. It takes the place of an opacity role. */
   var setAlpha = function (ids, v, first) {
@@ -2458,7 +2472,7 @@ function App(props) {
   };
   var setPreset = function (id) {
     var p = PRESET[id];
-    if (p) change(function (d) { var f = active(d); f.width = p.width; f.height = p.height; if (p.typeScale) f.typeScale = p.typeScale; else delete f.typeScale; return undefined; }, frame.name + " is " + p.label + ", " + p.width + " by " + p.height + (p.typeScale ? ", with social type" : ""));
+    if (p) change(function (d) { var f = active(d); f.width = p.width; f.height = p.height; if (p.typeScale) f.typeScale = p.typeScale; else delete f.typeScale; keepPins(d, d.active); return undefined; }, frame.name + " is " + p.label + ", " + p.width + " by " + p.height + (p.typeScale ? ", with social type" : ""));
   };
   /* Props and styles apply to every selected node, so several of the same
      kind change together. */
@@ -2498,7 +2512,7 @@ function App(props) {
       var kept = [];
       f.root.children.forEach(function (c) { if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c); else loose.push(c); });
       loose.sort(function (a, b) { return ((a.style.y || 0) - (b.style.y || 0)) || ((a.style.x || 0) - (b.style.x || 0)); });
-      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.fill; delete n.style.color; delete n.style.alpha; delete n.style.fw; delete n.style.fh; delete n.style.rot; } (n.children || []).forEach(unfree); })(f.root);
+      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; delete n.style.fill; delete n.style.color; delete n.style.alpha; delete n.style.fw; delete n.style.fh; delete n.style.rot; } (n.children || []).forEach(unfree); })(f.root);
       if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
       f.root.children = kept;
       if (!f.gap) f.gap = "block";
@@ -2556,7 +2570,7 @@ function App(props) {
       pinFrames(d);
       /* What was placed freely goes into the Group's flow, top to bottom. */
       var kids = f.root.children.slice().sort(function (p, q) { return ((p.style.y || 0) - (q.style.y || 0)) || ((p.style.x || 0) - (q.style.x || 0)); });
-      kids.forEach(function (k) { delete k.style.x; delete k.style.y; });
+      kids.forEach(function (k) { delete k.style.x; delete k.style.y; delete k.style.ch; delete k.style.cv; });
       var g = make("Group", { direction: "column", gap: "md" }, kids, { padding: "lg" });
       g.name = f.name;
       f.root.children = [g];
@@ -2756,7 +2770,7 @@ function App(props) {
     change(function (dd) {
       var at = t.index;
       nodes.forEach(function (n) {
-        if (t.parent !== "root" || fr.mode === "structured" || fr.bare) { delete n.style.x; delete n.style.y; }
+        if (t.parent !== "root" || fr.mode === "structured" || fr.bare) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; }
         else if (same && isFree(n.style)) { n.style.x = Math.min(FREE_MAX, n.style.x + 4); n.style.y = Math.min(FREE_MAX, n.style.y + 4); }
         if (ops.insert(dd, t.parent, at, n, fid)) { made.push(n.id); at++; }
       });
@@ -3708,7 +3722,7 @@ function App(props) {
         if (!at) return;
         (function walk(n, depth) {
           ["fill", "color"].forEach(function (k) { if (n.style[k]) { delete n.style[k]; any = true; } });
-          if (depth > 0 && (n.style.x !== undefined || n.style.y !== undefined)) { delete n.style.x; delete n.style.y; any = true; }
+          if (depth > 0 && (n.style.x !== undefined || n.style.y !== undefined)) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; any = true; }
           (n.children || []).forEach(function (c) { walk(c, depth + 1); });
         })(at.node, 0);
       });
@@ -3723,7 +3737,7 @@ function App(props) {
     var name = (compDraft.name || "").trim().slice(0, 60) || "My component";
     var kept = cleanNode(copy(node), null);
     if (!kept) return;
-    delete kept.style.x; delete kept.style.y;
+    delete kept.style.x; delete kept.style.y; delete kept.style.ch; delete kept.style.cv;
     var cid = uid();
     setLibrary(function (l) { var n = Object.assign({}, l); n.components = [{ id: cid, name: name, node: kept, tokens: check.tokens, rev: 1, made: Date.now() }].concat(l.components || []); return n; });
     if (compDraft.ids.length === 1) {
@@ -3782,7 +3796,7 @@ function App(props) {
       if (bad) { announce("Not yet: " + bad.text); return; }
       var master = cleanNode(copy(at.node), null);
       if (!master) return;
-      delete master.style.x; delete master.style.y; delete master.inst; delete master.lock; delete master.hide;
+      delete master.style.x; delete master.style.y; delete master.style.ch; delete master.style.cv; delete master.inst; delete master.lock; delete master.hide;
       var rev = (comp.rev || 1) + 1, was = comp.node;
       setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).map(function (c) { return c.id === comp.id ? Object.assign({}, c, { node: master, prev: was, rev: rev, tokens: check.tokens }) : c; }); return n; });
       var here = 0;
@@ -4041,6 +4055,57 @@ function App(props) {
   };
 
   /* Several styles at once, in one undo step. */
+  /* Constraints: what free layers keep to when their frame changes size.
+     Left and top are the default and aren't stored. Stretching or scaling
+     needs a size of the layer's own, so one that has none takes its drawn
+     size then. */
+  var PIN_WORD = { h: { left: "Left", right: "Right", both: "Left and right", center: "Centre", scale: "Scale" }, v: { top: "Top", bottom: "Bottom", both: "Top and bottom", center: "Centre", scale: "Scale" } };
+  var PIN_SAYS = { h: { left: "keeps to the left edge", right: "keeps to the right edge", both: "stretches across with it", center: "stays centred across", scale: "scales across with it" },
+    v: { top: "keeps to the top edge", bottom: "keeps to the bottom edge", both: "stretches down with it", center: "stays centred down", scale: "scales down with it" } };
+  var setPins = function (ids, axis, value) {
+    var key = axis === "h" ? "ch" : "cv", sizeKey = axis === "h" ? "fw" : "fh";
+    var a = api(), unit = pxMap["padding|2xs"] || 4;
+    change(function (d) {
+      var any = false;
+      ids.forEach(function (id) {
+        var at = locate(d, id);
+        if (!at || !isFree(at.node.style)) return;
+        any = true;
+        if (value === "left" || value === "top") delete at.node.style[key]; else at.node.style[key] = value;
+        if ((value === "both" || value === "scale") && !at.node.style[sizeKey]) {
+          var r = a && a.rect ? a.rect(id) : null;
+          if (r) at.node.style[sizeKey] = Math.max(1, Math.min(FREE_MAX, Math.round((axis === "h" ? r.width : r.height) / unit)));
+        }
+      });
+      return any ? undefined : null;
+    }, (axis === "h" ? "Across: " : "Down: ") + PIN_WORD[axis][value]);
+  };
+  var pinsField = function (nodes, ids) {
+    var hs = nodes.map(function (n) { return n.style.ch || "left"; }), vs = nodes.map(function (n) { return n.style.cv || "top"; });
+    var h = same(hs) ? hs[0] : null, v = same(vs) ? vs[0] : null;
+    var pick = function (line, shift) {
+      var axis = /^(left|right|hcenter)$/.test(line) ? "h" : "v";
+      var cur = axis === "h" ? h : v, lo = axis === "h" ? "left" : "top", hi = axis === "h" ? "right" : "bottom";
+      var next;
+      if (line === "hcenter" || line === "vcenter") next = cur === "center" ? lo : "center";
+      else if (shift) { var other = line === lo ? hi : lo; next = cur === other ? "both" : cur === "both" ? other : line; }
+      else next = line;
+      setPins(ids, axis, next);
+    };
+    var pid = "bd-pins-" + nodes[0].id;
+    var hint = !h || !v ? "These layers keep to different edges."
+      : h === "left" && v === "top" ? "When the frame changes size, it stays put. Pin it to an edge, the centre, or both sides."
+      : (h === "right" || h === "left") && (v === "bottom" || v === "top") ? "When the frame changes size, it keeps its distance to the " + h + " and " + v + " edges."
+      : "When the frame changes size, it " + PIN_SAYS.h[h] + " and " + PIN_SAYS.v[v] + ".";
+    var dd = function (axis, now, list, prefix) {
+      return e(Dropdown, { key: axis, label: axis === "h" ? "Constraint across" : "Constraint down", prefix: prefix, value: now || "", mixed: now === null, placeholder: "Mixed", className: "bd-dd-field", narrow: true,
+        options: list.map(function (k) { return { value: k, label: PIN_WORD[axis][k] }; }), onChange: function (val) { if (val) setPins(ids, axis, val); } });
+    };
+    return e(Field, { key: "pins", id: pid, label: "Constraints", hint: hint },
+      e("div", { className: "bd-pins-row" },
+        e(ConstraintBox, { label: "Constraints", h: h, v: v, onPick: pick }),
+        e("div", { className: "bd-pins-dds" }, dd("h", h, H_PINS, "H"), dd("v", v, V_PINS, "V"))));
+  };
   var setStyles = function (ids, patch) {
     change(function (d) {
       var any = false;
@@ -4760,7 +4825,7 @@ function App(props) {
         incoming.forEach(function (src) {
           (src.root.children || []).forEach(function (c) {
             var n = fresh(c);
-            if (f.bare || f.mode === "structured" || !joinsFlow(n.type)) { delete n.style.x; delete n.style.y; }
+            if (f.bare || f.mode === "structured" || !joinsFlow(n.type)) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; }
             if (ops.insert(d, "root", f.root.children.length, n, fid)) made.push(n.id);
           });
         });
@@ -5463,7 +5528,8 @@ function App(props) {
                 title: "Rotation: whole degrees. Arrows step 1°, Shift 15°. On the canvas, drag just outside a corner.",
                 onChange: function (v) { var deg = ((((v + 180) % 360) + 360) % 360) - 180; if (deg === -180) deg = 180; setStyles(ids, { rot: deg || undefined }); } });
             })())),
-        e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined, fw: undefined, fh: undefined, rot: undefined }); } }, "Put it in the flow"),
+        pinsField(nodes, ids),
+        e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined, fw: undefined, fh: undefined, rot: undefined, ch: undefined, cv: undefined }); } }, "Put it in the flow"),
       ];
     }
     var pv = nodes.map(function (n) { return n.style.position || ""; });
@@ -5539,7 +5605,7 @@ function App(props) {
           var r = SOCIAL_RATIOS.filter(function (x) { return x[0] === v; })[0];
           if (!r) return;
           var h = Math.round(frame.width * r[2]);
-          change(function (d) { sizeOn(active(d), active(d).width, h); return undefined; }, frame.name + " is " + r[1] + ", " + frame.width + " by " + h);
+          change(function (d) { sizeOn(active(d), active(d).width, h); keepPins(d, d.active); return undefined; }, frame.name + " is " + r[1] + ", " + frame.width + " by " + h);
         },
         options: SOCIAL_RATIOS.map(function (r) { return { value: r[0], label: r[1], title: r[1] + ": " + frame.width + " × " + Math.round(frame.width * r[2]) }; }) })));
   };
@@ -6143,6 +6209,7 @@ function App(props) {
           fr.width = done.w;
           if (fr.bare) { fr.sized = true; d.active = f.id; return undefined; }
           if (done.h != null) { fr.height = done.h; fr.hug = false; }
+          keepPins(d, f.id);
           d.active = f.id;
           return undefined;
         }, f.name + " is " + done.w + " by " + (done.h != null ? done.h : "its content"));
@@ -6368,6 +6435,21 @@ function App(props) {
       !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
       marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
       !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
+      /* A selected free layer pinned to an edge: a dashed line to it. */
+      !preview && sel && marks.sel.length === 1 && marks.sel[0].r && boxes[frame.id] && !frame.bare && frame.mode !== "structured" ? (function () {
+        var at = locate(doc, sel), st = at && at.node.style;
+        if (!st || !isFree(st) || (!st.ch && !st.cv)) return null;
+        var m = marks.sel[0].r, fb = boxes[frame.id];
+        var L = cam.x + fb.x * cam.z, T = cam.y + fb.y * cam.z, R = L + fb.w * cam.z, B = T + fb.h * cam.z;
+        var mx = m.left + m.width / 2, my = m.top + m.height / 2, out = [];
+        var across = function (k, x1, x2) { if (x2 - x1 > 1) out.push(e("div", { key: k, className: "bd-pin-mark is-x", style: { left: x1, top: my, width: x2 - x1 } })); };
+        var down = function (k, y1, y2) { if (y2 - y1 > 1) out.push(e("div", { key: k, className: "bd-pin-mark is-y", style: { left: mx, top: y1, height: y2 - y1 } })); };
+        if (st.ch === "right" || st.ch === "both") across("r", m.left + m.width, R);
+        if (st.ch === "both") across("l", L, m.left);
+        if (st.cv === "bottom" || st.cv === "both") down("b", m.top + m.height, B);
+        if (st.cv === "both") down("t", T, m.top);
+        return out;
+      })() : null,
       !preview ? marks.sel.map(function (m) {
         var at = locate(doc, m.id);
         if (!at) return null;

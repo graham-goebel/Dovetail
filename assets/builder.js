@@ -1678,6 +1678,8 @@
       if (x.style) {
         delete x.style.x;
         delete x.style.y;
+        delete x.style.ch;
+        delete x.style.cv;
       }
       (x.children || []).forEach(unfree);
     })(n);
@@ -1846,6 +1848,48 @@
   function isFree(st) {
     return !!st && typeof st.x === "number" && typeof st.y === "number";
   }
+  var H_PINS = ["left", "right", "both", "center", "scale"];
+  var V_PINS = ["top", "bottom", "both", "center", "scale"];
+  function constrain(frame2, base, unit, sizeOf) {
+    if (!frame2 || !base || frame2.mode === "structured" || frame2.bare) return 0;
+    var W0 = base.width, H0 = base.height, W1 = frame2.width, H1 = frame2.height;
+    if (!(W0 > 0 && H0 > 0 && W1 > 0 && H1 > 0) || W0 === W1 && H0 === H1) return 0;
+    var u = unit || 4, moved = 0;
+    var was = {};
+    base.root.children.forEach(function(c) {
+      was[c.id] = c;
+    });
+    var steps = function(px) {
+      return Math.max(0, Math.min(FREE_MAX, Math.round(px / u)));
+    };
+    var span = function(px) {
+      return Math.max(1, Math.min(FREE_MAX, Math.round(px / u)));
+    };
+    frame2.root.children.forEach(function(n) {
+      var b = was[n.id];
+      if (!b || !isFree(n.style) || !isFree(b.style)) return;
+      var ch = b.style.ch, cv = b.style.cv;
+      if (!ch && !cv) return;
+      var size = (!b.style.fw || !b.style.fh) && sizeOf ? sizeOf(n.id) : null;
+      var w = b.style.fw ? b.style.fw * u : size ? size.width : 0;
+      var h = b.style.fh ? b.style.fh * u : size ? size.height : 0;
+      var axis = function(pin, at2, len, has2, from, to) {
+        if (pin === "right" || pin === "bottom") return { at: at2 + (to - from) };
+        if (pin === "center") return { at: at2 + (to - from) / 2 };
+        if (pin === "both") return has2 ? { at: at2, len: len + (to - from) } : { at: at2 };
+        if (pin === "scale") return { at: at2 * to / from, len: has2 ? len * to / from : void 0 };
+        return { at: at2 };
+      };
+      var x = axis(ch, b.style.x * u, w, !!b.style.fw, W0, W1);
+      var y = axis(cv, b.style.y * u, h, !!b.style.fh, H0, H1);
+      n.style.x = steps(x.at);
+      n.style.y = steps(y.at);
+      if (x.len !== void 0) n.style.fw = span(x.len);
+      if (y.len !== void 0) n.style.fh = span(y.len);
+      moved++;
+    });
+    return moved;
+  }
   var REL_SIZE = /^([1-9]\d{0,2})(%|vw|vh)$/;
   function relSize(v) {
     var m = typeof v === "string" ? REL_SIZE.exec(v) : null;
@@ -1993,6 +2037,12 @@
     }
     Object.keys(st).forEach(function(k) {
       if (k === "x" || k === "y") return;
+      if (k === "ch" || k === "cv") {
+        if (!isFree(style)) return;
+        if ((k === "ch" ? H_PINS : V_PINS).indexOf(st[k]) > 0) style[k] = st[k];
+        else note(report, n.type + ": " + k + " is one of " + (k === "ch" ? H_PINS : V_PINS).slice(1).join(", ") + ", not " + JSON.stringify(st[k]));
+        return;
+      }
       if (k === "dark") {
         if (st.dark === true) style.dark = true;
         return;
@@ -4888,7 +4938,7 @@
     (function walk(a, b, path) {
       var o = { path };
       var props = diffObj(b.props, a.props);
-      var style = diffObj(b.style, a.style, path === "" ? ["x", "y"] : null);
+      var style = diffObj(b.style, a.style, path === "" ? ["x", "y", "ch", "cv"] : null);
       if (props) o.props = props;
       if (style) o.style = style;
       if (path !== "") {
@@ -4953,9 +5003,15 @@
     if (inst.style && inst.style.x !== void 0) {
       out.style.x = inst.style.x;
       out.style.y = inst.style.y;
+      ["ch", "cv"].forEach(function(k) {
+        if (inst.style[k]) out.style[k] = inst.style[k];
+        else delete out.style[k];
+      });
     } else {
       delete out.style.x;
       delete out.style.y;
+      delete out.style.ch;
+      delete out.style.cv;
     }
     out.inst = { of: inst.inst.of, rev };
     return out;
@@ -5905,6 +5961,44 @@
       e("span", { className: "bd-field-label", id: props.id, title: props.note || void 0 }, props.label),
       props.children,
       props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null
+    );
+  }
+  var PIN_LINES = [
+    ["left", "h", "Keep to the left edge"],
+    ["right", "h", "Keep to the right edge"],
+    ["top", "v", "Keep to the top edge"],
+    ["bottom", "v", "Keep to the bottom edge"],
+    ["hcenter", "h", "Keep to the centre across"],
+    ["vcenter", "v", "Keep to the centre down"]
+  ];
+  function pinOn(line, h, v) {
+    if (line === "left") return h === "left" || h === "both";
+    if (line === "right") return h === "right" || h === "both";
+    if (line === "top") return v === "top" || v === "both";
+    if (line === "bottom") return v === "bottom" || v === "both";
+    if (line === "hcenter") return h === "center";
+    if (line === "vcenter") return v === "center";
+    return false;
+  }
+  function ConstraintBox(props) {
+    return e(
+      "div",
+      { className: "bd-pins", role: "group", "aria-label": props.label || "Constraints" },
+      e("span", { className: "bd-pins-layer", "aria-hidden": true }),
+      PIN_LINES.map(function(l) {
+        var on = pinOn(l[0], props.h, props.v);
+        return e("button", {
+          key: l[0],
+          type: "button",
+          className: cx("bd-pin-line", "is-" + l[0], on && "is-on"),
+          "aria-pressed": String(on),
+          "aria-label": l[2],
+          title: l[2] + (l[0] === "hcenter" || l[0] === "vcenter" ? "" : "; Shift for both edges"),
+          onClick: function(ev) {
+            props.onPick(l[0], ev.shiftKey);
+          }
+        });
+      })
     );
   }
   function Section(props) {
@@ -7884,6 +7978,8 @@
           if (!from || fixedSpot(from) || !canHold(to, from.node)) return null;
           delete from.node.style.x;
           delete from.node.style.y;
+          delete from.node.style.ch;
+          delete from.node.style.cv;
           from.parent.children.splice(from.index, 1);
           var idx = hit.index;
           if (to.node === from.parent && from.index < idx) idx--;
@@ -8041,6 +8137,8 @@
       n = fresh(n);
       delete n.style.x;
       delete n.style.y;
+      delete n.style.ch;
+      delete n.style.cv;
       n.name = comp.name;
       n.inst = { of: comp.id, rev: comp.rev || 1 };
       return n;
@@ -8801,7 +8899,7 @@
       );
     };
     var styleClip = useRef(null);
-    var POSITION_KEYS = ["x", "y", "position", "anchor", "offset"];
+    var POSITION_KEYS = ["x", "y", "ch", "cv", "position", "anchor", "offset"];
     var copyStyle = function() {
       var at2 = selRef.current.length ? locate(docRef.current, selRef.current[selRef.current.length - 1]) : null;
       if (!at2) return false;
@@ -9414,16 +9512,31 @@
         if (f.lock && w === void 0) f.width = side(Math.round(f.height / ratio), MAX_WIDTH, f.width, lo);
       }
     };
+    var sizeBase = useRef(null);
+    var keepPins = function(d, fid, base) {
+      var f = frameById(d, fid), b = base || frameById(docRef.current, fid), a = api(fid);
+      if (!f || !b) return;
+      constrain(f, b, pxMap["padding|2xs"] || 4, function(id) {
+        var r = a && a.rect ? a.rect(id) : null;
+        return r ? { width: r.width, height: r.height } : null;
+      });
+    };
     var setSize = function(w, h) {
       change(function(d) {
         sizeOn(active(d), w, h);
+        keepPins(d, d.active);
         return void 0;
       });
     };
     var setSizeLive = function(w, h, first) {
-      if (first) setSize(w, h);
-      else quiet(function(d) {
+      if (first) {
+        sizeBase.current = active(docRef.current);
+        setSize(w, h);
+        return;
+      }
+      quiet(function(d) {
         sizeOn(active(d), w, h);
+        keepPins(d, d.active, sizeBase.current);
       });
     };
     var setAlpha = function(ids, v, first) {
@@ -9484,6 +9597,7 @@
         f.height = p.height;
         if (p.typeScale) f.typeScale = p.typeScale;
         else delete f.typeScale;
+        keepPins(d, d.active);
         return void 0;
       }, frame2.name + " is " + p.label + ", " + p.width + " by " + p.height + (p.typeScale ? ", with social type" : ""));
     };
@@ -9542,6 +9656,8 @@
           if (n.style) {
             delete n.style.x;
             delete n.style.y;
+            delete n.style.ch;
+            delete n.style.cv;
             delete n.style.fill;
             delete n.style.color;
             delete n.style.alpha;
@@ -9631,6 +9747,8 @@
         kids.forEach(function(k) {
           delete k.style.x;
           delete k.style.y;
+          delete k.style.ch;
+          delete k.style.cv;
         });
         var g = make("Group", { direction: "column", gap: "md" }, kids, { padding: "lg" });
         g.name = f.name;
@@ -9883,6 +10001,8 @@
           if (t.parent !== "root" || fr.mode === "structured" || fr.bare) {
             delete n.style.x;
             delete n.style.y;
+            delete n.style.ch;
+            delete n.style.cv;
           } else if (same4 && isFree(n.style)) {
             n.style.x = Math.min(FREE_MAX, n.style.x + 4);
             n.style.y = Math.min(FREE_MAX, n.style.y + 4);
@@ -11308,6 +11428,8 @@
             if (depth > 0 && (n.style.x !== void 0 || n.style.y !== void 0)) {
               delete n.style.x;
               delete n.style.y;
+              delete n.style.ch;
+              delete n.style.cv;
               any = true;
             }
             (n.children || []).forEach(function(c) {
@@ -11330,6 +11452,8 @@
       if (!kept) return;
       delete kept.style.x;
       delete kept.style.y;
+      delete kept.style.ch;
+      delete kept.style.cv;
       var cid = uid();
       setLibrary(function(l) {
         var n = Object.assign({}, l);
@@ -11452,6 +11576,8 @@
         if (!master) return;
         delete master.style.x;
         delete master.style.y;
+        delete master.style.ch;
+        delete master.style.cv;
         delete master.inst;
         delete master.lock;
         delete master.hide;
@@ -11843,6 +11969,79 @@
             tokenDropdown(k, nodes, null, { compact: true, prefix: sdef.side[0].toUpperCase(), className: "bd-dd-field" })
           );
         })) : null
+      );
+    };
+    var PIN_WORD2 = { h: { left: "Left", right: "Right", both: "Left and right", center: "Centre", scale: "Scale" }, v: { top: "Top", bottom: "Bottom", both: "Top and bottom", center: "Centre", scale: "Scale" } };
+    var PIN_SAYS = {
+      h: { left: "keeps to the left edge", right: "keeps to the right edge", both: "stretches across with it", center: "stays centred across", scale: "scales across with it" },
+      v: { top: "keeps to the top edge", bottom: "keeps to the bottom edge", both: "stretches down with it", center: "stays centred down", scale: "scales down with it" }
+    };
+    var setPins = function(ids, axis, value) {
+      var key = axis === "h" ? "ch" : "cv", sizeKey = axis === "h" ? "fw" : "fh";
+      var a = api(), unit = pxMap["padding|2xs"] || 4;
+      change(function(d) {
+        var any = false;
+        ids.forEach(function(id) {
+          var at2 = locate(d, id);
+          if (!at2 || !isFree(at2.node.style)) return;
+          any = true;
+          if (value === "left" || value === "top") delete at2.node.style[key];
+          else at2.node.style[key] = value;
+          if ((value === "both" || value === "scale") && !at2.node.style[sizeKey]) {
+            var r = a && a.rect ? a.rect(id) : null;
+            if (r) at2.node.style[sizeKey] = Math.max(1, Math.min(FREE_MAX, Math.round((axis === "h" ? r.width : r.height) / unit)));
+          }
+        });
+        return any ? void 0 : null;
+      }, (axis === "h" ? "Across: " : "Down: ") + PIN_WORD2[axis][value]);
+    };
+    var pinsField = function(nodes, ids) {
+      var hs = nodes.map(function(n) {
+        return n.style.ch || "left";
+      }), vs = nodes.map(function(n) {
+        return n.style.cv || "top";
+      });
+      var h = same3(hs) ? hs[0] : null, v = same3(vs) ? vs[0] : null;
+      var pick2 = function(line, shift) {
+        var axis = /^(left|right|hcenter)$/.test(line) ? "h" : "v";
+        var cur = axis === "h" ? h : v, lo = axis === "h" ? "left" : "top", hi = axis === "h" ? "right" : "bottom";
+        var next;
+        if (line === "hcenter" || line === "vcenter") next = cur === "center" ? lo : "center";
+        else if (shift) {
+          var other = line === lo ? hi : lo;
+          next = cur === other ? "both" : cur === "both" ? other : line;
+        } else next = line;
+        setPins(ids, axis, next);
+      };
+      var pid = "bd-pins-" + nodes[0].id;
+      var hint = !h || !v ? "These layers keep to different edges." : h === "left" && v === "top" ? "When the frame changes size, it stays put. Pin it to an edge, the centre, or both sides." : (h === "right" || h === "left") && (v === "bottom" || v === "top") ? "When the frame changes size, it keeps its distance to the " + h + " and " + v + " edges." : "When the frame changes size, it " + PIN_SAYS.h[h] + " and " + PIN_SAYS.v[v] + ".";
+      var dd = function(axis, now, list, prefix) {
+        return e(Dropdown, {
+          key: axis,
+          label: axis === "h" ? "Constraint across" : "Constraint down",
+          prefix,
+          value: now || "",
+          mixed: now === null,
+          placeholder: "Mixed",
+          className: "bd-dd-field",
+          narrow: true,
+          options: list.map(function(k) {
+            return { value: k, label: PIN_WORD2[axis][k] };
+          }),
+          onChange: function(val) {
+            if (val) setPins(ids, axis, val);
+          }
+        });
+      };
+      return e(
+        Field,
+        { key: "pins", id: pid, label: "Constraints", hint },
+        e(
+          "div",
+          { className: "bd-pins-row" },
+          e(ConstraintBox, { label: "Constraints", h, v, onPick: pick2 }),
+          e("div", { className: "bd-pins-dds" }, dd("h", h, H_PINS, "H"), dd("v", v, V_PINS, "V"))
+        )
       );
     };
     var setStyles = function(ids, patch) {
@@ -13147,6 +13346,8 @@
               if (f.bare || f.mode === "structured" || !joinsFlow(n.type)) {
                 delete n.style.x;
                 delete n.style.y;
+                delete n.style.ch;
+                delete n.style.cv;
               }
               if (ops.insert(d, "root", f.root.children.length, n, fid)) made.push(n.id);
             });
@@ -14474,8 +14675,9 @@
               })()
             )
           ),
+          pinsField(nodes, ids),
           e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
-            setStyles(ids, { x: void 0, y: void 0, fw: void 0, fh: void 0, rot: void 0 });
+            setStyles(ids, { x: void 0, y: void 0, fw: void 0, fh: void 0, rot: void 0, ch: void 0, cv: void 0 });
           } }, "Put it in the flow")
         ];
       }
@@ -14650,6 +14852,7 @@
             var h = Math.round(frame2.width * r[2]);
             change(function(d) {
               sizeOn(active(d), active(d).width, h);
+              keepPins(d, d.active);
               return void 0;
             }, frame2.name + " is " + r[1] + ", " + frame2.width + " by " + h);
           },
@@ -15685,6 +15888,7 @@
               fr.height = done.h;
               fr.hug = false;
             }
+            keepPins(d, f.id);
             d.active = f.id;
             return void 0;
           }, f.name + " is " + done.w + " by " + (done.h != null ? done.h : "its content"));
@@ -15998,6 +16202,25 @@
         !preview && frameOn && boxes[frame2.id] && !frame2.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame2.id].x * cam.z, top: cam.y + boxes[frame2.id].y * cam.z, width: boxes[frame2.id].w * cam.z, height: boxes[frame2.id].h * cam.z } }) : null,
         marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
         !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
+        /* A selected free layer pinned to an edge: a dashed line to it. */
+        !preview && sel && marks.sel.length === 1 && marks.sel[0].r && boxes[frame2.id] && !frame2.bare && frame2.mode !== "structured" ? (function() {
+          var at2 = locate(doc2, sel), st = at2 && at2.node.style;
+          if (!st || !isFree(st) || !st.ch && !st.cv) return null;
+          var m = marks.sel[0].r, fb = boxes[frame2.id];
+          var L = cam.x + fb.x * cam.z, T = cam.y + fb.y * cam.z, R = L + fb.w * cam.z, B = T + fb.h * cam.z;
+          var mx = m.left + m.width / 2, my = m.top + m.height / 2, out = [];
+          var across = function(k, x1, x2) {
+            if (x2 - x1 > 1) out.push(e("div", { key: k, className: "bd-pin-mark is-x", style: { left: x1, top: my, width: x2 - x1 } }));
+          };
+          var down = function(k, y1, y2) {
+            if (y2 - y1 > 1) out.push(e("div", { key: k, className: "bd-pin-mark is-y", style: { left: mx, top: y1, height: y2 - y1 } }));
+          };
+          if (st.ch === "right" || st.ch === "both") across("r", m.left + m.width, R);
+          if (st.ch === "both") across("l", L, m.left);
+          if (st.cv === "bottom" || st.cv === "both") down("b", m.top + m.height, B);
+          if (st.cv === "both") down("t", T, m.top);
+          return out;
+        })() : null,
         !preview ? marks.sel.map(function(m) {
           var at2 = locate(doc2, m.id);
           if (!at2) return null;

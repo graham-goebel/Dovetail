@@ -616,6 +616,34 @@ function Field(props) {
     props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null);
 }
 
+/* Constraints as Figma draws them: a square for the frame, a smaller one
+   for the layer, a line from it to each edge and two through its middle.
+   Each line is a button; the pinned ones are drawn solid. h and v are the
+   constraint across and down ("left" … "scale"), null when mixed. */
+var PIN_LINES = [
+  ["left", "h", "Keep to the left edge"], ["right", "h", "Keep to the right edge"],
+  ["top", "v", "Keep to the top edge"], ["bottom", "v", "Keep to the bottom edge"],
+  ["hcenter", "h", "Keep to the centre across"], ["vcenter", "v", "Keep to the centre down"],
+];
+function pinOn(line, h, v) {
+  if (line === "left") return h === "left" || h === "both";
+  if (line === "right") return h === "right" || h === "both";
+  if (line === "top") return v === "top" || v === "both";
+  if (line === "bottom") return v === "bottom" || v === "both";
+  if (line === "hcenter") return h === "center";
+  if (line === "vcenter") return v === "center";
+  return false;
+}
+function ConstraintBox(props) {
+  return e("div", { className: "bd-pins", role: "group", "aria-label": props.label || "Constraints" },
+    e("span", { className: "bd-pins-layer", "aria-hidden": true }),
+    PIN_LINES.map(function (l) {
+      var on = pinOn(l[0], props.h, props.v);
+      return e("button", { key: l[0], type: "button", className: cx("bd-pin-line", "is-" + l[0], on && "is-on"), "aria-pressed": String(on), "aria-label": l[2], title: l[2] + (l[0] === "hcenter" || l[0] === "vcenter" ? "" : "; Shift for both edges"),
+        onClick: function (ev) { props.onPick(l[0], ev.shiftKey); } });
+    }));
+}
+
 /* A titled group of controls that folds away. Its title row can carry an
    action on the right, like adding a border. */
 function Section(props) {
@@ -1007,4 +1035,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, SwatchField, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, ConstraintBox, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, SwatchField, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
