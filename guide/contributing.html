@@ -109,7 +109,7 @@ Copy rules specific to this component: casing, length, verb form.</code></pre>
 <h2 id="changing-an-existing-token">Changing an existing token</h2>
 <p>Renaming a token is a breaking change. Treat it as one.</p>
 <ol><li>Add the new name pointing at the same value.</li><li>Keep the old name as an alias of the new one, with a comment marking it deprecated and the date.</li><li>Update every internal usage.</li><li>Remove the alias no sooner than one minor version later.</li></ol>
-<p>Atlassian migrated thousands of tokens to semantic names with codemods, and it was a project. Naming a token correctly the first time is a meeting.</p>
+<p>Large systems have migrated thousands of tokens to semantic names with codemods, and it was a project. Naming a token correctly the first time is a meeting.</p>
 <h2 id="review-checklist">Review checklist</h2>
 <ul><li>[ ] Four files present, <code>.md</code> complete</li><li>[ ] No literal values anywhere in the JSX</li><li>[ ] Works in light and dark</li><li>[ ] Works under <code>theme-editorial</code> and <code>theme-mono</code></li><li>[ ] Keyboard operable, visible focus, labels required in the types</li><li>[ ] All states shown in the directory's <code>@dsCard</code> HTML</li><li>[ ] Copy is sentence case, verb-first on actions</li><li>[ ] <code>check_design_system</code> passes</li></ul>
 </article>

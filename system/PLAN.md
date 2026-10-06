@@ -15,22 +15,22 @@ Three consequences drive every decision below:
 2. **Theming is the product.** A theme is a small file of token overrides. Swapping it restyles everything.
 3. **Content is external.** Components accept content as props/slots so they can be driven by React state, Sanity, Contentful, or static markup interchangeably.
 
-### Benchmarks studied
+### Patterns studied
 
-| System | What we take |
+| Pattern | What we take |
 |---|---|
-| **shadcn/ui** | `background`/`foreground` pairing convention; OKLCH color; `.dark` class overriding the same semantic names; copy-in (not npm-locked) distribution; per-component docs pages |
-| **Atlassian Design System** | Strict semantic naming with no value words; documented token deprecation path |
-| **IBM Carbon** | Multi-theme architecture (white / g10 / g90 / g100) from one token contract |
-| **Material 3** | Role-based color (`surface-container-high`, `on-surface-variant`) — richer surface hierarchy than most systems ship |
-| **Polaris / Spectrum** | Content & voice guidelines treated as first-class system documentation, not an afterthought |
-| **W3C DTCG** | Token file format as the interchange layer, so Figma and code cannot drift |
+| **Copy-in component libraries** | `background`/`foreground` pairing convention; OKLCH color; `.dark` class overriding the same semantic names; copy-in (not npm-locked) distribution; per-component docs pages |
+| **Large enterprise systems** | Strict semantic naming with no value words; documented token deprecation path |
+| **Multi-theme systems** | Multi-theme architecture (white / g10 / g90 / g100) from one token contract |
+| **Role-based colour systems** | Role-based color (`surface-container-high`, `on-surface-variant`) — richer surface hierarchy than most systems ship |
+| **Content-led systems** | Content & voice guidelines treated as first-class system documentation, not an afterthought |
+| **W3C DTCG** | Token file format as the interchange layer, so design tools and code cannot drift |
 
 ---
 
 ## 2. Token architecture
 
-Three tiers, referenced in one direction only: **component → semantic → primitive**. A component never reads a primitive. This is the consensus architecture across the systems above and the thing that makes white-labeling work at all.
+Three tiers, referenced in one direction only: **component → semantic → primitive**. A component never reads a primitive. This is the consensus architecture across the patterns above and the thing that makes white-labeling work at all.
 
 ```
 tokens/
@@ -66,19 +66,19 @@ tokens/
 
 Rules the linter will enforce:
 - **No value words above Tier 1.** Never `--dt-surface-blue`. A `gray-blue` that renders green after a rebrand is the classic failure.
-- **Every background role has a paired foreground role** (shadcn's convention, adopted wholesale). `--dt-surface-action` always ships with `--dt-text-on-action`, contrast-verified.
+- **Every background role has a paired foreground role** (a common convention, adopted wholesale). `--dt-surface-action` always ships with `--dt-text-on-action`, contrast-verified.
 - Lowercase, hyphen-delimited, one convention across the whole set.
 
 ### Color
 
 - **OKLCH throughout.** Perceptually uniform lightness means a generated ramp has even visual steps and contrast is predictable when a brand hue is swapped in.
 - **Neutral ramp + 6 functional hues** (accent, success, warning, danger, info, plus one spare for data-viz) × 11 steps each.
-- **Surface hierarchy borrowed from Material 3** — `surface-base`, `surface-subtle`, `surface-raised`, `surface-sunken`, `surface-inverse`, `surface-overlay`. Deeper than shadcn's flat `background`/`card`, which pays off in dense product UI.
+- **Role-based surface hierarchy** — `surface-base`, `surface-subtle`, `surface-raised`, `surface-sunken`, `surface-inverse`, `surface-overlay`. Deeper than a flat `background`/`card` pair, which pays off in dense product UI.
 - **Dark mode is not a second system.** `.dark` (and `@media (prefers-color-scheme)`) re-point the *same* semantic names at different primitives. Components are untouched.
 - **Contrast is a build-time check**, not a review comment: every semantic pair must clear WCAG 2.2 AA (4.5:1 body, 3:1 large text and non-text).
 
 ### Open question → §7
-Whether we also ship a **DTCG JSON source of truth** with a Style Dictionary build (CSS + JSON + Figma Variables + iOS/Android out of one file), or keep CSS as the single source. JSON is the 2026 standard and the right answer if Figma parity matters; it adds a build step.
+Whether we also ship a **DTCG JSON source of truth** with a Style Dictionary build (CSS + JSON + design-tool variables + iOS/Android out of one file), or keep CSS as the single source. JSON is the 2026 standard and the right answer if parity with design tools matters; it adds a build step.
 
 ---
 
@@ -190,7 +190,7 @@ Sanity schema pack, BlockRenderer, integration docs, templates, do/don't cards, 
 
 These change the build, so I'd like answers before Phase 1 — I've marked my recommendation on each.
 
-1. **Token source of truth** — CSS only (simple, no build step) *or* DTCG JSON + Style Dictionary (Figma parity, multi-platform output). **Rec: DTCG JSON** if this is meant to be world-class and outlive one codebase.
+1. **Token source of truth** — CSS only (simple, no build step) *or* DTCG JSON + Style Dictionary (design-tool parity, multi-platform output). **Rec: DTCG JSON** if this is meant to be world-class and outlive one codebase.
 2. **Default typeface** — Dovetail ships unbranded, so the default should be a neutral, license-free workhorse. **Rec: Inter Variable for UI + a variable serif for editorial, with a documented one-line swap.** (Noting the house guidance against Inter — for a *white-label* default its neutrality is the point, but say the word and I'll pick a different neutral.)
 3. **Component tokens (Tier 3) — all components or only complex ones?** **Rec: only where a real override need exists** (Button, Input, Card, Table, Dialog). Tier 3 everywhere is a maintenance tax most teams never cash in.
 4. **How many demo themes?** **Rec: two**, deliberately far apart (e.g. a warm editorial brand and a cool dense enterprise one) — that's what proves the white-label claim.
@@ -204,4 +204,4 @@ These change the build, so I'd like answers before Phase 1 — I've marked my re
 
 - **No logo.** Dovetail gets a wordmark set in the default typeface. If you want a mark, it needs a designer or a file.
 - **No imagery or illustration.** UI kits will use labelled placeholders. I can't generate images, and hand-drawn SVG would undercut the quality bar.
-- **No Figma file.** I can produce the DTCG JSON that Figma Variables imports, but I can't author the Figma library itself.
+- **No design-tool library.** I can produce the DTCG JSON that design tools import as variables, but I can't author the library itself.

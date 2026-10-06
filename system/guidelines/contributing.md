@@ -89,8 +89,8 @@ Renaming a token is a breaking change. Treat it as one.
 3. Update every internal usage.
 4. Remove the alias no sooner than one minor version later.
 
-Atlassian migrated thousands of tokens to semantic names with codemods, and it was a
-project. Naming a token correctly the first time is a meeting.
+Large systems have migrated thousands of tokens to semantic names with codemods, and it
+was a project. Naming a token correctly the first time is a meeting.
 
 ## Review checklist
 
