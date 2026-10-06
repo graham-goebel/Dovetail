@@ -116,6 +116,8 @@
       ["Zoom to the selection", "Shift+2"],
       ["Actual size", "Shift+0"],
       ["Pan", "Space-drag"],
+      ["Rulers", "Shift+R"],
+      ["Layout columns", "Shift+G"],
       ["Hide the panels", "Tab"],
       ["Measure the spacing, held", "Shift, Alt"],
       ["Search components", "/"],
@@ -1844,6 +1846,11 @@
     if (report && report.indexOf(line) < 0) report.push(line);
   }
   var FREE_MAX = 1200;
+  var GUIDES_MAX = 60;
+  var COLUMNS_MAX = 24;
+  function columnsOf(f) {
+    return f.columns || (f.width < 600 ? 4 : f.width < 1024 ? 8 : 12);
+  }
   var HEX = /^#[0-9a-f]{6}$/i;
   function isFree(st) {
     return !!st && typeof st.x === "number" && typeof st.y === "number";
@@ -2172,6 +2179,18 @@
       if (tokenOption("padding", f.flow.padding)) fl.padding = f.flow.padding;
       if (Object.keys(fl).length) base.flow = fl;
     }
+    if (Array.isArray(f.guides)) {
+      var at2 = function(v, max) {
+        return typeof v === "number" && isFinite(v) ? Math.max(0, Math.min(max, Math.round(v))) : null;
+      };
+      var gs = f.guides.map(function(g) {
+        if (!g || typeof g !== "object" || g.x === void 0 === (g.y === void 0)) return null;
+        var v = g.x !== void 0 ? at2(g.x, MAX_WIDTH) : at2(g.y, MAX_HEIGHT);
+        return v === null ? null : g.x !== void 0 ? { x: v } : { y: v };
+      }).filter(Boolean).slice(0, GUIDES_MAX);
+      if (gs.length) base.guides = gs;
+    }
+    if (Number.isInteger(f.columns) && f.columns >= 1 && f.columns <= COLUMNS_MAX) base.columns = f.columns;
     if (f.clip === true) base.clip = true;
     if (f.scroll === "x" || f.scroll === "y") base.scroll = f.scroll;
     var kids = f.root && Array.isArray(f.root.children) ? f.root.children : Array.isArray(f.children) ? f.children : [];
@@ -3688,7 +3707,15 @@
       view: p.view === "list" ? "list" : "grid",
       tabs: p.tabs && typeof p.tabs === "object" ? p.tabs : {},
       closed: p.closed && typeof p.closed === "object" ? p.closed : {},
-      stage: typeof p.stage === "string" && /^#[0-9a-f]{6}$/i.test(p.stage) ? p.stage.toLowerCase() : ""
+      stage: typeof p.stage === "string" && /^#[0-9a-f]{6}$/i.test(p.stage) ? p.stage.toLowerCase() : "",
+      /* What the canvas shows and snaps to, from the View menu. */
+      canvas: Object.assign(
+        { rulers: false, guides: true, columns: false, snapObjects: true, snapGuides: true },
+        p.canvas && typeof p.canvas === "object" ? Object.keys(p.canvas).reduce(function(o, k) {
+          if (typeof p.canvas[k] === "boolean") o[k] = p.canvas[k];
+          return o;
+        }, {}) : {}
+      )
     };
   }
   function copyText(text2) {
@@ -5828,8 +5855,9 @@
             key: String(o.value),
             id: ids.list + "-" + i,
             "data-i": i,
-            role: props.menu ? "menuitem" : "option",
+            role: props.menu ? o.checked !== void 0 ? "menuitemcheckbox" : "menuitem" : "option",
             "aria-selected": props.menu ? void 0 : String(isSel),
+            "aria-checked": props.menu && o.checked !== void 0 ? String(!!o.checked) : void 0,
             "aria-disabled": o.disabled ? "true" : void 0,
             className: cx("bd-dd-opt", i === activeI && "is-active", isSel && "is-selected", o.disabled && "is-disabled", o.danger && "is-danger"),
             onPointerMove: function() {
@@ -5847,7 +5875,7 @@
             e("span", { className: "bd-dd-opt-label" }, o.label || String(o.value)),
             o.hint ? e("span", { className: "bd-dd-opt-hint" }, kbd(o.hint)) : null
           ),
-          isSel ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null
+          isSel || o.checked ? e(Icon, { name: "check", className: "bd-dd-tick" }) : null
         )];
       })), document.body) : null
     );
@@ -6645,6 +6673,14 @@
     var tints = tintState[0], setTints = tintState[1];
     var themeStampState = useState(0);
     var themeStamp = themeStampState[0], setThemeStamp = themeStampState[1];
+    var canvasViewState = useState(prefs.canvas);
+    var canvasView = canvasViewState[0], setCanvasView = canvasViewState[1];
+    var viewRef = useRef(canvasView);
+    viewRef.current = canvasView;
+    var guideDragState = useState(null);
+    var guideDrag = guideDragState[0], setGuideDrag = guideDragState[1];
+    var colInfoState = useState({});
+    var colInfo = colInfoState[0], setColInfo = colInfoState[1];
     var closedState = useState(prefs.closed);
     var closedSecs = closedState[0], setClosedSecs = closedState[1];
     var toolState = useState("select");
@@ -7081,9 +7117,9 @@
     }, []);
     useEffect(function() {
       storage(function(s) {
-        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left }));
+        s.setItem(PREFS_KEY, JSON.stringify({ category, kind: assetKind, view, tabs: tabByType, closed: closedSecs, left, canvas: canvasView }));
       });
-    }, [category, assetKind, view, tabByType, closedSecs, left]);
+    }, [category, assetKind, view, tabByType, closedSecs, left, canvasView]);
     useEffect(function() {
       var meta = projectRef.current;
       if (meta.stage === stageColor) return;
@@ -7630,26 +7666,34 @@
     var snapOffRef = useRef(false);
     var snapFree = function(f, hostFrame, skipId, fx, fy, w, h, z) {
       var res = { x: fx, y: fy, guides: [] };
-      if (snapOffRef.current || !f.rect) return res;
+      var cv = viewRef.current, objects = cv.snapObjects !== false, toGuides = cv.snapGuides !== false && cv.guides !== false;
+      if (snapOffRef.current || !f.rect || !objects && !toGuides) return res;
       var reach = 6 / z;
       var targets = [];
       var rootR = f.rect("root");
-      if (rootR) targets.push({ l: 0, t: 0, r: rootR.width, b: rootR.height, frame: true });
-      hostFrame.root.children.forEach(function(c) {
-        if (c.id === skipId) return;
-        var r = f.rect(c.id);
-        if (r) targets.push({ l: r.left, t: r.top, r: r.right, b: r.bottom });
+      if (objects) {
+        if (rootR) targets.push({ l: 0, t: 0, r: rootR.width, b: rootR.height, frame: true });
+        hostFrame.root.children.forEach(function(c) {
+          if (c.id === skipId) return;
+          var r = f.rect(c.id);
+          if (r) targets.push({ l: r.left, t: r.top, r: r.right, b: r.bottom });
+        });
+      }
+      if (toGuides) (hostFrame.guides || []).forEach(function(g) {
+        var H = rootR ? rootR.height : hostFrame.height, W = rootR ? rootR.width : hostFrame.width;
+        if (g.x !== void 0) targets.push({ l: g.x, r: g.x, t: 0, b: H, axis: "x" });
+        else targets.push({ t: g.y, b: g.y, l: 0, r: W, axis: "y" });
       });
       if (!targets.length) return res;
       var bestX = null, bestY = null;
       targets.forEach(function(t) {
-        [t.l, (t.l + t.r) / 2, t.r].forEach(function(line) {
+        if (t.axis !== "y") [t.l, (t.l + t.r) / 2, t.r].forEach(function(line) {
           [fx, fx + w / 2, fx + w].forEach(function(edge) {
             var d = line - edge;
             if (Math.abs(d) <= reach && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at: line, t };
           });
         });
-        [t.t, (t.t + t.b) / 2, t.b].forEach(function(line) {
+        if (t.axis !== "x") [t.t, (t.t + t.b) / 2, t.b].forEach(function(line) {
           [fy, fy + h / 2, fy + h].forEach(function(edge) {
             var d = line - edge;
             if (Math.abs(d) <= reach && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d, at: line, t };
@@ -7663,7 +7707,7 @@
       if (!bestX) {
         var L = null, R = null;
         targets.forEach(function(t) {
-          if (t.frame || t.b <= res.y || t.t >= res.y + h) return;
+          if (t.frame || t.axis || t.b <= res.y || t.t >= res.y + h) return;
           if (t.r <= fx && (!L || t.r > L.r)) L = t;
           if (t.l >= fx + w && (!R || t.l < R.l)) R = t;
         });
@@ -7676,7 +7720,7 @@
       if (!bestY) {
         var T = null, B = null;
         targets.forEach(function(t) {
-          if (t.frame || t.r <= res.x || t.l >= res.x + w) return;
+          if (t.frame || t.axis || t.r <= res.x || t.l >= res.x + w) return;
           if (t.b <= fy && (!T || t.b > T.b)) T = t;
           if (t.t >= fy + h && (!B || t.t < B.t)) B = t;
         });
@@ -7689,6 +7733,89 @@
       res.x = Math.max(0, res.x);
       res.y = Math.max(0, res.y);
       return res;
+    };
+    var VIEW_SAYS = { rulers: "Rulers", guides: "Guides", columns: "Layout columns", snapObjects: "Snap to objects", snapGuides: "Snap to guides" };
+    var toggleView = function(k, on) {
+      var next = on === void 0 ? !viewRef.current[k] : on;
+      if (viewRef.current[k] === next) return;
+      setCanvasView(function(v) {
+        var n = Object.assign({}, v);
+        n[k] = next;
+        return n;
+      });
+      announce(VIEW_SAYS[k] + (next ? " on" : " off"));
+    };
+    var RULER = 20;
+    var setGuides = function(fid, fn, message) {
+      change(function(d) {
+        var f = frameById(d, fid);
+        if (!f) return null;
+        var next = fn((f.guides || []).map(function(g) {
+          return Object.assign({}, g);
+        }));
+        if (!next) return null;
+        if (next.length) f.guides = next;
+        else delete f.guides;
+        return void 0;
+      }, message);
+    };
+    var clearGuides = function(fid) {
+      setGuides(fid, function(g) {
+        return g.length ? [] : null;
+      }, "Guides cleared");
+    };
+    var startGuide = function(ev, fid, axis, i) {
+      if (ev.button !== 0) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      try {
+        ev.currentTarget.setPointerCapture(ev.pointerId);
+      } catch (err) {
+      }
+      var cur = null;
+      var at2 = function(mv) {
+        var st = stageRef.current && stageRef.current.getBoundingClientRect(), b = layoutRef.current.boxes[fid], c = camRef.current;
+        if (!st || !b) return null;
+        var sx = mv.clientX - st.left, sy = mv.clientY - st.top, ins = insets();
+        var v = axis === "x" ? (sx - c.x) / c.z - b.x : (sy - c.y) / c.z - b.y, size = axis === "x" ? b.w : b.h;
+        var overRuler = viewRef.current.rulers && (axis === "x" ? sx < ins.l + RULER : sy < RULER);
+        return { fid, axis, i, v: Math.round(Math.max(0, Math.min(size, v))), off: overRuler || v < -2 || v > size + 2 };
+      };
+      var move = function(mv) {
+        cur = at2(mv);
+        if (!cur) return;
+        setGuideDrag(cur);
+        setReadout({ x: mv.clientX, y: mv.clientY, text: cur.off ? i >= 0 ? "Let go to remove" : "Onto the frame" : (axis === "x" ? "X " : "Y ") + cur.v });
+      };
+      var up = function(ok) {
+        return function() {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", onUp);
+          window.removeEventListener("pointercancel", onCancel);
+          setGuideDrag(null);
+          setReadout(null);
+          if (!ok || !cur) return;
+          if (cur.off) {
+            if (i >= 0) setGuides(fid, function(g) {
+              g.splice(i, 1);
+              return g;
+            }, "Guide removed");
+            return;
+          }
+          var o = axis === "x" ? { x: cur.v } : { y: cur.v };
+          setGuides(fid, function(g) {
+            if (i >= 0) g[i] = o;
+            else if (g.length < GUIDES_MAX) g.push(o);
+            else return null;
+            return g;
+          }, (i >= 0 ? "Guide moved to " : "Guide at ") + axis + " " + cur.v);
+          if (!viewRef.current.guides) toggleView("guides", true);
+        };
+      };
+      var onUp = up(true), onCancel = up(false);
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
     };
     var resolve = function(x, y, payload) {
       var list = layersRef.current;
@@ -8545,6 +8672,19 @@
     useEffect(function() {
       remeasure();
     }, [selection, hover, cam, layout.width, layout.height, doc2.active, edit && edit.id]);
+    var colKey = doc2.frames.map(function(f) {
+      return f.id + ":" + f.width + ":" + (f.pageWidth || "") + ":" + (f.gutter || "") + ":" + (f.spacing || "") + ":" + !!ready[f.id];
+    }).join("|");
+    useEffect(function() {
+      if (!canvasView.columns) return;
+      var next = {};
+      docRef.current.frames.forEach(function(f) {
+        var a = !f.bare && ready[f.id] ? api(f.id) : null;
+        var m = a && a.measure ? a.measure(["var(--dt-layout-page-width)", "var(--dt-layout-page-gutter)", "var(--dt-space-gutter)"]) : null;
+        if (m) next[f.id] = { pw: m[0] || f.width, gut: m[1] || 0, gap: m[2] || 0 };
+      });
+      setColInfo(next);
+    }, [canvasView.columns, colKey, themeStamp]);
     useEffect(function() {
       if (!play) return void 0;
       if (playRef.current && !playRef.current.open) playRef.current.showModal();
@@ -9328,6 +9468,14 @@
       }
       if (mod && ev.key === "0") {
         fitAll();
+        return true;
+      }
+      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyR") {
+        toggleView("rulers");
+        return true;
+      }
+      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyG") {
+        toggleView("columns");
         return true;
       }
       if (ev.shiftKey && !mod && ev.code === "Digit0") {
@@ -14961,6 +15109,31 @@
               },
               options: [{ value: "", label: "Page", hint: "--dt-layout-page-gutter, which follows the layout character" }, { value: "wide", label: "Wide", hint: "--dt-space-gutter-wide" }, { value: "none", label: "None", hint: "Edge to edge" }]
             })
+          ),
+          e(
+            Field,
+            { key: "cols", id: "bd-pg-cols", label: "Layout columns", hint: "How many View → Layout columns (Shift+G) lays over this frame, " + (frame2.columns ? "set here." : "by its width; type a number to set it.") + " They sit in the page width, a --dt-space-gutter apart." },
+            e(
+              "div",
+              { className: "bd-size-row" },
+              e(NumberField, {
+                short: "#",
+                label: "Layout columns",
+                value: columnsOf(frame2),
+                min: 1,
+                max: COLUMNS_MAX,
+                step: 1,
+                bigStep: 4,
+                onChange: function(v) {
+                  var n = Math.max(1, Math.min(COLUMNS_MAX, Math.round(v || 0)));
+                  setFrame("columns", n, frame2.name + " shows " + n + " columns");
+                  if (!viewRef.current.columns) toggleView("columns", true);
+                }
+              }),
+              e("button", { type: "button", className: cx("bd-act", canvasView.columns && "is-on"), "aria-pressed": String(!!canvasView.columns), title: (canvasView.columns ? "Hide" : "Show") + " layout columns (Shift+G)", onClick: function() {
+                toggleView("columns");
+              } }, e(Icon, { name: canvasView.columns ? "eye" : "eyeOff" }))
+            )
           )
         ]),
         frameAuto(),
@@ -15449,6 +15622,29 @@
       e(
         "span",
         { className: "bd-tb-side bd-tb-right" },
+        /* What the canvas shows and snaps to: its own button, beside zoom. */
+        e(Dropdown, {
+          menu: true,
+          label: "View",
+          placeholder: "View",
+          icon: "layout",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          alignEnd: true,
+          className: "bd-dd-icon bd-view-menu",
+          options: [
+            { value: "rulers", label: "Rulers", hint: "Shift+R", checked: !!canvasView.rulers, group: "Show" },
+            { value: "guides", label: "Guides", hint: frame2.guides && frame2.guides.length ? frame2.guides.length + " on " + frame2.name : "Drag one out of a ruler", checked: !!canvasView.guides, group: "Show" },
+            { value: "columns", label: "Layout columns", hint: frame2.bare ? "Shift+G" : columnsOf(frame2) + " on " + frame2.name + ", Shift+G", checked: !!canvasView.columns, group: "Show" },
+            { value: "snapObjects", label: "Snap to objects", hint: "Hold Ctrl to skip", checked: canvasView.snapObjects !== false, group: "Snap" },
+            { value: "snapGuides", label: "Snap to guides", checked: canvasView.snapGuides !== false, group: "Snap" }
+          ].concat(frame2.guides && frame2.guides.length ? [{ value: "clear", label: "Clear guides on " + frame2.name, icon: "trash", group: "Guides", danger: true }] : []),
+          onChange: function(v) {
+            if (v === "clear") clearGuides(frame2.id);
+            else if (VIEW_SAYS[v]) toggleView(v);
+          }
+        }),
         e(Dropdown, {
           menu: true,
           label: "Zoom, " + zoomText,
@@ -16073,6 +16269,109 @@
       });
       liveRef.current = liveNow;
     })();
+    var viewMarks = function() {
+      if (preview) return null;
+      var z = cam.z, parts = [];
+      if (canvasView.columns) doc2.frames.forEach(function(f) {
+        var b = boxes[f.id], m = colInfo[f.id];
+        if (!b || f.bare || !m) return;
+        var n = columnsOf(f), inner = Math.max(0, Math.min(m.pw, b.w - 2 * m.gut)), x0 = (b.w - inner) / 2, cw = (inner - (n - 1) * m.gap) / n;
+        if (!(cw > 0)) return;
+        var cols = [];
+        for (var i = 0; i < n; i++) cols.push(e("span", { key: i, className: "bd-col", style: { left: (x0 + i * (cw + m.gap)) * z, width: cw * z } }));
+        parts.push(e(
+          "div",
+          { key: "cols-" + f.id, className: "bd-cols", "data-frame": f.id, style: { left: cam.x + b.x * z, top: cam.y + b.y * z, width: b.w * z, height: b.h * z } },
+          e("span", { className: "bd-col-gut", style: { left: 0, width: x0 * z } }),
+          e("span", { className: "bd-col-gut", style: { right: 0, width: (b.w - x0 - inner) * z } }),
+          cols
+        ));
+      });
+      var line = function(key, f, axis, v, i, b, dragging) {
+        var L = cam.x + b.x * z, T = cam.y + b.y * z;
+        var style = axis === "x" ? { left: L + v * z, top: T, height: b.h * z } : { top: T + v * z, left: L, width: b.w * z };
+        return e("div", {
+          key,
+          className: cx("bd-rguide", "is-" + axis, dragging && "is-dragging"),
+          style,
+          "data-guide": axis + v,
+          title: dragging ? void 0 : "Guide at " + axis + " " + v + ". Drag to move it, or onto a ruler to remove it",
+          onPointerDown: dragging ? void 0 : function(ev) {
+            startGuide(ev, f.id, axis, i);
+          }
+        });
+      };
+      if (canvasView.guides || guideDrag) doc2.frames.forEach(function(f) {
+        var b = boxes[f.id];
+        if (!b || !f.guides || !canvasView.guides) return;
+        f.guides.forEach(function(g, i) {
+          if (guideDrag && guideDrag.fid === f.id && guideDrag.i === i) return;
+          parts.push(line(f.id + "-" + i, f, g.x !== void 0 ? "x" : "y", g.x !== void 0 ? g.x : g.y, i, b, false));
+        });
+      });
+      if (guideDrag && !guideDrag.off && boxes[guideDrag.fid]) parts.push(line("drag", frameById(doc2, guideDrag.fid), guideDrag.axis, guideDrag.v, -1, boxes[guideDrag.fid], true));
+      return parts.length ? e("div", { className: "bd-view" }, parts) : null;
+    };
+    var rulersEl = function() {
+      var b = boxes[frame2.id];
+      if (preview || !canvasView.rulers || !wide || !b) return null;
+      var ins = insets(), z = cam.z, X0 = cam.x + b.x * z, Y0 = cam.y + b.y * z;
+      var w = Math.max(0, box.w - ins.l - ins.r - RULER), h = Math.max(0, box.h - RULER);
+      var step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1e3, 2e3, 5e3].filter(function(n) {
+        return n * z >= 56;
+      })[0] || 5e3;
+      var ticks = function(from, len, origin) {
+        var out = [];
+        for (var v = Math.floor((from - origin) / z / step) * step; origin + v * z <= from + len; v += step) if (origin + v * z >= from) out.push(v);
+        return out;
+      };
+      var span = null;
+      marks.sel.forEach(function(m) {
+        var r = m.r;
+        if (!r) return;
+        span = span ? { l: Math.min(span.l, r.left), t: Math.min(span.t, r.top), r: Math.max(span.r, r.left + r.width), b: Math.max(span.b, r.top + r.height) } : { l: r.left, t: r.top, r: r.left + r.width, b: r.top + r.height };
+      });
+      var canGuide = !frame2.bare;
+      var x0 = ins.l + RULER;
+      var dragAt = guideDrag && guideDrag.fid === frame2.id && !guideDrag.off ? guideDrag : null;
+      return e(
+        "div",
+        { className: "bd-rulers" },
+        e("div", { className: "bd-ruler-corner", style: { left: ins.l }, "aria-hidden": true }),
+        e(
+          "div",
+          {
+            className: "bd-ruler is-top",
+            style: { left: x0, width: w },
+            title: canGuide ? "Drag down for a guide across " + frame2.name : void 0,
+            onPointerDown: canGuide ? function(ev) {
+              startGuide(ev, frame2.id, "y", -1);
+            } : void 0
+          },
+          span ? e("span", { className: "bd-ruler-span", style: { left: span.l - x0, width: span.r - span.l } }) : null,
+          dragAt && dragAt.axis === "x" ? e("span", { className: "bd-ruler-at", style: { left: X0 + dragAt.v * z - x0 } }) : null,
+          ticks(x0, w, X0).map(function(v) {
+            return e("span", { key: v, className: "bd-ruler-tick", style: { left: X0 + v * z - x0 } }, e("span", { className: "bd-ruler-num" }, v));
+          })
+        ),
+        e(
+          "div",
+          {
+            className: "bd-ruler is-left",
+            style: { left: ins.l, height: h },
+            title: canGuide ? "Drag right for a guide down " + frame2.name : void 0,
+            onPointerDown: canGuide ? function(ev) {
+              startGuide(ev, frame2.id, "x", -1);
+            } : void 0
+          },
+          span ? e("span", { className: "bd-ruler-span", style: { top: span.t - RULER, height: span.b - span.t } }) : null,
+          dragAt && dragAt.axis === "y" ? e("span", { className: "bd-ruler-at", style: { top: Y0 + dragAt.v * z - RULER } }) : null,
+          ticks(RULER, h, Y0).map(function(v) {
+            return e("span", { key: v, className: "bd-ruler-tick", style: { top: Y0 + v * z - RULER } }, e("span", { className: "bd-ruler-num" }, v));
+          })
+        )
+      );
+    };
     var stage = e(
       "div",
       {
@@ -16196,6 +16495,7 @@
           );
         })
       ),
+      viewMarks(),
       e(
         "div",
         { className: "bd-marks", "aria-hidden": true },
@@ -16319,6 +16619,7 @@
       })) : null,
       !preview && tool === "hand" ? e("div", Object.assign({ className: "bd-draw is-hand" }, handHandlers)) : null,
       !preview ? resizers : null,
+      rulersEl(),
       !preview ? tools : null,
       edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,

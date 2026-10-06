@@ -145,6 +145,9 @@ function loadPrefs() {
     tabs: p.tabs && typeof p.tabs === "object" ? p.tabs : {},
     closed: p.closed && typeof p.closed === "object" ? p.closed : {},
     stage: typeof p.stage === "string" && /^#[0-9a-f]{6}$/i.test(p.stage) ? p.stage.toLowerCase() : "",
+    /* What the canvas shows and snaps to, from the View menu. */
+    canvas: Object.assign({ rulers: false, guides: true, columns: false, snapObjects: true, snapGuides: true },
+      p.canvas && typeof p.canvas === "object" ? Object.keys(p.canvas).reduce(function (o, k) { if (typeof p.canvas[k] === "boolean") o[k] = p.canvas[k]; return o; }, {}) : {}),
   };
 }
 

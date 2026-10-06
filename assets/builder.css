@@ -88,6 +88,8 @@ body.page-app {
      over what's picked. One fixed hue, clear on a white frame and on the
      dark canvas alike; the chrome takes no theme, so it stays put. */
   --bd-select: var(--dt-color-cyan-500);
+  /* Guides dragged from the rulers, as design tools draw them. */
+  --bd-guide: var(--dt-color-red-500);
   --bd-select-ink: var(--dt-color-white);
   --bd-field: var(--dt-surface-sunken);
   --bd-field-on: var(--dt-surface-raised);
@@ -6238,4 +6240,191 @@ input.bd-folder-name {
 .bd-pin-mark.is-y {
   width: 0;
   border-left: 1px dashed var(--bd-select);
+}
+
+/* View: layout columns and guides over the frames, under the selection's
+   marks; rulers along the open canvas, above them. */
+.bd-view {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bd-cols {
+  position: absolute;
+  overflow: hidden;
+}
+
+.bd-col,
+.bd-col-gut {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.bd-col {
+  background: color-mix(in oklab, var(--bd-select) 10%, transparent);
+  box-shadow: inset 1px 0 color-mix(in oklab, var(--bd-select) 35%, transparent), inset -1px 0 color-mix(in oklab, var(--bd-select) 35%, transparent);
+}
+
+.bd-col-gut {
+  background: color-mix(in oklab, var(--bd-guide) 12%, transparent);
+}
+
+.bd-rguide {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.bd-rguide.is-x {
+  width: 7px;
+  margin-left: -3px;
+  cursor: ew-resize;
+}
+
+.bd-rguide.is-y {
+  height: 7px;
+  margin-top: -3px;
+  cursor: ns-resize;
+}
+
+.bd-rguide::before {
+  content: "";
+  position: absolute;
+  background: var(--bd-guide);
+}
+
+.bd-rguide.is-x::before {
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 1px;
+}
+
+.bd-rguide.is-y::before {
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 1px;
+}
+
+.bd-rguide:hover::before,
+.bd-rguide.is-dragging::before {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--bd-guide) 40%, transparent);
+}
+
+.bd-rguide.is-dragging {
+  pointer-events: none;
+}
+
+.bd-rulers {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.bd-ruler,
+.bd-ruler-corner {
+  position: absolute;
+  background: var(--dt-surface-raised);
+  color: var(--dt-text-tertiary);
+  font: var(--dt-font-weight-regular) 10px/1 var(--dt-font-family-mono);
+  pointer-events: auto;
+  user-select: none;
+}
+
+.bd-ruler {
+  overflow: hidden;
+}
+
+.bd-ruler.is-top {
+  top: 0;
+  height: 20px;
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
+  cursor: ns-resize;
+}
+
+.bd-ruler.is-left {
+  top: 20px;
+  width: 20px;
+  border-right: var(--dt-border-width-default) solid var(--dt-border-default);
+  cursor: ew-resize;
+}
+
+.bd-ruler-corner {
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-right: var(--dt-border-width-default) solid var(--dt-border-default);
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-default);
+  pointer-events: none;
+}
+
+.bd-ruler-tick {
+  position: absolute;
+  background: var(--dt-border-strong);
+}
+
+.bd-ruler.is-top .bd-ruler-tick {
+  bottom: 0;
+  width: 1px;
+  height: 7px;
+}
+
+.bd-ruler.is-left .bd-ruler-tick {
+  right: 0;
+  width: 7px;
+  height: 1px;
+}
+
+.bd-ruler-num {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.bd-ruler.is-top .bd-ruler-num {
+  bottom: 9px;
+  left: 3px;
+}
+
+.bd-ruler.is-left .bd-ruler-num {
+  right: 9px;
+  top: 3px;
+  transform: rotate(-90deg) translateX(-100%);
+  transform-origin: right top;
+}
+
+.bd-ruler-span {
+  position: absolute;
+  background: color-mix(in oklab, var(--bd-select) 30%, transparent);
+}
+
+.bd-ruler.is-top .bd-ruler-span {
+  top: 0;
+  bottom: 0;
+}
+
+.bd-ruler.is-left .bd-ruler-span {
+  left: 0;
+  right: 0;
+}
+
+.bd-ruler-at {
+  position: absolute;
+  background: var(--bd-guide);
+}
+
+.bd-ruler.is-top .bd-ruler-at {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.bd-ruler.is-left .bd-ruler-at {
+  left: 0;
+  right: 0;
+  height: 1px;
 }
