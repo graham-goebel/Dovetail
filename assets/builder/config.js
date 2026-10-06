@@ -48,7 +48,9 @@ function slotAccepts(ownerType, name, childType) {
 function hasSlots(n) { return !!(n && n.children && n.children.some(function (c) { return c.type === "Slot"; })); }
 function nameOf(n) { return n.type === "Slot" ? words(n.props.name) : n.name || n.type; }
 var STYLE_KEYS = Object.keys(DATA.tokens);
-var TABS = [["appearance", "Appearance"], ["layout", "Layout"], ["content", "Content"]];
+/* Properties first: everything a component has of its own. Appearance and
+   Layout are the same for every layer. */
+var TABS = [["content", "Properties"], ["appearance", "Appearance"], ["layout", "Layout"]];
 /* The canvas tools, in a bar along the canvas's foot. Each draws one primitive where it's pressed, sized by
    the drag and snapped to the system's size steps. */
 /* Select and Hand stand alone; the rest are groups. Pressing a group opens
