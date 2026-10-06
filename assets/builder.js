@@ -496,8 +496,8 @@
   }
   function each(obj, iter, strict = true) {
     if (getArchtype(obj) === 0) {
-      const keys = strict ? Reflect.ownKeys(obj) : O.keys(obj);
-      keys.forEach((key) => {
+      const keys2 = strict ? Reflect.ownKeys(obj) : O.keys(obj);
+      keys2.forEach((key) => {
         iter(key, obj[key], obj);
       });
     } else {
@@ -553,9 +553,9 @@
     if (strict === true || strict === "class_only" && !isPlain) {
       const descriptors = O.getOwnPropertyDescriptors(base);
       delete descriptors[DRAFT_STATE];
-      let keys = Reflect.ownKeys(descriptors);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
+      let keys2 = Reflect.ownKeys(descriptors);
+      for (let i = 0; i < keys2.length; i++) {
+        const key = keys2[i];
         const desc = descriptors[key];
         if (desc[WRITABLE] === false) {
           desc[WRITABLE] = true;
@@ -747,9 +747,9 @@
       const draftLocations = parent.draftLocations_ = /* @__PURE__ */ new Map();
       each(parentCopy, (key, value) => {
         if (isDraft(value)) {
-          const keys = draftLocations.get(value) || [];
-          keys.push(key);
-          draftLocations.set(value, keys);
+          const keys2 = draftLocations.get(value) || [];
+          keys2.push(key);
+          draftLocations.set(value, keys2);
         }
       });
     }
@@ -1289,14 +1289,14 @@
     return m;
   }
   function diffFields(out, fid, nid, g, a, b) {
-    var keys = {};
+    var keys2 = {};
     Object.keys(a || {}).forEach(function(k) {
-      keys[k] = true;
+      keys2[k] = true;
     });
     Object.keys(b || {}).forEach(function(k) {
-      keys[k] = true;
+      keys2[k] = true;
     });
-    Object.keys(keys).forEach(function(k) {
+    Object.keys(keys2).forEach(function(k) {
       var was = a ? a[k] : void 0, now = b ? b[k] : void 0;
       if (!same(was, now)) out.push({ t: "set", f: fid, n: nid, g, k, value: now, old: was });
     });
@@ -1374,9 +1374,9 @@
     if (v === void 0) delete obj[k];
     else obj[k] = v;
   }
-  function apply(doc, changes) {
-    if (!changes || !changes.length) return doc;
-    return produce(doc, function(d) {
+  function apply(doc2, changes) {
+    if (!changes || !changes.length) return doc2;
+    return produce(doc2, function(d) {
       var frames = byId(d.frames);
       var made = {}, madeFrames = {}, rootOf = {};
       var index = {};
@@ -1397,7 +1397,7 @@
       var node = function(fid, nid) {
         return made[fid] && made[fid][nid] || look(fid).nodes.get(nid) || null;
       };
-      var frame = function(fid) {
+      var frame2 = function(fid) {
         return madeFrames[fid] || frames.get(fid) || null;
       };
       changes.forEach(function(c) {
@@ -1414,7 +1414,7 @@
       });
       changes.forEach(function(c) {
         if (c.t === "set") {
-          var on = c.n === null ? frame(c.f) : node(c.f, c.n);
+          var on = c.n === null ? frame2(c.f) : node(c.f, c.n);
           if (!on) return;
           if (c.g === "f") put(on, c.k, c.value);
           else {
@@ -1541,22 +1541,22 @@
     var f = makeFrame("Frame 1", "desktop");
     return { frames: [f], active: f.id };
   }
-  function active(doc) {
-    return doc.frames.filter(function(f) {
-      return f.id === doc.active;
-    })[0] || doc.frames[0];
+  function active(doc2) {
+    return doc2.frames.filter(function(f) {
+      return f.id === doc2.active;
+    })[0] || doc2.frames[0];
   }
-  function frameById(doc, fid) {
-    return doc.frames.filter(function(f) {
+  function frameById(doc2, fid) {
+    return doc2.frames.filter(function(f) {
       return f.id === fid;
     })[0] || null;
   }
-  function copy(doc) {
-    return JSON.parse(JSON.stringify(doc));
+  function copy(doc2) {
+    return JSON.parse(JSON.stringify(doc2));
   }
-  function locate(doc, id, fid) {
-    var frame = fid && frameById(doc, fid) || active(doc);
-    if (id === "root") return { node: frame.root, parent: null, index: -1, path: [frame.root] };
+  function locate(doc2, id, fid) {
+    var frame2 = fid && frameById(doc2, fid) || active(doc2);
+    if (id === "root") return { node: frame2.root, parent: null, index: -1, path: [frame2.root] };
     var out = null;
     (function walk(n, path) {
       (n.children || []).forEach(function(c, i) {
@@ -1564,7 +1564,7 @@
         if (c.id === id) out = { node: c, parent: n, index: i, path: path.concat([c]) };
         else if (c.children) walk(c, path.concat([c]));
       });
-    })(frame.root, [frame.root]);
+    })(frame2.root, [frame2.root]);
     return out;
   }
   function fresh(n) {
@@ -1601,8 +1601,8 @@
     })(n);
     return n;
   }
-  function settle(frame, parentId, n) {
-    if (!frame || frame.mode !== "structured") return n;
+  function settle(frame2, parentId, n) {
+    if (!frame2 || frame2.mode !== "structured") return n;
     (function unfree(x) {
       if (x.style) {
         delete x.style.x;
@@ -1616,17 +1616,17 @@
   }
   var CONVERTS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
   var ops = {
-    insert: function(doc, parentId, index, n, fid) {
-      var p = locate(doc, parentId, fid);
+    insert: function(doc2, parentId, index, n, fid) {
+      var p = locate(doc2, parentId, fid);
       if (!canHold(p, n)) return null;
-      var put2 = settle(fid && frameById(doc, fid) || active(doc), parentId, n);
+      var put2 = settle(fid && frameById(doc2, fid) || active(doc2), parentId, n);
       p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, put2);
       return n.id;
     },
-    move: function(doc, id, parentId, index) {
+    move: function(doc2, id, parentId, index) {
       if (id === "root" || id === parentId) return null;
-      var from = locate(doc, id);
-      var to = locate(doc, parentId);
+      var from = locate(doc2, id);
+      var to = locate(doc2, parentId);
       if (fixed(from) || !canHold(to, from.node)) return null;
       if (to.path.some(function(x) {
         return x.id === id;
@@ -1634,14 +1634,14 @@
       if (from.parent === to.node && (index === from.index || index === from.index + 1)) return null;
       from.parent.children.splice(from.index, 1);
       if (from.parent === to.node && from.index < index) index--;
-      to.node.children.splice(Math.max(0, Math.min(index, to.node.children.length)), 0, settle(active(doc), parentId, from.node));
+      to.node.children.splice(Math.max(0, Math.min(index, to.node.children.length)), 0, settle(active(doc2), parentId, from.node));
       return id;
     },
     /* "root" means nothing left to select; null means nothing happened. */
-    remove: function(doc, ids) {
+    remove: function(doc2, ids) {
       var next = null, any = false;
       [].concat(ids).forEach(function(id) {
-        var at2 = locate(doc, id);
+        var at2 = locate(doc2, id);
         if (fixed(at2)) return;
         at2.parent.children.splice(at2.index, 1);
         any = true;
@@ -1650,32 +1650,32 @@
       });
       return any ? next || "root" : null;
     },
-    duplicate: function(doc, id) {
-      var at2 = locate(doc, id);
+    duplicate: function(doc2, id) {
+      var at2 = locate(doc2, id);
       if (fixed(at2)) return null;
       var c = fresh(at2.node);
       at2.parent.children.splice(at2.index + 1, 0, c);
       return c.id;
     },
-    replace: function(doc, id, n) {
-      var at2 = locate(doc, id);
+    replace: function(doc2, id, n) {
+      var at2 = locate(doc2, id);
       if (fixed(at2) || !canHold(parentSpot(at2), n)) return null;
       at2.parent.children.splice(at2.index, 1, n);
       return n.id;
     },
-    wrap: function(doc, id, type) {
-      var at2 = locate(doc, id);
+    wrap: function(doc2, id, type) {
+      var at2 = locate(doc2, id);
       if (fixed(at2)) return null;
       var box = make(type, {}, [at2.node]);
-      if (type === "Group" && active(doc).mode === "structured") autoLayout(box);
+      if (type === "Group" && active(doc2).mode === "structured") autoLayout(box);
       if (!canHold(parentSpot(at2), box)) return null;
       at2.parent.children.splice(at2.index, 1, box);
       return box.id;
     },
     /* Siblings into one Group, in their order, where the first one was. */
-    group: function(doc, ids) {
+    group: function(doc2, ids) {
       var spots = ids.map(function(id) {
-        return locate(doc, id);
+        return locate(doc2, id);
       }).filter(Boolean);
       if (!spots.length || spots.some(fixed)) return null;
       if (!canHold(parentSpot(spots[0]), { type: "Group" })) return null;
@@ -1689,7 +1689,7 @@
       var box = make("Group", {}, spots.map(function(s) {
         return s.node;
       }));
-      if (active(doc).mode === "structured") autoLayout(box);
+      if (active(doc2).mode === "structured") autoLayout(box);
       var at2 = spots[0].index;
       parent.children = parent.children.filter(function(c) {
         return ids.indexOf(c.id) < 0;
@@ -1697,8 +1697,8 @@
       parent.children.splice(at2, 0, box);
       return box.id;
     },
-    ungroup: function(doc, id) {
-      var at2 = locate(doc, id);
+    ungroup: function(doc2, id) {
+      var at2 = locate(doc2, id);
       if (fixed(at2) || !at2.node.children || !isContainer(at2.node.type)) return null;
       var kids = at2.node.children;
       if (kids.some(function(k) {
@@ -1712,8 +1712,8 @@
        Section, and so on. A Group comes laid out (a column, or a row from an
        Inline), with padding where a band had it. Keeps the node's id, so
        it stays selected. */
-    convert: function(doc, id, type) {
-      var at2 = locate(doc, id);
+    convert: function(doc2, id, type) {
+      var at2 = locate(doc2, id);
       if (fixed(at2) || !at2.node.children || at2.node.type === type) return null;
       if (CONVERTS.indexOf(at2.node.type) < 0 || CONVERTS.indexOf(type) < 0) return null;
       var from = at2.node;
@@ -1730,8 +1730,8 @@
       at2.parent.children.splice(at2.index, 1, n);
       return n.id;
     },
-    nudge: function(doc, id, by) {
-      var at2 = locate(doc, id);
+    nudge: function(doc2, id, by) {
+      var at2 = locate(doc2, id);
       if (fixed(at2)) return null;
       var to = at2.index + by;
       if (to < 0 || to >= at2.parent.children.length) return null;
@@ -1740,8 +1740,8 @@
       return id;
     },
     /* To the front (last among its siblings, drawn on top) or the back. */
-    order: function(doc, id, where) {
-      var at2 = locate(doc, id);
+    order: function(doc2, id, where) {
+      var at2 = locate(doc2, id);
       if (fixed(at2)) return null;
       var to = where === "front" ? at2.parent.children.length - 1 : 0;
       if (to === at2.index) return null;
@@ -1750,8 +1750,8 @@
       return id;
     },
     /* A free object moved by whole steps; stays within the canvas's range. */
-    shift: function(doc, id, dx, dy) {
-      var at2 = locate(doc, id);
+    shift: function(doc2, id, dx, dy) {
+      var at2 = locate(doc2, id);
       if (fixed(at2) || at2.node.lock || !isFree(at2.node.style)) return null;
       var st = at2.node.style;
       var x = Math.max(0, Math.min(FREE_MAX, st.x + dx)), y = Math.max(0, Math.min(FREE_MAX, st.y + dy));
@@ -2039,9 +2039,9 @@
     })(base.root);
     return base;
   }
-  function clean(doc, report) {
-    if (!doc || typeof doc !== "object") return emptyDoc();
-    var frames = Array.isArray(doc.frames) && doc.frames.length ? doc.frames : [Object.assign({}, doc.page || {}, { root: doc.root })];
+  function clean(doc2, report) {
+    if (!doc2 || typeof doc2 !== "object") return emptyDoc();
+    var frames = Array.isArray(doc2.frames) && doc2.frames.length ? doc2.frames : [Object.assign({}, doc2.page || {}, { root: doc2.root })];
     if (frames.length > 24) note(report, "Only the first 24 frames were kept");
     var out = { frames: frames.slice(0, 24).map(function(f, i) {
       return cleanFrame(f, i, report);
@@ -2051,7 +2051,7 @@
       if (ids[f.id]) f.id = uid();
       ids[f.id] = true;
     });
-    out.active = ids[doc.active] ? doc.active : out.frames[0].id;
+    out.active = ids[doc2.active] ? doc2.active : out.frames[0].id;
     return out;
   }
 
@@ -2273,8 +2273,8 @@
     var now = function() {
       return Date.now();
     };
-    var count = function(doc) {
-      return doc && Array.isArray(doc.frames) ? doc.frames.length : 0;
+    var count = function(doc2) {
+      return doc2 && Array.isArray(doc2.frames) ? doc2.frames.length : 0;
     };
     var lastVersionAt = {};
     var api = {
@@ -2297,47 +2297,47 @@
       /* A new project, opened next; its first version is where it started.
          extra may carry its settings: the canvas colour behind its frames
          (stage) and its Configure theme. */
-      createProject: function(name, doc, extra) {
+      createProject: function(name, doc2, extra) {
         var meta = Object.assign({
           id: "p" + uid(),
           name: (name || "Untitled").slice(0, 80),
           createdAt: now(),
           updatedAt: now(),
-          frames: count(doc),
+          frames: count(doc2),
           thumb: null,
           pages: [{ id: MAIN, name: "Page 1" }],
           page: MAIN,
-          pageFrames: { main: count(doc) }
+          pageFrames: { main: count(doc2) }
         }, settingsOf(extra));
         if (extra && typeof extra.group === "string" && extra.group) meta.group = extra.group;
         else if (extra && extra.lib === "shared") meta.lib = "shared";
         return b.put("projects", meta).then(function() {
-          return b.put("docs", { id: meta.id, doc });
+          return b.put("docs", { id: meta.id, doc: doc2 });
         }).then(function() {
           return meta;
         });
       },
       /* The document, and the project's edited time and frame count. Every so
          often the save is also kept as a version. */
-      saveDoc: function(id, doc, page) {
+      saveDoc: function(id, doc2, page) {
         page = page || MAIN;
         return b.get("projects", id).then(function(meta) {
           if (!meta) throw new Error("That project is gone.");
           meta.updatedAt = now();
-          tally(meta, page, count(doc));
+          tally(meta, page, count(doc2));
           var key = docKey(id, page);
-          return b.put("docs", { id: key, doc }).then(function() {
+          return b.put("docs", { id: key, doc: doc2 }).then(function() {
             return b.put("projects", meta);
           }).then(function() {
             var last = lastVersionAt[key] || meta.createdAt;
-            if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc, "Autosave", page);
+            if (now() - last >= VERSION_EVERY) return api.addVersion(id, doc2, "Autosave", page);
           }).then(function() {
             return meta;
           });
         });
       },
       /* Pages. Each returns the project as it is after. */
-      addPage: function(id, name, doc, after, folder) {
+      addPage: function(id, name, doc2, after, folder) {
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
           var pages = pagesOf(meta).slice();
@@ -2351,8 +2351,8 @@
           })) page.folder = fold;
           pages.splice(at2 >= 0 ? at2 + 1 : pages.length, 0, page);
           meta.pages = pages;
-          tally(meta, page.id, count(doc));
-          return b.put("docs", { id: docKey(id, page.id), doc }).then(function() {
+          tally(meta, page.id, count(doc2));
+          return b.put("docs", { id: docKey(id, page.id), doc: doc2 }).then(function() {
             return b.put("projects", meta);
           }).then(function() {
             return { meta, page };
@@ -2633,10 +2633,10 @@
       },
       /* Versions: newest first, at most VERSIONS_MAX a page. Without a page,
          listVersions gives every page's. */
-      addVersion: function(id, doc, label, page) {
+      addVersion: function(id, doc2, label, page) {
         page = page || MAIN;
         lastVersionAt[docKey(id, page)] = now();
-        return b.put("versions", { project: id, page, at: now(), label: label || "Saved", frames: count(doc), doc }).then(function() {
+        return b.put("versions", { project: id, page, at: now(), label: label || "Saved", frames: count(doc2), doc: doc2 }).then(function() {
           return api.listVersions(id, page);
         }).then(function(vs) {
           return Promise.all(vs.slice(VERSIONS_MAX).map(function(v) {
@@ -2711,8 +2711,10 @@
       getGroup: function(id) {
         return b.get("groups", id);
       },
-      createGroup: function(name) {
+      /* extra.kind marks a project the builder made itself (the Playground). */
+      createGroup: function(name, extra) {
         var g = { id: "g" + uid(), name: String(name || "").trim().slice(0, 80) || "Untitled project", createdAt: now(), updatedAt: now(), thumb: null };
+        if (extra && typeof extra.kind === "string") g.kind = extra.kind;
         return b.put("groups", g).then(function() {
           return g;
         });
@@ -2739,12 +2741,12 @@
         });
       },
       /* A file into a project, or (group null) out onto Home. */
-      moveFile: function(id, group) {
-        return Promise.all([b.get("projects", id), group ? b.get("groups", group) : Promise.resolve(null)]).then(function(got) {
+      moveFile: function(id, group2) {
+        return Promise.all([b.get("projects", id), group2 ? b.get("groups", group2) : Promise.resolve(null)]).then(function(got) {
           var meta = got[0];
-          if (!meta || group && !got[1]) return null;
+          if (!meta || group2 && !got[1]) return null;
           var from = libScopeOf(meta);
-          if (group) meta.group = group;
+          if (group2) meta.group = group2;
           else delete meta.group;
           var steps = api.mergeLibrary(from, libScopeOf(meta)).then(function() {
             return b.put("projects", meta);
@@ -2760,10 +2762,10 @@
           });
         });
       },
-      filesIn: function(group) {
+      filesIn: function(group2) {
         return api.listProjects().then(function(list) {
           return list.filter(function(p) {
-            return p.group === group;
+            return p.group === group2;
           });
         });
       },
@@ -2831,14 +2833,14 @@
         var steps = Promise.resolve();
         if (raw) {
           steps = steps.then(function() {
-            var doc;
+            var doc2;
             try {
-              doc = clean(JSON.parse(raw));
+              doc2 = clean(JSON.parse(raw));
             } catch (err) {
               return null;
             }
-            var name = doc.frames.length === 1 ? doc.frames[0].name : "My layout";
-            return api.createProject(name, doc).then(function(meta) {
+            var name = doc2.frames.length === 1 ? doc2.frames[0].name : "My layout";
+            return api.createProject(name, doc2).then(function(meta) {
               var more = Promise.resolve();
               if (backup) {
                 try {
@@ -2985,6 +2987,402 @@
     }]
   ];
 
+  // assets/builder/model/playground.js
+  var PLAYGROUND_KEY = "dovetail-builder-playground";
+  var PLAYGROUND_NAME = "Playground";
+  function frame(name, preset, children, extra) {
+    var f = makeFrame(name, preset, true);
+    f.mode = "structured";
+    Object.assign(f, extra || {});
+    f.root.children = children;
+    return f;
+  }
+  function doc() {
+    var frames = Array.prototype.slice.call(arguments);
+    return { frames, active: frames[0].id };
+  }
+  function slot(name, children) {
+    return { id: uid(), type: "Slot", props: { name }, style: {}, children };
+  }
+  function text(children, variant, extra) {
+    return make("Text", Object.assign({ children, variant: variant || "body" }, extra));
+  }
+  function heading(children, size, extra) {
+    return make("Heading", Object.assign({ children, size: size || "heading-md", level: 2 }, extra));
+  }
+  function button(children, variant, extra) {
+    return make("Button", Object.assign({ children, variant: variant || "primary" }, extra));
+  }
+  function group(props, children, style) {
+    return make("Group", Object.assign({ direction: "column", gap: "md" }, props), children, style);
+  }
+  function guide(eyebrow, title, lead, rest, tone) {
+    return make("Section", { width: "default", tone: tone || "base" }, [
+      make("Stack", { layer: "block" }, [
+        make("Stack", { layer: "related" }, [
+          text(eyebrow, "eyebrow"),
+          heading(title, "display-sm", { level: 1 }),
+          lead ? text(lead, "lead", { measure: "default" }) : null
+        ].filter(Boolean))
+      ].concat(rest))
+    ]);
+  }
+  function welcome() {
+    var n = 0;
+    var step = function(title, description) {
+      n++;
+      return make("Card", { eyebrow: "Step " + n, title, description: "" }, [text(description, "small", { tone: "secondary" })]);
+    };
+    return doc(frame("Welcome", "desktop", [
+      guide("Playground", "Welcome to the builder", "Arrange real Dovetail components into screens, styled only with the system's tokens. These pages walk you through it, and the example files beside this one are yours to take apart.", [
+        make("Grid", { columns: 4, gap: "md" }, [
+          step("Add", "Open Assets in the left rail. Drag a component onto a frame, or press it to drop it into what's selected."),
+          step("Select", "Click anything on the canvas to select it, and double-click text to type. Layers shows the whole tree."),
+          step("Style", "The inspector on the right offers tokens, not raw values, so whatever you make stays on the system."),
+          step("Share", "Export gives you the React code, a picture, the layout as a file, or a link that opens it here.")
+        ]),
+        make("Callout", { tone: "tip", title: "Make it yours", children: "Everything in the Playground can be changed or deleted. For a fresh copy, choose New, then Playground, on Home." })
+      ]),
+      make("Section", { width: "default", tone: "subtle" }, [
+        make("Stack", { layer: "group" }, [
+          heading("The pages in this file", "heading-md"),
+          make("List", { divided: true, label: "Pages", items: [
+            { title: "Style a card", description: "Change a fill, a variant and a type size" },
+            { title: "Lay out a row", description: "Direction, gap and alignment on a Group" },
+            { title: "Freeform and structured", description: "The two kinds of frame, side by side" },
+            { title: "Light, dark and themes", description: "Each frame's own mode, and Configure for all of them" },
+            { title: "Use the components", description: "Preview and Play, with Tabs, an Accordion, a Carousel" },
+            { title: "Keys worth knowing", description: "The shortcuts that save the most time" }
+          ] })
+        ])
+      ])
+    ]));
+  }
+  function styleCard() {
+    return doc(frame("Style a card", "desktop", [
+      guide("Try it", "Style a card", null, [
+        make("Grid", { columns: 2, gap: "xl", align: "center" }, [
+          make("Stepper", { orientation: "vertical", current: 0, label: "Steps", steps: [
+            { label: "Select the card", description: "Click its edge on the canvas, or its row in Layers." },
+            { label: "Change its fill", description: "Appearance, then Fill, then Brand muted. Only tokens are offered." },
+            { label: "Make the button brand", description: "Select the button and pick the brand variant." },
+            { label: "Step the heading", description: "Select the title and press Shift and Up to move up the type scale." }
+          ] }),
+          make("Card", { eyebrow: "New season", title: "Autumn collection", description: "Stoneware made slowly, for every day." }, [
+            text("Four glazes, each fired twice.", "small", { tone: "secondary" }),
+            slot("footer", [button("Shop now"), button("Our story", "ghost")])
+          ])
+        ])
+      ])
+    ]));
+  }
+  function layOutRow() {
+    var stat = function(label, value, delta) {
+      return make("Stat", { label, value, unit: "", delta, deltaDirection: "up" });
+    };
+    return doc(frame("Lay out a row", "desktop", [
+      guide("Try it", "Lay out a row", "A Group lines up what's in it, in a row or a column. Select the Group below, then open Layout in the inspector and try its direction, gap and alignment. Drag a Stat's row in Layers to reorder it.", [
+        group({ direction: "row", gap: "lg", justify: "space-between" }, [
+          stat("Workshops", "12", "+2"),
+          stat("Pieces a week", "4,800", "+6%"),
+          stat("Free repairs", "5 yrs", "new")
+        ], { padding: "lg", border: "subtle", radius: "container" }),
+        text("Tip: Ctrl+G groups what's selected, and Ctrl+Shift+G takes the group apart again.", "small", { tone: "secondary" })
+      ])
+    ]));
+  }
+  function freeAndStructured() {
+    var free = makeFrame("Freeform", "laptop", false);
+    free.mode = "free";
+    free.surface = "subtle";
+    free.root.children = [
+      make("Shape", { shape: "ellipse" }, void 0, { x: 136, y: 28, fw: 80, fh: 80, surface: "brand-muted" }),
+      make("Shape", { shape: "rectangle" }, void 0, { x: 168, y: 92, fw: 56, fh: 40, surface: "brand", radius: "container", rot: -8 }),
+      make("Heading", { children: "Freeform", size: "display-sm", level: 2 }, void 0, { x: 16, y: 24 }),
+      make("Text", { children: "Place anything anywhere. Drag a layer to move it, pull its handles to size it in 4px steps, and drag just outside a corner to turn it.", variant: "lead" }, void 0, { x: 16, y: 48, fw: 100 }),
+      make("Button", { children: "I go anywhere", variant: "secondary" }, void 0, { x: 16, y: 120 })
+    ];
+    var structured = frame("Structured", "laptop", [
+      make("Section", { width: "default" }, [
+        make("Stack", { layer: "group" }, [
+          heading("Structured", "display-sm"),
+          text("Everything sits in Groups and Sections, styled with tokens. Drop something in and it takes its place in the flow; drag it in Layers to move it.", "lead"),
+          group({ direction: "row", gap: "sm" }, [button("Primary"), button("Secondary", "secondary"), button("Ghost", "ghost")]),
+          make("Callout", { tone: "note", title: "Switch a frame's kind", children: "Select the frame, then Layout, then Kind. Turning a freeform frame structured lines its layers up in Groups." })
+        ])
+      ])
+    ]);
+    return doc(free, structured);
+  }
+  function lightDark() {
+    var sample = function() {
+      return make("Section", { width: "narrow" }, [
+        make("Stack", { layer: "group" }, [
+          make("Inline", { gap: "xs" }, [make("Badge", { tone: "success", dot: true, children: "In stock" }), make("Badge", { tone: "brand", children: "New" })]),
+          heading("Fired twice", "heading-lg"),
+          text("A second firing makes the glaze hard enough for the dishwasher.", "body", { tone: "secondary" }),
+          make("Input", { label: "Email" }),
+          make("Switch", { label: "Tell me about new pieces", defaultChecked: true }),
+          group({ direction: "row", gap: "sm" }, [button("Add to basket"), button("Save", "secondary")])
+        ])
+      ]);
+    };
+    var light = frame("Light", "tablet", [sample()]);
+    var dark = frame("Dark", "tablet", [sample()], { dark: true });
+    var note3 = frame("Light, dark and themes", "tablet", [
+      guide("Try it", "Light, dark and themes", "Each frame has its own light or dark setting: select a frame and press the sun in the inspector's head. Configure, in the left rail, changes the theme for every frame at once, from colours and type to radius and density.", [
+        make("Callout", { tone: "tip", title: "Dark inside a light page", children: "A Section can be dark on its own. Select one and turn on Dark in its Appearance." })
+      ])
+    ]);
+    return doc(note3, light, dark);
+  }
+  function useComponents() {
+    return doc(frame("Use the components", "desktop", [
+      guide("Try it", "Use the components", "Press Preview, the eye in the top bar, to use these as a visitor would, or Play to see the frame in a screen-sized window. Esc goes back to editing.", [
+        make("Grid", { columns: 2, gap: "xl" }, [
+          make("Stack", { layer: "group" }, [
+            make("Tabs", { variant: "underline", value: "care", label: "About the piece", tabs: [{ id: "care", label: "Care" }, { id: "making", label: "Making" }, { id: "delivery", label: "Delivery" }] }),
+            make("Slider", { label: "Glaze depth", defaultValue: 40 }),
+            make("Switch", { label: "Gift wrap", defaultChecked: false })
+          ]),
+          make("Accordion", { label: "Questions", items: [
+            { title: "Is it dishwasher safe?", content: "Yes. A second firing makes the glaze hard enough." },
+            { title: "Do you repair pieces?", content: "Chips and cracks are mended free for the first five years." },
+            { title: "Where is it made?", content: "In small workshops within a day's drive." }
+          ] })
+        ]),
+        make("Carousel", { label: "Collections", layout: "coverflow" })
+      ])
+    ]));
+  }
+  function keys() {
+    var list = function(label, items) {
+      return make("List", { divided: true, label, items: items.map(function(it) {
+        return { title: it[0], trailing: it[1] };
+      }) });
+    };
+    return doc(frame("Keys worth knowing", "desktop", [
+      guide("Reference", "Keys worth knowing", "Ctrl is Cmd on a Mac.", [
+        make("Grid", { columns: 2, gap: "xl" }, [
+          make("Stack", { layer: "related" }, [heading("Editing", "heading-sm"), list("Editing", [
+            ["Undo, and redo", "Ctrl+Z, Ctrl+Shift+Z"],
+            ["Duplicate", "Ctrl+D"],
+            ["Copy, cut and paste", "Ctrl+C, X, V"],
+            ["Copy and paste a style", "Ctrl+Alt+C, V"],
+            ["Group, and ungroup", "Ctrl+G, Ctrl+Shift+G"],
+            ["Delete", "Del"],
+            ["Rename", "F2"]
+          ])]),
+          make("Stack", { layer: "related" }, [heading("Canvas", "heading-sm"), list("Canvas", [
+            ["Select all", "Ctrl+A"],
+            ["Bring forward, send back", "Ctrl+], Ctrl+["],
+            ["Nudge, four steps", "Arrows, Shift+Arrows"],
+            ["Zoom to fit, to the selection, to 100%", "Shift+1, 2, 0"],
+            ["Step a heading's size", "Shift+Up, Down"],
+            ["Hide the panels", "Tab"],
+            ["Stop previewing", "Esc"]
+          ])])
+        ])
+      ])
+    ]));
+  }
+  function starter(id) {
+    return STARTERS.filter(function(s) {
+      return s[0] === id;
+    })[0][2]();
+  }
+  function landing() {
+    var d = starter("landing");
+    var phone = makeFrame("Landing, phone", "phone", true);
+    phone.root.children = [make("HeroBlock"), make("FeatureGridBlock", { tone: "subtle" }), make("CtaBlock", { tone: "brand" })];
+    d.frames.push(phone);
+    return d;
+  }
+  function social() {
+    var post = function(name, preset, props) {
+      var f = makeFrame(name, preset, false);
+      f.typeScale = "social";
+      f.root.children = [make("SocialPost", props)];
+      return f;
+    };
+    return doc(
+      post("Post", "post", { layout: "headline", format: "portrait", tone: "brand", eyebrow: "New season", title: "Made slowly. Used every day." }),
+      post("Square", "square", { layout: "stat", format: "square", tone: "paper", eyebrow: "Since 2014", title: "4,800", body: "pieces a week, each one made by hand" }),
+      post("Story", "story", { layout: "quote", format: "story", tone: "ink", title: "The mug I reach for every morning.", meta: "Sam, Leeds" })
+    );
+  }
+  function builderScreens() {
+    var at2 = function(x, y, w, h, props, children, style) {
+      return make(
+        "Group",
+        Object.assign({ direction: "column", gap: "sm" }, props),
+        children,
+        Object.assign({ x: Math.round(x / 4), y: Math.round(y / 4), fw: Math.round(w / 4), fh: Math.round(h / 4) }, style)
+      );
+    };
+    var row = function(props, children, style) {
+      return make("Group", Object.assign({ direction: "row", gap: "sm", align: "center" }, props), children, style);
+    };
+    var col = function(props, children, style) {
+      return make("Group", Object.assign({ direction: "column", gap: "sm" }, props), children, style);
+    };
+    var more = function(label, size) {
+      return make("IconButton", { label, size: size || "sm" });
+    };
+    var small = function(t, v) {
+      return make("Button", { children: t, variant: v || "ghost", size: "sm" });
+    };
+    var PANEL = { surface: "raised", border: "subtle", radius: "container" };
+    var WELL = { surface: "sunken", border: "subtle", radius: "control", paddingTop: "xs", paddingBottom: "xs", paddingLeft: "sm", paddingRight: "sm" };
+    var field = function(label, value, hint) {
+      return col({ gap: "2xs" }, [text(label, "label"), row({ justify: "space-between" }, [text(value, "small"), text("⌄", "small", { tone: "tertiary" })], WELL)].concat(hint ? [text(hint, "fine", { tone: "tertiary" })] : []));
+    };
+    var num = function(letter, value) {
+      return row({ gap: "xs" }, [text(letter, "fine", { tone: "tertiary" }), text(value, "small")], WELL);
+    };
+    var search = function(placeholder) {
+      return row(
+        { gap: "xs" },
+        [text("⌕", "body", { tone: "tertiary" }), text(placeholder, "small", { tone: "tertiary" })],
+        { paddingTop: "xs", paddingBottom: "xs", paddingLeft: "sm", paddingRight: "sm", surface: "sunken", border: "subtle", radius: "pill", h: "control-sm" }
+      );
+    };
+    var tile = function(title, blurb) {
+      return col({ gap: "2xs", align: "center", justify: "center" }, [
+        make("Shape", { shape: "rectangle" }, void 0, { w: "icon-lg", height: "icon-lg", surface: "subtle", radius: "control" }),
+        text(title, "small", { weight: "semibold", align: "center" }),
+        text(blurb, "fine", { tone: "tertiary", align: "center" })
+      ], { surface: "sunken", border: "subtle", radius: "container", paddingTop: "md", paddingBottom: "md", paddingLeft: "xs", paddingRight: "xs" });
+    };
+    var seg = function(label, value, names) {
+      return make("Tabs", { variant: "pill", value, label, tabs: names.map(function(t) {
+        return { id: t.toLowerCase(), label: t };
+      }) });
+    };
+    var head = function(title) {
+      return row({ justify: "space-between" }, [heading(title, "heading-xs", { level: 3 }), text("⌄", "small", { tone: "tertiary" })]);
+    };
+    var f = makeFrame("Workspace", "wide", false);
+    f.dark = true;
+    f.root.children = [
+      at2(0, 0, 1440, 56, { direction: "row", justify: "space-between", align: "center", gap: "md" }, [
+        heading("Dovetail", "heading-sm", { level: 1 }),
+        row({ gap: "xs" }, [text("Untitled"), more("File actions", "xs")]),
+        row({ gap: "xs" }, [small("56%  ⌄", "secondary"), small("▷"), small("◉"), small("Export", "primary")])
+      ], { paddingLeft: "md", paddingRight: "md", borderBottom: "subtle" }),
+      at2(8, 64, 80, 828, { justify: "space-between", align: "stretch" }, [
+        col({ gap: "xs", align: "stretch" }, ["Home", "Assets", "Pages", "Layers", "Content", "Configure"].map(function(l) {
+          return small(l, l === "Assets" ? "secondary" : "ghost");
+        })),
+        small("Account")
+      ], Object.assign({ padding: "xs" }, PANEL)),
+      at2(96, 64, 256, 828, { justify: "space-between" }, [
+        make("Grid", { columns: 2, gap: "xs" }, [tile("Containers", "Frames and screen sizes"), tile("Primitives", "10 to add"), tile("Variables", "6 sets"), tile("Components", "81 to add"), tile("Blocks", "15 to add"), tile("Templates", "4 pages")]),
+        search("Search all components")
+      ], Object.assign({ padding: "sm" }, PANEL)),
+      at2(384, 88, 728, 24, { direction: "row", gap: "xs", align: "center" }, [text("Landing", "small"), text("1280 × 2115", "fine", { tone: "tertiary" }), more("Frame actions", "xs")]),
+      at2(384, 112, 728, 780, { gap: "none" }, [make("Image", { placeholder: "Landing page", alt: "", radius: "none", ratio: "4:3" }, void 0, { height: "fill" })], { elevation: "2" }),
+      at2(
+        596,
+        828,
+        304,
+        56,
+        { direction: "row", gap: "2xs", align: "center", justify: "center" },
+        ["Select", "Text", "Heading", "Image"].map(function(t, i) {
+          return small(t, i ? "ghost" : "secondary");
+        }),
+        { padding: "xs", surface: "raised", radius: "pill", elevation: "3", border: "subtle" }
+      ),
+      at2(1128, 64, 304, 828, { gap: "none" }, [
+        col({ gap: "sm" }, [
+          row({ justify: "space-between" }, [heading("Landing", "heading-md"), row({ gap: "2xs" }, [small("☼"), more("Frame actions")])]),
+          text("Hugs its content. Select something in it to change that instead.", "small", { tone: "secondary" }),
+          field("Device", "Desktop"),
+          row({ gap: "xs" }, [num("W", "1280"), num("H", "2115"), small("⛓"), small("⇄")]),
+          field("Resizing", "Hug contents")
+        ], { padding: "sm", borderBottom: "subtle" }),
+        col({ gap: "none" }, [seg("Inspector", "layout", ["Appearance", "Layout"])], { padding: "sm", borderBottom: "subtle" }),
+        col({ gap: "xs" }, [head("Kind"), text("Frame kind", "label"), seg("Frame kind", "freeform", ["Freeform", "Structured"]), text("Place things anywhere, in any colour.", "fine", { tone: "tertiary" })], { padding: "sm", borderBottom: "subtle" }),
+        col({ gap: "xs" }, [
+          head("Page layout"),
+          field("Layout character", "Page default", "Sets data-layout, which moves every layout layer token together."),
+          field("Type scale", "Page", "The page's own sizes."),
+          field("Page width", "Page", "The column every Section, block and page-width Group shares.")
+        ], { padding: "sm" })
+      ], PANEL)
+    ];
+    return doc(f);
+  }
+  function playground() {
+    return { name: PLAYGROUND_NAME, files: [
+      { name: "Start here", pages: [
+        { name: "Welcome", doc: welcome() },
+        { name: "Style a card", doc: styleCard() },
+        { name: "Lay out a row", doc: layOutRow() },
+        { name: "Freeform and structured", doc: freeAndStructured() },
+        { name: "Light, dark and themes", doc: lightDark() },
+        { name: "Use the components", doc: useComponents() },
+        { name: "Keys worth knowing", doc: keys() }
+      ] },
+      { name: "Example: Landing page", pages: [{ name: "Landing", doc: landing() }] },
+      { name: "Example: Store", pages: [{ name: "Store", doc: starter("store") }] },
+      { name: "Example: Settings form", pages: [{ name: "Settings", doc: starter("settings") }] },
+      { name: "Example: Support chat", pages: [{ name: "Chat", doc: starter("chat") }] },
+      { name: "Example: Social posts", pages: [{ name: "Posts", doc: social() }] },
+      { name: "Example: Builder screens", pages: [{ name: "Workspace", doc: builderScreens() }] }
+    ] };
+  }
+  function tick() {
+    var t = Date.now();
+    return new Promise(function(done) {
+      (function wait() {
+        if (Date.now() > t) done();
+        else setTimeout(wait, 1);
+      })();
+    });
+  }
+  function addPlayground(store) {
+    var pg = playground();
+    return store.createGroup(pg.name, { kind: "playground" }).then(function(g) {
+      var steps = Promise.resolve(null);
+      pg.files.slice().reverse().forEach(function(file) {
+        steps = steps.then(tick).then(function() {
+          return store.createProject(file.name, file.pages[0].doc, { group: g.id }).then(function(meta) {
+            var more = store.renamePage(meta.id, pageOf(meta), file.pages[0].name);
+            file.pages.slice(1).forEach(function(p) {
+              more = more.then(function() {
+                return store.addPage(meta.id, p.name, p.doc);
+              });
+            });
+            return more.then(function() {
+              return store.getProject(meta.id);
+            });
+          });
+        });
+      });
+      return steps.then(function(first) {
+        return { group: g, first, doc: pg.files[0].pages[0].doc };
+      });
+    });
+  }
+  function seedPlayground(store) {
+    if (storage(function(s) {
+      return s.getItem(PLAYGROUND_KEY);
+    })) return Promise.resolve(null);
+    return store.listGroups().then(function(groups) {
+      return groups.some(function(g) {
+        return g.kind === "playground";
+      }) ? null : addPlayground(store);
+    }).then(function(made) {
+      storage(function(s) {
+        s.setItem(PLAYGROUND_KEY, "1");
+      });
+      return made;
+    }, function() {
+      return null;
+    });
+  }
+
   // assets/builder/model/share.js
   function loadLibrary(saved) {
     var raw = saved && typeof saved === "object" ? saved : {};
@@ -3005,8 +3403,8 @@
     }).filter(Boolean);
     return out;
   }
-  function encode(doc) {
-    var bytes = new TextEncoder().encode(JSON.stringify(doc));
+  function encode(doc2) {
+    var bytes = new TextEncoder().encode(JSON.stringify(doc2));
     var bin = "";
     bytes.forEach(function(b) {
       bin += String.fromCharCode(b);
@@ -3023,8 +3421,8 @@
       return null;
     }
   }
-  function withoutUploads(doc) {
-    var d = copy(doc), dropped = 0;
+  function withoutUploads(doc2) {
+    var d = copy(doc2), dropped = 0;
     (function walk(n) {
       Object.keys(n.props || {}).forEach(function(k) {
         if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) {
@@ -3069,6 +3467,11 @@
   function openStart(store) {
     var hash = readHash();
     return store.listProjects().then(function(projects) {
+      return seedPlayground(store).then(function(seeded) {
+        return [projects, seeded];
+      });
+    }).then(function(got) {
+      var projects = got[0], seeded = got[1];
       var last = store.lastOpened();
       var pick = projects.filter(function(p) {
         return p.id === last;
@@ -3076,13 +3479,13 @@
       var current2 = function() {
         if (!pick) return Promise.resolve(null);
         var page = pageOf(pick);
-        return store.loadDoc(pick.id, page).then(function(doc) {
-          return doc ? { project: pick, page, doc } : null;
+        return store.loadDoc(pick.id, page).then(function(doc2) {
+          return doc2 ? { project: pick, page, doc: doc2 } : null;
         });
       };
-      var fresh2 = function(name, doc, extra) {
-        return store.createProject(name, doc).then(function(meta) {
-          return Object.assign({ project: meta, page: pageOf(meta), doc }, extra);
+      var fresh2 = function(name, doc2, extra) {
+        return store.createProject(name, doc2).then(function(meta) {
+          return Object.assign({ project: meta, page: pageOf(meta), doc: doc2 }, extra);
         });
       };
       if (hash && hash.kind === "link" && hash.data) {
@@ -3112,7 +3515,9 @@
         });
       }
       return current2().then(function(cur) {
-        return cur ? Object.assign(cur, { from: "saved" }) : fresh2("Untitled", starterDoc(), { from: "starter" });
+        if (cur) return Object.assign(cur, { from: "saved" });
+        if (seeded && seeded.first) return { project: seeded.first, page: pageOf(seeded.first), doc: seeded.doc, from: "playground" };
+        return fresh2("Untitled", starterDoc(), { from: "starter" });
       });
     }).then(function(init) {
       store.setLastOpened(init.project.id);
@@ -3137,13 +3542,13 @@
       stage: typeof p.stage === "string" && /^#[0-9a-f]{6}$/i.test(p.stage) ? p.stage.toLowerCase() : ""
     };
   }
-  function copyText(text) {
+  function copyText(text2) {
     return new Promise(function(resolve, reject) {
       if (window.DovetailCopy && window.DovetailCopy.write) {
-        window.DovetailCopy.write(text, function(ok) {
+        window.DovetailCopy.write(text2, function(ok) {
           (ok ? resolve : reject)();
         });
-      } else if (navigator.clipboard) navigator.clipboard.writeText(text).then(resolve, reject);
+      } else if (navigator.clipboard) navigator.clipboard.writeText(text2).then(resolve, reject);
       else reject(new Error("no clipboard"));
     });
   }
@@ -3228,7 +3633,7 @@
       i++;
       return body;
     };
-    var text = function(t) {
+    var text2 = function(t) {
       var decoded = t.replace(/&(amp|lt|gt|quot|apos|nbsp|#39);/g, function(m, e2) {
         return { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", "#39": "'" }[e2];
       });
@@ -3240,7 +3645,7 @@
     var children = function(tag) {
       var kids = [], buf = "";
       var flush = function() {
-        var t = text(buf);
+        var t = text2(buf);
         if (t) kids.push({ text: t });
         buf = "";
       };
@@ -3307,7 +3712,7 @@
         if (s[i] === '"' || s[i] === "'") {
           var st = i + 1;
           skipString(s[i]);
-          attrs.push({ name: an[0], str: text(s.slice(st, i - 1)) || s.slice(st, i - 1) });
+          attrs.push({ name: an[0], str: text2(s.slice(st, i - 1)) || s.slice(st, i - 1) });
         } else if (s[i] === "{") {
           i++;
           attrs.push({ name: an[0], expr: braces() });
@@ -3449,12 +3854,12 @@
     };
     TOKEN_CSS.forEach(function(t) {
       if (style[t.key] !== void 0) return;
-      var keys = Object.keys(t.css);
-      if (keys.every(function(p) {
+      var keys2 = Object.keys(t.css);
+      if (keys2.every(function(p) {
         return left[p] !== void 0 && same3(left[p], t.css[p]);
       })) {
         style[t.key] = t.value;
-        keys.forEach(function(p) {
+        keys2.forEach(function(p) {
           delete left[p];
         });
       }
@@ -3657,32 +4062,32 @@
     });
     return out;
   }
-  function readJsx(text, report) {
-    var els = readJsxElements(text);
+  function readJsx(text2, report) {
+    var els = readJsxElements(text2);
     if (!els.length) return null;
-    var frame = { name: "Pasted", hug: true, root: { children: [] } };
+    var frame2 = { name: "Pasted", hug: true, root: { children: [] } };
     var page = els.length === 1 && els[0].tag === "div" && els[0].attrs.some(function(a) {
       return a.name === "data-layout" || a.name === "data-type-scale";
-    }) || els.length === 1 && els[0].tag === "div" && /export\s+(default\s+)?function/.test(text) && !els[0].attrs.some(function(a) {
+    }) || els.length === 1 && els[0].tag === "div" && /export\s+(default\s+)?function/.test(text2) && !els[0].attrs.some(function(a) {
       return a.name === "role";
     });
     if (page) {
       var root = els[0];
       root.attrs.forEach(function(a) {
-        if (a.name === "className" && /\bdark\b/.test(a.str || "")) frame.dark = true;
-        if (a.name === "data-layout" && a.str) frame.spacing = a.str;
-        if (a.name === "data-type-scale" && a.str === "social") frame.typeScale = "social";
+        if (a.name === "className" && /\bdark\b/.test(a.str || "")) frame2.dark = true;
+        if (a.name === "data-layout" && a.str) frame2.spacing = a.str;
+        if (a.name === "data-type-scale" && a.str === "social") frame2.typeScale = "social";
       });
-      frame.root.children = jsxNodes(root.children.filter(function(c) {
+      frame2.root.children = jsxNodes(root.children.filter(function(c) {
         return c.tag !== void 0;
       }), report);
-    } else frame.root.children = jsxNodes(els, report);
-    var name = /export\s+(?:default\s+)?function\s+([A-Z]\w*)/.exec(text);
-    if (name) frame.name = name[1].replace(/([a-z])([A-Z])/g, "$1 $2");
-    return { frames: [frame] };
+    } else frame2.root.children = jsxNodes(els, report);
+    var name = /export\s+(?:default\s+)?function\s+([A-Z]\w*)/.exec(text2);
+    if (name) frame2.name = name[1].replace(/([a-z])([A-Z])/g, "$1 $2");
+    return { frames: [frame2] };
   }
-  function readLayout(text) {
-    var t = String(text || "").trim();
+  function readLayout(text2) {
+    var t = String(text2 || "").trim();
     if (!t) return null;
     var data = null;
     var report = [];
@@ -3719,9 +4124,9 @@
       else if (data.root || data.children) data = { frames: [data] };
     }
     if (!data || typeof data !== "object" || !Array.isArray(data.frames) || !data.frames.length) return { error: "No frames or nodes found. See the layout format for what the builder reads." };
-    var doc = clean(data, report);
+    var doc2 = clean(data, report);
     var layers = 0;
-    doc.frames.forEach(function(f) {
+    doc2.frames.forEach(function(f) {
       (function walk(n) {
         (n.children || []).forEach(function(c) {
           layers++;
@@ -3729,7 +4134,7 @@
         });
       })(f.root);
     });
-    return { doc, report, layers };
+    return { doc: doc2, report, layers };
   }
 
   // assets/builder/model/usage.js
@@ -3746,9 +4151,9 @@
   }
   function usageOf(docs, into) {
     var use = into || emptyUsage();
-    (docs || []).forEach(function(doc) {
-      if (!doc || !Array.isArray(doc.frames)) return;
-      doc.frames.forEach(function(f) {
+    (docs || []).forEach(function(doc2) {
+      if (!doc2 || !Array.isArray(doc2.frames)) return;
+      doc2.frames.forEach(function(f) {
         note2(use, "surface", f.surface || "base");
         (function walk(n) {
           if (n.type !== "Root" && n.type !== "Slot") use.types[n.type] = true;
@@ -3790,8 +4195,8 @@
     });
     return out;
   }
-  function usesToken(use, keys, value) {
-    return [].concat(keys).some(function(k) {
+  function usesToken(use, keys2, value) {
+    return [].concat(keys2).some(function(k) {
       return !!(use.tokens[k] && use.tokens[k][value]);
     });
   }
@@ -4264,7 +4669,7 @@
         setPass(ev.target.value);
       } });
     };
-    var button = function(label) {
+    var button2 = function(label) {
       return e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: busy }, busy ? "One moment…" : label);
     };
     var link = function(label, m) {
@@ -4300,7 +4705,7 @@
         field("bd-acct-again", "The same again", { type: "password", autoComplete: "new-password", minLength: 8, value: again, onChange: function(ev) {
           setAgain(ev.target.value);
         } }),
-        e("div", { className: "bd-acct-actions" }, button("Save password"))
+        e("div", { className: "bd-acct-actions" }, button2("Save password"))
       );
     } else {
       body = e(
@@ -4312,7 +4717,7 @@
         e(
           "div",
           { className: "bd-acct-actions" },
-          button(mode === "signup" ? "Create account" : mode === "forgot" ? "Send the link" : "Sign in"),
+          button2(mode === "signup" ? "Create account" : mode === "forgot" ? "Send the link" : "Sign in"),
           mode === "signin" ? link("Forgot your password?", "forgot") : null
         ),
         e("p", { className: "bd-acct-switch" }, mode === "signin" ? e(React.Fragment, null, "New here? ", link("Create an account", "signup")) : e(React.Fragment, null, mode === "signup" ? "Have an account? " : "Remembered it? ", link("Sign in", "signin")))
@@ -4456,9 +4861,9 @@
     out.inst = { of: inst.inst.of, rev };
     return out;
   }
-  function instancesOf(doc, compId) {
+  function instancesOf(doc2, compId) {
     var out = [];
-    doc.frames.forEach(function(f) {
+    doc2.frames.forEach(function(f) {
       (function walk(n) {
         (n.children || []).forEach(function(c, i) {
           if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
@@ -4468,8 +4873,8 @@
     });
     return out;
   }
-  function updateInstances(doc, compId, was, next, rev, exceptId) {
-    var hits = instancesOf(doc, compId), n = 0;
+  function updateInstances(doc2, compId, was, next, rev, exceptId) {
+    var hits = instancesOf(doc2, compId), n = 0;
     hits.forEach(function(h) {
       if (h.node.id === exceptId) {
         h.node.inst = { of: compId, rev };
@@ -4480,8 +4885,8 @@
     });
     return n;
   }
-  function detachAll(doc, compId) {
-    var hits = instancesOf(doc, compId);
+  function detachAll(doc2, compId) {
+    var hits = instancesOf(doc2, compId);
     hits.forEach(function(h) {
       delete h.node.inst;
     });
@@ -4519,7 +4924,7 @@
     var spec = props.spec, items = props.value || [];
     var openState = useState(items.length ? 0 : -1);
     var open = openState[0], setOpen = openState[1];
-    var text = spec.of === "text";
+    var text2 = spec.of === "text";
     var put2 = function(next) {
       props.onChange(next);
     };
@@ -4543,11 +4948,11 @@
         return /^[a-z][\w-]*$/.test(String(x[f.name]));
       });
     };
-    var fields = text ? [] : spec.fields.filter(function(f) {
+    var fields = text2 ? [] : spec.fields.filter(function(f) {
       return !isId(f);
     }).concat(spec.fields.filter(isId));
     var summary = function(it, i) {
-      if (text) return String(it || "") || "Empty";
+      if (text2) return String(it || "") || "Empty";
       var named = fields.filter(function(x) {
         return x.kind === "text" && it[x.name] && !isId(x);
       });
@@ -4575,7 +4980,7 @@
       return o;
     };
     var blank = function() {
-      if (text) return items.length ? String(items[items.length - 1]) : "";
+      if (text2) return items.length ? String(items[items.length - 1]) : "";
       if (items.length) return unique(JSON.parse(JSON.stringify(items[items.length - 1])));
       var o = {};
       fields.forEach(function(f) {
@@ -4647,7 +5052,7 @@
           isOpen ? e(
             "div",
             { className: "bd-list-body" },
-            text ? e("input", { className: "bd-input", type: "text", "aria-label": props.label + " " + (i + 1), value: String(it == null ? "" : it), onChange: function(ev) {
+            text2 ? e("input", { className: "bd-input", type: "text", "aria-label": props.label + " " + (i + 1), value: String(it == null ? "" : it), onChange: function(ev) {
               setAt(i, ev.target.value);
             } }) : fields.map(function(f) {
               return field(it, i, f);
@@ -4658,7 +5063,7 @@
       e("button", { type: "button", className: "bd-btn bd-list-add", disabled: items.length >= 60, onClick: function() {
         put2(items.concat([blank()]));
         setOpen(items.length);
-      } }, e(Icon, { name: "plus" }), "Add " + (text ? "a line" : "an item"))
+      } }, e(Icon, { name: "plus" }), "Add " + (text2 ? "a line" : "an item"))
     );
   }
   function UrlInput(props) {
@@ -5340,7 +5745,7 @@
   function OpacityField(props) {
     var shown = props.value == null ? "" : String(props.value);
     var textState = useState(shown);
-    var text = textState[0], setText = textState[1];
+    var text2 = textState[0], setText = textState[1];
     useEffect(function() {
       setText(shown);
     }, [shown]);
@@ -5353,8 +5758,8 @@
       return Math.max(0, Math.min(100, Math.round(n)));
     };
     var commit = function() {
-      var n = Number(String(text).replace(/[^\d]/g, ""));
-      if (!String(text).trim() || !isFinite(n)) {
+      var n = Number(String(text2).replace(/[^\d]/g, ""));
+      if (!String(text2).trim() || !isFinite(n)) {
         setText(shown);
         return;
       }
@@ -5408,7 +5813,7 @@
           type: "text",
           inputMode: "numeric",
           "aria-label": "Opacity, percent",
-          value: text,
+          value: text2,
           placeholder: props.value == null ? "Mixed" : "",
           onChange: function(ev) {
             setText(ev.target.value.replace(/[^\d]/g, "").slice(0, 3));
@@ -5422,7 +5827,7 @@
               ev.preventDefault();
               ev.stopPropagation();
               setText(shown);
-            } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text === "" ? latest2.current : Number(text));
+            } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text2 === "" ? latest2.current : Number(text2));
           }
         }),
         e("span", { className: "bd-num-l bd-opacity-unit", "aria-hidden": true }, "%")
@@ -5577,7 +5982,7 @@
     var step = props.step || 1, big = props.bigStep || (props.step ? props.step * 4 : 10);
     var shown = props.value == null ? "" : String(props.value);
     var textState = useState(shown);
-    var text = textState[0], setText = textState[1];
+    var text2 = textState[0], setText = textState[1];
     useEffect(function() {
       setText(shown);
     }, [shown]);
@@ -5588,8 +5993,8 @@
       return n;
     };
     var commit = function() {
-      var raw = Number(text);
-      if (!String(text).trim() || text === "-" || !isFinite(raw)) {
+      var raw = Number(text2);
+      if (!String(text2).trim() || text2 === "-" || !isFinite(raw)) {
         setText(shown);
         return;
       }
@@ -5637,7 +6042,7 @@
         type: "text",
         inputMode: props.signed ? "text" : "numeric",
         "aria-label": props.label,
-        value: text,
+        value: text2,
         placeholder: props.placeholder,
         onChange: function(ev) {
           setText(ev.target.value.replace(props.signed ? /[^\d-]/g : /[^\d]/g, "").replace(/(?!^)-/g, "").slice(0, 6));
@@ -5653,7 +6058,7 @@
             setText(shown);
           } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
             ev.preventDefault();
-            var from = text !== "" && isFinite(Number(text)) ? Number(text) : Number(props.value) || 0;
+            var from = text2 !== "" && isFinite(Number(text2)) ? Number(text2) : Number(props.value) || 0;
             var next = tidy(from + (ev.shiftKey ? big : step) * (ev.key === "ArrowUp" ? 1 : -1));
             setText(String(next));
             props.onChange(next);
@@ -5672,10 +6077,10 @@
   function midpoint(a, b) {
     return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   }
-  function layoutOf(doc, heights, resizing, widths, moving) {
+  function layoutOf(doc2, heights, resizing, widths, moving) {
     var x = 0, out = { boxes: {}, width: 0, height: 0, left: 0, top: 0 };
     var maxX = 0, maxY = 0, minX = 0, minY = 0;
-    doc.frames.forEach(function(f) {
+    doc2.frames.forEach(function(f) {
       var r = resizing && resizing.fid === f.id ? resizing : null;
       var w = r ? r.w : f.bare ? f.sized ? f.width : Math.max(24, widths && widths[f.id] || 120) : f.width;
       var h = r && r.h != null ? r.h : f.bare ? Math.max(16, heights[f.id] || 40) : f.hug ? Math.max(MIN_SIDE, heights[f.id] || f.height) : f.height;
@@ -5732,12 +6137,12 @@
     var docState = useState(function() {
       return freeze(init.doc, true);
     });
-    var doc = docState[0], setDoc = docState[1];
+    var doc2 = docState[0], setDoc = docState[1];
     var projectState = useState(init.project);
     var project = projectState[0], setProject = projectState[1];
     var projectRef = useRef(project);
     projectRef.current = project;
-    var lastSaved = useRef(init.from === "saved" ? doc : null);
+    var lastSaved = useRef(init.from === "saved" ? doc2 : null);
     var selState = useState([]);
     var selection = selState[0], setSelection = selState[1];
     var partState = useState(null);
@@ -5860,7 +6265,7 @@
     var space = spaceState[0], setSpace = spaceState[1];
     var panningState = useState(false);
     var panning = panningState[0], setPanning = panningState[1];
-    var frame = active(doc);
+    var frame2 = active(doc2);
     var sel = selection.length ? selection[selection.length - 1] : null;
     var resizeState = useState(null);
     var resizing = resizeState[0], setResizing = resizeState[1];
@@ -5892,7 +6297,7 @@
     var codeTitleState = useState("");
     var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
     var clip = useRef(null);
-    var layout = layoutOf(doc, heights, resizing, widths, movingFrame);
+    var layout = layoutOf(doc2, heights, resizing, widths, movingFrame);
     var boxes = layout.boxes;
     var history = useRef({ past: [], future: [] });
     var pageState = useState(init.page || pageOf(init.project));
@@ -5900,8 +6305,8 @@
     var pageRef = useRef(pageId);
     pageRef.current = pageId;
     var histories = useRef({});
-    var docRef = useRef(doc);
-    docRef.current = doc;
+    var docRef = useRef(doc2);
+    docRef.current = doc2;
     var selRef = useRef(selection);
     selRef.current = selection;
     var camRef = useRef(cam);
@@ -6029,10 +6434,10 @@
         return null;
       }
     };
-    var announce = useCallback(function(text) {
+    var announce = useCallback(function(text2) {
       setSay("");
       setTimeout(function() {
-        setSay(text);
+        setSay(text2);
       }, 30);
     }, []);
     var openAccount = function() {
@@ -6167,9 +6572,9 @@
       });
     };
     useEffect(function() {
-      if (doc === lastSaved.current) return;
-      persist(projectRef.current.id, doc, pageRef.current);
-    }, [doc]);
+      if (doc2 === lastSaved.current) return;
+      persist(projectRef.current.id, doc2, pageRef.current);
+    }, [doc2]);
     useEffect(function() {
       window.__builder = {
         doc: function() {
@@ -6262,15 +6667,15 @@
         clearTimeout(timer);
       };
     }, []);
-    var firstDoc = useRef(doc);
+    var firstDoc = useRef(doc2);
     useEffect(function() {
-      if (doc !== firstDoc.current && /^#(b|jsx)=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
-    }, [doc]);
+      if (doc2 !== firstDoc.current && /^#(b|jsx)=/.test(location.hash)) window.history.replaceState(null, "", location.pathname + location.search);
+    }, [doc2]);
     var focused = useRef(false);
     useEffect(function() {
-      if (focused.current || init.from !== "link" && init.from !== "jsx" || !ready[doc.active] || !box.w) return;
+      if (focused.current || init.from !== "link" && init.from !== "jsx" || !ready[doc2.active] || !box.w) return;
       focused.current = true;
-      showFrame(doc.active, true);
+      showFrame(doc2.active, true);
       if (init.focus && locate(docRef.current, init.focus)) {
         select([init.focus]);
         setLeft("layers");
@@ -6416,8 +6821,8 @@
     };
     useEffect(function() {
       if (camState[0] || !box.w) return;
-      if (doc.frames.length > 1 && doc.frames.length <= VIRTUAL_AFTER && wide) fitWidth();
-      else showFrame(doc.active);
+      if (doc2.frames.length > 1 && doc2.frames.length <= VIRTUAL_AFTER && wide) fitWidth();
+      else showFrame(doc2.active);
     }, [box.w]);
     var wheel = function(clientX, clientY, dx, dy, zoom, mode) {
       if (mode === 1) {
@@ -6452,19 +6857,19 @@
     var gesture = function(phase, id, clientX, clientY, kind, fid) {
       var g = gest.current;
       var p = stageXY(clientX, clientY);
-      var keys = Object.keys(g.pts);
+      var keys2 = Object.keys(g.pts);
       if (phase === "down") {
-        if (!keys.length) {
+        if (!keys2.length) {
           g.moved = false;
           g.start = p;
           g.fid = fid || null;
           setPanning(true);
         }
         g.pts[id] = p;
-        keys = Object.keys(g.pts);
+        keys2 = Object.keys(g.pts);
         g.pinch = null;
-        if (keys.length >= 2) {
-          var a0 = g.pts[keys[0]], b0 = g.pts[keys[1]];
+        if (keys2.length >= 2) {
+          var a0 = g.pts[keys2[0]], b0 = g.pts[keys2[1]];
           g.pinch = { d: Math.max(1, distance(a0, b0)), mid: midpoint(a0, b0), cam: Object.assign({}, camRef.current) };
           g.moved = true;
         }
@@ -6474,8 +6879,8 @@
       if (phase === "move") {
         var prev = g.pts[id];
         g.pts[id] = p;
-        if (g.pinch && keys.length >= 2) {
-          var a = g.pts[keys[0]], b = g.pts[keys[1]];
+        if (g.pinch && keys2.length >= 2) {
+          var a = g.pts[keys2[0]], b = g.pts[keys2[1]];
           var m = midpoint(a, b), c0 = g.pinch.cam;
           var z = clampZoom(c0.z * distance(a, b) / g.pinch.d);
           var wx = (g.pinch.mid.x - c0.x) / c0.z, wy = (g.pinch.mid.y - c0.y) / c0.z;
@@ -6497,9 +6902,9 @@
         return true;
       }
       delete g.pts[id];
-      keys = Object.keys(g.pts);
-      if (keys.length < 2) g.pinch = null;
-      if (!keys.length) {
+      keys2 = Object.keys(g.pts);
+      if (keys2.length < 2) g.pinch = null;
+      if (!keys2.length) {
         g.fid = null;
         setPanning(false);
       }
@@ -6872,7 +7277,7 @@
         var gx = Math.min(FREE_MAX, Math.round(fx / unit)), gy = Math.min(FREE_MAX, Math.round(fy / unit));
         out.free = { x: gx, y: gy };
         out.readout = { x, y, text: "X " + Math.round(gx * unit) + "  Y " + Math.round(gy * unit) };
-        out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at2.fid) || frame).root.children.length;
+        out.index = moving && moving.parent && moving.parent.id === "root" && own ? moving.index : (frameById(docRef.current, at2.fid) || frame2).root.children.length;
         out.line = null;
         out.box = { left: gx * unit, top: gy * unit, width: w, height: h };
       }
@@ -7429,9 +7834,9 @@
             playKey: function(key, alt) {
               return playKeyRef.current(key, alt);
             },
-            edit: on(function(fid, id, text) {
+            edit: on(function(fid, id, text2) {
               if (docRef.current.active !== fid) activateRef.current(fid);
-              beginEditRef.current(id, text);
+              beginEditRef.current(id, text2);
             }),
             hover: on(function(fid, id) {
               var h = hoverRef.current;
@@ -7521,7 +7926,7 @@
     readyRef.current = frameReady;
     var slotFrame = function() {
       var a = null;
-      doc.frames.forEach(function(f) {
+      doc2.frames.forEach(function(f) {
         if (!a && ready[f.id]) a = api(f.id);
       });
       return a && a.slots ? a : null;
@@ -7548,7 +7953,7 @@
           return !!m && !m.builder && !hasSlots(n) && tpl(n.type).length > 0;
         };
         var missing = false;
-        doc.frames.forEach(function(f) {
+        doc2.frames.forEach(function(f) {
           if (scanned.current.has(f)) return;
           var here = false;
           (function walk(n) {
@@ -7583,7 +7988,7 @@
           return;
         }
       }
-      doc.frames.forEach(function(f) {
+      doc2.frames.forEach(function(f) {
         if (!ready[f.id]) return;
         var a = api(f.id);
         if (!a) return;
@@ -7605,11 +8010,11 @@
         setScalars(sc);
         setDetachable(det);
       }
-    }, [ready, doc, preview]);
+    }, [ready, doc2, preview]);
     useEffect(function() {
-      var a = api(doc.active);
+      var a = api(doc2.active);
       if (!a || !a.measure) return;
-      var keys = [], values = [];
+      var keys2 = [], values = [];
       Object.keys(DATA.tokens).forEach(function(k) {
         var sec2 = DATA.tokens[k].section;
         if (sec2 !== "size" && sec2 !== "spacing" && k !== "offset") return;
@@ -7624,18 +8029,18 @@
             return false;
           });
           if (v) {
-            keys.push(k + "|" + o.value);
+            keys2.push(k + "|" + o.value);
             values.push(v);
           }
         });
       });
       TEXT_STYLES.forEach(function(t) {
-        keys.push("text|" + t[0]);
+        keys2.push("text|" + t[0]);
         values.push("var(--dt-text-" + t[0] + "-size)");
       });
       var got = a.measure(values);
       var map = {};
-      keys.forEach(function(k, i) {
+      keys2.forEach(function(k, i) {
         if (got[i] != null && got[i] >= 0) map[k] = got[i];
       });
       setPxMap(map);
@@ -7649,7 +8054,7 @@
         });
         setTints(tm);
       }
-    }, [ready[doc.active], doc.active, frame.spacing, frame.width, themeStamp]);
+    }, [ready[doc2.active], doc2.active, frame2.spacing, frame2.width, themeStamp]);
     useEffect(function() {
       var bump = function() {
         setThemeStamp(function(n) {
@@ -7665,7 +8070,7 @@
     }, []);
     useEffect(function() {
       remeasure();
-    }, [selection, hover, cam, layout.width, layout.height, doc.active, edit && edit.id]);
+    }, [selection, hover, cam, layout.width, layout.height, doc2.active, edit && edit.id]);
     useEffect(function() {
       if (!play) return void 0;
       if (playRef.current && !playRef.current.open) playRef.current.showModal();
@@ -7686,7 +8091,7 @@
       }
       if (!hover) return;
       setSpacing(computeSpacing(hover, sel));
-    }, [shiftHeld, hover && hover.f, hover && hover.id, sel, cam, doc, drag, preview, pxMap]);
+    }, [shiftHeld, hover && hover.f, hover && hover.id, sel, cam, doc2, drag, preview, pxMap]);
     useEffect(function() {
       if (!focusSec) return void 0;
       var t = setTimeout(function() {
@@ -7708,7 +8113,7 @@
     }, [focusSec]);
     useEffect(function() {
       if (rightRef.current) rightRef.current.scrollTop = 0;
-    }, [sel, doc.active]);
+    }, [sel, doc2.active]);
     var textPropOf = function(node) {
       var base = scalars[node.type] || {};
       for (var i = 0; i < TEXT_PROPS.length; i++) {
@@ -7761,13 +8166,13 @@
     };
     var pickRef = useRef(pick);
     pickRef.current = pick;
-    var textSource = function(node, text, f) {
-      var want = String(text || "").trim();
+    var textSource = function(node, text2, f) {
+      var want = String(text2 || "").trim();
       if (!want) return null;
       var base = scalars[node.type] || {};
-      var keys = Object.keys(node.props).concat(Object.keys(base));
-      for (var i = 0; i < keys.length; i++) {
-        var k = keys[i];
+      var keys2 = Object.keys(node.props).concat(Object.keys(base));
+      for (var i = 0; i < keys2.length; i++) {
+        var k = keys2[i];
         if (k === "children" && isContainer(node.type)) continue;
         var v = typeof node.props[k] === "string" ? node.props[k] : node.props[k] === void 0 && typeof base[k] === "string" ? base[k] : null;
         if (v !== null && v.trim() === want) return { prop: k, value: v };
@@ -7798,11 +8203,11 @@
       }
       return null;
     };
-    var beginEdit = function(id, text) {
+    var beginEdit = function(id, text2) {
       var at2 = locate(docRef.current, id);
       var f = api();
       if (!at2 || !f) return;
-      var src = text ? textSource(at2.node, text, f) : null;
+      var src = text2 ? textSource(at2.node, text2, f) : null;
       if (!src) {
         var prop = textPropOf(at2.node);
         if (!prop) {
@@ -7881,7 +8286,7 @@
       }
       if (type === "Inline") n.props.wrap = false;
       var parentAt = t.parent === "root" ? null : locate(docRef.current, t.parent, fid);
-      var parentName = parentAt ? parentAt.node.type : (frameById(docRef.current, fid) || frame).name;
+      var parentName = parentAt ? parentAt.node.type : (frameById(docRef.current, fid) || frame2).name;
       change(function(d) {
         d.active = fid;
         return ops.insert(d, t.parent, t.index, n, fid);
@@ -8683,7 +9088,7 @@
         if (p.typeScale) f.typeScale = p.typeScale;
         else delete f.typeScale;
         return void 0;
-      }, frame.name + " is " + p.label + ", " + p.width + " by " + p.height + (p.typeScale ? ", with social type" : ""));
+      }, frame2.name + " is " + p.label + ", " + p.width + " by " + p.height + (p.typeScale ? ", with social type" : ""));
     };
     var setProp = function(ids, key, value) {
       change(function(d) {
@@ -9102,10 +9507,10 @@
         var t = ev.target;
         if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
         if (!(mountEl.contains(t) || t === document.body)) return;
-        var text = ev.clipboardData ? ev.clipboardData.getData("text/plain") : "";
+        var text2 = ev.clipboardData ? ev.clipboardData.getData("text/plain") : "";
         var data = null;
         try {
-          data = JSON.parse(text);
+          data = JSON.parse(text2);
         } catch (err) {
           data = null;
         }
@@ -9488,6 +9893,16 @@
         switchTo(meta, d, "Made a new file, " + name);
       });
     };
+    var newPlayground = function() {
+      flush().then(function() {
+        return addPlayground(store);
+      }).then(function(made) {
+        return refreshProjects().then(function() {
+          goHomeView(made.group.id);
+          announce("Added the Playground: Start here and the examples.");
+        });
+      });
+    };
     var newGroup = function() {
       var taken = (groupList || []).map(function(g) {
         return g.name;
@@ -9515,12 +9930,12 @@
         refreshProjects();
       });
     };
-    var moveFile = function(id, group) {
-      var g = group ? groupById(group) : null;
+    var moveFile = function(id, group2) {
+      var g = group2 ? groupById(group2) : null;
       var f = (projList || []).filter(function(p) {
         return p.id === id;
       })[0];
-      store.moveFile(id, group).then(function(meta) {
+      store.moveFile(id, group2).then(function(meta) {
         if (!meta) return;
         if (id === projectRef.current.id) {
           projectRef.current = meta;
@@ -9805,7 +10220,7 @@
         download({ format: BUNDLE_FORMAT, version: 1, name: g.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), files: list.filter(Boolean) }, g.name);
       });
     };
-    var fileFromData = function(data, fallback, group) {
+    var fileFromData = function(data, fallback, group2) {
       if (!data || data.format !== PROJECT_FORMAT || !data.doc) return Promise.resolve(null);
       var dropped = [];
       var given = (Array.isArray(data.pages) && data.pages.length ? data.pages : [{ name: "Page 1", doc: data.doc }]).slice(0, 50).filter(function(p) {
@@ -9817,7 +10232,7 @@
       });
       var d = pages[0].doc;
       var name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : fallback;
-      return store.createProject(name, d, { stage: data.stage, theme: data.theme, group: group || void 0 }).then(function(meta) {
+      return store.createProject(name, d, { stage: data.stage, theme: data.theme, group: group2 || void 0 }).then(function(meta) {
         var steps = store.setFolders(meta.id, data.folders).then(function() {
           return store.renamePage(meta.id, pageOf(meta), pages[0].name);
         }).then(function() {
@@ -9875,9 +10290,9 @@
           announce(file.name + " isn't a Dovetail file.");
           return;
         }
-        var group = homeRef.current ? homeViewRef.current : null;
+        var group2 = homeRef.current ? homeViewRef.current : null;
         captureThumb().then(flush).then(function() {
-          return fileFromData(data, fallback, group);
+          return fileFromData(data, fallback, group2);
         }).then(function(got) {
           if (!got) {
             announce(file.name + " isn't a Dovetail file.");
@@ -9938,8 +10353,8 @@
         return sortWhen(b, filesOf ? filesOf(b) : null) - sortWhen(a, filesOf ? filesOf(a) : null);
       });
     };
-    var confirmRow = function(label, text, actions2) {
-      return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text), actions2);
+    var confirmRow = function(label, text2, actions2) {
+      return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text2), actions2);
     };
     var fileCard = function(p, showGroup) {
       var current2 = p.id === project.id, isOpening = opening === p.id;
@@ -10137,7 +10552,7 @@
         "main",
         { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
         /* On a phone the bar lives in the canvas pane, under this page, so it comes along. */
-        slot ? null : toolbar,
+        slot2 ? null : toolbar,
         e("input", {
           ref: pictureRef,
           type: "file",
@@ -10216,13 +10631,14 @@
                   return st[0] !== "blank";
                 }).map(function(st) {
                   return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" };
-                })).concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
+                })).concat(inGroup ? [] : [{ value: "playground", label: "Playground", icon: "star", hint: "Getting started and live examples", group: "Learn" }]).concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
                 onChange: function(v) {
                   if (v === "project") newGroup();
                   else if (v === "file") newProject(null);
                   else if (v === "open") {
                     if (importFileRef.current) importFileRef.current.click();
-                  } else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
+                  } else if (v === "playground") newPlayground();
+                  else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
                 }
               })
             )
@@ -10706,8 +11122,8 @@
     var labelOf = function(n) {
       if (n.name) return n.name;
       var base = scalars[n.type] || {};
-      var text = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
-      return typeof text === "string" || typeof text === "number" ? String(text) : "";
+      var text2 = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
+      return typeof text2 === "string" || typeof text2 === "number" ? String(text2) : "";
     };
     var typeIcon = function(type) {
       if (TYPE_ICON[type]) return TYPE_ICON[type];
@@ -10717,7 +11133,7 @@
     };
     var nodesOf2 = function(ids) {
       return ids.map(function(id) {
-        return locate(doc, id);
+        return locate(doc2, id);
       }).filter(Boolean).map(function(a) {
         return a.node;
       });
@@ -10745,7 +11161,7 @@
           { value: "link", label: "Copy link to frame", icon: "link" },
           { value: "png", label: "Export as PNG", icon: "image" },
           { value: "jpeg", label: "Export as JPG", icon: "image" },
-          { value: "delete", label: "Delete frame", icon: "trash", disabled: doc.frames.length < 2, danger: true }
+          { value: "delete", label: "Delete frame", icon: "trash", disabled: doc2.frames.length < 2, danger: true }
         ],
         onChange: function(v) {
           if (v === "duplicate") frameOps.duplicate(f.id);
@@ -10809,9 +11225,9 @@
       var options = [{ value: "", label: opts.noneLabel || "None", short: opts.noneShort }].concat(list.map(function(o) {
         var px = pxMap[key + "|" + o.value];
         var name = o.value === "fill" && def.section === "size" ? "Fill container" : o.label || o.value;
-        var group = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
+        var group2 = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
         var short2 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
-        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group, short: short2, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
+        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short2, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
       }));
       if (opts.fixed) {
         var lastFit = -1;
@@ -11106,7 +11522,7 @@
       var field = function(key, prefix) {
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
-      if (frame.mode !== "structured" && nodes.every(function(n) {
+      if (frame2.mode !== "structured" && nodes.every(function(n) {
         return isFree(n.style);
       })) {
         var ids = nodes.map(function(n) {
@@ -11536,7 +11952,7 @@
     var insertAsset = function(it, clip2) {
       if (clip2) add("Video", null, { src: it.src });
       else add("Image", null, { src: it.src, alt: it.name });
-      announce("Added " + it.name + " to " + frame.name);
+      announce("Added " + it.name + " to " + frame2.name);
     };
     var brandNow = function() {
       var P = window.DovetailConfigurePanel;
@@ -11554,7 +11970,7 @@
     var placeBrand = function(piece) {
       if (piece.kind === "asset") add("Image", null, Object.assign({ src: piece.src, alt: piece.label }, piece.props), piece.extra);
       else add(piece.type, null, piece.props, piece.extra);
-      announce("Added the " + piece.extra.name.toLowerCase() + " to " + frame.name);
+      announce("Added the " + piece.extra.name.toLowerCase() + " to " + frame2.name);
     };
     var setBrandPart = function(patch) {
       var P = window.DovetailConfigurePanel;
@@ -11895,7 +12311,7 @@
                 compact: true,
                 narrow: true,
                 className: "bd-dd-icon bd-lib-menu",
-                options: [{ value: "insert", label: "Add to " + frame.name, icon: "plus" }].concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : []).concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : []).concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
+                options: [{ value: "insert", label: "Add to " + frame2.name, icon: "plus" }].concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : []).concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : []).concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
                 onChange: function(v) {
                   if (v === "insert") insertAsset(it, kind === "video");
                   else if (v === "cut") cutBackground(it.src).then(function(url) {
@@ -12213,7 +12629,7 @@
               }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
               e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function() {
                 addTemplate(st[0], true);
-              }, title: "At the end of " + frame.name }, "Into " + frame.name)
+              }, title: "At the end of " + frame2.name }, "Into " + frame2.name)
             )
           )
         );
@@ -12255,7 +12671,7 @@
             narrow: true,
             alignEnd: true,
             className: "bd-dd-icon",
-            options: [{ value: "add", label: "Add to " + frame.name, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
+            options: [{ value: "add", label: "Add to " + frame2.name, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
             onChange: function(v) {
               if (v === "add") addLocal(c);
               else if (v === "rename") renameComponent(c.id);
@@ -12394,14 +12810,14 @@
     useEffect(function() {
       var opens = {};
       selection.forEach(function(id) {
-        var at2 = locate(doc, id);
+        var at2 = locate(doc2, id);
         if (at2) at2.path.slice(1, -1).forEach(function(n) {
           if (!isOpen(n)) opens[n.id] = isContainer(n.type) ? "del" : false;
         });
       });
-      if (selection.length && openFrames[doc.active] === false) setOpenFrames(function(m) {
+      if (selection.length && openFrames[doc2.active] === false) setOpenFrames(function(m) {
         var nx = Object.assign({}, m);
-        nx[doc.active] = true;
+        nx[doc2.active] = true;
         return nx;
       });
       if (!Object.keys(opens).length) return;
@@ -12418,7 +12834,7 @@
       return !!renaming && renaming.id === id && renaming.where === where;
     };
     var frameIsOpen = function(f) {
-      return openFrames[f.id] !== void 0 ? openFrames[f.id] : f.id === doc.active;
+      return openFrames[f.id] !== void 0 ? openFrames[f.id] : f.id === doc2.active;
     };
     var isOwner = function(n) {
       var m = META[n.type];
@@ -12434,7 +12850,7 @@
       }
     };
     var everyNode = function(fn) {
-      doc.frames.forEach(function(f) {
+      doc2.frames.forEach(function(f) {
         (function walk(n) {
           (n.children || []).forEach(function(c) {
             fn(c);
@@ -12476,8 +12892,8 @@
       foldersOf(project).forEach(function(f) {
         byId2[f.id] = f;
       });
-      var has2 = function(text) {
-        return String(text || "").toLowerCase().indexOf(q) >= 0;
+      var has2 = function(text2) {
+        return String(text2 || "").toLowerCase().indexOf(q) >= 0;
       };
       var rows = [];
       itemsOf(pagesOf(project)).forEach(function(it) {
@@ -12515,22 +12931,22 @@
         })[0];
         return p ? at2(p.id) : pages.length;
       };
-      var slot2 = els.length, into = null;
+      var slot3 = els.length, into = null;
       for (var i = 0; i < els.length; i++) {
         var b = els[i].getBoundingClientRect();
         var row = rows[i];
         if (row.kind === "folder" && y >= b.top + b.height * 0.25 && y <= b.bottom - b.height * 0.25) {
           into = row.folder.id;
-          slot2 = i;
+          slot3 = i;
           break;
         }
         if (y < b.top + b.height / 2) {
-          slot2 = i;
+          slot3 = i;
           break;
         }
       }
       if (into) return { into, index: endOfFolder(into, dr.id), folder: into, line: null };
-      var before = rows[slot2], prev = rows[slot2 - 1];
+      var before = rows[slot3], prev = rows[slot3 - 1];
       var tucked = x > listBox.left + 28;
       var folder = null, index;
       if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
@@ -12552,7 +12968,7 @@
         folder = null;
         index = pages.length;
       }
-      var edge = slot2 < els.length ? els[slot2].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
+      var edge = slot3 < els.length ? els[slot3].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
       return { into: null, index, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
     };
     var rowDown = function(p) {
@@ -12764,7 +13180,7 @@
     var layersPanel = function() {
       var q = layerQuery.trim().toLowerCase();
       var toggle = function(id) {
-        var at2 = locate(doc, id);
+        var at2 = locate(doc2, id);
         var owner = at2 && !isContainer(at2.node.type);
         setCollapsed(function(c) {
           var n = Object.assign({}, c);
@@ -12838,7 +13254,7 @@
       var partRow = function(r, f) {
         var it = r.part;
         if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-          var onPart = part && part.id === r.owner.id && f.id === doc.active;
+          var onPart = part && part.id === r.owner.id && f.id === doc2.active;
           return e(
             "div",
             {
@@ -12885,8 +13301,8 @@
       var nodeRow = function(f, r) {
         if (r.part) return partRow(r, f);
         var n = r.n;
-        var mine = f.id === doc.active;
-        var text = labelOf(n);
+        var mine = f.id === doc2.active;
+        var text2 = labelOf(n);
         var on = mine && selection.indexOf(n.id) >= 0;
         var owner = isOwner(n);
         var open = isOpen(n) || !!q && !owner;
@@ -12941,7 +13357,7 @@
               setRenaming(null);
               setName(n.id, v === "Group" ? "" : v);
             } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
-            text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null
+            text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null
           ),
           /* Hiding lives in the inspector's Layer section; a hidden row keeps
              a quiet eye-off, which also shows it again. */
@@ -12978,8 +13394,8 @@
         e(
           "div",
           { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
-          doc.frames.map(function(f) {
-            var on = f.id === doc.active;
+          doc2.frames.map(function(f) {
+            var on = f.id === doc2.active;
             var open = frameIsOpen(f) || !!q;
             var head = e(
               "div",
@@ -13129,9 +13545,9 @@
     var SPACING_KEYS = Object.keys(DATA.tokens).filter(function(k) {
       return DATA.tokens[k].section === "spacing";
     });
-    var styled = function(nodes, keys) {
+    var styled = function(nodes, keys2) {
       return nodes.some(function(n) {
-        return keys.some(function(k) {
+        return keys2.some(function(k) {
           return n.style[k] !== void 0;
         });
       });
@@ -13175,7 +13591,7 @@
         return !!n.style.dark;
       });
       var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
-      var free = frame.mode !== "structured";
+      var free = frame2.mode !== "structured";
       var fills = nodes.map(function(n) {
         return n.style.fill || "";
       }), inks = nodes.map(function(n) {
@@ -13373,7 +13789,7 @@
       var ids = nodes.map(function(n) {
         return n.id;
       });
-      if (frame.mode !== "structured" && nodes.every(function(n) {
+      if (frame2.mode !== "structured" && nodes.every(function(n) {
         return isFree(n.style);
       })) {
         var unit = pxMap["padding|2xs"] || 4;
@@ -13468,20 +13884,20 @@
       var surfaceOptions = DATA.tokens.surface.options.map(function(o) {
         return { value: o.value, label: o.value, hint: o.tokens[0], tokens: o.tokens };
       });
-      var b = boxes[frame.id] || { h: frame.height };
-      var preset = presetOf(frame);
+      var b = boxes[frame2.id] || { h: frame2.height };
+      var preset = presetOf(frame2);
       var have = { appearance: true, layout: true };
       var current2 = pickTab(have);
       var body = current2 === "appearance" ? [sec("frame-look", "Frame", [
         e(
           Field,
-          { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : frame.mode === "structured" ? "A structured page takes the system's surfaces only." : null },
+          { key: "fill", id: "bd-pg-surface", label: "Canvas", hint: frame2.canvas ? "A custom colour, outside the system's surfaces. Pick a surface to go back." : frame2.mode === "structured" ? "A structured page takes the system's surfaces only." : null },
           e(
             "div",
-            { className: "bd-canvas-row" + (frame.mode === "structured" && !frame.canvas ? " is-tokens" : "") },
+            { className: "bd-canvas-row" + (frame2.mode === "structured" && !frame2.canvas ? " is-tokens" : "") },
             e(Dropdown, {
               labelledBy: "bd-pg-surface",
-              value: frame.canvas ? "" : frame.surface,
+              value: frame2.canvas ? "" : frame2.surface,
               placeholder: "Custom",
               preview: "color",
               className: "bd-dd-field bd-dd-swatch",
@@ -13495,7 +13911,7 @@
               },
               options: surfaceOptions
             }),
-            e(ColorPick, { value: frame.canvas, on: !!frame.canvas, label: "Custom canvas colour", onChange: function(v) {
+            e(ColorPick, { value: frame2.canvas, on: !!frame2.canvas, label: "Custom canvas colour", onChange: function(v) {
               setFrame("canvas", v);
             } })
           )
@@ -13503,11 +13919,11 @@
       ])] : [
         sec("frame-mode", "Kind", e(
           Field,
-          { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
+          { key: "mode", id: "bd-fr-kind", label: "Frame kind", hint: frame2.mode === "structured" ? "Everything sits in auto-layout Groups, in the flow, with tokens only." : "Place things anywhere, in any colour." },
           e(Segmented, {
             labelledBy: "bd-fr-kind",
             wide: true,
-            value: frame.mode === "structured" ? "structured" : "free",
+            value: frame2.mode === "structured" ? "structured" : "free",
             onChange: function(v) {
               if (v) setMode(v);
             },
@@ -13518,7 +13934,7 @@
           e(
             Field,
             { key: "char", id: "bd-pg-char", label: "Layout character", hint: "Sets data-layout, which moves every layout layer token together." },
-            e(Dropdown, { labelledBy: "bd-pg-char", value: frame.spacing, className: "bd-dd-field", onChange: function(v) {
+            e(Dropdown, { labelledBy: "bd-pg-char", value: frame2.spacing, className: "bd-dd-field", onChange: function(v) {
               setFrame("spacing", v || "");
             }, options: SPACINGS.map(function(s) {
               return { value: s[0], label: s[1] };
@@ -13526,23 +13942,23 @@
           ),
           e(
             Field,
-            { key: "type", id: "bd-pg-type", label: "Type scale", hint: frame.typeScale === "social" ? 'data-type-scale="social": body 2.5x, headings 2.75x, display 3x, for a 1080 post read in a feed.' : "The page's own sizes." },
+            { key: "type", id: "bd-pg-type", label: "Type scale", hint: frame2.typeScale === "social" ? 'data-type-scale="social": body 2.5x, headings 2.75x, display 3x, for a 1080 post read in a feed.' : "The page's own sizes." },
             e(Dropdown, {
               labelledBy: "bd-pg-type",
-              value: frame.typeScale || "",
+              value: frame2.typeScale || "",
               className: "bd-dd-field",
               onChange: function(v) {
-                setFrame("typeScale", v || void 0, v ? frame.name + " has social type" : frame.name + " has page type");
+                setFrame("typeScale", v || void 0, v ? frame2.name + " has social type" : frame2.name + " has page type");
               },
               options: [{ value: "", label: "Page", hint: "The system's sizes" }, { value: "social", label: "Social", hint: "Larger body, steeper headlines, for a 1080 artboard" }]
             })
           ),
           e(
             Field,
-            { key: "width", id: "bd-pg-width", label: "Page width", hint: frame.pageWidth ? "--dt-layout-page-width is the " + frame.pageWidth + " one on this page" : "--dt-layout-page-width: the column every Section, block and page-width Group reads. Configure moves it for every page." },
+            { key: "width", id: "bd-pg-width", label: "Page width", hint: frame2.pageWidth ? "--dt-layout-page-width is the " + frame2.pageWidth + " one on this page" : "--dt-layout-page-width: the column every Section, block and page-width Group reads. Configure moves it for every page." },
             e(Dropdown, {
               labelledBy: "bd-pg-width",
-              value: frame.pageWidth || "",
+              value: frame2.pageWidth || "",
               className: "bd-dd-field",
               onChange: function(v) {
                 setFrame("pageWidth", v || void 0);
@@ -13555,7 +13971,7 @@
             { key: "gutter", id: "bd-pg-gutter", label: "Page gutter", hint: "The room between the column and the screen's edge." },
             e(Dropdown, {
               labelledBy: "bd-pg-gutter",
-              value: frame.gutter || "",
+              value: frame2.gutter || "",
               className: "bd-dd-field",
               onChange: function(v) {
                 setFrame("gutter", v || void 0);
@@ -13565,10 +13981,10 @@
           ),
           e(
             Field,
-            { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame.gap ? "--dt-layout-stack-" + frame.gap : "None: blocks keep their own rhythm." },
+            { key: "gap", id: "bd-pg-gap", label: "Gap between sections", hint: frame2.gap ? "--dt-layout-stack-" + frame2.gap : "None: blocks keep their own rhythm." },
             e(Dropdown, {
               labelledBy: "bd-pg-gap",
-              value: frame.gap,
+              value: frame2.gap,
               className: "bd-dd-field",
               onChange: function(v) {
                 setFrame("gap", v || "");
@@ -13593,8 +14009,8 @@
               "h2",
               { className: "bd-inspect-title" },
               e(Icon, { name: "frame" }),
-              e(Renamable, { value: frame.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame.id, "title"), onChange: function(v) {
-                frameOps.rename(frame.id, v);
+              e(Renamable, { value: frame2.name, label: "Frame name", focusable: true, className: "bd-title-name", startEditing: isRenaming("frame:" + frame2.id, "title"), onChange: function(v) {
+                frameOps.rename(frame2.id, v);
               } })
             ),
             e(
@@ -13605,19 +14021,19 @@
                 {
                   type: "button",
                   className: "bd-act bd-act-ghost bd-mode-toggle",
-                  "aria-pressed": String(!!frame.dark),
+                  "aria-pressed": String(!!frame2.dark),
                   "aria-label": "Dark mode",
-                  title: frame.dark ? "Dark: press for light" : "Light: press for dark",
+                  title: frame2.dark ? "Dark: press for light" : "Light: press for dark",
                   onClick: function() {
-                    setFrame("dark", !frame.dark, frame.name + (frame.dark ? " is light" : " is dark"));
+                    setFrame("dark", !frame2.dark, frame2.name + (frame2.dark ? " is light" : " is dark"));
                   }
                 },
-                e(Icon, { name: frame.dark ? "moon" : "sun" })
+                e(Icon, { name: frame2.dark ? "moon" : "sun" })
               ),
-              frameMenu(frame, "title")
+              frameMenu(frame2, "title")
             )
           ),
-          e("p", { className: "bd-inspect-sub" }, (frame.hug ? "Hugs its content" : "A fixed screen") + ". Select something in it to change that instead."),
+          e("p", { className: "bd-inspect-sub" }, (frame2.hug ? "Hugs its content" : "A fixed screen") + ". Select something in it to change that instead."),
           /* A frame's size is always in view: the first thing a frame or page needs. */
           e(
             "div",
@@ -13637,12 +14053,12 @@
             e(
               "div",
               { className: "bd-size-row" },
-              e(NumberField, { short: "W", label: "Frame width", value: frame.width, onChange: function(v) {
+              e(NumberField, { short: "W", label: "Frame width", value: frame2.width, onChange: function(v) {
                 setSize(v, void 0);
               }, onScrub: function(v, first) {
                 setSizeLive(v, void 0, first);
               } }),
-              e(NumberField, { short: "H", label: "Frame height", value: frame.hug ? Math.round(b.h) : frame.height, muted: frame.hug, title: frame.hug ? "Follows the content. Type a height to fix it." : void 0, onChange: function(v) {
+              e(NumberField, { short: "H", label: "Frame height", value: frame2.hug ? Math.round(b.h) : frame2.height, muted: frame2.hug, title: frame2.hug ? "Follows the content. Type a height to fix it." : void 0, onChange: function(v) {
                 setSize(void 0, v);
               }, onScrub: function(v, first) {
                 setSizeLive(void 0, v, first);
@@ -13650,8 +14066,8 @@
               e("button", {
                 type: "button",
                 className: "bd-act bd-act-sm",
-                "aria-pressed": String(!!frame.lock),
-                title: frame.lock ? "Proportions kept: width and height change together" : "Constrain proportions",
+                "aria-pressed": String(!!frame2.lock),
+                title: frame2.lock ? "Proportions kept: width and height change together" : "Constrain proportions",
                 "aria-label": "Constrain proportions",
                 onClick: function() {
                   change(function(d) {
@@ -13665,17 +14081,17 @@
                       }
                     }
                     return void 0;
-                  }, frame.lock ? "Width and height change on their own" : "Width and height keep their proportions");
+                  }, frame2.lock ? "Width and height change on their own" : "Width and height keep their proportions");
                 }
               }, e(Icon, { name: "chain" })),
               e("button", { type: "button", className: "bd-act bd-act-sm", title: "Swap width and height", "aria-label": "Swap width and height", onClick: function() {
-                setSize(frame.height, frame.width);
+                setSize(frame2.height, frame2.width);
               } }, e(Icon, { name: "rotate" }))
             ),
             e(Dropdown, {
               label: "Resizing",
               prefix: "Resizing",
-              value: frame.hug ? "hug" : "fixed",
+              value: frame2.hug ? "hug" : "fixed",
               className: "bd-dd-field",
               onChange: function(v) {
                 change(function(d) {
@@ -13683,7 +14099,7 @@
                   f.hug = v === "hug";
                   if (!f.hug) f.height = side(Math.round(b.h), MAX_HEIGHT, f.height);
                   return void 0;
-                }, v === "hug" ? frame.name + " hugs its contents" : frame.name + " has a fixed height");
+                }, v === "hug" ? frame2.name + " hugs its contents" : frame2.name + " has a fixed height");
               },
               options: [{ value: "fixed", label: "Fixed width and height", short: "Fixed", hint: "Stays the size you set, like a device screen", icon: "fit" }, { value: "hug", label: "Hug contents", short: "Hug contents", hint: "Fixed width; the height grows with what's in it", icon: "column" }]
             })
@@ -13694,7 +14110,7 @@
       );
     };
     var slotInspector = function(node) {
-      var at2 = locate(doc, node.id);
+      var at2 = locate(doc2, node.id);
       var owner = at2 && at2.path.length > 1 ? at2.path[at2.path.length - 2] : null;
       if (!owner) return null;
       var takes = slotTakes(owner.type, node.props.name);
@@ -13748,13 +14164,13 @@
       );
     };
     var partInspector = function(node) {
-      var at2 = locate(doc, node.id);
+      var at2 = locate(doc2, node.id);
       var spec = META[node.type].props.filter(function(p) {
         return p.name === "titleSize";
       })[0];
       var base = scalars[node.type] || {};
       var cur = node.props.titleSize || spec.default;
-      var text = typeof node.props.title === "string" ? node.props.title : typeof base.title === "string" ? base.title : "";
+      var text2 = typeof node.props.title === "string" ? node.props.title : typeof base.title === "string" ? base.title : "";
       var tid = "bd-part-text-" + node.id, sid = "bd-part-size-" + node.id;
       var styleName = function(v) {
         var t = TEXT_STYLES.filter(function(x) {
@@ -13801,7 +14217,7 @@
             e(
               Field,
               { key: "text", id: tid, label: "Words", hint: "Double-click it on the canvas to type in place" },
-              e("input", { className: "bd-input", type: "text", "aria-labelledby": tid, value: text, onChange: function(ev) {
+              e("input", { className: "bd-input", type: "text", "aria-labelledby": tid, value: text2, onChange: function(ev) {
                 setProp([node.id], "title", ev.target.value);
               } })
             )
@@ -13829,7 +14245,7 @@
       var ids = nodes.map(function(n) {
         return n.id;
       });
-      var selected = !many ? locate(doc, first.id) : null;
+      var selected = !many ? locate(doc2, first.id) : null;
       var textValues = nodes.map(function(n) {
         return n.props.children != null ? String(n.props.children) : String(base.children || "");
       });
@@ -13986,12 +14402,12 @@
       if (inGroup) crumbs.unshift(e("button", { key: "group", type: "button", className: "bd-crumb bd-tb-group", title: "Open " + inGroup.name + " on Home", onClick: function() {
         openProjects(inGroup.id);
       } }, inGroup.name), sep("group"));
-      var last = sel ? locate(doc, sel) : null;
+      var last = sel ? locate(doc2, sel) : null;
       if (last) {
         var many = selection.length > 1;
         last.path.forEach(function(n, i) {
           var isLast = i === last.path.length - 1 && !many && !part;
-          var name = n.type === "Root" ? frame.name : nameOf(n);
+          var name = n.type === "Root" ? frame2.name : nameOf(n);
           crumbs.push(sep(n.id));
           crumbs.push(isLast ? e("span", { key: n.id, className: "bd-crumb", "aria-current": "true" }, name) : e("button", { key: n.id, type: "button", className: "bd-crumb", onClick: function() {
             setPart(null);
@@ -14032,7 +14448,7 @@
           narrow: true,
           className: "bd-dd-icon bd-project-menu",
           options: [
-            { value: "link", label: sel ? "Copy link to this layer" : "Copy link to " + frame.name, icon: "link" },
+            { value: "link", label: sel ? "Copy link to this layer" : "Copy link to " + frame2.name, icon: "link" },
             { value: "projects", label: "Home", icon: "home" },
             { value: "mode", label: dark ? "Light mode" : "Dark mode", icon: dark ? "sun" : "moon", hint: "The builder's own tools" },
             { value: "versions", label: "Versions", icon: "rotate" },
@@ -14071,7 +14487,7 @@
             { value: "in", label: "Zoom in", hint: "Ctrl +" },
             { value: "out", label: "Zoom out", hint: "Ctrl −" },
             { value: "all", label: "Zoom to fit", hint: "Shift 1" },
-            { value: "frame", label: "Zoom to " + frame.name, hint: "Shift 2" },
+            { value: "frame", label: "Zoom to " + frame2.name, hint: "Shift 2" },
             { value: 0.5, label: "50%" },
             { value: 1, label: "100%", hint: "Shift 0" },
             { value: 2, label: "200%" }
@@ -14080,17 +14496,17 @@
             if (v === "in") zoomStep(1);
             else if (v === "out") zoomStep(-1);
             else if (v === "all") fitAll();
-            else if (v === "frame") showFrame(frame.id);
+            else if (v === "frame") showFrame(frame2.id);
             else zoomTo(v);
           }
         }),
         /* Saving is quiet; the bar speaks up only when this browser can't keep the work. */
         saved.ok ? null : e("span", { className: "bd-saved is-error", title: savedTitle, role: "status" }, e(Icon, { name: "alert" }), e("span", { className: "bd-saved-text" }, "Not saved")),
-        e("button", { type: "button", className: "bd-act", title: "Play: see " + frame.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame.id], onClick: function() {
+        e("button", { type: "button", className: "bd-act", title: "Play: see " + frame2.name + " in a screen-sized window, scrolling like a device", "aria-label": "Play", disabled: !ready[frame2.id], onClick: function() {
           openPlay();
         } }, e(Icon, { name: "play" })),
         e("button", { type: "button", className: "bd-act", "aria-pressed": String(preview), title: "Preview: use the components (Esc to stop)", "aria-label": "Preview", onClick: actions.preview }, e(Icon, { name: "eye" })),
-        e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }), e("span", { className: "bd-export-text" }, "Export"))
+        e("button", { type: "button", className: "bd-btn bd-btn-primary bd-export", onClick: openCode, disabled: !ready[frame2.id], "aria-label": "Export", title: "Export: code, a picture, the layout or a link" }, e(Icon, { name: "exportOut" }), e("span", { className: "bd-export-text" }, "Export"))
       )
     );
     var toolbar = home ? homeBar : workBar;
@@ -14583,7 +14999,7 @@
     var resizers = e(
       "div",
       { className: "bd-resizers", "aria-hidden": true },
-      doc.frames.map(function(f) {
+      doc2.frames.map(function(f) {
         var b = boxes[f.id];
         if (!b) return null;
         var X = cam.x + b.x * cam.z, Y = cam.y + b.y * cam.z, W = b.w * cam.z, H = b.h * cam.z;
@@ -14611,7 +15027,7 @@
       return t === stageRef.current || t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"));
     };
     var frameSrc = mountEl.getAttribute("data-frame");
-    var anyReady = doc.frames.some(function(f) {
+    var anyReady = doc2.frames.some(function(f) {
       return ready[f.id];
     });
     var stageDark = stageColor && (function(h) {
@@ -14620,7 +15036,7 @@
     })(stageColor);
     var liveNow = {};
     (function() {
-      var many = doc.frames.length > VIRTUAL_AFTER;
+      var many = doc2.frames.length > VIRTUAL_AFTER;
       var keep = liveRef.current;
       var near = function(b, k) {
         if (!cam || !box.w || !b) return true;
@@ -14631,12 +15047,12 @@
       var gap = function(b) {
         return b ? Math.hypot(b.x + b.w / 2 - mid.x, b.y + b.h / 2 - mid.y) : Infinity;
       };
-      var wanted = doc.frames.filter(function(f) {
-        return !many || f.id === doc.active || near(boxes[f.id], keep[f.id] ? 1.5 : 0.5);
+      var wanted = doc2.frames.filter(function(f) {
+        return !many || f.id === doc2.active || near(boxes[f.id], keep[f.id] ? 1.5 : 0.5);
       });
       if (many && wanted.length > LIVE_MAX) {
         var rank = function(f) {
-          return f.id === doc.active ? 0 : keep[f.id] ? 1 : 2;
+          return f.id === doc2.active ? 0 : keep[f.id] ? 1 : 2;
         };
         wanted = wanted.slice().sort(function(x, y) {
           return rank(x) - rank(y) || gap(boxes[x.id]) - gap(boxes[y.id]);
@@ -14709,7 +15125,7 @@
       e(
         "div",
         { className: "bd-world", style: { transform: "translate(" + cam.x + "px, " + cam.y + "px) scale(" + cam.z + ")" } },
-        doc.frames.map(function(f) {
+        doc2.frames.map(function(f) {
           var b = boxes[f.id];
           if (!liveNow[f.id]) {
             return e("div", {
@@ -14721,7 +15137,7 @@
           }
           return e("iframe", {
             key: f.id,
-            className: cx("bd-frame", f.id === doc.active && "is-active", f.bare && "is-bare"),
+            className: cx("bd-frame", f.id === doc2.active && "is-active", f.bare && "is-bare"),
             ref: function(el) {
               if (el) frameEls.current[f.id] = el;
               else delete frameEls.current[f.id];
@@ -14738,9 +15154,9 @@
       e(
         "div",
         { className: "bd-labels" },
-        doc.frames.map(function(f) {
+        doc2.frames.map(function(f) {
           var b = boxes[f.id];
-          var on = f.id === doc.active;
+          var on = f.id === doc2.active;
           if (f.bare) return null;
           return e(
             "div",
@@ -14773,14 +15189,14 @@
       e(
         "div",
         { className: "bd-marks", "aria-hidden": true },
-        !preview && frameOn && boxes[frame.id] && !frame.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame.id].x * cam.z, top: cam.y + boxes[frame.id].y * cam.z, width: boxes[frame.id].w * cam.z, height: boxes[frame.id].h * cam.z } }) : null,
+        !preview && frameOn && boxes[frame2.id] && !frame2.bare ? e("div", { className: cx("bd-ring", !sel && "is-selected"), style: { left: cam.x + boxes[frame2.id].x * cam.z, top: cam.y + boxes[frame2.id].y * cam.z, width: boxes[frame2.id].w * cam.z, height: boxes[frame2.id].h * cam.z } }) : null,
         marquee ? e("div", { className: "bd-marquee", style: { left: marquee.left + "px", top: marquee.top + "px", width: marquee.width + "px", height: marquee.height + "px" } }) : null,
         !preview && marks.hover ? e("div", { className: "bd-mark bd-mark-hover", style: marks.hover }) : null,
         !preview ? marks.sel.map(function(m) {
-          var at2 = locate(doc, m.id);
+          var at2 = locate(doc2, m.id);
           if (!at2) return null;
           var isMain = m.id === sel && !edit;
-          var frameTop = boxes[frame.id] ? cam.y + boxes[frame.id].y * cam.z : 0;
+          var frameTop = boxes[frame2.id] ? cam.y + boxes[frame2.id].y * cam.z : 0;
           var handles = isMain && !part && !fixedSpot(at2) && at2.node.type !== "Slot" && !at2.node.lock ? isFree(at2.node.style) ? HANDLES_FREE : HANDLES_FLOW : null;
           var turnable = handles === HANDLES_FREE;
           var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
@@ -14855,7 +15271,7 @@
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…")
     );
     var openPlay = function() {
-      setPlay({ fid: frame.id, h: playDefault(frame.width), stack: [], home: { page: pageRef.current, fid: frame.id } });
+      setPlay({ fid: frame2.id, h: playDefault(frame2.width), stack: [], home: { page: pageRef.current, fid: frame2.id } });
     };
     var playGo = function(pageId2) {
       var p = playRef.current && playRef.current.open ? play : null;
@@ -14917,9 +15333,9 @@
     };
     useEffect(function() {
       if (play) renderPlay();
-    }, [play && play.fid, doc]);
+    }, [play && play.fid, doc2]);
     var playDialog = function() {
-      var fr = play && frameById(doc, play.fid);
+      var fr = play && frameById(doc2, play.fid);
       if (!fr) return null;
       var pageNow = pagesOf(project).filter(function(pg) {
         return pg.id === pageId;
@@ -15090,8 +15506,8 @@
       };
     }, [project.id, pageKey]);
     var used = useMemo(function() {
-      return mergeUsage(usageOf([doc]), otherUse);
-    }, [doc, otherUse]);
+      return mergeUsage(usageOf([doc2]), otherUse);
+    }, [doc2, otherUse]);
     var builderInspector = function() {
       var bid = "bd-stage-bg";
       var onlyUsed = sysScope === "used";
@@ -15186,7 +15602,7 @@
             )
           ]),
           sec("builder-prims", "Primitives", [
-            e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
+            e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame2.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
             e("ul", { key: "list", className: "bd-sys-list", role: "list" }, prims.map(function(n) {
               return e("li", { key: n }, e(
                 "button",
@@ -15247,11 +15663,11 @@
     }).length ? selectedNodes.filter(function(n) {
       return n.type !== "Slot";
     }) : selectedNodes) : frameOn ? frameInspector() : builderInspector();
-    var slot = wide ? document.getElementById("app-toolbar") : null;
+    var slot2 = wide ? document.getElementById("app-toolbar") : null;
     return e(
       React.Fragment,
       null,
-      slot ? ReactDOM.createPortal(toolbar, slot) : null,
+      slot2 ? ReactDOM.createPortal(toolbar, slot2) : null,
       home ? null : e(
         "div",
         { className: "bd-tabs", role: "tablist", "aria-label": "Builder panels" },
@@ -15319,7 +15735,7 @@
             left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
         ),
-        e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
+        e("div", { className: "bd-center" }, slot2 ? null : toolbar, stage),
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || void 0 }, inspector)
       ),
       homePage(),
@@ -15342,8 +15758,8 @@
           e(
             "div",
             { className: "bd-code-intro" },
-            e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame.name)),
-            e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + frame.name + " as a picture, or every frame as layout JSON.")
+            e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame2.name)),
+            e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + frame2.name + " as a picture, or every frame as layout JSON.")
           ),
           e(
             "div",
@@ -15353,17 +15769,17 @@
                 announce("Code copied");
               });
             } }, e(Icon, { name: "copy" }), "Copy code"),
-            e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
+            e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame2.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
             e("button", { type: "button", className: "bd-btn", onClick: function() {
-              exportImage(frame.id, "png");
-            }, title: frame.name + " as a PNG, at twice its size" }, e(Icon, { name: "image" }), "PNG"),
+              exportImage(frame2.id, "png");
+            }, title: frame2.name + " as a PNG, at twice its size" }, e(Icon, { name: "image" }), "PNG"),
             e("button", { type: "button", className: "bd-btn", onClick: function() {
-              exportImage(frame.id, "jpeg");
-            }, title: frame.name + " as a JPG, at twice its size" }, "JPG"),
+              exportImage(frame2.id, "jpeg");
+            }, title: frame2.name + " as a JPG, at twice its size" }, "JPG"),
             e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
             e("button", { type: "button", className: "bd-btn", onClick: function() {
               share();
-            }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame.name }, e(Icon, { name: "link" }), "Copy link"),
+            }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame2.name }, e(Icon, { name: "link" }), "Copy link"),
             e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
               dialogRef.current.close();
             } }, e(Icon, { name: "close" }))
@@ -15418,12 +15834,12 @@
       }
     };
     var show = function(el) {
-      var text = el.isConnected ? el.getAttribute("data-tip") : null;
-      if (!text) return;
+      var text2 = el.isConnected ? el.getAttribute("data-tip") : null;
+      if (!text2) return;
       tip = document.createElement("div");
       tip.className = "bd-tip";
       tip.setAttribute("role", "tooltip");
-      tip.textContent = text;
+      tip.textContent = text2;
       (el.closest("dialog[open]") || document.body).appendChild(tip);
       var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight, gap = 8;
       var top = r.top - h - gap < 8 ? r.bottom + gap : r.top - h - gap;
