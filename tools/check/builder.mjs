@@ -4687,6 +4687,14 @@ try {
     const { page } = await open({ width: 1440, height: 900 });
     const width = (side) => page.evaluate((s) => { const el = document.querySelector(".bd-shell > .bd-" + s); return el && el.offsetParent ? Math.round(el.getBoundingClientRect().width) : 0; }, side);
     const value = (side) => page.locator(".bd-panel-edge.is-" + side).getAttribute("aria-valuenow");
+    /* The panel's width follows the handle's value on the next layout; wait
+       for it, and if it never comes say what the page holds. */
+    const settled = async (side, px) => {
+      const came = await page.waitForFunction(([s, w]) => Math.round(document.querySelector(".bd-shell > .bd-" + s).getBoundingClientRect().width) === w, [side, px], { timeout: 3000 }).then(() => true, () => false);
+      if (came) return;
+      const got = await page.evaluate((s) => { const shell = document.querySelector(".bd-shell"), edge = document.querySelector(".bd-panel-edge.is-" + s); return { width: Math.round(document.querySelector(".bd-shell > .bd-" + s).getBoundingClientRect().width), left: shell.style.getPropertyValue("--bd-left-w"), right: shell.style.getPropertyValue("--bd-right-w"), columns: getComputedStyle(shell).gridTemplateColumns, value: edge && edge.getAttribute("aria-valuenow") }; }, side);
+      throw new Error(`the ${side} panel should settle at ${px}px wide, got ${JSON.stringify(got)}`);
+    };
     const drag = async (side, dx) => {
       const b = await page.locator(".bd-panel-edge.is-" + side).boundingBox();
       const x = b.x + b.width / 2, y = b.y + b.height / 2;
@@ -4700,7 +4708,7 @@ try {
     const w0 = await width("left");
     const said = await drag("left", 101);
     expect(await value("left") === "444" && said.trim() === "444", `dragging the left edge 101px right makes it 444 (steps of 4) and says so, got ${await value("left")} saying "${said}"`);
-    expect(await width("left") === w0 + 100, `the left panel is 100px wider, got ${w0} then ${await width("left")}`);
+    await settled("left", w0 + 100);
     await drag("left", 400);
     expect(await value("left") === "520", `the left panel stops at 520, got ${await value("left")}`);
     const toolsMid = await page.evaluate(() => { const t = document.querySelector(".bd-tools").getBoundingClientRect(), l = document.querySelector(".bd-shell > .bd-left").getBoundingClientRect(), r = document.querySelector(".bd-shell > .bd-right").getBoundingClientRect(); return Math.abs((t.left + t.right) / 2 - (l.right + r.left) / 2); });
