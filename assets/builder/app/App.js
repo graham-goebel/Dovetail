@@ -168,8 +168,10 @@ function App(props) {
   var readout = readoutState[0], setReadout = readoutState[1];
   var sizingState = useState(null);
   var sizing = sizingState[0], setSizing = sizingState[1];
+  /* What was measured for the marks, in each frame's own pixels (sel and
+     hover); drop is placed on the stage as the drag goes. */
   var marksState = useState({ sel: [], hover: null, drop: null });
-  var marks = marksState[0], setMarks = marksState[1];
+  var marksRaw = marksState[0], setMarks = marksState[1];
   var listDropState = useState(null);
   var listDrop = listDropState[0], setListDrop = listDropState[1];
   var editState = useState(null);
@@ -918,12 +920,16 @@ function App(props) {
   /* ------------------------------------------------- measuring */
 
   /* A node's box in stage coordinates, from its frame's own. */
+  /* A rect in a frame's pixels, on the stage: through the frame's box and
+     the camera. */
+  var onStage = function (r, b, c) {
+    return { left: c.x + (b.x + r.left) * c.z, top: c.y + (b.y + r.top) * c.z, width: r.width * c.z, height: r.height * c.z };
+  };
   var toStage = useCallback(function (r, fid) {
     if (!r) return null;
     var b = layoutRef.current.boxes[fid || docRef.current.active];
     if (!b) return null;
-    var c = camRef.current;
-    return { left: c.x + (b.x + r.left) * c.z, top: c.y + (b.y + r.top) * c.z, width: r.width * c.z, height: r.height * c.z };
+    return onStage(r, b, camRef.current);
   }, []);
 
   var remeasure = useCallback(function () {
@@ -934,23 +940,21 @@ function App(props) {
     setMarks(function (m) {
       return {
         sel: f ? selRef.current.map(function (id) {
-          var r = toStage(f.rect(id), fid);
+          var r = f.rect(id);
           if (!r) return null;
-          /* A turned layer: its own box, turned about the same centre. */
+          /* A turned layer: its own size, to draw a box turned about the same centre. */
           var at = locate(docRef.current, id), rot = at && at.node.style && at.node.style.rot;
           var size = rot && f.size ? f.size(id) : null;
-          if (!size) return { id: id, r: r };
-          var z = camRef.current.z, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-          return { id: id, r: r, rot: rot, box: { left: cx - size.width * z / 2, top: cy - size.height * z / 2, width: size.width * z, height: size.height * z } };
+          return { id: id, fid: fid, r: r, rot: rot, size: size };
         }).filter(Boolean) : [],
-        hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? toStage(hf.rect(h.id), h.f) : null,
+        hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? (function () { var r = hf.rect(h.id); return r ? { fid: h.f, r: r } : null; })() : null,
         drop: m.drop,
       };
     });
     var ed = editRef.current;
     if (ed && f) {
       var t = f.textRect(ed.id, ed.value);
-      if (t) setEdit(function (cur) { return cur && cur.id === ed.id ? Object.assign({}, cur, { box: toStage(t.rect, fid), font: t.font }) : cur; });
+      if (t) setEdit(function (cur) { return cur && cur.id === ed.id ? Object.assign({}, cur, { rect: t.rect, fid: fid, font: t.font }) : cur; });
     }
   }, [toStage]);
 
@@ -1922,7 +1926,7 @@ function App(props) {
     return function () { window.removeEventListener("storage", bump); window.removeEventListener("focus", bump); };
   }, []);
 
-  useEffect(function () { remeasure(); }, [selection, hover, cam, layout.width, layout.height, doc.active, edit && edit.id]);
+  useEffect(function () { remeasure(); }, [selection, hover, layout.width, layout.height, doc.active, edit && edit.id]);
   /* Layout columns read each frame's page width, gutter and column gap as
      its theme and page settings make them. */
   var colKey = doc.frames.map(function (f) { return f.id + ":" + f.width + ":" + (f.pageWidth || "") + ":" + (f.gutter || "") + ":" + (f.spacing || "") + ":" + !!ready[f.id]; }).join("|");
@@ -1950,7 +1954,7 @@ function App(props) {
     if (!shiftHeld || drag || preview) { setSpacing(null); return; }
     if (!hover) return;
     setSpacing(computeSpacing(hover, sel));
-  }, [shiftHeld, hover && hover.f, hover && hover.id, sel, cam, doc, drag, preview, pxMap]);
+  }, [shiftHeld, hover && hover.f, hover && hover.id, sel, doc, drag, preview, pxMap]);
   useEffect(function () {
     if (!focusSec) return undefined;
     var t = setTimeout(function () {
@@ -2075,7 +2079,7 @@ function App(props) {
     var t = f.textRect(id, src.value);
     if (!t) return;
     select([id]);
-    setEdit(Object.assign({ id: id, before: src.value, base: docRef.current, box: toStage(t.rect), font: t.font }, src));
+    setEdit(Object.assign({ id: id, before: src.value, base: docRef.current, rect: t.rect, fid: docRef.current.active, font: t.font }, src));
     if (mql("(max-width: 900px)")) setPane("canvas");
   };
   var beginEditRef = useRef(beginEdit); beginEditRef.current = beginEdit;
@@ -5487,6 +5491,21 @@ function App(props) {
         r ? e("div", { className: "bd-resize-tag", style: { left: X + W, top: Y + H } }, sizeName(r.w, r.h != null ? r.h : f.hug ? null : f.height)) : null);
     }));
 
+  /* The marks on the stage: what was measured, through each frame's box and
+     the camera, so a pan places them again without measuring. */
+  var marks = (function () {
+    var place = function (w) {
+      var b = boxes[w.fid];
+      if (!b) return null;
+      var r = onStage(w.r, b, cam);
+      if (!w.size) return { id: w.id, r: r };
+      var z = cam.z, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      return { id: w.id, r: r, rot: w.rot, box: { left: cx - w.size.width * z / 2, top: cy - w.size.height * z / 2, width: w.size.width * z, height: w.size.height * z } };
+    };
+    var hv = marksRaw.hover;
+    return { sel: marksRaw.sel.map(place).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: marksRaw.drop };
+  })();
+  var editBox = edit && edit.rect && boxes[edit.fid] ? onStage(edit.rect, boxes[edit.fid], cam) : null;
   var isBackground = function (t) { return t === stageRef.current || (t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"))); };
   var frameSrc = mountEl.getAttribute("data-frame");
   var anyReady = doc.frames.some(function (f) { return ready[f.id]; });
@@ -5731,7 +5750,7 @@ function App(props) {
     !preview ? resizers : null,
     rulersEl(),
     !preview ? tools : null,
-    edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
+    edit && editBox ? e(InlineEditor, { key: edit.id, value: edit.value, box: editBox, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
     preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
     anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…"));
 

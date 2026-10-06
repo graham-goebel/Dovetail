@@ -8924,7 +8924,7 @@
     var sizingState = useState(null);
     var sizing = sizingState[0], setSizing = sizingState[1];
     var marksState = useState({ sel: [], hover: null, drop: null });
-    var marks = marksState[0], setMarks = marksState[1];
+    var marksRaw = marksState[0], setMarks = marksState[1];
     var listDropState = useState(null);
     var listDrop = listDropState[0], setListDrop = listDropState[1];
     var editState = useState(null);
@@ -9758,12 +9758,14 @@
       } else if (selRef.current.length) announce(selRef.current.length === 1 ? "1 selected" : selRef.current.length + " selected");
       return m.moved;
     };
+    var onStage = function(r, b, c) {
+      return { left: c.x + (b.x + r.left) * c.z, top: c.y + (b.y + r.top) * c.z, width: r.width * c.z, height: r.height * c.z };
+    };
     var toStage = useCallback(function(r, fid) {
       if (!r) return null;
       var b = layoutRef.current.boxes[fid || docRef.current.active];
       if (!b) return null;
-      var c = camRef.current;
-      return { left: c.x + (b.x + r.left) * c.z, top: c.y + (b.y + r.top) * c.z, width: r.width * c.z, height: r.height * c.z };
+      return onStage(r, b, camRef.current);
     }, []);
     var remeasure = useCallback(function() {
       var fid = docRef.current.active;
@@ -9773,15 +9775,16 @@
       setMarks(function(m) {
         return {
           sel: f ? selRef.current.map(function(id) {
-            var r = toStage(f.rect(id), fid);
+            var r = f.rect(id);
             if (!r) return null;
             var at2 = locate(docRef.current, id), rot = at2 && at2.node.style && at2.node.style.rot;
             var size = rot && f.size ? f.size(id) : null;
-            if (!size) return { id, r };
-            var z = camRef.current.z, cx2 = r.left + r.width / 2, cy = r.top + r.height / 2;
-            return { id, r, rot, box: { left: cx2 - size.width * z / 2, top: cy - size.height * z / 2, width: size.width * z, height: size.height * z } };
+            return { id, fid, r, rot, size };
           }).filter(Boolean) : [],
-          hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? toStage(hf.rect(h.id), h.f) : null,
+          hover: h && hf && h.id !== "root" && !(h.f === fid && selRef.current.indexOf(h.id) >= 0) ? (function() {
+            var r = hf.rect(h.id);
+            return r ? { fid: h.f, r } : null;
+          })() : null,
           drop: m.drop
         };
       });
@@ -9789,7 +9792,7 @@
       if (ed && f) {
         var t = f.textRect(ed.id, ed.value);
         if (t) setEdit(function(cur) {
-          return cur && cur.id === ed.id ? Object.assign({}, cur, { box: toStage(t.rect, fid), font: t.font }) : cur;
+          return cur && cur.id === ed.id ? Object.assign({}, cur, { rect: t.rect, fid, font: t.font }) : cur;
         });
       }
     }, [toStage]);
@@ -10943,7 +10946,7 @@
     }, []);
     useEffect(function() {
       remeasure();
-    }, [selection, hover, cam, layout.width, layout.height, doc2.active, edit && edit.id]);
+    }, [selection, hover, layout.width, layout.height, doc2.active, edit && edit.id]);
     var colKey = doc2.frames.map(function(f) {
       return f.id + ":" + f.width + ":" + (f.pageWidth || "") + ":" + (f.gutter || "") + ":" + (f.spacing || "") + ":" + !!ready[f.id];
     }).join("|");
@@ -10977,7 +10980,7 @@
       }
       if (!hover) return;
       setSpacing(computeSpacing(hover, sel));
-    }, [shiftHeld, hover && hover.f, hover && hover.id, sel, cam, doc2, drag, preview, pxMap]);
+    }, [shiftHeld, hover && hover.f, hover && hover.id, sel, doc2, drag, preview, pxMap]);
     useEffect(function() {
       if (!focusSec) return void 0;
       var t = setTimeout(function() {
@@ -11106,7 +11109,7 @@
       var t = f.textRect(id, src.value);
       if (!t) return;
       select([id]);
-      setEdit(Object.assign({ id, before: src.value, base: docRef.current, box: toStage(t.rect), font: t.font }, src));
+      setEdit(Object.assign({ id, before: src.value, base: docRef.current, rect: t.rect, fid: docRef.current.active, font: t.font }, src));
       if (mql("(max-width: 900px)")) setPane("canvas");
     };
     var beginEditRef = useRef(beginEdit);
@@ -16571,6 +16574,19 @@
         );
       })
     );
+    var marks = (function() {
+      var place2 = function(w) {
+        var b = boxes[w.fid];
+        if (!b) return null;
+        var r = onStage(w.r, b, cam);
+        if (!w.size) return { id: w.id, r };
+        var z = cam.z, cx2 = r.left + r.width / 2, cy = r.top + r.height / 2;
+        return { id: w.id, r, rot: w.rot, box: { left: cx2 - w.size.width * z / 2, top: cy - w.size.height * z / 2, width: w.size.width * z, height: w.size.height * z } };
+      };
+      var hv = marksRaw.hover;
+      return { sel: marksRaw.sel.map(place2).filter(Boolean), hover: hv && boxes[hv.fid] ? onStage(hv.r, boxes[hv.fid], cam) : null, drop: marksRaw.drop };
+    })();
+    var editBox = edit && edit.rect && boxes[edit.fid] ? onStage(edit.rect, boxes[edit.fid], cam) : null;
     var isBackground = function(t) {
       return t === stageRef.current || t.classList && (t.classList.contains("bd-world") || t.classList.contains("bd-labels"));
     };
@@ -16963,7 +16979,7 @@
       !preview ? resizers : null,
       rulersEl(),
       !preview ? tools : null,
-      edit && edit.box ? e(InlineEditor, { key: edit.id, value: edit.value, box: edit.box, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
+      edit && editBox ? e(InlineEditor, { key: edit.id, value: edit.value, box: editBox, font: edit.font, scale: cam.z, onChange: editChange, onDone: editDone }) : null,
       preview ? e("button", { type: "button", className: "bd-float bd-float-center", onClick: actions.preview, title: "Back to editing (Esc)" }, e(Icon, { name: "eye" }), "Previewing", e("span", { className: "bd-float-sep", "aria-hidden": true }), "Edit") : null,
       anyReady ? null : e("p", { className: "bd-stage-loading" }, "Loading the canvas…")
     );
