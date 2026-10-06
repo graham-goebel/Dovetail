@@ -4515,7 +4515,25 @@ span.bd-layer-twisty.is-open .bd-ic {
   .bd-shell {
     position: relative;
     grid-template-rows: minmax(0, 1fr);
-    grid-template-columns: 344px minmax(0, 1fr) 312px;
+    /* The panels' widths, set from their edges and kept per browser. */
+    grid-template-columns: var(--bd-left-w, 344px) minmax(0, 1fr) var(--bd-right-w, 312px);
+  }
+
+  /* Folded, the left panel is just its rail. */
+  .bd-shell.is-left-closed {
+    grid-template-columns: auto minmax(0, 1fr) var(--bd-right-w, 312px);
+  }
+
+  .bd-shell.is-left-closed > .bd-left {
+    grid-template-columns: auto;
+  }
+
+  .bd-shell.is-left-closed > .bd-left .bd-left-body {
+    display: none;
+  }
+
+  .bd-shell.is-left-closed > .bd-left .bd-rail {
+    border-right: 0;
   }
 
   .bd-shell > .bd-center {
@@ -4551,7 +4569,86 @@ span.bd-layer-twisty.is-open .bd-ic {
 
   /* The tool bar sits in the middle of what the panels leave open. */
   .bd-shell:not(.is-bare) .bd-tools {
-    left: calc(50% + (344px - 312px) / 2);
+    left: calc(50% + (var(--bd-left-w, 344px) - var(--bd-right-w, 312px)) / 2);
+  }
+
+  /* A panel's inner edge resizes it: a line lights on hover, focus and drag. */
+  .bd-panel-edge {
+    position: absolute;
+    z-index: 6;
+    top: var(--dt-space-inset-xs);
+    bottom: var(--dt-space-inset-xs);
+    width: 9px;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  .bd-panel-edge.is-left {
+    left: calc(var(--bd-left-w, 344px) - 5px);
+  }
+
+  .bd-panel-edge.is-right {
+    right: calc(var(--bd-right-w, 312px) - 5px);
+  }
+
+  .bd-panel-edge::after {
+    content: "";
+    position: absolute;
+    top: var(--dt-space-inset-md);
+    bottom: var(--dt-space-inset-md);
+    left: 3px;
+    width: 3px;
+    border-radius: var(--dt-radius-pill);
+    background: var(--bd-select);
+    opacity: 0;
+  }
+
+  .bd-panel-edge:hover::after,
+  .bd-panel-edge:focus-visible::after,
+  html.bd-is-resizing .bd-panel-edge::after {
+    opacity: 1;
+  }
+
+  .bd-panel-edge:focus-visible {
+    outline: none;
+  }
+
+  /* While a panel resizes, frames don't take the pointer and nothing selects. */
+  html.bd-is-resizing,
+  html.bd-is-resizing * {
+    cursor: col-resize !important;
+    user-select: none;
+  }
+
+  html.bd-is-resizing iframe {
+    pointer-events: none;
+  }
+
+  /* With the inspector folded away, one button at the edge brings it back. */
+  .bd-panel-show {
+    position: absolute;
+    z-index: 6;
+    top: var(--dt-space-inset-sm);
+    right: var(--dt-space-inset-sm);
+    display: inline-grid;
+    place-items: center;
+    width: var(--dt-size-control-md);
+    height: var(--dt-size-control-md);
+    border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+    border-radius: var(--dt-radius-control);
+    background: var(--dt-surface-subtle);
+    color: var(--dt-text-secondary);
+    box-shadow: var(--dt-elevation-2);
+    cursor: pointer;
+  }
+
+  .bd-panel-show:hover {
+    color: var(--dt-text-primary);
+  }
+
+  .bd-panel-show:focus-visible {
+    outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
+    outline-offset: 2px;
   }
 }
 
@@ -6219,7 +6316,7 @@ input.bd-folder-name {
 }
 
 .bd-pin-line:focus-visible {
-  outline: var(--dt-focus-ring-width, 2px) solid var(--dt-focus-ring-color);
+  outline: var(--dt-focus-ring-width) solid var(--dt-focus-ring-color);
   outline-offset: 1px;
   border-radius: 2px;
 }

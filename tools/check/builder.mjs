@@ -4628,6 +4628,73 @@ try {
     await page.close();
   });
 
+  await step("Panels: each resizes by its inner edge in steps of 4, folds away past its minimum, opens back to its width, by keyboard too, kept per browser", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const width = (side) => page.evaluate((s) => { const el = document.querySelector(".bd-shell > .bd-" + s); return el && el.offsetParent ? Math.round(el.getBoundingClientRect().width) : 0; }, side);
+    const value = (side) => page.locator(".bd-panel-edge.is-" + side).getAttribute("aria-valuenow");
+    const drag = async (side, dx) => {
+      const b = await page.locator(".bd-panel-edge.is-" + side).boundingBox();
+      const x = b.x + b.width / 2, y = b.y + b.height / 2;
+      await page.mouse.move(x, y); await page.mouse.down();
+      await page.mouse.move(x + dx / 2, y, { steps: 3 }); await page.mouse.move(x + dx, y, { steps: 3 });
+      const said = await page.locator(".bd-readout").textContent().catch(() => "");
+      await page.mouse.up();
+      return said;
+    };
+    expect(await value("left") === "344" && await value("right") === "312", `the panels start at 344 and 312, got ${await value("left")} and ${await value("right")}`);
+    const w0 = await width("left");
+    const said = await drag("left", 101);
+    expect(await value("left") === "444" && said.trim() === "444", `dragging the left edge 101px right makes it 444 (steps of 4) and says so, got ${await value("left")} saying "${said}"`);
+    expect(await width("left") === w0 + 100, `the left panel is 100px wider, got ${w0} then ${await width("left")}`);
+    await drag("left", 400);
+    expect(await value("left") === "520", `the left panel stops at 520, got ${await value("left")}`);
+    const toolsMid = await page.evaluate(() => { const t = document.querySelector(".bd-tools").getBoundingClientRect(), l = document.querySelector(".bd-shell > .bd-left").getBoundingClientRect(), r = document.querySelector(".bd-shell > .bd-right").getBoundingClientRect(); return Math.abs((t.left + t.right) / 2 - (l.right + r.left) / 2); });
+    expect(toolsMid < 12, `the tool bar stays centred between the panels, off by ${Math.round(toolsMid)}px`);
+    ok("the left panel resizes in steps of 4 up to its maximum, with a readout, the tool bar centred between");
+
+    const folded = await drag("left", -600);
+    expect(/fold/i.test(folded), `past the minimum the readout says it folds, got "${folded}"`);
+    expect(await page.locator(".bd-shell.is-left-closed").count() === 1 && !(await page.locator(".bd-left-body").isVisible()), "past the minimum the left panel folds to its rail");
+    expect(await width("left") < 120 && await page.locator(".bd-rail-tabs .bd-tab").first().isVisible(), `the rail stays, got ${await width("left")}px wide`);
+    expect(await page.locator('.bd-rail-tabs .bd-tab[aria-selected="true"]').count() === 0, "no rail tab reads as open while it's folded");
+    await page.locator(".bd-rail-tabs .bd-tab", { hasText: "Layers" }).click();
+    expect(await page.locator(".bd-shell.is-left-closed").count() === 0 && await value("left") === "520" && await page.locator(".bd-layers").isVisible(), `a rail tab opens it back at its width on that tab, got ${await value("left")}`);
+    ok("past its minimum the left panel folds to its rail; a rail tab opens it again at its width");
+
+    await drag("right", 600);
+    expect(!(await page.locator(".bd-shell > .bd-right").isVisible()) && await page.locator(".bd-panel-show").isVisible(), "past its minimum the inspector folds out of sight, leaving a button to show it");
+    await page.locator(".bd-panel-show").click();
+    expect(await page.locator(".bd-shell > .bd-right").isVisible() && await value("right") === "312", `the button shows the inspector at its width, got ${await value("right")}`);
+    ok("the inspector folds away and its button brings it back at its width");
+
+    await page.locator(".bd-panel-edge.is-right").focus();
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("Shift+ArrowLeft");
+    expect(await value("right") === "332", `Left widens the inspector by 4, Shift by 16, got ${await value("right")}`);
+    await page.keyboard.press("Enter");
+    expect(await page.locator(".bd-panel-show").isVisible(), "Enter on the edge folds the inspector");
+    await page.locator(".bd-panel-show").click();
+    await page.locator(".bd-panel-edge.is-left").focus();
+    await page.keyboard.press("Home");
+    expect(await value("left") === "280", `Home takes the left panel to its minimum, got ${await value("left")}`);
+    ok("the edges take arrows (Shift for 16), Home, End and Enter to fold");
+
+    await page.evaluate(() => window.__builder && window.__builder.flush());
+    await page.reload();
+    await page.waitForSelector(".bd-panel-edge.is-left");
+    expect(await value("left") === "280" && await value("right") === "332", `the widths are kept per browser, got ${await value("left")} and ${await value("right")}`);
+    await page.locator(".bd-panel-edge.is-left").dblclick();
+    await page.locator(".bd-panel-edge.is-right").dblclick();
+    expect(await value("left") === "344" && await value("right") === "312", `double-clicking an edge puts its default back, got ${await value("left")} and ${await value("right")}`);
+    ok("the widths are kept across a reload, and a double-click puts the default back");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(200);
+    expect(await page.locator(".bd-panel-edge, .bd-panel-show").count() === 0, "on a phone the panels are panes, with no edges to drag");
+    ok("at 390px there are no panel edges");
+    await page.close();
+  });
+
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {
     const phone = await open({ width: 390, height: 844 });
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");

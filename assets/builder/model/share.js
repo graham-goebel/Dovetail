@@ -1,6 +1,6 @@
 /* Share links, saved work and the first layout a visit opens. */
 
-import { DATA, LIB_KINDS, PREFS_KEY, PRESET, mql, storage } from "../config.js";
+import { DATA, LIB_KINDS, PANELS, PREFS_KEY, PRESET, mql, storage } from "../config.js";
 import { readLayout } from "./paste.js";
 import { libScopeOf, pageOf } from "./store.js";
 import { STARTERS } from "./starters.js";
@@ -136,6 +136,15 @@ function openStart(store) {
   });
 }
 
+function cleanPanels(raw) {
+  var q = raw && typeof raw === "object" ? raw : {};
+  var width = function (side) {
+    var b = PANELS[side], v = q[side];
+    return typeof v === "number" && isFinite(v) ? Math.min(b.max, Math.max(b.min, Math.round(v / PANELS.step) * PANELS.step)) : b.def;
+  };
+  return { left: width("left"), right: width("right"), leftClosed: q.leftClosed === true, rightClosed: q.rightClosed === true };
+}
+
 function loadPrefs() {
   var p = storage(function (s) { return JSON.parse(s.getItem(PREFS_KEY) || "null"); }) || {};
   return {
@@ -148,6 +157,8 @@ function loadPrefs() {
     /* What the canvas shows and snaps to, from the View menu. */
     canvas: Object.assign({ rulers: false, guides: true, columns: false, snapObjects: true, snapGuides: true },
       p.canvas && typeof p.canvas === "object" ? Object.keys(p.canvas).reduce(function (o, k) { if (typeof p.canvas[k] === "boolean") o[k] = p.canvas[k]; return o; }, {}) : {}),
+    /* How wide each floating panel is, and whether it's folded away. */
+    panels: cleanPanels(p.panels),
   };
 }
 
@@ -170,4 +181,4 @@ function thick(r) {
   return r;
 }
 
-export { copyText, decode, encode, loadLibrary, loadPrefs, openStart, readHash, starterDoc, thick, withoutUploads };
+export { cleanPanels, copyText, decode, encode, loadLibrary, loadPrefs, openStart, readHash, starterDoc, thick, withoutUploads };
