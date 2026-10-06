@@ -932,7 +932,7 @@ try {
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the label opens the Stack's Layout tab");
     await page.keyboard.up("Shift");
     await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
-    /* Alt (Option) measures too, as in Figma and Sketch. */
+    /* Alt (Option) measures too. */
     await page.mouse.move(tp.x + 30, tp.y + 30, { steps: 2 });
     await page.keyboard.down("Alt");
     await page.mouse.move(tp.x, tp.y, { steps: 4 });

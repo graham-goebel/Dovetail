@@ -240,7 +240,7 @@ var FREE_MAX = 1200;
 var HEX = /^#[0-9a-f]{6}$/i;
 function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
 
-/* Constraints, as Figma has them: across, a free layer keeps to its frame's
+/* Constraints: across, a free layer keeps to its frame's
    left edge (the default), its right, both (it stretches), its centre, or
    scales with it; down, the same with top and bottom. */
 var H_PINS = ["left", "right", "both", "center", "scale"];

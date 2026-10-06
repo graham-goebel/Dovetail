@@ -616,7 +616,7 @@ function Field(props) {
     props.hint ? e("span", { className: "bd-field-hint" }, kbd(props.hint)) : null);
 }
 
-/* Constraints as Figma draws them: a square for the frame, a smaller one
+/* Constraints as a pin square: a square for the frame, a smaller one
    for the layer, a line from it to each edge and two through its middle.
    Each line is a button; the pinned ones are drawn solid. h and v are the
    constraint across and down ("left" … "scale"), null when mixed. */
