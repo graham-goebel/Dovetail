@@ -1996,6 +1996,34 @@ span.bd-layer-twisty.is-open .bd-ic {
   touch-action: none;
 }
 
+/* A picked frame's box: the corner dots a selection has, and edge grips
+   that run just outside its edges, so they never cover what's inside it. */
+.bd-frame-box {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bd-frame-box .bd-handle:is(.is-n, .is-s) {
+  left: 0;
+  width: 100%;
+  height: 8px;
+  margin: 0;
+}
+
+.bd-frame-box .bd-handle.is-n { top: -8px; }
+.bd-frame-box .bd-handle.is-s { top: 100%; }
+
+.bd-frame-box .bd-handle:is(.is-e, .is-w) {
+  top: 0;
+  width: 8px;
+  height: 100%;
+  margin: 0;
+}
+
+.bd-frame-box .bd-handle.is-w { left: -8px; }
+.bd-frame-box .bd-handle.is-e { left: 100%; }
+
 .bd-resize.is-r {
   width: 8px;
   cursor: ew-resize;
@@ -2270,6 +2298,31 @@ span.bd-layer-twisty.is-open .bd-ic {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* The tag's ⋯: the layer's actions, as a right-click gives them. */
+.bd-mark-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin: -2px calc(var(--dt-space-inset-xs) * -0.5) -2px 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--dt-radius-control);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bd-mark-more:hover {
+  background: color-mix(in oklab, var(--bd-select-ink) 22%, transparent);
+}
+
+.bd-mark-more .bd-ic {
+  width: 14px;
+  height: 14px;
 }
 
 .bd-mark-sel.is-top .bd-mark-tag {

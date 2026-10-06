@@ -82,6 +82,22 @@
   var HEX = /^#[0-9a-f]{6}$/i;
   /* The page's fill: a surface option's own declarations, so a brand fill
      brings the text roles that read on it; or a custom colour. */
+  /* A frame's own auto layout, as declarations on its root: a Group's flex,
+     and a padding option's own. */
+  function flowStyle(fl) {
+    if (!fl) return null;
+    var gs = groupStyle({ direction: fl.direction || "column", gap: fl.gap || "none", align: fl.align, justify: fl.justify, wrap: fl.wrap });
+    var st = { flexDirection: gs.flexDirection, flexWrap: gs.flexWrap, alignItems: gs.alignItems, justifyContent: gs.justifyContent };
+    if (gs.gap) st.gap = gs.gap;
+    var po = fl.padding && DATA.tokens.padding ? DATA.tokens.padding.options.filter(function (o) { return o.value === fl.padding; })[0] : null;
+    if (po) Object.assign(st, po.css);
+    return st;
+  }
+  /* What spills past a fixed frame: clipped, or scrolled one way. */
+  function overflowStyle(page) {
+    if (!page.clip && !page.scroll) return null;
+    return { height: "100vh", minHeight: "0", overflowX: page.scroll === "x" ? "auto" : "hidden", overflowY: page.scroll === "y" ? "auto" : "hidden" };
+  }
   var PAGE_WIDTHS = { narrow: "var(--dt-layout-page-width-narrow)", wide: "var(--dt-layout-page-width-wide)" };
   var PAGE_GUTTERS = { wide: "var(--dt-space-gutter-wide)", none: "0" };
   function pageStyle(page) {
@@ -378,6 +394,11 @@
     if (opts.bare) { cls.push("bf-bare"); style.background = "transparent"; if (opts.sized) cls.push("bf-sized"); }
     html.classList.toggle("bf-bare-doc", !!opts.bare);
     if (page.gap && ROOT_GAP[page.gap]) style.gap = "calc(var(" + ROOT_GAP[page.gap] + ") * var(--dt-layout-scale, 1))";
+    if (!opts.bare && page.flow) Object.assign(style, flowStyle(page.flow));
+    /* Clipped or scrolling, the root is the screen and the document itself
+       stays still. A frame that hugs its content grows instead. */
+    var over = !opts.hug && !opts.bare ? overflowStyle(page) : null;
+    if (over) { Object.assign(style, over); html.style.overflow = "hidden"; }
     var kids = tree.root.children.length ? tree.root.children.map(function (c) { return renderNode(c, "root"); }) : empty("root");
     root.render(e(Painted, null, e("div", { className: cls.join(" "), "data-layout": page.spacing || undefined, "data-type-scale": page.typeScale === "social" ? "social" : undefined, "data-bf-id": "root", style: style }, kids)));
   }
@@ -862,7 +883,13 @@
     delete ps.color;
     var rootStyle = Object.keys(ps).map(function (k) { return (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)) + ": " + JSON.stringify(ps[k]); });
     if (tree.root.children.some(function (c) { return isFree(c.style); })) rootStyle.push("position: \"relative\"");
-    if (page.gap && ROOT_GAP[page.gap]) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
+    if (page.gap && ROOT_GAP[page.gap] && !(page.flow && page.flow.gap)) rootStyle.push("display: \"flex\"", "flexDirection: \"column\"", "gap: \"var(" + ROOT_GAP[page.gap] + ")\"");
+    var extra = Object.assign({}, page.flow ? Object.assign({ display: "flex" }, flowStyle(page.flow)) : null, !page.hug ? overflowStyle(page) : null);
+    if (page.flow && page.gap && ROOT_GAP[page.gap] && !page.flow.gap) extra.gap = "var(" + ROOT_GAP[page.gap] + ")";
+    Object.keys(extra).forEach(function (k) {
+      rootStyle = rootStyle.filter(function (s) { return s.indexOf(k + ":") !== 0; });
+      rootStyle.push(k + ": " + JSON.stringify(extra[k]));
+    });
     var cls = page.dark ? "dark" : "";
     var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + (page.typeScale === "social" ? ' data-type-scale="social"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
