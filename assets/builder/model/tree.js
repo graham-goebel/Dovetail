@@ -239,6 +239,10 @@ function note(report, line) { if (report && report.indexOf(line) < 0) report.pus
 var FREE_MAX = 1200;
 var HEX = /^#[0-9a-f]{6}$/i;
 function isFree(st) { return !!st && typeof st.x === "number" && typeof st.y === "number"; }
+/* A width or height relative to the parent (%) or to the screen (vw, vh), in
+   place of a size token or 4px steps: a whole number from 1 to 999. */
+var REL_SIZE = /^([1-9]\d{0,2})(%|vw|vh)$/;
+function relSize(v) { var m = typeof v === "string" ? REL_SIZE.exec(v) : null; return m ? { n: Number(m[1]), unit: m[2] } : null; }
 /* A list prop: plain items with only the fields its type gives, each of
    the right kind; links that go somewhere safe; at most 60 items. */
 var SAFE_HREF = /^(https?:\/\/|\/|#|mailto:|tel:|\.{0,2}\/?[\w-][\w./?=&%#-]*$)/;
@@ -317,6 +321,7 @@ function cleanNode(n, report) {
     /* A free layer's own size, in steps of --dt-space-inset-2xs (4px), and
        its turn in whole degrees. */
     if (k === "fw" || k === "fh") { if (Number.isInteger(st[k]) && st[k] >= 1 && st[k] <= FREE_MAX) style[k] = st[k]; else note(report, n.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k])); return; }
+    if (k === "rw" || k === "rh") { if (relSize(st[k])) style[k] = st[k]; else note(report, n.type + ": " + k + " is a whole number from 1 to 999 followed by %, vw or vh, not " + JSON.stringify(st[k])); return; }
     if (k === "rot") { if (Number.isInteger(st.rot) && st.rot > -180 && st.rot <= 180 && st.rot !== 0) style.rot = st.rot; else if (st.rot !== 0) note(report, n.type + ": rot is whole degrees from -179 to 180, not " + JSON.stringify(st.rot)); return; }
     if (k === "alpha") { if (Number.isInteger(st.alpha) && st.alpha >= 0 && st.alpha < 100) style.alpha = st.alpha; else note(report, n.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha)); return; }
     if (tokenOption(k, st[k])) style[k] = st[k];
@@ -426,4 +431,4 @@ function clean(doc, report) {
   return out;
 }
 
-export { CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };
+export { CONVERTS, FREE_MAX, HEX, SAFE_HREF, active, autoLayout, canHold, clean, cleanFrame, cleanList, cleanNode, cleanSlot, copy, emptyDoc, fixed, fixedSpot, frameById, fresh, isFree, locate, relSize, make, makeFrame, note, ops, parentSpot, presetOf, seq, settle, side, tokenOption, uid };

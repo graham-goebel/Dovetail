@@ -10,10 +10,10 @@ import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf, VERSIONS_MAX } fr
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
-import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, side, tokenOption, uid } from "../model/tree.js";
+import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PinPad, Renamable, SearchField, Section, Segmented, Switch, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PinPad, Renamable, SearchField, Section, Segmented, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -1698,7 +1698,7 @@ function App(props) {
       if (last && last.frame === f && last.preview === preview) return;
       rendered.current[f.id] = { frame: f, preview: preview };
       grows.current[f.id] = 0;
-      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized) });
+      a.render({ page: { dark: f.dark, surface: f.surface, canvas: f.canvas, spacing: f.spacing, gap: f.gap, typeScale: f.typeScale, pageWidth: f.pageWidth, gutter: f.gutter, flow: f.flow, clip: f.clip, scroll: f.scroll }, root: f.root }, { preview: preview, hug: f.hug || !!f.bare, bare: !!f.bare, sized: !!(f.bare && f.sized), screen: f.bare ? null : { w: f.width, h: f.height } });
     });
     if (any && !placeable) {
       var ok = {}, sc = {}, det = {};
@@ -2053,7 +2053,7 @@ function App(props) {
     if (!clipStyle || !selRef.current.length) return false;
     var patch = {};
     /* A free layer's own size, turn and opacity come along too. */
-    Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rot"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
+    Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rw", "rh", "rot"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
     setStyles(selRef.current, patch);
     announce("Pasted the style");
     return true;
@@ -4059,7 +4059,7 @@ function App(props) {
     };
     var ring = function (key, title) {
       return tokenDropdown(key, nodes, null, {
-        compact: true, noPreview: true, label: title + ", every side", prefix: title, mixedLabel: "", noneShort: "", short: function () { return ""; }, className: "bd-box-all",
+        compact: true, noPreview: true, label: title + ", every side", icon: "sides", iconOnly: true, mixedLabel: "", noneShort: "", short: function () { return ""; }, className: "bd-box-all",
         noneLabel: key === "padding" && ownLabel ? ownLabel : undefined,
         title: title + ", every side. Alt-click clears every side.",
         onAltClick: function () { change(boxApply(ids, key, key, undefined, true), boxWord(key, key, undefined, true)); },
@@ -4081,36 +4081,94 @@ function App(props) {
           e("div", { className: "bd-box-core", "aria-hidden": true }))));
   };
 
-  /* Width, height and their minimums, two by two. */
+  /* Width, height and their minimums, two by two. Width and height also take
+     a share of the parent (%) or of the screen (vw, vh); switching the unit
+     keeps the size the layer has now, converted. */
+  var SIZE_UNITS = [{ value: "px", label: "px" }, { value: "%", label: "%" }, { value: "vw", label: "vw" }, { value: "vh", label: "vh" }];
   var sizeGrid = function (nodes) {
+    var ids = nodes.map(function (n) { return n.id; });
+    var a = api();
+    var free = frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); });
+    var measured = function (id, wide) {
+      var sz = a && a.size ? a.size(id) : null;
+      return sz ? (wide ? sz.width : sz.height) : null;
+    };
+    /* What 1 of a unit is, in pixels, for this layer. */
+    var per = function (id, wide, unit) {
+      if (unit === "vw") return frame.width / 100;
+      if (unit === "vh") return frame.height / 100;
+      var at = locate(doc, id);
+      var box = at && at.parent ? measured(at.parent.id, wide) : null;
+      return (box || (wide ? frame.width : frame.height)) / 100;
+    };
     var field = function (key, prefix) {
       return e("div", { key: key }, tokenDropdown(key, nodes, null, { prefix: prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
     };
-    /* A free layer takes any multiple of 4px: typed (rounded to the nearest
-       4), dragged on the letter, or stepped with the arrows, 4 at a time or
-       16 with Shift. Empty means its own size. */
-    if (frame.mode !== "structured" && nodes.every(function (n) { return isFree(n.style); })) {
-      var ids = nodes.map(function (n) { return n.id; });
-      var a = api();
-      var px = function (n, key) {
-        if (n.style[key]) return n.style[key] * 4;
-        var sz = a && a.size ? a.size(n.id) : null;
-        return sz ? Math.round((key === "fw" ? sz.width : sz.height) / 4) * 4 : null;
+    /* One side: W or H, in px or one of the relative units. */
+    var dim = function (wide) {
+      var short = wide ? "W" : "H", label = wide ? "Width" : "Height";
+      var fkey = wide ? "fw" : "fh", tkey = wide ? "w" : "height", rkey = wide ? "rw" : "rh";
+      var units = nodes.map(function (n) { var r = relSize(n.style[rkey]); return r ? r.unit : "px"; });
+      var unit = same(units) ? units[0] : null;
+      var apply = function (patchFor, message, live) {
+        var fn = function (d) { ids.forEach(function (id) { var at = locate(d, id); if (!at) return; Object.assign(at.node.style, patchFor(id)); Object.keys(at.node.style).forEach(function (k) { if (at.node.style[k] === undefined) delete at.node.style[k]; }); }); return undefined; };
+        if (live) quiet(fn); else change(fn, message);
       };
-      var free = function (key, short, label, token) {
-        var vs = nodes.map(function (n) { return px(n, key); });
+      var clear = {}; clear[fkey] = undefined; clear[tkey] = undefined; clear[rkey] = undefined;
+      var setRel = function (n, u, live) {
+        n = Math.max(1, Math.min(999, Math.round(n)));
+        apply(function () { var p = Object.assign({}, clear); p[rkey] = n + u; return p; }, label + " " + n + u, live);
+      };
+      var onUnit = function (u) {
+        if (u === unit) return;
+        if (u === "px") {
+          /* Back to pixels: a free layer keeps its size in 4px steps; in
+             the flow it goes back to its own size. */
+          apply(function (id) {
+            var p = Object.assign({}, clear);
+            var px = measured(id, wide);
+            if (free && px) p[fkey] = Math.max(1, Math.min(FREE_MAX, Math.round(px / 4)));
+            return p;
+          }, label + " in pixels");
+          return;
+        }
+        apply(function (id) {
+          var p = Object.assign({}, clear);
+          var px = measured(id, wide), one = per(id, wide, u);
+          p[rkey] = Math.max(1, Math.min(999, Math.round(px && one ? px / one : 100))) + u;
+          return p;
+        }, label + " in " + u);
+      };
+      var picker = e(Dropdown, { label: label + " unit", value: unit, mixed: !unit, mixedLabel: "~", options: SIZE_UNITS, compact: true, narrow: true, alignEnd: true, className: "bd-dd-unit", onChange: onUnit });
+      var body;
+      if (unit && unit !== "px") {
+        var ns = nodes.map(function (n) { return relSize(n.style[rkey]).n; });
+        body = e(NumberField, { short: short, label: label + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"), value: same(ns) ? ns[0] : null, placeholder: "Mixed", min: 1, max: 999,
+          title: label + ": " + (unit === "%" ? "a share of its parent" : "a share of the screen's " + (unit === "vw" ? "width" : "height")) + ". Arrows step 1, Shift 10; drag the letter to scrub.",
+          onChange: function (v) { setRel(v, unit); }, onScrub: function (v, first) { setRel(v, unit, !first); } });
+      } else if (free) {
+        /* A free layer takes any multiple of 4px: typed (rounded to the
+           nearest 4), dragged on the letter, or stepped with the arrows, 4 at
+           a time or 16 with Shift. Empty means its own size. */
+        var px = function (n) {
+          if (n.style[fkey]) return n.style[fkey] * 4;
+          var m = measured(n.id, wide);
+          return m ? Math.round(m / 4) * 4 : null;
+        };
+        var vs = nodes.map(px);
         var set = function (v, first) {
           var steps = Math.max(1, Math.min(FREE_MAX, Math.round(v / 4)));
-          var fn = function (d) { ids.forEach(function (id) { var at = locate(d, id); if (!at) return; at.node.style[key] = steps; delete at.node.style[token]; }); return undefined; };
-          if (first === false) quiet(fn); else change(fn, label + " " + steps * 4 + "px");
+          apply(function () { var p = Object.assign({}, clear); p[fkey] = steps; return p; }, label + " " + steps * 4 + "px", first === false);
         };
-        return e(NumberField, { key: key, short: short, label: label + ", in pixels, a multiple of 4", value: same(vs) ? vs[0] : null, placeholder: "Mixed", step: 4, min: 4, max: FREE_MAX * 4,
+        body = e(NumberField, { short: short, label: label + ", in pixels, a multiple of 4", value: same(vs) ? vs[0] : null, placeholder: "Mixed", step: 4, min: 4, max: FREE_MAX * 4,
           title: label + ": any multiple of 4px. Arrows step 4, Shift 16; drag the letter to scrub.",
           onChange: function (v) { set(v); }, onScrub: function (v, first) { set(v, first); } });
-      };
-      return e("div", { className: "bd-grid2" }, free("fw", "W", "Width", "w"), free("fh", "H", "Height", "height"), field("minW", "Min W"), field("h", "Min H"));
-    }
-    return e("div", { className: "bd-grid2" }, field("w", "W"), field("height", "H"), field("minW", "Min W"), field("h", "Min H"));
+      } else {
+        body = tokenDropdown(tkey, nodes, null, { prefix: short, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
+      }
+      return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
+    };
+    return e("div", { className: "bd-grid2" }, dim(true), dim(false), field("minW", "Min W"), field("h", "Min H"));
   };
 
   var selfRow = function (nodes) {
@@ -4528,6 +4586,10 @@ function App(props) {
   };
 
   /* A variable picked applies to the selection, where it fits. */
+  /* Variables in Assets: everything the system has, or what this project
+     uses already. */
+  var varScopeState = useState("all");
+  var varScope = varScopeState[0], setVarScope = varScopeState[1];
   var VAR_SETS = [
     ["surface", "Fill", "color"], ["border", "Border", "color"], ["padding", "Padding", "space"],
     ["radius", "Radius", "radius"], ["elevation", "Shadow", "shadow"], ["w", "Width", "size"],
@@ -4547,11 +4609,16 @@ function App(props) {
     var own = picked.length && picked.every(function (n) { return n.type === picked[0].type; }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
     return e("div", { className: "bd-vars" },
       e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
+      e(Segmented, { key: "scope", label: "Show", wide: true, className: "bd-vars-scope", value: varScope, onChange: function (v) { if (v) setVarScope(v); },
+        options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }] }),
       VAR_SETS.map(function (vs) {
         var def = DATA.tokens[vs[0]];
         if (!def) return null;
-        /* With a selection, only what suits it, as in the inspector. */
-        var opts = def.options.filter(function (o) { return (vs[0] !== "w" || (o.family !== "fit" && o.family !== "container")) && (!sc || optionAllowed(vs[0], o, sc)); });
+        var keys = [vs[0]].concat(def.sides || []);
+        /* With a selection, only what suits it, as in the inspector; and
+           only what the project uses, when that's what's shown. */
+        var opts = def.options.filter(function (o) { return (vs[0] !== "w" || (o.family !== "fit" && o.family !== "container")) && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(used, keys, o.value)); });
+        if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
         var cur = picked.length && same(picked.map(function (n) { return n.style[vs[0]] || ""; })) ? picked[0].style[vs[0]] || "" : null;
         return e("section", { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
           e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
@@ -5129,24 +5196,8 @@ function App(props) {
   /* The inspector's tabs. One with nothing to set for this selection is off,
      and the inspector shows Layout instead. */
   var tabBar = function (have, current) {
-    return e("div", { className: "bd-itabs", role: "tablist", "aria-label": "Inspector" },
-      TABS.filter(function (t) { return have[t[0]] !== undefined; }).map(function (t) {
-        var on = current === t[0];
-        return e("button", {
-          key: t[0], type: "button", role: "tab", id: "bd-itab-" + t[0], className: "bd-itab", "aria-selected": String(on), "aria-controls": "bd-ipanel",
-          disabled: !have[t[0]], tabIndex: on ? 0 : -1,
-          onClick: function () { setTab(t[0]); },
-          onKeyDown: function (ev) {
-            if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
-            ev.preventDefault();
-            var list = TABS.filter(function (x) { return have[x[0]]; }).map(function (x) { return x[0]; });
-            var i = list.indexOf(current) + (ev.key === "ArrowRight" ? 1 : -1);
-            var next = list[(i + list.length) % list.length];
-            setTab(next);
-            setTimeout(function () { var b = document.getElementById("bd-itab-" + next); if (b) b.focus(); }, 0);
-          },
-        }, t[1]);
-      }));
+    return e(TabStrip, { label: "Inspector", panel: "bd-ipanel", current: current, onPick: setTab,
+      tabs: TABS.filter(function (t) { return have[t[0]] !== undefined; }).map(function (t) { return { id: t[0], label: t[1], disabled: !have[t[0]] }; }) });
   };
   var tabPanel = function (current, children) {
     return e("div", { id: "bd-ipanel", role: "tabpanel", className: "bd-ipanel", "aria-labelledby": "bd-itab-" + current }, children);
@@ -5508,7 +5559,7 @@ function App(props) {
     else if (current === "layout") {
       body = [
         flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-        sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh"])),
+        sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
       ];
@@ -5795,8 +5846,8 @@ function App(props) {
         var at = locate(d, id);
         if (!at) return null;
         var st = at.node.style;
-        if (horiz) { st.fw = fw; delete st.w; }
-        if (vert) { st.fh = fh; delete st.height; }
+        if (horiz) { st.fw = fw; delete st.w; delete st.rw; }
+        if (vert) { st.fh = fh; delete st.height; delete st.rh; }
         st.x = xs;
         st.y = ys;
         return undefined;
@@ -6334,8 +6385,6 @@ function App(props) {
   var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
   /* What the project uses, for the inspector when nothing is selected: the
      page on screen, live, with the project's other pages read from the store. */
-  var sysScopeState = useState("used");
-  var sysScope = sysScopeState[0], setSysScope = sysScopeState[1];
   var otherUseState = useState(null);
   var otherUse = otherUseState[0], setOtherUse = otherUseState[1];
   var pageKey = pagesOf(project).map(function (p) { return p.id; }).join() + "|" + pageId;
@@ -6351,7 +6400,7 @@ function App(props) {
 
   var builderInspector = function () {
     var bid = "bd-stage-bg";
-    var onlyUsed = sysScope === "used";
+    var onlyUsed = false;
     var prims = DATA.groups.filter(function (g) { return g.id === "layout" || g.id === "typography"; }).reduce(function (a, g) { return a.concat(g.items); }, [])
       .filter(function (n) { return (!placeable || placeable[n]) && (!onlyUsed || used.types[n]); });
     return e("div", { className: "bd-inspect" },
@@ -6367,25 +6416,9 @@ function App(props) {
                 options: STAGE_SWATCHES.map(function (x) { return { value: x[0], label: x[1], picture: e("span", { className: cx("bd-stage-chip", !x[0] && "is-default"), style: x[0] ? { background: x[0] } : undefined }) }; }) }),
               e(ColorPick, { value: STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }) ? "" : stageColor, on: !!stageColor && !STAGE_SWATCHES.some(function (x) { return x[0] === stageColor; }), label: "Custom background colour", fallback: stageColor || "#e7e7ea", onChange: setStageColor }))),
         ]),
-        /* Nothing selected: what the system offers, rather than a list of
-           frames (Layers has those). */
-        sec("builder-vars", "Variables", [
-          e(Segmented, { key: "scope", label: "Show", wide: true, value: sysScope, onChange: function (v) { if (v) setSysScope(v); },
-            options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }] }),
-          sysGroup("colour", "Colour", DATA.tokens.surface.options.filter(function (o, i) { return onlyUsed ? usesToken(used, "surface", o.value) : i < 16; }).map(function (o) {
-            return sysRow(o.value, e("span", { className: "bd-sw bd-sys-sw", style: { background: tints[o.tokens[0]] || "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
-          })),
-          sysGroup("space", "Spacing", DATA.tokens.padding.options.filter(function (o) { return !o.family || o.family === "inset"; }).filter(function (o, i) { return onlyUsed ? usesToken(used, PADDING_KEYS, o.value) : i < 8; }).map(function (o) {
-            var px = pxMap["padding|" + o.value];
-            return sysRow(o.value, e("span", { className: "bd-sys-bar", style: { width: px != null ? Math.min(28, Math.round(px)) + "px" : "8px" } }), o.value, px != null ? Math.round(px) + "px" : o.tokens[0]);
-          })),
-          sysGroup("radius", "Radius", DATA.tokens.radius.options.filter(function (o) { return !onlyUsed || usesToken(used, "radius", o.value); }).map(function (o) {
-            return sysRow(o.value, e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }), o.value, o.tokens[0]);
-          })),
-          e("div", { key: "acts", className: "bd-media-actions" },
-            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("assets"); setAssetKind("variables"); } }, e(Icon, { name: "variable" }), "Apply from Assets"),
-            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setLeft("configure"); } }, e(Icon, { name: "sliders" }), "Change in Configure")),
-        ]),
+        /* Nothing selected: the primitives and styles the system offers.
+           Variables live in the left panel's Assets, with the choice of this
+           project's or all of them. */
         sec("builder-prims", "Primitives", [
           e("p", { key: "n", className: "bd-sec-empty" }, prims.length ? "Press one to add it to " + frame.name + ", or drag it onto the canvas." : "None in this project yet. Show Everything to add one."),
           e("ul", { key: "list", className: "bd-sys-list", role: "list" }, prims.map(function (n) {
