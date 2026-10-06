@@ -730,6 +730,70 @@ html.bd-configure-docked .configure-open-btn {
   border-left: var(--dt-border-width-strong) solid var(--dt-text-secondary);
 }
 
+/* Picture tiles for props: a picture with its value beneath, as many to a
+   row as fit, all the same width. */
+.bd-seg.bd-seg-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+  gap: 2px;
+}
+
+.bd-seg.bd-seg-tiles .bd-seg-btn {
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  padding: 6px 2px 4px;
+}
+
+.bd-pv-cap {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--dt-font-size-2xs, 0.7rem);
+  line-height: 1.2;
+}
+
+.bd-pv-fit,
+.bd-pv-ratio-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 20px;
+}
+
+/* Square, so a wide photo shows the difference between the fits. */
+.bd-pv-fit {
+  width: 22px;
+  height: 22px;
+}
+
+.bd-pv-fit {
+  overflow: hidden;
+  border: var(--dt-border-width-default) solid var(--dt-text-tertiary);
+  border-radius: 2px;
+  background: var(--bd-field);
+}
+
+.bd-pv-fit img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bd-pv-ratio {
+  box-sizing: border-box;
+  border: var(--dt-border-width-strong) solid currentColor;
+  border-radius: 2px;
+}
+
+.bd-pv-corner {
+  width: 20px;
+  height: 20px;
+  border-top: var(--dt-border-width-strong) solid currentColor;
+  border-left: var(--dt-border-width-strong) solid currentColor;
+}
+
 .bd-pv-shadow {
   flex: none;
   width: var(--dt-size-icon-sm);

@@ -4223,6 +4223,26 @@ function App(props) {
 
   var libPicks = library.images.map(function (it) { return Object.assign({ kind: "Image" }, it); })
     .concat(library.illustrations.map(function (it) { return Object.assign({ kind: "Illustration" }, it); }));
+  /* Props that read better as pictures than words: how a photo fits its
+     box (drawn with object-fit itself, on a small landscape), the corner
+     each radius gives, and the shape of each ratio. */
+  var FIT_SRC = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32" viewBox="0 0 64 32"><rect width="64" height="32" fill="#8ea3b8"/><circle cx="50" cy="9" r="4.5" fill="#f4d58d"/><path d="M0 32 L18 12 L32 26 L44 16 L64 32 Z" fill="#4d6b57"/></svg>');
+  var PIC_LABEL = { cover: "Cover", contain: "Contain", fill: "Fill", none: "None", "scale-down": "Shrink", square: "1:1", media: "Media", container: "Container", control: "Control", overlay: "Overlay", pill: "Pill" };
+  var ratioOf = function (v) { if (v === "square") return 1; var m = /^(\d+):(\d+)$/.exec(String(v)); return m ? Number(m[1]) / Number(m[2]) : null; };
+  var propPicture = function (name, o) {
+    if (name === "fit") return e("span", { className: "bd-pv-fit" }, e("img", { src: FIT_SRC, alt: "", style: { objectFit: o } }));
+    if (name === "radius") return e("span", { className: "bd-pv-corner", style: { borderTopLeftRadius: "var(--dt-radius-" + o + ")" } });
+    var r = ratioOf(o);
+    /* Every shape inside the same 28 × 20 box. */
+    var w = r >= 1.4 ? 28 : Math.round(20 * r), h = r >= 1.4 ? Math.round(28 / r) : 20;
+    return e("span", { className: "bd-pv-ratio-box" }, e("span", { className: "bd-pv-ratio", style: { width: w + "px", height: h + "px" } }));
+  };
+  var picturable = function (p) {
+    if (p.name === "fit") return p.options.every(function (o) { return /^(cover|contain|fill|none|scale-down)$/.test(o); });
+    if (p.name === "radius") return p.options.every(function (o) { return /^(none|control|media|container|overlay|pill)$/.test(o); });
+    if (p.name === "ratio") return p.options.every(function (o) { return ratioOf(o) != null; });
+    return false;
+  };
   var propControl = function (p, nodes) {
     var first = nodes[0];
     var id = "bd-p-" + first.id + "-" + p.name;
@@ -4277,6 +4297,13 @@ function App(props) {
       var toneMap = TEXT_TYPES[first.type] ? TONE_TEXT : TONE_FILL;
       control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, placeholder: "Default", preview: "color", className: "bd-dd-field bd-dd-swatch",
         options: p.options.map(function (o) { var t = toneMap[o]; return { value: o, label: ENUM_LABEL[o] || String(o), hint: t || "Takes its colour from around it", tokens: t ? [t] : [] }; }) });
+    } else if (p.kind === "enum" && picturable(p)) {
+      control = e(Segmented, { labelledBy: id, value: mixed ? null : current, onChange: function (v) { if (v) set(v); }, className: "bd-seg-pics bd-seg-tiles",
+        options: p.options.map(function (o) {
+          var name = PIC_LABEL[o] || String(o);
+          var full = o === "scale-down" ? "Scale down: shrink to fit, never grow" : name;
+          return { value: o, label: label + ": " + full, title: full, picture: e(React.Fragment, null, propPicture(p.name, o), e("span", { className: "bd-pv-cap", "aria-hidden": true }, name)) };
+        }) });
     } else if (p.kind === "enum") {
       var icons = ENUM_ICONS[p.name];
       if (icons && p.options.every(function (o) { return icons[o]; })) {

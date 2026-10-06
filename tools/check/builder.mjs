@@ -2500,6 +2500,36 @@ try {
     await page.close();
   });
 
+  await step("Picture props: an Image's Fit, Radius and Ratio are rows of pictures, and picking one sets the prop", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    await startFrom(page, "Blank frame");
+    await emptyFrame(page);
+    await category(page, "Content");
+    await page.locator('.bd-tile[data-type="Image"]').click();
+    await frame().waitForSelector('[data-bf-type="Image"]');
+    await tab(page, "Appearance");
+    const row = (name) => page.locator(".bd-right .bd-field").filter({ has: page.locator(".bd-field-label", { hasText: new RegExp("^" + name + "$") }) }).locator(".bd-seg-tiles");
+    const counts = {};
+    for (const [name, pic] of [["Fit", ".bd-pv-fit img"], ["Radius", ".bd-pv-corner"], ["Ratio", ".bd-pv-ratio"]]) {
+      counts[name] = await row(name).locator(".bd-seg-btn").count();
+      expect(counts[name] >= 4 && await row(name).locator(pic).count() === counts[name], `${name} is a row of pictures, got ${counts[name]} buttons`);
+    }
+    expect(await row("Ratio").locator(".bd-seg-btn[aria-pressed=true] .bd-pv-cap").textContent() === "16:9", "the Image's default ratio, 16:9, is pressed");
+    /* Each fit draws itself: Contain leaves room in the square, Cover fills it. */
+    const fits = await row("Fit").locator(".bd-pv-fit img").evaluateAll((imgs) => imgs.map((i) => getComputedStyle(i).objectFit));
+    expect(fits.join() === "cover,contain,fill,none,scale-down", `the Fit pictures use object-fit itself, got ${fits.join()}`);
+    const node = () => page.evaluate(() => { const r = window.__builder.doc().frames[0].root; return JSON.parse(JSON.stringify(r.children[r.children.length - 1].props)); });
+    await row("Ratio").locator(".bd-seg-btn", { hasText: "1:1" }).click();
+    await row("Fit").locator(".bd-seg-btn", { hasText: "Contain" }).click();
+    await row("Radius").locator(".bd-seg-btn", { hasText: "Pill" }).click();
+    await page.waitForFunction(() => { const r = window.__builder.doc().frames[0].root; const p = r.children[r.children.length - 1].props; return p.ratio === "square" && p.fit === "contain" && p.radius === "pill"; });
+    const props = await node();
+    const shape = await frame().evaluate(() => { const el = document.querySelector('[data-bf-type="Image"]'); let x = el; while (x && getComputedStyle(x).display === "contents") x = x.firstElementChild; const r = x.getBoundingClientRect(); return Math.round((r.width / r.height) * 100) / 100; });
+    expect(Math.abs(shape - 1) < 0.05, `1:1 draws a square Image, got ${shape}`);
+    ok(`Fit (${counts.Fit}), Radius (${counts.Radius}) and Ratio (${counts.Ratio}) are picture rows; 1:1, Contain and Pill set ${JSON.stringify(props)} and the Image draws square`);
+    await page.close();
+  });
+
   await step("Edit in place: any text on the canvas, including an item of a component's list, is typed into where it is", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
