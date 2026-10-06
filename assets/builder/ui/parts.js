@@ -224,6 +224,40 @@ function PictureField(props) {
         options: props.options.map(function (o) { return { value: o.value, label: props.label + ": " + (o.title || o.name), title: o.title || o.name, picture: o.picture }; }) })));
 }
 
+/* Swatches in labelled rows, no dropdown: Neutral, Brand, Status. The
+   chosen one is named after the label; the one under the pointer or focus
+   is named there instead while it is, and its tokens show beneath. Each
+   swatch shows "Aa" in its own text colour, so contrast reads at a glance.
+   groups: [{ name, options: [{ value, name, tokens, bg, fg }] }]; the value
+   "" is None. */
+function SwatchField(props) {
+  var hoverState = useState(null), hover = hoverState[0], setHover = hoverState[1];
+  var all = [];
+  props.groups.forEach(function (g) { all = all.concat(g.options); });
+  var on = all.filter(function (o) { return o.value === props.value; })[0];
+  var shown = hover ? hover.name : props.mixed ? "Mixed" : props.custom ? "Custom " + props.custom : on ? on.name : "None";
+  var tile = function (o) {
+    var pressed = !props.mixed && !props.custom && o.value === props.value;
+    var none = !o.value;
+    return e("button", { key: o.value || "none", type: "button", className: cx("bd-swatch", none && "is-none"), "aria-pressed": String(pressed),
+      "aria-label": props.label + ": " + o.name, title: o.name,
+      style: none ? undefined : { background: o.bg, color: o.fg },
+      onPointerEnter: function () { setHover(o); }, onFocus: function () { setHover(o); },
+      onClick: function () { setHover(null); props.onChange(o.value); } }, none ? null : "Aa");
+  };
+  return e("div", { className: "bd-field bd-swatch-field" },
+    e("div", { className: "bd-field-head" },
+      e("span", { className: "bd-field-label", id: props.id }, props.label),
+      e("span", { className: cx("bd-field-val", hover && "is-preview"), "aria-hidden": true }, shown)),
+    e("div", { className: "bd-swatch-rows", role: "group", "aria-labelledby": props.id, onPointerLeave: function () { setHover(null); }, onBlur: function () { setHover(null); } },
+      props.groups.map(function (g) {
+        return e(React.Fragment, { key: g.name },
+          e("span", { className: "bd-swatch-group", "aria-hidden": true }, g.name),
+          e("div", { className: "bd-swatch-row" }, g.options.map(tile)));
+      })),
+    e("div", { className: "bd-swatch-tokens", "aria-hidden": true }, hover ? (hover.tokens && hover.tokens.length ? hover.tokens.join(" · ") : props.noneHint || "") : ""));
+}
+
 /* One pressed, icons or pictures where they say it. clearable: pressing
    the pressed one again unsets it. */
 function Segmented(props) {
@@ -973,4 +1007,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, SwatchField, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
