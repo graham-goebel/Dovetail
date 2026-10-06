@@ -63,7 +63,7 @@
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Dovetail</a></li><li><a href="../guide/index.html">Guide</a></li><li aria-current="page">Token pipeline</li></ol></nav>
 <article class="prose doc">
 <h1 id="token-pipeline">Token pipeline</h1>
-<p><code>tokens/dovetail.tokens.json</code> is the source of truth. It is written in the <a href="https://tr.designtokens.org/">W3C Design Tokens Format Module</a> (DTCG), the interchange format Figma Variables, Tokens Studio, and Style Dictionary all read.</p>
+<p><code>tokens/dovetail.tokens.json</code> is the source of truth. It is written in the <a href="https://tr.designtokens.org/">W3C Design Tokens Format Module</a> (DTCG), the interchange format that design-tool variables, token importers and Style Dictionary all read.</p>
 <p>One source, many outputs. This is what stops design and code from drifting into two systems that happen to look alike.</p>
 <pre class="code"><code>tokens/dovetail.tokens.json
         │
@@ -72,7 +72,7 @@
         │                    ├─ Swift                   (iOS)
         │                    └─ XML                     (Android)
         │
-        └─ Tokens Studio ────── Figma Variables         (design)</code></pre>
+        └─ token importer ───── design-tool variables   (design)</code></pre>
 <h2 id="building">Building</h2>
 <pre class="code" data-lang="bash"><code>npx style-dictionary build --config templates/_support/style-dictionary.config.cjs</code></pre>
 <p>Output lands in <code>tokens/build/</code>.</p>
@@ -81,8 +81,8 @@
 <p>When you change a token: edit the JSON, run the build, and port the change into the committed CSS. If the two ever disagree, the JSON wins. A CI check comparing the generated output against the committed files is the next thing to add.</p>
 <h2 id="adding-a-token">Adding a token</h2>
 <ol><li>Add it to the JSON at the correct tier. A semantic token's <code>$value</code> must be a reference (<code>{primitive.color.primary.600}</code>), never a literal.</li><li>Give it a <code>$description</code> if the name does not fully explain when to use it.</li><li>Rebuild, port to CSS, and add it to the relevant spec card in <code>guidelines/</code>.</li><li>If it is a colour pair, verify contrast before committing.</li></ol>
-<h2 id="figma">Figma</h2>
-<p>Import the JSON into Tokens Studio and push to Figma Variables. Use one collection per tier and mode-switch at the semantic tier only — primitives should have a single mode, themes and dark mode live as modes on the semantic collection.</p>
+<h2 id="design-tools">Design tools</h2>
+<p>Import the JSON into your design tool's variables with a DTCG token importer. Use one collection per tier and mode-switch at the semantic tier only — primitives should have a single mode, themes and dark mode live as modes on the semantic collection.</p>
 <h2 id="where-these-files-live">Where these files live</h2>
 <p>Browser-side helpers (<code>card-kit.js</code>, <code>theme-runtime.js</code>) and the Node build config (<code>style-dictionary.config.cjs</code>) live in <code>templates/_support/</code>, not here. The design-system compiler sweeps every <code>.js</code>, <code>.jsx</code>, and <code>.cjs</code> in the project into <code>_ds_bundle.js</code>; <code>templates/</code> is the one tree it skips. Keeping them there stops a page script from being evaluated twice and stops a Node config from throwing on every page load.</p>
 </article>
@@ -95,7 +95,7 @@
     <li><a href="#building">Building</a></li>
     <li><a href="#why-the-css-is-committed">Why the CSS is committed</a></li>
     <li><a href="#adding-a-token">Adding a token</a></li>
-    <li><a href="#figma">Figma</a></li>
+    <li><a href="#design-tools">Design tools</a></li>
     <li><a href="#where-these-files-live">Where these files live</a></li>
   </ol>
 </aside>
