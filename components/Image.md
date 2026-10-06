@@ -180,7 +180,9 @@ export function UploadFrame({ icon, label, hint, accept, onFile, quiet = false, 
 }
 
 export function Image({ src, alt, ratio = "16:9", fit = "cover", position = "center", radius = "media", loading = "lazy", placeholder, onFile, style, ...rest }) {
-  const frame = { background: "var(--dt-surface-sunken)", borderRadius: RADII[radius] || RADII.media, ...style };
+  /* The well shows only while there's no picture; a picture with
+     transparent parts shows what's behind it. */
+  const frame = { background: src ? undefined : "var(--dt-surface-sunken)", borderRadius: RADII[radius] || RADII.media, ...style };
   if (!src) {
     return (
       <AspectRatio ratio={ratio} style={frame} {...rest}>

@@ -5670,11 +5670,12 @@
       var fit = function() {
         if (!stage) return;
         var w = stage.scrollWidth, h = stage.scrollHeight;
-        var W = el.clientWidth, H = el.clientHeight;
+        var box = el.getBoundingClientRect();
+        var W = el.clientWidth || box.width;
+        var H = el.clientHeight > 12 ? el.clientHeight : W * 0.75;
         if (!w || !h || W <= 12 || H <= 12) return;
         var s = Math.min(props.wide ? 1 : 1.6, (W - 12) / w, (H - 12) / h);
         stage.style.transform = "translate(" + Math.max(0, (W - w * s) / 2) + "px, " + Math.max(0, (H - h * s) / 2) + "px) scale(" + s + ")";
-        stage.style.opacity = "1";
       };
       var draw = function() {
         if (done || gone) return;
@@ -5694,11 +5695,17 @@
         }
         el.appendChild(stage);
         root = ReactDOM.createRoot(stage);
+        var now = ReactDOM.flushSync || function(f) {
+          f();
+        };
         try {
-          root.render(e(ThumbGuard, null, build2()));
+          now(function() {
+            root.render(e(ThumbGuard, null, build2()));
+          });
         } catch (err) {
           return;
         }
+        fit();
         requestAnimationFrame(function() {
           requestAnimationFrame(fit);
         });
@@ -5712,6 +5719,17 @@
           if (!gone) fit();
         });
       };
+      var near = function() {
+        var r = el.getBoundingClientRect();
+        return r.width > 0 && r.bottom > -120 && r.top < window.innerHeight + 120 && r.right > 0 && r.left < window.innerWidth;
+      };
+      var poll = setInterval(function() {
+        if (done || gone) {
+          clearInterval(poll);
+          return;
+        }
+        if (near()) draw();
+      }, 500);
       if (window.IntersectionObserver) {
         io = new IntersectionObserver(function(entries) {
           if (entries.some(function(x) {
@@ -5722,9 +5740,10 @@
           }
         }, { rootMargin: "120px" });
         io.observe(el);
-      } else draw();
+      } else setTimeout(draw, 0);
       return function() {
         gone = true;
+        clearInterval(poll);
         if (io) io.disconnect();
         if (ro) ro.disconnect();
         if (root) {
