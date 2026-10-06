@@ -49,6 +49,10 @@ A release is a pull request titled `Release x.y.z` carrying only the output of `
 - **Cards** load shared code by `<script src>` / `<link>`, never inline copies: `../system/styles.css`, `../system/templates/_support/card-theme-sync.js`, `card-kit.js` and `card-kit.css`. Edit the kit in `card-kit.jsx`.
 - Every change must work at 390px wide and in dark mode, and respect `prefers-reduced-motion`.
 
+## Writing
+
+- Never name other software in the repo or in pull requests: code, comments, docs, changelog entries, check titles, PR text. Describe what the thing does, not which product it copies.
+
 ## Pull requests
 
 - Fill in the template: what changed, the bump, and how you verified it.

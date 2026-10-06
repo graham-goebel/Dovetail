@@ -174,8 +174,8 @@ function App(props) {
   var resizing = resizeState[0], setResizing = resizeState[1];
   var shiftState = useState(false);
   var shiftHeld = shiftState[0], setShiftHeld = shiftState[1];
-  /* Shift or Alt (Option) held shows the spacing, as Figma and Sketch have
-     it on Alt; either can be let go while the other still holds. */
+  /* Shift or Alt (Option) held shows the spacing; either can be let go
+     while the other still holds. */
   var measureKeys = useRef({});
   var spacingState = useState(null);
   var spacing = spacingState[0], setSpacing = spacingState[1];
@@ -2347,7 +2347,7 @@ function App(props) {
     if (ev.shiftKey && !mod && !ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && stepType(ev.key === "ArrowUp" ? 1 : -1)) return true;
     if (ev.key === "Delete" || ev.key === "Backspace") { actions.remove(); return true; }
     if (mod && key === "d") { actions.duplicate(); return true; }
-    /* 1 to 9 step the opacity through its roles, as Figma's keys do; 0 is opaque. */
+    /* 1 to 9 step the opacity through its roles; 0 is opaque. */
     if (!mod && !ev.altKey && !ev.shiftKey && /^Digit[0-9]$/.test(ev.code)) {
       var digit = Number(ev.code.slice(5));
       /* A free frame takes any percent: 1 is 10%, 9 is 90%. */
@@ -2365,7 +2365,7 @@ function App(props) {
     if (mod && ev.shiftKey && (key === "l" || ev.code === "KeyL")) { actions.lock(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowUp") { actions.up(); return true; }
     if ((ev.altKey || mod) && ev.key === "ArrowDown") { actions.down(); return true; }
-    /* Align and distribute, as Figma has them: Alt and a letter. */
+    /* Align and distribute: Alt and a letter. */
     if (ev.altKey && !mod) {
       var ARRANGE_KEY = ev.shiftKey ? { KeyH: "hspread", KeyV: "vspread", KeyT: "tidy" } : { KeyA: "left", KeyH: "hcenter", KeyD: "right", KeyW: "top", KeyV: "vcenter", KeyS: "bottom" };
       if (ARRANGE_KEY[ev.code] && arrange(ARRANGE_KEY[ev.code])) return true;
