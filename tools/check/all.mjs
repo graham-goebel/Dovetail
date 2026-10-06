@@ -17,6 +17,9 @@ const FAST = ["check:build", "check:changes", "check:unit", "check:ssr", "check:
    waits time out under the others, so it runs on its own after them. */
 const cores = typeof os.availableParallelism === "function" ? os.availableParallelism() : os.cpus().length;
 const BROWSER = cores >= 8 ? [["check:browser", "check:behavior", "check:builder"]] : [["check:browser", "check:behavior"], ["check:builder"]];
+/* The builder check runs its steps side by side too; beside the other two
+   browsers it leaves them a core each. */
+const BUILDER_WORKERS = String(Math.max(1, Math.floor((cores - (cores >= 8 ? 2 : 0)) / 2)));
 const fastOnly = process.argv.includes("--fast");
 
 const seconds = (ms) => (ms / 1000).toFixed(1).replace(/\.0$/, "") + "s";
@@ -26,7 +29,7 @@ function run(script, { live }) {
   return new Promise((resolve) => {
     const started = Date.now();
     const child = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "-s", script], {
-      env: process.env,
+      env: { ...process.env, BUILDER_WORKERS: process.env.BUILDER_WORKERS || BUILDER_WORKERS },
       stdio: live ? "inherit" : ["ignore", "pipe", "pipe"],
     });
     let out = "";

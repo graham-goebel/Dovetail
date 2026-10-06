@@ -94,7 +94,7 @@ Edit `assets/` or `tools/build-site.mjs`, run `npm run build`, and look at the r
 | `npm run check:fast` | The build, changelog, unit, server-render, package and consumer checks, in about fifteen seconds |
 | `npm run check` | All of these, then the browser, behaviour and builder checks side by side, with a timing per check |
 
-While you work on one thing, `ONLY=<words from a step's title> npm run check:builder` runs just that step of the builder check.
+While you work on one thing, `ONLY=<words from a step's title> npm run check:builder` runs just that step of the builder check. Its steps run side by side, half as many as the machine has cores; `BUILDER_WORKERS=1` runs them one at a time, printing as they go.
 
 In CI, pull requests also have to add a changelog entry when they touch shipped sources. Add `bump: none` or the `skip-changelog` label if there's truly nothing to say.
 
