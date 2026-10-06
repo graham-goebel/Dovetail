@@ -1,19 +1,25 @@
 /* The builder itself: the canvas, the panels, the inspector, history and every action. */
 
-import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
+import { CAROUSEL_STEPS, DATA, FAMILY_LABEL, FRAME_GAP, GROUP_ICON, GROUP_TYPE_ICON, LABEL_ROOM, LIB_KINDS, MAX_HEIGHT, MAX_WIDTH, MEDIA_LIMIT, MEDIA_URL, META, MIN_FREE, MIN_SIDE, PICTURE_TYPES, PREFS_KEY, PRESET, PRESETS, PRESET_ICON, RAIL, SHARED_FAMILY, SPACINGS, STAGE_PAD, STORE_KEY, TABS, TEXT_PROPS, TEXT_STYLES, TEXT_TYPES, TONE_FILL, TONE_TEXT, TOOLBAR, TOOL_INFO, TOOL_KEY, TYPE_ICON, WRAPS, ZOOM_STEPS, contextOf, optionAllowed, scopeOf, cx, e, hasSlots, isContainer, joinsFlow, minSide, mountEl, mql, nameOf, readForLibrary, remover, slotAccepts, slotSpec, slotTakes, smartTab, storage, useCallback, useEffect, useMemo, useRef, useState, words, kbd, useEvent, allSame, nodeLabel, typeIcon, hasTitlePart, nodeIsOpen, frameSize, IS_MAC, PANELS, SHORTCUTS } from "../config.js";
 import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
 import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
-import { ago, foldersOf, itemsOf, libScopeOf, pageOf, pagesOf, VERSIONS_MAX } from "../model/store.js";
+import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
+import { CodeDialog, ComponentDialog, ImportDialog, KeysDialog, PlayDialog, VersionsDialog, componentCheck } from "./dialogs.js";
+import { HOME_SORTS, Home } from "./Home.js";
+import { Layers } from "./Layers.js";
+import { Pages } from "./Pages.js";
+import { Assets } from "./Assets.js";
+import { Content } from "./Content.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide, ConstraintBox } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -21,7 +27,6 @@ var HOME_SORT_KEY = "dovetail-builder-home-sort";
    frames keep their own setting each, and Configure's dark mode reaches them,
    not these tools. builder.html reads the same key before first paint. */
 var DARK_KEY = "dovetail-builder-dark";
-var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
 
 /* Past this many frames, only frames near the view stay live. */
 var VIRTUAL_AFTER = 6;
@@ -2990,7 +2995,6 @@ function App(props) {
      into display, a Text through its variants. */
   /* A block's title: its text and its size, set through the block's props. */
   var TITLE_STEPS = ["heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"];
-  var hasTitlePart = function (type) { var m = META[type]; return !!m && m.props.some(function (p) { return p.name === "titleSize"; }); };
   var TYPE_SCALE = {
     Heading: { prop: "size", steps: ["heading-xs", "heading-sm", "heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"] },
     Text: { prop: "variant", steps: ["fine", "small", "body", "lead"] },
@@ -3092,11 +3096,6 @@ function App(props) {
     r.classList.toggle("dark", dark);
     r.setAttribute("data-theme", dark ? "dark" : "light");
   }, [dark]);
-  var modeSwitch = function (className) {
-    return e("span", { className: cx("bd-mode", className) },
-      e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
-      e(Switch, { value: dark, labelledBy: "bd-mode-label", onChange: setDark }));
-  };
   var renamingGroupState = useState(null);
   var renamingGroup = renamingGroupState[0], setRenamingGroup = renamingGroupState[1];
   /* The file being opened from Home, which shows it loading meanwhile. */
@@ -3105,8 +3104,6 @@ function App(props) {
   var openingRef = useRef(null);
   var setOpening = function (id) { openingRef.current = id; setOpeningState(id); };
   /* One picture input serves every card: whose picture it is waits here. */
-  var pictureRef = useRef(null);
-  var pictureFor = useRef(null);
   /* The canvas fades in after a file opens. */
   var arrivingState = useState(false);
   var arriving = arrivingState[0], setArriving = arrivingState[1];
@@ -3115,7 +3112,6 @@ function App(props) {
   /* Which of the two dialogs is open; their contents render only then. */
   var shownState = useState(null);
   var shown = shownState[0], setShown = shownState[1];
-  var importFileRef = useRef(null);
 
   var refreshProjects = function () {
     return Promise.all([store.listProjects(), store.listGroups()]).then(function (got) { setGroupList(got[1]); setProjList(got[0]); return got[0]; });
@@ -3330,10 +3326,6 @@ function App(props) {
     });
   };
   /* A picture for a card, from the one shared file input. */
-  var choosePicture = function (key) {
-    pictureFor.current = key;
-    if (pictureRef.current) pictureRef.current.click();
-  };
   var setGroupPicture = function (id, file) {
     pictureFrom(file).then(function (thumb) {
       if (!thumb) { announce("That file isn't a picture this browser can read."); return; }
@@ -3373,13 +3365,8 @@ function App(props) {
   var renamingFolderState = useState(null);
   var renamingFolder = renamingFolderState[0], setRenamingFolder = renamingFolderState[1];
   /* A page on the move in the list: where it is, and where it would land. */
-  var pageDragState = useState(null);
-  var pageDrag = pageDragState[0], setPageDrag = pageDragState[1];
-  var pageDragRef = useRef(null);
-  var pageDragEnded = useRef(false);
   var boxScrubRef = useRef(null);
   var stylePreviewRef = useRef(null);
-  var pagesListRef = useRef(null);
   var confirmPageState = useState(null);
   var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
   var takeMeta = function (meta) {
@@ -3425,14 +3412,6 @@ function App(props) {
   };
   var movePage = function (pg, by) { store.movePage(projectRef.current.id, pg, by).then(takeMeta); };
   var placePage = function (pg, index, folderId) { return store.placePage(projectRef.current.id, pg, index, folderId).then(takeMeta); };
-  /* Where the list ends for a folder: after its last page, counted without
-     the page on the move. */
-  var endOfFolder = function (fid, except) {
-    var pages = pagesOf(projectRef.current).filter(function (p) { return p.id !== except; });
-    var last = -1;
-    pages.forEach(function (p, i) { if (p.folder === fid) last = i; });
-    return last >= 0 ? last + 1 : pages.length;
-  };
   var addFolder = function () {
     var meta = projectRef.current;
     var taken = foldersOf(meta).map(function (f) { return f.name; });
@@ -3591,181 +3570,6 @@ function App(props) {
   /* Home: every project and loose file, over the canvas, which stays where
      it was underneath. A project opens to its files; a file opens the
      canvas. Escape goes back a level, then back to the canvas. */
-  var sortWhen = function (x, files) {
-    if (homeSort === "created") return x.createdAt || 0;
-    return files ? files.reduce(function (t, f) { return Math.max(t, f.updatedAt || 0); }, x.updatedAt || 0) : x.updatedAt || 0;
-  };
-  var sortList = function (list, filesOf) {
-    return list.slice().sort(function (a, b) {
-      if (homeSort === "alpha") return a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true });
-      /* Recent: the file on screen first, then by last edit. */
-      if (homeSort === "recent" && !filesOf) { var cur = (b.id === project.id) - (a.id === project.id); if (cur) return cur; }
-      return sortWhen(b, filesOf ? filesOf(b) : null) - sortWhen(a, filesOf ? filesOf(a) : null);
-    });
-  };
-  var confirmRow = function (label, text, actions) {
-    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text), actions);
-  };
-  var fileCard = function (p, showGroup) {
-    var current = p.id === project.id, isOpening = opening === p.id;
-    var g = showGroup && p.group ? groupById(p.group) : null;
-    var when = homeSort === "created" ? "Made " + ago(p.createdAt).toLowerCase() : ago(p.updatedAt);
-    var pages = pagesOf(p).length;
-    return e("li", { key: p.id, className: cx("bd-proj", current && "is-current", isOpening && "is-opening"), "data-project": p.id },
-      e("button", { type: "button", className: "bd-proj-open", onClick: function () { openProject(p); }, "aria-label": "Open " + p.name + (current ? ", open now" : ""), "aria-busy": isOpening ? "true" : undefined },
-        e("span", { className: "bd-proj-thumb", "aria-hidden": "true" },
-          p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" }),
-          isOpening ? e("span", { className: "bd-proj-loading" }, e("span", { className: "bd-spinner" })) : null)),
-      e("div", { className: "bd-proj-row" },
-        e("div", { className: "bd-proj-info" },
-          renamingProj === p.id
-            ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "File name", startEditing: true, onChange: function (v) { renameProject(p.id, v); } })
-            : e("span", { className: "bd-proj-name" }, p.name),
-          e("span", { className: "bd-proj-meta" }, (current ? "Open now · " : "") + when + (pages > 1 ? " · " + pages + " pages" : "") + " · " + p.frames + (p.frames === 1 ? " frame" : " frames") + (g ? " · in " + g.name : ""))),
-        e(Dropdown, { menu: true, label: "Actions for " + p.name, placeholder: "File", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-proj-menu",
-          options: [
-            { value: "open", label: "Open", icon: "exportOut" },
-            { value: "rename", label: "Rename", icon: "pencil" },
-            { value: "picture", label: "Choose a picture", icon: "image" },
-            { value: "duplicate", label: "Duplicate", icon: "copy" },
-            { value: "download", label: "Download as a file", icon: "upload" },
-            { value: "delete", label: "Delete", icon: "trash", danger: true },
-          ].concat((groupList || []).filter(function (x) { return x.id !== p.group; }).map(function (x) { return { value: "into:" + x.id, label: "Move to " + x.name, icon: "folder", group: "Move" }; }))
-            .concat(p.group ? [{ value: "out", label: "Move out to Home", icon: "home", group: "Move" }] : []),
-          onChange: function (v) {
-            if (v === "open") openProject(p);
-            else if (v === "rename") setRenamingProj(p.id);
-            else if (v === "picture") choosePicture(p.id);
-            else if (v === "duplicate") duplicateProject(p.id);
-            else if (v === "out") moveFile(p.id, null);
-            else if (v === "download") exportProject(p.id);
-            else if (v === "delete") setConfirmDel(p.id);
-            else if (String(v).indexOf("into:") === 0) moveFile(p.id, v.slice(5));
-          } })),
-      confirmDel === p.id ? confirmRow("Delete " + p.name, "Delete for good?", [
-        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteProject(p.id); } }, "Delete"),
-        e("button", { key: "k", type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep")]) : null);
-  };
-  var groupCard = function (g, files) {
-    var key = "g:" + g.id;
-    var pics = files.filter(function (f) { return f.thumb; }).slice(0, 4);
-    var n = files.length;
-    var when = homeSort === "created" ? "Made " + ago(g.createdAt).toLowerCase() : ago(sortWhen(g, files));
-    return e("li", { key: key, className: "bd-proj is-group", "data-group": g.id },
-      e("button", { type: "button", className: "bd-proj-open", onClick: function () { goHomeView(g.id); }, "aria-label": "Open " + g.name + ", " + n + (n === 1 ? " file" : " files") },
-        e("span", { className: cx("bd-proj-thumb", !g.thumb && pics.length > 1 && "is-mosaic"), "aria-hidden": "true" },
-          g.thumb ? e("img", { src: g.thumb, alt: "" })
-            : pics.length > 1 ? pics.map(function (f) { return e("img", { key: f.id, src: f.thumb, alt: "" }); })
-            : pics.length ? e("img", { src: pics[0].thumb, alt: "" }) : e(Icon, { name: "folder" }),
-          e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n + (n === 1 ? " file" : " files")))),
-      e("div", { className: "bd-proj-row" },
-        e("div", { className: "bd-proj-info" },
-          renamingGroup === g.id
-            ? e(Renamable, { className: "bd-proj-name", value: g.name, label: "Project name", startEditing: true, onChange: function (v) { renameGroup(g.id, v); } })
-            : e("span", { className: "bd-proj-name" }, g.name),
-          e("span", { className: "bd-proj-meta" }, when)),
-        e(Dropdown, { menu: true, label: "Actions for " + g.name, placeholder: "Project", icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon bd-proj-menu",
-          options: [
-            { value: "open", label: "Open", icon: "folder" },
-            { value: "rename", label: "Rename", icon: "pencil" },
-            { value: "picture", label: "Choose a picture", icon: "image" },
-          ].concat(g.thumb ? [{ value: "auto", label: "Picture from its files", icon: "rotate" }] : []).concat([
-            { value: "duplicate", label: "Duplicate", icon: "copy" },
-            { value: "download", label: "Download as a file", icon: "upload" },
-            { value: "delete", label: "Delete", icon: "trash", danger: true },
-          ]),
-          onChange: function (v) {
-            if (v === "open") goHomeView(g.id);
-            else if (v === "rename") setRenamingGroup(g.id);
-            else if (v === "picture") choosePicture(key);
-            else if (v === "auto") store.setGroupThumb(g.id, null).then(refreshProjects);
-            else if (v === "duplicate") duplicateGroup(g.id);
-            else if (v === "download") exportGroup(g.id);
-            else if (v === "delete") setConfirmDel(key);
-          } })),
-      confirmDel === key ? confirmRow("Delete " + g.name, n ? "Delete the project and its " + (n === 1 ? "file" : n + " files") + "?" : "Delete this empty project?", n ? [
-        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteGroup(g.id, false); } }, "Delete all"),
-        e("button", { key: "k", type: "button", className: "bd-btn", onClick: function () { deleteGroup(g.id, true); }, title: "Delete the project and keep its files on Home" }, "Keep files"),
-        e("button", { key: "c", type: "button", className: "bd-btn bd-btn-ghost", onClick: function () { setConfirmDel(null); } }, "Cancel")] : [
-        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function () { deleteGroup(g.id, false); } }, "Delete"),
-        e("button", { key: "c", type: "button", className: "bd-btn", onClick: function () { setConfirmDel(null); } }, "Keep")]) : null);
-  };
-  var skeleton = function () {
-    return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function (i) {
-      /* Not a .bd-proj: a card stand-in, never mistaken for a card. */
-      return e("li", { key: i, className: "bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
-    }));
-  };
-  var homePage = function () {
-    if (!home) return null;
-    var q = projQuery.trim().toLowerCase();
-    var files = projList || [], groups = groupList || [];
-    var inGroup = homeView ? groupById(homeView) : null;
-    var filesOf = function (g) { return files.filter(function (f) { return f.group === g.id; }); };
-    var match = function (x) { return !q || x.name.toLowerCase().indexOf(q) >= 0; };
-    /* On Home: projects and loose files; searching finds files in projects too. */
-    var shownGroups = inGroup ? [] : sortList(groups.filter(match), filesOf);
-    var shownFiles = sortList(files.filter(function (f) { return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group; }));
-    var count = shownGroups.length + shownFiles.length;
-    var section = function (title, list) {
-      return e("section", { className: "bd-home-sec", "aria-label": title },
-        inGroup ? null : e("h2", { className: "bd-home-sec-title" }, title),
-        e("ul", { className: "bd-projects-grid", role: "list" }, list));
-    };
-    var empty = !projList ? null
-      : q ? (inGroup ? "No file in " + inGroup.name + " is called that." : "Nothing is called that.")
-      : inGroup ? "No files in this project yet. Make one with New, or move one here from Home with its ⋯ menu."
-      : "Nothing here yet. Make a file or a project with New.";
-    return e("main", { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
-      /* On a phone the bar lives in the canvas pane, under this page, so it comes along. */
-      slot ? null : toolbar,
-      e("input", { ref: pictureRef, type: "file", className: "visually-hidden", accept: "image/*", tabIndex: -1, "aria-hidden": "true",
-        onChange: function (ev) {
-          var f = ev.target.files && ev.target.files[0]; ev.target.value = "";
-          var who = pictureFor.current; pictureFor.current = null;
-          if (!who || !f) return;
-          if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f); else setPicture(who, f);
-        } }),
-      e("input", { ref: importFileRef, type: "file", className: "visually-hidden", accept: ".dovetail,application/json", tabIndex: -1, "aria-hidden": "true",
-        onChange: function (ev) { var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; importProject(f); } }),
-      e("div", { className: "bd-home-inner", key: homeView || "home" },
-        e("div", { className: "bd-home-head" },
-          e("div", { className: "bd-home-heading" },
-            inGroup ? e("nav", { className: "bd-crumbs bd-home-crumbs", "aria-label": "Where you are" },
-              e("button", { type: "button", className: "bd-crumb", onClick: function () { goHomeView(null); } }, "Home"),
-              e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
-              e("span", { className: "bd-crumb", "aria-current": "page" }, inGroup.name)) : null,
-            inGroup && renamingGroup === inGroup.id
-              ? e(Renamable, { className: "bd-home-title", value: inGroup.name, label: "Project name", startEditing: true, onChange: function (v) { renameGroup(inGroup.id, v); } })
-              : e("h1", { id: "bd-projects-title", className: "bd-home-title", onDoubleClick: inGroup ? function () { setRenamingGroup(inGroup.id); } : undefined, title: inGroup ? "Double-click to rename" : undefined }, inGroup ? inGroup.name : "Home")),
-          e("div", { className: "bd-code-actions bd-home-actions" },
-            modeSwitch("bd-home-mode"),
-            e("button", { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account.status === "in" ? "Signed in as " + account.account.email : account.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
-              e(Icon, { name: "user" }), account.status === "in" ? "Account" : "Sign in"),
-            e(Dropdown, { menu: true, label: "New", placeholder: "New", icon: "plus", compact: true, alignEnd: true, className: "bd-home-new",
-              options: (inGroup ? [] : [{ value: "project", label: "New project", icon: "folder", hint: "A group of files" }]).concat([
-                { value: "file", label: inGroup ? "New file in " + inGroup.name : "New file", icon: "file", hint: "A blank canvas" },
-              ]).concat(STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) { return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" }; }))
-                .concat(inGroup ? [] : [{ value: "playground", label: "Playground", icon: "star", hint: "Getting started and live examples", group: "Learn" }])
-                .concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
-              onChange: function (v) {
-                if (v === "project") newGroup();
-                else if (v === "file") newProject(null);
-                else if (v === "open") { if (importFileRef.current) importFileRef.current.click(); }
-                else if (v === "playground") newPlayground();
-                else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
-              } }))),
-        e("div", { className: "bd-home-tools" },
-          e(SearchField, { className: "bd-projects-search bd-home-search", label: inGroup ? "Search " + inGroup.name : "Search projects and files", placeholder: inGroup ? "Search " + inGroup.name : "Search projects and files", value: projQuery, onChange: setProjQuery }),
-          e("div", { className: "bd-home-bar" },
-            e(Segmented, { label: "Sort by", className: "bd-home-sort", value: homeSort, onChange: function (v) { if (v) setHomeSort(v); }, options: HOME_SORTS }),
-            projList ? e("span", { className: "bd-home-count", role: "status" }, count + (count === 1 ? " item" : " items")) : null)),
-        !projList ? skeleton()
-          : !count ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty)
-          : e("div", { className: "bd-home-lists" },
-            shownGroups.length ? section("Projects", shownGroups.map(function (g) { return groupCard(g, filesOf(g)); })) : null,
-            shownFiles.length ? section("Files", shownFiles.map(function (f) { return fileCard(f, !inGroup); })) : null)));
-  };
 
   /* Every shortcut, as this keyboard says them: ? opens it, and so does the
      File menu. */
@@ -3773,48 +3577,6 @@ function App(props) {
     setShown("keys");
     var dlg = keysRef.current;
     if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
-  };
-  var keysDialog = function () {
-    var dialogProps = { className: "bd-code bd-keys", ref: keysRef, "aria-labelledby": "bd-keys-title", onClose: function () { setShown(null); } };
-    if (shown !== "keys") return e("dialog", dialogProps);
-    var tools = Object.keys(TOOL_INFO).map(function (k) { return TOOL_INFO[k]; }).filter(function (t) { return t.key; })
-      .map(function (t) { return [t.label.replace(/:.*$/, ""), t.key]; });
-    var groups = [["Tools", tools]].concat(SHORTCUTS);
-    return e("dialog", dialogProps,
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-keys-title" }, "Keyboard shortcuts"),
-          e("p", { className: "bd-inspect-sub" }, IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function () { keysRef.current.close(); } }, e(Icon, { name: "close" })))),
-      e("div", { className: "bd-keys-groups" }, groups.map(function (g) {
-        return e("section", { key: g[0], className: "bd-keys-group", "aria-labelledby": "bd-keys-" + g[0].replace(/\W+/g, "-") },
-          e("h3", { id: "bd-keys-" + g[0].replace(/\W+/g, "-") }, g[0]),
-          e("dl", null, g[1].map(function (row) {
-            return e(React.Fragment, { key: row[0] },
-              e("dt", null, row[0]),
-              e("dd", null, row[1].split(", ").map(function (k, i) { return e("kbd", { key: i }, kbd(k)); })));
-          })));
-      })));
-  };
-
-  var versionsDialog = function () {
-    var dialogProps = { className: "bd-code bd-versions", ref: versionsRef, "aria-labelledby": "bd-versions-title", onClose: function () { setShown(null); } };
-    if (shown !== "versions") return e("dialog", dialogProps);
-    return e("dialog", dialogProps,
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-versions-title" }, "Versions of " + project.name),
-          e("p", { className: "bd-inspect-sub" }, "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-btn", onClick: keepVersion }, e(Icon, { name: "plus" }), "Keep this version"),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { versionsRef.current.close(); } }, e(Icon, { name: "close" })))),
-      versions.length ? e("ul", { className: "bd-versions-list", role: "list" }, versions.map(function (v) {
-        return e("li", { key: v.key, className: "bd-version" },
-          e("span", { className: "bd-version-when" }, new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })),
-          e("span", { className: "bd-version-what" }, v.label + " · " + v.frames + (v.frames === 1 ? " frame" : " frames")),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { restoreVersion(v); } }, "Restore"));
-      })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now."));
   };
 
   /* Starting over, or a pasted layout. Templates add; only this replaces. */
@@ -3837,35 +3599,6 @@ function App(props) {
   var compRef = useRef(null);
   var compState = useState(null);
   var compDraft = compState[0], setCompDraft = compState[1];
-  var componentCheck = function (node) {
-    var issues = [], tokens = {}, count = 0;
-    (function walk(n, depth) {
-      count++;
-      var label = nameOf(n);
-      if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
-      Object.keys(n.style || {}).forEach(function (k) {
-        var v = n.style[k];
-        if (k === "x" || k === "y") {
-          if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label + " is placed by position. A component's layers sit in its flow." });
-          return;
-        }
-        if (k === "fill" || k === "color") { issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." }); return; }
-        var def = DATA.tokens[k];
-        var o = def ? def.options.filter(function (x) { return x.value === v; })[0] : null;
-        if (o) o.tokens.forEach(function (t) { tokens[t] = 1; });
-      });
-      if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
-      Object.keys(n.props || {}).forEach(function (k) {
-        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
-      });
-      (n.children || []).forEach(function (c) { walk(c, depth + 1); });
-    })(node, 0);
-    var list = Object.keys(tokens);
-    if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
-    if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
-    if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
-    return { issues: issues, tokens: list, count: count };
-  };
   /* The selection as one node: itself, or several side by side in a Group. */
   var componentSource = function () {
     var d = docRef.current;
@@ -3917,34 +3650,6 @@ function App(props) {
     if (dlg && dlg.open) dlg.close();
     setCompDraft(null);
     announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
-  };
-  var componentDialog = function () {
-    var node = compDraft ? componentSource() : null;
-    var check = node ? componentCheck(node) : null;
-    var errors = check ? check.issues.filter(function (i) { return i.level === "error"; }) : [];
-    var warns = check ? check.issues.filter(function (i) { return i.level === "warn"; }) : [];
-    var fixable = errors.some(function (i) { return i.fix; });
-    return e("dialog", { className: "bd-code bd-comp-dlg", ref: compRef, "aria-labelledby": "bd-comp-title", onClose: function () { setCompDraft(null); } },
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-comp-title" }, "Create component"),
-          e("p", { className: "bd-inspect-sub" }, "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { compRef.current.close(); } }, e(Icon, { name: "close" })))),
-      check ? e("div", { className: "bd-comp-body" },
-        e("label", { className: "bd-field" }, e("span", { className: "bd-field-label" }, "Name"),
-          e("input", { className: "bd-input bd-comp-name", type: "text", maxLength: 60, value: compDraft.name, onChange: function (ev) { var v = ev.target.value; setCompDraft(function (c) { return c ? Object.assign({}, c, { name: v }) : c; }); } })),
-        e("div", { className: cx("bd-comp-status", errors.length ? "is-blocked" : "is-ready"), role: "status" },
-          e(Icon, { name: errors.length ? "alert" : "check" }),
-          errors.length ? errors.length + (errors.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check.count + (check.count === 1 ? " layer" : " layers") + " on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens")),
-        errors.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors.concat(warns).map(function (i, k) {
-          return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
-        })) : null,
-        check.tokens.length ? e("details", { className: "bd-comp-tokens" }, e("summary", null, "The tokens it's built on (" + check.tokens.length + ")"),
-          e("ul", null, check.tokens.map(function (t) { return e("li", { key: t }, e("code", null, t)); }))) : null,
-        e("div", { className: "bd-import-actions" },
-          e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !!errors.length, onClick: saveComponent }, e(Icon, { name: "component" }), "Create component"),
-          fixable ? e("button", { type: "button", className: "bd-btn", onClick: fixComponent, title: "Takes out custom colours and positions inside it, so it uses the system's" }, "Use the system's instead") : null)) : null);
   };
   var removeComponent = function (id) {
     setLibrary(function (l) { var n = Object.assign({}, l); n.components = (l.components || []).filter(function (c) { return c.id !== id; }); return n; });
@@ -4078,20 +3783,9 @@ function App(props) {
 
   /* ------------------------------------------------- rendering helpers */
 
-  var labelOf = function (n) {
-    if (n.name) return n.name;
-    var base = scalars[n.type] || {};
-    var text = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
-    return typeof text === "string" || typeof text === "number" ? String(text) : "";
-  };
-  var typeIcon = function (type) {
-    if (TYPE_ICON[type]) return TYPE_ICON[type];
-    var g = META[type] && META[type].group;
-    if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
-    return isContainer(type) ? "box" : "component";
-  };
+  var labelOf = function (n) { return nodeLabel(n, scalars); };
   var nodesOf = function (ids) { return ids.map(function (id) { return locate(doc, id); }).filter(Boolean).map(function (a) { return a.node; }); };
-  var same = function (values) { return values.every(function (v) { return JSON.stringify(v) === JSON.stringify(values[0]); }); };
+  var same = allSame;
   /* A frame's actions, behind its ellipsis. */
   var frameMenu = function (f, where) {
     return e(Dropdown, { menu: true, label: "Actions for " + f.name, placeholder: "Frame actions", icon: "more", iconOnly: true, compact: true, alignEnd: true, className: "bd-dd-icon bd-frame-menu",
@@ -4116,7 +3810,7 @@ function App(props) {
         if (v === "delete") frameOps.remove(f.id);
       } });
   };
-  var sizeText = function (f) { return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height); };
+  var sizeText = function (f) { return frameSize(f, boxes); };
 
   /* ------------------------------------------------- inspector controls */
 
@@ -4648,9 +4342,6 @@ function App(props) {
 
   /* ------------------------------------------------- the panels */
 
-  /* Content: images, illustrations and icons to reuse, and the icon library
-     the system draws with. Video comes later. */
-  var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
   var addToLibrary = function (kind, files) {
     var list = Array.prototype.slice.call(files || []);
     if (!list.length) return;
@@ -4698,17 +4389,6 @@ function App(props) {
     var P = window.DovetailConfigurePanel;
     return P && P.brand ? P.brand() : { name: "", mark: "", wordmark: "" };
   };
-  var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
-  var brandPieces = function (b) {
-    var name = b.name || "Your brand";
-    var P = window.DovetailConfigurePanel;
-    var tone = P && P.config ? WORDMARK_TONE[P.config().wordmarkColor] : null;
-    var logo = b.wordmark
-      ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } }
-      : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone: tone } : {}), extra: { name: "Logo" } };
-    var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
-    return { logo: logo, mark: mark };
-  };
   var placeBrand = function (piece) {
     if (piece.kind === "asset") add("Image", null, Object.assign({ src: piece.src, alt: piece.label }, piece.props), piece.extra);
     else add(piece.type, null, piece.props, piece.extra);
@@ -4734,52 +4414,6 @@ function App(props) {
     reader.onerror = function () { setBrandErr("That file couldn't be read."); };
     reader.readAsDataURL(file);
   };
-  var brandPanel = function () {
-    var b = brandNow();
-    var pieces = brandPieces(b);
-    var tile = function (key, label, piece, preview, emptyNote, hint) {
-      var fileId = "bd-brand-" + key;
-      var hasFile = !!b[key];
-      return e("section", { className: "bd-content-sec bd-brand-sec", "aria-labelledby": fileId + "-h",
-        onDragOver: function (ev) { if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault(); },
-        onDrop: function (ev) { if (!ev.dataTransfer.files.length) return; ev.preventDefault(); readBrandFile(key, ev.dataTransfer.files[0]); } },
-        e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
-        piece ? e("button", { type: "button", className: cx("bd-brand-tile", key === "mark" && "is-mark"), "data-brand": key, title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
-          onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, piece); },
-          onClick: function () { if (!justDragged.current) placeBrand(piece); } }, preview)
-          : e("div", { className: "bd-brand-tile is-empty" }, e(Icon, { name: "image" }), e("span", null, emptyNote)),
-        e("div", { className: "bd-content-add" },
-          e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), hasFile ? "Replace" : "Upload"),
-          e("input", { id: fileId, type: "file", className: "visually-hidden", accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml",
-            onChange: function (ev) { readBrandFile(key, ev.target.files[0]); ev.target.value = ""; } }),
-          hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function () { var patch = {}; patch[key] = ""; if (setBrandPart(patch)) announce("Removed the " + label.toLowerCase() + "."); } }, "Remove") : null),
-        hint ? e("p", { className: "bd-content-note" }, hint) : null);
-    };
-    return e("div", { className: "bd-content" },
-      e("div", { className: "bd-panel-head bd-gallery-head" },
-        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { setLibTab(null); setBrandErr(null); } }, e(Icon, { name: "left" })),
-        e("h2", { className: "bd-panel-title" }, "Brand")),
-      e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
-      e("section", { className: "bd-content-sec" },
-        e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
-        e("input", { id: "bd-brand-name", className: "bd-input", type: "text", maxLength: 80, placeholder: "Your brand", value: b.name,
-          onChange: function (ev) { setBrandPart({ name: ev.target.value }); } })),
-      brandErr ? e("p", { className: "bd-brand-err", role: "alert" }, brandErr) : null,
-      tile("wordmark", "Logo", pieces.logo,
-        b.wordmark ? e("img", { src: b.wordmark, alt: "", draggable: false }) : e("span", { className: "bd-brand-word" }, b.name || "Your brand"),
-        "", b.wordmark ? null : "Without a logo file, the logo is the name, set in type. SVG or PNG, up to 512KB."),
-      tile("mark", "Brand mark", pieces.mark, b.mark ? e("img", { src: b.mark, alt: "", draggable: false }) : null, "No brand mark yet", "A small symbol for beside the logo, or on its own. SVG or PNG, up to 512KB."));
-  };
-  /* Content opens on a card for each kind; a card opens its gallery. */
-  var brandCard = function () {
-    var b = brandNow();
-    var pics = [b.mark, b.wordmark].filter(Boolean);
-    var note = b.wordmark && b.mark ? "Logo and mark" : b.wordmark ? "Logo" : b.mark ? "Mark, and the name" : b.name ? "The name" : "Name, logo and mark";
-    return e("li", { key: "brand" }, e("button", { type: "button", className: "bd-kind", "data-kind": "brand", onClick: function () { setLibTab("brand"); } },
-      e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function (src, i) { return e("img", { key: i, src: src, alt: "", draggable: false }); }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
-      e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note)),
-      e(Icon, { name: "right", className: "bd-kind-chev" })));
-  };
   /* Content belongs to the file's project, or to a loose file alone. */
   var contentScopeNote = function () {
     var g = project.group ? groupById(project.group) : null;
@@ -4787,149 +4421,7 @@ function App(props) {
     if (project.lib === "shared") return "Shared by the files you made before projects. Moving this file into a project brings it along.";
     return "This file's own. Moving it into a project brings it along.";
   };
-  var contentPanel = function () {
-    var q0 = contentQuery.trim().toLowerCase();
-    if (!libTab && q0) {
-      var hits = [];
-      LIB_KINDS.forEach(function (k) { library[k].forEach(function (it) { if (it.name.toLowerCase().indexOf(q0) >= 0) hits.push({ kind: k, it: it }); }); });
-      return e("div", { className: "bd-content" },
-        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Results"), e("span", { className: "bd-count" }, hits.length)),
-        hits.length ? e("ul", { className: "bd-lib", role: "list" }, hits.map(function (h) {
-          var clip = h.kind === "video";
-          return e("li", { key: h.it.id, className: "bd-lib-item" },
-            e("button", { type: "button", className: cx("bd-lib-thumb", (h.kind === "images" || clip) && !h.it.original && "is-fill"), title: h.it.name + ": drag onto a frame, or press to add",
-              onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip ? "video" : "image" }); },
-              onClick: function () { if (!justDragged.current) insertAsset(h.it, clip); } },
-              clip ? e("video", { src: h.it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: h.it.src, alt: "", draggable: false })),
-            e("span", { className: "bd-lib-name" }, h.it.name));
-        })) : e("p", { className: "bd-empty-note" }, "Nothing in your content matches."));
-    }
-    if (!libTab) {
-      return e("div", { className: "bd-content" },
-        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
-        e("p", { className: "bd-content-note bd-content-scope" }, contentScopeNote()),
-        e("ul", { className: "bd-kinds", role: "list" }, [brandCard()].concat(LIB_TABS.map(function (t) {
-          var items = library[t[0]];
-          var note = t[0] === "icons" ? (items.length ? items.length + " of yours, and the icon library" : "The icon library, and yours") : items.length ? items.length + (items.length === 1 ? " item" : " items") : "Nothing yet";
-          return e("li", { key: t[0] }, e("button", { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function () { setLibTab(t[0]); } },
-            e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items.length
-              ? items.slice(0, 3).map(function (it) { return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false }); })
-              : e(Icon, { name: t[2] })),
-            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note)),
-            e(Icon, { name: "right", className: "bd-kind-chev" })));
-        }))));
-    }
-    if (libTab === "brand") return brandPanel();
-    var kind = libTab;
-    var cq = contentQuery.trim().toLowerCase();
-    var items = library[kind].filter(function (it) { return !cq || it.name.toLowerCase().indexOf(cq) >= 0; });
-    var fileId = "bd-lib-file";
-    var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
-    var icons = (window.DovetailConfigure && window.DovetailConfigure.icons) || {};
-    return e("div", { className: "bd-content",
-      onDragOver: function (ev) { ev.preventDefault(); ev.currentTarget.classList.add("is-drop"); },
-      onDragLeave: function (ev) { ev.currentTarget.classList.remove("is-drop"); },
-      onDrop: function (ev) { ev.preventDefault(); ev.currentTarget.classList.remove("is-drop"); addToLibrary(kind, ev.dataTransfer.files); } },
-      e("div", { className: "bd-panel-head bd-gallery-head" },
-        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function () { setLibTab(null); } }, e(Icon, { name: "left" })),
-        e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function (t) { return t[0] === kind; })[0][1])),
-      kind === "icons" ? e("section", { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
-        e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
-        e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
-        e("div", { className: "bd-iconlibs", role: "radiogroup", "aria-labelledby": "bd-iconlib" },
-          Object.keys(icons).concat(["custom"]).map(function (k) {
-            var info = icons[k] || { label: "Custom", note: "Your own set, named in Configure's Media group." };
-            return e("button", { key: k, type: "button", role: "radio", className: "bd-iconlib", "aria-checked": String(lib === k),
-              onClick: function () { if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) { window.DovetailConfigurePanel.setIconLib(k); setThemeStamp(function (n) { return n + 1; }); } } },
-              e("span", { className: "bd-iconlib-name" }, info.label), e("span", { className: "bd-iconlib-note" }, info.note));
-          }))) : null,
-      e("section", { className: "bd-content-sec", "aria-label": "Your " + kind },
-            kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
-            e("div", { className: "bd-content-add" },
-              e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind === "video" ? "clips" : kind)),
-              e("input", { id: fileId, type: "file", multiple: true, className: "visually-hidden", accept: kind === "icons" ? "image/svg+xml,.svg" : kind === "video" ? "video/*" : "image/*",
-                onChange: function (ev) { var f = ev.target.files; addToLibrary(kind, f); ev.target.value = ""; } }),
-              e("span", { className: "bd-content-note" }, "or drop files here")),
-            libBusy ? e("p", { className: "bd-content-busy", role: "status" }, libBusy) : null,
-            items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function (it) {
-              return e("li", { key: it.id, className: "bd-lib-item" },
-                e("button", { type: "button", className: cx("bd-lib-thumb", (kind === "images" || kind === "video") && !it.original && "is-fill"), title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
-                  onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" }); },
-                  onClick: function () { if (!justDragged.current) insertAsset(it, kind === "video"); } },
-                  kind === "video" ? e("video", { src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: it.src, alt: "", draggable: false })),
-                e("span", { className: "bd-lib-name" }, it.name),
-                e(Dropdown, { menu: true, label: "Actions for " + it.name, icon: "more", compact: true, narrow: true, className: "bd-dd-icon bd-lib-menu",
-                  options: [{ value: "insert", label: "Add to " + frame.name, icon: "plus" }]
-                    .concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : [])
-                    .concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : [])
-                    .concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
-                  onChange: function (v) {
-                    if (v === "insert") insertAsset(it, kind === "video");
-                    else if (v === "cut") cutBackground(it.src).then(function (url) { if (url) libUpdate(kind, it.id, { src: url, original: it.original || it.src }); });
-                    else if (v === "restore") libUpdate(kind, it.id, { src: it.original, original: undefined });
-                    else if (v === "delete") libUpdate(kind, it.id, { removed: true });
-                  } }));
-            })) : e("div", { className: "bd-empty" }, e(Icon, { name: LIB_TABS.filter(function (t) { return t[0] === kind; })[0][2] }),
-              e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : kind === "video" ? "Upload clips up to 1.5 MB to reuse them: drag one onto a frame, or onto a Video to fill it." : "Upload " + kind + " to reuse them: drag one onto a frame, or onto a picture to fill it."))));
-  };
 
-  /* Assets open on five kinds: primitives to build with, the system's
-     variables, components, blocks and templates. A kind opens its own
-     gallery; a search looks through every component at once. */
-  var ASSET_KINDS = [
-    ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
-    ["primitives", "Primitives", "swatch", "Groups, stacks, grids, shapes and type to build with"],
-    ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
-    ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
-    ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
-    ["templates", "Templates", "file", "Ready-made pages, as new frames or into one"],
-  ];
-  var KIND_GROUPS = { primitives: ["layout", "typography"], blocks: ["blocks"] };
-  var groupsOf = function (kind) {
-    if (KIND_GROUPS[kind]) return DATA.groups.filter(function (g) { return KIND_GROUPS[kind].indexOf(g.id) >= 0; });
-    if (kind === "components") return DATA.groups.filter(function (g) { return g.id !== "blocks" && KIND_GROUPS.primitives.indexOf(g.id) < 0; });
-    return [];
-  };
-  var usableIn = function (g) { return g.items.filter(function (n) { return !placeable || placeable[n]; }); };
-  /* Primitives show as their icon and name; components draw a preview. */
-  var PLAIN = {};
-  groupsOf("primitives").forEach(function (g) { g.items.forEach(function (n) { PLAIN[n] = true; }); });
-  var tileList = function (items) {
-    return e("ul", { className: cx("bd-tiles", view === "list" ? "is-list" : "is-grid") }, items.map(function (n) {
-      var meta = META[n];
-      var plain = PLAIN[n];
-      return e("li", { key: n },
-        e("button", {
-          type: "button", className: cx("bd-tile", plain && "is-icon"), "data-type": n, "aria-label": "Add " + n,
-          title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
-          onPointerDown: function (ev) { startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") }); },
-          onClick: function (ev) {
-            if (justDragged.current) return;
-            var s0 = selRef.current;
-            if ((ev.metaKey || ev.ctrlKey) && s0.length) { swapNode(s0[s0.length - 1], n, docRef.current.active); return; }
-            add(n);
-          },
-        },
-          plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" }))
-            : e(Thumb, { type: n, wide: meta.group === "blocks" }),
-          e("span", { className: "bd-tile-text" },
-            e("span", { className: "bd-tile-name" }, n),
-            view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null)));
-    }));
-  };
-  var viewToggle = function () {
-    return e(Segmented, { label: "View", value: view, onChange: setView, options: [{ value: "grid", label: "Grid", icon: "gridView" }, { value: "list", label: "List", icon: "listView" }] });
-  };
-
-  /* A variable picked applies to the selection, where it fits. */
-  /* Variables in Assets: everything the system has, or what this project
-     uses already. */
-  var varScopeState = useState("all");
-  var varScope = varScopeState[0], setVarScope = varScopeState[1];
-  var VAR_SETS = [
-    ["surface", "Fill", "color"], ["border", "Border", "color"], ["padding", "Padding", "space"],
-    ["radius", "Radius", "radius"], ["elevation", "Shadow", "shadow"], ["w", "Width", "size"],
-  ];
   var applyVar = function (key, value, label) {
     var ids = selRef.current.filter(function (id) { var at = locate(docRef.current, id); return at && at.node.type !== "Slot"; });
     if (!ids.length) { announce("Select a layer on the canvas, then pick a variable to apply it"); return; }
@@ -4938,42 +4430,6 @@ function App(props) {
     if (key === "surface") patch.fill = undefined;
     setStyles(ids, patch);
     announce(label + " is " + value + " on " + (ids.length === 1 ? nameOf(locate(docRef.current, ids[0]).node) : ids.length + " layers"));
-  };
-  var variablesPanel = function () {
-    var picked = nodesOf(selection).filter(function (n) { return n.type !== "Slot"; });
-    var sc = picked.length ? scopeFor(picked) : null;
-    var own = picked.length && picked.every(function (n) { return n.type === picked[0].type; }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
-    return e("div", { className: "bd-vars" },
-      e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
-      e(Segmented, { key: "scope", label: "Show", wide: true, className: "bd-vars-scope", value: varScope, onChange: function (v) { if (v) setVarScope(v); },
-        options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }] }),
-      VAR_SETS.map(function (vs) {
-        var def = DATA.tokens[vs[0]];
-        if (!def) return null;
-        var keys = [vs[0]].concat(def.sides || []);
-        /* With a selection, only what suits it, as in the inspector; and
-           only what the project uses, when that's what's shown. */
-        var opts = def.options.filter(function (o) { return (vs[0] !== "w" || (o.family !== "fit" && o.family !== "container")) && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(used, keys, o.value)); });
-        if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
-        var cur = picked.length && same(picked.map(function (n) { return n.style[vs[0]] || ""; })) ? picked[0].style[vs[0]] || "" : null;
-        return e("section", { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
-          e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
-          e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, (vs[0] === "padding" && own ? [e("button", { key: "__own", type: "button", className: "bd-var bd-var-own", "aria-pressed": String(cur === ""),
-            title: own.token + ": " + nameOf(picked[0]) + "'s own padding. Clears Padding so it applies",
-            onClick: function () { var patch = { padding: undefined }; DATA.tokens.padding.sides.forEach(function (k) { patch[k] = undefined; }); setStyles(picked.map(function (n) { return n.id; }), patch); announce(nameOf(picked[0]) + " takes its own padding, " + own.label); } },
-            e("span", { className: "bd-var-name" }, "Default: " + own.label))] : []).concat(opts.map(function (o) {
-            var px = pxMap[vs[0] + "|" + o.value];
-            var tok = o.tokens[0];
-            return e("button", { key: o.value, type: "button", className: "bd-var", "aria-pressed": String(cur === o.value),
-              title: (o.tokens.join(" · ") || o.value) + (picked.length ? ". Apply to the selection" : ""),
-              onClick: function () { applyVar(vs[0], o.value, vs[1]); } },
-              vs[2] === "color" && tok ? e("span", { className: "bd-sw", style: { background: "var(" + tok + ")" }, "aria-hidden": true })
-                : vs[2] === "radius" && tok ? e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + tok + ")" }, "aria-hidden": true })
-                : vs[2] === "shadow" && tok ? e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + tok + ")" }, "aria-hidden": true })
-                : px != null ? e("span", { className: "bd-var-px" }, Math.round(px)) : null,
-              e("span", { className: "bd-var-name" }, o.label || o.value));
-          }))));
-      }));
   };
 
   /* A template never replaces anything: its frames go beside yours, or
@@ -5018,152 +4474,9 @@ function App(props) {
     }, "Added the " + st[1].toLowerCase() + " beside your frames");
     setTimeout(function () { if (first) showFrameRef.current(first, true); }, 0);
   };
-  /* A frame drawn to its proportions, inside a box of maxW by maxH pixels. */
-  var framePic = function (w, h, kind, maxW, maxH) {
-    var k = Math.min((maxW || 84) / w, (maxH || 52) / h);
-    var box = { width: Math.round(w * k) + "px", height: Math.round(h * k) + "px" };
-    return e("span", { key: w + "x" + h, className: cx("bd-mini-frame", kind && "is-" + kind), style: box, "aria-hidden": true },
-      kind === "structured" ? [0, 1, 2].map(function (i) { return e("span", { key: i, className: "bd-mini-bar" }); })
-        : kind === "free" ? [0, 1, 2].map(function (i) { return e("span", { key: i, className: "bd-mini-dot" }); }) : null);
-  };
-  /* The first level of Assets is an icon per kind, with its name and count;
-     the pictures wait one level down, inside each kind. */
-  var kindPic = function (icon) {
-    return e("span", { className: "bd-kind-pics is-asset", "aria-hidden": true }, e(Icon, { name: icon }));
-  };
-  /* Each template by its first block, so they look like what they are. */
-  var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
-
-  /* Containers: an empty frame to build in. Freeform, structured or tall, or
-     one of the screen sizes. Press one to add it beside your frames; drag it
-     onto the canvas to put it where you drop it. */
-  var CONTAINER_KINDS = [
-    ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
-    ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
-    ["page", "Tall frame", "file", "Grows as tall as what's on it"],
-  ];
-  var containerCard = function (key, name, pic, note, payload, onAdd) {
-    return e("li", { key: key },
-      e("button", { type: "button", className: "bd-kind bd-container-card", "data-container": key, title: note + ". Press to add one beside your frames, or drag it onto the canvas.",
-        onPointerDown: function (ev) { if (ev.pointerType !== "touch") startDrag(ev, payload); },
-        onClick: function () { if (!justDragged.current) onAdd(); } },
-        pic,
-        e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note))));
-  };
-  var containersPanel = function () {
-    return e(React.Fragment, null,
-      e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
-      e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function (k) {
-        var page = k[0] === "page", opts = page ? null : { mode: k[0] };
-        var shape = page ? framePic(390, 900, "tall") : framePic(1280, 800, k[0]);
-        return containerCard(k[0], k[1], e("span", { className: "bd-kind-pics is-preview is-frames" }, shape), k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts: opts }, function () { frameOps.add(null, page, null, opts); });
-      })),
-      e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
-      e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function (p) {
-        var opts = { preset: p.id, mode: "free" };
-        return containerCard(p.id, p.label, e("span", { className: "bd-kind-pics is-preview is-frames" }, framePic(p.width, p.height)), p.width + " × " + p.height, { kind: "tool", tool: "frame", label: p.label, opts: opts }, function () { frameOps.add(null, false, null, opts); });
-      })));
-  };
-  var templatesPanel = function () {
-    return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function (st) { return st[0] !== "blank"; }).map(function (st) {
-      return e("li", { key: st[0] },
-        e("div", { className: "bd-kind bd-tpl-card", "data-template": st[0] },
-          TEMPLATE_PIC[st[0]] && META[TEMPLATE_PIC[st[0]][0]] ? e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: TEMPLATE_PIC[st[0]][0], wide: TEMPLATE_PIC[st[0]][1] })) : e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
-          e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
-          e("span", { className: "bd-tpl-acts" },
-            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-new", onClick: function () { addTemplate(st[0]); }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
-            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function () { addTemplate(st[0], true); }, title: "At the end of " + frame.name }, "Into " + frame.name))));
-    }));
-  };
-
-  var mineList = function (list) {
-    return e("ul", { className: "bd-mine", role: "list" }, list.map(function (c) {
-      var layers = 0;
-      (function walk(n) { layers++; (n.children || []).forEach(walk); })(c.node);
-      return e("li", { key: c.id, className: "bd-mine-item" },
-        e("button", { type: "button", className: "bd-mine-btn", "data-local": c.id, title: c.name + ": drag onto a frame, or press to add. Built on " + c.tokens.slice(0, 6).join(", ") + (c.tokens.length > 6 ? "…" : ""),
-          onPointerDown: function (ev) { startDrag(ev, { kind: "local", comp: c, type: c.node.type, label: c.name }); },
-          onClick: function () { if (!justDragged.current) addLocal(c); } },
-          e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
-          e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))),
-        e(Dropdown, { menu: true, label: "Actions for " + c.name, icon: "more", iconOnly: true, compact: true, narrow: true, alignEnd: true, className: "bd-dd-icon",
-          options: [{ value: "add", label: "Add to " + frame.name, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
-          onChange: function (v) { if (v === "add") addLocal(c); else if (v === "rename") renameComponent(c.id); else if (v === "delete") removeComponent(c.id); } }));
-    }));
-  };
-
-  var assetsPanel = function () {
-    var q = query.trim().toLowerCase();
-    var head = null;
-    if (q) {
-      var found = [];
-      DATA.groups.forEach(function (g) {
-        usableIn(g).forEach(function (n) {
-          if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
-        });
-      });
-      var foundMine = (library.components || []).filter(function (c) { return c.name.toLowerCase().indexOf(q) >= 0; });
-      return e("div", { className: "bd-assets" }, head,
-        foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
-        foundMine.length ? mineList(foundMine) : null,
-        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle()),
-        found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
-        tileList(found));
-    }
-    if (!assetKind) {
-      return e("div", { className: "bd-assets is-cards" }, head,
-        e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function (k) {
-          var note = k[3];
-          var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? (STARTERS.length - 1) + " pages" : groupsOf(k[0]).reduce(function (t, g) { return t + usableIn(g).length; }, 0) + " to add";
-          return e("li", { key: k[0] }, e("button", { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note, onClick: function () { setAssetKind(k[0]); } },
-            kindPic(k[2]),
-            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))));
-        })));
-    }
-    var kind = ASSET_KINDS.filter(function (k) { return k[0] === assetKind; })[0] || ASSET_KINDS[0];
-    var back = e("div", { className: "bd-panel-head bd-gallery-head" },
-      e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Assets", title: "Back to Assets", onClick: function () { setAssetKind(null); } }, e(Icon, { name: "left" })),
-      e("h2", { className: "bd-panel-title" }, kind[1]));
-    if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head, back, variablesPanel());
-    if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head, back, templatesPanel());
-    if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head, back, containersPanel());
-    var groups = groupsOf(kind[0]);
-    /* Components open with yours, then the system's. */
-    if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
-    var current = groups.filter(function (x) { return x.id === category; })[0] || groups[kind[0] === "components" && (library.components || []).length ? 0 : kind[0] === "components" ? 1 : 0];
-    var items = usableIn(current);
-    if (current.id === "mine") {
-      var mine = library.components || [];
-      return e("div", { className: "bd-assets" },
-        head, back,
-        e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function (g) {
-          return e("button", { key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(current.id === g.id), onClick: function () { setCategory(g.id); } },
-            e(Icon, { name: g.id === "mine" ? "component" : GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
-        })),
-        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
-        mine.length ? mineList(mine) : e("div", { className: "bd-empty" }, e(Icon, { name: "component" }),
-          e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))));
-    }
-    return e("div", { className: "bd-assets" },
-      head,
-      back,
-      groups.length > 1 ? e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" },
-        groups.map(function (g) {
-          var on = current.id === g.id;
-          return e("button", {
-            key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(on), title: g.label + ": " + usableIn(g).length + " to add",
-            onClick: function () { setCategory(g.id); },
-          }, e(Icon, { name: GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
-        })) : null,
-      e("div", { className: "bd-assets-head" },
-        e("h3", { className: "bd-assets-title" }, current.label, e("span", { className: "bd-count" }, items.length)),
-        viewToggle()),
-      items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
-      tileList(items));
-  };
 
   /* Containers start open in Layers; a component's slots start folded. */
-  var isOpen = function (n) { return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false; };
+  var isOpen = function (n) { return nodeIsOpen(n, collapsed); };
   useEffect(function () {
     var opens = {};
     selection.forEach(function (id) {
@@ -5180,354 +4493,8 @@ function App(props) {
      starts open. A component folds open onto what it's made of: its slots,
      which hold real layers, and its own parts, which are set through its
      props and so are shown but can't be picked. */
-  var frameIsOpen = function (f) { return openFrames[f.id] !== undefined ? openFrames[f.id] : f.id === doc.active; };
-  var isOwner = function (n) { var m = META[n.type]; return !!m && !m.builder && !isContainer(n.type); };
-  var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
   var anatomyOf = function (fid, id) { try { var a = api(fid); return a && a.anatomy ? a.anatomy(id) : null; } catch (err) { return null; } };
   var everyNode = function (fn) { doc.frames.forEach(function (f) { (function walk(n) { (n.children || []).forEach(function (c) { fn(c); walk(c); }); })(f.root); }); };
-  /* The pages as rows: a folder, then the pages in it (unless it's closed),
-     and loose pages where they fall. A folder with nothing in it yet comes
-     last. */
-  var pageRows = function () {
-    var byId = {};
-    foldersOf(project).forEach(function (f) { byId[f.id] = f; });
-    var rows = [], seen = {};
-    itemsOf(pagesOf(project)).forEach(function (it) {
-      var f = it.folder ? byId[it.folder] : null;
-      if (!f) { it.pages.forEach(function (p) { rows.push({ kind: "page", page: p, folder: null }); }); return; }
-      var open = f.open !== false;
-      if (!seen[f.id]) { rows.push({ kind: "folder", folder: f, open: open, count: it.pages.length }); seen[f.id] = true; }
-      if (open) it.pages.forEach(function (p) { rows.push({ kind: "page", page: p, folder: f.id }); });
-    });
-    foldersOf(project).forEach(function (f) { if (!seen[f.id]) rows.push({ kind: "folder", folder: f, open: f.open !== false, count: 0 }); });
-    return rows;
-  };
-  /* The search keeps the pages whose name, or whose folder's name, matches,
-     with their folders open around them. */
-  var pageMatches = function (q) {
-    var byId = {};
-    foldersOf(project).forEach(function (f) { byId[f.id] = f; });
-    var has = function (text) { return String(text || "").toLowerCase().indexOf(q) >= 0; };
-    var rows = [];
-    itemsOf(pagesOf(project)).forEach(function (it) {
-      var f = it.folder ? byId[it.folder] : null;
-      var hits = it.pages.filter(function (p) { return has(p.name) || (f && has(f.name)); });
-      if (!hits.length) return;
-      if (f) rows.push({ kind: "folder", folder: f, open: true, count: hits.length, found: true });
-      hits.forEach(function (p) { rows.push({ kind: "page", page: p, folder: f ? f.id : null }); });
-    });
-    return rows;
-  };
-  /* Where a page on the move would land, from the pointer: a slot between
-     rows, or a folder itself. The slot gives a place in the list and the
-     folder it joins; after a folder's last page, a pointer tucked in means
-     the folder, out at the edge means after it. */
-  var pageDropAt = function (x, y) {
-    var list = pagesListRef.current;
-    var dr = pageDragRef.current;
-    if (!list || !dr) return null;
-    var rows = dr.rows;
-    var els = Array.prototype.slice.call(list.querySelectorAll("[data-row]"));
-    var pages = pagesOf(projectRef.current).filter(function (p) { return p.id !== dr.id; });
-    var at = function (pid) { var i = pages.findIndex(function (p) { return p.id === pid; }); return i < 0 ? pages.length : i; };
-    var listBox = list.getBoundingClientRect();
-    var firstOf = function (fid) { var p = pages.filter(function (q) { return q.folder === fid; })[0]; return p ? at(p.id) : pages.length; };
-    var slot = els.length, into = null;
-    for (var i = 0; i < els.length; i++) {
-      var b = els[i].getBoundingClientRect();
-      var row = rows[i];
-      if (row.kind === "folder" && y >= b.top + b.height * 0.25 && y <= b.bottom - b.height * 0.25) { into = row.folder.id; slot = i; break; }
-      if (y < b.top + b.height / 2) { slot = i; break; }
-    }
-    if (into) return { into: into, index: endOfFolder(into, dr.id), folder: into, line: null };
-    var before = rows[slot], prev = rows[slot - 1];
-    var tucked = x > listBox.left + 28;
-    var folder = null, index;
-    if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
-      folder = before.folder; index = at(before.page.id);
-    } else if (prev && ((prev.kind === "page" && prev.folder) || (prev.kind === "folder" && !prev.open && prev.count)) && tucked) {
-      folder = prev.kind === "page" ? prev.folder : prev.folder.id; index = endOfFolder(folder, dr.id);
-    } else if (prev && prev.kind === "page" && prev.folder) {
-      folder = null; index = endOfFolder(prev.folder, dr.id);
-    } else if (before && before.kind === "page") {
-      folder = null; index = at(before.page.id);
-    } else if (before && before.kind === "folder") {
-      folder = null; index = before.count ? firstOf(before.folder.id) : pages.length;
-    } else {
-      folder = null; index = pages.length;
-    }
-    var edge = slot < els.length ? els[slot].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
-    return { into: null, index: index, folder: folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
-  };
-  /* Dragging the row moves the page: a few pixels on, the page follows the
-     pointer and a line shows where it would land. A finger holds the row a
-     moment first, so a swipe still scrolls the list. A drag that moved
-     doesn't also open the page. */
-  var rowDown = function (p) {
-    return function (ev) {
-      if (ev.button !== undefined && ev.button !== 0) return;
-      if (renamingPage === p.id || pageDragRef.current || pageQuery.trim()) return;
-      var touch = ev.pointerType === "touch";
-      var dr = { id: p.id, name: p.name, pointer: ev.pointerId, x0: ev.clientX, y0: ev.clientY, live: false, armed: !touch, timer: 0, rows: pageRows(), drop: null };
-      pageDragRef.current = dr;
-      var holdScroll = function (tm) { if (dr.armed && tm.cancelable) tm.preventDefault(); };
-      if (touch) {
-        dr.timer = setTimeout(function () {
-          dr.armed = true;
-          window.addEventListener("touchmove", holdScroll, { passive: false });
-          setPageDrag({ id: dr.id, name: dr.name, x: dr.x0, y: dr.y0, drop: null });
-        }, 350);
-      }
-      var stop = function () {
-        clearTimeout(dr.timer);
-        window.removeEventListener("pointermove", move);
-        window.removeEventListener("pointerup", end);
-        window.removeEventListener("pointercancel", cancel);
-        window.removeEventListener("touchmove", holdScroll);
-        if (pageDragRef.current === dr) pageDragRef.current = null;
-        setPageDrag(null);
-      };
-      var move = function (mv) {
-        if (mv.pointerId !== dr.pointer) return;
-        var far = Math.abs(mv.clientX - dr.x0) + Math.abs(mv.clientY - dr.y0) >= 4;
-        if (!dr.armed) { if (far) stop(); return; }
-        if (!dr.live) { if (!far) return; dr.live = true; }
-        dr.drop = pageDropAt(mv.clientX, mv.clientY);
-        setPageDrag({ id: dr.id, name: dr.name, x: mv.clientX, y: mv.clientY, drop: dr.drop });
-      };
-      var end = function (up) {
-        if (up && up.pointerId !== dr.pointer) return;
-        stop();
-        if (!dr.live) return;
-        pageDragEnded.current = true;
-        setTimeout(function () { pageDragEnded.current = false; }, 0);
-        if (dr.drop) {
-          var fname = dr.drop.folder ? (foldersOf(projectRef.current).filter(function (f) { return f.id === dr.drop.folder; })[0] || {}).name : null;
-          placePage(dr.id, dr.drop.index, dr.drop.folder).then(function () { announce("Moved " + dr.name + (fname ? " into " + fname : "")); });
-        }
-      };
-      var cancel = function (c) { if (!c || c.pointerId === dr.pointer) stop(); };
-      window.addEventListener("pointermove", move);
-      window.addEventListener("pointerup", end);
-      window.addEventListener("pointercancel", cancel);
-    };
-  };
-  var pagesPanel = function () {
-    var q = pageQuery.trim().toLowerCase();
-    var rows = q ? pageMatches(q) : pageRows();
-    var folders = foldersOf(project);
-    var items = itemsOf(pagesOf(project));
-    var drop = pageDrag && pageDrag.drop;
-    var folderRow = function (r, i) {
-      var f = r.folder;
-      var itemAt = items.findIndex(function (it) { return it.folder === f.id; });
-      return e("li", { key: "f" + f.id, className: cx("bd-folder", !r.open && "is-closed", drop && drop.into === f.id && "is-drop"), "data-row": i, "data-folder": f.id },
-        e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, disabled: r.found || undefined, onClick: function () { foldFolder(f.id, !r.open); } }, e(Icon, { name: r.open ? "down" : "right" })),
-        renamingFolder === f.id
-          ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function (v) { renameFolder(f.id, v); } })
-          : e("button", { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function () { foldFolder(f.id, !r.open); }, onDoubleClick: function () { setRenamingFolder(f.id); } },
-            e(Icon, { name: "folder" }), e("span", { className: "bd-folder-name" }, f.name), e("span", { className: "bd-folder-count" }, r.count || "")),
-        e(Dropdown, { menu: true, label: "Actions for " + f.name, placeholder: "Folder", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
-          options: [{ value: "rename", label: "Rename", icon: "pencil" }]
-            .concat(itemAt > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
-            .concat(itemAt >= 0 && itemAt < items.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : [])
-            .concat([{ value: "delete", label: "Delete folder (the pages stay)", icon: "trash" }]),
-          onChange: function (v) {
-            if (v === "rename") setRenamingFolder(f.id);
-            else if (v === "up") moveFolder(f.id, -1);
-            else if (v === "down") moveFolder(f.id, 1);
-            else if (v === "delete") deleteFolder(f.id);
-          } }));
-    };
-    var pageRow = function (r, i) {
-      var p = r.page, on = p.id === pageId;
-      var list = pagesOf(project), idx = list.findIndex(function (x) { return x.id === p.id; });
-      return e("li", { key: p.id, className: cx("bd-page", on && "is-current", r.folder && "is-nested", pageDrag && pageDrag.id === p.id && "is-moving"), "data-row": i },
-        renamingPage === p.id
-          ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function (v) { renamePage(p.id, v); } })
-          : e("button", { type: "button", className: "bd-page-open", "aria-current": on ? "page" : undefined, title: "Drag to move, double-click to rename",
-            onPointerDown: rowDown(p), onClick: function () { if (!pageDragEnded.current) openPage(p.id); }, onDoubleClick: function () { setRenamingPage(p.id); } },
-            e(Icon, { name: "file" }), e("span", { className: "bd-page-name" }, p.name)),
-        confirmPage === p.id
-          ? e("span", { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + p.name },
-            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function () { deletePage(p.id); } }, "Delete"),
-            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setConfirmPage(null); } }, "Keep"))
-          : e(Dropdown, { menu: true, label: "Actions for " + p.name, placeholder: "Page", icon: "more", iconOnly: true, compact: true, narrow: true, className: "bd-dd-icon bd-page-menu",
-            options: [
-              { value: "rename", label: "Rename", icon: "pencil" },
-              { value: "duplicate", label: "Duplicate", icon: "copy" },
-            ].concat(idx > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : [])
-              .concat(idx < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : [])
-              .concat(folders.filter(function (f) { return f.id !== r.folder; }).map(function (f) { return { value: "into:" + f.id, label: "Move to " + f.name, icon: "folder" }; }))
-              .concat(r.folder ? [{ value: "out", label: "Out of the folder", icon: "detach" }] : [])
-              .concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
-            onChange: function (v) {
-              if (v === "rename") setRenamingPage(p.id);
-              else if (v === "duplicate") duplicatePage(p.id);
-              else if (v === "up") movePage(p.id, -1);
-              else if (v === "down") movePage(p.id, 1);
-              else if (v === "out") placePage(p.id, endOfFolder(r.folder, p.id), null);
-              else if (v.indexOf("into:") === 0) placePage(p.id, endOfFolder(v.slice(5), p.id), v.slice(5));
-              else if (v === "delete") setConfirmPage(p.id);
-            } }));
-    };
-    return e("div", { className: "bd-pages-panel" },
-      e("div", { className: "bd-panel-head" },
-        e("h2", { className: "bd-panel-title" }, "Pages"),
-        e("span", { className: "bd-panel-acts" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "New folder", title: "New folder", onClick: addFolder }, e(Icon, { name: "folder" })),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" })))),
-      q && !rows.length ? e("p", { className: "bd-empty-note" }, "No pages match.") : null,
-      e("ul", { className: cx("bd-pages", pageDrag && "is-dragging"), role: "list", ref: pagesListRef },
-        rows.map(function (r, i) { return r.kind === "folder" ? folderRow(r, i) : pageRow(r, i); }),
-        drop && drop.line ? e("li", { className: cx("bd-page-drop", drop.line.depth && "is-nested"), "aria-hidden": true, style: { top: drop.line.top + "px" } }) : null),
-      pageDrag ? e("div", { className: "bd-ghost", style: { left: pageDrag.x + "px", top: pageDrag.y + "px" }, "aria-hidden": true }, pageDrag.name) : null);
-  };
-
-  var layersPanel = function () {
-    var q = layerQuery.trim().toLowerCase();
-    var toggle = function (id) {
-      var at = locate(doc, id);
-      var owner = at && !isContainer(at.node.type);
-      setCollapsed(function (c) { var n = Object.assign({}, c); if (owner) { if (n[id] === false) delete n[id]; else n[id] = false; } else if (n[id]) delete n[id]; else n[id] = true; return n; });
-    };
-    var rowsFor = function (f) {
-      var keep = null;
-      if (q) {
-        keep = {};
-        (function walk(n, path) {
-          (n.children || []).forEach(function (c) {
-            var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
-            if (hit) { keep[c.id] = true; path.forEach(function (x) { keep[x] = true; }); }
-            if (c.children) walk(c, path.concat([c.id]));
-          });
-        })(f.root, []);
-      }
-      var rows = [];
-      var walk = function (n, depth) {
-        (n.children || []).forEach(function (c) {
-          if (keep && !keep[c.id]) return;
-          rows.push({ n: c, depth: depth });
-          if (!(q || isOpen(c))) return;
-          if (isOwner(c) && !q) walkOwner(c, depth + 1);
-          else if (c.children) walk(c, depth + 1);
-        });
-      };
-      var walkOwner = function (c, depth) {
-        var slots = (c.children || []).filter(function (k) { return k.type === "Slot"; });
-        var placed = {};
-        var tree = anatomyOf(f.id, c.id) || [];
-        var seq0 = 0;
-        (function parts(list, d) {
-          list.forEach(function (it) {
-            if (it.slot) {
-              var sl = slots.filter(function (x) { return x.id === it.slot; })[0];
-              if (!sl || placed[sl.id]) return;
-              placed[sl.id] = true;
-              rows.push({ n: sl, depth: d });
-              if (isOpen(sl)) walk(sl, d + 1);
-              return;
-            }
-            rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + (seq0++) });
-            parts(it.children || [], d + 1);
-          });
-        })(tree, depth);
-        slots.forEach(function (sl) { if (placed[sl.id]) return; rows.push({ n: sl, depth: depth }); if (isOpen(sl)) walk(sl, depth + 1); });
-      };
-      walk(f.root, 1);
-      return rows;
-    };
-    var partRow = function (r, f) {
-      var it = r.part;
-      if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-        var onPart = part && part.id === r.owner.id && f.id === doc.active;
-        return e("div", { key: r.key, className: cx("bd-layer is-part is-pickable", onPart && "is-current"), role: "treeitem", "aria-level": r.depth + 1, "aria-selected": String(!!onPart),
-          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" } },
-          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e("button", { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function () { pick(r.owner.id, false, false, "layers", f.id, "title"); } },
-            e(Icon, { name: "heading" }), e("span", { className: "bd-layer-name" }, "Title"), it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
-      }
-      return e("div", {
-        key: r.key, className: "bd-layer is-part", role: "treeitem", "aria-level": r.depth + 1, "aria-disabled": "true",
-        style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-        title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector",
-      },
-        e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-        e("span", { className: "bd-layer-main is-static" },
-          e(Icon, { name: PART_ICON[it.kind] || "component" }),
-          e("span", { className: "bd-layer-name" }, it.kind),
-          it.text ? e("span", { className: "bd-layer-text" }, it.text) : null));
-    };
-    var nodeRow = function (f, r) {
-      if (r.part) return partRow(r, f);
-      var n = r.n;
-      var mine = f.id === doc.active;
-      var text = labelOf(n);
-      var on = mine && selection.indexOf(n.id) >= 0;
-      var owner = isOwner(n);
-      var open = isOpen(n) || (!!q && !owner);
-      var folds = !!n.children || owner;
-      var renameable = n.type !== "Slot";
-      return e("div", {
-        key: n.id, className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
-        "data-layer": mine ? n.id : undefined, "data-frame-row": mine ? undefined : f.id, "data-depth": r.depth, role: "treeitem", "aria-selected": String(on), "aria-level": r.depth + 1,
-        "aria-expanded": folds ? String(open) : undefined,
-        style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-        onPointerEnter: function () { setHover({ f: f.id, id: n.id }); },
-        onPointerLeave: function () { setHover(null); },
-        onContextMenu: function (ev) { if (n.type !== "Slot") { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, n.id, f.id); } },
-      },
-        folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : undefined, onClick: function () { toggle(n.id); } }, e(Icon, { name: "right" }))
-          : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-        e("button", {
-          type: "button", className: "bd-layer-main",
-          onClick: function (ev) { if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id); },
-          onDoubleClick: function () { if (renameable && mine) setRenaming({ id: n.id, where: "layer" }); },
-          onPointerDown: function (ev) { if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) }); },
-        },
-          e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
-          renameable && mine && isRenaming(n.id, "layer")
-            ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function (v) { setRenaming(null); setName(n.id, v === n.type ? "" : v); } })
-            : e("span", { className: "bd-layer-name" }, nameOf(n)),
-          text && !n.name ? e("span", { className: "bd-layer-text" }, text) : null),
-        /* Hiding lives in the inspector's Layer section; a hidden row keeps
-           a quiet eye-off, which also shows it again. */
-        n.type !== "Slot" ? e("span", { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-          n.hide ? e("button", { type: "button", className: "bd-layer-flag is-hidden-mark", "aria-label": "Show " + nameOf(n), title: "Hidden: press to show (Ctrl+Shift+H)",
-            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "hide"); } }, e(Icon, { name: "eyeOff" })) : null,
-          e("button", { type: "button", className: cx("bd-layer-flag", n.lock && "is-on"), "aria-pressed": String(!!n.lock), "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n), title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
-            onClick: function (ev) { ev.stopPropagation(); flagLayer(n.id, f.id, "lock"); } }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))) : null);
-    };
-    return e("div", { className: "bd-layers-panel" },
-      e("div", { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
-        doc.frames.map(function (f) {
-          var on = f.id === doc.active;
-          var open = frameIsOpen(f) || !!q;
-          var head = e("div", {
-            key: "frame-" + f.id, className: cx("bd-layer bd-layer-frame", on && !sel && frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
-            "data-layer": on ? "root" : undefined, "data-frame-row": f.id, role: "treeitem", "aria-level": 1,
-            "aria-selected": String(on && !sel && frameOn), "aria-expanded": String(open),
-          },
-            e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + f.name,
-              onClick: function () { setOpenFrames(function (m) { var nx = Object.assign({}, m); nx[f.id] = !open; return nx; }); } }, e(Icon, { name: "right" })),
-            e("button", {
-              type: "button", className: "bd-layer-main", title: on ? "Double-click to rename" : "Show " + f.name,
-              onClick: function () { frameOps.pick(f.id, true); },
-              onDoubleClick: function () { setRenaming({ id: "frame:" + f.id, where: "layer" }); },
-            },
-              e(Icon, { name: f.bare ? "component" : "frame" }),
-              isRenaming("frame:" + f.id, "layer")
-                ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function (v) { frameOps.rename(f.id, v); } })
-                : e("span", { className: "bd-layer-name" }, f.name),
-              e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : sizeText(f))));
-          if (!open) return head;
-          var rows = rowsFor(f);
-          return e(React.Fragment, { key: "frame-" + f.id },
-            head,
-            rows.length ? rows.map(function (r) { return nodeRow(f, r); }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets."));
-        }),
-        listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null));
-  };
 
   /* The inspector's tabs. One with nothing to set for this selection is off,
      and the inspector shows Layout instead. */
@@ -6814,88 +5781,6 @@ function App(props) {
     if (a && fr) a.render({ page: { dark: fr.dark, surface: fr.surface, canvas: fr.canvas, spacing: fr.spacing, gap: fr.gap, typeScale: fr.typeScale, pageWidth: fr.pageWidth, gutter: fr.gutter, flow: fr.flow, clip: fr.clip, scroll: fr.scroll }, root: fr.root }, { preview: true, hug: false });
   };
   useEffect(function () { if (play) renderPlay(); }, [play && play.fid, doc]);
-  var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
-  var playDialog = function () {
-    var fr = play && frameById(doc, play.fid);
-    if (!fr) return null;
-    var pageNow = pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0];
-    var canBack = !!(play.stack && play.stack.length);
-    /* How big the screen is drawn: at first no larger than itself and small
-       enough to fit; then fit to the stage, fit its width, its actual size,
-       or stepped in and out. Larger than the stage, it scrolls. */
-    var fitAll = playBox.w ? Math.min((playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
-    var fitW = playBox.w ? (playBox.w - 32) / fr.width : 0.5;
-    var zoom = play.zoom || "auto";
-    var sc = zoom === "fit" ? fitAll : zoom === "width" ? fitW : zoom === "actual" ? 1 : typeof zoom === "number" ? zoom : Math.min(1, fitAll);
-    sc = Math.max(0.1, Math.min(4, sc));
-    var stepZoom = function (dir) {
-      var next = dir > 0 ? PLAY_STEPS.filter(function (z) { return z > sc + 0.001; })[0] : PLAY_STEPS.filter(function (z) { return z < sc - 0.001; }).pop();
-      if (next) setPlay(Object.assign({}, play, { zoom: next }));
-    };
-    var hs = playHeights(fr.width);
-    /* A theater: the screen alone on a dark stage, its name and Close at
-       the top, and the screen sizes in a bar along the foot where the
-       canvas keeps its tools. */
-    return e("dialog", { className: "bd-play", ref: playRef, "aria-labelledby": "bd-play-title", onClose: playClosed,
-      onKeyDown: function (ev) {
-        if (canBack && (ev.key === "Backspace" || (ev.altKey && ev.key === "ArrowLeft"))) { ev.preventDefault(); playBack(); return; }
-        if (ev.metaKey || ev.ctrlKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
-        var to = ev.key === "-" ? -1 : ev.key === "+" || ev.key === "=" ? 1 : 0;
-        if (to) { ev.preventDefault(); stepZoom(to); return; }
-        var mode = ev.shiftKey && { Digit1: "fit", Digit2: "width", Digit0: "actual" }[ev.code];
-        if (mode) { ev.preventDefault(); setPlay(Object.assign({}, play, { zoom: mode })); }
-      } },
-      e("div", { className: "bd-play-head" },
-        canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: playBack }, e(Icon, { name: "left" })) : null,
-        e("div", { className: "bd-play-intro" },
-          e("h2", { id: "bd-play-title" }, (pageNow && pagesOf(project).length > 1 ? pageNow.name + " › " : "") + fr.name),
-          e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")),
-        e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function () { playRef.current.close(); } }, e(Icon, { name: "close" }))),
-      e("div", { className: "bd-play-stage", ref: playStageRef },
-        e("div", { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
-          e("iframe", { ref: playFrameRef, src: frameSrc, title: fr.name + ", " + fr.width + " by " + play.h, onLoad: renderPlay,
-            style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" } }))),
-      e("div", { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height and zoom" },
-        e(Segmented, { label: "Screen height", value: play.h, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { h: v })); },
-          options: hs.map(function (x) { return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" }; }) }),
-        e("span", { className: "bd-play-sep", "aria-hidden": true }),
-        e("div", { className: "bd-play-zoom", role: "group", "aria-label": "Zoom" },
-          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom out", title: "Zoom out (-)", disabled: sc <= PLAY_STEPS[0] + 0.001, onClick: function () { stepZoom(-1); } }, e(Icon, { name: "minus" })),
-          e("output", { className: "bd-play-pct", "aria-live": "polite" }, Math.round(sc * 100) + "%"),
-          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom in", title: "Zoom in (+)", disabled: sc >= PLAY_STEPS[PLAY_STEPS.length - 1] - 0.001, onClick: function () { stepZoom(1); } }, e(Icon, { name: "plus" }))),
-        e(Segmented, { label: "Fit", className: "bd-play-fit", value: typeof zoom === "string" && zoom !== "auto" ? zoom : undefined, onChange: function (v) { if (v) setPlay(Object.assign({}, play, { zoom: v })); },
-          options: [{ value: "fit", label: "Fit", title: "Fit to screen (Shift+1)" }, { value: "width", label: "Width", title: "Fit width (Shift+2)" }, { value: "actual", label: "100%", title: "Actual size (Shift+0)" }] })));
-  };
-
-  var importDialog = function () {
-    var read = readLayout(importText);
-    var ok = read && !read.error;
-    var formatHref = mountEl.getAttribute("data-format") || "assets/builder-layouts.md";
-    return e("dialog", { className: "bd-code bd-import", ref: importRef, "aria-labelledby": "bd-import-title" },
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-import-title" }, "Paste a layout"),
-          e("p", { className: "bd-inspect-sub" }, "Paste builder JSON (from Claude, a teammate or Copy layout JSON), a builder link, or JSX with Dovetail components (from the docs or the Code dialog). Only the components, props and tokens the builder can set come in. ",
-            e("a", { href: formatHref, target: "_blank", rel: "noopener" }, "The layout format"), ".")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { importRef.current.close(); } }, e(Icon, { name: "close" })))),
-      e("div", { className: "bd-import-body" },
-        e("textarea", { className: "bd-import-text", "aria-label": "Layout JSON, JSX or link", spellCheck: false, value: importText, placeholder: '{ "frames": [ { "name": "Home", "width": 1280, "hug": true, "root": { "children": [ { "type": "HeroBlock" } ] } } ] }',
-          onChange: function (ev) { setImportText(ev.target.value); } }),
-        e("div", { className: "bd-import-report", role: "status", "aria-live": "polite" },
-          !read ? e("p", { className: "bd-sec-empty" }, "Nothing pasted yet.")
-            : read.error ? e("p", { className: "bd-import-error" }, e(Icon, { name: "alert" }), read.error)
-            : e(React.Fragment, null,
-              e("p", { className: "bd-import-ok" }, e(Icon, { name: "check" }),
-                read.doc.frames.length + (read.doc.frames.length === 1 ? " frame, " : " frames, ") + read.layers + (read.layers === 1 ? " layer" : " layers") + ": " + read.doc.frames.map(function (f) { return f.name + " (" + f.width + (f.hug ? " wide, hugging" : " × " + f.height) + ")"; }).join(", ")),
-              read.report.length ? e("div", { className: "bd-import-dropped" },
-                e("p", null, read.report.length + (read.report.length === 1 ? " thing will be left out:" : " things will be left out:")),
-                e("ul", null, read.report.slice(0, 12).map(function (line, i) { return e("li", { key: i }, line); })),
-                read.report.length > 12 ? e("p", null, "and " + (read.report.length - 12) + " more.") : null) : e("p", { className: "bd-sec-empty" }, "Everything in it comes in."))),
-        e("div", { className: "bd-import-actions" },
-          e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !ok, onClick: function () { importLayout("add"); } }, e(Icon, { name: "plus" }), ok ? "Add " + (read.doc.frames.length === 1 ? "the frame" : read.doc.frames.length + " frames") : "Add"),
-          e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function () { importLayout("replace"); } }, "Replace all frames"))));
-  };
 
   /* Nothing picked, not even a frame: the builder's own settings. */
   var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
@@ -6974,6 +5859,58 @@ function App(props) {
   var inspector = selectedNodes.length === 1 && selectedNodes[0].type === "Slot" ? slotInspector(selectedNodes[0]) || frameInspector()
     : selectedNodes.length ? nodeInspector(selectedNodes.filter(function (n) { return n.type !== "Slot"; }).length ? selectedNodes.filter(function (n) { return n.type !== "Slot"; }) : selectedNodes)
     : frameOn ? frameInspector() : builderInspector();
+  /* The dialogs (dialogs.js) are memoized, so what they take keeps one
+     identity across renders: handlers through useEvent, the component
+     draft's node remembered until the draft, document or selection change. */
+  var closeShown = useEvent(function () { setShown(null); });
+  var closeComponent = useEvent(function () { setCompDraft(null); });
+  var onKeepVersion = useEvent(keepVersion), onRestoreVersion = useEvent(restoreVersion);
+  var onSaveComponent = useEvent(saveComponent), onFixComponent = useEvent(fixComponent);
+  var onImportLayout = useEvent(importLayout);
+  var onCopyCode = useEvent(function () { copyText(code).then(function () { announce("Code copied"); }); });
+  var onExportImage = useEvent(function (type) { exportImage(frame.id, type, { scale: exportScale, id: codePick }); });
+  var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function () { share(); });
+  var onPlayClosed = useEvent(playClosed), onPlayBack = useEvent(playBack), onRenderPlay = useEvent(renderPlay);
+  var compNode = useMemo(function () { return compDraft ? componentSource() : null; }, [compDraft, doc, selection]);
+  var playPage = play ? pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0] : null;
+  var playPageName = playPage && pagesOf(project).length > 1 ? playPage.name : null;
+
+  /* Home (Home.js) is memoized too, so its handlers go through useEvent. */
+  var homeSetSort = useEvent(setHomeSort), homeGoView = useEvent(goHomeView), homeSetDark = useEvent(setDark);
+  var homeOpen = useEvent(openProject), homeRename = useEvent(renameProject), homeDuplicate = useEvent(duplicateProject), homeDelete = useEvent(deleteProject);
+  var homeMove = useEvent(moveFile), homeExport = useEvent(exportProject), homeImport = useEvent(importProject);
+  var homePicture = useEvent(function (who, f) { if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f); else setPicture(who, f); });
+  var homeRenameGroup = useEvent(renameGroup), homeDuplicateGroup = useEvent(duplicateGroup), homeExportGroup = useEvent(exportGroup), homeDeleteGroup = useEvent(deleteGroup);
+  var homeAutoPicture = useEvent(function (id) { store.setGroupThumb(id, null).then(refreshProjects); });
+  var homeNewGroup = useEvent(newGroup), homeNewProject = useEvent(newProject), homeNewPlayground = useEvent(newPlayground), homeOpenAccount = useEvent(openAccount);
+
+  /* Layers (Layers.js) is memoized: handlers through useEvent, data as it is. */
+  var onPick = useEvent(pick), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
+  var onFramePick = useEvent(function (fid, v) { frameOps.pick(fid, v); }), onFrameRename = useEvent(function (fid, v) { frameOps.rename(fid, v); }), onAnatomy = useEvent(anatomyOf);
+  var layersProps = { doc: doc, selection: selection, partId: part ? part.id : null, listDrop: listDrop, hover: hover, frameOn: frameOn, hasSel: !!sel, query: layerQuery, collapsed: collapsed, openFrames: openFrames, renaming: renaming, boxes: boxes, scalars: scalars,
+    layersRef: layersRef, justDragged: justDragged, setCollapsed: setCollapsed, setHover: setHover, setRenaming: setRenaming, setOpenFrames: setOpenFrames,
+    pick: onPick, openMenu: onOpenMenu, startDrag: onStartDrag, setName: onSetName, flagLayer: onFlagLayer, framePick: onFramePick, frameRename: onFrameRename, anatomyOf: onAnatomy };
+
+  /* Pages (Pages.js) is memoized too; its drag is its own. */
+  var onFoldFolder = useEvent(foldFolder), onRenameFolder = useEvent(renameFolder), onMoveFolder = useEvent(moveFolder), onDeleteFolder = useEvent(deleteFolder);
+  var onRenamePage = useEvent(renamePage), onOpenPage = useEvent(openPage), onDeletePage = useEvent(deletePage), onDuplicatePage = useEvent(duplicatePage), onMovePage = useEvent(movePage), onPlacePage = useEvent(placePage);
+  var onAddFolder = useEvent(addFolder), onAddPage = useEvent(addPage);
+  var pagesProps = { project: project, pageId: pageId, query: pageQuery, renamingPage: renamingPage, renamingFolder: renamingFolder, confirmPage: confirmPage,
+    setRenamingPage: setRenamingPage, setRenamingFolder: setRenamingFolder, setConfirmPage: setConfirmPage, foldFolder: onFoldFolder, renameFolder: onRenameFolder, moveFolder: onMoveFolder, deleteFolder: onDeleteFolder,
+    renamePage: onRenamePage, openPage: onOpenPage, deletePage: onDeletePage, duplicatePage: onDuplicatePage, movePage: onMovePage, placePage: onPlacePage, addFolder: onAddFolder, addPage: onAddPage, announce: announce };
+
+  /* Assets and Content (Assets.js, Content.js) are memoized too. */
+  var onAddOrSwap = useEvent(function (type, swap) { var s0 = selRef.current; if (swap && s0.length) { swapNode(s0[s0.length - 1], type, docRef.current.active); return; } add(type); });
+  var onAddLocal = useEvent(addLocal), onRenameComponent = useEvent(renameComponent), onRemoveComponent = useEvent(removeComponent), onApplyVar = useEvent(applyVar), onSetStyles = useEvent(setStyles), onAddTemplate = useEvent(addTemplate);
+  var onFrameAdd = useEvent(function (size, page, at, opts) { return frameOps.add(size, page, at, opts); });
+  var picked = useMemo(function () { return nodesOf(selection).filter(function (n) { return n.type !== "Slot"; }); }, [selection, doc]);
+  var pickedScope = useMemo(function () { return picked.length ? scopeFor(picked) : null; }, [picked]);
+  var assetsProps = { query: query, library: library, kind: assetKind, category: category, view: view, placeable: placeable, picked: picked, scope: pickedScope, pxMap: pxMap, used: used, frameName: frame.name, justDragged: justDragged,
+    setView: setView, setAssetKind: setAssetKind, setCategory: setCategory, startDrag: onStartDrag, addOrSwap: onAddOrSwap, addLocal: onAddLocal, renameComponent: onRenameComponent, removeComponent: onRemoveComponent, applyVar: onApplyVar, setStyles: onSetStyles, announce: announce, addTemplate: onAddTemplate, frameAdd: onFrameAdd };
+  var onInsertAsset = useEvent(insertAsset), onAddToLibrary = useEvent(addToLibrary), onCutBackground = useEvent(cutBackground), onLibUpdate = useEvent(libUpdate), onReadBrandFile = useEvent(readBrandFile), onPlaceBrand = useEvent(placeBrand), onSetBrandPart = useEvent(setBrandPart);
+  var contentProps = { query: contentQuery, tab: libTab, library: library, busy: libBusy, brandErr: brandErr, brand: brandNow(), scopeNote: contentScopeNote(), frameName: frame.name, justDragged: justDragged,
+    startDrag: onStartDrag, insertAsset: onInsertAsset, addToLibrary: onAddToLibrary, cutBackground: onCutBackground, libUpdate: onLibUpdate, readBrandFile: onReadBrandFile, placeBrand: onPlaceBrand, setBrandPart: onSetBrandPart, announce: announce, setLibTab: setLibTab, setBrandErr: setBrandErr, setThemeStamp: setThemeStamp };
+
   var slot = wide ? document.getElementById("app-toolbar") : null;
 
   return e(React.Fragment, null,
@@ -6999,7 +5936,7 @@ function App(props) {
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
-              : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()),
+              : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : e(Content, contentProps)),
           left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery })
             : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery })
             : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
@@ -7008,7 +5945,12 @@ function App(props) {
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
       e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || undefined }, inspector),
       wide && !hidePanels && !home ? [panelHandle("left"), panelHandle("right")] : null),
-    homePage(),
+    e(Home, { open: home, projects: projList, groups: groupList, currentId: project.id, opening: opening, query: projQuery, view: homeView, sort: homeSort,
+      renamingProj: renamingProj, renamingGroup: renamingGroup, confirmDel: confirmDel, dark: dark, account: account, toolbar: slot ? null : toolbar,
+      setQuery: setProjQuery, setSort: homeSetSort, setRenamingProj: setRenamingProj, setRenamingGroup: setRenamingGroup, setConfirmDel: setConfirmDel, goView: homeGoView, setDark: homeSetDark,
+      openProject: homeOpen, renameProject: homeRename, duplicateProject: homeDuplicate, deleteProject: homeDelete, moveFile: homeMove, exportProject: homeExport, onPicture: homePicture, importProject: homeImport,
+      renameGroup: homeRenameGroup, duplicateGroup: homeDuplicateGroup, exportGroup: homeExportGroup, deleteGroup: homeDeleteGroup, autoGroupPicture: homeAutoPicture,
+      newGroup: homeNewGroup, newProject: homeNewProject, newPlayground: homeNewPlayground, openAccount: homeOpenAccount }),
     readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
     drag && drag.ghost ? (function () {
       var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
@@ -7016,27 +5958,14 @@ function App(props) {
       return e("div", { className: cx("bd-ghost-el", g.flat && "is-flat"), style: { left: x + "px", top: y + "px", width: g.w * z + "px", height: g.h * z + "px" }, "aria-hidden": true },
         e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } }));
     })() : drag && !drag.inside ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
-    e("dialog", { className: "bd-code", ref: dialogRef, "aria-labelledby": "bd-code-title" },
-      e("div", { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" },
-          e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame.name)),
-          e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (codePick ? codeTitle : frame.name) + " as a picture, or every frame as layout JSON.")),
-        e("div", { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function () { copyText(code).then(function () { announce("Code copied"); }); } }, e(Icon, { name: "copy" }), "Copy code"),
-          e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
-          e(Segmented, { label: "Picture scale", className: "bd-export-scale", value: String(exportScale), onChange: function (v) { if (v) setExportScale(Number(v)); },
-            options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }] }),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "png", { scale: exportScale, id: codePick }); }, title: (codeTitle || frame.name) + " as a PNG, at " + exportScale + "x" }, e(Icon, { name: "image" }), "PNG"),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { exportImage(frame.id, "jpeg", { scale: exportScale, id: codePick }); }, title: (codeTitle || frame.name) + " as a JPG, at " + exportScale + "x" }, "JPG"),
-          e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
-          e("button", { type: "button", className: "bd-btn", onClick: function () { share(); }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame.name }, e(Icon, { name: "link" }), "Copy link"),
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function () { dialogRef.current.close(); } }, e(Icon, { name: "close" })))),
-      e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))),
-    importDialog(),
-    versionsDialog(),
-    keysDialog(),
-    componentDialog(),
-    playDialog(),
+    e(CodeDialog, { dialogRef: dialogRef, code: code, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
+      onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare }),
+    e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
+    e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions: versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
+    e(KeysDialog, { dialogRef: keysRef, open: shown === "keys", onClose: closeShown }),
+    e(ComponentDialog, { dialogRef: compRef, draft: compDraft, setDraft: setCompDraft, node: compNode, onClose: closeComponent, onSave: onSaveComponent, onFix: onFixComponent }),
+    e(PlayDialog, { dialogRef: playRef, frameRef: playFrameRef, stageRef: playStageRef, play: play, setPlay: setPlay, box: playBox, frame: play ? frameById(doc, play.fid) : null,
+      pageName: playPageName, frameSrc: frameSrc, onClose: onPlayClosed, onBack: onPlayBack, onLoad: onRenderPlay }),
     e(AccountDialog, { dialogRef: accountRef, state: account, setState: accountState[1] }),
     menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function () { setMenu(null); }, onChoose: onMenu }) : null,
     e("div", { className: "visually-hidden", role: "status", "aria-live": "polite" }, say));

@@ -5,6 +5,46 @@
   var mountEl = document.getElementById("builder");
   var DATA = window.DovetailBuilderData || { components: {}, tokens: {}, frames: [], groups: [], columnWidths: [], rootGaps: [] };
   var e = React.createElement;
+  function nodeLabel(n, scalars) {
+    if (n.name) return n.name;
+    var base = (scalars || {})[n.type] || {};
+    var text2 = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
+    return typeof text2 === "string" || typeof text2 === "number" ? String(text2) : "";
+  }
+  function typeIcon(type) {
+    if (TYPE_ICON[type]) return TYPE_ICON[type];
+    var g = META[type] && META[type].group;
+    if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
+    return isContainer(type) ? "box" : "component";
+  }
+  function isOwner(n) {
+    var m = META[n.type];
+    return !!m && !m.builder && !isContainer(n.type);
+  }
+  function hasTitlePart(type) {
+    var m = META[type];
+    return !!m && m.props.some(function(p) {
+      return p.name === "titleSize";
+    });
+  }
+  function nodeIsOpen(n, collapsed) {
+    return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false;
+  }
+  function frameSize(f, boxes) {
+    return f.width + " × " + (f.hug ? Math.round(((boxes || {})[f.id] || {}).h || f.height) : f.height);
+  }
+  function allSame(values) {
+    return values.every(function(v) {
+      return JSON.stringify(v) === JSON.stringify(values[0]);
+    });
+  }
+  function useEvent(fn) {
+    var ref = useRef(fn);
+    ref.current = fn;
+    return useCallback(function() {
+      return ref.current.apply(null, arguments);
+    }, []);
+  }
   var useState = React.useState;
   var useEffect = React.useEffect;
   var useRef = React.useRef;
@@ -3428,7 +3468,7 @@
         return { id: t.toLowerCase(), label: t };
       }) });
     };
-    var head = function(title) {
+    var head2 = function(title) {
       return row({ justify: "space-between" }, [heading(title, "heading-xs", { level: 3 }), text("⌄", "small", { tone: "tertiary" })]);
     };
     var f = makeFrame("Workspace", "wide", false);
@@ -3471,9 +3511,9 @@
           field("Resizing", "Hug contents")
         ], { padding: "sm", borderBottom: "subtle" }),
         col({ gap: "none" }, [seg("Inspector", "layout", ["Appearance", "Layout"])], { padding: "sm", borderBottom: "subtle" }),
-        col({ gap: "xs" }, [head("Kind"), text("Frame kind", "label"), seg("Frame kind", "freeform", ["Freeform", "Structured"]), text("Place things anywhere, in any colour.", "fine", { tone: "tertiary" })], { padding: "sm", borderBottom: "subtle" }),
+        col({ gap: "xs" }, [head2("Kind"), text("Frame kind", "label"), seg("Frame kind", "freeform", ["Freeform", "Structured"]), text("Place things anywhere, in any colour.", "fine", { tone: "tertiary" })], { padding: "sm", borderBottom: "subtle" }),
         col({ gap: "xs" }, [
-          head("Page layout"),
+          head2("Page layout"),
           field("Layout character", "Page default", "Sets data-layout, which moves every layout layer token together."),
           field("Type scale", "Page", "The page's own sizes."),
           field("Page width", "Page", "The column every Section, block and page-width Group shares.")
@@ -4582,516 +4622,6 @@
   var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
   var PROP_LABEL = { width: "Content width", spacing: "Section spacing" };
 
-  // assets/builder/cloud/config.js
-  var CLOUD = {
-    url: "",
-    anonKey: ""
-  };
-  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
-  function cloudConfig() {
-    var over = typeof window !== "undefined" && window.DovetailCloud;
-    var c = over && typeof over === "object" ? over : CLOUD;
-    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
-  }
-  function cloudReady() {
-    var c = cloudConfig();
-    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
-  }
-
-  // assets/builder/cloud/client.js
-  var clientLoading = null;
-  function getClient() {
-    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
-    if (!clientLoading) {
-      var c = cloudConfig();
-      var lib = LIB_URL;
-      clientLoading = import(lib).then(function(mod) {
-        return mod.createClient(c.url, c.anonKey, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
-        });
-      }, function() {
-        clientLoading = null;
-        throw new Error("Couldn't load the cloud. Check your connection and try again.");
-      });
-    }
-    return clientLoading;
-  }
-  var MESSAGES = {
-    invalid_credentials: "That email and password don't match an account.",
-    email_not_confirmed: "Confirm your email first: open the link we sent you.",
-    user_already_exists: "There's already an account with that email. Sign in instead.",
-    email_exists: "There's already an account with that email. Sign in instead.",
-    weak_password: "Choose a longer password: at least 8 characters.",
-    same_password: "That's your current password. Choose a new one.",
-    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
-    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
-    email_address_invalid: "That doesn't look like an email address.",
-    signup_disabled: "New accounts are turned off for this builder.",
-    session_not_found: "You've been signed out. Sign in again.",
-    otp_expired: "That link has expired. Ask for a new one.",
-    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
-    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
-    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
-  };
-  function friendly(err) {
-    if (!err) return "";
-    var code = err.code || err.error_code || "";
-    if (MESSAGES[code]) return MESSAGES[code];
-    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
-    return String(err.message || "Something went wrong. Try again.");
-  }
-  function unwrap(res) {
-    if (res && res.error) throw new Error(friendly(res.error));
-    return res ? res.data : null;
-  }
-  function backHere() {
-    return location.origin + location.pathname;
-  }
-  function account(session) {
-    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
-  }
-  var auth = {
-    /* The signed-in account, or null. */
-    current: function() {
-      return getClient().then(function(sb) {
-        return sb.auth.getSession();
-      }).then(function(res) {
-        return account(unwrap(res).session);
-      });
-    },
-    /* Calls fn(event, account) on every change; returns a function to stop.
-       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
-    watch: function(fn) {
-      var sub = null, stopped = false;
-      getClient().then(function(sb) {
-        if (stopped) return;
-        sub = sb.auth.onAuthStateChange(function(event, session) {
-          fn(event, account(session));
-        }).data.subscription;
-      }, function() {
-      });
-      return function() {
-        stopped = true;
-        if (sub) sub.unsubscribe();
-      };
-    },
-    /* A new account. Resolves { confirm: true } when an email must be
-       confirmed before signing in (the setting docs/cloud.md asks for). */
-    signUp: function(email, password) {
-      return getClient().then(function(sb) {
-        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
-      }).then(function(res) {
-        var data = unwrap(res);
-        return { confirm: !data.session, account: account(data.session) };
-      });
-    },
-    signIn: function(email, password) {
-      return getClient().then(function(sb) {
-        return sb.auth.signInWithPassword({ email, password });
-      }).then(function(res) {
-        return account(unwrap(res).session);
-      });
-    },
-    signOut: function() {
-      return getClient().then(function(sb) {
-        return sb.auth.signOut();
-      }).then(unwrap);
-    },
-    /* Emails a link that brings you back here to choose a new password. */
-    resetPassword: function(email) {
-      return getClient().then(function(sb) {
-        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
-      }).then(unwrap);
-    },
-    setPassword: function(password) {
-      return getClient().then(function(sb) {
-        return sb.auth.updateUser({ password });
-      }).then(unwrap);
-    },
-    /* Turns invites to this (confirmed) address into memberships; resolves
-       how many projects that joined. */
-    acceptInvites: function() {
-      return getClient().then(function(sb) {
-        return sb.rpc("accept_invites");
-      }).then(unwrap);
-    }
-  };
-
-  // assets/builder/cloud/Account.js
-  var ARRIVED = (function() {
-    try {
-      var q = new URLSearchParams(location.search);
-      var h = new URLSearchParams(location.hash.replace(/^#/, ""));
-      var error = q.get("error_description") || h.get("error_description");
-      return { link: q.has("code") || !!error, error: error ? error.replace(/\+/g, " ") : "" };
-    } catch (err) {
-      return { link: false, error: "" };
-    }
-  })();
-  function useAccount() {
-    var ready = cloudReady();
-    var st = useState({ status: ready ? "loading" : "off", account: null, joined: 0 });
-    var s = st[0], set2 = st[1];
-    useEffect(function() {
-      if (!ready) return void 0;
-      var live = true;
-      var signedIn = function(a) {
-        set2(function(p) {
-          return p.status === "recovery" ? Object.assign({}, p, { account: a }) : { status: "in", account: a, joined: p.joined };
-        });
-        auth.acceptInvites().then(function(n) {
-          if (live && n) set2(function(p) {
-            return Object.assign({}, p, { joined: p.joined + n });
-          });
-        }, function() {
-        });
-      };
-      auth.current().then(function(a) {
-        if (!live) return;
-        if (a) signedIn(a);
-        else set2(function(p) {
-          return p.status === "loading" ? { status: "out", account: null, joined: 0 } : p;
-        });
-      }, function(err) {
-        if (live) set2({ status: "out", account: null, joined: 0, error: err.message });
-      });
-      var stop = auth.watch(function(event, a) {
-        if (!live) return;
-        if (event === "PASSWORD_RECOVERY") set2({ status: "recovery", account: a, joined: 0 });
-        else if (event === "SIGNED_OUT" || !a) set2({ status: "out", account: null, joined: 0 });
-        else if (event === "SIGNED_IN") signedIn(a);
-        else set2(function(p) {
-          return Object.assign({}, p, { account: a });
-        });
-      });
-      return function() {
-        live = false;
-        stop();
-      };
-    }, []);
-    return [s, set2];
-  }
-  function AccountDialog(props) {
-    var s = props.state, setState = props.setState, ref = props.dialogRef;
-    var modeSt = useState("signin"), mode = modeSt[0], setMode = modeSt[1];
-    var emailSt = useState(""), email = emailSt[0], setEmail = emailSt[1];
-    var passSt = useState(""), pass = passSt[0], setPass = passSt[1];
-    var againSt = useState(""), again = againSt[0], setAgain = againSt[1];
-    var busySt = useState(false), busy = busySt[0], setBusy = busySt[1];
-    var msgSt = useState(ARRIVED.error ? { error: ARRIVED.error } : null), msg = msgSt[0], setMsg = msgSt[1];
-    var switchTo = function(m) {
-      setMode(m);
-      setMsg(null);
-      setPass("");
-      setAgain("");
-    };
-    var run = function(work, done) {
-      setBusy(true);
-      setMsg(null);
-      work().then(function(r) {
-        setBusy(false);
-        done(r);
-      }, function(err) {
-        setBusy(false);
-        setMsg({ error: err.message });
-      });
-    };
-    var close = function() {
-      if (ref.current) ref.current.close();
-    };
-    var submit = function(ev) {
-      ev.preventDefault();
-      var addr = email.trim();
-      if (s.status === "recovery") {
-        if (pass !== again) {
-          setMsg({ error: "The two passwords don't match." });
-          return;
-        }
-        run(function() {
-          return auth.setPassword(pass);
-        }, function() {
-          setPass("");
-          setAgain("");
-          setState(function(p) {
-            return { status: "in", account: p.account, joined: p.joined };
-          });
-          setMsg({ note: "Your password is changed." });
-        });
-      } else if (mode === "forgot") {
-        run(function() {
-          return auth.resetPassword(addr);
-        }, function() {
-          setMsg({ note: "If there's an account for " + addr + ", it has an email with a link to choose a new password. Open it on this device." });
-        });
-      } else if (mode === "signup") {
-        run(function() {
-          return auth.signUp(addr, pass);
-        }, function(r) {
-          setPass("");
-          if (r.confirm) setMsg({ note: "Nearly there: we've sent a link to " + addr + ". Open it to confirm your address, and you're in." });
-        });
-      } else {
-        run(function() {
-          return auth.signIn(addr, pass);
-        }, function() {
-          setPass("");
-        });
-      }
-    };
-    var signOut = function() {
-      run(function() {
-        return auth.signOut();
-      }, function() {
-        switchTo("signin");
-      });
-    };
-    var field = function(id, label, input) {
-      return e("label", { className: "bd-acct-field", htmlFor: id }, e("span", { className: "bd-field-label" }, label), e("input", Object.assign({ id, className: "bd-input", required: true, disabled: busy }, input)));
-    };
-    var emailField = field("bd-acct-email", "Email", { type: "email", autoComplete: "email", value: email, onChange: function(ev) {
-      setEmail(ev.target.value);
-    } });
-    var passField = function(label, autoComplete) {
-      return field("bd-acct-pass", label, { type: "password", autoComplete, minLength: autoComplete === "new-password" ? 8 : void 0, value: pass, onChange: function(ev) {
-        setPass(ev.target.value);
-      } });
-    };
-    var button2 = function(label) {
-      return e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: busy }, busy ? "One moment…" : label);
-    };
-    var link = function(label, m) {
-      return e("button", { type: "button", className: "bd-acct-link", onClick: function() {
-        switchTo(m);
-      } }, label);
-    };
-    var title = s.status === "recovery" ? "Choose a new password" : s.status === "in" ? "Your account" : s.status === "out" ? mode === "signup" ? "Create an account" : mode === "forgot" ? "Reset your password" : "Sign in" : "Account";
-    var body;
-    if (s.status === "off") {
-      body = e(
-        "div",
-        { className: "bd-acct-off" },
-        e("p", null, "The cloud isn't connected to this builder yet, so there's nothing to sign in to. Your projects are saved in this browser, as they always have been."),
-        e("p", null, "Once it's connected, an account keeps your projects in the cloud and lets you share them, to edit together live.")
-      );
-    } else if (s.status === "loading") {
-      body = e("p", { className: "bd-sec-empty" }, "Connecting…");
-    } else if (s.status === "in") {
-      body = e(
-        "div",
-        { className: "bd-acct-in" },
-        e("p", { className: "bd-acct-who" }, e(Icon, { name: "user" }), e("span", null, "Signed in as ", e("strong", null, s.account && s.account.email))),
-        s.joined ? e("p", null, "You've joined " + s.joined + (s.joined === 1 ? " shared project." : " shared projects.")) : null,
-        e("p", { className: "bd-inspect-sub" }, "Your projects are still saved in this browser. Keeping them in the cloud, and editing together, come next."),
-        e("div", { className: "bd-acct-actions" }, e("button", { type: "button", className: "bd-btn", disabled: busy, onClick: signOut }, "Sign out"))
-      );
-    } else if (s.status === "recovery") {
-      body = e(
-        "form",
-        { className: "bd-acct-form", onSubmit: submit },
-        passField("New password", "new-password"),
-        field("bd-acct-again", "The same again", { type: "password", autoComplete: "new-password", minLength: 8, value: again, onChange: function(ev) {
-          setAgain(ev.target.value);
-        } }),
-        e("div", { className: "bd-acct-actions" }, button2("Save password"))
-      );
-    } else {
-      body = e(
-        "form",
-        { className: "bd-acct-form", onSubmit: submit },
-        e("p", { className: "bd-inspect-sub" }, mode === "forgot" ? "We'll email you a link to choose a new password." : mode === "signup" ? "Use any email you can open: we'll send it a link to confirm. Passwords need at least 8 characters." : "Sign in to keep your projects in the cloud and edit them with others."),
-        emailField,
-        mode === "forgot" ? null : passField("Password", mode === "signup" ? "new-password" : "current-password"),
-        e(
-          "div",
-          { className: "bd-acct-actions" },
-          button2(mode === "signup" ? "Create account" : mode === "forgot" ? "Send the link" : "Sign in"),
-          mode === "signin" ? link("Forgot your password?", "forgot") : null
-        ),
-        e("p", { className: "bd-acct-switch" }, mode === "signin" ? e(React.Fragment, null, "New here? ", link("Create an account", "signup")) : e(React.Fragment, null, mode === "signup" ? "Have an account? " : "Remembered it? ", link("Sign in", "signin")))
-      );
-    }
-    return e(
-      "dialog",
-      { className: "bd-code bd-acct", ref, "aria-labelledby": "bd-acct-title", onClose: props.onClose },
-      e(
-        "div",
-        { className: "bd-code-head" },
-        e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-acct-title" }, title)),
-        e(
-          "div",
-          { className: "bd-code-actions" },
-          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: close }, e(Icon, { name: "close" }))
-        )
-      ),
-      e(
-        "div",
-        { className: "bd-acct-body" },
-        body,
-        e(
-          "div",
-          { role: "status", "aria-live": "polite", className: cx("bd-acct-msg", msg && msg.error && "is-error", msg && msg.note && "is-note") },
-          msg ? e(React.Fragment, null, e(Icon, { name: msg.error ? "alert" : "check" }), e("span", null, msg.error || msg.note)) : null
-        )
-      )
-    );
-  }
-
-  // assets/builder/model/instances.js
-  var FLAGS = ["name", "hide", "lock"];
-  function same2(a, b) {
-    return a === b || JSON.stringify(a) === JSON.stringify(b);
-  }
-  function diffObj(a, b, skip) {
-    var out = null;
-    a = a || {};
-    b = b || {};
-    Object.keys(a).concat(Object.keys(b)).forEach(function(k) {
-      if (skip && skip.indexOf(k) >= 0) return;
-      if (out && k in out) return;
-      if (!same2(a[k], b[k])) {
-        out = out || {};
-        out[k] = b[k];
-      }
-    });
-    return out;
-  }
-  function lined(as, bs) {
-    if (as.length !== bs.length) return false;
-    return as.every(function(c, i) {
-      return c.type === bs[i].type && (c.type !== "Slot" || c.props.name === bs[i].props.name);
-    });
-  }
-  function at(node, path) {
-    if (!path) return node;
-    var n = node;
-    var parts = path.split("/");
-    for (var i = 0; i < parts.length; i++) {
-      n = n && n.children ? n.children[Number(parts[i])] : null;
-      if (!n) return null;
-    }
-    return n;
-  }
-  function overrides(inst, master) {
-    var out = [];
-    (function walk(a, b, path) {
-      var o = { path };
-      var props = diffObj(b.props, a.props);
-      var style = diffObj(b.style, a.style, path === "" ? ["x", "y", "ch", "cv"] : null);
-      if (props) o.props = props;
-      if (style) o.style = style;
-      if (path !== "") {
-        var flags = null;
-        FLAGS.forEach(function(k) {
-          if (!same2(a[k], b[k])) {
-            flags = flags || {};
-            flags[k] = a[k];
-          }
-        });
-        if (flags) o.flags = flags;
-      }
-      var ak = a.children || [], bk = b.children || [];
-      if (a.children && !lined(ak, bk)) o.children = copy(ak);
-      else ak.forEach(function(c, i) {
-        walk(c, bk[i], path ? path + "/" + i : String(i));
-      });
-      if (o.props || o.style || o.flags || o.children) out.push(o);
-    })(inst, master, "");
-    return out;
-  }
-  function reid(n) {
-    var c = copy(n);
-    (function walk(x) {
-      x.id = uid();
-      (x.children || []).forEach(walk);
-    })(c);
-    return c;
-  }
-  function setKeys(target, patch) {
-    Object.keys(patch).forEach(function(k) {
-      if (patch[k] === void 0) delete target[k];
-      else target[k] = patch[k];
-    });
-  }
-  function applyOverrides(master, ovs) {
-    var out = reid(master);
-    ovs.forEach(function(o) {
-      var n = at(out, o.path);
-      if (!n) return;
-      if (o.props) {
-        n.props = n.props || {};
-        setKeys(n.props, o.props);
-      }
-      if (o.style) {
-        n.style = n.style || {};
-        setKeys(n.style, o.style);
-      }
-      if (o.flags) setKeys(n, o.flags);
-      if (o.children && n.children) n.children = copy(o.children);
-    });
-    return out;
-  }
-  function rebase(inst, was, next, rev) {
-    var out = applyOverrides(next, overrides(inst, was || next));
-    out.id = inst.id;
-    FLAGS.forEach(function(k) {
-      if (inst[k] !== void 0) out[k] = inst[k];
-      else delete out[k];
-    });
-    out.style = out.style || {};
-    if (inst.style && inst.style.x !== void 0) {
-      out.style.x = inst.style.x;
-      out.style.y = inst.style.y;
-      ["ch", "cv"].forEach(function(k) {
-        if (inst.style[k]) out.style[k] = inst.style[k];
-        else delete out.style[k];
-      });
-    } else {
-      delete out.style.x;
-      delete out.style.y;
-      delete out.style.ch;
-      delete out.style.cv;
-    }
-    out.inst = { of: inst.inst.of, rev };
-    return out;
-  }
-  function instancesOf(doc2, compId) {
-    var out = [];
-    doc2.frames.forEach(function(f) {
-      (function walk(n) {
-        (n.children || []).forEach(function(c, i) {
-          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
-          else walk(c);
-        });
-      })(f.root);
-    });
-    return out;
-  }
-  function updateInstances(doc2, compId, was, next, rev, exceptId) {
-    var hits = instancesOf(doc2, compId), n = 0;
-    hits.forEach(function(h) {
-      if (h.node.id === exceptId) {
-        h.node.inst = { of: compId, rev };
-        return;
-      }
-      h.parent.children[h.index] = rebase(h.node, was, next, rev);
-      n++;
-    });
-    return n;
-  }
-  function detachAll(doc2, compId) {
-    var hits = instancesOf(doc2, compId);
-    hits.forEach(function(h) {
-      delete h.node.inst;
-    });
-    return hits.length;
-  }
-  function masterOf(library, node) {
-    if (!node || !node.inst || !library) return null;
-    return (library.components || []).filter(function(c) {
-      return c.id === node.inst.of;
-    })[0] || null;
-  }
-
   // assets/builder/ui/parts.js
   function ColorPick(props) {
     return e(
@@ -5859,8 +5389,8 @@
         onKeyDown: onListKey
       }, options.map(function(o, i) {
         var isSel = !props.menu && !props.mixed && o.value === props.value;
-        var head = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
-        return [head, e(
+        var head2 = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+        return [head2, e(
           "li",
           {
             key: String(o.value),
@@ -5967,8 +5497,8 @@
         ev.preventDefault();
       }
     }, options.map(function(o, i) {
-      var head = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
-      return [head, e(
+      var head2 = o.group && (i === 0 || options[i - 1].group !== o.group) ? e("li", { key: "g-" + o.group, role: "presentation", className: "bd-dd-group" }, o.group) : null;
+      return [head2, e(
         "li",
         {
           key: String(o.value),
@@ -6621,10 +6151,2645 @@
     return w <= 500 ? 812 : w <= 1100 ? 1180 : 900;
   }
 
+  // assets/builder/app/dialogs.js
+  var memo = React.memo;
+  function head(id, title, sub, actions) {
+    return e(
+      "div",
+      { className: "bd-code-head" },
+      e("div", { className: "bd-code-intro" }, e("h2", { id }, title), e("p", { className: "bd-inspect-sub" }, sub)),
+      e("div", { className: "bd-code-actions" }, actions)
+    );
+  }
+  var closeButton = function(dialogRef, title) {
+    return e("button", { key: "close", type: "button", className: "bd-act", "aria-label": "Close", title: title || "Close", onClick: function() {
+      dialogRef.current.close();
+    } }, e(Icon, { name: "close" }));
+  };
+  var CodeDialog = memo(function CodeDialog2(p) {
+    var name = p.title || p.frameName;
+    return e(
+      "dialog",
+      { className: "bd-code", ref: p.dialogRef, "aria-labelledby": "bd-code-title" },
+      head(
+        "bd-code-title",
+        "Export: " + name,
+        "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.",
+        [
+          e("button", { key: "copy", type: "button", className: "bd-btn bd-btn-primary", onClick: p.onCopyCode }, e(Icon, { name: "copy" }), "Copy code"),
+          e("a", { key: "dl", className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(p.code), download: (name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
+          e(Segmented, {
+            key: "scale",
+            label: "Picture scale",
+            className: "bd-export-scale",
+            value: String(p.scale),
+            onChange: function(v) {
+              if (v) p.setScale(Number(v));
+            },
+            options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }]
+          }),
+          e("button", { key: "png", type: "button", className: "bd-btn", onClick: function() {
+            p.onExportImage("png");
+          }, title: name + " as a PNG, at " + p.scale + "x" }, e(Icon, { name: "image" }), "PNG"),
+          e("button", { key: "jpg", type: "button", className: "bd-btn", onClick: function() {
+            p.onExportImage("jpeg");
+          }, title: name + " as a JPG, at " + p.scale + "x" }, "JPG"),
+          e("button", { key: "json", type: "button", className: "bd-btn", onClick: p.onCopyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
+          e("button", { key: "link", type: "button", className: "bd-btn", onClick: p.onShare, title: p.hasSelection ? "Copy a link to the selected layer" : "Copy a link to " + p.frameName }, e(Icon, { name: "link" }), "Copy link"),
+          closeButton(p.dialogRef)
+        ]
+      ),
+      e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, p.code))
+    );
+  });
+  var ImportDialog = memo(function ImportDialog2(p) {
+    var read = readLayout(p.text);
+    var ok = read && !read.error;
+    var formatHref = mountEl.getAttribute("data-format") || "assets/builder-layouts.md";
+    return e(
+      "dialog",
+      { className: "bd-code bd-import", ref: p.dialogRef, "aria-labelledby": "bd-import-title" },
+      head(
+        "bd-import-title",
+        "Paste a layout",
+        e(
+          React.Fragment,
+          null,
+          "Paste builder JSON (from Claude, a teammate or Copy layout JSON), a builder link, or JSX with Dovetail components (from the docs or the Code dialog). Only the components, props and tokens the builder can set come in. ",
+          e("a", { href: formatHref, target: "_blank", rel: "noopener" }, "The layout format"),
+          "."
+        ),
+        [closeButton(p.dialogRef)]
+      ),
+      e(
+        "div",
+        { className: "bd-import-body" },
+        e("textarea", {
+          className: "bd-import-text",
+          "aria-label": "Layout JSON, JSX or link",
+          spellCheck: false,
+          value: p.text,
+          placeholder: '{ "frames": [ { "name": "Home", "width": 1280, "hug": true, "root": { "children": [ { "type": "HeroBlock" } ] } } ] }',
+          onChange: function(ev) {
+            p.setText(ev.target.value);
+          }
+        }),
+        e(
+          "div",
+          { className: "bd-import-report", role: "status", "aria-live": "polite" },
+          !read ? e("p", { className: "bd-sec-empty" }, "Nothing pasted yet.") : read.error ? e("p", { className: "bd-import-error" }, e(Icon, { name: "alert" }), read.error) : e(
+            React.Fragment,
+            null,
+            e(
+              "p",
+              { className: "bd-import-ok" },
+              e(Icon, { name: "check" }),
+              read.doc.frames.length + (read.doc.frames.length === 1 ? " frame, " : " frames, ") + read.layers + (read.layers === 1 ? " layer" : " layers") + ": " + read.doc.frames.map(function(f) {
+                return f.name + " (" + f.width + (f.hug ? " wide, hugging" : " × " + f.height) + ")";
+              }).join(", ")
+            ),
+            read.report.length ? e(
+              "div",
+              { className: "bd-import-dropped" },
+              e("p", null, read.report.length + (read.report.length === 1 ? " thing will be left out:" : " things will be left out:")),
+              e("ul", null, read.report.slice(0, 12).map(function(line, i) {
+                return e("li", { key: i }, line);
+              })),
+              read.report.length > 12 ? e("p", null, "and " + (read.report.length - 12) + " more.") : null
+            ) : e("p", { className: "bd-sec-empty" }, "Everything in it comes in.")
+          )
+        ),
+        e(
+          "div",
+          { className: "bd-import-actions" },
+          e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !ok, onClick: function() {
+            p.onImport("add");
+          } }, e(Icon, { name: "plus" }), ok ? "Add " + (read.doc.frames.length === 1 ? "the frame" : read.doc.frames.length + " frames") : "Add"),
+          e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function() {
+            p.onImport("replace");
+          } }, "Replace all frames")
+        )
+      )
+    );
+  });
+  var VersionsDialog = memo(function VersionsDialog2(p) {
+    var dialogProps = { className: "bd-code bd-versions", ref: p.dialogRef, "aria-labelledby": "bd-versions-title", onClose: p.onClose };
+    if (!p.open) return e("dialog", dialogProps);
+    return e(
+      "dialog",
+      dialogProps,
+      head(
+        "bd-versions-title",
+        "Versions of " + p.projectName,
+        "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.",
+        [
+          e("button", { key: "keep", type: "button", className: "bd-btn", onClick: p.onKeep }, e(Icon, { name: "plus" }), "Keep this version"),
+          closeButton(p.dialogRef)
+        ]
+      ),
+      p.versions.length ? e("ul", { className: "bd-versions-list", role: "list" }, p.versions.map(function(v) {
+        return e(
+          "li",
+          { key: v.key, className: "bd-version" },
+          e("span", { className: "bd-version-when" }, new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })),
+          e("span", { className: "bd-version-what" }, v.label + " · " + v.frames + (v.frames === 1 ? " frame" : " frames")),
+          e("button", { type: "button", className: "bd-btn", onClick: function() {
+            p.onRestore(v);
+          } }, "Restore")
+        );
+      })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now.")
+    );
+  });
+  var KeysDialog = memo(function KeysDialog2(p) {
+    var dialogProps = { className: "bd-code bd-keys", ref: p.dialogRef, "aria-labelledby": "bd-keys-title", onClose: p.onClose };
+    if (!p.open) return e("dialog", dialogProps);
+    var tools = Object.keys(TOOL_INFO).map(function(k) {
+      return TOOL_INFO[k];
+    }).filter(function(t) {
+      return t.key;
+    }).map(function(t) {
+      return [t.label.replace(/:.*$/, ""), t.key];
+    });
+    var groups = [["Tools", tools]].concat(SHORTCUTS);
+    return e(
+      "dialog",
+      dialogProps,
+      head("bd-keys-title", "Keyboard shortcuts", IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.", [closeButton(p.dialogRef, "Close (Esc)")]),
+      e("div", { className: "bd-keys-groups" }, groups.map(function(g) {
+        return e(
+          "section",
+          { key: g[0], className: "bd-keys-group", "aria-labelledby": "bd-keys-" + g[0].replace(/\W+/g, "-") },
+          e("h3", { id: "bd-keys-" + g[0].replace(/\W+/g, "-") }, g[0]),
+          e("dl", null, g[1].map(function(row) {
+            return e(
+              React.Fragment,
+              { key: row[0] },
+              e("dt", null, row[0]),
+              e("dd", null, row[1].split(", ").map(function(k, i) {
+                return e("kbd", { key: i }, kbd(k));
+              }))
+            );
+          }))
+        );
+      }))
+    );
+  });
+  function componentCheck(node) {
+    var issues = [], tokens = {}, count = 0;
+    (function walk(n, depth) {
+      count++;
+      var label = nameOf(n);
+      if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
+      Object.keys(n.style || {}).forEach(function(k) {
+        var v = n.style[k];
+        if (k === "x" || k === "y") {
+          if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label + " is placed by position. A component's layers sit in its flow." });
+          return;
+        }
+        if (k === "fill" || k === "color") {
+          issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." });
+          return;
+        }
+        var def = DATA.tokens[k];
+        var o = def ? def.options.filter(function(x) {
+          return x.value === v;
+        })[0] : null;
+        if (o) o.tokens.forEach(function(t) {
+          tokens[t] = 1;
+        });
+      });
+      if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
+      Object.keys(n.props || {}).forEach(function(k) {
+        if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
+      });
+      (n.children || []).forEach(function(c) {
+        walk(c, depth + 1);
+      });
+    })(node, 0);
+    var list = Object.keys(tokens);
+    if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
+    if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
+    if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
+    return { issues, tokens: list, count };
+  }
+  var ComponentDialog = memo(function ComponentDialog2(p) {
+    var check = p.node ? componentCheck(p.node) : null;
+    var errors2 = check ? check.issues.filter(function(i) {
+      return i.level === "error";
+    }) : [];
+    var warns = check ? check.issues.filter(function(i) {
+      return i.level === "warn";
+    }) : [];
+    var fixable = errors2.some(function(i) {
+      return i.fix;
+    });
+    return e(
+      "dialog",
+      { className: "bd-code bd-comp-dlg", ref: p.dialogRef, "aria-labelledby": "bd-comp-title", onClose: p.onClose },
+      head(
+        "bd-comp-title",
+        "Create component",
+        "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.",
+        [closeButton(p.dialogRef)]
+      ),
+      check ? e(
+        "div",
+        { className: "bd-comp-body" },
+        e(
+          "label",
+          { className: "bd-field" },
+          e("span", { className: "bd-field-label" }, "Name"),
+          e("input", { className: "bd-input bd-comp-name", type: "text", maxLength: 60, value: p.draft.name, onChange: function(ev) {
+            var v = ev.target.value;
+            p.setDraft(function(c) {
+              return c ? Object.assign({}, c, { name: v }) : c;
+            });
+          } })
+        ),
+        e(
+          "div",
+          { className: cx("bd-comp-status", errors2.length ? "is-blocked" : "is-ready"), role: "status" },
+          e(Icon, { name: errors2.length ? "alert" : "check" }),
+          errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check.count + (check.count === 1 ? " layer" : " layers") + " on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens")
+        ),
+        errors2.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors2.concat(warns).map(function(i, k) {
+          return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
+        })) : null,
+        check.tokens.length ? e(
+          "details",
+          { className: "bd-comp-tokens" },
+          e("summary", null, "The tokens it's built on (" + check.tokens.length + ")"),
+          e("ul", null, check.tokens.map(function(t) {
+            return e("li", { key: t }, e("code", null, t));
+          }))
+        ) : null,
+        e(
+          "div",
+          { className: "bd-import-actions" },
+          e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !!errors2.length, onClick: p.onSave }, e(Icon, { name: "component" }), "Create component"),
+          fixable ? e("button", { type: "button", className: "bd-btn", onClick: p.onFix, title: "Takes out custom colours and positions inside it, so it uses the system's" }, "Use the system's instead") : null
+        )
+      ) : null
+    );
+  });
+  var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
+  var PlayDialog = memo(function PlayDialog2(p) {
+    var play = p.play, fr = p.frame;
+    if (!play || !fr) return null;
+    var canBack = !!(play.stack && play.stack.length);
+    var fitAll = p.box.w ? Math.min((p.box.w - 32) / fr.width, p.box.h / play.h) : 0.5;
+    var fitW = p.box.w ? (p.box.w - 32) / fr.width : 0.5;
+    var zoom = play.zoom || "auto";
+    var sc = zoom === "fit" ? fitAll : zoom === "width" ? fitW : zoom === "actual" ? 1 : typeof zoom === "number" ? zoom : Math.min(1, fitAll);
+    sc = Math.max(0.1, Math.min(4, sc));
+    var setZoom = function(z) {
+      p.setPlay(Object.assign({}, play, { zoom: z }));
+    };
+    var stepZoom = function(dir) {
+      var next = dir > 0 ? PLAY_STEPS.filter(function(z) {
+        return z > sc + 1e-3;
+      })[0] : PLAY_STEPS.filter(function(z) {
+        return z < sc - 1e-3;
+      }).pop();
+      if (next) setZoom(next);
+    };
+    var hs = playHeights(fr.width);
+    return e(
+      "dialog",
+      {
+        className: "bd-play",
+        ref: p.dialogRef,
+        "aria-labelledby": "bd-play-title",
+        onClose: p.onClose,
+        onKeyDown: function(ev) {
+          if (canBack && (ev.key === "Backspace" || ev.altKey && ev.key === "ArrowLeft")) {
+            ev.preventDefault();
+            p.onBack();
+            return;
+          }
+          if (ev.metaKey || ev.ctrlKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
+          var to = ev.key === "-" ? -1 : ev.key === "+" || ev.key === "=" ? 1 : 0;
+          if (to) {
+            ev.preventDefault();
+            stepZoom(to);
+            return;
+          }
+          var mode = ev.shiftKey && { Digit1: "fit", Digit2: "width", Digit0: "actual" }[ev.code];
+          if (mode) {
+            ev.preventDefault();
+            setZoom(mode);
+          }
+        }
+      },
+      e(
+        "div",
+        { className: "bd-play-head" },
+        canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: p.onBack }, e(Icon, { name: "left" })) : null,
+        e(
+          "div",
+          { className: "bd-play-intro" },
+          e("h2", { id: "bd-play-title" }, (p.pageName ? p.pageName + " › " : "") + fr.name),
+          e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")
+        ),
+        e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function() {
+          p.dialogRef.current.close();
+        } }, e(Icon, { name: "close" }))
+      ),
+      e(
+        "div",
+        { className: "bd-play-stage", ref: p.stageRef },
+        e(
+          "div",
+          { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
+          e("iframe", {
+            ref: p.frameRef,
+            src: p.frameSrc,
+            title: fr.name + ", " + fr.width + " by " + play.h,
+            onLoad: p.onLoad,
+            style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" }
+          })
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height and zoom" },
+        e(Segmented, {
+          label: "Screen height",
+          value: play.h,
+          onChange: function(v) {
+            if (v) p.setPlay(Object.assign({}, play, { h: v }));
+          },
+          options: hs.map(function(x) {
+            return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" };
+          })
+        }),
+        e("span", { className: "bd-play-sep", "aria-hidden": true }),
+        e(
+          "div",
+          { className: "bd-play-zoom", role: "group", "aria-label": "Zoom" },
+          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom out", title: "Zoom out (-)", disabled: sc <= PLAY_STEPS[0] + 1e-3, onClick: function() {
+            stepZoom(-1);
+          } }, e(Icon, { name: "minus" })),
+          e("output", { className: "bd-play-pct", "aria-live": "polite" }, Math.round(sc * 100) + "%"),
+          e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom in", title: "Zoom in (+)", disabled: sc >= PLAY_STEPS[PLAY_STEPS.length - 1] - 1e-3, onClick: function() {
+            stepZoom(1);
+          } }, e(Icon, { name: "plus" }))
+        ),
+        e(Segmented, {
+          label: "Fit",
+          className: "bd-play-fit",
+          value: typeof zoom === "string" && zoom !== "auto" ? zoom : void 0,
+          onChange: function(v) {
+            if (v) setZoom(v);
+          },
+          options: [{ value: "fit", label: "Fit", title: "Fit to screen (Shift+1)" }, { value: "width", label: "Width", title: "Fit width (Shift+2)" }, { value: "actual", label: "100%", title: "Actual size (Shift+0)" }]
+        })
+      )
+    );
+  });
+
+  // assets/builder/app/Home.js
+  var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
+  function sortWhen(sort, x, files) {
+    if (sort === "created") return x.createdAt || 0;
+    return files ? files.reduce(function(t, f) {
+      return Math.max(t, f.updatedAt || 0);
+    }, x.updatedAt || 0) : x.updatedAt || 0;
+  }
+  function sortList(sort, currentId, list, filesOf) {
+    return list.slice().sort(function(a, b) {
+      if (sort === "alpha") return a.name.localeCompare(b.name, void 0, { sensitivity: "base", numeric: true });
+      if (sort === "recent" && !filesOf) {
+        var cur = (b.id === currentId) - (a.id === currentId);
+        if (cur) return cur;
+      }
+      return sortWhen(sort, b, filesOf ? filesOf(b) : null) - sortWhen(sort, a, filesOf ? filesOf(a) : null);
+    });
+  }
+  function confirmRow(label, text2, actions) {
+    return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text2), actions);
+  }
+  function skeleton() {
+    return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function(i) {
+      return e("li", { key: i, className: "bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
+    }));
+  }
+  function ModeSwitch(p) {
+    return e(
+      "span",
+      { className: cx("bd-mode", p.className) },
+      e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: p.dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
+      e(Switch, { value: p.dark, labelledBy: "bd-mode-label", onChange: p.setDark })
+    );
+  }
+  function fileCard(p, file, showGroup, groupById, choosePicture) {
+    var current2 = file.id === p.currentId, isOpening = p.opening === file.id;
+    var g = showGroup && file.group ? groupById(file.group) : null;
+    var when = p.sort === "created" ? "Made " + ago(file.createdAt).toLowerCase() : ago(file.updatedAt);
+    var pages = pagesOf(file).length;
+    return e(
+      "li",
+      { key: file.id, className: cx("bd-proj", current2 && "is-current", isOpening && "is-opening"), "data-project": file.id },
+      e(
+        "button",
+        { type: "button", className: "bd-proj-open", onClick: function() {
+          p.openProject(file);
+        }, "aria-label": "Open " + file.name + (current2 ? ", open now" : ""), "aria-busy": isOpening ? "true" : void 0 },
+        e(
+          "span",
+          { className: "bd-proj-thumb", "aria-hidden": "true" },
+          file.thumb ? e("img", { src: file.thumb, alt: "" }) : e(Icon, { name: "frame" }),
+          isOpening ? e("span", { className: "bd-proj-loading" }, e("span", { className: "bd-spinner" })) : null
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-proj-row" },
+        e(
+          "div",
+          { className: "bd-proj-info" },
+          p.renamingProj === file.id ? e(Renamable, { className: "bd-proj-name", value: file.name, label: "File name", startEditing: true, onChange: function(v) {
+            p.renameProject(file.id, v);
+          } }) : e("span", { className: "bd-proj-name" }, file.name),
+          e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + when + (pages > 1 ? " · " + pages + " pages" : "") + " · " + file.frames + (file.frames === 1 ? " frame" : " frames") + (g ? " · in " + g.name : ""))
+        ),
+        e(Dropdown, {
+          menu: true,
+          label: "Actions for " + file.name,
+          placeholder: "File",
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          alignEnd: true,
+          className: "bd-dd-icon bd-proj-menu",
+          options: [
+            { value: "open", label: "Open", icon: "exportOut" },
+            { value: "rename", label: "Rename", icon: "pencil" },
+            { value: "picture", label: "Choose a picture", icon: "image" },
+            { value: "duplicate", label: "Duplicate", icon: "copy" },
+            { value: "download", label: "Download as a file", icon: "upload" },
+            { value: "delete", label: "Delete", icon: "trash", danger: true }
+          ].concat((p.groups || []).filter(function(x) {
+            return x.id !== file.group;
+          }).map(function(x) {
+            return { value: "into:" + x.id, label: "Move to " + x.name, icon: "folder", group: "Move" };
+          })).concat(file.group ? [{ value: "out", label: "Move out to Home", icon: "home", group: "Move" }] : []),
+          onChange: function(v) {
+            if (v === "open") p.openProject(file);
+            else if (v === "rename") p.setRenamingProj(file.id);
+            else if (v === "picture") choosePicture(file.id);
+            else if (v === "duplicate") p.duplicateProject(file.id);
+            else if (v === "out") p.moveFile(file.id, null);
+            else if (v === "download") p.exportProject(file.id);
+            else if (v === "delete") p.setConfirmDel(file.id);
+            else if (String(v).indexOf("into:") === 0) p.moveFile(file.id, v.slice(5));
+          }
+        })
+      ),
+      p.confirmDel === file.id ? confirmRow("Delete " + file.name, "Delete for good?", [
+        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+          p.deleteProject(file.id);
+        } }, "Delete"),
+        e("button", { key: "k", type: "button", className: "bd-btn", onClick: function() {
+          p.setConfirmDel(null);
+        } }, "Keep")
+      ]) : null
+    );
+  }
+  function groupCard(p, g, files, choosePicture) {
+    var key = "g:" + g.id;
+    var pics = files.filter(function(f) {
+      return f.thumb;
+    }).slice(0, 4);
+    var n = files.length;
+    var when = p.sort === "created" ? "Made " + ago(g.createdAt).toLowerCase() : ago(sortWhen(p.sort, g, files));
+    return e(
+      "li",
+      { key, className: "bd-proj is-group", "data-group": g.id },
+      e(
+        "button",
+        { type: "button", className: "bd-proj-open", onClick: function() {
+          p.goView(g.id);
+        }, "aria-label": "Open " + g.name + ", " + n + (n === 1 ? " file" : " files") },
+        e(
+          "span",
+          { className: cx("bd-proj-thumb", !g.thumb && pics.length > 1 && "is-mosaic"), "aria-hidden": "true" },
+          g.thumb ? e("img", { src: g.thumb, alt: "" }) : pics.length > 1 ? pics.map(function(f) {
+            return e("img", { key: f.id, src: f.thumb, alt: "" });
+          }) : pics.length ? e("img", { src: pics[0].thumb, alt: "" }) : e(Icon, { name: "folder" }),
+          e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n + (n === 1 ? " file" : " files"))
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-proj-row" },
+        e(
+          "div",
+          { className: "bd-proj-info" },
+          p.renamingGroup === g.id ? e(Renamable, { className: "bd-proj-name", value: g.name, label: "Project name", startEditing: true, onChange: function(v) {
+            p.renameGroup(g.id, v);
+          } }) : e("span", { className: "bd-proj-name" }, g.name),
+          e("span", { className: "bd-proj-meta" }, when)
+        ),
+        e(Dropdown, {
+          menu: true,
+          label: "Actions for " + g.name,
+          placeholder: "Project",
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          alignEnd: true,
+          className: "bd-dd-icon bd-proj-menu",
+          options: [
+            { value: "open", label: "Open", icon: "folder" },
+            { value: "rename", label: "Rename", icon: "pencil" },
+            { value: "picture", label: "Choose a picture", icon: "image" }
+          ].concat(g.thumb ? [{ value: "auto", label: "Picture from its files", icon: "rotate" }] : []).concat([
+            { value: "duplicate", label: "Duplicate", icon: "copy" },
+            { value: "download", label: "Download as a file", icon: "upload" },
+            { value: "delete", label: "Delete", icon: "trash", danger: true }
+          ]),
+          onChange: function(v) {
+            if (v === "open") p.goView(g.id);
+            else if (v === "rename") p.setRenamingGroup(g.id);
+            else if (v === "picture") choosePicture(key);
+            else if (v === "auto") p.autoGroupPicture(g.id);
+            else if (v === "duplicate") p.duplicateGroup(g.id);
+            else if (v === "download") p.exportGroup(g.id);
+            else if (v === "delete") p.setConfirmDel(key);
+          }
+        })
+      ),
+      p.confirmDel === key ? confirmRow("Delete " + g.name, n ? "Delete the project and its " + (n === 1 ? "file" : n + " files") + "?" : "Delete this empty project?", n ? [
+        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+          p.deleteGroup(g.id, false);
+        } }, "Delete all"),
+        e("button", { key: "k", type: "button", className: "bd-btn", onClick: function() {
+          p.deleteGroup(g.id, true);
+        }, title: "Delete the project and keep its files on Home" }, "Keep files"),
+        e("button", { key: "c", type: "button", className: "bd-btn bd-btn-ghost", onClick: function() {
+          p.setConfirmDel(null);
+        } }, "Cancel")
+      ] : [
+        e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
+          p.deleteGroup(g.id, false);
+        } }, "Delete"),
+        e("button", { key: "c", type: "button", className: "bd-btn", onClick: function() {
+          p.setConfirmDel(null);
+        } }, "Keep")
+      ]) : null
+    );
+  }
+  var Home = React.memo(function Home2(p) {
+    var pictureRef = useRef(null), pictureFor = useRef(null), importFileRef = useRef(null);
+    var choosePicture = function(key) {
+      pictureFor.current = key;
+      if (pictureRef.current) pictureRef.current.click();
+    };
+    if (!p.open) return null;
+    var q = p.query.trim().toLowerCase();
+    var files = p.projects || [], groups = p.groups || [];
+    var groupById = function(id) {
+      return groups.filter(function(g) {
+        return g.id === id;
+      })[0] || null;
+    };
+    var inGroup = p.view ? groupById(p.view) : null;
+    var filesOf = function(g) {
+      return files.filter(function(f) {
+        return f.group === g.id;
+      });
+    };
+    var match = function(x) {
+      return !q || x.name.toLowerCase().indexOf(q) >= 0;
+    };
+    var shownGroups = inGroup ? [] : sortList(p.sort, p.currentId, groups.filter(match), filesOf);
+    var shownFiles = sortList(p.sort, p.currentId, files.filter(function(f) {
+      return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group;
+    }));
+    var count = shownGroups.length + shownFiles.length;
+    var section = function(title, list) {
+      return e(
+        "section",
+        { className: "bd-home-sec", "aria-label": title },
+        inGroup ? null : e("h2", { className: "bd-home-sec-title" }, title),
+        e("ul", { className: "bd-projects-grid", role: "list" }, list)
+      );
+    };
+    var empty = !p.projects ? null : q ? inGroup ? "No file in " + inGroup.name + " is called that." : "Nothing is called that." : inGroup ? "No files in this project yet. Make one with New, or move one here from Home with its ⋯ menu." : "Nothing here yet. Make a file or a project with New.";
+    var account2 = p.account;
+    return e(
+      "main",
+      { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
+      p.toolbar,
+      e("input", {
+        ref: pictureRef,
+        type: "file",
+        className: "visually-hidden",
+        accept: "image/*",
+        tabIndex: -1,
+        "aria-hidden": "true",
+        onChange: function(ev) {
+          var f = ev.target.files && ev.target.files[0];
+          ev.target.value = "";
+          var who = pictureFor.current;
+          pictureFor.current = null;
+          if (!who || !f) return;
+          p.onPicture(who, f);
+        }
+      }),
+      e("input", {
+        ref: importFileRef,
+        type: "file",
+        className: "visually-hidden",
+        accept: ".dovetail,application/json",
+        tabIndex: -1,
+        "aria-hidden": "true",
+        onChange: function(ev) {
+          var f = ev.target.files && ev.target.files[0];
+          ev.target.value = "";
+          p.importProject(f);
+        }
+      }),
+      e(
+        "div",
+        { className: "bd-home-inner", key: p.view || "home" },
+        e(
+          "div",
+          { className: "bd-home-head" },
+          e(
+            "div",
+            { className: "bd-home-heading" },
+            inGroup ? e(
+              "nav",
+              { className: "bd-crumbs bd-home-crumbs", "aria-label": "Where you are" },
+              e("button", { type: "button", className: "bd-crumb", onClick: function() {
+                p.goView(null);
+              } }, "Home"),
+              e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
+              e("span", { className: "bd-crumb", "aria-current": "page" }, inGroup.name)
+            ) : null,
+            inGroup && p.renamingGroup === inGroup.id ? e(Renamable, { className: "bd-home-title", value: inGroup.name, label: "Project name", startEditing: true, onChange: function(v) {
+              p.renameGroup(inGroup.id, v);
+            } }) : e("h1", { id: "bd-projects-title", className: "bd-home-title", onDoubleClick: inGroup ? function() {
+              p.setRenamingGroup(inGroup.id);
+            } : void 0, title: inGroup ? "Double-click to rename" : void 0 }, inGroup ? inGroup.name : "Home")
+          ),
+          e(
+            "div",
+            { className: "bd-code-actions bd-home-actions" },
+            e(ModeSwitch, { className: "bd-home-mode", dark: p.dark, setDark: p.setDark }),
+            e(
+              "button",
+              { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: p.openAccount, title: account2.status === "in" ? "Signed in as " + account2.account.email : account2.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
+              e(Icon, { name: "user" }),
+              account2.status === "in" ? "Account" : "Sign in"
+            ),
+            e(Dropdown, {
+              menu: true,
+              label: "New",
+              placeholder: "New",
+              icon: "plus",
+              compact: true,
+              alignEnd: true,
+              className: "bd-home-new",
+              options: (inGroup ? [] : [{ value: "project", label: "New project", icon: "folder", hint: "A group of files" }]).concat([
+                { value: "file", label: inGroup ? "New file in " + inGroup.name : "New file", icon: "file", hint: "A blank canvas" }
+              ]).concat(STARTERS.filter(function(st) {
+                return st[0] !== "blank";
+              }).map(function(st) {
+                return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" };
+              })).concat(inGroup ? [] : [{ value: "playground", label: "Playground", icon: "star", hint: "Getting started and live examples", group: "Learn" }]).concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
+              onChange: function(v) {
+                if (v === "project") p.newGroup();
+                else if (v === "file") p.newProject(null);
+                else if (v === "open") {
+                  if (importFileRef.current) importFileRef.current.click();
+                } else if (v === "playground") p.newPlayground();
+                else if (String(v).indexOf("tpl:") === 0) p.newProject(v.slice(4));
+              }
+            })
+          )
+        ),
+        e(
+          "div",
+          { className: "bd-home-tools" },
+          e(SearchField, { className: "bd-projects-search bd-home-search", label: inGroup ? "Search " + inGroup.name : "Search projects and files", placeholder: inGroup ? "Search " + inGroup.name : "Search projects and files", value: p.query, onChange: p.setQuery }),
+          e(
+            "div",
+            { className: "bd-home-bar" },
+            e(Segmented, { label: "Sort by", className: "bd-home-sort", value: p.sort, onChange: function(v) {
+              if (v) p.setSort(v);
+            }, options: HOME_SORTS }),
+            p.projects ? e("span", { className: "bd-home-count", role: "status" }, count + (count === 1 ? " item" : " items")) : null
+          )
+        ),
+        !p.projects ? skeleton() : !count ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty) : e(
+          "div",
+          { className: "bd-home-lists" },
+          shownGroups.length ? section("Projects", shownGroups.map(function(g) {
+            return groupCard(p, g, filesOf(g), choosePicture);
+          })) : null,
+          shownFiles.length ? section("Files", shownFiles.map(function(f) {
+            return fileCard(p, f, !inGroup, groupById, choosePicture);
+          })) : null
+        )
+      )
+    );
+  });
+
+  // assets/builder/app/Layers.js
+  var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
+  var Layers = React.memo(function Layers2(p) {
+    var doc2 = p.doc, q = p.query.trim().toLowerCase();
+    var labelOf = function(n) {
+      return nodeLabel(n, p.scalars);
+    };
+    var isOpen = function(n) {
+      return nodeIsOpen(n, p.collapsed);
+    };
+    var frameIsOpen = function(f) {
+      return p.openFrames[f.id] !== void 0 ? p.openFrames[f.id] : f.id === doc2.active;
+    };
+    var isRenaming = function(id, where) {
+      return !!p.renaming && p.renaming.id === id && p.renaming.where === where;
+    };
+    var toggle = function(id) {
+      var at2 = locate(doc2, id);
+      var owner = at2 && !isContainer(at2.node.type);
+      p.setCollapsed(function(c) {
+        var n = Object.assign({}, c);
+        if (owner) {
+          if (n[id] === false) delete n[id];
+          else n[id] = false;
+        } else if (n[id]) delete n[id];
+        else n[id] = true;
+        return n;
+      });
+    };
+    var rowsFor = function(f) {
+      var keep = null;
+      if (q) {
+        keep = {};
+        (function walk2(n, path) {
+          (n.children || []).forEach(function(c) {
+            var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
+            if (hit) {
+              keep[c.id] = true;
+              path.forEach(function(x) {
+                keep[x] = true;
+              });
+            }
+            if (c.children) walk2(c, path.concat([c.id]));
+          });
+        })(f.root, []);
+      }
+      var rows = [];
+      var walk = function(n, depth) {
+        (n.children || []).forEach(function(c) {
+          if (keep && !keep[c.id]) return;
+          rows.push({ n: c, depth });
+          if (!(q || isOpen(c))) return;
+          if (isOwner(c) && !q) walkOwner(c, depth + 1);
+          else if (c.children) walk(c, depth + 1);
+        });
+      };
+      var walkOwner = function(c, depth) {
+        var slots = (c.children || []).filter(function(k) {
+          return k.type === "Slot";
+        });
+        var placed = {};
+        var tree = p.anatomyOf(f.id, c.id) || [];
+        var seq0 = 0;
+        (function parts(list, d) {
+          list.forEach(function(it) {
+            if (it.slot) {
+              var sl = slots.filter(function(x) {
+                return x.id === it.slot;
+              })[0];
+              if (!sl || placed[sl.id]) return;
+              placed[sl.id] = true;
+              rows.push({ n: sl, depth: d });
+              if (isOpen(sl)) walk(sl, d + 1);
+              return;
+            }
+            rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + seq0++ });
+            parts(it.children || [], d + 1);
+          });
+        })(tree, depth);
+        slots.forEach(function(sl) {
+          if (placed[sl.id]) return;
+          rows.push({ n: sl, depth });
+          if (isOpen(sl)) walk(sl, depth + 1);
+        });
+      };
+      walk(f.root, 1);
+      return rows;
+    };
+    var partRow = function(r, f) {
+      var it = r.part;
+      if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
+        var onPart = p.partId != null && p.partId === r.owner.id && f.id === doc2.active;
+        return e(
+          "div",
+          {
+            key: r.key,
+            className: cx("bd-layer is-part is-pickable", onPart && "is-current"),
+            role: "treeitem",
+            "aria-level": r.depth + 1,
+            "aria-selected": String(!!onPart),
+            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" }
+          },
+          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+          e(
+            "button",
+            { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function() {
+              p.pick(r.owner.id, false, false, "layers", f.id, "title");
+            } },
+            e(Icon, { name: "heading" }),
+            e("span", { className: "bd-layer-name" }, "Title"),
+            it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
+          )
+        );
+      }
+      return e(
+        "div",
+        {
+          key: r.key,
+          className: "bd-layer is-part",
+          role: "treeitem",
+          "aria-level": r.depth + 1,
+          "aria-disabled": "true",
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
+          title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector"
+        },
+        e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+        e(
+          "span",
+          { className: "bd-layer-main is-static" },
+          e(Icon, { name: PART_ICON[it.kind] || "component" }),
+          e("span", { className: "bd-layer-name" }, it.kind),
+          it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
+        )
+      );
+    };
+    var nodeRow = function(f, r) {
+      if (r.part) return partRow(r, f);
+      var n = r.n;
+      var mine = f.id === doc2.active;
+      var text2 = labelOf(n);
+      var on = mine && p.selection.indexOf(n.id) >= 0;
+      var owner = isOwner(n);
+      var open = isOpen(n) || !!q && !owner;
+      var folds = !!n.children || owner;
+      var renameable = n.type !== "Slot";
+      var listDrop2 = p.listDrop, hover = p.hover;
+      return e(
+        "div",
+        {
+          key: n.id,
+          className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop2 && listDrop2.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
+          "data-layer": mine ? n.id : void 0,
+          "data-frame-row": mine ? void 0 : f.id,
+          "data-depth": r.depth,
+          role: "treeitem",
+          "aria-selected": String(on),
+          "aria-level": r.depth + 1,
+          "aria-expanded": folds ? String(open) : void 0,
+          style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
+          onPointerEnter: function() {
+            p.setHover({ f: f.id, id: n.id });
+          },
+          onPointerLeave: function() {
+            p.setHover(null);
+          },
+          onContextMenu: function(ev) {
+            if (n.type !== "Slot") {
+              ev.preventDefault();
+              p.openMenu(ev.clientX, ev.clientY, n.id, f.id);
+            }
+          }
+        },
+        folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : void 0, onClick: function() {
+          toggle(n.id);
+        } }, e(Icon, { name: "right" })) : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
+        e(
+          "button",
+          {
+            type: "button",
+            className: "bd-layer-main",
+            onClick: function(ev) {
+              if (!p.justDragged.current) p.pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id);
+            },
+            onDoubleClick: function() {
+              if (renameable && mine) p.setRenaming({ id: n.id, where: "layer" });
+            },
+            onPointerDown: function(ev) {
+              if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) p.startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
+            }
+          },
+          e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
+          renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
+            p.setRenaming(null);
+            p.setName(n.id, v === n.type ? "" : v);
+          } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
+          text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null
+        ),
+        /* Hiding lives in the inspector's Layer section; a hidden row keeps
+           a quiet eye-off, which also shows it again. */
+        n.type !== "Slot" ? e(
+          "span",
+          { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
+          n.hide ? e("button", {
+            type: "button",
+            className: "bd-layer-flag is-hidden-mark",
+            "aria-label": "Show " + nameOf(n),
+            title: "Hidden: press to show (Ctrl+Shift+H)",
+            onClick: function(ev) {
+              ev.stopPropagation();
+              p.flagLayer(n.id, f.id, "hide");
+            }
+          }, e(Icon, { name: "eyeOff" })) : null,
+          e("button", {
+            type: "button",
+            className: cx("bd-layer-flag", n.lock && "is-on"),
+            "aria-pressed": String(!!n.lock),
+            "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n),
+            title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
+            onClick: function(ev) {
+              ev.stopPropagation();
+              p.flagLayer(n.id, f.id, "lock");
+            }
+          }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))
+        ) : null
+      );
+    };
+    var listDrop = p.listDrop;
+    return e(
+      "div",
+      { className: "bd-layers-panel" },
+      e(
+        "div",
+        { className: "bd-layers", ref: p.layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
+        doc2.frames.map(function(f) {
+          var on = f.id === doc2.active;
+          var open = frameIsOpen(f) || !!q;
+          var head2 = e(
+            "div",
+            {
+              key: "frame-" + f.id,
+              className: cx("bd-layer bd-layer-frame", on && !p.hasSel && p.frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
+              "data-layer": on ? "root" : void 0,
+              "data-frame-row": f.id,
+              role: "treeitem",
+              "aria-level": 1,
+              "aria-selected": String(on && !p.hasSel && p.frameOn),
+              "aria-expanded": String(open)
+            },
+            e("button", {
+              type: "button",
+              className: cx("bd-layer-twisty", open && "is-open"),
+              "aria-label": (open ? "Collapse " : "Expand ") + f.name,
+              onClick: function() {
+                p.setOpenFrames(function(m) {
+                  var nx = Object.assign({}, m);
+                  nx[f.id] = !open;
+                  return nx;
+                });
+              }
+            }, e(Icon, { name: "right" })),
+            e(
+              "button",
+              {
+                type: "button",
+                className: "bd-layer-main",
+                title: on ? "Double-click to rename" : "Show " + f.name,
+                onClick: function() {
+                  p.framePick(f.id, true);
+                },
+                onDoubleClick: function() {
+                  p.setRenaming({ id: "frame:" + f.id, where: "layer" });
+                }
+              },
+              e(Icon, { name: f.bare ? "component" : "frame" }),
+              isRenaming("frame:" + f.id, "layer") ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
+                p.frameRename(f.id, v);
+              } }) : e("span", { className: "bd-layer-name" }, f.name),
+              e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : frameSize(f, p.boxes))
+            )
+          );
+          if (!open) return head2;
+          var rows = rowsFor(f);
+          return e(
+            React.Fragment,
+            { key: "frame-" + f.id },
+            head2,
+            rows.length ? rows.map(function(r) {
+              return nodeRow(f, r);
+            }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets.")
+          );
+        }),
+        listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null
+      )
+    );
+  });
+
+  // assets/builder/app/Pages.js
+  function pageRows(project) {
+    var byId2 = {};
+    foldersOf(project).forEach(function(f) {
+      byId2[f.id] = f;
+    });
+    var rows = [], seen = {};
+    itemsOf(pagesOf(project)).forEach(function(it) {
+      var f = it.folder ? byId2[it.folder] : null;
+      if (!f) {
+        it.pages.forEach(function(p) {
+          rows.push({ kind: "page", page: p, folder: null });
+        });
+        return;
+      }
+      var open = f.open !== false;
+      if (!seen[f.id]) {
+        rows.push({ kind: "folder", folder: f, open, count: it.pages.length });
+        seen[f.id] = true;
+      }
+      if (open) it.pages.forEach(function(p) {
+        rows.push({ kind: "page", page: p, folder: f.id });
+      });
+    });
+    foldersOf(project).forEach(function(f) {
+      if (!seen[f.id]) rows.push({ kind: "folder", folder: f, open: f.open !== false, count: 0 });
+    });
+    return rows;
+  }
+  function pageMatches(project, q) {
+    var byId2 = {};
+    foldersOf(project).forEach(function(f) {
+      byId2[f.id] = f;
+    });
+    var has2 = function(text2) {
+      return String(text2 || "").toLowerCase().indexOf(q) >= 0;
+    };
+    var rows = [];
+    itemsOf(pagesOf(project)).forEach(function(it) {
+      var f = it.folder ? byId2[it.folder] : null;
+      var hits = it.pages.filter(function(p) {
+        return has2(p.name) || f && has2(f.name);
+      });
+      if (!hits.length) return;
+      if (f) rows.push({ kind: "folder", folder: f, open: true, count: hits.length, found: true });
+      hits.forEach(function(p) {
+        rows.push({ kind: "page", page: p, folder: f ? f.id : null });
+      });
+    });
+    return rows;
+  }
+  function endOfFolder(project, fid, except) {
+    var pages = pagesOf(project).filter(function(p) {
+      return p.id !== except;
+    });
+    var last = -1;
+    pages.forEach(function(p, i) {
+      if (p.folder === fid) last = i;
+    });
+    return last >= 0 ? last + 1 : pages.length;
+  }
+  var Pages = React.memo(function Pages2(p) {
+    var project = p.project;
+    var projectRef = useRef(project);
+    projectRef.current = project;
+    var dragState = useState(null);
+    var pageDrag = dragState[0], setPageDrag = dragState[1];
+    var pageDragRef = useRef(null), pageDragEnded = useRef(false), pagesListRef = useRef(null);
+    var pageDropAt = function(x, y) {
+      var list = pagesListRef.current;
+      var dr = pageDragRef.current;
+      if (!list || !dr) return null;
+      var rows2 = dr.rows;
+      var els = Array.prototype.slice.call(list.querySelectorAll("[data-row]"));
+      var pages = pagesOf(projectRef.current).filter(function(q2) {
+        return q2.id !== dr.id;
+      });
+      var at2 = function(pid) {
+        var i2 = pages.findIndex(function(q2) {
+          return q2.id === pid;
+        });
+        return i2 < 0 ? pages.length : i2;
+      };
+      var listBox = list.getBoundingClientRect();
+      var firstOf = function(fid) {
+        var q2 = pages.filter(function(x2) {
+          return x2.folder === fid;
+        })[0];
+        return q2 ? at2(q2.id) : pages.length;
+      };
+      var slot2 = els.length, into = null;
+      for (var i = 0; i < els.length; i++) {
+        var b = els[i].getBoundingClientRect();
+        var row = rows2[i];
+        if (row.kind === "folder" && y >= b.top + b.height * 0.25 && y <= b.bottom - b.height * 0.25) {
+          into = row.folder.id;
+          slot2 = i;
+          break;
+        }
+        if (y < b.top + b.height / 2) {
+          slot2 = i;
+          break;
+        }
+      }
+      if (into) return { into, index: endOfFolder(projectRef.current, into, dr.id), folder: into, line: null };
+      var before = rows2[slot2], prev = rows2[slot2 - 1];
+      var tucked = x > listBox.left + 28;
+      var folder = null, index;
+      if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
+        folder = before.folder;
+        index = at2(before.page.id);
+      } else if (prev && (prev.kind === "page" && prev.folder || prev.kind === "folder" && !prev.open && prev.count) && tucked) {
+        folder = prev.kind === "page" ? prev.folder : prev.folder.id;
+        index = endOfFolder(projectRef.current, folder, dr.id);
+      } else if (prev && prev.kind === "page" && prev.folder) {
+        folder = null;
+        index = endOfFolder(projectRef.current, prev.folder, dr.id);
+      } else if (before && before.kind === "page") {
+        folder = null;
+        index = at2(before.page.id);
+      } else if (before && before.kind === "folder") {
+        folder = null;
+        index = before.count ? firstOf(before.folder.id) : pages.length;
+      } else {
+        folder = null;
+        index = pages.length;
+      }
+      var edge = slot2 < els.length ? els[slot2].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
+      return { into: null, index, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
+    };
+    var rowDown = function(pg) {
+      return function(ev) {
+        if (ev.button !== void 0 && ev.button !== 0) return;
+        if (p.renamingPage === pg.id || pageDragRef.current || p.query.trim()) return;
+        var touch = ev.pointerType === "touch";
+        var dr = { id: pg.id, name: pg.name, pointer: ev.pointerId, x0: ev.clientX, y0: ev.clientY, live: false, armed: !touch, timer: 0, rows: pageRows(projectRef.current), drop: null };
+        pageDragRef.current = dr;
+        var holdScroll = function(tm) {
+          if (dr.armed && tm.cancelable) tm.preventDefault();
+        };
+        if (touch) {
+          dr.timer = setTimeout(function() {
+            dr.armed = true;
+            window.addEventListener("touchmove", holdScroll, { passive: false });
+            setPageDrag({ id: dr.id, name: dr.name, x: dr.x0, y: dr.y0, drop: null });
+          }, 350);
+        }
+        var stop = function() {
+          clearTimeout(dr.timer);
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", end);
+          window.removeEventListener("pointercancel", cancel);
+          window.removeEventListener("touchmove", holdScroll);
+          if (pageDragRef.current === dr) pageDragRef.current = null;
+          setPageDrag(null);
+        };
+        var move = function(mv) {
+          if (mv.pointerId !== dr.pointer) return;
+          var far = Math.abs(mv.clientX - dr.x0) + Math.abs(mv.clientY - dr.y0) >= 4;
+          if (!dr.armed) {
+            if (far) stop();
+            return;
+          }
+          if (!dr.live) {
+            if (!far) return;
+            dr.live = true;
+          }
+          dr.drop = pageDropAt(mv.clientX, mv.clientY);
+          setPageDrag({ id: dr.id, name: dr.name, x: mv.clientX, y: mv.clientY, drop: dr.drop });
+        };
+        var end = function(up) {
+          if (up && up.pointerId !== dr.pointer) return;
+          stop();
+          if (!dr.live) return;
+          pageDragEnded.current = true;
+          setTimeout(function() {
+            pageDragEnded.current = false;
+          }, 0);
+          if (dr.drop) {
+            var fname = dr.drop.folder ? (foldersOf(projectRef.current).filter(function(f) {
+              return f.id === dr.drop.folder;
+            })[0] || {}).name : null;
+            p.placePage(dr.id, dr.drop.index, dr.drop.folder).then(function() {
+              p.announce("Moved " + dr.name + (fname ? " into " + fname : ""));
+            });
+          }
+        };
+        var cancel = function(c) {
+          if (!c || c.pointerId === dr.pointer) stop();
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", end);
+        window.addEventListener("pointercancel", cancel);
+      };
+    };
+    var q = p.query.trim().toLowerCase();
+    var rows = q ? pageMatches(project, q) : pageRows(project);
+    var folders = foldersOf(project);
+    var items = itemsOf(pagesOf(project));
+    var drop = pageDrag && pageDrag.drop;
+    var folderRow = function(r, i) {
+      var f = r.folder;
+      var itemAt = items.findIndex(function(it) {
+        return it.folder === f.id;
+      });
+      return e(
+        "li",
+        { key: "f" + f.id, className: cx("bd-folder", !r.open && "is-closed", drop && drop.into === f.id && "is-drop"), "data-row": i, "data-folder": f.id },
+        e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, disabled: r.found || void 0, onClick: function() {
+          p.foldFolder(f.id, !r.open);
+        } }, e(Icon, { name: r.open ? "down" : "right" })),
+        p.renamingFolder === f.id ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function(v) {
+          p.renameFolder(f.id, v);
+        } }) : e(
+          "button",
+          { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function() {
+            p.foldFolder(f.id, !r.open);
+          }, onDoubleClick: function() {
+            p.setRenamingFolder(f.id);
+          } },
+          e(Icon, { name: "folder" }),
+          e("span", { className: "bd-folder-name" }, f.name),
+          e("span", { className: "bd-folder-count" }, r.count || "")
+        ),
+        e(Dropdown, {
+          menu: true,
+          label: "Actions for " + f.name,
+          placeholder: "Folder",
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          className: "bd-dd-icon bd-page-menu",
+          options: [{ value: "rename", label: "Rename", icon: "pencil" }].concat(itemAt > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(itemAt >= 0 && itemAt < items.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat([{ value: "delete", label: "Delete folder (the pages stay)", icon: "trash" }]),
+          onChange: function(v) {
+            if (v === "rename") p.setRenamingFolder(f.id);
+            else if (v === "up") p.moveFolder(f.id, -1);
+            else if (v === "down") p.moveFolder(f.id, 1);
+            else if (v === "delete") p.deleteFolder(f.id);
+          }
+        })
+      );
+    };
+    var pageRow = function(r, i) {
+      var pg = r.page, on = pg.id === p.pageId;
+      var list = pagesOf(project), idx = list.findIndex(function(x) {
+        return x.id === pg.id;
+      });
+      return e(
+        "li",
+        { key: pg.id, className: cx("bd-page", on && "is-current", r.folder && "is-nested", pageDrag && pageDrag.id === pg.id && "is-moving"), "data-row": i },
+        p.renamingPage === pg.id ? e(Renamable, { className: "bd-page-name", value: pg.name, label: "Page name", startEditing: true, onChange: function(v) {
+          p.renamePage(pg.id, v);
+        } }) : e(
+          "button",
+          {
+            type: "button",
+            className: "bd-page-open",
+            "aria-current": on ? "page" : void 0,
+            title: "Drag to move, double-click to rename",
+            onPointerDown: rowDown(pg),
+            onClick: function() {
+              if (!pageDragEnded.current) p.openPage(pg.id);
+            },
+            onDoubleClick: function() {
+              p.setRenamingPage(pg.id);
+            }
+          },
+          e(Icon, { name: "file" }),
+          e("span", { className: "bd-page-name" }, pg.name)
+        ),
+        p.confirmPage === pg.id ? e(
+          "span",
+          { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + pg.name },
+          e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function() {
+            p.deletePage(pg.id);
+          } }, "Delete"),
+          e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+            p.setConfirmPage(null);
+          } }, "Keep")
+        ) : e(Dropdown, {
+          menu: true,
+          label: "Actions for " + pg.name,
+          placeholder: "Page",
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          className: "bd-dd-icon bd-page-menu",
+          options: [
+            { value: "rename", label: "Rename", icon: "pencil" },
+            { value: "duplicate", label: "Duplicate", icon: "copy" }
+          ].concat(idx > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(idx < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat(folders.filter(function(f) {
+            return f.id !== r.folder;
+          }).map(function(f) {
+            return { value: "into:" + f.id, label: "Move to " + f.name, icon: "folder" };
+          })).concat(r.folder ? [{ value: "out", label: "Out of the folder", icon: "detach" }] : []).concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
+          onChange: function(v) {
+            if (v === "rename") p.setRenamingPage(pg.id);
+            else if (v === "duplicate") p.duplicatePage(pg.id);
+            else if (v === "up") p.movePage(pg.id, -1);
+            else if (v === "down") p.movePage(pg.id, 1);
+            else if (v === "out") p.placePage(pg.id, endOfFolder(project, r.folder, pg.id), null);
+            else if (v.indexOf("into:") === 0) p.placePage(pg.id, endOfFolder(project, v.slice(5), pg.id), v.slice(5));
+            else if (v === "delete") p.setConfirmPage(pg.id);
+          }
+        })
+      );
+    };
+    return e(
+      "div",
+      { className: "bd-pages-panel" },
+      e(
+        "div",
+        { className: "bd-panel-head" },
+        e("h2", { className: "bd-panel-title" }, "Pages"),
+        e(
+          "span",
+          { className: "bd-panel-acts" },
+          e("button", { type: "button", className: "bd-act", "aria-label": "New folder", title: "New folder", onClick: p.addFolder }, e(Icon, { name: "folder" })),
+          e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: p.addPage }, e(Icon, { name: "plus" }))
+        )
+      ),
+      q && !rows.length ? e("p", { className: "bd-empty-note" }, "No pages match.") : null,
+      e(
+        "ul",
+        { className: cx("bd-pages", pageDrag && "is-dragging"), role: "list", ref: pagesListRef },
+        rows.map(function(r, i) {
+          return r.kind === "folder" ? folderRow(r, i) : pageRow(r, i);
+        }),
+        drop && drop.line ? e("li", { className: cx("bd-page-drop", drop.line.depth && "is-nested"), "aria-hidden": true, style: { top: drop.line.top + "px" } }) : null
+      ),
+      pageDrag ? e("div", { className: "bd-ghost", style: { left: pageDrag.x + "px", top: pageDrag.y + "px" }, "aria-hidden": true }, pageDrag.name) : null
+    );
+  });
+
+  // assets/builder/app/Assets.js
+  var ASSET_KINDS = [
+    ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
+    ["primitives", "Primitives", "swatch", "Groups, stacks, grids, shapes and type to build with"],
+    ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
+    ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
+    ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
+    ["templates", "Templates", "file", "Ready-made pages, as new frames or into one"]
+  ];
+  var KIND_GROUPS = { primitives: ["layout", "typography"], blocks: ["blocks"] };
+  function groupsOf(kind) {
+    if (KIND_GROUPS[kind]) return DATA.groups.filter(function(g) {
+      return KIND_GROUPS[kind].indexOf(g.id) >= 0;
+    });
+    if (kind === "components") return DATA.groups.filter(function(g) {
+      return g.id !== "blocks" && KIND_GROUPS.primitives.indexOf(g.id) < 0;
+    });
+    return [];
+  }
+  function usableIn(p, g) {
+    return g.items.filter(function(n) {
+      return !p.placeable || p.placeable[n];
+    });
+  }
+  var PLAIN = {};
+  groupsOf("primitives").forEach(function(g) {
+    g.items.forEach(function(n) {
+      PLAIN[n] = true;
+    });
+  });
+  function tileList(p, items) {
+    return e("ul", { className: cx("bd-tiles", p.view === "list" ? "is-list" : "is-grid") }, items.map(function(n) {
+      var meta = META[n];
+      var plain = PLAIN[n];
+      return e(
+        "li",
+        { key: n },
+        e(
+          "button",
+          {
+            type: "button",
+            className: cx("bd-tile", plain && "is-icon"),
+            "data-type": n,
+            "aria-label": "Add " + n,
+            title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
+            onPointerDown: function(ev) {
+              p.startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") });
+            },
+            onClick: function(ev) {
+              if (p.justDragged.current) return;
+              p.addOrSwap(n, ev.metaKey || ev.ctrlKey);
+            }
+          },
+          plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n, wide: meta.group === "blocks" }),
+          e(
+            "span",
+            { className: "bd-tile-text" },
+            e("span", { className: "bd-tile-name" }, n),
+            p.view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null
+          )
+        )
+      );
+    }));
+  }
+  function viewToggle(p) {
+    return e(Segmented, { label: "View", value: p.view, onChange: p.setView, options: [{ value: "grid", label: "Grid", icon: "gridView" }, { value: "list", label: "List", icon: "listView" }] });
+  }
+  var VAR_SETS = [
+    ["surface", "Fill", "color"],
+    ["border", "Border", "color"],
+    ["padding", "Padding", "space"],
+    ["radius", "Radius", "radius"],
+    ["elevation", "Shadow", "shadow"],
+    ["w", "Width", "size"]
+  ];
+  function variablesPanel(p, varScope, setVarScope) {
+    var picked = p.picked;
+    var sc = p.scope;
+    var own = picked.length && picked.every(function(n) {
+      return n.type === picked[0].type;
+    }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
+    return e(
+      "div",
+      { className: "bd-vars" },
+      e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
+      e(Segmented, {
+        key: "scope",
+        label: "Show",
+        wide: true,
+        className: "bd-vars-scope",
+        value: varScope,
+        onChange: function(v) {
+          if (v) setVarScope(v);
+        },
+        options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
+      }),
+      VAR_SETS.map(function(vs) {
+        var def = DATA.tokens[vs[0]];
+        if (!def) return null;
+        var keys2 = [vs[0]].concat(def.sides || []);
+        var opts = def.options.filter(function(o) {
+          return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(p.used, keys2, o.value));
+        });
+        if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
+        var cur = picked.length && allSame(picked.map(function(n) {
+          return n.style[vs[0]] || "";
+        })) ? picked[0].style[vs[0]] || "" : null;
+        return e(
+          "section",
+          { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
+          e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
+          e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, (vs[0] === "padding" && own ? [e(
+            "button",
+            {
+              key: "__own",
+              type: "button",
+              className: "bd-var bd-var-own",
+              "aria-pressed": String(cur === ""),
+              title: own.token + ": " + nameOf(picked[0]) + "'s own padding. Clears Padding so it applies",
+              onClick: function() {
+                var patch = { padding: void 0 };
+                DATA.tokens.padding.sides.forEach(function(k) {
+                  patch[k] = void 0;
+                });
+                p.setStyles(picked.map(function(n) {
+                  return n.id;
+                }), patch);
+                p.announce(nameOf(picked[0]) + " takes its own padding, " + own.label);
+              }
+            },
+            e("span", { className: "bd-var-name" }, "Default: " + own.label)
+          )] : []).concat(opts.map(function(o) {
+            var px = p.pxMap[vs[0] + "|" + o.value];
+            var tok = o.tokens[0];
+            return e(
+              "button",
+              {
+                key: o.value,
+                type: "button",
+                className: "bd-var",
+                "aria-pressed": String(cur === o.value),
+                title: (o.tokens.join(" · ") || o.value) + (picked.length ? ". Apply to the selection" : ""),
+                onClick: function() {
+                  p.applyVar(vs[0], o.value, vs[1]);
+                }
+              },
+              vs[2] === "color" && tok ? e("span", { className: "bd-sw", style: { background: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "radius" && tok ? e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "shadow" && tok ? e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + tok + ")" }, "aria-hidden": true }) : px != null ? e("span", { className: "bd-var-px" }, Math.round(px)) : null,
+              e("span", { className: "bd-var-name" }, o.label || o.value)
+            );
+          })))
+        );
+      })
+    );
+  }
+  function framePic(w, h, kind, maxW, maxH) {
+    var k = Math.min((maxW || 84) / w, (maxH || 52) / h);
+    var box = { width: Math.round(w * k) + "px", height: Math.round(h * k) + "px" };
+    return e(
+      "span",
+      { key: w + "x" + h, className: cx("bd-mini-frame", kind && "is-" + kind), style: box, "aria-hidden": true },
+      kind === "structured" ? [0, 1, 2].map(function(i) {
+        return e("span", { key: i, className: "bd-mini-bar" });
+      }) : kind === "free" ? [0, 1, 2].map(function(i) {
+        return e("span", { key: i, className: "bd-mini-dot" });
+      }) : null
+    );
+  }
+  function kindPic(icon) {
+    return e("span", { className: "bd-kind-pics is-asset", "aria-hidden": true }, e(Icon, { name: icon }));
+  }
+  var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
+  var CONTAINER_KINDS = [
+    ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
+    ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
+    ["page", "Tall frame", "file", "Grows as tall as what's on it"]
+  ];
+  function containerCard(p, key, name, pic, note3, payload, onAdd) {
+    return e(
+      "li",
+      { key },
+      e(
+        "button",
+        {
+          type: "button",
+          className: "bd-kind bd-container-card",
+          "data-container": key,
+          title: note3 + ". Press to add one beside your frames, or drag it onto the canvas.",
+          onPointerDown: function(ev) {
+            if (ev.pointerType !== "touch") p.startDrag(ev, payload);
+          },
+          onClick: function() {
+            if (!p.justDragged.current) onAdd();
+          }
+        },
+        pic,
+        e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note3))
+      )
+    );
+  }
+  function containersPanel(p) {
+    return e(
+      React.Fragment,
+      null,
+      e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
+      e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function(k) {
+        var page = k[0] === "page", opts = page ? null : { mode: k[0] };
+        var shape = page ? framePic(390, 900, "tall") : framePic(1280, 800, k[0]);
+        return containerCard(p, k[0], k[1], e("span", { className: "bd-kind-pics is-preview is-frames" }, shape), k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
+          p.frameAdd(null, page, null, opts);
+        });
+      })),
+      e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
+      e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function(p2) {
+        var opts = { preset: p2.id, mode: "free" };
+        return containerCard(p2, p2.id, p2.label, e("span", { className: "bd-kind-pics is-preview is-frames" }, framePic(p2.width, p2.height)), p2.width + " × " + p2.height, { kind: "tool", tool: "frame", label: p2.label, opts }, function() {
+          p2.frameAdd(null, false, null, opts);
+        });
+      }))
+    );
+  }
+  function templatesPanel(p) {
+    return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function(st) {
+      return st[0] !== "blank";
+    }).map(function(st) {
+      return e(
+        "li",
+        { key: st[0] },
+        e(
+          "div",
+          { className: "bd-kind bd-tpl-card", "data-template": st[0] },
+          TEMPLATE_PIC[st[0]] && META[TEMPLATE_PIC[st[0]][0]] ? e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: TEMPLATE_PIC[st[0]][0], wide: TEMPLATE_PIC[st[0]][1] })) : e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
+          e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
+          e(
+            "span",
+            { className: "bd-tpl-acts" },
+            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-new", onClick: function() {
+              p.addTemplate(st[0]);
+            }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
+            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function() {
+              p.addTemplate(st[0], true);
+            }, title: "At the end of " + p.frameName }, "Into " + p.frameName)
+          )
+        )
+      );
+    }));
+  }
+  function mineList(p, list) {
+    return e("ul", { className: "bd-mine", role: "list" }, list.map(function(c) {
+      var layers = 0;
+      (function walk(n) {
+        layers++;
+        (n.children || []).forEach(walk);
+      })(c.node);
+      return e(
+        "li",
+        { key: c.id, className: "bd-mine-item" },
+        e(
+          "button",
+          {
+            type: "button",
+            className: "bd-mine-btn",
+            "data-local": c.id,
+            title: c.name + ": drag onto a frame, or press to add. Built on " + c.tokens.slice(0, 6).join(", ") + (c.tokens.length > 6 ? "…" : ""),
+            onPointerDown: function(ev) {
+              p.startDrag(ev, { kind: "local", comp: c, type: c.node.type, label: c.name });
+            },
+            onClick: function() {
+              if (!p.justDragged.current) p.addLocal(c);
+            }
+          },
+          e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
+          e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))
+        ),
+        e(Dropdown, {
+          menu: true,
+          label: "Actions for " + c.name,
+          icon: "more",
+          iconOnly: true,
+          compact: true,
+          narrow: true,
+          alignEnd: true,
+          className: "bd-dd-icon",
+          options: [{ value: "add", label: "Add to " + p.frameName, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
+          onChange: function(v) {
+            if (v === "add") p.addLocal(c);
+            else if (v === "rename") p.renameComponent(c.id);
+            else if (v === "delete") p.removeComponent(c.id);
+          }
+        })
+      );
+    }));
+  }
+  var Assets = React.memo(function Assets2(p) {
+    var scopeState = useState("all");
+    var varScope = scopeState[0], setVarScope = scopeState[1];
+    var q = p.query.trim().toLowerCase();
+    var head2 = null;
+    if (q) {
+      var found = [];
+      DATA.groups.forEach(function(g) {
+        usableIn(p, g).forEach(function(n) {
+          if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
+        });
+      });
+      var foundMine = (p.library.components || []).filter(function(c) {
+        return c.name.toLowerCase().indexOf(q) >= 0;
+      });
+      return e(
+        "div",
+        { className: "bd-assets" },
+        head2,
+        foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
+        foundMine.length ? mineList(p, foundMine) : null,
+        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle(p)),
+        found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
+        tileList(p, found)
+      );
+    }
+    if (!p.kind) {
+      return e(
+        "div",
+        { className: "bd-assets is-cards" },
+        head2,
+        e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
+          var note3 = k[3];
+          var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
+            return t + usableIn(p, g).length;
+          }, 0) + " to add";
+          return e("li", { key: k[0] }, e(
+            "button",
+            { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
+              p.setAssetKind(k[0]);
+            } },
+            kindPic(k[2]),
+            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
+          ));
+        }))
+      );
+    }
+    var kind = ASSET_KINDS.filter(function(k) {
+      return k[0] === p.kind;
+    })[0] || ASSET_KINDS[0];
+    var back = e(
+      "div",
+      { className: "bd-panel-head bd-gallery-head" },
+      e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Assets", title: "Back to Assets", onClick: function() {
+        p.setAssetKind(null);
+      } }, e(Icon, { name: "left" })),
+      e("h2", { className: "bd-panel-title" }, kind[1])
+    );
+    if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head2, back, variablesPanel(p, varScope, setVarScope));
+    if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head2, back, templatesPanel(p));
+    if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head2, back, containersPanel(p));
+    var groups = groupsOf(kind[0]);
+    if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
+    var current2 = groups.filter(function(x) {
+      return x.id === p.category;
+    })[0] || groups[kind[0] === "components" && (p.library.components || []).length ? 0 : kind[0] === "components" ? 1 : 0];
+    var items = usableIn(p, current2);
+    if (current2.id === "mine") {
+      var mine = p.library.components || [];
+      return e(
+        "div",
+        { className: "bd-assets" },
+        head2,
+        back,
+        e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function(g) {
+          return e(
+            "button",
+            { key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(current2.id === g.id), onClick: function() {
+              p.setCategory(g.id);
+            } },
+            e(Icon, { name: g.id === "mine" ? "component" : GROUP_ICON[g.id] || "box" }),
+            e("span", { className: "bd-cat-label" }, g.label)
+          );
+        })),
+        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
+        mine.length ? mineList(p, mine) : e(
+          "div",
+          { className: "bd-empty" },
+          e(Icon, { name: "component" }),
+          e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))
+        )
+      );
+    }
+    return e(
+      "div",
+      { className: "bd-assets" },
+      head2,
+      back,
+      groups.length > 1 ? e(
+        "div",
+        { className: "bd-cats", role: "group", "aria-label": "Categories" },
+        groups.map(function(g) {
+          var on = current2.id === g.id;
+          return e("button", {
+            key: g.id,
+            type: "button",
+            className: "bd-cat",
+            "aria-pressed": String(on),
+            title: g.label + ": " + usableIn(p, g).length + " to add",
+            onClick: function() {
+              p.setCategory(g.id);
+            }
+          }, e(Icon, { name: GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
+        })
+      ) : null,
+      e(
+        "div",
+        { className: "bd-assets-head" },
+        e("h3", { className: "bd-assets-title" }, current2.label, e("span", { className: "bd-count" }, items.length)),
+        viewToggle(p)
+      ),
+      items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
+      tileList(p, items)
+    );
+  });
+
+  // assets/builder/app/Content.js
+  var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
+  var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
+  function brandPieces(b) {
+    var name = b.name || "Your brand";
+    var P = window.DovetailConfigurePanel;
+    var tone = P && P.config ? WORDMARK_TONE[P.config().wordmarkColor] : null;
+    var logo = b.wordmark ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } } : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone } : {}), extra: { name: "Logo" } };
+    var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
+    return { logo, mark };
+  }
+  function brandPanel(p) {
+    var b = p.brand;
+    var pieces = brandPieces(b);
+    var tile = function(key, label, piece, preview, emptyNote, hint) {
+      var fileId = "bd-brand-" + key;
+      var hasFile = !!b[key];
+      return e(
+        "section",
+        {
+          className: "bd-content-sec bd-brand-sec",
+          "aria-labelledby": fileId + "-h",
+          onDragOver: function(ev) {
+            if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault();
+          },
+          onDrop: function(ev) {
+            if (!ev.dataTransfer.files.length) return;
+            ev.preventDefault();
+            p.readBrandFile(key, ev.dataTransfer.files[0]);
+          }
+        },
+        e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
+        piece ? e("button", {
+          type: "button",
+          className: cx("bd-brand-tile", key === "mark" && "is-mark"),
+          "data-brand": key,
+          title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
+          onPointerDown: function(ev) {
+            if (ev.pointerType !== "touch") p.startDrag(ev, piece);
+          },
+          onClick: function() {
+            if (!p.justDragged.current) p.placeBrand(piece);
+          }
+        }, preview) : e("div", { className: "bd-brand-tile is-empty" }, e(Icon, { name: "image" }), e("span", null, emptyNote)),
+        e(
+          "div",
+          { className: "bd-content-add" },
+          e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), hasFile ? "Replace" : "Upload"),
+          e("input", {
+            id: fileId,
+            type: "file",
+            className: "visually-hidden",
+            accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml",
+            onChange: function(ev) {
+              p.readBrandFile(key, ev.target.files[0]);
+              ev.target.value = "";
+            }
+          }),
+          hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function() {
+            var patch = {};
+            patch[key] = "";
+            if (p.setBrandPart(patch)) p.announce("Removed the " + label.toLowerCase() + ".");
+          } }, "Remove") : null
+        ),
+        hint ? e("p", { className: "bd-content-note" }, hint) : null
+      );
+    };
+    return e(
+      "div",
+      { className: "bd-content" },
+      e(
+        "div",
+        { className: "bd-panel-head bd-gallery-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
+          p.setLibTab(null);
+          p.setBrandErr(null);
+        } }, e(Icon, { name: "left" })),
+        e("h2", { className: "bd-panel-title" }, "Brand")
+      ),
+      e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
+      e(
+        "section",
+        { className: "bd-content-sec" },
+        e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
+        e("input", {
+          id: "bd-brand-name",
+          className: "bd-input",
+          type: "text",
+          maxLength: 80,
+          placeholder: "Your brand",
+          value: b.name,
+          onChange: function(ev) {
+            p.setBrandPart({ name: ev.target.value });
+          }
+        })
+      ),
+      p.brandErr ? e("p", { className: "bd-brand-err", role: "alert" }, p.brandErr) : null,
+      tile(
+        "wordmark",
+        "Logo",
+        pieces.logo,
+        b.wordmark ? e("img", { src: b.wordmark, alt: "", draggable: false }) : e("span", { className: "bd-brand-word" }, b.name || "Your brand"),
+        "",
+        b.wordmark ? null : "Without a logo file, the logo is the name, set in type. SVG or PNG, up to 512KB."
+      ),
+      tile("mark", "Brand mark", pieces.mark, b.mark ? e("img", { src: b.mark, alt: "", draggable: false }) : null, "No brand mark yet", "A small symbol for beside the logo, or on its own. SVG or PNG, up to 512KB.")
+    );
+  }
+  function brandCard(p) {
+    var b = p.brand;
+    var pics = [b.mark, b.wordmark].filter(Boolean);
+    var note3 = b.wordmark && b.mark ? "Logo and mark" : b.wordmark ? "Logo" : b.mark ? "Mark, and the name" : b.name ? "The name" : "Name, logo and mark";
+    return e("li", { key: "brand" }, e(
+      "button",
+      { type: "button", className: "bd-kind", "data-kind": "brand", onClick: function() {
+        p.setLibTab("brand");
+      } },
+      e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function(src, i) {
+        return e("img", { key: i, src, alt: "", draggable: false });
+      }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
+      e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note3)),
+      e(Icon, { name: "right", className: "bd-kind-chev" })
+    ));
+  }
+  var Content = React.memo(function Content2(p) {
+    var q0 = p.query.trim().toLowerCase();
+    if (!p.tab && q0) {
+      var hits = [];
+      LIB_KINDS.forEach(function(k) {
+        p.library[k].forEach(function(it) {
+          if (it.name.toLowerCase().indexOf(q0) >= 0) hits.push({ kind: k, it });
+        });
+      });
+      return e(
+        "div",
+        { className: "bd-content" },
+        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Results"), e("span", { className: "bd-count" }, hits.length)),
+        hits.length ? e("ul", { className: "bd-lib", role: "list" }, hits.map(function(h) {
+          var clip = h.kind === "video";
+          return e(
+            "li",
+            { key: h.it.id, className: "bd-lib-item" },
+            e(
+              "button",
+              {
+                type: "button",
+                className: cx("bd-lib-thumb", (h.kind === "images" || clip) && !h.it.original && "is-fill"),
+                title: h.it.name + ": drag onto a frame, or press to add",
+                onPointerDown: function(ev) {
+                  if (ev.pointerType !== "touch") p.startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip ? "video" : "image" });
+                },
+                onClick: function() {
+                  if (!p.justDragged.current) p.insertAsset(h.it, clip);
+                }
+              },
+              clip ? e("video", { src: h.it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: h.it.src, alt: "", draggable: false })
+            ),
+            e("span", { className: "bd-lib-name" }, h.it.name)
+          );
+        })) : e("p", { className: "bd-empty-note" }, "Nothing in your content matches.")
+      );
+    }
+    if (!p.tab) {
+      return e(
+        "div",
+        { className: "bd-content" },
+        e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
+        e("p", { className: "bd-content-note bd-content-scope" }, p.scopeNote),
+        e("ul", { className: "bd-kinds", role: "list" }, [brandCard(p)].concat(LIB_TABS.map(function(t) {
+          var items2 = p.library[t[0]];
+          var note3 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";
+          return e("li", { key: t[0] }, e(
+            "button",
+            { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function() {
+              p.setLibTab(t[0]);
+            } },
+            e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items2.length ? items2.slice(0, 3).map(function(it) {
+              return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false });
+            }) : e(Icon, { name: t[2] })),
+            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note3)),
+            e(Icon, { name: "right", className: "bd-kind-chev" })
+          ));
+        })))
+      );
+    }
+    if (p.tab === "brand") return brandPanel(p);
+    var kind = p.tab;
+    var cq = p.query.trim().toLowerCase();
+    var items = p.library[kind].filter(function(it) {
+      return !cq || it.name.toLowerCase().indexOf(cq) >= 0;
+    });
+    var fileId = "bd-lib-file";
+    var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
+    var icons = window.DovetailConfigure && window.DovetailConfigure.icons || {};
+    return e(
+      "div",
+      {
+        className: "bd-content",
+        onDragOver: function(ev) {
+          ev.preventDefault();
+          ev.currentTarget.classList.add("is-drop");
+        },
+        onDragLeave: function(ev) {
+          ev.currentTarget.classList.remove("is-drop");
+        },
+        onDrop: function(ev) {
+          ev.preventDefault();
+          ev.currentTarget.classList.remove("is-drop");
+          p.addToLibrary(kind, ev.dataTransfer.files);
+        }
+      },
+      e(
+        "div",
+        { className: "bd-panel-head bd-gallery-head" },
+        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
+          p.setLibTab(null);
+        } }, e(Icon, { name: "left" })),
+        e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function(t) {
+          return t[0] === kind;
+        })[0][1])
+      ),
+      kind === "icons" ? e(
+        "section",
+        { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
+        e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
+        e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
+        e(
+          "div",
+          { className: "bd-iconlibs", role: "radiogroup", "aria-labelledby": "bd-iconlib" },
+          Object.keys(icons).concat(["custom"]).map(function(k) {
+            var info = icons[k] || { label: "Custom", note: "Your own set, named in Configure's Media group." };
+            return e(
+              "button",
+              {
+                key: k,
+                type: "button",
+                role: "radio",
+                className: "bd-iconlib",
+                "aria-checked": String(lib === k),
+                onClick: function() {
+                  if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) {
+                    window.DovetailConfigurePanel.setIconLib(k);
+                    p.setThemeStamp(function(n) {
+                      return n + 1;
+                    });
+                  }
+                }
+              },
+              e("span", { className: "bd-iconlib-name" }, info.label),
+              e("span", { className: "bd-iconlib-note" }, info.note)
+            );
+          })
+        )
+      ) : null,
+      e(
+        "section",
+        { className: "bd-content-sec", "aria-label": "Your " + kind },
+        kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
+        e(
+          "div",
+          { className: "bd-content-add" },
+          e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind === "video" ? "clips" : kind)),
+          e("input", {
+            id: fileId,
+            type: "file",
+            multiple: true,
+            className: "visually-hidden",
+            accept: kind === "icons" ? "image/svg+xml,.svg" : kind === "video" ? "video/*" : "image/*",
+            onChange: function(ev) {
+              var f = ev.target.files;
+              p.addToLibrary(kind, f);
+              ev.target.value = "";
+            }
+          }),
+          e("span", { className: "bd-content-note" }, "or drop files here")
+        ),
+        p.busy ? e("p", { className: "bd-content-busy", role: "status" }, p.busy) : null,
+        items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function(it) {
+          return e(
+            "li",
+            { key: it.id, className: "bd-lib-item" },
+            e(
+              "button",
+              {
+                type: "button",
+                className: cx("bd-lib-thumb", (kind === "images" || kind === "video") && !it.original && "is-fill"),
+                title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
+                onPointerDown: function(ev) {
+                  if (ev.pointerType !== "touch") p.startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" });
+                },
+                onClick: function() {
+                  if (!p.justDragged.current) p.insertAsset(it, kind === "video");
+                }
+              },
+              kind === "video" ? e("video", { src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: it.src, alt: "", draggable: false })
+            ),
+            e("span", { className: "bd-lib-name" }, it.name),
+            e(Dropdown, {
+              menu: true,
+              label: "Actions for " + it.name,
+              icon: "more",
+              compact: true,
+              narrow: true,
+              className: "bd-dd-icon bd-lib-menu",
+              options: [{ value: "insert", label: "Add to " + p.frameName, icon: "plus" }].concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : []).concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : []).concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
+              onChange: function(v) {
+                if (v === "insert") p.insertAsset(it, kind === "video");
+                else if (v === "cut") p.cutBackground(it.src).then(function(url) {
+                  if (url) p.libUpdate(kind, it.id, { src: url, original: it.original || it.src });
+                });
+                else if (v === "restore") p.libUpdate(kind, it.id, { src: it.original, original: void 0 });
+                else if (v === "delete") p.libUpdate(kind, it.id, { removed: true });
+              }
+            })
+          );
+        })) : e(
+          "div",
+          { className: "bd-empty" },
+          e(Icon, { name: LIB_TABS.filter(function(t) {
+            return t[0] === kind;
+          })[0][2] }),
+          e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : kind === "video" ? "Upload clips up to 1.5 MB to reuse them: drag one onto a frame, or onto a Video to fill it." : "Upload " + kind + " to reuse them: drag one onto a frame, or onto a picture to fill it.")
+        )
+      )
+    );
+  });
+
+  // assets/builder/cloud/config.js
+  var CLOUD = {
+    url: "",
+    anonKey: ""
+  };
+  var LIB_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
+  function cloudConfig() {
+    var over = typeof window !== "undefined" && window.DovetailCloud;
+    var c = over && typeof over === "object" ? over : CLOUD;
+    return { url: String(c.url || "").replace(/\/+$/, ""), anonKey: String(c.anonKey || "") };
+  }
+  function cloudReady() {
+    var c = cloudConfig();
+    return /^https:\/\/[^\s/]+/.test(c.url) && c.anonKey.length > 20;
+  }
+
+  // assets/builder/cloud/client.js
+  var clientLoading = null;
+  function getClient() {
+    if (!cloudReady()) return Promise.reject(new Error("The cloud isn't connected."));
+    if (!clientLoading) {
+      var c = cloudConfig();
+      var lib = LIB_URL;
+      clientLoading = import(lib).then(function(mod) {
+        return mod.createClient(c.url, c.anonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
+        });
+      }, function() {
+        clientLoading = null;
+        throw new Error("Couldn't load the cloud. Check your connection and try again.");
+      });
+    }
+    return clientLoading;
+  }
+  var MESSAGES = {
+    invalid_credentials: "That email and password don't match an account.",
+    email_not_confirmed: "Confirm your email first: open the link we sent you.",
+    user_already_exists: "There's already an account with that email. Sign in instead.",
+    email_exists: "There's already an account with that email. Sign in instead.",
+    weak_password: "Choose a longer password: at least 8 characters.",
+    same_password: "That's your current password. Choose a new one.",
+    over_email_send_rate_limit: "Too many emails just now. Wait a minute and try again.",
+    over_request_rate_limit: "Too many tries just now. Wait a minute and try again.",
+    email_address_invalid: "That doesn't look like an email address.",
+    signup_disabled: "New accounts are turned off for this builder.",
+    session_not_found: "You've been signed out. Sign in again.",
+    otp_expired: "That link has expired. Ask for a new one.",
+    bad_code_verifier: "Your email is confirmed. Sign in with your password.",
+    flow_state_not_found: "Your email is confirmed. Sign in with your password.",
+    email_address_not_authorized: "This builder can't email that address yet (docs/cloud.md, step 4)."
+  };
+  function friendly(err) {
+    if (!err) return "";
+    var code = err.code || err.error_code || "";
+    if (MESSAGES[code]) return MESSAGES[code];
+    if (/fetch|network/i.test(String(err.message || err.name || ""))) return "Couldn't reach the cloud. Check your connection and try again.";
+    return String(err.message || "Something went wrong. Try again.");
+  }
+  function unwrap(res) {
+    if (res && res.error) throw new Error(friendly(res.error));
+    return res ? res.data : null;
+  }
+  function backHere() {
+    return location.origin + location.pathname;
+  }
+  function account(session) {
+    return session && session.user ? { id: session.user.id, email: session.user.email || "" } : null;
+  }
+  var auth = {
+    /* The signed-in account, or null. */
+    current: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.getSession();
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    /* Calls fn(event, account) on every change; returns a function to stop.
+       event is Supabase's: SIGNED_IN, SIGNED_OUT, PASSWORD_RECOVERY, ... */
+    watch: function(fn) {
+      var sub = null, stopped = false;
+      getClient().then(function(sb) {
+        if (stopped) return;
+        sub = sb.auth.onAuthStateChange(function(event, session) {
+          fn(event, account(session));
+        }).data.subscription;
+      }, function() {
+      });
+      return function() {
+        stopped = true;
+        if (sub) sub.unsubscribe();
+      };
+    },
+    /* A new account. Resolves { confirm: true } when an email must be
+       confirmed before signing in (the setting docs/cloud.md asks for). */
+    signUp: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signUp({ email, password, options: { emailRedirectTo: backHere() } });
+      }).then(function(res) {
+        var data = unwrap(res);
+        return { confirm: !data.session, account: account(data.session) };
+      });
+    },
+    signIn: function(email, password) {
+      return getClient().then(function(sb) {
+        return sb.auth.signInWithPassword({ email, password });
+      }).then(function(res) {
+        return account(unwrap(res).session);
+      });
+    },
+    signOut: function() {
+      return getClient().then(function(sb) {
+        return sb.auth.signOut();
+      }).then(unwrap);
+    },
+    /* Emails a link that brings you back here to choose a new password. */
+    resetPassword: function(email) {
+      return getClient().then(function(sb) {
+        return sb.auth.resetPasswordForEmail(email, { redirectTo: backHere() });
+      }).then(unwrap);
+    },
+    setPassword: function(password) {
+      return getClient().then(function(sb) {
+        return sb.auth.updateUser({ password });
+      }).then(unwrap);
+    },
+    /* Turns invites to this (confirmed) address into memberships; resolves
+       how many projects that joined. */
+    acceptInvites: function() {
+      return getClient().then(function(sb) {
+        return sb.rpc("accept_invites");
+      }).then(unwrap);
+    }
+  };
+
+  // assets/builder/cloud/Account.js
+  var ARRIVED = (function() {
+    try {
+      var q = new URLSearchParams(location.search);
+      var h = new URLSearchParams(location.hash.replace(/^#/, ""));
+      var error = q.get("error_description") || h.get("error_description");
+      return { link: q.has("code") || !!error, error: error ? error.replace(/\+/g, " ") : "" };
+    } catch (err) {
+      return { link: false, error: "" };
+    }
+  })();
+  function useAccount() {
+    var ready = cloudReady();
+    var st = useState({ status: ready ? "loading" : "off", account: null, joined: 0 });
+    var s = st[0], set2 = st[1];
+    useEffect(function() {
+      if (!ready) return void 0;
+      var live = true;
+      var signedIn = function(a) {
+        set2(function(p) {
+          return p.status === "recovery" ? Object.assign({}, p, { account: a }) : { status: "in", account: a, joined: p.joined };
+        });
+        auth.acceptInvites().then(function(n) {
+          if (live && n) set2(function(p) {
+            return Object.assign({}, p, { joined: p.joined + n });
+          });
+        }, function() {
+        });
+      };
+      auth.current().then(function(a) {
+        if (!live) return;
+        if (a) signedIn(a);
+        else set2(function(p) {
+          return p.status === "loading" ? { status: "out", account: null, joined: 0 } : p;
+        });
+      }, function(err) {
+        if (live) set2({ status: "out", account: null, joined: 0, error: err.message });
+      });
+      var stop = auth.watch(function(event, a) {
+        if (!live) return;
+        if (event === "PASSWORD_RECOVERY") set2({ status: "recovery", account: a, joined: 0 });
+        else if (event === "SIGNED_OUT" || !a) set2({ status: "out", account: null, joined: 0 });
+        else if (event === "SIGNED_IN") signedIn(a);
+        else set2(function(p) {
+          return Object.assign({}, p, { account: a });
+        });
+      });
+      return function() {
+        live = false;
+        stop();
+      };
+    }, []);
+    return [s, set2];
+  }
+  function AccountDialog(props) {
+    var s = props.state, setState = props.setState, ref = props.dialogRef;
+    var modeSt = useState("signin"), mode = modeSt[0], setMode = modeSt[1];
+    var emailSt = useState(""), email = emailSt[0], setEmail = emailSt[1];
+    var passSt = useState(""), pass = passSt[0], setPass = passSt[1];
+    var againSt = useState(""), again = againSt[0], setAgain = againSt[1];
+    var busySt = useState(false), busy = busySt[0], setBusy = busySt[1];
+    var msgSt = useState(ARRIVED.error ? { error: ARRIVED.error } : null), msg = msgSt[0], setMsg = msgSt[1];
+    var switchTo = function(m) {
+      setMode(m);
+      setMsg(null);
+      setPass("");
+      setAgain("");
+    };
+    var run = function(work, done) {
+      setBusy(true);
+      setMsg(null);
+      work().then(function(r) {
+        setBusy(false);
+        done(r);
+      }, function(err) {
+        setBusy(false);
+        setMsg({ error: err.message });
+      });
+    };
+    var close = function() {
+      if (ref.current) ref.current.close();
+    };
+    var submit = function(ev) {
+      ev.preventDefault();
+      var addr = email.trim();
+      if (s.status === "recovery") {
+        if (pass !== again) {
+          setMsg({ error: "The two passwords don't match." });
+          return;
+        }
+        run(function() {
+          return auth.setPassword(pass);
+        }, function() {
+          setPass("");
+          setAgain("");
+          setState(function(p) {
+            return { status: "in", account: p.account, joined: p.joined };
+          });
+          setMsg({ note: "Your password is changed." });
+        });
+      } else if (mode === "forgot") {
+        run(function() {
+          return auth.resetPassword(addr);
+        }, function() {
+          setMsg({ note: "If there's an account for " + addr + ", it has an email with a link to choose a new password. Open it on this device." });
+        });
+      } else if (mode === "signup") {
+        run(function() {
+          return auth.signUp(addr, pass);
+        }, function(r) {
+          setPass("");
+          if (r.confirm) setMsg({ note: "Nearly there: we've sent a link to " + addr + ". Open it to confirm your address, and you're in." });
+        });
+      } else {
+        run(function() {
+          return auth.signIn(addr, pass);
+        }, function() {
+          setPass("");
+        });
+      }
+    };
+    var signOut = function() {
+      run(function() {
+        return auth.signOut();
+      }, function() {
+        switchTo("signin");
+      });
+    };
+    var field = function(id, label, input) {
+      return e("label", { className: "bd-acct-field", htmlFor: id }, e("span", { className: "bd-field-label" }, label), e("input", Object.assign({ id, className: "bd-input", required: true, disabled: busy }, input)));
+    };
+    var emailField = field("bd-acct-email", "Email", { type: "email", autoComplete: "email", value: email, onChange: function(ev) {
+      setEmail(ev.target.value);
+    } });
+    var passField = function(label, autoComplete) {
+      return field("bd-acct-pass", label, { type: "password", autoComplete, minLength: autoComplete === "new-password" ? 8 : void 0, value: pass, onChange: function(ev) {
+        setPass(ev.target.value);
+      } });
+    };
+    var button2 = function(label) {
+      return e("button", { type: "submit", className: "bd-btn bd-btn-primary", disabled: busy }, busy ? "One moment…" : label);
+    };
+    var link = function(label, m) {
+      return e("button", { type: "button", className: "bd-acct-link", onClick: function() {
+        switchTo(m);
+      } }, label);
+    };
+    var title = s.status === "recovery" ? "Choose a new password" : s.status === "in" ? "Your account" : s.status === "out" ? mode === "signup" ? "Create an account" : mode === "forgot" ? "Reset your password" : "Sign in" : "Account";
+    var body;
+    if (s.status === "off") {
+      body = e(
+        "div",
+        { className: "bd-acct-off" },
+        e("p", null, "The cloud isn't connected to this builder yet, so there's nothing to sign in to. Your projects are saved in this browser, as they always have been."),
+        e("p", null, "Once it's connected, an account keeps your projects in the cloud and lets you share them, to edit together live.")
+      );
+    } else if (s.status === "loading") {
+      body = e("p", { className: "bd-sec-empty" }, "Connecting…");
+    } else if (s.status === "in") {
+      body = e(
+        "div",
+        { className: "bd-acct-in" },
+        e("p", { className: "bd-acct-who" }, e(Icon, { name: "user" }), e("span", null, "Signed in as ", e("strong", null, s.account && s.account.email))),
+        s.joined ? e("p", null, "You've joined " + s.joined + (s.joined === 1 ? " shared project." : " shared projects.")) : null,
+        e("p", { className: "bd-inspect-sub" }, "Your projects are still saved in this browser. Keeping them in the cloud, and editing together, come next."),
+        e("div", { className: "bd-acct-actions" }, e("button", { type: "button", className: "bd-btn", disabled: busy, onClick: signOut }, "Sign out"))
+      );
+    } else if (s.status === "recovery") {
+      body = e(
+        "form",
+        { className: "bd-acct-form", onSubmit: submit },
+        passField("New password", "new-password"),
+        field("bd-acct-again", "The same again", { type: "password", autoComplete: "new-password", minLength: 8, value: again, onChange: function(ev) {
+          setAgain(ev.target.value);
+        } }),
+        e("div", { className: "bd-acct-actions" }, button2("Save password"))
+      );
+    } else {
+      body = e(
+        "form",
+        { className: "bd-acct-form", onSubmit: submit },
+        e("p", { className: "bd-inspect-sub" }, mode === "forgot" ? "We'll email you a link to choose a new password." : mode === "signup" ? "Use any email you can open: we'll send it a link to confirm. Passwords need at least 8 characters." : "Sign in to keep your projects in the cloud and edit them with others."),
+        emailField,
+        mode === "forgot" ? null : passField("Password", mode === "signup" ? "new-password" : "current-password"),
+        e(
+          "div",
+          { className: "bd-acct-actions" },
+          button2(mode === "signup" ? "Create account" : mode === "forgot" ? "Send the link" : "Sign in"),
+          mode === "signin" ? link("Forgot your password?", "forgot") : null
+        ),
+        e("p", { className: "bd-acct-switch" }, mode === "signin" ? e(React.Fragment, null, "New here? ", link("Create an account", "signup")) : e(React.Fragment, null, mode === "signup" ? "Have an account? " : "Remembered it? ", link("Sign in", "signin")))
+      );
+    }
+    return e(
+      "dialog",
+      { className: "bd-code bd-acct", ref, "aria-labelledby": "bd-acct-title", onClose: props.onClose },
+      e(
+        "div",
+        { className: "bd-code-head" },
+        e("div", { className: "bd-code-intro" }, e("h2", { id: "bd-acct-title" }, title)),
+        e(
+          "div",
+          { className: "bd-code-actions" },
+          e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: close }, e(Icon, { name: "close" }))
+        )
+      ),
+      e(
+        "div",
+        { className: "bd-acct-body" },
+        body,
+        e(
+          "div",
+          { role: "status", "aria-live": "polite", className: cx("bd-acct-msg", msg && msg.error && "is-error", msg && msg.note && "is-note") },
+          msg ? e(React.Fragment, null, e(Icon, { name: msg.error ? "alert" : "check" }), e("span", null, msg.error || msg.note)) : null
+        )
+      )
+    );
+  }
+
+  // assets/builder/model/instances.js
+  var FLAGS = ["name", "hide", "lock"];
+  function same2(a, b) {
+    return a === b || JSON.stringify(a) === JSON.stringify(b);
+  }
+  function diffObj(a, b, skip) {
+    var out = null;
+    a = a || {};
+    b = b || {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function(k) {
+      if (skip && skip.indexOf(k) >= 0) return;
+      if (out && k in out) return;
+      if (!same2(a[k], b[k])) {
+        out = out || {};
+        out[k] = b[k];
+      }
+    });
+    return out;
+  }
+  function lined(as, bs) {
+    if (as.length !== bs.length) return false;
+    return as.every(function(c, i) {
+      return c.type === bs[i].type && (c.type !== "Slot" || c.props.name === bs[i].props.name);
+    });
+  }
+  function at(node, path) {
+    if (!path) return node;
+    var n = node;
+    var parts = path.split("/");
+    for (var i = 0; i < parts.length; i++) {
+      n = n && n.children ? n.children[Number(parts[i])] : null;
+      if (!n) return null;
+    }
+    return n;
+  }
+  function overrides(inst, master) {
+    var out = [];
+    (function walk(a, b, path) {
+      var o = { path };
+      var props = diffObj(b.props, a.props);
+      var style = diffObj(b.style, a.style, path === "" ? ["x", "y", "ch", "cv"] : null);
+      if (props) o.props = props;
+      if (style) o.style = style;
+      if (path !== "") {
+        var flags = null;
+        FLAGS.forEach(function(k) {
+          if (!same2(a[k], b[k])) {
+            flags = flags || {};
+            flags[k] = a[k];
+          }
+        });
+        if (flags) o.flags = flags;
+      }
+      var ak = a.children || [], bk = b.children || [];
+      if (a.children && !lined(ak, bk)) o.children = copy(ak);
+      else ak.forEach(function(c, i) {
+        walk(c, bk[i], path ? path + "/" + i : String(i));
+      });
+      if (o.props || o.style || o.flags || o.children) out.push(o);
+    })(inst, master, "");
+    return out;
+  }
+  function reid(n) {
+    var c = copy(n);
+    (function walk(x) {
+      x.id = uid();
+      (x.children || []).forEach(walk);
+    })(c);
+    return c;
+  }
+  function setKeys(target, patch) {
+    Object.keys(patch).forEach(function(k) {
+      if (patch[k] === void 0) delete target[k];
+      else target[k] = patch[k];
+    });
+  }
+  function applyOverrides(master, ovs) {
+    var out = reid(master);
+    ovs.forEach(function(o) {
+      var n = at(out, o.path);
+      if (!n) return;
+      if (o.props) {
+        n.props = n.props || {};
+        setKeys(n.props, o.props);
+      }
+      if (o.style) {
+        n.style = n.style || {};
+        setKeys(n.style, o.style);
+      }
+      if (o.flags) setKeys(n, o.flags);
+      if (o.children && n.children) n.children = copy(o.children);
+    });
+    return out;
+  }
+  function rebase(inst, was, next, rev) {
+    var out = applyOverrides(next, overrides(inst, was || next));
+    out.id = inst.id;
+    FLAGS.forEach(function(k) {
+      if (inst[k] !== void 0) out[k] = inst[k];
+      else delete out[k];
+    });
+    out.style = out.style || {};
+    if (inst.style && inst.style.x !== void 0) {
+      out.style.x = inst.style.x;
+      out.style.y = inst.style.y;
+      ["ch", "cv"].forEach(function(k) {
+        if (inst.style[k]) out.style[k] = inst.style[k];
+        else delete out.style[k];
+      });
+    } else {
+      delete out.style.x;
+      delete out.style.y;
+      delete out.style.ch;
+      delete out.style.cv;
+    }
+    out.inst = { of: inst.inst.of, rev };
+    return out;
+  }
+  function instancesOf(doc2, compId) {
+    var out = [];
+    doc2.frames.forEach(function(f) {
+      (function walk(n) {
+        (n.children || []).forEach(function(c, i) {
+          if (c.inst && c.inst.of === compId) out.push({ fid: f.id, parent: n, index: i, node: c });
+          else walk(c);
+        });
+      })(f.root);
+    });
+    return out;
+  }
+  function updateInstances(doc2, compId, was, next, rev, exceptId) {
+    var hits = instancesOf(doc2, compId), n = 0;
+    hits.forEach(function(h) {
+      if (h.node.id === exceptId) {
+        h.node.inst = { of: compId, rev };
+        return;
+      }
+      h.parent.children[h.index] = rebase(h.node, was, next, rev);
+      n++;
+    });
+    return n;
+  }
+  function detachAll(doc2, compId) {
+    var hits = instancesOf(doc2, compId);
+    hits.forEach(function(h) {
+      delete h.node.inst;
+    });
+    return hits.length;
+  }
+  function masterOf(library, node) {
+    if (!node || !node.inst || !library) return null;
+    return (library.components || []).filter(function(c) {
+      return c.id === node.inst.of;
+    })[0] || null;
+  }
+
   // assets/builder/app/App.js
   var HOME_SORT_KEY = "dovetail-builder-home-sort";
   var DARK_KEY = "dovetail-builder-dark";
-  var HOME_SORTS = [{ value: "recent", label: "Recent" }, { value: "alpha", label: "A–Z", title: "Alphabetical" }, { value: "created", label: "Date created" }];
   var VIRTUAL_AFTER = 6;
   var LIVE_MAX = 8;
   var HISTORY_MAX = 200;
@@ -10172,13 +12337,13 @@
       if (!f) return;
       var d = docRef.current;
       var fr = active(d);
-      var picked = selRef.current.map(function(id) {
+      var picked2 = selRef.current.map(function(id) {
         return locate(d, id);
       }).filter(Boolean).map(function(a) {
         return a.node;
       });
       var parts = [];
-      picked.forEach(function(n) {
+      picked2.forEach(function(n) {
         if (n.type === "Slot") parts = parts.concat(n.children);
         else parts.push(n);
       });
@@ -10346,12 +12511,6 @@
       };
     }, []);
     var TITLE_STEPS = ["heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"];
-    var hasTitlePart = function(type) {
-      var m = META[type];
-      return !!m && m.props.some(function(p) {
-        return p.name === "titleSize";
-      });
-    };
     var TYPE_SCALE = {
       Heading: { prop: "size", steps: ["heading-xs", "heading-sm", "heading-md", "heading-lg", "heading-xl", "display-sm", "display-md", "display-lg"] },
       Text: { prop: "variant", steps: ["fine", "small", "body", "lead"] }
@@ -10473,14 +12632,6 @@
       r.classList.toggle("dark", dark);
       r.setAttribute("data-theme", dark ? "dark" : "light");
     }, [dark]);
-    var modeSwitch = function(className) {
-      return e(
-        "span",
-        { className: cx("bd-mode", className) },
-        e("span", { id: "bd-mode-label", className: "bd-mode-text" }, e(Icon, { name: dark ? "moon" : "sun" }), e("span", { className: "bd-mode-word" }, "Dark mode")),
-        e(Switch, { value: dark, labelledBy: "bd-mode-label", onChange: setDark })
-      );
-    };
     var renamingGroupState = useState(null);
     var renamingGroup = renamingGroupState[0], setRenamingGroup = renamingGroupState[1];
     var openingState = useState(null);
@@ -10490,15 +12641,12 @@
       openingRef.current = id;
       setOpeningState(id);
     };
-    var pictureRef = useRef(null);
-    var pictureFor = useRef(null);
     var arrivingState = useState(false);
     var arriving = arrivingState[0], setArriving = arrivingState[1];
     var versionsState = useState([]);
     var versions = versionsState[0], setVersions = versionsState[1];
     var shownState = useState(null);
     var shown = shownState[0], setShown = shownState[1];
-    var importFileRef = useRef(null);
     var refreshProjects = function() {
       return Promise.all([store.listProjects(), store.listGroups()]).then(function(got) {
         setGroupList(got[1]);
@@ -10798,10 +12946,6 @@
         afterCurrentGone(list);
       });
     };
-    var choosePicture = function(key) {
-      pictureFor.current = key;
-      if (pictureRef.current) pictureRef.current.click();
-    };
     var setGroupPicture = function(id, file) {
       pictureFrom(file).then(function(thumb) {
         if (!thumb) {
@@ -10848,13 +12992,8 @@
     var renamingPage = renamingPageState[0], setRenamingPage = renamingPageState[1];
     var renamingFolderState = useState(null);
     var renamingFolder = renamingFolderState[0], setRenamingFolder = renamingFolderState[1];
-    var pageDragState = useState(null);
-    var pageDrag = pageDragState[0], setPageDrag = pageDragState[1];
-    var pageDragRef = useRef(null);
-    var pageDragEnded = useRef(false);
     var boxScrubRef = useRef(null);
     var stylePreviewRef = useRef(null);
-    var pagesListRef = useRef(null);
     var confirmPageState = useState(null);
     var confirmPage = confirmPageState[0], setConfirmPage = confirmPageState[1];
     var takeMeta = function(meta) {
@@ -10916,16 +13055,6 @@
     };
     var placePage = function(pg, index, folderId) {
       return store.placePage(projectRef.current.id, pg, index, folderId).then(takeMeta);
-    };
-    var endOfFolder = function(fid, except) {
-      var pages = pagesOf(projectRef.current).filter(function(p) {
-        return p.id !== except;
-      });
-      var last = -1;
-      pages.forEach(function(p, i) {
-        if (p.folder === fid) last = i;
-      });
-      return last >= 0 ? last + 1 : pages.length;
     };
     var addFolder = function() {
       var meta = projectRef.current;
@@ -11154,433 +13283,10 @@
         }, 0);
       });
     };
-    var sortWhen = function(x, files) {
-      if (homeSort === "created") return x.createdAt || 0;
-      return files ? files.reduce(function(t, f) {
-        return Math.max(t, f.updatedAt || 0);
-      }, x.updatedAt || 0) : x.updatedAt || 0;
-    };
-    var sortList = function(list, filesOf) {
-      return list.slice().sort(function(a, b) {
-        if (homeSort === "alpha") return a.name.localeCompare(b.name, void 0, { sensitivity: "base", numeric: true });
-        if (homeSort === "recent" && !filesOf) {
-          var cur = (b.id === project.id) - (a.id === project.id);
-          if (cur) return cur;
-        }
-        return sortWhen(b, filesOf ? filesOf(b) : null) - sortWhen(a, filesOf ? filesOf(a) : null);
-      });
-    };
-    var confirmRow = function(label, text2, actions2) {
-      return e("div", { className: "bd-proj-confirm", role: "group", "aria-label": label }, e("span", null, text2), actions2);
-    };
-    var fileCard = function(p, showGroup) {
-      var current2 = p.id === project.id, isOpening = opening === p.id;
-      var g = showGroup && p.group ? groupById(p.group) : null;
-      var when = homeSort === "created" ? "Made " + ago(p.createdAt).toLowerCase() : ago(p.updatedAt);
-      var pages = pagesOf(p).length;
-      return e(
-        "li",
-        { key: p.id, className: cx("bd-proj", current2 && "is-current", isOpening && "is-opening"), "data-project": p.id },
-        e(
-          "button",
-          { type: "button", className: "bd-proj-open", onClick: function() {
-            openProject(p);
-          }, "aria-label": "Open " + p.name + (current2 ? ", open now" : ""), "aria-busy": isOpening ? "true" : void 0 },
-          e(
-            "span",
-            { className: "bd-proj-thumb", "aria-hidden": "true" },
-            p.thumb ? e("img", { src: p.thumb, alt: "" }) : e(Icon, { name: "frame" }),
-            isOpening ? e("span", { className: "bd-proj-loading" }, e("span", { className: "bd-spinner" })) : null
-          )
-        ),
-        e(
-          "div",
-          { className: "bd-proj-row" },
-          e(
-            "div",
-            { className: "bd-proj-info" },
-            renamingProj === p.id ? e(Renamable, { className: "bd-proj-name", value: p.name, label: "File name", startEditing: true, onChange: function(v) {
-              renameProject(p.id, v);
-            } }) : e("span", { className: "bd-proj-name" }, p.name),
-            e("span", { className: "bd-proj-meta" }, (current2 ? "Open now · " : "") + when + (pages > 1 ? " · " + pages + " pages" : "") + " · " + p.frames + (p.frames === 1 ? " frame" : " frames") + (g ? " · in " + g.name : ""))
-          ),
-          e(Dropdown, {
-            menu: true,
-            label: "Actions for " + p.name,
-            placeholder: "File",
-            icon: "more",
-            iconOnly: true,
-            compact: true,
-            narrow: true,
-            alignEnd: true,
-            className: "bd-dd-icon bd-proj-menu",
-            options: [
-              { value: "open", label: "Open", icon: "exportOut" },
-              { value: "rename", label: "Rename", icon: "pencil" },
-              { value: "picture", label: "Choose a picture", icon: "image" },
-              { value: "duplicate", label: "Duplicate", icon: "copy" },
-              { value: "download", label: "Download as a file", icon: "upload" },
-              { value: "delete", label: "Delete", icon: "trash", danger: true }
-            ].concat((groupList || []).filter(function(x) {
-              return x.id !== p.group;
-            }).map(function(x) {
-              return { value: "into:" + x.id, label: "Move to " + x.name, icon: "folder", group: "Move" };
-            })).concat(p.group ? [{ value: "out", label: "Move out to Home", icon: "home", group: "Move" }] : []),
-            onChange: function(v) {
-              if (v === "open") openProject(p);
-              else if (v === "rename") setRenamingProj(p.id);
-              else if (v === "picture") choosePicture(p.id);
-              else if (v === "duplicate") duplicateProject(p.id);
-              else if (v === "out") moveFile(p.id, null);
-              else if (v === "download") exportProject(p.id);
-              else if (v === "delete") setConfirmDel(p.id);
-              else if (String(v).indexOf("into:") === 0) moveFile(p.id, v.slice(5));
-            }
-          })
-        ),
-        confirmDel === p.id ? confirmRow("Delete " + p.name, "Delete for good?", [
-          e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
-            deleteProject(p.id);
-          } }, "Delete"),
-          e("button", { key: "k", type: "button", className: "bd-btn", onClick: function() {
-            setConfirmDel(null);
-          } }, "Keep")
-        ]) : null
-      );
-    };
-    var groupCard = function(g, files) {
-      var key = "g:" + g.id;
-      var pics = files.filter(function(f) {
-        return f.thumb;
-      }).slice(0, 4);
-      var n = files.length;
-      var when = homeSort === "created" ? "Made " + ago(g.createdAt).toLowerCase() : ago(sortWhen(g, files));
-      return e(
-        "li",
-        { key, className: "bd-proj is-group", "data-group": g.id },
-        e(
-          "button",
-          { type: "button", className: "bd-proj-open", onClick: function() {
-            goHomeView(g.id);
-          }, "aria-label": "Open " + g.name + ", " + n + (n === 1 ? " file" : " files") },
-          e(
-            "span",
-            { className: cx("bd-proj-thumb", !g.thumb && pics.length > 1 && "is-mosaic"), "aria-hidden": "true" },
-            g.thumb ? e("img", { src: g.thumb, alt: "" }) : pics.length > 1 ? pics.map(function(f) {
-              return e("img", { key: f.id, src: f.thumb, alt: "" });
-            }) : pics.length ? e("img", { src: pics[0].thumb, alt: "" }) : e(Icon, { name: "folder" }),
-            e("span", { className: "bd-proj-badge" }, e(Icon, { name: "folder" }), n + (n === 1 ? " file" : " files"))
-          )
-        ),
-        e(
-          "div",
-          { className: "bd-proj-row" },
-          e(
-            "div",
-            { className: "bd-proj-info" },
-            renamingGroup === g.id ? e(Renamable, { className: "bd-proj-name", value: g.name, label: "Project name", startEditing: true, onChange: function(v) {
-              renameGroup(g.id, v);
-            } }) : e("span", { className: "bd-proj-name" }, g.name),
-            e("span", { className: "bd-proj-meta" }, when)
-          ),
-          e(Dropdown, {
-            menu: true,
-            label: "Actions for " + g.name,
-            placeholder: "Project",
-            icon: "more",
-            iconOnly: true,
-            compact: true,
-            narrow: true,
-            alignEnd: true,
-            className: "bd-dd-icon bd-proj-menu",
-            options: [
-              { value: "open", label: "Open", icon: "folder" },
-              { value: "rename", label: "Rename", icon: "pencil" },
-              { value: "picture", label: "Choose a picture", icon: "image" }
-            ].concat(g.thumb ? [{ value: "auto", label: "Picture from its files", icon: "rotate" }] : []).concat([
-              { value: "duplicate", label: "Duplicate", icon: "copy" },
-              { value: "download", label: "Download as a file", icon: "upload" },
-              { value: "delete", label: "Delete", icon: "trash", danger: true }
-            ]),
-            onChange: function(v) {
-              if (v === "open") goHomeView(g.id);
-              else if (v === "rename") setRenamingGroup(g.id);
-              else if (v === "picture") choosePicture(key);
-              else if (v === "auto") store.setGroupThumb(g.id, null).then(refreshProjects);
-              else if (v === "duplicate") duplicateGroup(g.id);
-              else if (v === "download") exportGroup(g.id);
-              else if (v === "delete") setConfirmDel(key);
-            }
-          })
-        ),
-        confirmDel === key ? confirmRow("Delete " + g.name, n ? "Delete the project and its " + (n === 1 ? "file" : n + " files") + "?" : "Delete this empty project?", n ? [
-          e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
-            deleteGroup(g.id, false);
-          } }, "Delete all"),
-          e("button", { key: "k", type: "button", className: "bd-btn", onClick: function() {
-            deleteGroup(g.id, true);
-          }, title: "Delete the project and keep its files on Home" }, "Keep files"),
-          e("button", { key: "c", type: "button", className: "bd-btn bd-btn-ghost", onClick: function() {
-            setConfirmDel(null);
-          } }, "Cancel")
-        ] : [
-          e("button", { key: "d", type: "button", className: "bd-btn bd-btn-danger", onClick: function() {
-            deleteGroup(g.id, false);
-          } }, "Delete"),
-          e("button", { key: "c", type: "button", className: "bd-btn", onClick: function() {
-            setConfirmDel(null);
-          } }, "Keep")
-        ]) : null
-      );
-    };
-    var skeleton = function() {
-      return e("ul", { className: "bd-projects-grid is-loading", role: "list", "aria-busy": "true", "aria-label": "Loading" }, [0, 1, 2, 3].map(function(i) {
-        return e("li", { key: i, className: "bd-proj-skel", "aria-hidden": "true" }, e("span", { className: "bd-skel bd-skel-thumb" }), e("span", { className: "bd-skel bd-skel-line" }), e("span", { className: "bd-skel bd-skel-line is-short" }));
-      }));
-    };
-    var homePage = function() {
-      if (!home) return null;
-      var q = projQuery.trim().toLowerCase();
-      var files = projList || [], groups = groupList || [];
-      var inGroup = homeView ? groupById(homeView) : null;
-      var filesOf = function(g) {
-        return files.filter(function(f) {
-          return f.group === g.id;
-        });
-      };
-      var match = function(x) {
-        return !q || x.name.toLowerCase().indexOf(q) >= 0;
-      };
-      var shownGroups = inGroup ? [] : sortList(groups.filter(match), filesOf);
-      var shownFiles = sortList(files.filter(function(f) {
-        return inGroup ? f.group === inGroup.id && match(f) : q ? match(f) : !f.group;
-      }));
-      var count = shownGroups.length + shownFiles.length;
-      var section = function(title, list) {
-        return e(
-          "section",
-          { className: "bd-home-sec", "aria-label": title },
-          inGroup ? null : e("h2", { className: "bd-home-sec-title" }, title),
-          e("ul", { className: "bd-projects-grid", role: "list" }, list)
-        );
-      };
-      var empty = !projList ? null : q ? inGroup ? "No file in " + inGroup.name + " is called that." : "Nothing is called that." : inGroup ? "No files in this project yet. Make one with New, or move one here from Home with its ⋯ menu." : "Nothing here yet. Make a file or a project with New.";
-      return e(
-        "main",
-        { className: "bd-home bd-projects", "aria-labelledby": "bd-projects-title" },
-        /* On a phone the bar lives in the canvas pane, under this page, so it comes along. */
-        slot2 ? null : toolbar,
-        e("input", {
-          ref: pictureRef,
-          type: "file",
-          className: "visually-hidden",
-          accept: "image/*",
-          tabIndex: -1,
-          "aria-hidden": "true",
-          onChange: function(ev) {
-            var f = ev.target.files && ev.target.files[0];
-            ev.target.value = "";
-            var who = pictureFor.current;
-            pictureFor.current = null;
-            if (!who || !f) return;
-            if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f);
-            else setPicture(who, f);
-          }
-        }),
-        e("input", {
-          ref: importFileRef,
-          type: "file",
-          className: "visually-hidden",
-          accept: ".dovetail,application/json",
-          tabIndex: -1,
-          "aria-hidden": "true",
-          onChange: function(ev) {
-            var f = ev.target.files && ev.target.files[0];
-            ev.target.value = "";
-            importProject(f);
-          }
-        }),
-        e(
-          "div",
-          { className: "bd-home-inner", key: homeView || "home" },
-          e(
-            "div",
-            { className: "bd-home-head" },
-            e(
-              "div",
-              { className: "bd-home-heading" },
-              inGroup ? e(
-                "nav",
-                { className: "bd-crumbs bd-home-crumbs", "aria-label": "Where you are" },
-                e("button", { type: "button", className: "bd-crumb", onClick: function() {
-                  goHomeView(null);
-                } }, "Home"),
-                e("span", { className: "bd-crumb-sep", "aria-hidden": true }, "›"),
-                e("span", { className: "bd-crumb", "aria-current": "page" }, inGroup.name)
-              ) : null,
-              inGroup && renamingGroup === inGroup.id ? e(Renamable, { className: "bd-home-title", value: inGroup.name, label: "Project name", startEditing: true, onChange: function(v) {
-                renameGroup(inGroup.id, v);
-              } }) : e("h1", { id: "bd-projects-title", className: "bd-home-title", onDoubleClick: inGroup ? function() {
-                setRenamingGroup(inGroup.id);
-              } : void 0, title: inGroup ? "Double-click to rename" : void 0 }, inGroup ? inGroup.name : "Home")
-            ),
-            e(
-              "div",
-              { className: "bd-code-actions bd-home-actions" },
-              modeSwitch("bd-home-mode"),
-              e(
-                "button",
-                { type: "button", className: "bd-btn bd-home-account", "aria-haspopup": "dialog", onClick: openAccount, title: account2.status === "in" ? "Signed in as " + account2.account.email : account2.status === "off" ? "The cloud isn't connected yet" : "Sign in or create an account" },
-                e(Icon, { name: "user" }),
-                account2.status === "in" ? "Account" : "Sign in"
-              ),
-              e(Dropdown, {
-                menu: true,
-                label: "New",
-                placeholder: "New",
-                icon: "plus",
-                compact: true,
-                alignEnd: true,
-                className: "bd-home-new",
-                options: (inGroup ? [] : [{ value: "project", label: "New project", icon: "folder", hint: "A group of files" }]).concat([
-                  { value: "file", label: inGroup ? "New file in " + inGroup.name : "New file", icon: "file", hint: "A blank canvas" }
-                ]).concat(STARTERS.filter(function(st) {
-                  return st[0] !== "blank";
-                }).map(function(st) {
-                  return { value: "tpl:" + st[0], label: st[1], icon: "layout", group: "File from a template" };
-                })).concat(inGroup ? [] : [{ value: "playground", label: "Playground", icon: "star", hint: "Getting started and live examples", group: "Learn" }]).concat([{ value: "open", label: "Open a file…", icon: "upload", hint: "A .dovetail file from this computer", group: "From your computer" }]),
-                onChange: function(v) {
-                  if (v === "project") newGroup();
-                  else if (v === "file") newProject(null);
-                  else if (v === "open") {
-                    if (importFileRef.current) importFileRef.current.click();
-                  } else if (v === "playground") newPlayground();
-                  else if (String(v).indexOf("tpl:") === 0) newProject(v.slice(4));
-                }
-              })
-            )
-          ),
-          e(
-            "div",
-            { className: "bd-home-tools" },
-            e(SearchField, { className: "bd-projects-search bd-home-search", label: inGroup ? "Search " + inGroup.name : "Search projects and files", placeholder: inGroup ? "Search " + inGroup.name : "Search projects and files", value: projQuery, onChange: setProjQuery }),
-            e(
-              "div",
-              { className: "bd-home-bar" },
-              e(Segmented, { label: "Sort by", className: "bd-home-sort", value: homeSort, onChange: function(v) {
-                if (v) setHomeSort(v);
-              }, options: HOME_SORTS }),
-              projList ? e("span", { className: "bd-home-count", role: "status" }, count + (count === 1 ? " item" : " items")) : null
-            )
-          ),
-          !projList ? skeleton() : !count ? e("p", { className: "bd-sec-empty bd-projects-empty" }, empty) : e(
-            "div",
-            { className: "bd-home-lists" },
-            shownGroups.length ? section("Projects", shownGroups.map(function(g) {
-              return groupCard(g, filesOf(g));
-            })) : null,
-            shownFiles.length ? section("Files", shownFiles.map(function(f) {
-              return fileCard(f, !inGroup);
-            })) : null
-          )
-        )
-      );
-    };
     var openKeys = function() {
       setShown("keys");
       var dlg = keysRef.current;
       if (dlg && dlg.showModal && !dlg.open) dlg.showModal();
-    };
-    var keysDialog = function() {
-      var dialogProps = { className: "bd-code bd-keys", ref: keysRef, "aria-labelledby": "bd-keys-title", onClose: function() {
-        setShown(null);
-      } };
-      if (shown !== "keys") return e("dialog", dialogProps);
-      var tools2 = Object.keys(TOOL_INFO).map(function(k) {
-        return TOOL_INFO[k];
-      }).filter(function(t) {
-        return t.key;
-      }).map(function(t) {
-        return [t.label.replace(/:.*$/, ""), t.key];
-      });
-      var groups = [["Tools", tools2]].concat(SHORTCUTS);
-      return e(
-        "dialog",
-        dialogProps,
-        e(
-          "div",
-          { className: "bd-code-head" },
-          e(
-            "div",
-            { className: "bd-code-intro" },
-            e("h2", { id: "bd-keys-title" }, "Keyboard shortcuts"),
-            e("p", { className: "bd-inspect-sub" }, IS_MAC ? "As a Mac keyboard has them." : "On a Mac, Ctrl is ⌘ and Alt is ⌥.")
-          ),
-          e(
-            "div",
-            { className: "bd-code-actions" },
-            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close (Esc)", onClick: function() {
-              keysRef.current.close();
-            } }, e(Icon, { name: "close" }))
-          )
-        ),
-        e("div", { className: "bd-keys-groups" }, groups.map(function(g) {
-          return e(
-            "section",
-            { key: g[0], className: "bd-keys-group", "aria-labelledby": "bd-keys-" + g[0].replace(/\W+/g, "-") },
-            e("h3", { id: "bd-keys-" + g[0].replace(/\W+/g, "-") }, g[0]),
-            e("dl", null, g[1].map(function(row) {
-              return e(
-                React.Fragment,
-                { key: row[0] },
-                e("dt", null, row[0]),
-                e("dd", null, row[1].split(", ").map(function(k, i) {
-                  return e("kbd", { key: i }, kbd(k));
-                }))
-              );
-            }))
-          );
-        }))
-      );
-    };
-    var versionsDialog = function() {
-      var dialogProps = { className: "bd-code bd-versions", ref: versionsRef, "aria-labelledby": "bd-versions-title", onClose: function() {
-        setShown(null);
-      } };
-      if (shown !== "versions") return e("dialog", dialogProps);
-      return e(
-        "dialog",
-        dialogProps,
-        e(
-          "div",
-          { className: "bd-code-head" },
-          e(
-            "div",
-            { className: "bd-code-intro" },
-            e("h2", { id: "bd-versions-title" }, "Versions of " + project.name),
-            e("p", { className: "bd-inspect-sub" }, "Kept every 10 minutes while you work and before big changes, " + VERSIONS_MAX + " at most. Restoring one is a step you can undo.")
-          ),
-          e(
-            "div",
-            { className: "bd-code-actions" },
-            e("button", { type: "button", className: "bd-btn", onClick: keepVersion }, e(Icon, { name: "plus" }), "Keep this version"),
-            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
-              versionsRef.current.close();
-            } }, e(Icon, { name: "close" }))
-          )
-        ),
-        versions.length ? e("ul", { className: "bd-versions-list", role: "list" }, versions.map(function(v) {
-          return e(
-            "li",
-            { key: v.key, className: "bd-version" },
-            e("span", { className: "bd-version-when" }, new Date(v.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })),
-            e("span", { className: "bd-version-what" }, v.label + " · " + v.frames + (v.frames === 1 ? " frame" : " frames")),
-            e("button", { type: "button", className: "bd-btn", onClick: function() {
-              restoreVersion(v);
-            } }, "Restore")
-          );
-        })) : e("p", { className: "bd-sec-empty" }, "No versions yet. The first is kept after 10 minutes of work, or keep one now.")
-      );
     };
     var startFrom = function(id) {
       if (id === "import") {
@@ -11605,44 +13311,6 @@
     var compRef = useRef(null);
     var compState = useState(null);
     var compDraft = compState[0], setCompDraft = compState[1];
-    var componentCheck = function(node) {
-      var issues = [], tokens = {}, count = 0;
-      (function walk(n, depth) {
-        count++;
-        var label = nameOf(n);
-        if (n.type === "Slot") issues.push({ level: "error", text: "A slot only lives inside its component. Select the component instead." });
-        Object.keys(n.style || {}).forEach(function(k) {
-          var v = n.style[k];
-          if (k === "x" || k === "y") {
-            if (depth > 0 && k === "x") issues.push({ level: "error", id: n.id, fix: "flow", text: label + " is placed by position. A component's layers sit in its flow." });
-            return;
-          }
-          if (k === "fill" || k === "color") {
-            issues.push({ level: "error", id: n.id, key: k, fix: "token", text: label + " has a custom " + (k === "fill" ? "fill" : "text colour") + " (" + v + "), not a token." });
-            return;
-          }
-          var def = DATA.tokens[k];
-          var o = def ? def.options.filter(function(x) {
-            return x.value === v;
-          })[0] : null;
-          if (o) o.tokens.forEach(function(t) {
-            tokens[t] = 1;
-          });
-        });
-        if (n.type === "Group" && n.props.gap && n.props.gap !== "none") tokens["--dt-space-" + (n.props.direction === "row" ? "inline" : "stack") + "-" + n.props.gap] = 1;
-        Object.keys(n.props || {}).forEach(function(k) {
-          if (typeof n.props[k] === "string" && /^data:/.test(n.props[k])) issues.push({ level: "warn", text: label + " carries an uploaded file. It stays in this browser and isn't in share links." });
-        });
-        (n.children || []).forEach(function(c) {
-          walk(c, depth + 1);
-        });
-      })(node, 0);
-      var list = Object.keys(tokens);
-      if (count > 300) issues.push({ level: "error", text: "It has " + count + " layers; a component takes up to 300." });
-      if (!list.length) issues.push({ level: "error", text: "It isn't built on any tokens yet. Give it spacing, a fill, a radius or a gap from the system first." });
-      if (count === 1 && !isContainer(node.type)) issues.push({ level: "warn", text: "It's a single " + node.type + ". As a component it saves its settings, nothing more." });
-      return { issues, tokens: list, count };
-    };
     var componentSource = function() {
       var d = docRef.current;
       var at2 = selRef.current.map(function(id) {
@@ -11728,80 +13396,6 @@
       if (dlg && dlg.open) dlg.close();
       setCompDraft(null);
       announce(name + " is in My components, built on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens"));
-    };
-    var componentDialog = function() {
-      var node = compDraft ? componentSource() : null;
-      var check = node ? componentCheck(node) : null;
-      var errors2 = check ? check.issues.filter(function(i) {
-        return i.level === "error";
-      }) : [];
-      var warns = check ? check.issues.filter(function(i) {
-        return i.level === "warn";
-      }) : [];
-      var fixable = errors2.some(function(i) {
-        return i.fix;
-      });
-      return e(
-        "dialog",
-        { className: "bd-code bd-comp-dlg", ref: compRef, "aria-labelledby": "bd-comp-title", onClose: function() {
-          setCompDraft(null);
-        } },
-        e(
-          "div",
-          { className: "bd-code-head" },
-          e(
-            "div",
-            { className: "bd-code-intro" },
-            e("h2", { id: "bd-comp-title" }, "Create component"),
-            e("p", { className: "bd-inspect-sub" }, "It goes in Assets, under Components › My components, to use again in any frame. A component is built from the system's tokens, so it follows the theme wherever it goes.")
-          ),
-          e(
-            "div",
-            { className: "bd-code-actions" },
-            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
-              compRef.current.close();
-            } }, e(Icon, { name: "close" }))
-          )
-        ),
-        check ? e(
-          "div",
-          { className: "bd-comp-body" },
-          e(
-            "label",
-            { className: "bd-field" },
-            e("span", { className: "bd-field-label" }, "Name"),
-            e("input", { className: "bd-input bd-comp-name", type: "text", maxLength: 60, value: compDraft.name, onChange: function(ev) {
-              var v = ev.target.value;
-              setCompDraft(function(c) {
-                return c ? Object.assign({}, c, { name: v }) : c;
-              });
-            } })
-          ),
-          e(
-            "div",
-            { className: cx("bd-comp-status", errors2.length ? "is-blocked" : "is-ready"), role: "status" },
-            e(Icon, { name: errors2.length ? "alert" : "check" }),
-            errors2.length ? errors2.length + (errors2.length === 1 ? " thing stops" : " things stop") + " it becoming a component" : "Ready: " + check.count + (check.count === 1 ? " layer" : " layers") + " on " + check.tokens.length + (check.tokens.length === 1 ? " token" : " tokens")
-          ),
-          errors2.length || warns.length ? e("ul", { className: "bd-comp-issues" }, errors2.concat(warns).map(function(i, k) {
-            return e("li", { key: k, className: "is-" + i.level }, e(Icon, { name: i.level === "error" ? "alert" : "bell" }), e("span", null, i.text));
-          })) : null,
-          check.tokens.length ? e(
-            "details",
-            { className: "bd-comp-tokens" },
-            e("summary", null, "The tokens it's built on (" + check.tokens.length + ")"),
-            e("ul", null, check.tokens.map(function(t) {
-              return e("li", { key: t }, e("code", null, t));
-            }))
-          ) : null,
-          e(
-            "div",
-            { className: "bd-import-actions" },
-            e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !!errors2.length, onClick: saveComponent }, e(Icon, { name: "component" }), "Create component"),
-            fixable ? e("button", { type: "button", className: "bd-btn", onClick: fixComponent, title: "Takes out custom colours and positions inside it, so it uses the system's" }, "Use the system's instead") : null
-          )
-        ) : null
-      );
     };
     var removeComponent = function(id) {
       setLibrary(function(l) {
@@ -12000,16 +13594,7 @@
       });
     };
     var labelOf = function(n) {
-      if (n.name) return n.name;
-      var base = scalars[n.type] || {};
-      var text2 = n.props.children != null ? n.props.children : n.props.title != null ? n.props.title : n.props.label != null ? n.props.label : base.children || base.title || base.label || base.name || base.brand;
-      return typeof text2 === "string" || typeof text2 === "number" ? String(text2) : "";
-    };
-    var typeIcon = function(type) {
-      if (TYPE_ICON[type]) return TYPE_ICON[type];
-      var g = META[type] && META[type].group;
-      if (g && GROUP_TYPE_ICON[g]) return GROUP_TYPE_ICON[g];
-      return isContainer(type) ? "box" : "component";
+      return nodeLabel(n, scalars);
     };
     var nodesOf2 = function(ids) {
       return ids.map(function(id) {
@@ -12018,11 +13603,7 @@
         return a.node;
       });
     };
-    var same3 = function(values) {
-      return values.every(function(v) {
-        return JSON.stringify(v) === JSON.stringify(values[0]);
-      });
-    };
+    var same3 = allSame;
     var frameMenu = function(f, where) {
       return e(Dropdown, {
         menu: true,
@@ -12059,7 +13640,7 @@
       });
     };
     var sizeText = function(f) {
-      return f.width + " × " + (f.hug ? Math.round((boxes[f.id] || {}).h || f.height) : f.height);
+      return frameSize(f, boxes);
     };
     var scopeFor = function(nodes) {
       var d = docRef.current;
@@ -12659,8 +14240,8 @@
         return align.options.indexOf(v) >= 0 && justify.options.indexOf(v) >= 0;
       });
       var a = val("align"), j = val("justify");
-      var head = [];
-      if (spec("direction")) head.push(e(Segmented, {
+      var head2 = [];
+      if (spec("direction")) head2.push(e(Segmented, {
         key: "dir",
         label: "Direction",
         value: val("direction"),
@@ -12669,7 +14250,7 @@
         },
         options: [{ value: "row", label: "Row", icon: "row" }, { value: "column", label: "Column", icon: "column" }]
       }));
-      if (spec("wrap")) head.push(e("button", {
+      if (spec("wrap")) head2.push(e("button", {
         key: "wrap",
         type: "button",
         className: "bd-act",
@@ -12720,9 +14301,9 @@
       }).map(function(p) {
         return propControl(p, nodes);
       }).filter(Boolean);
-      if (!head.length && !pad && !side2.length && !rest.length) return null;
+      if (!head2.length && !pad && !side2.length && !rest.length) return null;
       return [
-        head.length ? e("div", { key: "head", className: "bd-flex-head" }, head) : null,
+        head2.length ? e("div", { key: "head", className: "bd-flex-head" }, head2) : null,
         pad || side2.length ? e(
           "div",
           { key: "pad", className: "bd-flex-grid" },
@@ -12972,7 +14553,6 @@
       } else return null;
       return e(Field, { key: p.name, id, label, note: p.note }, control);
     };
-    var LIB_TABS = [["images", "Images", "image"], ["illustrations", "Illustrations", "squiggle"], ["icons", "Icons", "star"], ["video", "Video", "video"]];
     var addToLibrary = function(kind, files) {
       var list = Array.prototype.slice.call(files || []);
       if (!list.length) return;
@@ -13030,15 +14610,6 @@
       var P = window.DovetailConfigurePanel;
       return P && P.brand ? P.brand() : { name: "", mark: "", wordmark: "" };
     };
-    var WORDMARK_TONE = { primary: "brand", secondary: "brand-secondary" };
-    var brandPieces = function(b) {
-      var name = b.name || "Your brand";
-      var P = window.DovetailConfigurePanel;
-      var tone = P && P.config ? WORDMARK_TONE[P.config().wordmarkColor] : null;
-      var logo = b.wordmark ? { kind: "asset", src: b.wordmark, label: name, media: "image", props: { ratio: "21:9", fit: "contain", radius: "none" }, extra: { name: "Logo", style: { w: "x4" } } } : { kind: "new", type: "Heading", label: name, props: Object.assign({ children: name, size: "heading-md", balance: false }, tone ? { tone } : {}), extra: { name: "Logo" } };
-      var mark = b.mark ? { kind: "asset", src: b.mark, label: name + " mark", media: "image", props: { ratio: "square", fit: "contain", radius: "none" }, extra: { name: "Brand mark", style: { w: "x2" } } } : null;
-      return { logo, mark };
-    };
     var placeBrand = function(piece) {
       if (piece.kind === "asset") add("Image", null, Object.assign({ src: piece.src, alt: piece.label }, piece.props), piece.extra);
       else add(piece.type, null, piece.props, piece.extra);
@@ -13084,408 +14655,12 @@
       };
       reader.readAsDataURL(file);
     };
-    var brandPanel = function() {
-      var b = brandNow();
-      var pieces = brandPieces(b);
-      var tile = function(key, label, piece, preview2, emptyNote, hint) {
-        var fileId = "bd-brand-" + key;
-        var hasFile = !!b[key];
-        return e(
-          "section",
-          {
-            className: "bd-content-sec bd-brand-sec",
-            "aria-labelledby": fileId + "-h",
-            onDragOver: function(ev) {
-              if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], "Files") >= 0) ev.preventDefault();
-            },
-            onDrop: function(ev) {
-              if (!ev.dataTransfer.files.length) return;
-              ev.preventDefault();
-              readBrandFile(key, ev.dataTransfer.files[0]);
-            }
-          },
-          e("h3", { className: "bd-content-h", id: fileId + "-h" }, label),
-          piece ? e("button", {
-            type: "button",
-            className: cx("bd-brand-tile", key === "mark" && "is-mark"),
-            "data-brand": key,
-            title: "Drag the " + label.toLowerCase() + " onto a frame, or press to add it",
-            onPointerDown: function(ev) {
-              if (ev.pointerType !== "touch") startDrag(ev, piece);
-            },
-            onClick: function() {
-              if (!justDragged.current) placeBrand(piece);
-            }
-          }, preview2) : e("div", { className: "bd-brand-tile is-empty" }, e(Icon, { name: "image" }), e("span", null, emptyNote)),
-          e(
-            "div",
-            { className: "bd-content-add" },
-            e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), hasFile ? "Replace" : "Upload"),
-            e("input", {
-              id: fileId,
-              type: "file",
-              className: "visually-hidden",
-              accept: "image/png,image/jpeg,image/gif,image/webp,image/svg+xml",
-              onChange: function(ev) {
-                readBrandFile(key, ev.target.files[0]);
-                ev.target.value = "";
-              }
-            }),
-            hasFile ? e("button", { type: "button", className: "bd-btn", onClick: function() {
-              var patch = {};
-              patch[key] = "";
-              if (setBrandPart(patch)) announce("Removed the " + label.toLowerCase() + ".");
-            } }, "Remove") : null
-          ),
-          hint ? e("p", { className: "bd-content-note" }, hint) : null
-        );
-      };
-      return e(
-        "div",
-        { className: "bd-content" },
-        e(
-          "div",
-          { className: "bd-panel-head bd-gallery-head" },
-          e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
-            setLibTab(null);
-            setBrandErr(null);
-          } }, e(Icon, { name: "left" })),
-          e("h2", { className: "bd-panel-title" }, "Brand")
-        ),
-        e("p", { className: "bd-content-note bd-brand-intro" }, "The same name, logo and mark as Configure's Brand group. Each file keeps its own, and the builder's own header isn't changed. Drag one onto a frame, or press it to add it."),
-        e(
-          "section",
-          { className: "bd-content-sec" },
-          e("label", { className: "bd-content-h", htmlFor: "bd-brand-name" }, "Name"),
-          e("input", {
-            id: "bd-brand-name",
-            className: "bd-input",
-            type: "text",
-            maxLength: 80,
-            placeholder: "Your brand",
-            value: b.name,
-            onChange: function(ev) {
-              setBrandPart({ name: ev.target.value });
-            }
-          })
-        ),
-        brandErr ? e("p", { className: "bd-brand-err", role: "alert" }, brandErr) : null,
-        tile(
-          "wordmark",
-          "Logo",
-          pieces.logo,
-          b.wordmark ? e("img", { src: b.wordmark, alt: "", draggable: false }) : e("span", { className: "bd-brand-word" }, b.name || "Your brand"),
-          "",
-          b.wordmark ? null : "Without a logo file, the logo is the name, set in type. SVG or PNG, up to 512KB."
-        ),
-        tile("mark", "Brand mark", pieces.mark, b.mark ? e("img", { src: b.mark, alt: "", draggable: false }) : null, "No brand mark yet", "A small symbol for beside the logo, or on its own. SVG or PNG, up to 512KB.")
-      );
-    };
-    var brandCard = function() {
-      var b = brandNow();
-      var pics = [b.mark, b.wordmark].filter(Boolean);
-      var note3 = b.wordmark && b.mark ? "Logo and mark" : b.wordmark ? "Logo" : b.mark ? "Mark, and the name" : b.name ? "The name" : "Name, logo and mark";
-      return e("li", { key: "brand" }, e(
-        "button",
-        { type: "button", className: "bd-kind", "data-kind": "brand", onClick: function() {
-          setLibTab("brand");
-        } },
-        e("span", { className: "bd-kind-pics is-brand" }, pics.length ? pics.map(function(src, i) {
-          return e("img", { key: i, src, alt: "", draggable: false });
-        }) : b.name ? e("span", { className: "bd-brand-word" }, b.name) : e(Icon, { name: "tag" })),
-        e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, "Brand"), e("span", { className: "bd-kind-note" }, note3)),
-        e(Icon, { name: "right", className: "bd-kind-chev" })
-      ));
-    };
     var contentScopeNote = function() {
       var g = project.group ? groupById(project.group) : null;
       if (g) return "Shared by the files in " + g.name + ". Other projects don't see it.";
       if (project.lib === "shared") return "Shared by the files you made before projects. Moving this file into a project brings it along.";
       return "This file's own. Moving it into a project brings it along.";
     };
-    var contentPanel = function() {
-      var q0 = contentQuery.trim().toLowerCase();
-      if (!libTab && q0) {
-        var hits = [];
-        LIB_KINDS.forEach(function(k) {
-          library[k].forEach(function(it) {
-            if (it.name.toLowerCase().indexOf(q0) >= 0) hits.push({ kind: k, it });
-          });
-        });
-        return e(
-          "div",
-          { className: "bd-content" },
-          e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Results"), e("span", { className: "bd-count" }, hits.length)),
-          hits.length ? e("ul", { className: "bd-lib", role: "list" }, hits.map(function(h) {
-            var clip2 = h.kind === "video";
-            return e(
-              "li",
-              { key: h.it.id, className: "bd-lib-item" },
-              e(
-                "button",
-                {
-                  type: "button",
-                  className: cx("bd-lib-thumb", (h.kind === "images" || clip2) && !h.it.original && "is-fill"),
-                  title: h.it.name + ": drag onto a frame, or press to add",
-                  onPointerDown: function(ev) {
-                    if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: h.it.src, label: h.it.name, media: clip2 ? "video" : "image" });
-                  },
-                  onClick: function() {
-                    if (!justDragged.current) insertAsset(h.it, clip2);
-                  }
-                },
-                clip2 ? e("video", { src: h.it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: h.it.src, alt: "", draggable: false })
-              ),
-              e("span", { className: "bd-lib-name" }, h.it.name)
-            );
-          })) : e("p", { className: "bd-empty-note" }, "Nothing in your content matches.")
-        );
-      }
-      if (!libTab) {
-        return e(
-          "div",
-          { className: "bd-content" },
-          e("div", { className: "bd-panel-head" }, e("h2", { className: "bd-panel-title" }, "Content")),
-          e("p", { className: "bd-content-note bd-content-scope" }, contentScopeNote()),
-          e("ul", { className: "bd-kinds", role: "list" }, [brandCard()].concat(LIB_TABS.map(function(t) {
-            var items2 = library[t[0]];
-            var note3 = t[0] === "icons" ? items2.length ? items2.length + " of yours, and the icon library" : "The icon library, and yours" : items2.length ? items2.length + (items2.length === 1 ? " item" : " items") : "Nothing yet";
-            return e("li", { key: t[0] }, e(
-              "button",
-              { type: "button", className: "bd-kind", "data-kind": t[0], onClick: function() {
-                setLibTab(t[0]);
-              } },
-              e("span", { className: cx("bd-kind-pics", t[0] === "icons" && "is-icons") }, items2.length ? items2.slice(0, 3).map(function(it) {
-                return t[0] === "video" ? e("video", { key: it.id, src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { key: it.id, src: it.src, alt: "", draggable: false });
-              }) : e(Icon, { name: t[2] })),
-              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, t[1]), e("span", { className: "bd-kind-note" }, note3)),
-              e(Icon, { name: "right", className: "bd-kind-chev" })
-            ));
-          })))
-        );
-      }
-      if (libTab === "brand") return brandPanel();
-      var kind = libTab;
-      var cq = contentQuery.trim().toLowerCase();
-      var items = library[kind].filter(function(it) {
-        return !cq || it.name.toLowerCase().indexOf(cq) >= 0;
-      });
-      var fileId = "bd-lib-file";
-      var lib = window.DovetailConfigurePanel && window.DovetailConfigurePanel.config ? window.DovetailConfigurePanel.config().iconLib : null;
-      var icons = window.DovetailConfigure && window.DovetailConfigure.icons || {};
-      return e(
-        "div",
-        {
-          className: "bd-content",
-          onDragOver: function(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.add("is-drop");
-          },
-          onDragLeave: function(ev) {
-            ev.currentTarget.classList.remove("is-drop");
-          },
-          onDrop: function(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove("is-drop");
-            addToLibrary(kind, ev.dataTransfer.files);
-          }
-        },
-        e(
-          "div",
-          { className: "bd-panel-head bd-gallery-head" },
-          e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Content", title: "Back to Content", onClick: function() {
-            setLibTab(null);
-          } }, e(Icon, { name: "left" })),
-          e("h2", { className: "bd-panel-title" }, LIB_TABS.filter(function(t) {
-            return t[0] === kind;
-          })[0][1])
-        ),
-        kind === "icons" ? e(
-          "section",
-          { className: "bd-content-sec", "aria-labelledby": "bd-iconlib" },
-          e("h3", { className: "bd-content-h", id: "bd-iconlib" }, "Icon library"),
-          e("p", { className: "bd-content-note" }, "The set every component draws its icons from, here and on every page."),
-          e(
-            "div",
-            { className: "bd-iconlibs", role: "radiogroup", "aria-labelledby": "bd-iconlib" },
-            Object.keys(icons).concat(["custom"]).map(function(k) {
-              var info = icons[k] || { label: "Custom", note: "Your own set, named in Configure's Media group." };
-              return e(
-                "button",
-                {
-                  key: k,
-                  type: "button",
-                  role: "radio",
-                  className: "bd-iconlib",
-                  "aria-checked": String(lib === k),
-                  onClick: function() {
-                    if (window.DovetailConfigurePanel && window.DovetailConfigurePanel.setIconLib) {
-                      window.DovetailConfigurePanel.setIconLib(k);
-                      setThemeStamp(function(n) {
-                        return n + 1;
-                      });
-                    }
-                  }
-                },
-                e("span", { className: "bd-iconlib-name" }, info.label),
-                e("span", { className: "bd-iconlib-note" }, info.note)
-              );
-            })
-          )
-        ) : null,
-        e(
-          "section",
-          { className: "bd-content-sec", "aria-label": "Your " + kind },
-          kind === "icons" ? e("h3", { className: "bd-content-h" }, "Your icons") : null,
-          e(
-            "div",
-            { className: "bd-content-add" },
-            e("label", { className: "bd-btn", htmlFor: fileId }, e(Icon, { name: "upload" }), "Upload " + (kind === "icons" ? "SVG icons" : kind === "video" ? "clips" : kind)),
-            e("input", {
-              id: fileId,
-              type: "file",
-              multiple: true,
-              className: "visually-hidden",
-              accept: kind === "icons" ? "image/svg+xml,.svg" : kind === "video" ? "video/*" : "image/*",
-              onChange: function(ev) {
-                var f = ev.target.files;
-                addToLibrary(kind, f);
-                ev.target.value = "";
-              }
-            }),
-            e("span", { className: "bd-content-note" }, "or drop files here")
-          ),
-          libBusy ? e("p", { className: "bd-content-busy", role: "status" }, libBusy) : null,
-          items.length ? e("ul", { className: cx("bd-lib", kind === "icons" && "is-icons"), role: "list" }, items.map(function(it) {
-            return e(
-              "li",
-              { key: it.id, className: "bd-lib-item" },
-              e(
-                "button",
-                {
-                  type: "button",
-                  className: cx("bd-lib-thumb", (kind === "images" || kind === "video") && !it.original && "is-fill"),
-                  title: it.name + ": drag onto a frame, or onto a picture or video to fill it; press to add",
-                  onPointerDown: function(ev) {
-                    if (ev.pointerType !== "touch") startDrag(ev, { kind: "asset", src: it.src, label: it.name, media: kind === "video" ? "video" : "image" });
-                  },
-                  onClick: function() {
-                    if (!justDragged.current) insertAsset(it, kind === "video");
-                  }
-                },
-                kind === "video" ? e("video", { src: it.src, muted: true, playsInline: true, preload: "metadata" }) : e("img", { src: it.src, alt: "", draggable: false })
-              ),
-              e("span", { className: "bd-lib-name" }, it.name),
-              e(Dropdown, {
-                menu: true,
-                label: "Actions for " + it.name,
-                icon: "more",
-                compact: true,
-                narrow: true,
-                className: "bd-dd-icon bd-lib-menu",
-                options: [{ value: "insert", label: "Add to " + frame2.name, icon: "plus" }].concat(kind !== "icons" && kind !== "video" ? [{ value: "cut", label: "Remove background", icon: "wand" }] : []).concat(it.original ? [{ value: "restore", label: "Put the background back", icon: "undo" }] : []).concat([{ value: "delete", label: "Delete", icon: "trash", danger: true }]),
-                onChange: function(v) {
-                  if (v === "insert") insertAsset(it, kind === "video");
-                  else if (v === "cut") cutBackground(it.src).then(function(url) {
-                    if (url) libUpdate(kind, it.id, { src: url, original: it.original || it.src });
-                  });
-                  else if (v === "restore") libUpdate(kind, it.id, { src: it.original, original: void 0 });
-                  else if (v === "delete") libUpdate(kind, it.id, { removed: true });
-                }
-              })
-            );
-          })) : e(
-            "div",
-            { className: "bd-empty" },
-            e(Icon, { name: LIB_TABS.filter(function(t) {
-              return t[0] === kind;
-            })[0][2] }),
-            e("p", null, kind === "icons" ? "Upload SVG icons to use as pictures on the canvas." : kind === "video" ? "Upload clips up to 1.5 MB to reuse them: drag one onto a frame, or onto a Video to fill it." : "Upload " + kind + " to reuse them: drag one onto a frame, or onto a picture to fill it.")
-          )
-        )
-      );
-    };
-    var ASSET_KINDS = [
-      ["containers", "Containers", "frame", "Empty frames to build in: freeform, structured, tall, and every screen size"],
-      ["primitives", "Primitives", "swatch", "Groups, stacks, grids, shapes and type to build with"],
-      ["variables", "Variables", "variable", "The system's tokens: colour, spacing, radius, shadow and size"],
-      ["components", "Components", "component", "Buttons, forms, navigation, feedback, commerce and chat"],
-      ["blocks", "Blocks", "blocks", "Whole page sections, ready to fill"],
-      ["templates", "Templates", "file", "Ready-made pages, as new frames or into one"]
-    ];
-    var KIND_GROUPS = { primitives: ["layout", "typography"], blocks: ["blocks"] };
-    var groupsOf = function(kind) {
-      if (KIND_GROUPS[kind]) return DATA.groups.filter(function(g) {
-        return KIND_GROUPS[kind].indexOf(g.id) >= 0;
-      });
-      if (kind === "components") return DATA.groups.filter(function(g) {
-        return g.id !== "blocks" && KIND_GROUPS.primitives.indexOf(g.id) < 0;
-      });
-      return [];
-    };
-    var usableIn = function(g) {
-      return g.items.filter(function(n) {
-        return !placeable || placeable[n];
-      });
-    };
-    var PLAIN = {};
-    groupsOf("primitives").forEach(function(g) {
-      g.items.forEach(function(n) {
-        PLAIN[n] = true;
-      });
-    });
-    var tileList = function(items) {
-      return e("ul", { className: cx("bd-tiles", view === "list" ? "is-list" : "is-grid") }, items.map(function(n) {
-        var meta = META[n];
-        var plain = PLAIN[n];
-        return e(
-          "li",
-          { key: n },
-          e(
-            "button",
-            {
-              type: "button",
-              className: cx("bd-tile", plain && "is-icon"),
-              "data-type": n,
-              "aria-label": "Add " + n,
-              title: (meta.blurb ? n + ": " + meta.blurb : n) + ". Cmd-drag onto a component to swap it.",
-              onPointerDown: function(ev) {
-                startDrag(ev, { kind: "new", type: n, label: n, thumb: ev.currentTarget.querySelector(".bd-thumb") });
-              },
-              onClick: function(ev) {
-                if (justDragged.current) return;
-                var s0 = selRef.current;
-                if ((ev.metaKey || ev.ctrlKey) && s0.length) {
-                  swapNode(s0[s0.length - 1], n, docRef.current.active);
-                  return;
-                }
-                add(n);
-              }
-            },
-            plain ? e("span", { className: "bd-thumb is-icon", "aria-hidden": true }, e(Icon, { name: TYPE_ICON[n] || BUILDER_ICON[n] || "box", className: "bd-thumb-ic" })) : e(Thumb, { type: n, wide: meta.group === "blocks" }),
-            e(
-              "span",
-              { className: "bd-tile-text" },
-              e("span", { className: "bd-tile-name" }, n),
-              view === "list" ? e("span", { className: "bd-tile-blurb" }, meta.blurb || "") : null
-            )
-          )
-        );
-      }));
-    };
-    var viewToggle = function() {
-      return e(Segmented, { label: "View", value: view, onChange: setView, options: [{ value: "grid", label: "Grid", icon: "gridView" }, { value: "list", label: "List", icon: "listView" }] });
-    };
-    var varScopeState = useState("all");
-    var varScope = varScopeState[0], setVarScope = varScopeState[1];
-    var VAR_SETS = [
-      ["surface", "Fill", "color"],
-      ["border", "Border", "color"],
-      ["padding", "Padding", "space"],
-      ["radius", "Radius", "radius"],
-      ["elevation", "Shadow", "shadow"],
-      ["w", "Width", "size"]
-    ];
     var applyVar = function(key, value, label) {
       var ids = selRef.current.filter(function(id) {
         var at2 = locate(docRef.current, id);
@@ -13500,87 +14675,6 @@
       if (key === "surface") patch.fill = void 0;
       setStyles(ids, patch);
       announce(label + " is " + value + " on " + (ids.length === 1 ? nameOf(locate(docRef.current, ids[0]).node) : ids.length + " layers"));
-    };
-    var variablesPanel = function() {
-      var picked = nodesOf2(selection).filter(function(n) {
-        return n.type !== "Slot";
-      });
-      var sc = picked.length ? scopeFor(picked) : null;
-      var own = picked.length && picked.every(function(n) {
-        return n.type === picked[0].type;
-      }) && META[picked[0].type] ? META[picked[0].type].ownPadding : null;
-      return e(
-        "div",
-        { className: "bd-vars" },
-        e("p", { className: "bd-content-note bd-vars-note" }, picked.length ? "Press one to apply it to " + (picked.length === 1 ? nameOf(picked[0]) : picked.length + " layers") + "." : "Select a layer on the canvas, then press one to apply it."),
-        e(Segmented, {
-          key: "scope",
-          label: "Show",
-          wide: true,
-          className: "bd-vars-scope",
-          value: varScope,
-          onChange: function(v) {
-            if (v) setVarScope(v);
-          },
-          options: [{ value: "used", label: "In this project" }, { value: "all", label: "Everything" }]
-        }),
-        VAR_SETS.map(function(vs) {
-          var def = DATA.tokens[vs[0]];
-          if (!def) return null;
-          var keys2 = [vs[0]].concat(def.sides || []);
-          var opts = def.options.filter(function(o) {
-            return (vs[0] !== "w" || o.family !== "fit" && o.family !== "container") && (!sc || optionAllowed(vs[0], o, sc)) && (varScope !== "used" || usesToken(used, keys2, o.value));
-          });
-          if (varScope === "used" && !opts.length) return e("section", { key: vs[0], className: "bd-vars-sec" }, e("h3", { className: "bd-content-h" }, vs[1]), e("p", { className: "bd-sec-empty" }, "None in this project yet."));
-          var cur = picked.length && same3(picked.map(function(n) {
-            return n.style[vs[0]] || "";
-          })) ? picked[0].style[vs[0]] || "" : null;
-          return e(
-            "section",
-            { key: vs[0], className: "bd-vars-sec", "aria-labelledby": "bd-vars-" + vs[0] },
-            e("h3", { className: "bd-content-h", id: "bd-vars-" + vs[0] }, vs[1]),
-            e("div", { className: cx("bd-vars-list", "is-" + vs[2]) }, (vs[0] === "padding" && own ? [e(
-              "button",
-              {
-                key: "__own",
-                type: "button",
-                className: "bd-var bd-var-own",
-                "aria-pressed": String(cur === ""),
-                title: own.token + ": " + nameOf(picked[0]) + "'s own padding. Clears Padding so it applies",
-                onClick: function() {
-                  var patch = { padding: void 0 };
-                  DATA.tokens.padding.sides.forEach(function(k) {
-                    patch[k] = void 0;
-                  });
-                  setStyles(picked.map(function(n) {
-                    return n.id;
-                  }), patch);
-                  announce(nameOf(picked[0]) + " takes its own padding, " + own.label);
-                }
-              },
-              e("span", { className: "bd-var-name" }, "Default: " + own.label)
-            )] : []).concat(opts.map(function(o) {
-              var px = pxMap[vs[0] + "|" + o.value];
-              var tok = o.tokens[0];
-              return e(
-                "button",
-                {
-                  key: o.value,
-                  type: "button",
-                  className: "bd-var",
-                  "aria-pressed": String(cur === o.value),
-                  title: (o.tokens.join(" · ") || o.value) + (picked.length ? ". Apply to the selection" : ""),
-                  onClick: function() {
-                    applyVar(vs[0], o.value, vs[1]);
-                  }
-                },
-                vs[2] === "color" && tok ? e("span", { className: "bd-sw", style: { background: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "radius" && tok ? e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + tok + ")" }, "aria-hidden": true }) : vs[2] === "shadow" && tok ? e("span", { className: "bd-pv-shadow", style: { boxShadow: "var(" + tok + ")" }, "aria-hidden": true }) : px != null ? e("span", { className: "bd-var-px" }, Math.round(px)) : null,
-                e("span", { className: "bd-var-name" }, o.label || o.value)
-              );
-            })))
-          );
-        })
-      );
     };
     var addTemplate = function(id, into) {
       var st = STARTERS.filter(function(x) {
@@ -13632,269 +14726,8 @@
         if (first) showFrameRef.current(first, true);
       }, 0);
     };
-    var framePic = function(w, h, kind, maxW, maxH) {
-      var k = Math.min((maxW || 84) / w, (maxH || 52) / h);
-      var box2 = { width: Math.round(w * k) + "px", height: Math.round(h * k) + "px" };
-      return e(
-        "span",
-        { key: w + "x" + h, className: cx("bd-mini-frame", kind && "is-" + kind), style: box2, "aria-hidden": true },
-        kind === "structured" ? [0, 1, 2].map(function(i) {
-          return e("span", { key: i, className: "bd-mini-bar" });
-        }) : kind === "free" ? [0, 1, 2].map(function(i) {
-          return e("span", { key: i, className: "bd-mini-dot" });
-        }) : null
-      );
-    };
-    var kindPic = function(icon) {
-      return e("span", { className: "bd-kind-pics is-asset", "aria-hidden": true }, e(Icon, { name: icon }));
-    };
-    var TEMPLATE_PIC = { landing: ["HeroBlock", true], store: ["ProductGridBlock", true], settings: ["Field", false], chat: ["ChatBlock", false] };
-    var CONTAINER_KINDS = [
-      ["free", "Freeform frame", "frame", "Place anything anywhere, in any colour"],
-      ["structured", "Structured frame", "layout", "Auto-layout Groups with tokens, ready for code"],
-      ["page", "Tall frame", "file", "Grows as tall as what's on it"]
-    ];
-    var containerCard = function(key, name, pic, note3, payload, onAdd) {
-      return e(
-        "li",
-        { key },
-        e(
-          "button",
-          {
-            type: "button",
-            className: "bd-kind bd-container-card",
-            "data-container": key,
-            title: note3 + ". Press to add one beside your frames, or drag it onto the canvas.",
-            onPointerDown: function(ev) {
-              if (ev.pointerType !== "touch") startDrag(ev, payload);
-            },
-            onClick: function() {
-              if (!justDragged.current) onAdd();
-            }
-          },
-          pic,
-          e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, name), e("span", { className: "bd-kind-note" }, note3))
-        )
-      );
-    };
-    var containersPanel = function() {
-      return e(
-        React.Fragment,
-        null,
-        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Frames")),
-        e("ul", { className: "bd-kinds bd-containers", role: "list" }, CONTAINER_KINDS.map(function(k) {
-          var page = k[0] === "page", opts = page ? null : { mode: k[0] };
-          var shape = page ? framePic(390, 900, "tall") : framePic(1280, 800, k[0]);
-          return containerCard(k[0], k[1], e("span", { className: "bd-kind-pics is-preview is-frames" }, shape), k[3], { kind: "tool", tool: page ? "page" : "frame", label: k[1], opts }, function() {
-            frameOps.add(null, page, null, opts);
-          });
-        })),
-        e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Screen sizes")),
-        e("ul", { className: "bd-kinds bd-containers", role: "list" }, PRESETS.map(function(p) {
-          var opts = { preset: p.id, mode: "free" };
-          return containerCard(p.id, p.label, e("span", { className: "bd-kind-pics is-preview is-frames" }, framePic(p.width, p.height)), p.width + " × " + p.height, { kind: "tool", tool: "frame", label: p.label, opts }, function() {
-            frameOps.add(null, false, null, opts);
-          });
-        }))
-      );
-    };
-    var templatesPanel = function() {
-      return e("ul", { className: "bd-kinds bd-templates", role: "list" }, STARTERS.filter(function(st) {
-        return st[0] !== "blank";
-      }).map(function(st) {
-        return e(
-          "li",
-          { key: st[0] },
-          e(
-            "div",
-            { className: "bd-kind bd-tpl-card", "data-template": st[0] },
-            TEMPLATE_PIC[st[0]] && META[TEMPLATE_PIC[st[0]][0]] ? e("span", { className: "bd-kind-pics is-preview" }, e(Thumb, { type: TEMPLATE_PIC[st[0]][0], wide: TEMPLATE_PIC[st[0]][1] })) : e("span", { className: "bd-kind-pics" }, e(Icon, { name: "file" })),
-            e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, st[1])),
-            e(
-              "span",
-              { className: "bd-tpl-acts" },
-              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-new", onClick: function() {
-                addTemplate(st[0]);
-              }, title: "As a new frame beside yours" }, e(Icon, { name: "plus" }), "New frame"),
-              e("button", { type: "button", className: "bd-btn bd-btn-sm bd-tpl-into", onClick: function() {
-                addTemplate(st[0], true);
-              }, title: "At the end of " + frame2.name }, "Into " + frame2.name)
-            )
-          )
-        );
-      }));
-    };
-    var mineList = function(list) {
-      return e("ul", { className: "bd-mine", role: "list" }, list.map(function(c) {
-        var layers = 0;
-        (function walk(n) {
-          layers++;
-          (n.children || []).forEach(walk);
-        })(c.node);
-        return e(
-          "li",
-          { key: c.id, className: "bd-mine-item" },
-          e(
-            "button",
-            {
-              type: "button",
-              className: "bd-mine-btn",
-              "data-local": c.id,
-              title: c.name + ": drag onto a frame, or press to add. Built on " + c.tokens.slice(0, 6).join(", ") + (c.tokens.length > 6 ? "…" : ""),
-              onPointerDown: function(ev) {
-                startDrag(ev, { kind: "local", comp: c, type: c.node.type, label: c.name });
-              },
-              onClick: function() {
-                if (!justDragged.current) addLocal(c);
-              }
-            },
-            e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
-            e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))
-          ),
-          e(Dropdown, {
-            menu: true,
-            label: "Actions for " + c.name,
-            icon: "more",
-            iconOnly: true,
-            compact: true,
-            narrow: true,
-            alignEnd: true,
-            className: "bd-dd-icon",
-            options: [{ value: "add", label: "Add to " + frame2.name, icon: "plus" }, { value: "rename", label: "Rename", icon: "pencil" }, { value: "delete", label: "Delete", icon: "trash", danger: true }],
-            onChange: function(v) {
-              if (v === "add") addLocal(c);
-              else if (v === "rename") renameComponent(c.id);
-              else if (v === "delete") removeComponent(c.id);
-            }
-          })
-        );
-      }));
-    };
-    var assetsPanel = function() {
-      var q = query.trim().toLowerCase();
-      var head = null;
-      if (q) {
-        var found = [];
-        DATA.groups.forEach(function(g) {
-          usableIn(g).forEach(function(n) {
-            if (n.toLowerCase().indexOf(q) >= 0 || String(META[n].blurb || "").toLowerCase().indexOf(q) >= 0) found.push(n);
-          });
-        });
-        var foundMine = (library.components || []).filter(function(c) {
-          return c.name.toLowerCase().indexOf(q) >= 0;
-        });
-        return e(
-          "div",
-          { className: "bd-assets" },
-          head,
-          foundMine.length ? e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, foundMine.length))) : null,
-          foundMine.length ? mineList(foundMine) : null,
-          e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "Results", e("span", { className: "bd-count" }, found.length)), viewToggle()),
-          found.length || foundMine.length ? null : e("p", { className: "bd-empty-note" }, "Nothing matches."),
-          tileList(found)
-        );
-      }
-      if (!assetKind) {
-        return e(
-          "div",
-          { className: "bd-assets is-cards" },
-          head,
-          e("ul", { className: "bd-kinds bd-asset-kinds", role: "list" }, ASSET_KINDS.map(function(k) {
-            var note3 = k[3];
-            var count = k[0] === "containers" ? "Frames and screen sizes" : k[0] === "variables" ? VAR_SETS.length + " sets" : k[0] === "templates" ? STARTERS.length - 1 + " pages" : groupsOf(k[0]).reduce(function(t, g) {
-              return t + usableIn(g).length;
-            }, 0) + " to add";
-            return e("li", { key: k[0] }, e(
-              "button",
-              { type: "button", className: "bd-kind", "data-asset-kind": k[0], title: note3, onClick: function() {
-                setAssetKind(k[0]);
-              } },
-              kindPic(k[2]),
-              e("span", { className: "bd-kind-text" }, e("span", { className: "bd-kind-name" }, k[1]), e("span", { className: "bd-kind-count" }, count))
-            ));
-          }))
-        );
-      }
-      var kind = ASSET_KINDS.filter(function(k) {
-        return k[0] === assetKind;
-      })[0] || ASSET_KINDS[0];
-      var back = e(
-        "div",
-        { className: "bd-panel-head bd-gallery-head" },
-        e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Back to Assets", title: "Back to Assets", onClick: function() {
-          setAssetKind(null);
-        } }, e(Icon, { name: "left" })),
-        e("h2", { className: "bd-panel-title" }, kind[1])
-      );
-      if (kind[0] === "variables") return e("div", { className: "bd-assets" }, head, back, variablesPanel());
-      if (kind[0] === "templates") return e("div", { className: "bd-assets is-cards" }, head, back, templatesPanel());
-      if (kind[0] === "containers") return e("div", { className: "bd-assets is-cards" }, head, back, containersPanel());
-      var groups = groupsOf(kind[0]);
-      if (kind[0] === "components") groups = [{ id: "mine", label: "My components", items: [] }].concat(groups);
-      var current2 = groups.filter(function(x) {
-        return x.id === category;
-      })[0] || groups[kind[0] === "components" && (library.components || []).length ? 0 : kind[0] === "components" ? 1 : 0];
-      var items = usableIn(current2);
-      if (current2.id === "mine") {
-        var mine = library.components || [];
-        return e(
-          "div",
-          { className: "bd-assets" },
-          head,
-          back,
-          e("div", { className: "bd-cats", role: "group", "aria-label": "Categories" }, groups.map(function(g) {
-            return e(
-              "button",
-              { key: g.id, type: "button", className: "bd-cat", "aria-pressed": String(current2.id === g.id), onClick: function() {
-                setCategory(g.id);
-              } },
-              e(Icon, { name: g.id === "mine" ? "component" : GROUP_ICON[g.id] || "box" }),
-              e("span", { className: "bd-cat-label" }, g.label)
-            );
-          })),
-          e("div", { className: "bd-assets-head" }, e("h3", { className: "bd-assets-title" }, "My components", e("span", { className: "bd-count" }, mine.length))),
-          mine.length ? mineList(mine) : e(
-            "div",
-            { className: "bd-empty" },
-            e(Icon, { name: "component" }),
-            e("p", null, kbd("Nothing here yet. Select layers on the canvas and press Create component in the inspector (Ctrl+Alt+K). It has to be built from tokens; the builder says what stops it if not."))
-          )
-        );
-      }
-      return e(
-        "div",
-        { className: "bd-assets" },
-        head,
-        back,
-        groups.length > 1 ? e(
-          "div",
-          { className: "bd-cats", role: "group", "aria-label": "Categories" },
-          groups.map(function(g) {
-            var on = current2.id === g.id;
-            return e("button", {
-              key: g.id,
-              type: "button",
-              className: "bd-cat",
-              "aria-pressed": String(on),
-              title: g.label + ": " + usableIn(g).length + " to add",
-              onClick: function() {
-                setCategory(g.id);
-              }
-            }, e(Icon, { name: GROUP_ICON[g.id] || "box" }), e("span", { className: "bd-cat-label" }, g.label));
-          })
-        ) : null,
-        e(
-          "div",
-          { className: "bd-assets-head" },
-          e("h3", { className: "bd-assets-title" }, current2.label, e("span", { className: "bd-count" }, items.length)),
-          viewToggle()
-        ),
-        items.length ? null : e("p", { className: "bd-empty-note" }, "Nothing here yet."),
-        tileList(items)
-      );
-    };
     var isOpen = function(n) {
-      return n.type === "Root" || isContainer(n.type) ? !collapsed[n.id] : collapsed[n.id] === false;
+      return nodeIsOpen(n, collapsed);
     };
     useEffect(function() {
       var opens = {};
@@ -13922,14 +14755,6 @@
     var isRenaming = function(id, where) {
       return !!renaming && renaming.id === id && renaming.where === where;
     };
-    var frameIsOpen = function(f) {
-      return openFrames[f.id] !== void 0 ? openFrames[f.id] : f.id === doc2.active;
-    };
-    var isOwner = function(n) {
-      var m = META[n.type];
-      return !!m && !m.builder && !isContainer(n.type);
-    };
-    var PART_ICON = { Heading: "heading", Text: "type", Image: "image", Video: "video", Icon: "star", Button: "pointer", Link: "link", Field: "form", Select: "form", "Text area": "form", Label: "type", List: "listView", Item: "listView", Figure: "figure", Navigation: "compass" };
     var anatomyOf = function(fid, id) {
       try {
         var a = api(fid);
@@ -13947,603 +14772,6 @@
           });
         })(f.root);
       });
-    };
-    var pageRows = function() {
-      var byId2 = {};
-      foldersOf(project).forEach(function(f) {
-        byId2[f.id] = f;
-      });
-      var rows = [], seen = {};
-      itemsOf(pagesOf(project)).forEach(function(it) {
-        var f = it.folder ? byId2[it.folder] : null;
-        if (!f) {
-          it.pages.forEach(function(p) {
-            rows.push({ kind: "page", page: p, folder: null });
-          });
-          return;
-        }
-        var open = f.open !== false;
-        if (!seen[f.id]) {
-          rows.push({ kind: "folder", folder: f, open, count: it.pages.length });
-          seen[f.id] = true;
-        }
-        if (open) it.pages.forEach(function(p) {
-          rows.push({ kind: "page", page: p, folder: f.id });
-        });
-      });
-      foldersOf(project).forEach(function(f) {
-        if (!seen[f.id]) rows.push({ kind: "folder", folder: f, open: f.open !== false, count: 0 });
-      });
-      return rows;
-    };
-    var pageMatches = function(q) {
-      var byId2 = {};
-      foldersOf(project).forEach(function(f) {
-        byId2[f.id] = f;
-      });
-      var has2 = function(text2) {
-        return String(text2 || "").toLowerCase().indexOf(q) >= 0;
-      };
-      var rows = [];
-      itemsOf(pagesOf(project)).forEach(function(it) {
-        var f = it.folder ? byId2[it.folder] : null;
-        var hits = it.pages.filter(function(p) {
-          return has2(p.name) || f && has2(f.name);
-        });
-        if (!hits.length) return;
-        if (f) rows.push({ kind: "folder", folder: f, open: true, count: hits.length, found: true });
-        hits.forEach(function(p) {
-          rows.push({ kind: "page", page: p, folder: f ? f.id : null });
-        });
-      });
-      return rows;
-    };
-    var pageDropAt = function(x, y) {
-      var list = pagesListRef.current;
-      var dr = pageDragRef.current;
-      if (!list || !dr) return null;
-      var rows = dr.rows;
-      var els = Array.prototype.slice.call(list.querySelectorAll("[data-row]"));
-      var pages = pagesOf(projectRef.current).filter(function(p) {
-        return p.id !== dr.id;
-      });
-      var at2 = function(pid) {
-        var i2 = pages.findIndex(function(p) {
-          return p.id === pid;
-        });
-        return i2 < 0 ? pages.length : i2;
-      };
-      var listBox = list.getBoundingClientRect();
-      var firstOf = function(fid) {
-        var p = pages.filter(function(q) {
-          return q.folder === fid;
-        })[0];
-        return p ? at2(p.id) : pages.length;
-      };
-      var slot3 = els.length, into = null;
-      for (var i = 0; i < els.length; i++) {
-        var b = els[i].getBoundingClientRect();
-        var row = rows[i];
-        if (row.kind === "folder" && y >= b.top + b.height * 0.25 && y <= b.bottom - b.height * 0.25) {
-          into = row.folder.id;
-          slot3 = i;
-          break;
-        }
-        if (y < b.top + b.height / 2) {
-          slot3 = i;
-          break;
-        }
-      }
-      if (into) return { into, index: endOfFolder(into, dr.id), folder: into, line: null };
-      var before = rows[slot3], prev = rows[slot3 - 1];
-      var tucked = x > listBox.left + 28;
-      var folder = null, index;
-      if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
-        folder = before.folder;
-        index = at2(before.page.id);
-      } else if (prev && (prev.kind === "page" && prev.folder || prev.kind === "folder" && !prev.open && prev.count) && tucked) {
-        folder = prev.kind === "page" ? prev.folder : prev.folder.id;
-        index = endOfFolder(folder, dr.id);
-      } else if (prev && prev.kind === "page" && prev.folder) {
-        folder = null;
-        index = endOfFolder(prev.folder, dr.id);
-      } else if (before && before.kind === "page") {
-        folder = null;
-        index = at2(before.page.id);
-      } else if (before && before.kind === "folder") {
-        folder = null;
-        index = before.count ? firstOf(before.folder.id) : pages.length;
-      } else {
-        folder = null;
-        index = pages.length;
-      }
-      var edge = slot3 < els.length ? els[slot3].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
-      return { into: null, index, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
-    };
-    var rowDown = function(p) {
-      return function(ev) {
-        if (ev.button !== void 0 && ev.button !== 0) return;
-        if (renamingPage === p.id || pageDragRef.current || pageQuery.trim()) return;
-        var touch = ev.pointerType === "touch";
-        var dr = { id: p.id, name: p.name, pointer: ev.pointerId, x0: ev.clientX, y0: ev.clientY, live: false, armed: !touch, timer: 0, rows: pageRows(), drop: null };
-        pageDragRef.current = dr;
-        var holdScroll = function(tm) {
-          if (dr.armed && tm.cancelable) tm.preventDefault();
-        };
-        if (touch) {
-          dr.timer = setTimeout(function() {
-            dr.armed = true;
-            window.addEventListener("touchmove", holdScroll, { passive: false });
-            setPageDrag({ id: dr.id, name: dr.name, x: dr.x0, y: dr.y0, drop: null });
-          }, 350);
-        }
-        var stop = function() {
-          clearTimeout(dr.timer);
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", end);
-          window.removeEventListener("pointercancel", cancel);
-          window.removeEventListener("touchmove", holdScroll);
-          if (pageDragRef.current === dr) pageDragRef.current = null;
-          setPageDrag(null);
-        };
-        var move = function(mv) {
-          if (mv.pointerId !== dr.pointer) return;
-          var far = Math.abs(mv.clientX - dr.x0) + Math.abs(mv.clientY - dr.y0) >= 4;
-          if (!dr.armed) {
-            if (far) stop();
-            return;
-          }
-          if (!dr.live) {
-            if (!far) return;
-            dr.live = true;
-          }
-          dr.drop = pageDropAt(mv.clientX, mv.clientY);
-          setPageDrag({ id: dr.id, name: dr.name, x: mv.clientX, y: mv.clientY, drop: dr.drop });
-        };
-        var end = function(up) {
-          if (up && up.pointerId !== dr.pointer) return;
-          stop();
-          if (!dr.live) return;
-          pageDragEnded.current = true;
-          setTimeout(function() {
-            pageDragEnded.current = false;
-          }, 0);
-          if (dr.drop) {
-            var fname = dr.drop.folder ? (foldersOf(projectRef.current).filter(function(f) {
-              return f.id === dr.drop.folder;
-            })[0] || {}).name : null;
-            placePage(dr.id, dr.drop.index, dr.drop.folder).then(function() {
-              announce("Moved " + dr.name + (fname ? " into " + fname : ""));
-            });
-          }
-        };
-        var cancel = function(c) {
-          if (!c || c.pointerId === dr.pointer) stop();
-        };
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", end);
-        window.addEventListener("pointercancel", cancel);
-      };
-    };
-    var pagesPanel = function() {
-      var q = pageQuery.trim().toLowerCase();
-      var rows = q ? pageMatches(q) : pageRows();
-      var folders = foldersOf(project);
-      var items = itemsOf(pagesOf(project));
-      var drop = pageDrag && pageDrag.drop;
-      var folderRow = function(r, i) {
-        var f = r.folder;
-        var itemAt = items.findIndex(function(it) {
-          return it.folder === f.id;
-        });
-        return e(
-          "li",
-          { key: "f" + f.id, className: cx("bd-folder", !r.open && "is-closed", drop && drop.into === f.id && "is-drop"), "data-row": i, "data-folder": f.id },
-          e("button", { type: "button", className: "bd-folder-twisty", "aria-expanded": String(r.open), "aria-label": (r.open ? "Close " : "Open ") + f.name, disabled: r.found || void 0, onClick: function() {
-            foldFolder(f.id, !r.open);
-          } }, e(Icon, { name: r.open ? "down" : "right" })),
-          renamingFolder === f.id ? e(Renamable, { className: "bd-folder-name", value: f.name, label: "Folder name", startEditing: true, onChange: function(v) {
-            renameFolder(f.id, v);
-          } }) : e(
-            "button",
-            { type: "button", className: "bd-folder-open", title: "Double-click to rename", onClick: function() {
-              foldFolder(f.id, !r.open);
-            }, onDoubleClick: function() {
-              setRenamingFolder(f.id);
-            } },
-            e(Icon, { name: "folder" }),
-            e("span", { className: "bd-folder-name" }, f.name),
-            e("span", { className: "bd-folder-count" }, r.count || "")
-          ),
-          e(Dropdown, {
-            menu: true,
-            label: "Actions for " + f.name,
-            placeholder: "Folder",
-            icon: "more",
-            iconOnly: true,
-            compact: true,
-            narrow: true,
-            className: "bd-dd-icon bd-page-menu",
-            options: [{ value: "rename", label: "Rename", icon: "pencil" }].concat(itemAt > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(itemAt >= 0 && itemAt < items.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat([{ value: "delete", label: "Delete folder (the pages stay)", icon: "trash" }]),
-            onChange: function(v) {
-              if (v === "rename") setRenamingFolder(f.id);
-              else if (v === "up") moveFolder(f.id, -1);
-              else if (v === "down") moveFolder(f.id, 1);
-              else if (v === "delete") deleteFolder(f.id);
-            }
-          })
-        );
-      };
-      var pageRow = function(r, i) {
-        var p = r.page, on = p.id === pageId;
-        var list = pagesOf(project), idx = list.findIndex(function(x) {
-          return x.id === p.id;
-        });
-        return e(
-          "li",
-          { key: p.id, className: cx("bd-page", on && "is-current", r.folder && "is-nested", pageDrag && pageDrag.id === p.id && "is-moving"), "data-row": i },
-          renamingPage === p.id ? e(Renamable, { className: "bd-page-name", value: p.name, label: "Page name", startEditing: true, onChange: function(v) {
-            renamePage(p.id, v);
-          } }) : e(
-            "button",
-            {
-              type: "button",
-              className: "bd-page-open",
-              "aria-current": on ? "page" : void 0,
-              title: "Drag to move, double-click to rename",
-              onPointerDown: rowDown(p),
-              onClick: function() {
-                if (!pageDragEnded.current) openPage(p.id);
-              },
-              onDoubleClick: function() {
-                setRenamingPage(p.id);
-              }
-            },
-            e(Icon, { name: "file" }),
-            e("span", { className: "bd-page-name" }, p.name)
-          ),
-          confirmPage === p.id ? e(
-            "span",
-            { className: "bd-page-confirm", role: "group", "aria-label": "Delete " + p.name },
-            e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-danger", onClick: function() {
-              deletePage(p.id);
-            } }, "Delete"),
-            e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
-              setConfirmPage(null);
-            } }, "Keep")
-          ) : e(Dropdown, {
-            menu: true,
-            label: "Actions for " + p.name,
-            placeholder: "Page",
-            icon: "more",
-            iconOnly: true,
-            compact: true,
-            narrow: true,
-            className: "bd-dd-icon bd-page-menu",
-            options: [
-              { value: "rename", label: "Rename", icon: "pencil" },
-              { value: "duplicate", label: "Duplicate", icon: "copy" }
-            ].concat(idx > 0 ? [{ value: "up", label: "Move up", icon: "up" }] : []).concat(idx < list.length - 1 ? [{ value: "down", label: "Move down", icon: "down" }] : []).concat(folders.filter(function(f) {
-              return f.id !== r.folder;
-            }).map(function(f) {
-              return { value: "into:" + f.id, label: "Move to " + f.name, icon: "folder" };
-            })).concat(r.folder ? [{ value: "out", label: "Out of the folder", icon: "detach" }] : []).concat(list.length > 1 ? [{ value: "delete", label: "Delete", icon: "trash" }] : []),
-            onChange: function(v) {
-              if (v === "rename") setRenamingPage(p.id);
-              else if (v === "duplicate") duplicatePage(p.id);
-              else if (v === "up") movePage(p.id, -1);
-              else if (v === "down") movePage(p.id, 1);
-              else if (v === "out") placePage(p.id, endOfFolder(r.folder, p.id), null);
-              else if (v.indexOf("into:") === 0) placePage(p.id, endOfFolder(v.slice(5), p.id), v.slice(5));
-              else if (v === "delete") setConfirmPage(p.id);
-            }
-          })
-        );
-      };
-      return e(
-        "div",
-        { className: "bd-pages-panel" },
-        e(
-          "div",
-          { className: "bd-panel-head" },
-          e("h2", { className: "bd-panel-title" }, "Pages"),
-          e(
-            "span",
-            { className: "bd-panel-acts" },
-            e("button", { type: "button", className: "bd-act", "aria-label": "New folder", title: "New folder", onClick: addFolder }, e(Icon, { name: "folder" })),
-            e("button", { type: "button", className: "bd-act", "aria-label": "Add a page", title: "Add a page", onClick: addPage }, e(Icon, { name: "plus" }))
-          )
-        ),
-        q && !rows.length ? e("p", { className: "bd-empty-note" }, "No pages match.") : null,
-        e(
-          "ul",
-          { className: cx("bd-pages", pageDrag && "is-dragging"), role: "list", ref: pagesListRef },
-          rows.map(function(r, i) {
-            return r.kind === "folder" ? folderRow(r, i) : pageRow(r, i);
-          }),
-          drop && drop.line ? e("li", { className: cx("bd-page-drop", drop.line.depth && "is-nested"), "aria-hidden": true, style: { top: drop.line.top + "px" } }) : null
-        ),
-        pageDrag ? e("div", { className: "bd-ghost", style: { left: pageDrag.x + "px", top: pageDrag.y + "px" }, "aria-hidden": true }, pageDrag.name) : null
-      );
-    };
-    var layersPanel = function() {
-      var q = layerQuery.trim().toLowerCase();
-      var toggle = function(id) {
-        var at2 = locate(doc2, id);
-        var owner = at2 && !isContainer(at2.node.type);
-        setCollapsed(function(c) {
-          var n = Object.assign({}, c);
-          if (owner) {
-            if (n[id] === false) delete n[id];
-            else n[id] = false;
-          } else if (n[id]) delete n[id];
-          else n[id] = true;
-          return n;
-        });
-      };
-      var rowsFor = function(f) {
-        var keep = null;
-        if (q) {
-          keep = {};
-          (function walk2(n, path) {
-            (n.children || []).forEach(function(c) {
-              var hit = c.type.toLowerCase().indexOf(q) >= 0 || labelOf(c).toLowerCase().indexOf(q) >= 0;
-              if (hit) {
-                keep[c.id] = true;
-                path.forEach(function(x) {
-                  keep[x] = true;
-                });
-              }
-              if (c.children) walk2(c, path.concat([c.id]));
-            });
-          })(f.root, []);
-        }
-        var rows = [];
-        var walk = function(n, depth) {
-          (n.children || []).forEach(function(c) {
-            if (keep && !keep[c.id]) return;
-            rows.push({ n: c, depth });
-            if (!(q || isOpen(c))) return;
-            if (isOwner(c) && !q) walkOwner(c, depth + 1);
-            else if (c.children) walk(c, depth + 1);
-          });
-        };
-        var walkOwner = function(c, depth) {
-          var slots = (c.children || []).filter(function(k) {
-            return k.type === "Slot";
-          });
-          var placed = {};
-          var tree = anatomyOf(f.id, c.id) || [];
-          var seq0 = 0;
-          (function parts(list, d) {
-            list.forEach(function(it) {
-              if (it.slot) {
-                var sl = slots.filter(function(x) {
-                  return x.id === it.slot;
-                })[0];
-                if (!sl || placed[sl.id]) return;
-                placed[sl.id] = true;
-                rows.push({ n: sl, depth: d });
-                if (isOpen(sl)) walk(sl, d + 1);
-                return;
-              }
-              rows.push({ part: it, owner: c, depth: d, key: c.id + "-p" + seq0++ });
-              parts(it.children || [], d + 1);
-            });
-          })(tree, depth);
-          slots.forEach(function(sl) {
-            if (placed[sl.id]) return;
-            rows.push({ n: sl, depth });
-            if (isOpen(sl)) walk(sl, depth + 1);
-          });
-        };
-        walk(f.root, 1);
-        return rows;
-      };
-      var partRow = function(r, f) {
-        var it = r.part;
-        if (it.kind === "Heading" && hasTitlePart(r.owner.type) && f) {
-          var onPart = part && part.id === r.owner.id && f.id === doc2.active;
-          return e(
-            "div",
-            {
-              key: r.key,
-              className: cx("bd-layer is-part is-pickable", onPart && "is-current"),
-              role: "treeitem",
-              "aria-level": r.depth + 1,
-              "aria-selected": String(!!onPart),
-              style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" }
-            },
-            e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-            e(
-              "button",
-              { type: "button", className: "bd-layer-main", title: "The title of " + r.owner.type + ": its words and size", onClick: function() {
-                pick(r.owner.id, false, false, "layers", f.id, "title");
-              } },
-              e(Icon, { name: "heading" }),
-              e("span", { className: "bd-layer-name" }, "Title"),
-              it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
-            )
-          );
-        }
-        return e(
-          "div",
-          {
-            key: r.key,
-            className: "bd-layer is-part",
-            role: "treeitem",
-            "aria-level": r.depth + 1,
-            "aria-disabled": "true",
-            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-            title: it.kind + " in " + r.owner.type + ": part of the component, set through its props in the inspector"
-          },
-          e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e(
-            "span",
-            { className: "bd-layer-main is-static" },
-            e(Icon, { name: PART_ICON[it.kind] || "component" }),
-            e("span", { className: "bd-layer-name" }, it.kind),
-            it.text ? e("span", { className: "bd-layer-text" }, it.text) : null
-          )
-        );
-      };
-      var nodeRow = function(f, r) {
-        if (r.part) return partRow(r, f);
-        var n = r.n;
-        var mine = f.id === doc2.active;
-        var text2 = labelOf(n);
-        var on = mine && selection.indexOf(n.id) >= 0;
-        var owner = isOwner(n);
-        var open = isOpen(n) || !!q && !owner;
-        var folds = !!n.children || owner;
-        var renameable = n.type !== "Slot";
-        return e(
-          "div",
-          {
-            key: n.id,
-            className: cx("bd-layer", on && "is-current", n.hide && "is-hidden", n.lock && "is-locked", n.inst && "is-instance", listDrop && listDrop.inside === n.id && "is-drop-inside", hover && hover.f === f.id && hover.id === n.id && "is-hover"),
-            "data-layer": mine ? n.id : void 0,
-            "data-frame-row": mine ? void 0 : f.id,
-            "data-depth": r.depth,
-            role: "treeitem",
-            "aria-selected": String(on),
-            "aria-level": r.depth + 1,
-            "aria-expanded": folds ? String(open) : void 0,
-            style: { paddingInlineStart: "calc(var(--dt-space-inset-2xs) + " + r.depth + " * 14px)" },
-            onPointerEnter: function() {
-              setHover({ f: f.id, id: n.id });
-            },
-            onPointerLeave: function() {
-              setHover(null);
-            },
-            onContextMenu: function(ev) {
-              if (n.type !== "Slot") {
-                ev.preventDefault();
-                openMenu(ev.clientX, ev.clientY, n.id, f.id);
-              }
-            }
-          },
-          folds ? e("button", { type: "button", className: cx("bd-layer-twisty", open && "is-open"), "aria-label": (open ? "Collapse " : "Expand ") + nameOf(n), title: owner && !open ? "Show what " + n.type + " is made of" : void 0, onClick: function() {
-            toggle(n.id);
-          } }, e(Icon, { name: "right" })) : e("span", { className: "bd-layer-twisty", "aria-hidden": true }),
-          e(
-            "button",
-            {
-              type: "button",
-              className: "bd-layer-main",
-              onClick: function(ev) {
-                if (!justDragged.current) pick(n.id, mine && (ev.shiftKey || ev.metaKey || ev.ctrlKey), false, "layers", f.id);
-              },
-              onDoubleClick: function() {
-                if (renameable && mine) setRenaming({ id: n.id, where: "layer" });
-              },
-              onPointerDown: function(ev) {
-                if (mine && ev.pointerType === "mouse" && n.type !== "Slot" && !n.lock) startDrag(ev, { kind: "move", id: n.id, label: nameOf(n) });
-              }
-            },
-            e(Icon, { name: n.inst ? "component" : typeIcon(n.type) }),
-            renameable && mine && isRenaming(n.id, "layer") ? e(Renamable, { value: n.name || n.type, label: "Layer name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
-              setRenaming(null);
-              setName(n.id, v === n.type ? "" : v);
-            } }) : e("span", { className: "bd-layer-name" }, nameOf(n)),
-            text2 && !n.name ? e("span", { className: "bd-layer-text" }, text2) : null
-          ),
-          /* Hiding lives in the inspector's Layer section; a hidden row keeps
-             a quiet eye-off, which also shows it again. */
-          n.type !== "Slot" ? e(
-            "span",
-            { className: cx("bd-layer-flags", (n.hide || n.lock) && "is-set") },
-            n.hide ? e("button", {
-              type: "button",
-              className: "bd-layer-flag is-hidden-mark",
-              "aria-label": "Show " + nameOf(n),
-              title: "Hidden: press to show (Ctrl+Shift+H)",
-              onClick: function(ev) {
-                ev.stopPropagation();
-                flagLayer(n.id, f.id, "hide");
-              }
-            }, e(Icon, { name: "eyeOff" })) : null,
-            e("button", {
-              type: "button",
-              className: cx("bd-layer-flag", n.lock && "is-on"),
-              "aria-pressed": String(!!n.lock),
-              "aria-label": (n.lock ? "Unlock " : "Lock ") + nameOf(n),
-              title: n.lock ? "Locked: press to unlock (Ctrl+Shift+L)" : "Lock (Ctrl+Shift+L)",
-              onClick: function(ev) {
-                ev.stopPropagation();
-                flagLayer(n.id, f.id, "lock");
-              }
-            }, e(Icon, { name: n.lock ? "lock" : "lockOpen" }))
-          ) : null
-        );
-      };
-      return e(
-        "div",
-        { className: "bd-layers-panel" },
-        e(
-          "div",
-          { className: "bd-layers", ref: layersRef, role: "tree", "aria-label": "Layers", "aria-multiselectable": "true" },
-          doc2.frames.map(function(f) {
-            var on = f.id === doc2.active;
-            var open = frameIsOpen(f) || !!q;
-            var head = e(
-              "div",
-              {
-                key: "frame-" + f.id,
-                className: cx("bd-layer bd-layer-frame", on && !sel && frameOn && "is-current", on && "is-active-frame", listDrop && listDrop.inside === "frame:" + f.id && "is-drop-inside"),
-                "data-layer": on ? "root" : void 0,
-                "data-frame-row": f.id,
-                role: "treeitem",
-                "aria-level": 1,
-                "aria-selected": String(on && !sel && frameOn),
-                "aria-expanded": String(open)
-              },
-              e("button", {
-                type: "button",
-                className: cx("bd-layer-twisty", open && "is-open"),
-                "aria-label": (open ? "Collapse " : "Expand ") + f.name,
-                onClick: function() {
-                  setOpenFrames(function(m) {
-                    var nx = Object.assign({}, m);
-                    nx[f.id] = !open;
-                    return nx;
-                  });
-                }
-              }, e(Icon, { name: "right" })),
-              e(
-                "button",
-                {
-                  type: "button",
-                  className: "bd-layer-main",
-                  title: on ? "Double-click to rename" : "Show " + f.name,
-                  onClick: function() {
-                    frameOps.pick(f.id, true);
-                  },
-                  onDoubleClick: function() {
-                    setRenaming({ id: "frame:" + f.id, where: "layer" });
-                  }
-                },
-                e(Icon, { name: f.bare ? "component" : "frame" }),
-                isRenaming("frame:" + f.id, "layer") ? e(Renamable, { value: f.name, label: "Frame name", startEditing: true, className: "bd-layer-name", onChange: function(v) {
-                  frameOps.rename(f.id, v);
-                } }) : e("span", { className: "bd-layer-name" }, f.name),
-                e("span", { className: "bd-layer-text" }, f.bare ? "Loose on the canvas" : sizeText(f))
-              )
-            );
-            if (!open) return head;
-            var rows = rowsFor(f);
-            return e(
-              React.Fragment,
-              { key: "frame-" + f.id },
-              head,
-              rows.length ? rows.map(function(r) {
-                return nodeRow(f, r);
-              }) : e("p", { className: "bd-empty-note bd-empty-indent" }, q ? "No layers match." : "Empty. Add something from Assets.")
-            );
-          }),
-          listDrop && listDrop.indicator ? e("div", { className: "bd-layers-line", style: { top: listDrop.indicator.top + "px", left: listDrop.indicator.left + "px" }, "aria-hidden": true }) : null
-        )
-      );
     };
     var tabBar = function(have, current2) {
       return e(TabStrip, {
@@ -16316,12 +16544,12 @@
         if (f.bare) return e("div", { key: f.id, className: "bd-resize is-r", style: { left: X + W - 4, top: Y, height: H }, title: "Drag to set the width of " + f.name, onPointerDown: function(ev) {
           startResize(ev, f, "r");
         } });
-        var picked = f.id === doc2.active && frameOn && !sel;
+        var picked2 = f.id === doc2.active && frameOn && !sel;
         var FRAME_EDGE = { nw: "lt", n: "t", ne: "rt", e: "r", se: "rb", s: "b", sw: "lb", w: "l" };
         return e(
           React.Fragment,
           { key: f.id },
-          picked ? e(
+          picked2 ? e(
             "div",
             { className: "bd-frame-box", style: { left: X, top: Y, width: W, height: H } },
             HANDLES_FREE.map(function(dir) {
@@ -16803,202 +17031,6 @@
     useEffect(function() {
       if (play) renderPlay();
     }, [play && play.fid, doc2]);
-    var PLAY_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3];
-    var playDialog = function() {
-      var fr = play && frameById(doc2, play.fid);
-      if (!fr) return null;
-      var pageNow = pagesOf(project).filter(function(pg) {
-        return pg.id === pageId;
-      })[0];
-      var canBack = !!(play.stack && play.stack.length);
-      var fitAll2 = playBox.w ? Math.min((playBox.w - 32) / fr.width, playBox.h / play.h) : 0.5;
-      var fitW = playBox.w ? (playBox.w - 32) / fr.width : 0.5;
-      var zoom = play.zoom || "auto";
-      var sc = zoom === "fit" ? fitAll2 : zoom === "width" ? fitW : zoom === "actual" ? 1 : typeof zoom === "number" ? zoom : Math.min(1, fitAll2);
-      sc = Math.max(0.1, Math.min(4, sc));
-      var stepZoom = function(dir) {
-        var next = dir > 0 ? PLAY_STEPS.filter(function(z) {
-          return z > sc + 1e-3;
-        })[0] : PLAY_STEPS.filter(function(z) {
-          return z < sc - 1e-3;
-        }).pop();
-        if (next) setPlay(Object.assign({}, play, { zoom: next }));
-      };
-      var hs = playHeights(fr.width);
-      return e(
-        "dialog",
-        {
-          className: "bd-play",
-          ref: playRef,
-          "aria-labelledby": "bd-play-title",
-          onClose: playClosed,
-          onKeyDown: function(ev) {
-            if (canBack && (ev.key === "Backspace" || ev.altKey && ev.key === "ArrowLeft")) {
-              ev.preventDefault();
-              playBack();
-              return;
-            }
-            if (ev.metaKey || ev.ctrlKey || ev.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
-            var to = ev.key === "-" ? -1 : ev.key === "+" || ev.key === "=" ? 1 : 0;
-            if (to) {
-              ev.preventDefault();
-              stepZoom(to);
-              return;
-            }
-            var mode = ev.shiftKey && { Digit1: "fit", Digit2: "width", Digit0: "actual" }[ev.code];
-            if (mode) {
-              ev.preventDefault();
-              setPlay(Object.assign({}, play, { zoom: mode }));
-            }
-          }
-        },
-        e(
-          "div",
-          { className: "bd-play-head" },
-          canBack ? e("button", { type: "button", className: "bd-act bd-play-close bd-play-back", "aria-label": "Back", title: "Back (Backspace)", onClick: playBack }, e(Icon, { name: "left" })) : null,
-          e(
-            "div",
-            { className: "bd-play-intro" },
-            e("h2", { id: "bd-play-title" }, (pageNow && pagesOf(project).length > 1 ? pageNow.name + " › " : "") + fr.name),
-            e("p", { className: "bd-play-sub" }, fr.width + " × " + play.h + ". Scroll inside it; pinned and sticky items behave as on the device.")
-          ),
-          e("button", { type: "button", className: "bd-act bd-play-close", "aria-label": "Close", title: "Close (Esc)", onClick: function() {
-            playRef.current.close();
-          } }, e(Icon, { name: "close" }))
-        ),
-        e(
-          "div",
-          { className: "bd-play-stage", ref: playStageRef },
-          e(
-            "div",
-            { className: "bd-play-device", style: { width: Math.round(fr.width * sc), height: Math.round(play.h * sc) } },
-            e("iframe", {
-              ref: playFrameRef,
-              src: frameSrc,
-              title: fr.name + ", " + fr.width + " by " + play.h,
-              onLoad: renderPlay,
-              style: { width: fr.width, height: play.h, transform: "scale(" + sc + ")" }
-            })
-          )
-        ),
-        e(
-          "div",
-          { className: "bd-play-bar", role: "toolbar", "aria-label": "Screen height and zoom" },
-          e(Segmented, {
-            label: "Screen height",
-            value: play.h,
-            onChange: function(v) {
-              if (v) setPlay(Object.assign({}, play, { h: v }));
-            },
-            options: hs.map(function(x) {
-              return { value: x[0], label: String(x[0]), title: x[1] + ", " + x[0] + " tall" };
-            })
-          }),
-          e("span", { className: "bd-play-sep", "aria-hidden": true }),
-          e(
-            "div",
-            { className: "bd-play-zoom", role: "group", "aria-label": "Zoom" },
-            e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom out", title: "Zoom out (-)", disabled: sc <= PLAY_STEPS[0] + 1e-3, onClick: function() {
-              stepZoom(-1);
-            } }, e(Icon, { name: "minus" })),
-            e("output", { className: "bd-play-pct", "aria-live": "polite" }, Math.round(sc * 100) + "%"),
-            e("button", { type: "button", className: "bd-act bd-play-step", "aria-label": "Zoom in", title: "Zoom in (+)", disabled: sc >= PLAY_STEPS[PLAY_STEPS.length - 1] - 1e-3, onClick: function() {
-              stepZoom(1);
-            } }, e(Icon, { name: "plus" }))
-          ),
-          e(Segmented, {
-            label: "Fit",
-            className: "bd-play-fit",
-            value: typeof zoom === "string" && zoom !== "auto" ? zoom : void 0,
-            onChange: function(v) {
-              if (v) setPlay(Object.assign({}, play, { zoom: v }));
-            },
-            options: [{ value: "fit", label: "Fit", title: "Fit to screen (Shift+1)" }, { value: "width", label: "Width", title: "Fit width (Shift+2)" }, { value: "actual", label: "100%", title: "Actual size (Shift+0)" }]
-          })
-        )
-      );
-    };
-    var importDialog = function() {
-      var read = readLayout(importText);
-      var ok = read && !read.error;
-      var formatHref = mountEl.getAttribute("data-format") || "assets/builder-layouts.md";
-      return e(
-        "dialog",
-        { className: "bd-code bd-import", ref: importRef, "aria-labelledby": "bd-import-title" },
-        e(
-          "div",
-          { className: "bd-code-head" },
-          e(
-            "div",
-            { className: "bd-code-intro" },
-            e("h2", { id: "bd-import-title" }, "Paste a layout"),
-            e(
-              "p",
-              { className: "bd-inspect-sub" },
-              "Paste builder JSON (from Claude, a teammate or Copy layout JSON), a builder link, or JSX with Dovetail components (from the docs or the Code dialog). Only the components, props and tokens the builder can set come in. ",
-              e("a", { href: formatHref, target: "_blank", rel: "noopener" }, "The layout format"),
-              "."
-            )
-          ),
-          e(
-            "div",
-            { className: "bd-code-actions" },
-            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
-              importRef.current.close();
-            } }, e(Icon, { name: "close" }))
-          )
-        ),
-        e(
-          "div",
-          { className: "bd-import-body" },
-          e("textarea", {
-            className: "bd-import-text",
-            "aria-label": "Layout JSON, JSX or link",
-            spellCheck: false,
-            value: importText,
-            placeholder: '{ "frames": [ { "name": "Home", "width": 1280, "hug": true, "root": { "children": [ { "type": "HeroBlock" } ] } } ] }',
-            onChange: function(ev) {
-              setImportText(ev.target.value);
-            }
-          }),
-          e(
-            "div",
-            { className: "bd-import-report", role: "status", "aria-live": "polite" },
-            !read ? e("p", { className: "bd-sec-empty" }, "Nothing pasted yet.") : read.error ? e("p", { className: "bd-import-error" }, e(Icon, { name: "alert" }), read.error) : e(
-              React.Fragment,
-              null,
-              e(
-                "p",
-                { className: "bd-import-ok" },
-                e(Icon, { name: "check" }),
-                read.doc.frames.length + (read.doc.frames.length === 1 ? " frame, " : " frames, ") + read.layers + (read.layers === 1 ? " layer" : " layers") + ": " + read.doc.frames.map(function(f) {
-                  return f.name + " (" + f.width + (f.hug ? " wide, hugging" : " × " + f.height) + ")";
-                }).join(", ")
-              ),
-              read.report.length ? e(
-                "div",
-                { className: "bd-import-dropped" },
-                e("p", null, read.report.length + (read.report.length === 1 ? " thing will be left out:" : " things will be left out:")),
-                e("ul", null, read.report.slice(0, 12).map(function(line, i) {
-                  return e("li", { key: i }, line);
-                })),
-                read.report.length > 12 ? e("p", null, "and " + (read.report.length - 12) + " more.") : null
-              ) : e("p", { className: "bd-sec-empty" }, "Everything in it comes in.")
-            )
-          ),
-          e(
-            "div",
-            { className: "bd-import-actions" },
-            e("button", { type: "button", className: "bd-btn bd-btn-primary", disabled: !ok, onClick: function() {
-              importLayout("add");
-            } }, e(Icon, { name: "plus" }), ok ? "Add " + (read.doc.frames.length === 1 ? "the frame" : read.doc.frames.length + " frames") : "Add"),
-            e("button", { type: "button", className: "bd-btn", disabled: !ok, onClick: function() {
-              importLayout("replace");
-            } }, "Replace all frames")
-          )
-        )
-      );
-    };
     var STAGE_SWATCHES = [["", "Default"], ["#ffffff", "White"], ["#e7e7ea", "Light grey"], ["#3a3a40", "Dark grey"], ["#141416", "Black"]];
     var otherUseState = useState(null);
     var otherUse = otherUseState[0], setOtherUse = otherUseState[1];
@@ -17137,6 +17169,179 @@
     }).length ? selectedNodes.filter(function(n) {
       return n.type !== "Slot";
     }) : selectedNodes) : frameOn ? frameInspector() : builderInspector();
+    var closeShown = useEvent(function() {
+      setShown(null);
+    });
+    var closeComponent = useEvent(function() {
+      setCompDraft(null);
+    });
+    var onKeepVersion = useEvent(keepVersion), onRestoreVersion = useEvent(restoreVersion);
+    var onSaveComponent = useEvent(saveComponent), onFixComponent = useEvent(fixComponent);
+    var onImportLayout = useEvent(importLayout);
+    var onCopyCode = useEvent(function() {
+      copyText(code).then(function() {
+        announce("Code copied");
+      });
+    });
+    var onExportImage = useEvent(function(type) {
+      exportImage(frame2.id, type, { scale: exportScale, id: codePick });
+    });
+    var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function() {
+      share();
+    });
+    var onPlayClosed = useEvent(playClosed), onPlayBack = useEvent(playBack), onRenderPlay = useEvent(renderPlay);
+    var compNode = useMemo(function() {
+      return compDraft ? componentSource() : null;
+    }, [compDraft, doc2, selection]);
+    var playPage = play ? pagesOf(project).filter(function(pg) {
+      return pg.id === pageId;
+    })[0] : null;
+    var playPageName = playPage && pagesOf(project).length > 1 ? playPage.name : null;
+    var homeSetSort = useEvent(setHomeSort), homeGoView = useEvent(goHomeView), homeSetDark = useEvent(setDark);
+    var homeOpen = useEvent(openProject), homeRename = useEvent(renameProject), homeDuplicate = useEvent(duplicateProject), homeDelete = useEvent(deleteProject);
+    var homeMove = useEvent(moveFile), homeExport = useEvent(exportProject), homeImport = useEvent(importProject);
+    var homePicture = useEvent(function(who, f) {
+      if (who.indexOf("g:") === 0) setGroupPicture(who.slice(2), f);
+      else setPicture(who, f);
+    });
+    var homeRenameGroup = useEvent(renameGroup), homeDuplicateGroup = useEvent(duplicateGroup), homeExportGroup = useEvent(exportGroup), homeDeleteGroup = useEvent(deleteGroup);
+    var homeAutoPicture = useEvent(function(id) {
+      store.setGroupThumb(id, null).then(refreshProjects);
+    });
+    var homeNewGroup = useEvent(newGroup), homeNewProject = useEvent(newProject), homeNewPlayground = useEvent(newPlayground), homeOpenAccount = useEvent(openAccount);
+    var onPick = useEvent(pick), onOpenMenu = useEvent(openMenu), onStartDrag = useEvent(startDrag), onSetName = useEvent(setName), onFlagLayer = useEvent(flagLayer);
+    var onFramePick = useEvent(function(fid, v) {
+      frameOps.pick(fid, v);
+    }), onFrameRename = useEvent(function(fid, v) {
+      frameOps.rename(fid, v);
+    }), onAnatomy = useEvent(anatomyOf);
+    var layersProps = {
+      doc: doc2,
+      selection,
+      partId: part ? part.id : null,
+      listDrop,
+      hover,
+      frameOn,
+      hasSel: !!sel,
+      query: layerQuery,
+      collapsed,
+      openFrames,
+      renaming,
+      boxes,
+      scalars,
+      layersRef,
+      justDragged,
+      setCollapsed,
+      setHover,
+      setRenaming,
+      setOpenFrames,
+      pick: onPick,
+      openMenu: onOpenMenu,
+      startDrag: onStartDrag,
+      setName: onSetName,
+      flagLayer: onFlagLayer,
+      framePick: onFramePick,
+      frameRename: onFrameRename,
+      anatomyOf: onAnatomy
+    };
+    var onFoldFolder = useEvent(foldFolder), onRenameFolder = useEvent(renameFolder), onMoveFolder = useEvent(moveFolder), onDeleteFolder = useEvent(deleteFolder);
+    var onRenamePage = useEvent(renamePage), onOpenPage = useEvent(openPage), onDeletePage = useEvent(deletePage), onDuplicatePage = useEvent(duplicatePage), onMovePage = useEvent(movePage), onPlacePage = useEvent(placePage);
+    var onAddFolder = useEvent(addFolder), onAddPage = useEvent(addPage);
+    var pagesProps = {
+      project,
+      pageId,
+      query: pageQuery,
+      renamingPage,
+      renamingFolder,
+      confirmPage,
+      setRenamingPage,
+      setRenamingFolder,
+      setConfirmPage,
+      foldFolder: onFoldFolder,
+      renameFolder: onRenameFolder,
+      moveFolder: onMoveFolder,
+      deleteFolder: onDeleteFolder,
+      renamePage: onRenamePage,
+      openPage: onOpenPage,
+      deletePage: onDeletePage,
+      duplicatePage: onDuplicatePage,
+      movePage: onMovePage,
+      placePage: onPlacePage,
+      addFolder: onAddFolder,
+      addPage: onAddPage,
+      announce
+    };
+    var onAddOrSwap = useEvent(function(type, swap) {
+      var s0 = selRef.current;
+      if (swap && s0.length) {
+        swapNode(s0[s0.length - 1], type, docRef.current.active);
+        return;
+      }
+      add(type);
+    });
+    var onAddLocal = useEvent(addLocal), onRenameComponent = useEvent(renameComponent), onRemoveComponent = useEvent(removeComponent), onApplyVar = useEvent(applyVar), onSetStyles = useEvent(setStyles), onAddTemplate = useEvent(addTemplate);
+    var onFrameAdd = useEvent(function(size, page, at2, opts) {
+      return frameOps.add(size, page, at2, opts);
+    });
+    var picked = useMemo(function() {
+      return nodesOf2(selection).filter(function(n) {
+        return n.type !== "Slot";
+      });
+    }, [selection, doc2]);
+    var pickedScope = useMemo(function() {
+      return picked.length ? scopeFor(picked) : null;
+    }, [picked]);
+    var assetsProps = {
+      query,
+      library,
+      kind: assetKind,
+      category,
+      view,
+      placeable,
+      picked,
+      scope: pickedScope,
+      pxMap,
+      used,
+      frameName: frame2.name,
+      justDragged,
+      setView,
+      setAssetKind,
+      setCategory,
+      startDrag: onStartDrag,
+      addOrSwap: onAddOrSwap,
+      addLocal: onAddLocal,
+      renameComponent: onRenameComponent,
+      removeComponent: onRemoveComponent,
+      applyVar: onApplyVar,
+      setStyles: onSetStyles,
+      announce,
+      addTemplate: onAddTemplate,
+      frameAdd: onFrameAdd
+    };
+    var onInsertAsset = useEvent(insertAsset), onAddToLibrary = useEvent(addToLibrary), onCutBackground = useEvent(cutBackground), onLibUpdate = useEvent(libUpdate), onReadBrandFile = useEvent(readBrandFile), onPlaceBrand = useEvent(placeBrand), onSetBrandPart = useEvent(setBrandPart);
+    var contentProps = {
+      query: contentQuery,
+      tab: libTab,
+      library,
+      busy: libBusy,
+      brandErr,
+      brand: brandNow(),
+      scopeNote: contentScopeNote(),
+      frameName: frame2.name,
+      justDragged,
+      startDrag: onStartDrag,
+      insertAsset: onInsertAsset,
+      addToLibrary: onAddToLibrary,
+      cutBackground: onCutBackground,
+      libUpdate: onLibUpdate,
+      readBrandFile: onReadBrandFile,
+      placeBrand: onPlaceBrand,
+      setBrandPart: onSetBrandPart,
+      announce,
+      setLibTab,
+      setBrandErr,
+      setThemeStamp
+    };
     var slot2 = wide ? document.getElementById("app-toolbar") : null;
     return e(
       React.Fragment,
@@ -17211,7 +17416,7 @@
             e(
               "div",
               { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
-              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? assetsPanel() : left === "pages" ? pagesPanel() : left === "layers" ? layersPanel() : contentPanel()
+              left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null) : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : e(Content, contentProps)
             ),
             left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery }) : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery }) : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery }) : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery }) : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery })
           )
@@ -17220,7 +17425,46 @@
         e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || void 0 }, inspector),
         wide && !hidePanels && !home ? [panelHandle("left"), panelHandle("right")] : null
       ),
-      homePage(),
+      e(Home, {
+        open: home,
+        projects: projList,
+        groups: groupList,
+        currentId: project.id,
+        opening,
+        query: projQuery,
+        view: homeView,
+        sort: homeSort,
+        renamingProj,
+        renamingGroup,
+        confirmDel,
+        dark,
+        account: account2,
+        toolbar: slot2 ? null : toolbar,
+        setQuery: setProjQuery,
+        setSort: homeSetSort,
+        setRenamingProj,
+        setRenamingGroup,
+        setConfirmDel,
+        goView: homeGoView,
+        setDark: homeSetDark,
+        openProject: homeOpen,
+        renameProject: homeRename,
+        duplicateProject: homeDuplicate,
+        deleteProject: homeDelete,
+        moveFile: homeMove,
+        exportProject: homeExport,
+        onPicture: homePicture,
+        importProject: homeImport,
+        renameGroup: homeRenameGroup,
+        duplicateGroup: homeDuplicateGroup,
+        exportGroup: homeExportGroup,
+        deleteGroup: homeDeleteGroup,
+        autoGroupPicture: homeAutoPicture,
+        newGroup: homeNewGroup,
+        newProject: homeNewProject,
+        newPlayground: homeNewPlayground,
+        openAccount: homeOpenAccount
+      }),
       readout ? e("div", { className: "bd-readout", "aria-hidden": true, style: { left: readout.x + 14 + "px", top: readout.y + 16 + "px" } }, readout.text) : null,
       drag && drag.ghost ? (function() {
         var g = drag.ghost, z = g.flat ? 1 : cam.z, grab = g.grab || { x: 0, y: 0 };
@@ -17231,58 +17475,38 @@
           e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } })
         );
       })() : drag && !drag.inside ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
-      e(
-        "dialog",
-        { className: "bd-code", ref: dialogRef, "aria-labelledby": "bd-code-title" },
-        e(
-          "div",
-          { className: "bd-code-head" },
-          e(
-            "div",
-            { className: "bd-code-intro" },
-            e("h2", { id: "bd-code-title" }, "Export: " + (codeTitle || frame2.name)),
-            e("p", { className: "bd-inspect-sub" }, "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (codePick ? codeTitle : frame2.name) + " as a picture, or every frame as layout JSON.")
-          ),
-          e(
-            "div",
-            { className: "bd-code-actions" },
-            e("button", { type: "button", className: "bd-btn bd-btn-primary", onClick: function() {
-              copyText(code).then(function() {
-                announce("Code copied");
-              });
-            } }, e(Icon, { name: "copy" }), "Copy code"),
-            e("a", { className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(code), download: ((codeTitle || frame2.name).replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
-            e(Segmented, {
-              label: "Picture scale",
-              className: "bd-export-scale",
-              value: String(exportScale),
-              onChange: function(v) {
-                if (v) setExportScale(Number(v));
-              },
-              options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }]
-            }),
-            e("button", { type: "button", className: "bd-btn", onClick: function() {
-              exportImage(frame2.id, "png", { scale: exportScale, id: codePick });
-            }, title: (codeTitle || frame2.name) + " as a PNG, at " + exportScale + "x" }, e(Icon, { name: "image" }), "PNG"),
-            e("button", { type: "button", className: "bd-btn", onClick: function() {
-              exportImage(frame2.id, "jpeg", { scale: exportScale, id: codePick });
-            }, title: (codeTitle || frame2.name) + " as a JPG, at " + exportScale + "x" }, "JPG"),
-            e("button", { type: "button", className: "bd-btn", onClick: copyLayout, title: "Every frame as builder JSON, to paste back here or hand to Claude" }, "Copy layout JSON"),
-            e("button", { type: "button", className: "bd-btn", onClick: function() {
-              share();
-            }, title: sel ? "Copy a link to the selected layer" : "Copy a link to " + frame2.name }, e(Icon, { name: "link" }), "Copy link"),
-            e("button", { type: "button", className: "bd-act", "aria-label": "Close", title: "Close", onClick: function() {
-              dialogRef.current.close();
-            } }, e(Icon, { name: "close" }))
-          )
-        ),
-        e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, code))
-      ),
-      importDialog(),
-      versionsDialog(),
-      keysDialog(),
-      componentDialog(),
-      playDialog(),
+      e(CodeDialog, {
+        dialogRef,
+        code,
+        title: codeTitle,
+        picked: !!codePick,
+        frameName: frame2.name,
+        scale: exportScale,
+        setScale: setExportScale,
+        hasSelection: !!sel,
+        onCopyCode,
+        onExportImage,
+        onCopyLayout,
+        onShare
+      }),
+      e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
+      e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
+      e(KeysDialog, { dialogRef: keysRef, open: shown === "keys", onClose: closeShown }),
+      e(ComponentDialog, { dialogRef: compRef, draft: compDraft, setDraft: setCompDraft, node: compNode, onClose: closeComponent, onSave: onSaveComponent, onFix: onFixComponent }),
+      e(PlayDialog, {
+        dialogRef: playRef,
+        frameRef: playFrameRef,
+        stageRef: playStageRef,
+        play,
+        setPlay,
+        box: playBox,
+        frame: play ? frameById(doc2, play.fid) : null,
+        pageName: playPageName,
+        frameSrc,
+        onClose: onPlayClosed,
+        onBack: onPlayBack,
+        onLoad: onRenderPlay
+      }),
       e(AccountDialog, { dialogRef: accountRef, state: account2, setState: accountState[1] }),
       menu ? e(ContextMenu, { x: menu.x, y: menu.y, label: "Actions", options: menuOptions(menu.ids), onClose: function() {
         setMenu(null);
