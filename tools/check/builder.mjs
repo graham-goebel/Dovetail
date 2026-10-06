@@ -154,7 +154,7 @@ const canvasPoint = (page, selector, at = "center", index = null) => page.evalua
   const box = iframe.getBoundingClientRect();
   const s = box.width / parseFloat(iframe.style.width);
   const y = at === "bottom" ? r.bottom - 4 : r.top + Math.min(r.height / 2, 40);
-  const x = at === "left" ? r.left + 20 : r.left + r.width / 2;
+  const x = at === "left" ? r.left + 20 : at === "right" ? r.right - 12 : r.left + r.width / 2;
   return { x: box.left + x * s, y: Math.min(box.bottom - 4, box.top + y * s) };
 }, { selector, at, index });
 
@@ -336,7 +336,9 @@ try {
     await page.locator('.bd-tile[data-type="Text"]').click();
     await frame().waitForSelector('[data-bf-type="Stack"] [data-bf-type="Text"]');
     ok("with the Stack selected, Heading and then Text are added into it");
-    const at = await canvasPoint(page, '[data-bf-type="Heading"]');
+    /* Toward its right end: the selected Text's tag, with its ⋯, sits over
+       the Heading's left end. */
+    const at = await canvasPoint(page, '[data-bf-type="Heading"]', "right");
     await page.mouse.click(at.x, at.y);
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     expect((await page.locator(".bd-itab").allTextContents()).join(",") === "Appearance,Layout,Content", "the inspector has Appearance, Layout and Content tabs");
