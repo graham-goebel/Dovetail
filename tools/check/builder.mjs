@@ -2500,7 +2500,7 @@ try {
     await page.close();
   });
 
-  await step("Picture props: an Image's Fit, Radius and Ratio are rows of pictures, and picking one sets the prop", async () => {
+  await step("Picture props: an Image's Fit, Radius and Ratio are rows of pictures; the chosen one is named after the label, the hovered one previewed there", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     await startFrom(page, "Blank frame");
     await emptyFrame(page);
@@ -2508,25 +2508,37 @@ try {
     await page.locator('.bd-tile[data-type="Image"]').click();
     await frame().waitForSelector('[data-bf-type="Image"]');
     await tab(page, "Appearance");
-    const row = (name) => page.locator(".bd-right .bd-field").filter({ has: page.locator(".bd-field-label", { hasText: new RegExp("^" + name + "$") }) }).locator(".bd-seg-tiles");
+    const field = (name) => page.locator(".bd-right .bd-field").filter({ has: page.locator(".bd-field-label", { hasText: new RegExp("^" + name + "$") }) });
+    const row = (name) => field(name).locator(".bd-seg-tiles");
+    const tile = (name, value) => row(name).locator(`.bd-seg-btn[aria-label="${name}: ${value}"]`);
+    const shown = (name) => field(name).locator(".bd-field-val").textContent();
     const counts = {};
     for (const [name, pic] of [["Fit", ".bd-pv-fit img"], ["Radius", ".bd-pv-corner"], ["Ratio", ".bd-pv-ratio"]]) {
       counts[name] = await row(name).locator(".bd-seg-btn").count();
-      expect(counts[name] >= 4 && await row(name).locator(pic).count() === counts[name], `${name} is a row of pictures, got ${counts[name]} buttons`);
+      expect(counts[name] >= 4 && await row(name).locator(pic).count() === counts[name] && (await row(name).innerText()).trim() === "", `${name} is a row of pictures with no words on them, got ${counts[name]} buttons`);
     }
-    expect(await row("Ratio").locator(".bd-seg-btn[aria-pressed=true] .bd-pv-cap").textContent() === "16:9", "the Image's default ratio, 16:9, is pressed");
-    /* Each fit draws itself: Contain leaves room in the square, Cover fills it. */
+    expect(await shown("Ratio") === "16:9" && await tile("Ratio", "16:9").getAttribute("aria-pressed") === "true", `the label names the Image's default ratio, got "${await shown("Ratio")}"`);
+    const one = await row("Ratio").evaluate((r) => new Set([...r.querySelectorAll(".bd-seg-btn")].map((b) => Math.round(b.getBoundingClientRect().top))).size);
+    expect(one === 1, `all seven ratios sit on one row, got ${one} rows`);
     const fits = await row("Fit").locator(".bd-pv-fit img").evaluateAll((imgs) => imgs.map((i) => getComputedStyle(i).objectFit));
     expect(fits.join() === "cover,contain,fill,none,scale-down", `the Fit pictures use object-fit itself, got ${fits.join()}`);
+    /* Hovering names a choice in the label's place, in the preview style; leaving puts the value back. */
+    await tile("Fit", "Contain").hover();
+    expect(await shown("Fit") === "Contain" && await field("Fit").locator(".bd-field-val.is-preview").count() === 1, `hovering Contain previews its name, got "${await shown("Fit")}"`);
+    await page.mouse.move(5, 5);
+    await page.waitForFunction(() => [...document.querySelectorAll(".bd-right .bd-field-val")].every((v) => !v.classList.contains("is-preview")));
+    expect(await shown("Fit") === "Cover", `leaving the row shows the chosen fit again, got "${await shown("Fit")}"`);
+    ok("hovering Contain names it after the Fit label; moving away shows Cover again");
     const node = () => page.evaluate(() => { const r = window.__builder.doc().frames[0].root; return JSON.parse(JSON.stringify(r.children[r.children.length - 1].props)); });
-    await row("Ratio").locator(".bd-seg-btn", { hasText: "1:1" }).click();
-    await row("Fit").locator(".bd-seg-btn", { hasText: "Contain" }).click();
-    await row("Radius").locator(".bd-seg-btn", { hasText: "Pill" }).click();
+    await tile("Ratio", "1:1").click();
+    await tile("Fit", "Contain").click();
+    await tile("Radius", "Pill").click();
     await page.waitForFunction(() => { const r = window.__builder.doc().frames[0].root; const p = r.children[r.children.length - 1].props; return p.ratio === "square" && p.fit === "contain" && p.radius === "pill"; });
     const props = await node();
+    expect(await shown("Ratio") === "1:1" && await shown("Fit") === "Contain" && await shown("Radius") === "Pill", "each label names the new choice");
     const shape = await frame().evaluate(() => { const el = document.querySelector('[data-bf-type="Image"]'); let x = el; while (x && getComputedStyle(x).display === "contents") x = x.firstElementChild; const r = x.getBoundingClientRect(); return Math.round((r.width / r.height) * 100) / 100; });
     expect(Math.abs(shape - 1) < 0.05, `1:1 draws a square Image, got ${shape}`);
-    ok(`Fit (${counts.Fit}), Radius (${counts.Radius}) and Ratio (${counts.Ratio}) are picture rows; 1:1, Contain and Pill set ${JSON.stringify(props)} and the Image draws square`);
+    ok(`Fit (${counts.Fit}), Radius (${counts.Radius}) and Ratio (${counts.Ratio}, one row) are bare pictures; 1:1, Contain and Pill set ${JSON.stringify(props)}, the labels name them, and the Image draws square`);
     await page.close();
   });
 

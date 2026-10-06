@@ -730,27 +730,39 @@ html.bd-configure-docked .configure-open-btn {
   border-left: var(--dt-border-width-strong) solid var(--dt-text-secondary);
 }
 
-/* Picture tiles for props: a picture with its value beneath, as many to a
-   row as fit, all the same width. */
+/* Picture tiles for props: pictures alone, all on one row where they fit.
+   The chosen one's name follows the field's label; the one under the
+   pointer is named there instead, in the selection colour. */
 .bd-seg.bd-seg-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
   gap: 2px;
 }
 
 .bd-seg.bd-seg-tiles .bd-seg-btn {
-  flex-direction: column;
-  gap: 4px;
+  min-width: 0;
   min-height: 0;
-  padding: 6px 2px 4px;
+  padding: 6px 0;
 }
 
-.bd-pv-cap {
-  max-width: 100%;
+.bd-field-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--dt-space-inline-xs);
+  min-width: 0;
+}
+
+.bd-field-val {
   overflow: hidden;
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-xs);
   text-overflow: ellipsis;
-  font-size: var(--dt-font-size-2xs, 0.7rem);
-  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.bd-field-val.is-preview {
+  color: color-mix(in oklab, var(--bd-select) 75%, var(--dt-text-primary));
+  font-style: italic;
 }
 
 .bd-pv-fit,

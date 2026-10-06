@@ -13,7 +13,7 @@ import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid } from "../model/tree.js";
 import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
-import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PinPad, Renamable, SearchField, Section, Segmented, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
+import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, playHeights, snapSide } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
 var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -4298,11 +4298,9 @@ function App(props) {
       control = e(Dropdown, { labelledBy: id, value: current, mixed: mixed, onChange: set, placeholder: "Default", preview: "color", className: "bd-dd-field bd-dd-swatch",
         options: p.options.map(function (o) { var t = toneMap[o]; return { value: o, label: ENUM_LABEL[o] || String(o), hint: t || "Takes its colour from around it", tokens: t ? [t] : [] }; }) });
     } else if (p.kind === "enum" && picturable(p)) {
-      control = e(Segmented, { labelledBy: id, value: mixed ? null : current, onChange: function (v) { if (v) set(v); }, className: "bd-seg-pics bd-seg-tiles",
+      return e(PictureField, { key: p.name, id: id, label: label, note: p.note, value: current, mixed: mixed, onChange: set,
         options: p.options.map(function (o) {
-          var name = PIC_LABEL[o] || String(o);
-          var full = o === "scale-down" ? "Scale down: shrink to fit, never grow" : name;
-          return { value: o, label: label + ": " + full, title: full, picture: e(React.Fragment, null, propPicture(p.name, o), e("span", { className: "bd-pv-cap", "aria-hidden": true }, name)) };
+          return { value: o, name: PIC_LABEL[o] || String(o), title: o === "scale-down" ? "Scale down: shrink to fit, never grow" : undefined, picture: propPicture(p.name, o) };
         }) });
     } else if (p.kind === "enum") {
       var icons = ENUM_ICONS[p.name];
