@@ -3800,8 +3800,12 @@ try {
     await page.keyboard.up("Alt");
     const cleared = await poll(opcStyle, (st) => !st.padding);
     expect(!cleared.padding && await page.locator(".bd-dd-list").count() === 0, `Alt-click on Padding clears every side without opening the list, got ${JSON.stringify(cleared)}`);
-    /* Once the box shows the cleared side in grey again. */
+    /* Once the frame draws the Card's own padding again and the box shows
+       the cleared side in grey with that size: the inspector re-renders on
+       the frame's redraw, and Up before then has stale steps to step. */
     await page.waitForSelector(".bd-box-p > .bd-box-cell.is-right .bd-dd.is-inherited");
+    await frames(page)[0].waitForFunction((px) => window.BuilderFrame.spacing("opc").paddingRight === px, drawnPad);
+    await page.waitForFunction((px) => document.querySelector(".bd-box-p > .bd-box-cell.is-right .bd-dd-label")?.textContent === String(px), drawnPad);
     await cell("right").focus();
     await page.keyboard.press("ArrowUp");
     const stepped = await poll(opcStyle, (st) => !!st.paddingRight);
