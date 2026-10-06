@@ -257,3 +257,49 @@ test("saved panel widths are kept in range, in steps of 4, with the defaults for
   assert.deepEqual(cleanPanels({ left: 10, right: NaN }), { left: 280, right: 312, leftClosed: false, rightClosed: false });
   assert.deepEqual(cleanPanels({ left: "500" }), { left: 344, right: 312, leftClosed: false, rightClosed: false });
 });
+
+/* ------------------------------------------------- components that travel */
+
+test("loadLibrary keeps a component's revision and the one before, cleaned", async () => {
+  const { loadLibrary } = await import("../../../assets/builder/model/share.js");
+  const node = make("Group", { direction: "column" }, [make("Button", { children: "Go" })], { padding: "md" });
+  const prev = make("Group", { direction: "column" }, [make("Button", { children: "Old" })], { padding: "md" });
+  const lib = loadLibrary({ components: [
+    { id: "c1", name: "Card", node, prev, tokens: ["--dt-space-inset-md", "not-a-token"], rev: 3, made: 5 },
+    { id: "c2", name: "Loose", node, rev: "two" },
+    { id: "bad id!", name: "Nope", node },
+    { id: "c3", name: "Empty", node: { type: "NotAComponent" } },
+  ] });
+  assert.deepEqual(lib.components.map((c) => [c.id, c.rev, c.tokens, !!c.prev]), [["c1", 3, ["--dt-space-inset-md"], true], ["c2", 1, [], false]]);
+  assert.equal(lib.components[0].prev.children[0].props.children, "Old");
+});
+
+test("componentsFor picks the components a document's instances use, at the current revision and without uploads", async () => {
+  const { componentsFor } = await import("../../../assets/builder/model/share.js");
+  const node = make("Group", { direction: "column" }, [make("Image", { src: "data:image/png;base64,AAAA", alt: "x" }), make("Button", { children: "Go" })], { padding: "md" });
+  const library = { components: [
+    { id: "c1", name: "Card", node, prev: node, tokens: ["--dt-space-inset-md"], rev: 2, made: 1 },
+    { id: "c2", name: "Unused", node, tokens: [], rev: 1, made: 1 },
+  ] };
+  const f = makeFrame("Home", "desktop");
+  f.root.children = [make("Section", {}, [Object.assign(make("Group", { direction: "column" }), { inst: { of: "c1", rev: 1 } })])];
+  const got = componentsFor([{ frames: [f], active: f.id }, null], library);
+  assert.deepEqual(got.map((c) => [c.id, c.rev, "prev" in c]), [["c1", 2, false]]);
+  assert.equal(got[0].node.children[0].props.src, undefined, "an uploaded picture stays behind");
+  assert.equal(library.components[0].node.children[0].props.src.slice(0, 5), "data:", "the library's own copy is untouched");
+  assert.deepEqual(componentsFor([{ frames: [f] }], null), []);
+});
+
+test("absorbComponents merges a file's components into a library and keeps what was there", async () => {
+  const { absorbComponents } = await import("../../../assets/builder/model/share.js");
+  const { makeStore, localBackend } = await import("../../../assets/builder/model/store.js");
+  window.localStorage.removeItem("dovetail-builder-store");
+  const store = makeStore(localBackend());
+  const node = make("Group", { direction: "column" }, [make("Button", { children: "Go" })], { padding: "md" });
+  await store.saveLibrary({ images: [{ id: "p1", name: "Pic", src: "data:image/png;base64,AAAA" }], components: [{ id: "c1", name: "Mine", node, tokens: [], rev: 2, made: 1 }] }, "f:a");
+  const merged = await absorbComponents(store, "f:a", [{ id: "c1", name: "Theirs", node, rev: 1 }, { id: "c2", name: "New", node, rev: 1 }, { id: "bad!", name: "x", node }]);
+  assert.deepEqual(merged.components.map((c) => [c.id, c.name, c.rev]), [["c1", "Mine", 2], ["c2", "New", 1]]);
+  assert.equal(merged.images.length, 1, "the pictures already there stay");
+  assert.deepEqual((await store.loadLibrary("f:a")).components.map((c) => c.id), ["c1", "c2"], "and it's saved");
+  assert.equal((await absorbComponents(store, "f:b", [])), null, "nothing to take in reads the library as it is");
+});

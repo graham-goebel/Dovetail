@@ -113,16 +113,18 @@ function LinkTo(props) {
   var pages = props.pages || [];
   var m = typeof props.value === "string" ? PAGE_LINK.exec(props.value) : null;
   var onPage = m && pages.some(function (pg) { return pg.id === m[1]; }) ? m[1] : null;
-  var mode = props.mixed ? null : onPage ? "page:" + onPage : props.value || web ? "url" : "";
+  /* A link to a page that was removed says so; the code leaves it out. */
+  var gone = !!m && !onPage;
+  var mode = props.mixed ? null : onPage ? "page:" + onPage : gone ? "gone" : props.value || web ? "url" : "";
   return e("div", { className: "bd-link" },
     e(Dropdown, { labelledBy: props.labelledBy, value: mode, mixed: props.mixed, placeholder: "None", className: "bd-dd-field",
       onChange: function (v) {
         setWeb(v === "url");
-        if (v === "url") { if (onPage) props.onChange(undefined); }
+        if (v === "url") { if (onPage || gone) props.onChange(undefined); }
         else if (v && v.indexOf("page:") === 0) props.onChange("#page:" + v.slice(5));
         else props.onChange(undefined);
       },
-      options: [{ value: "", label: "None" }, { value: "url", label: "A web address", icon: "link" }].concat(pages.map(function (pg) { return { value: "page:" + pg.id, label: pg.name, hint: pg.id === props.pageNow ? "This page" : "Page", icon: "file" }; })) }),
+      options: [{ value: "", label: "None" }, { value: "url", label: "A web address", icon: "link" }].concat(gone ? [{ value: "gone", label: "A page that was removed", icon: "alert", disabled: true }] : [], pages.map(function (pg) { return { value: "page:" + pg.id, label: pg.name, hint: pg.id === props.pageNow ? "This page" : "Page", icon: "file" }; })) }),
     mode === "url" ? e(UrlInput, { labelledBy: props.labelledBy, value: onPage ? "" : props.value, placeholder: props.placeholder || "https://", ok: props.ok || SAFE_HREF, onChange: props.onChange }) : null);
 }
 

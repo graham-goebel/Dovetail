@@ -155,4 +155,12 @@ function masterOf(library, node) {
   return (library.components || []).filter(function (c) { return c.id === node.inst.of; })[0] || null;
 }
 
-export { applyOverrides, at, detachAll, instancesOf, masterOf, overrides, rebase, reid, updateInstances };
+/* Whether an instance of a component sits anywhere below a node. A
+   component can't hold itself: an instance added into one of its own
+   instances goes beside it, and an instance holding one can't become the
+   component's next revision. */
+function holdsInstanceOf(node, compId) {
+  return (node.children || []).some(function (c) { return (c.inst && c.inst.of === compId) || holdsInstanceOf(c, compId); });
+}
+
+export { applyOverrides, at, detachAll, holdsInstanceOf, instancesOf, masterOf, overrides, rebase, reid, updateInstances };

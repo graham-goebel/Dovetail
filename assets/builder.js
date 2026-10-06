@@ -3606,13 +3606,44 @@
       });
     });
     out.components = (Array.isArray(raw.components) ? raw.components : []).map(function(c) {
-      if (!c || typeof c.id !== "string" || typeof c.name !== "string" || !c.node || typeof c.node !== "object") return null;
+      if (!c || typeof c.id !== "string" || !/^[\w-]{1,40}$/.test(c.id) || typeof c.name !== "string" || !c.node || typeof c.node !== "object") return null;
       var node = cleanNode(c.node, null);
-      return node ? { id: c.id, name: c.name.slice(0, 60), node, tokens: Array.isArray(c.tokens) ? c.tokens.filter(function(t) {
+      if (!node) return null;
+      var prev = c.prev && typeof c.prev === "object" ? cleanNode(c.prev, null) : null;
+      var kept = { id: c.id, name: c.name.slice(0, 60), node, tokens: Array.isArray(c.tokens) ? c.tokens.filter(function(t) {
         return typeof t === "string" && /^--dt-[\w-]+$/.test(t);
-      }).slice(0, 300) : [], made: typeof c.made === "number" ? c.made : 0 } : null;
+      }).slice(0, 300) : [], rev: Number.isInteger(c.rev) && c.rev >= 1 ? c.rev : 1, made: typeof c.made === "number" ? c.made : 0 };
+      if (prev) kept.prev = prev;
+      return kept;
     }).filter(Boolean);
     return out;
+  }
+  function componentsFor(docs, library) {
+    var want = {};
+    docs.forEach(function(d) {
+      (function walk(n) {
+        if (n.inst && typeof n.inst.of === "string") want[n.inst.of] = 1;
+        (n.children || []).forEach(walk);
+      })({ children: (d && d.frames ? d.frames : []).map(function(f) {
+        return f.root;
+      }) });
+    });
+    return (library && library.components || []).filter(function(c) {
+      return want[c.id];
+    }).map(function(c) {
+      var node = withoutUploads({ frames: [{ root: { children: [c.node] } }] }).doc.frames[0].root.children[0];
+      return { id: c.id, name: c.name, node, tokens: c.tokens || [], rev: c.rev || 1, made: c.made || 0 };
+    });
+  }
+  function absorbComponents(store, scope, components) {
+    var incoming = loadLibrary({ components }).components;
+    if (!incoming.length) return store.loadLibrary(scope);
+    return store.loadLibrary(scope).then(function(lib) {
+      var merged = mergeLibs(lib, { components: incoming });
+      return store.saveLibrary(merged, scope).then(function() {
+        return merged;
+      });
+    });
   }
   function encode(doc2) {
     var bytes = new TextEncoder().encode(JSON.stringify(doc2));
@@ -3663,10 +3694,11 @@
         return { kind: "jsx", src: null };
       }
     }
-    var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40})*)$/.exec(location.hash);
+    var m = /^#b=([\w-]+)((?:&[fn]=[\w-]{1,40}|&c=[\w-]+)*)$/.exec(location.hash);
     if (m) {
-      var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]);
-      return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null };
+      var f = /&f=([\w-]+)/.exec(m[2]), n = /&n=([\w-]+)/.exec(m[2]), c = /&c=([\w-]+)/.exec(m[2]);
+      var comps = c ? decode(c[1]) : null;
+      return { kind: "link", data: decode(m[1]), frame: f ? f[1] : null, node: n ? n[1] : null, components: Array.isArray(comps) ? comps : null };
     }
     return null;
   }
@@ -3703,7 +3735,7 @@
         var dropped = [];
         var d = clean(hash.data, dropped);
         if (hash.frame && frameById(d, hash.frame)) d.active = hash.frame;
-        return fresh2(d.frames.length === 1 ? d.frames[0].name : "Shared layout", d, { from: "link", dropped, focus: hash.node });
+        return fresh2(d.frames.length === 1 ? d.frames[0].name : "Shared layout", d, { from: "link", dropped, focus: hash.node, components: hash.components });
       }
       if (hash && hash.kind === "jsx") {
         var read = hash.src ? readLayout(hash.src) : null;
@@ -3732,8 +3764,11 @@
       });
     }).then(function(init) {
       store.setLastOpened(init.project.id);
-      return store.loadLibrary(libScopeOf(init.project)).then(function(lib) {
-        init.library = loadLibrary(lib);
+      var scope = libScopeOf(init.project);
+      var lib = init.components ? absorbComponents(store, scope, init.components) : store.loadLibrary(scope);
+      return lib.then(function(v) {
+        init.library = loadLibrary(v);
+        delete init.components;
         return init;
       });
     });
@@ -4823,7 +4858,8 @@
     var onPage = m && pages.some(function(pg) {
       return pg.id === m[1];
     }) ? m[1] : null;
-    var mode = props.mixed ? null : onPage ? "page:" + onPage : props.value || web ? "url" : "";
+    var gone = !!m && !onPage;
+    var mode = props.mixed ? null : onPage ? "page:" + onPage : gone ? "gone" : props.value || web ? "url" : "";
     return e(
       "div",
       { className: "bd-link" },
@@ -4836,11 +4872,11 @@
         onChange: function(v) {
           setWeb(v === "url");
           if (v === "url") {
-            if (onPage) props.onChange(void 0);
+            if (onPage || gone) props.onChange(void 0);
           } else if (v && v.indexOf("page:") === 0) props.onChange("#page:" + v.slice(5));
           else props.onChange(void 0);
         },
-        options: [{ value: "", label: "None" }, { value: "url", label: "A web address", icon: "link" }].concat(pages.map(function(pg) {
+        options: [{ value: "", label: "None" }, { value: "url", label: "A web address", icon: "link" }].concat(gone ? [{ value: "gone", label: "A page that was removed", icon: "alert", disabled: true }] : [], pages.map(function(pg) {
           return { value: "page:" + pg.id, label: pg.name, hint: pg.id === props.pageNow ? "This page" : "Page", icon: "file" };
         }))
       }),
@@ -9212,6 +9248,11 @@
       return c.id === node.inst.of;
     })[0] || null;
   }
+  function holdsInstanceOf(node, compId) {
+    return (node.children || []).some(function(c) {
+      return c.inst && c.inst.of === compId || holdsInstanceOf(c, compId);
+    });
+  }
 
   // assets/builder/app/App.js
   var HOME_SORT_KEY = "dovetail-builder-home-sort";
@@ -10981,6 +11022,15 @@
       }
       var t = where || target();
       var fid = t.frame || docRef.current.active;
+      var into = t.parent && t.parent !== "root" ? locate(docRef.current, t.parent, fid) : null;
+      var self = into ? into.path.filter(function(a) {
+        return a.inst && a.inst.of === comp.id;
+      })[0] : null;
+      var beside = self ? locate(docRef.current, self.id, fid) : null;
+      if (beside) {
+        var fr0 = frameById(docRef.current, fid);
+        t = { parent: fr0 && beside.parent === fr0.root ? "root" : beside.parent.id, index: beside.index + 1, frame: fid };
+      }
       if (t.free) {
         n.style.x = t.free.x;
         n.style.y = t.free.y;
@@ -10990,6 +11040,7 @@
         d.active = fid;
         return ops.insert(d, t.parent, t.index, n, fid);
       }, "Added " + comp.name + " to " + (fr ? fr.name : "the frame"))) announce(comp.name + " can't go there");
+      else if (beside) announce(comp.name + " can't go inside itself, so it's beside " + nameOf(self));
     };
     var placeLoose = function(payload, hit) {
       var node = null, moving = null;
@@ -12760,7 +12811,7 @@
       });
       return JSON.parse(JSON.stringify(tree), function(k, v) {
         var m = typeof v === "string" ? PAGE_LINK.exec(v) : null;
-        return m && files[m[1]] ? files[m[1]] : v;
+        return m ? files[m[1]] : v;
       });
     };
     var openCode = function() {
@@ -13004,7 +13055,8 @@
       var fid = frameId || d.active;
       var at2 = nid ? locate(d, nid, fid) : null;
       var fr = frameById(d, fid);
-      var url = location.origin + location.pathname + "#b=" + encode(out.doc) + "&f=" + fid + (at2 ? "&n=" + nid : "");
+      var comps = componentsFor([d], libRef.current);
+      var url = location.origin + location.pathname + "#b=" + encode(out.doc) + "&f=" + fid + (at2 ? "&n=" + nid : "") + (comps.length ? "&c=" + encode(comps) : "");
       var where = at2 ? nameOf(at2.node) + " in " + (fr ? fr.name : "its frame") : fr ? fr.name : "these frames";
       copyText(url).then(function() {
         announce("Link to " + where + " copied." + (out.dropped ? " Uploaded files aren't in it; they stay in this browser." : ""));
@@ -13561,7 +13613,12 @@
             return p.doc;
           });
           if (!pages.length) return null;
-          return { format: PROJECT_FORMAT, version: 2, name: meta.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: pages[0].doc, pages, folders: foldersOf(meta), stage: meta.stage, theme: meta.theme };
+          var scope = libScopeOf(meta);
+          return (scope === libScopeRef.current ? Promise.resolve(libRef.current) : store.loadLibrary(scope).then(loadLibrary)).then(function(lib) {
+            return { format: PROJECT_FORMAT, version: 3, name: meta.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), doc: pages[0].doc, pages, folders: foldersOf(meta), stage: meta.stage, theme: meta.theme, components: componentsFor(pages.map(function(p) {
+              return p.doc;
+            }), lib) };
+          });
         });
       });
     };
@@ -13597,6 +13654,13 @@
         download({ format: BUNDLE_FORMAT, version: 1, name: g.name, savedAt: (/* @__PURE__ */ new Date()).toISOString(), files: list.filter(Boolean) }, g.name);
       });
     };
+    var takeComponents = function(scope, comps) {
+      return absorbComponents(store, scope, comps).then(function(lib) {
+        if (scope !== libScopeRef.current) return;
+        libSkip.current = true;
+        setLibrary(loadLibrary(lib));
+      });
+    };
     var fileFromData = function(data, fallback, group2) {
       if (!data || data.format !== PROJECT_FORMAT || !data.doc) return Promise.resolve(null);
       var dropped = [];
@@ -13619,6 +13683,9 @@
           steps = steps.then(function() {
             return store.addPage(meta.id, p.name, p.doc, void 0, p.folder);
           });
+        });
+        if (Array.isArray(data.components) && data.components.length) steps = steps.then(function() {
+          return takeComponents(libScopeOf(meta), data.components);
         });
         return steps.then(function() {
           return store.getProject(meta.id);
@@ -13844,6 +13911,10 @@
       update: function(id) {
         var at2 = locate(docRef.current, id), comp = masterOf(libRef.current, at2 && at2.node);
         if (!comp) return;
+        if (holdsInstanceOf(at2.node, comp.id)) {
+          announce("Not yet: " + nameOf(at2.node) + " holds an instance of " + comp.name + ", and a component can't hold itself.");
+          return;
+        }
         var check = componentCheck(at2.node);
         var bad = check.issues.filter(function(i) {
           return i.level === "error";

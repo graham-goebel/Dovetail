@@ -5,7 +5,7 @@ import { produce, freeze, setAutoFreeze } from "immer";
 import { apply as applyChanges, diff as diffDocs, invert } from "../model/edits.js";
 import { readLayout } from "../model/paste.js";
 import { mergeUsage, usageOf, usesToken } from "../model/usage.js";
-import { copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
+import { absorbComponents, componentsFor, copyText, encode, loadLibrary, loadPrefs, starterDoc, thick, withoutUploads } from "../model/share.js";
 import { foldersOf, itemsOf, libScopeOf, pageOf, pagesOf } from "../model/store.js";
 import { CodeDialog, ComponentDialog, ImportDialog, KeysDialog, PlayDialog, VersionsDialog, componentCheck } from "./dialogs.js";
 import { HOME_SORTS, Home } from "./Home.js";
@@ -18,7 +18,7 @@ import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
-import { detachAll, masterOf, rebase, updateInstances } from "../model/instances.js";
+import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
@@ -1648,9 +1648,19 @@ function App(props) {
     if (!n) { announce(comp.name + " couldn't be read back"); return; }
     var t = where || target();
     var fid = t.frame || docRef.current.active;
+    /* Inside one of its own instances, it goes right after that instance
+       instead: a component can't hold itself. */
+    var into = t.parent && t.parent !== "root" ? locate(docRef.current, t.parent, fid) : null;
+    var self = into ? into.path.filter(function (a) { return a.inst && a.inst.of === comp.id; })[0] : null;
+    var beside = self ? locate(docRef.current, self.id, fid) : null;
+    if (beside) {
+      var fr0 = frameById(docRef.current, fid);
+      t = { parent: fr0 && beside.parent === fr0.root ? "root" : beside.parent.id, index: beside.index + 1, frame: fid };
+    }
     if (t.free) { n.style.x = t.free.x; n.style.y = t.free.y; }
     var fr = frameById(docRef.current, fid);
     if (!change(function (d) { d.active = fid; return ops.insert(d, t.parent, t.index, n, fid); }, "Added " + comp.name + " to " + (fr ? fr.name : "the frame"))) announce(comp.name + " can't go there");
+    else if (beside) announce(comp.name + " can't go inside itself, so it's beside " + nameOf(self));
   };
   /* Dropped off every frame: a loose object there, with no page around it.
      A band (a Section or a block) gets a page of its own instead. */
@@ -2868,12 +2878,13 @@ function App(props) {
   /* The code for what's selected: one button is just that button, a
      frame (nothing inside it picked) is the whole screen. */
   /* In the code, a link to a page becomes a relative address made from the
-     page's name: the first page is index.html, "About us" is about-us.html. */
+     page's name: the first page is index.html, "About us" is about-us.html.
+     A link to a page that's gone is left out rather than written as is. */
   var pageFile = function (pg, i) { return i === 0 ? "index.html" : ((pg.name || "page").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "page-" + (i + 1)) + ".html"; };
   var withPageLinks = function (tree) {
     var pages = pagesOf(projectRef.current), files = {};
     pages.forEach(function (pg, i) { files[pg.id] = "./" + pageFile(pg, i); });
-    return JSON.parse(JSON.stringify(tree), function (k, v) { var m = typeof v === "string" ? PAGE_LINK.exec(v) : null; return m && files[m[1]] ? files[m[1]] : v; });
+    return JSON.parse(JSON.stringify(tree), function (k, v) { var m = typeof v === "string" ? PAGE_LINK.exec(v) : null; return m ? files[m[1]] : v; });
   };
   var openCode = function () {
     var f = api();
@@ -3054,7 +3065,8 @@ function App(props) {
     var fid = frameId || d.active;
     var at = nid ? locate(d, nid, fid) : null;
     var fr = frameById(d, fid);
-    var url = location.origin + location.pathname + "#b=" + encode(out.doc) + "&f=" + fid + (at ? "&n=" + nid : "");
+    var comps = componentsFor([d], libRef.current);
+    var url = location.origin + location.pathname + "#b=" + encode(out.doc) + "&f=" + fid + (at ? "&n=" + nid : "") + (comps.length ? "&c=" + encode(comps) : "");
     var where = at ? nameOf(at.node) + " in " + (fr ? fr.name : "its frame") : fr ? fr.name : "these frames";
     copyText(url).then(function () {
       announce("Link to " + where + " copied." + (out.dropped ? " Uploaded files aren't in it; they stay in this browser." : ""));
@@ -3467,7 +3479,11 @@ function App(props) {
         /* Every page, in order; doc is the first, for files read before pages. */
         var pages = pagesOf(meta).map(function (p, i) { return { name: p.name, doc: docs[i], folder: p.folder || undefined }; }).filter(function (p) { return p.doc; });
         if (!pages.length) return null;
-        return { format: PROJECT_FORMAT, version: 2, name: meta.name, savedAt: new Date().toISOString(), doc: pages[0].doc, pages: pages, folders: foldersOf(meta), stage: meta.stage, theme: meta.theme };
+        /* And the components its instances are made from, so they resolve wherever the file opens. */
+        var scope = libScopeOf(meta);
+        return (scope === libScopeRef.current ? Promise.resolve(libRef.current) : store.loadLibrary(scope).then(loadLibrary)).then(function (lib) {
+          return { format: PROJECT_FORMAT, version: 3, name: meta.name, savedAt: new Date().toISOString(), doc: pages[0].doc, pages: pages, folders: foldersOf(meta), stage: meta.stage, theme: meta.theme, components: componentsFor(pages.map(function (p) { return p.doc; }), lib) };
+        });
       });
     });
   };
@@ -3493,6 +3509,15 @@ function App(props) {
       download({ format: BUNDLE_FORMAT, version: 1, name: g.name, savedAt: new Date().toISOString(), files: list.filter(Boolean) }, g.name);
     });
   };
+  /* Components from a file or a link, into a library; the one on screen
+     follows if it's the same, so nothing saved later writes over them. */
+  var takeComponents = function (scope, comps) {
+    return absorbComponents(store, scope, comps).then(function (lib) {
+      if (scope !== libScopeRef.current) return;
+      libSkip.current = true;
+      setLibrary(loadLibrary(lib));
+    });
+  };
   /* A file read from a download, made into a file here (in group, if given). */
   var fileFromData = function (data, fallback, group) {
     if (!data || data.format !== PROJECT_FORMAT || !data.doc) return Promise.resolve(null);
@@ -3508,6 +3533,8 @@ function App(props) {
       var steps = store.setFolders(meta.id, data.folders).then(function () { return store.renamePage(meta.id, pageOf(meta), pages[0].name); })
         .then(function () { return pages[0].folder ? store.placePage(meta.id, pageOf(meta), 0, pages[0].folder) : null; });
       pages.slice(1).forEach(function (p) { steps = steps.then(function () { return store.addPage(meta.id, p.name, p.doc, undefined, p.folder); }); });
+      /* Its components join the library this file uses; one already there stays as it is. */
+      if (Array.isArray(data.components) && data.components.length) steps = steps.then(function () { return takeComponents(libScopeOf(meta), data.components); });
       return steps.then(function () { return store.getProject(meta.id); });
     }).then(function (meta) { return { meta: meta, doc: d, dropped: dropped.length, name: name }; });
   };
@@ -3668,6 +3695,7 @@ function App(props) {
     update: function (id) {
       var at = locate(docRef.current, id), comp = masterOf(libRef.current, at && at.node);
       if (!comp) return;
+      if (holdsInstanceOf(at.node, comp.id)) { announce("Not yet: " + nameOf(at.node) + " holds an instance of " + comp.name + ", and a component can't hold itself."); return; }
       var check = componentCheck(at.node);
       var bad = check.issues.filter(function (i) { return i.level === "error"; })[0];
       if (bad) { announce("Not yet: " + bad.text); return; }
