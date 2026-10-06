@@ -5243,6 +5243,50 @@
     var thumb = box ? e("span", { className: "bd-seg-thumb", "aria-hidden": true, style: { width: box.w + "px", height: box.h + "px", transform: "translate(" + box.x + "px, " + box.y + "px)" } }) : null;
     return { ref, thumb, sliding: !!box, dragging: over >= 0, handlers };
   }
+  function PictureField(props) {
+    var hoverState = useState(null), hover = hoverState[0], setHover = hoverState[1];
+    var on = props.options.filter(function(o) {
+      return o.value === props.value;
+    })[0];
+    var named = function(ev) {
+      var b = ev.target.closest && ev.target.closest(".bd-seg-btn");
+      if (!b) return;
+      var i = Array.prototype.indexOf.call(b.parentNode.querySelectorAll(".bd-seg-btn"), b);
+      var o = props.options[i];
+      setHover(o && o.value !== props.value ? o.name : null);
+    };
+    return e(
+      "div",
+      { className: "bd-field" },
+      e(
+        "div",
+        { className: "bd-field-head" },
+        e("span", { className: "bd-field-label", id: props.id, title: props.note || void 0 }, props.label),
+        e("span", { className: cx("bd-field-val", hover && "is-preview"), "aria-hidden": true }, hover || (on ? on.name : props.mixed ? "Mixed" : ""))
+      ),
+      e(
+        "div",
+        { onPointerOver: named, onFocus: named, onPointerLeave: function() {
+          setHover(null);
+        }, onBlur: function() {
+          setHover(null);
+        }, onClick: function() {
+          setHover(null);
+        } },
+        e(Segmented, {
+          labelledBy: props.id,
+          value: props.mixed ? null : props.value,
+          className: "bd-seg-pics bd-seg-tiles",
+          onChange: function(v) {
+            if (v) props.onChange(v);
+          },
+          options: props.options.map(function(o) {
+            return { value: o.value, label: props.label + ": " + (o.title || o.name), title: o.title || o.name, picture: o.picture };
+          })
+        })
+      )
+    );
+  }
   function Segmented(props) {
     var slide = useSlide(function(i) {
       var o = props.options[i];
@@ -12147,17 +12191,16 @@
           })
         });
       } else if (p.kind === "enum" && picturable(p)) {
-        control = e(Segmented, {
-          labelledBy: id,
-          value: mixed ? null : current2,
-          onChange: function(v) {
-            if (v) set2(v);
-          },
-          className: "bd-seg-pics bd-seg-tiles",
+        return e(PictureField, {
+          key: p.name,
+          id,
+          label,
+          note: p.note,
+          value: current2,
+          mixed,
+          onChange: set2,
           options: p.options.map(function(o) {
-            var name = PIC_LABEL[o] || String(o);
-            var full = o === "scale-down" ? "Scale down: shrink to fit, never grow" : name;
-            return { value: o, label: label + ": " + full, title: full, picture: e(React.Fragment, null, propPicture(p.name, o), e("span", { className: "bd-pv-cap", "aria-hidden": true }, name)) };
+            return { value: o, name: PIC_LABEL[o] || String(o), title: o === "scale-down" ? "Scale down: shrink to fit, never grow" : void 0, picture: propPicture(p.name, o) };
           })
         });
       } else if (p.kind === "enum") {

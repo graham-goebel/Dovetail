@@ -200,6 +200,30 @@ function useSlide(onPick) {
   return { ref: ref, thumb: thumb, sliding: !!box, dragging: over >= 0, handlers: handlers };
 }
 
+/* A row of pictures under its label, with no words on the pictures: the
+   chosen one's name follows the label, and the one under the pointer or
+   focus is named there instead while it is. options: { value, name,
+   picture, title }. */
+function PictureField(props) {
+  var hoverState = useState(null), hover = hoverState[0], setHover = hoverState[1];
+  var on = props.options.filter(function (o) { return o.value === props.value; })[0];
+  var named = function (ev) {
+    var b = ev.target.closest && ev.target.closest(".bd-seg-btn");
+    if (!b) return;
+    var i = Array.prototype.indexOf.call(b.parentNode.querySelectorAll(".bd-seg-btn"), b);
+    var o = props.options[i];
+    setHover(o && o.value !== props.value ? o.name : null);
+  };
+  return e("div", { className: "bd-field" },
+    e("div", { className: "bd-field-head" },
+      e("span", { className: "bd-field-label", id: props.id, title: props.note || undefined }, props.label),
+      e("span", { className: cx("bd-field-val", hover && "is-preview"), "aria-hidden": true }, hover || (on ? on.name : props.mixed ? "Mixed" : ""))),
+    e("div", { onPointerOver: named, onFocus: named, onPointerLeave: function () { setHover(null); }, onBlur: function () { setHover(null); }, onClick: function () { setHover(null); } },
+      e(Segmented, { labelledBy: props.id, value: props.mixed ? null : props.value, className: "bd-seg-pics bd-seg-tiles",
+        onChange: function (v) { if (v) props.onChange(v); },
+        options: props.options.map(function (o) { return { value: o.value, label: props.label + ": " + (o.title || o.name), title: o.title || o.name, picture: o.picture }; }) })));
+}
+
 /* One pressed, icons or pictures where they say it. clearable: pressing
    the pressed one again unsets it. */
 function Segmented(props) {
@@ -949,4 +973,4 @@ function playHeights(w) {
 }
 function playDefault(w) { return w <= 500 ? 812 : w <= 1100 ? 1180 : 900; }
 
-export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, Segmented, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
+export { ALIGN_POS, ALIGN_WORD, AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, Field, ID_FIELD, LinkTo, PAGE_LINK, InlineEditor, LONG_FIELD, ListEditor, NAME_FIELD, NumberField, OpacityField, PIN_GRID, PIN_WORD, PinPad, Preview, Renamable, SearchField, Section, PictureField, Segmented, Switch, TabStrip, Thumb, ThumbGuard, UrlInput, VIEW_H, VIEW_W, clampZoom, ddSeq, distance, layoutOf, midpoint, playDefault, playHeights, snapSide };
