@@ -2222,7 +2222,7 @@ try {
     const file = path.join(os.tmpdir(), "pages-" + Date.now() + ".dovetail");
     await dl.saveAs(file);
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
-    expect(data.version === 2 && data.pages.map((p) => p.name).join() === "Page 1,About" && /HeroBlock/.test(JSON.stringify(data.doc)), `the file carries every page, got ${JSON.stringify(data.pages && data.pages.map((p) => p.name))}`);
+    expect(data.version === 3 && data.pages.map((p) => p.name).join() === "Page 1,About" && /HeroBlock/.test(JSON.stringify(data.doc)), `the file carries every page, got ${JSON.stringify(data.pages && data.pages.map((p) => p.name))}`);
     await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click();
     await page.locator(".bd-home .bd-proj").first().waitFor();
     expect(/2 pages/.test(await page.locator(".bd-proj.is-current .bd-proj-meta").textContent()), "the project's card counts its pages");
@@ -4755,6 +4755,93 @@ try {
     await page.waitForTimeout(200);
     expect(await page.locator(".bd-panel-edge, .bd-panel-show").count() === 0, "on a phone the panels are panes, with no edges to drag");
     ok("at 390px there are no panel edges");
+    await page.close();
+  });
+
+  await step("Components travel: the file and the link carry the component an instance is made from; one can't go inside itself; a link to a removed page leaves the code", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = (pg = page) => pg.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    const library = (pg = page) => pg.evaluate(() => JSON.parse(JSON.stringify(window.__builder.library() || {})));
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(400);
+    /* A component in this file's library, at revision 2, and a page with an
+       instance of it beside a Card linking to a page that's gone. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const m = window.__builder.project();
+      const scope = m.group ? "g:" + m.group : m.lib === "shared" ? "shared" : "f:" + m.id;
+      const node = { id: "cm", type: "Group", name: "Promo", props: { direction: "column", gap: "sm" }, style: { padding: "md", radius: "container", surface: "raised" },
+        children: [{ id: "cmh", type: "Heading", props: { children: "Promo" }, style: {} }, { id: "cmb", type: "Button", props: { children: "Shop", variant: "primary" }, style: {} }] };
+      await window.__builder.store.saveLibrary({ components: [{ id: "promo1", name: "Promo card", node, tokens: ["--dt-space-inset-md"], rev: 2, prev: node, made: 1 }] }, scope);
+      const inst = JSON.parse(JSON.stringify(node)); inst.id = "in1"; inst.children[0].id = "in1h"; inst.children[1].id = "in1b"; inst.inst = { of: "promo1", rev: 2 };
+      const card = { id: "cd1", type: "Card", props: { title: "Old page", href: "#page:gonepage" }, style: {} };
+      const d = { frames: [{ id: "tf", name: "Travel", width: 1280, hug: true, mode: "structured", root: { id: "root", type: "Root", children: [{ id: "sec", type: "Section", props: {}, style: {}, children: [inst, card] }] } }], active: "tf" };
+      await window.__builder.store.saveDoc(m.id, d);
+    });
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="in1"]'));
+    const lib0 = await library();
+    expect(lib0.components.length === 1 && lib0.components[0].rev === 2 && lib0.components[0].prev, `the library reads back with the component's revision and the one before, got ${JSON.stringify(lib0.components[0] && { rev: lib0.components[0].rev, prev: !!lib0.components[0].prev })}`);
+    ok("a component's revision and its previous one survive a reload");
+
+    /* Download file: the component is in it, once, at the current revision. */
+    const [dl] = await Promise.all([page.waitForEvent("download"), (async () => { await page.locator(".bd-project-menu").click(); await option(page, "Download file").click(); })()]);
+    const file = path.join(os.tmpdir(), "travel-" + Date.now() + ".dovetail");
+    await dl.saveAs(file);
+    const data = JSON.parse(fs.readFileSync(file, "utf8"));
+    expect(data.version === 3 && Array.isArray(data.components) && data.components.length === 1 && data.components[0].id === "promo1" && data.components[0].rev === 2 && !data.components[0].prev, `the file carries the component its instance uses, got ${JSON.stringify(data.components)}`);
+    const firstId = await page.evaluate(() => window.__builder.project().id);
+    await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click();
+    await page.locator(".bd-home .bd-proj").first().waitFor();
+    await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
+    await page.waitForFunction((id) => window.__builder.project().id !== id, firstId);
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length > 0);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="in1"]'));
+    const lib1 = await poll(() => library(), (l) => (l.components || []).some((c) => c.id === "promo1"));
+    expect((lib1.components || []).some((c) => c.id === "promo1" && c.rev === 2), `the opened file's library has the component, got ${JSON.stringify((lib1.components || []).map((c) => c.id))}`);
+    await page.evaluate(() => window.__builder.select(["in1"]));
+    await page.locator(".bd-inst").waitFor();
+    expect(/Instance of\s*Promo card/.test(await page.locator(".bd-inst").textContent()), "the instance in the opened file knows its component");
+    fs.unlinkSync(file);
+    ok("Download file carries the component; Open file brings it into the new file's library, and the instance resolves");
+
+    /* Copy link carries it under &c=, and the link opens with it. */
+    await page.evaluate(() => { window.DovetailCopy = { write: (t, cb) => { window.__copied = t; cb(true); } }; });
+    await page.locator(".bd-project-menu").click();
+    await option(page, /^Copy link/).click();
+    const link = await page.evaluate(() => window.__copied);
+    expect(/&c=[\w-]+/.test(link), `the link carries the components, got ${link.slice(link.indexOf("#"), link.indexOf("#") + 40)}…`);
+    const shared = await open({ width: 1280, height: 900 }, { hash: link.slice(link.indexOf("#")) });
+    await shared.frame().waitForSelector('[data-bf-id="in1"]');
+    await shared.page.evaluate(() => window.__builder.select(["in1"]));
+    await shared.page.locator(".bd-inst").waitFor();
+    expect(/Promo card/.test(await shared.page.locator(".bd-inst").textContent()), "the link opens with the instance knowing its component");
+    ok("Copy link adds &c= with the component, and the link opens with it in the new project's library");
+
+    /* Added into its own instance from My components, it lands beside it. */
+    await shared.page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
+    await shared.page.locator('.bd-assets [data-asset-kind="components"]').click();
+    await shared.page.locator(".bd-cat", { hasText: "My components" }).click();
+    await shared.page.locator(".bd-mine-btn", { hasText: "Promo card" }).click();
+    const d2 = await poll(() => saved(shared.page), (d) => d.frames[0].root.children[0].children.length === 3);
+    const sec = d2.frames[0].root.children[0];
+    const holds = (n) => (n.children || []).some((c) => (c.inst && c.inst.of === "promo1") || holds(c));
+    expect(sec.children.length === 3 && sec.children[1].inst && sec.children[1].inst.of === "promo1" && !holds(sec.children[0]), `the new instance goes right after the selected one, not inside it, got ${JSON.stringify(sec.children.map((c) => [c.type, !!c.inst, (c.children || []).length]))}`);
+    ok("an instance added into one of its own instances goes beside it");
+
+    /* The Card's link to a removed page: named in the inspector, left out of the code. */
+    await shared.page.evaluate(() => window.__builder.select(["cd1"]));
+    await shared.page.waitForFunction(() => /Card/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await shared.page.locator(".bd-link .bd-dd-label", { hasText: "A page that was removed" }).waitFor();
+    await shared.page.evaluate(() => window.__builder.select([]));
+    await shared.page.locator(".bd-export").click();
+    await shared.page.locator(".bd-code[open] .bd-code-pre code").waitFor();
+    const code = await shared.page.locator(".bd-code[open] .bd-code-pre code").textContent();
+    expect(/<Card /.test(code) && !/#page:/.test(code) && !/href=/.test(code), `the code leaves the dead link out, got ${(code.match(/<Card[^>]*>/) || [""])[0]}`);
+    ok("a link to a removed page reads \"A page that was removed\" in the inspector and is left out of the code");
+    await shared.page.close();
     await page.close();
   });
 
