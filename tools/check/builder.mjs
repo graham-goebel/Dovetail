@@ -2222,7 +2222,7 @@ try {
     const file = path.join(os.tmpdir(), "pages-" + Date.now() + ".dovetail");
     await dl.saveAs(file);
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
-    expect(data.version === 2 && data.pages.map((p) => p.name).join() === "Page 1,About" && /HeroBlock/.test(JSON.stringify(data.doc)), `the file carries every page, got ${JSON.stringify(data.pages && data.pages.map((p) => p.name))}`);
+    expect(data.version === 3 && data.pages.map((p) => p.name).join() === "Page 1,About" && /HeroBlock/.test(JSON.stringify(data.doc)), `the file carries every page, got ${JSON.stringify(data.pages && data.pages.map((p) => p.name))}`);
     await page.locator(".bd-rail .bd-tab", { hasText: "Home" }).click();
     await page.locator(".bd-home .bd-proj").first().waitFor();
     expect(/2 pages/.test(await page.locator(".bd-proj.is-current .bd-proj-meta").textContent()), "the project's card counts its pages");
