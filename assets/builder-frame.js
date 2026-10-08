@@ -87,7 +87,7 @@
     var m = LINE_STROKE.exec(stroke) || [stroke, "var(--dt-border-width-default)", "solid", "var(--dt-border-strong)"];
     var color = HEX.test(own.fill || "") ? own.fill : m[3];
     BORDER_KEYS.forEach(function (k) { delete st[k]; });
-    ["background", "borderRadius", "overflow", "minHeight"].forEach(function (k) { delete st[k]; });
+    ["background", "borderRadius", "borderTopLeftRadius", "borderTopRightRadius", "borderBottomLeftRadius", "borderBottomRightRadius", "overflow", "minHeight"].forEach(function (k) { delete st[k]; });
     st.height = "0";
     st.borderTop = m[1] + " " + m[2] + " " + color;
     st.color = color;

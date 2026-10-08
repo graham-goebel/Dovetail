@@ -2243,10 +2243,39 @@ function App(props) {
       ARRANGE.map(function (a) {
         var off = few && (a[0] === "hspread" || a[0] === "vspread" || a[0] === "tidy");
         return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || undefined, onClick: function () { arrange(a[0]); } }, e(Icon, { name: a[2] }));
-      }).concat([["flipH", "Flip across", "Shift+H"], ["flipV", "Flip down", "Shift+V"]].map(function (f) {
+      }).concat(nodes.length > 1 ? [e(Dropdown, { key: "gap", menu: true, label: "Spread with a gap", icon: "distributeH", iconOnly: true, compact: true, className: "bd-dd-icon bd-gap-dd",
+        options: ["x", "y"].reduce(function (list, axis) {
+          return list.concat(DATA.tokens.padding.options.filter(function (o) { return /^--dt-space-inset-/.test(o.tokens[0] || "") && o.tokens.length === 1; }).map(function (o) {
+            var px = pxMap["padding|" + o.value];
+            return { value: axis + ":" + o.value, label: o.value, px: px != null ? Math.round(px) : null, hint: o.tokens[0], group: axis === "x" ? "Gap across" : "Gap down" };
+          }));
+        }, []),
+        onChange: function (v) { var m = /^([xy]):(.+)$/.exec(v); if (m) spreadBy(m[1], m[2]); } })] : []).concat([["flipH", "Flip across", "Shift+H"], ["flipV", "Flip down", "Shift+V"]].map(function (f) {
         var on = nodes.every(function (n) { return n.style[f[0]]; });
         return e("button", { key: f[0], type: "button", className: "bd-act bd-act-sm bd-flip-btn", "aria-label": f[1], "aria-pressed": String(on), title: f[1] + " (" + f[2] + ")", onClick: function () { flip(f[0]); } }, e(Icon, { name: f[0] }));
       })));
+  };
+  /* Free layers set a spacing token apart, across or down, in the order
+     they stand, from the first one. */
+  var spreadBy = function (axis, step) {
+    var ids = selRef.current.slice();
+    var spots = arrangeable(ids);
+    var f = api();
+    if (!spots || spots.length < 2 || !f || !f.rect || !f.measure) return false;
+    var unit = f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
+    var gap = f.measure(["var(--dt-space-inset-" + step + ")"])[0];
+    if (!gap && gap !== 0) return false;
+    var items = spots.map(function (at) { var r = f.rect(at.node.id); return r ? { id: at.node.id, start: axis === "x" ? r.left : r.top, size: axis === "x" ? r.width : r.height } : null; }).filter(Boolean)
+      .sort(function (p, q) { return p.start - q.start; });
+    var at = items[0].start, moves = {};
+    items.forEach(function (i) { moves[i.id] = Math.round((at - i.start) / unit); at += i.size + gap; });
+    var moved = change(function (d) {
+      var any = null;
+      Object.keys(moves).forEach(function (id) { if (moves[id] && ops.shift(d, id, axis === "x" ? moves[id] : 0, axis === "y" ? moves[id] : 0)) any = id; });
+      return any ? ids : null;
+    }, "Spread " + (axis === "x" ? "across" : "down") + " with a gap of " + step);
+    if (moved) select(ids);
+    return true;
   };
   /* Mirrors free layers across or down; pressed again, back. */
   var flip = function (key) {
@@ -3993,13 +4022,13 @@ function App(props) {
       e("div", { className: "bd-sides-row" },
         tokenDropdown(key, nodes, id, { className: "bd-dd-field" }),
         sides ? e("button", {
-          type: "button", className: "bd-act bd-act-sm", "aria-pressed": String(open), title: "Each side on its own", "aria-label": def.label + ", each side",
+          type: "button", className: "bd-act bd-act-sm", "aria-pressed": String(open), title: key === "radius" ? "Each corner on its own" : "Each side on its own", "aria-label": def.label + (key === "radius" ? ", each corner" : ", each side"),
           onClick: function () { setSidesOpen(function (s) { var n = Object.assign({}, s); n[key] = !open; return n; }); },
         }, e(Icon, { name: "sides" })) : null),
       sides && open ? e("div", { className: "bd-sides" }, sides.map(function (k) {
         var sdef = DATA.tokens[k];
         return e("span", { key: k, className: "bd-side" },
-          tokenDropdown(k, nodes, null, { compact: true, prefix: sdef.side[0].toUpperCase(), className: "bd-dd-field" }));
+          tokenDropdown(k, nodes, null, { compact: true, prefix: sdef.short || sdef.side[0].toUpperCase(), className: "bd-dd-field" }));
       })) : null);
   };
 
@@ -4703,9 +4732,9 @@ function App(props) {
     /* A line is drawn by its border, so its width and style show even before
        a colour is picked. */
     var lines = nodes.every(function (n) { return n.type === "Shape" && n.props.shape === "line"; });
-    var radiusValues = nodes.map(function (n) { return n.style.radius || ""; });
     var shadowValues = nodes.map(function (n) { return n.style.elevation || ""; });
-    var hasRadius = nodes.some(function (n) { return n.style.radius; });
+    var cornersOf = DATA.tokens.radius.sides || [];
+    var hasRadius = nodes.some(function (n) { return n.style.radius || cornersOf.some(function (k) { return n.style[k]; }); });
     var hasShadow = nodes.some(function (n) { return n.style.elevation; });
     var darkValues = nodes.map(function (n) { return !!n.style.dark; });
     var rid = "bd-radius-" + first.id, sid = "bd-shadow-" + first.id, mid = "bd-mode-" + first.id;
@@ -4766,12 +4795,11 @@ function App(props) {
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", lines ? "strong" : "default"); }), hasBorder),
       /* Corners and shadow stay out of the way until they're added, as a
          border is. */
+      /* Every corner from one menu, or each corner from its own. */
       sec("corners", "Corners", hasRadius
-        ? e(Field, { key: "radius", id: rid, label: "Radius" },
-            e(Segmented, { labelledBy: rid, wide: true, className: "bd-seg-pics", value: same(radiusValues) ? radiusValues[0] || undefined : null, onChange: function (v) { if (v) setStyle(ids, "radius", v); },
-              options: DATA.tokens.radius.options.map(function (o) { return { value: o.value, label: o.value + " (" + o.tokens[0] + ")", picture: e("span", { className: "bd-pv-radius", style: { borderTopLeftRadius: "var(" + o.tokens[0] + ")" } }) }; }) }))
+        ? tokenControl("radius", nodes, rid, "Radius")
         : e("p", { className: "bd-sec-empty" }, "None"),
-        hasRadius ? headAction("minus", "Remove the corners", function () { setStyle(ids, "radius", undefined); })
+        hasRadius ? headAction("minus", "Remove the corners", function () { var p = { radius: undefined }; cornersOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add corners", function () { setStyle(ids, "radius", DATA.tokens.radius.options.some(function (o) { return o.value === "container"; }) ? "container" : DATA.tokens.radius.options[1].value); }), hasRadius),
       sec("shadow", "Shadow", hasShadow
         ? e(Field, { key: "shadow", id: sid, label: "Elevation" },
