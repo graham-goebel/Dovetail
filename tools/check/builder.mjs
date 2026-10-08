@@ -4292,6 +4292,7 @@ try {
         node("Shape", { shape: "line", start: "dot", end: "arrow" }, undefined, { x: 4, y: 40, fw: 60, rot: -15, borderWidth: "strong" }),
         node("Shape", { shape: "line", start: "arrow", end: "bar" }, undefined, { x: 4, y: 60, fw: 50, border: "brand", borderStyle: "dotted", fill: "#e0218a" }),
         node("Group", { direction: "column" }, [node("Text", { children: "Ruled" })], { x: 80, y: 4, borderBottom: "default", borderStyle: "dashed" }),
+        node("Group", {}, [node("Shape", { shape: "rectangle" }, undefined, { x: 0, y: 0, fw: 20, fh: 20 }), node("Shape", { shape: "ellipse" }, undefined, { x: 10, y: 10, fw: 20, fh: 20 })], { x: 120, y: 4, fw: 30, fh: 30, bool: "exclude", surface: "brand" }),
       ];
       out.push({ where: "Lines / whole frame", code: F.jsx({ page: ff, root: { id: "root", type: "Root", props: {}, style: {}, children: lines } }, ff.name) });
       return out;
@@ -4736,6 +4737,56 @@ try {
     const boxed = await poll(kids, (k) => k[0].style.clip === "box");
     expect(boxed[0].style.clip === "box", "Clip content: To its box");
     ok("Use the shape as a mask makes an ellipse-clipped Group holding the picture in place, drawn and exported with clip-path; Clip content switches it to its box");
+    await page.close();
+  });
+
+  await step("Combine shapes: the align row combines free rectangles and ellipses into one SVG, subtract masks the rest out of the first, and Combine switches the op or shows the shapes again", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const kids = async () => (await saved()).frames.find((f) => f.id === "bf").root.children;
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "bf", name: "Bool", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "b1", type: "Shape", props: { shape: "rectangle" }, style: { x: 10, y: 10, fw: 30, fh: 30, surface: "brand" } },
+        { id: "b2", type: "Shape", props: { shape: "ellipse" }, style: { x: 25, y: 25, fw: 30, fh: 30 } }] } });
+      d.active = "bf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "bf"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    const fr = await frameAt(page, 1);
+    await fr.waitForFunction(() => !!document.querySelector('[data-bf-id="b2"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["b1", "b2"]));
+    await page.waitForSelector(".bd-arrange");
+    await page.locator(".bd-bool-dd").click();
+    await option(page, "Subtract").click();
+    const after = await poll(kids, (k) => k.length === 1 && k[0].style.bool === "subtract");
+    const g = after[0];
+    expect(g.type === "Group" && g.style.bool === "subtract" && g.style.x === 10 && g.style.y === 10 && g.style.fw === 45 && g.style.fh === 45 && g.style.surface === "brand", `the shapes become a Group over their union box, with the first one's fill, got ${JSON.stringify(g.style)}`);
+    expect(g.children.map((c) => [c.id, c.style.x, c.style.y].join(":")).join() === "b1:0:0,b2:15:15", `the shapes sit inside where they stood, got ${g.children.map((c) => [c.id, c.style.x, c.style.y].join(":")).join()}`);
+    await fr.waitForFunction((id) => !!document.querySelector('[data-bf-id="' + id + '"] svg mask'), g.id).catch(() => {});
+    const drawn = await fr.evaluate((id) => { const svg = document.querySelector('[data-bf-id="' + id + '"] svg'); return svg ? { masks: svg.querySelectorAll("mask").length, masked: svg.querySelectorAll("[mask]").length, fill: svg.style.fill, outline: !!svg.querySelector('[data-bf-id="b2"]') } : null; }, g.id);
+    expect(drawn && drawn.masks === 1 && drawn.masked === 1 && /--dt-surface-brand/.test(drawn.fill) && drawn.outline, `one SVG, the first shape masked by the second, in the brand fill, with the shapes' outlines there for Layers, got ${JSON.stringify(drawn)}`);
+    const code = await fr.evaluate((n) => window.BuilderFrame.jsxNodes([n], "Bool"), g);
+    expect(/<svg viewBox="0 0 45 45"/.test(code) && /<mask id="bool-/.test(code) && /mask="url\(#bool-/.test(code), `the code is the SVG with its mask:\n${code}`);
+    await page.evaluate((id) => window.__builder.select([id]), g.id);
+    await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Appearance");
+    await page.locator(".bd-right .bd-field", { hasText: "Combine" }).locator(".bd-dd").click();
+    await option(page, "Off").click();
+    const plain = await poll(kids, (k) => !k[0].style.bool);
+    expect(!plain[0].style.bool, "Combine: Off leaves a plain group of the shapes");
+    await fr.waitForFunction(() => !!document.querySelector('[data-bf-id="b2"] > div'), null, { timeout: 4000 }).catch(() => {});
+    expect(await fr.evaluate(() => !document.querySelector('[data-bf-id="b1"] rect')), "with Combine off the shapes draw as themselves again");
+    ok("Combine: Subtract makes one SVG over the shapes' box, the ellipse masked out of the rectangle, exported with its mask; Off shows the shapes again");
     await page.close();
   });
 

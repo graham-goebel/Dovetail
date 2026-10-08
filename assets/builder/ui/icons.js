@@ -117,6 +117,11 @@ var PATHS = {
   lineDotted: ["M4 12h.01", "M8 12h.01", "M12 12h.01", "M16 12h.01", "M20 12h.01"],
   weightDefault: ["M3 12h18"],
   weightStrong: ["M3 11h18v2H3z"],
+  /* Combining shapes. */
+  boolUnion: ["M4 4h10v6h6v10H10v-6H4z"],
+  boolSubtract: ["M4 4h10v6h-4v4H4z", "M10 10h10v10H10z"],
+  boolIntersect: ["M4 4h10v10H4z", "M10 10h10v10H10z", "M10.5 10.5h3v3h-3z"],
+  boolExclude: ["M4 4h10v6h-4v4H4z", "M14 10h6v10H10v-6h4z"],
   /* Flips, and a text box's three ways of sizing. */
   flipH: ["M12 3v18", "M9 6 3 18h6z", "m15 6 6 12h-6z"],
   flipV: ["M3 12h18", "M6 9 18 3v6z", "m6 15 12 6v-6z"],

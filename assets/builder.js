@@ -1864,6 +1864,49 @@
       parent.children.splice(Math.min(at2, parent.children.length), 0, box);
       return box.id;
     },
+    /* Free rectangles and ellipses combined into one: a Group over their
+       union box, with the first one's fill, set to combine them by op, the
+       shapes inside where they stood. */
+    combine: function(doc2, ids, op) {
+      var spots = ids.map(function(id) {
+        return locate(doc2, id);
+      }).filter(Boolean);
+      if (spots.length < 2 || spots.some(fixed)) return null;
+      var parent = spots[0].parent;
+      if (spots.some(function(s) {
+        return s.parent !== parent || s.node.lock || s.node.type !== "Shape" || (s.node.props || {}).shape === "line" || !isFree(s.node.style) || !s.node.style.fw || !s.node.style.fh;
+      })) return null;
+      spots.sort(function(a, b) {
+        return a.index - b.index;
+      });
+      var x0 = Math.min.apply(null, spots.map(function(s) {
+        return s.node.style.x;
+      })), y0 = Math.min.apply(null, spots.map(function(s) {
+        return s.node.style.y;
+      }));
+      var x1 = Math.max.apply(null, spots.map(function(s) {
+        return s.node.style.x + s.node.style.fw;
+      })), y1 = Math.max.apply(null, spots.map(function(s) {
+        return s.node.style.y + s.node.style.fh;
+      }));
+      var first = spots[0].node.style;
+      var look = { x: x0, y: y0, fw: Math.min(FREE_MAX, x1 - x0), fh: Math.min(FREE_MAX, y1 - y0), bool: op };
+      ["surface", "fill", "dark", "alpha", "opacity", "blend"].forEach(function(k) {
+        if (first[k] !== void 0) look[k] = first[k];
+      });
+      var kids = spots.map(function(s) {
+        s.node.style.x -= x0;
+        s.node.style.y -= y0;
+        return s.node;
+      });
+      var box = make("Group", {}, kids, look);
+      var at2 = spots[0].index;
+      parent.children = parent.children.filter(function(c) {
+        return ids.indexOf(c.id) < 0;
+      });
+      parent.children.splice(Math.min(at2, parent.children.length), 0, box);
+      return box.id;
+    },
     ungroup: function(doc2, id) {
       var at2 = locate(doc2, id);
       if (fixed(at2) || !at2.node.children || !isContainer(at2.node.type)) return null;
@@ -4652,6 +4695,11 @@
     lineDotted: ["M4 12h.01", "M8 12h.01", "M12 12h.01", "M16 12h.01", "M20 12h.01"],
     weightDefault: ["M3 12h18"],
     weightStrong: ["M3 11h18v2H3z"],
+    /* Combining shapes. */
+    boolUnion: ["M4 4h10v6h6v10H10v-6H4z"],
+    boolSubtract: ["M4 4h10v6h-4v4H4z", "M10 10h10v10H10z"],
+    boolIntersect: ["M4 4h10v10H4z", "M10 10h10v10H10z", "M10.5 10.5h3v3h-3z"],
+    boolExclude: ["M4 4h10v6h-4v4H4z", "M14 10h6v10H10v-6h4z"],
     /* Flips, and a text box's three ways of sizing. */
     flipH: ["M12 3v18", "M9 6 3 18h6z", "m15 6 6 12h-6z"],
     flipV: ["M3 12h18", "M6 9 18 3v6z", "m6 15 12 6v-6z"],
@@ -12333,7 +12381,23 @@
           return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || void 0, onClick: function() {
             arrange(a[0]);
           } }, e(Icon, { name: a[2] }));
-        }).concat(nodes.length > 1 ? [e(Dropdown, {
+        }).concat(nodes.length > 1 && nodes.every(function(n) {
+          return n.type === "Shape" && n.props.shape !== "line";
+        }) ? [e(Dropdown, {
+          key: "bool",
+          menu: true,
+          label: "Combine shapes",
+          icon: "boolUnion",
+          iconOnly: true,
+          compact: true,
+          className: "bd-dd-icon bd-bool-dd",
+          options: DATA.tokens.bool.options.map(function(o) {
+            return { value: o.value, label: o.label, icon: BOOL_ICON[o.value] };
+          }),
+          onChange: function(v) {
+            combineShapes(v);
+          }
+        })] : []).concat(nodes.length > 1 ? [e(Dropdown, {
           key: "gap",
           menu: true,
           label: "Spread with a gap",
@@ -12507,6 +12571,26 @@
       }, "Spread " + (axis === "x" ? "across" : "down") + " with a gap of " + step);
       if (moved) select(ids);
       return true;
+    };
+    var BOOL_ICON = { union: "boolUnion", subtract: "boolSubtract", intersect: "boolIntersect", exclude: "boolExclude" };
+    var combineShapes = function(op) {
+      var ids = selRef.current.slice(), a = api(), unit = pxMap["padding|2xs"] || 4, made = null;
+      change(function(dd) {
+        ids.forEach(function(id) {
+          var at2 = locate(dd, id);
+          if (!at2 || at2.node.type !== "Shape" || at2.node.style.fw && at2.node.style.fh) return;
+          var r = a && a.rect ? a.rect(id) : null;
+          if (r) {
+            at2.node.style.fw = at2.node.style.fw || Math.max(1, Math.round(r.width / unit));
+            at2.node.style.fh = at2.node.style.fh || Math.max(1, Math.round(r.height / unit));
+          }
+        });
+        made = ops.combine(dd, ids, op);
+        return made ? [made] : null;
+      }, "Combined: " + op);
+      if (made) select([made]);
+      else announce("Combine takes two or more free rectangles or ellipses side by side");
+      return !!made;
     };
     var flip = function(key) {
       var spots = arrangeable(selRef.current.slice());
@@ -16420,6 +16504,29 @@
             })
           ),
           nodes.every(function(n) {
+            return n.type === "Group" && n.style.bool;
+          }) ? e(
+            Field,
+            { key: "bool", id: lid + "-bool", label: "Combine", hint: "Off shows the shapes as they are" },
+            e(Dropdown, {
+              labelledBy: lid + "-bool",
+              value: same3(nodes.map(function(n) {
+                return n.style.bool;
+              })) ? nodes[0].style.bool : null,
+              mixed: !same3(nodes.map(function(n) {
+                return n.style.bool;
+              })),
+              className: "bd-dd-field",
+              iconValue: true,
+              options: DATA.tokens.bool.options.map(function(o) {
+                return { value: o.value, label: o.label, icon: BOOL_ICON[o.value] };
+              }).concat([{ value: "", label: "Off", hint: "The shapes as they are, in a group" }]),
+              onChange: function(v) {
+                setStyle(ids, "bool", v || void 0);
+              }
+            })
+          ) : null,
+          nodes.every(function(n) {
             return n.type === "Group";
           }) ? e(
             Field,
@@ -16465,7 +16572,7 @@
             return n.hide;
           });
           return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-        })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip"])),
+        })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip", "bool"])),
         sec(
           "border",
           "Border",

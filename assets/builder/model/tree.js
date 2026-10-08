@@ -194,6 +194,27 @@ var ops = {
     parent.children.splice(Math.min(at, parent.children.length), 0, box);
     return box.id;
   },
+  /* Free rectangles and ellipses combined into one: a Group over their
+     union box, with the first one's fill, set to combine them by op, the
+     shapes inside where they stood. */
+  combine: function (doc, ids, op) {
+    var spots = ids.map(function (id) { return locate(doc, id); }).filter(Boolean);
+    if (spots.length < 2 || spots.some(fixed)) return null;
+    var parent = spots[0].parent;
+    if (spots.some(function (s) { return s.parent !== parent || s.node.lock || s.node.type !== "Shape" || (s.node.props || {}).shape === "line" || !isFree(s.node.style) || !s.node.style.fw || !s.node.style.fh; })) return null;
+    spots.sort(function (a, b) { return a.index - b.index; });
+    var x0 = Math.min.apply(null, spots.map(function (s) { return s.node.style.x; })), y0 = Math.min.apply(null, spots.map(function (s) { return s.node.style.y; }));
+    var x1 = Math.max.apply(null, spots.map(function (s) { return s.node.style.x + s.node.style.fw; })), y1 = Math.max.apply(null, spots.map(function (s) { return s.node.style.y + s.node.style.fh; }));
+    var first = spots[0].node.style;
+    var look = { x: x0, y: y0, fw: Math.min(FREE_MAX, x1 - x0), fh: Math.min(FREE_MAX, y1 - y0), bool: op };
+    ["surface", "fill", "dark", "alpha", "opacity", "blend"].forEach(function (k) { if (first[k] !== undefined) look[k] = first[k]; });
+    var kids = spots.map(function (s) { s.node.style.x -= x0; s.node.style.y -= y0; return s.node; });
+    var box = make("Group", {}, kids, look);
+    var at = spots[0].index;
+    parent.children = parent.children.filter(function (c) { return ids.indexOf(c.id) < 0; });
+    parent.children.splice(Math.min(at, parent.children.length), 0, box);
+    return box.id;
+  },
   ungroup: function (doc, id) {
     var at = locate(doc, id);
     if (fixed(at) || !at.node.children || !isContainer(at.node.type)) return null;
