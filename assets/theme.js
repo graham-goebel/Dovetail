@@ -31,6 +31,9 @@
   var BRAND_KEY = "dovetail-docs-brand";
   var CONTEXTS = ["dt-context-product", "dt-context-marketing", "dt-context-social"];
   var MARK_LIMIT = 512 * 1024;
+  /* A picture kept in a theme or a brand: image data only. Up here because
+     the headless core (below) cleans themes too. */
+  var IMAGE_DATA = /^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+\/=]+$/;
 
   var DEFAULTS = {
     primary: "terracotta",
@@ -846,6 +849,8 @@
         iconLib: keys(DATA.icons),
       },
       css: function (cfg, brandInfo) { return exportCss(complete(cfg), brandInfo || {}); },
+      /* A whole saved theme ({ config, brand, ... }), as the builder keeps one. */
+      themeCss: themeCss,
       vars: function (cfg) { return computeVars(complete(cfg)); },
       fontHref: function (cfg) { return fontHrefFor(complete(cfg)); },
       checks: function (cfg) {
@@ -2685,7 +2690,6 @@
   /* A theme coming back from somewhere else (a builder project's own, or
      one inside a file someone sent): only the settings the panel knows, each
      as the type it takes, and pictures only as image data. */
-  var IMAGE_DATA = /^data:image\/(png|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+\/=]+$/;
   function cleanTheme(src) {
     src = src && typeof src === "object" ? src : {};
     var c = src.config && typeof src.config === "object" ? src.config : {};
@@ -2715,6 +2719,14 @@
       media: { photo: pic(m.photo), illustration: pic(m.illustration) },
       context: CONTEXTS.indexOf(src.context) >= 0 ? src.context : "",
     };
+  }
+
+  /* A saved theme (a builder project's own, or one from a file) as the
+     theme.css Configure's download gives for it: cleaned first, then the
+     same stylesheet. */
+  function themeCss(src) {
+    var t = cleanTheme(src);
+    return exportCss(t.config, t.brand);
   }
 
   /* Swap the whole theme for another, everywhere at once, and remember it
@@ -2961,6 +2973,8 @@
        project. */
     theme: function () { var t = snapshot(); t.config = cleanTheme(t).config; return t; },
     loadTheme: loadTheme,
+    /* Any saved theme as its theme.css, without loading it. */
+    themeCss: themeCss,
     /* The name, wordmark and mark, and a way to change them from another
        panel (the builder's Content). An image must be a base64 data URL of
        a picture within the upload limit; anything else is refused. */

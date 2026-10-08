@@ -20,6 +20,9 @@ import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
 import { codeWithComponents } from "../model/codegen.js";
+import { projectFiles } from "../model/projectcode.js";
+import { themeCss } from "../model/theme.js";
+import { zip } from "../model/zip.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
@@ -3499,6 +3502,31 @@ function App(props) {
       });
     });
   };
+  /* The whole project as code, every page, its components, its theme and
+     its pictures, in one .zip (model/projectcode.js). */
+  var downloadProjectCode = function () {
+    var f = api();
+    if (!f || !f.jsxComponent) return;
+    var meta = projectRef.current, list = pagesOf(meta), pageNow = pageRef.current;
+    flush().then(function () {
+      return Promise.all(list.map(function (pg) { return pg.id === pageNow ? docRef.current : store.loadDoc(meta.id, pg.id); }));
+    }).then(function (docs) {
+      var P = window.DovetailConfigurePanel;
+      var css = "";
+      try { css = P && P.theme ? themeCss(P.theme()) : ""; } catch (err) { css = ""; }
+      var got = projectFiles({ name: meta.name, pages: list.map(function (pg, i) { return { id: pg.id, name: pg.name, doc: docs[i] }; }), library: libRef.current, themeCss: css, exporter: f });
+      var bytes = zip(got.entries);
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([bytes], { type: "application/zip" }));
+      link.download = (meta.name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + "-code.zip";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
+      var pagesN = got.entries.filter(function (x) { return /^pages\//.test(x.name); }).length;
+      announce("Downloaded " + link.download + ": " + pagesN + (pagesN === 1 ? " page" : " pages") + (got.notes.length ? ". " + got.notes.length + (got.notes.length === 1 ? " instance has" : " instances have") + " changes the code leaves out." : ""));
+    });
+  };
   var download = function (data, name) {
     var link = document.createElement("a");
     link.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
@@ -5699,6 +5727,7 @@ function App(props) {
   var onCopyCode = useEvent(function () { copyText(code).then(function () { announce("Code copied"); }); });
   var onExportImage = useEvent(function (type) { exportImage(frame.id, type, { scale: exportScale, id: codePick }); });
   var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function () { share(); });
+  var onDownloadProject = useEvent(downloadProjectCode);
   var onPlayClosed = useEvent(playClosed), onPlayBack = useEvent(playBack), onRenderPlay = useEvent(renderPlay);
   var compNode = useMemo(function () { return compDraft ? componentSource() : null; }, [compDraft, doc, selection]);
   var playPage = play ? pagesOf(project).filter(function (pg) { return pg.id === pageId; })[0] : null;
@@ -5788,7 +5817,7 @@ function App(props) {
         e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } }));
     })() : drag && !drag.inside ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
     e(CodeDialog, { dialogRef: dialogRef, code: code, notes: codeNotes, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
-      onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare }),
+      onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare, onDownloadProject: onDownloadProject }),
     e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
     e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions: versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
     e(KeysDialog, { dialogRef: keysRef, open: shown === "keys", onClose: closeShown }),

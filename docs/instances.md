@@ -105,6 +105,26 @@ export function ProductTile({ title = "Stoneware mug", glaze = "Fern glaze" }) {
 - With one instance picked, the code is its component alone. An instance
   whose component has been deleted is written out in full, as before.
 
+## The whole project as code
+
+*Download project code* in the Export dialog gives a `.zip` to drop into a
+React app (`model/projectcode.js`, written with the stored-entry zip writer
+in `model/zip.js`):
+
+```
+README.md                  install lines, the pages and their paths, the components
+theme.css                  the project's Configure theme, as Configure's own download writes it
+pages/index.jsx            one file per frame; the first page is index, "About us" is about-us
+components/ProductTile.jsx one file per component, imported where it's called
+assets/mug-photo.png       every uploaded picture, named after it in Content
+```
+
+The components are worked out across every page at once, so a text one page
+changes is a prop of the component everywhere. Links between pages become
+paths (`/`, `/about-us`) and pictures point at `../assets/`. A link to a page
+that was removed is left out. The builder check downloads one and
+type-checks its pages and components together.
+
 ## Checks
 
 `tools/check/unit/instances.test.mjs` covers overrides, rebase, document

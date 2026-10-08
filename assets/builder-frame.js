@@ -971,6 +971,7 @@
     if (node.type === "__Call") {
       var cv = node.props.values || {};
       var ca = attrs(cv, used);
+      used.add("\u0001" + node.props.name);
       var callEl = "<" + node.props.name + (ca.length ? " " + ca.join(" ") : "") + " />";
       var place = isFree(node.style) ? styleFor(node.style) : null;
       if (!place) return pad + callEl;
@@ -1017,9 +1018,22 @@
       return "export function " + c.name + "(" + (params.length ? "{ " + params.join(", ") + " }" : "") + ") {\n  return (\n" + block(node, used, "    ") + "\n  );\n}\n";
     }).filter(Boolean);
   }
-  function importLine(used) {
+  /* The import lines: the system's components from the package, and, when
+     the components live in files of their own (localFrom), each one called
+     from its file. */
+  function importLine(used, localFrom, self) {
     var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
-    return names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "";
+    var out = names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n' : "";
+    if (localFrom) Array.from(used).filter(function (n) { return n.charAt(0) === "\u0001" && n.slice(1) !== self; }).map(function (n) { return n.slice(1); }).sort()
+      .forEach(function (n) { out += "import { " + n + ' } from "' + localFrom + n + '";\n'; });
+    return out ? out + "\n" : "";
+  }
+  /* One of My components as a file of its own: its imports, then its
+     function. localFrom is where the components it calls live ("./"). */
+  function jsxComponent(c, localFrom) {
+    var used = new Set();
+    var fn = componentFns([c], used).join("");
+    return importLine(used, localFrom === undefined ? "./" : localFrom, c.name) + fn;
   }
 
   /* Hidden layers, and what's in them, stay out of the code. */
@@ -1053,7 +1067,7 @@
     var cls = page.dark ? "dark" : "";
     var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + (page.typeScale === "social" ? ' data-type-scale="social"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
     var fns = componentFns(opts && opts.components, used);
-    return importLine(used) + fns.map(function (f) { return f + "\n"; }).join("") +
+    return importLine(used, opts && opts.localFrom) + fns.map(function (f) { return f + "\n"; }).join("") +
       "export function " + fn + "() {\n  return (\n    <div" + rootAttrs + ">\n" + kids.join("\n") + (kids.length ? "\n" : "") + "    </div>\n  );\n}\n";
   }
 
@@ -1074,7 +1088,7 @@
     /* One instance picked: its component is the code, with no wrapper. */
     if (!many && nodes[0] && nodes[0].type === "__Call" && fns.length) return importLine(used) + fns.join("\n");
     var body = many ? "    <>\n" + kids.join("\n") + "\n    </>" : kids.join("\n");
-    return importLine(used) + fns.map(function (f) { return f + "\n"; }).join("") +
+    return importLine(used, opts && opts.localFrom) + fns.map(function (f) { return f + "\n"; }).join("") +
       "export function " + fn + "() {\n  return (\n" + body + "\n  );\n}\n";
   }
 
@@ -1297,6 +1311,7 @@
     pick: pick,
     jsx: jsx,
     jsxNodes: jsxNodes,
+    jsxComponent: jsxComponent,
     outer: outer,
     /* The node being dragged moves itself: shifted by (dx, dy) and let
        through to the pointer, so what's under it can take the drop. Null

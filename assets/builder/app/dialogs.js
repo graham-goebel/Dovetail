@@ -28,7 +28,7 @@ var closeButton = function (dialogRef, title) {
 /* The code for a frame or the picked layers, to copy or download, with the
    same thing as a picture at a chosen scale, the layout as JSON, and a link.
    { dialogRef, code, notes, title, picked, frameName, scale, setScale, hasSelection,
-     onCopyCode, onExportImage(type), onCopyLayout, onShare } */
+     onCopyCode, onExportImage(type), onCopyLayout, onShare, onDownloadProject } */
 var CodeDialog = memo(function CodeDialog(p) {
   var name = p.title || p.frameName;
   return e("dialog", { className: "bd-code", ref: p.dialogRef, "aria-labelledby": "bd-code-title" },
@@ -36,6 +36,7 @@ var CodeDialog = memo(function CodeDialog(p) {
       "React with @dovetail-ds/react. Props at their default are left out. Blocks and other larger components keep the sample copy they started with, so they render as you see them; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.", [
         e("button", { key: "copy", type: "button", className: "bd-btn bd-btn-primary", onClick: p.onCopyCode }, e(Icon, { name: "copy" }), "Copy code"),
         e("a", { key: "dl", className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(p.code), download: (name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
+        e("button", { key: "project", type: "button", className: "bd-btn", onClick: p.onDownloadProject, title: "Every page, its components, the theme and the pictures, as a .zip to drop into a React app" }, e(Icon, { name: "download" }), "Download project code"),
         e(Segmented, { key: "scale", label: "Picture scale", className: "bd-export-scale", value: String(p.scale), onChange: function (v) { if (v) p.setScale(Number(v)); },
           options: [{ value: "1", label: "1x" }, { value: "2", label: "2x" }, { value: "3", label: "3x" }] }),
         e("button", { key: "png", type: "button", className: "bd-btn", onClick: function () { p.onExportImage("png"); }, title: name + " as a PNG, at " + p.scale + "x" }, e(Icon, { name: "image" }), "PNG"),
