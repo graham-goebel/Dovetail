@@ -44,7 +44,13 @@
    system/manifest.json; a difference is a warning, not a failure.
 
    system/components/lib (vendored React), bundle.js, bundle.css and the .md
-   files are not part of the package. */
+   files are not part of the package.
+
+     node tools/build-package.mjs --out <dir>
+
+   writes just the components (the dist/react/ part) into <dir> instead, and
+   leaves dist/ alone: a check that runs beside another one building the
+   package gets a copy nobody else rebuilds under it. */
 
 import fs from "node:fs";
 import path from "node:path";
@@ -357,11 +363,11 @@ function buildConfigureCore() {
   return Buffer.byteLength(out);
 }
 
-function main() {
+function main(dir = OUT) {
   const warnings = [];
   const warn = (msg) => warnings.push(msg);
 
-  fs.rmSync(OUT, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true });
 
   const files = sourceFiles();
   const owners = new Map();
@@ -382,14 +388,14 @@ function main() {
       else owners.set(n, rel);
     }
 
-    fs.mkdirSync(path.dirname(path.join(OUT, base)), { recursive: true });
-    fs.writeFileSync(path.join(OUT, `${base}.js`), HEADER + (client ? '"use client";\n' : "") + code + "\n");
+    fs.mkdirSync(path.dirname(path.join(dir, base)), { recursive: true });
+    fs.writeFileSync(path.join(dir, `${base}.js`), HEADER + (client ? '"use client";\n' : "") + code + "\n");
 
     const dts = `${base}.d.ts`;
     let declared = null;
     if (fs.existsSync(path.join(SRC, dts))) {
       const d = copyDeclaration(dts);
-      fs.writeFileSync(path.join(OUT, dts), d.code);
+      fs.writeFileSync(path.join(dir, dts), d.code);
       declared = new Set(d.exp.names);
     } else {
       warn(`${rel}: no ${path.basename(dts)} beside it`);
@@ -404,10 +410,10 @@ function main() {
   const js = modules
     .filter((m) => m.names.length)
     .map((m) => `export { ${m.names.join(", ")} } from "./${m.base}.js";`);
-  fs.writeFileSync(path.join(OUT, "index.js"), HEADER + js.join("\n") + "\n");
+  fs.writeFileSync(path.join(dir, "index.js"), HEADER + js.join("\n") + "\n");
 
   const dtsLines = modules.filter((m) => m.hasDts).map((m) => `export * from "./${m.base}.js";`);
-  fs.writeFileSync(path.join(OUT, "index.d.ts"), HEADER + dtsLines.join("\n") + "\n");
+  fs.writeFileSync(path.join(dir, "index.d.ts"), HEADER + dtsLines.join("\n") + "\n");
 
   /* The manifest lists the public components; the sources are the truth for
      what ships. Report any difference either way. */
@@ -417,12 +423,16 @@ function main() {
   for (const n of exported) if (!listed.has(n)) warn(`${n} (${owners.get(n)}) is exported but not in system/manifest.json`);
   for (const n of listed) if (!exported.has(n)) warn(`${n} is in system/manifest.json but no source exports it`);
 
+  for (const w of warnings) console.warn(`warning: ${w}`);
+  if (dir !== OUT) {
+    console.log(`build-package: ${files.length} files, ${exported.size} exports, ${modules.filter((m) => m.hasDts).length} declarations -> ${path.relative(ROOT, dir)}/`);
+    return;
+  }
   const styles = buildStyles(warn);
   const configureBytes = buildConfigureCore();
 
-  for (const w of warnings) console.warn(`warning: ${w}`);
   console.log(
-    `build-package: ${files.length} files (${clientCount} "use client"), ${exported.size} exports, ${modules.filter((m) => m.hasDts).length} declarations -> ${path.relative(ROOT, OUT)}/` +
+    `build-package: ${files.length} files (${clientCount} "use client"), ${exported.size} exports, ${modules.filter((m) => m.hasDts).length} declarations -> ${path.relative(ROOT, dir)}/` +
       (warnings.length ? ` (${warnings.length} warning${warnings.length === 1 ? "" : "s"})` : ""),
   );
   console.log(
@@ -434,4 +444,7 @@ function main() {
 
 export { rewriteJsxSpecifiers, collectExports, needsClient, undeclaredComponents };
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const at = process.argv.indexOf("--out");
+  main(at > 0 && process.argv[at + 1] ? path.resolve(process.argv[at + 1]) : OUT);
+}

@@ -9,7 +9,8 @@
    3. Renders Button and Stack with react-dom/server, which only works if the
       compiled files resolve React as an external dependency.
    4. Type-checks a small consumer .tsx against dist/react/index.d.ts with
-      `tsc --noEmit` (strict, skipLibCheck off). The declarations import
+      `tsc --noEmit` (strict, skipLibCheck off), through typecheck.mjs, which
+      the builder check shares for the code it exports. The declarations import
       "react", so this needs @types/react; without it the step is skipped
       with a message, not failed.
 
@@ -17,9 +18,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { PACKAGE_NAME, describe, hasReactTypes, typecheck } from "./typecheck.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DIST = path.join(ROOT, "dist", "react");
@@ -85,16 +87,8 @@ await step("server render (React external)", async () => {
   ok(`react resolves to ${resolved}`);
 });
 
-await step("types (tsc --noEmit on a consumer .tsx)", () => {
-  const hasTypes = (() => {
-    try {
-      require.resolve("@types/react/package.json");
-      return true;
-    } catch {}
-    const r = require("react/package.json");
-    return Boolean(r.types || r.typings);
-  })();
-  if (!hasTypes) {
+await step("types (tsc --noEmit on a consumer .tsx)", async () => {
+  if (!hasReactTypes()) {
     skip(
       "@types/react is not installed and react ships no types of its own. Every .d.ts in the package does\n" +
         '        `import * as React from "react"` and uses the global JSX namespace, and the consumer needs\n' +
@@ -104,14 +98,8 @@ await step("types (tsc --noEmit on a consumer .tsx)", () => {
     return;
   }
 
-  /* Inside the repo, so "react" and react/jsx-runtime resolve from the
-     consumer and from dist/react through node_modules. dist/ is ignored. */
-  const dir = fs.mkdtempSync(path.join(ROOT, "dist", ".package-check-"));
-  try {
-    const entry = path.relative(dir, path.join(DIST, "index.js")).split(path.sep).join("/");
-    fs.writeFileSync(
-      path.join(dir, "consumer.tsx"),
-      `import { Button, Stack, Heading, Text, type ButtonProps } from "${entry.startsWith(".") ? entry : "./" + entry}";
+  /* It imports the package by name, mapped onto dist/react, as an app would. */
+  const consumer = `import { Button, Stack, Heading, Text, type ButtonProps } from "${PACKAGE_NAME}";
 
 const props: ButtonProps = { variant: "primary", size: "lg", loading: false };
 
@@ -125,37 +113,10 @@ export function Example() {
     </Stack>
   );
 }
-`,
-    );
-    fs.writeFileSync(
-      path.join(dir, "tsconfig.json"),
-      JSON.stringify(
-        {
-          compilerOptions: {
-            target: "ES2022",
-            module: "ESNext",
-            lib: ["ES2022", "DOM"],
-            jsx: "react-jsx",
-            moduleResolution: "bundler",
-            strict: true,
-            skipLibCheck: false,
-            noEmit: true,
-          },
-          files: ["consumer.tsx"],
-        },
-        null,
-        2,
-      ),
-    );
-    try {
-      execFileSync("npx", ["--no-install", "tsc", "--noEmit", "-p", path.join(dir, "tsconfig.json")], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-      ok("consumer.tsx type-checks against dist/react/index.d.ts");
-    } catch (err) {
-      fail(`tsc reported errors:\n${String(err.stdout || "") + String(err.stderr || "")}`.trim().replace(/\n/g, "\n        "));
-    }
-  } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
+`;
+  const { diagnostics } = await typecheck({ "consumer.tsx": consumer }, { pkg: DIST });
+  if (diagnostics.length) fail(`tsc reported errors:\n${diagnostics.map(describe).join("\n")}`.replace(/\n/g, "\n        "));
+  else ok("consumer.tsx type-checks against dist/react/index.d.ts");
 });
 
 console.log(failures ? `\npackage check: ${failures} failure${failures === 1 ? "" : "s"}` : "\npackage check: passed");

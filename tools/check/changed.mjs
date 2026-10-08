@@ -35,7 +35,7 @@ const BUILDER = [
   /^builder\.html$/, /^assets\/builder/, /^assets\/theme\.js$/, /^assets\/configure-data\.js$/, /^assets\/specimens\.js$/,
   /^assets\/(site|menu|search)\.js$/, /^assets\/site\.css$/,
   /^system\/components\//, /^system\/manifest\.json$/, /^system\/styles\.css$/, /^system\/tokens\//, /^system\/templates\/_support\//, /^system\/_ds_bundle\.js$/,
-  /^tools\/build-(builder|bundle)\.mjs$/, /^tools\/check\/builder\.mjs$/,
+  /^tools\/build-(builder|bundle|package)\.mjs$/, /^tools\/check\/(builder|typecheck)\.mjs$/,
 ];
 
 /* What the behaviour check renders: the package, built from the system. */
