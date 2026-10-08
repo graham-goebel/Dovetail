@@ -4435,6 +4435,73 @@ try {
     await page.close();
   });
 
+  await step("Flip and text box: the align row flips free layers (and Shift+H, Shift+V), the transform carries turn and flip, and a free text's box is auto width, auto height or fixed from its menu", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const nodeOf = async (id) => (await saved()).frames.find((f) => f.id === "tf").root.children.find((c) => c.id === id);
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "tf", name: "Turns", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "ts", type: "Shape", props: { shape: "rectangle" }, style: { x: 10, y: 10, fw: 30, fh: 20, rot: 15 } },
+        { id: "tt", type: "Text", props: { children: "A sentence long enough to wrap when it is given a width of its own" }, style: { x: 10, y: 60 } }] } });
+      d.active = "tf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "tf"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    const fr = await frameAt(page, 1);
+    await fr.waitForFunction(() => !!document.querySelector('[data-bf-id="tt"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["ts"]));
+    await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await page.locator('.bd-arrange [aria-label="Flip across"]').click();
+    const flipped = await poll(() => nodeOf("ts"), (n) => n.style.flipH === true);
+    expect(flipped.style.flipH === true, `Flip across sets flipH, got ${JSON.stringify(flipped.style)}`);
+    await release(page);
+    await page.keyboard.press("Shift+V");
+    const both = await poll(() => nodeOf("ts"), (n) => n.style.flipV === true);
+    expect(both.style.flipV === true, "Shift+V flips down");
+    await fr.waitForFunction(() => /scaleY/.test(document.querySelector('[data-bf-id="ts"]').firstElementChild.style.transform)).catch(() => {});
+    const tf = await fr.evaluate(() => document.querySelector('[data-bf-id="ts"]').firstElementChild.style.transform);
+    expect(tf === "rotate(15deg) scaleX(-1) scaleY(-1)", `the transform carries the turn, then both flips, got "${tf}"`);
+    expect(await page.locator('.bd-flip-btn[aria-label="Flip across"][aria-pressed="true"]').count() === 1, "Flip across shows pressed");
+    await page.keyboard.press("Shift+H");
+    const back = await poll(() => nodeOf("ts"), (n) => !n.style.flipH);
+    expect(!back.style.flipH, "Shift+H again unflips");
+    const code = await fr.evaluate(() => window.BuilderFrame.jsx({ page: { mode: "freeform", width: 800, height: 600 }, root: { id: "r", type: "Root", props: {}, style: {}, children: [{ id: "c", type: "Shape", props: {}, style: { x: 1, y: 1, rot: -30, flipV: true } }] } }, "Turned"));
+    expect(/transform: "rotate\(-30deg\) scaleY\(-1\)"/.test(code), `the export writes the turn and flip in one transform:\n${code}`);
+    ok("the align row and Shift+H, Shift+V flip a free layer, pressed again unflips, and the code writes rotate then scale");
+
+    await page.evaluate(() => window.__builder.select(["tt"]));
+    await page.waitForFunction(() => /Text/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Layout");
+    const box = page.locator(".bd-right .bd-field", { hasText: "Text box" });
+    expect(/Auto width/.test(await box.locator(".bd-dd").textContent()), "a free text starts at Auto width");
+    const wide = await fr.evaluate(() => { const el = document.querySelector('[data-bf-id="tt"]').firstElementChild; return { w: getComputedStyle(el).width, h: el.getBoundingClientRect().height }; });
+    await box.locator(".bd-dd").click();
+    await option(page, "Auto height").click();
+    const sized = await poll(() => nodeOf("tt"), (n) => !!n.style.fw && !n.style.fh);
+    expect(sized.style.fw && !sized.style.fh, `Auto height takes a width and no height, got ${JSON.stringify(sized.style)}`);
+    await box.locator(".bd-dd").click();
+    await option(page, "Fixed size").click();
+    const fixed = await poll(() => nodeOf("tt"), (n) => !!n.style.fw && !!n.style.fh);
+    expect(fixed.style.fw && fixed.style.fh, `Fixed takes a width and a height, got ${JSON.stringify(fixed.style)}`);
+    await fr.waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="tt"]').firstElementChild).overflow === "hidden").catch(() => {});
+    expect(await fr.evaluate(() => getComputedStyle(document.querySelector('[data-bf-id="tt"]').firstElementChild).overflow) === "hidden", "a fixed text cuts off what doesn't fit");
+    await box.locator(".bd-dd").click();
+    await option(page, "Auto width").click();
+    const auto = await poll(() => nodeOf("tt"), (n) => !n.style.fw && !n.style.fh);
+    expect(!auto.style.fw && !auto.style.fh, "Auto width drops the text's own size");
+    expect(/max-content/.test(wide.w) || parseFloat(wide.w) > 300, `an auto width text stays on one line, got width ${wide.w}`);
+    ok("a free text's Text box menu moves it between auto width, auto height and fixed, and a fixed one clips");
+    await page.close();
+  });
+
   await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {
     if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the downloaded code"); return; }
     const { page } = await open({ width: 1440, height: 900 });

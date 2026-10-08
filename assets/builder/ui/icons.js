@@ -117,6 +117,12 @@ var PATHS = {
   lineDotted: ["M4 12h.01", "M8 12h.01", "M12 12h.01", "M16 12h.01", "M20 12h.01"],
   weightDefault: ["M3 12h18"],
   weightStrong: ["M3 11h18v2H3z"],
+  /* Flips, and a text box's three ways of sizing. */
+  flipH: ["M12 3v18", "M9 6 3 18h6z", "m15 6 6 12h-6z"],
+  flipV: ["M3 12h18", "M6 9 18 3v6z", "m6 15 12 6v-6z"],
+  textAutoWidth: ["M3 12h3", "M18 12h3", "m4 10-1.5 2L4 14", "m20 10 1.5 2-1.5 2", "M9 8h6", "M12 8v8"],
+  textAutoHeight: ["M5 4h14", "M5 20h14", "M8 9h8", "M8 12h8", "M8 15h5"],
+  textFixed: ["M4 5h16v14H4z", "M8 9h8", "M8 12h8", "M8 15h5"],
 };
 /* Heroicons outline, 24px, drawn at stroke 1.5 (MIT, Copyright (c) Tailwind Labs, Inc.;
    see assets/vendor/heroicons-LICENSE.txt). The builder's own drawings
