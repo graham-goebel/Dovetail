@@ -289,6 +289,12 @@
       if (turn.length) out.transform = turn.join(" ");
       if (st.ch || st.cv) pinned(out, st);
     }
+    /* In a flow, a shape or picture keeps the size it had when free. */
+    if (!isFree(st) && (st.fw || st.fh)) {
+      out = out || {};
+      if (st.fw) out.width = "calc(" + FREE_UNIT + " * " + st.fw + ")";
+      if (st.fh) out.height = "calc(" + FREE_UNIT + " * " + st.fh + ")";
+    }
     var rw = relCss(st.rw), rh = relCss(st.rh);
     if (rw) { out = out || {}; out.width = rw; }
     if (rh) { out = out || {}; out.height = rh; }

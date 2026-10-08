@@ -4790,6 +4790,53 @@ try {
     await page.close();
   });
 
+  await step("Auto layout and back: Shift+A lays a free group's free children out in a row in the order they stand, with token gap and padding, and again pins them where the layout put them", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const group = async () => (await saved()).frames.find((f) => f.id === "af").root.children[0];
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const box = (id, x) => ({ id, type: "Shape", props: { shape: "rectangle" }, style: { x, y: 2, fw: 10, fh: 10 } });
+      /* Out of order on purpose: the row follows where they stand. */
+      d.frames.push({ id: "af", name: "Auto", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "ag", type: "Group", props: { direction: "row" }, style: { x: 10, y: 10, fw: 50, fh: 14 }, children: [box("a3", 38), box("a1", 2), box("a2", 20)] }] } });
+      d.active = "af";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "af"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await (await frameAt(page, 1)).waitForFunction(() => !!document.querySelector('[data-bf-id="a3"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["ag"]));
+    await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await release(page);
+    await page.keyboard.press("Shift+A");
+    const flowed = await poll(group, (g) => g.children.every((c) => c.style.x === undefined));
+    expect(flowed.children.map((c) => c.id).join() === "a1,a2,a3", `the row follows where they stood, got ${flowed.children.map((c) => c.id).join()}`);
+    expect(flowed.props.direction === "row" && flowed.props.gap && flowed.props.gap !== "none" && flowed.style.fw === undefined && flowed.style.x === 10, `a row with a gap token, the group hugging them in its own place, got ${JSON.stringify({ props: flowed.props, style: flowed.style })}`);
+    expect(flowed.style.padding, `the 8px inset becomes a padding token, got ${flowed.style.padding}`);
+    /* The row drawn, so the boxes measured are the row's. */
+    await (await frameAt(page, 1)).waitForFunction(() => {
+      const box = (id) => { let x = document.querySelector('[data-bf-id="' + id + '"]'); while (x && getComputedStyle(x).display === "contents") x = x.firstElementChild; return x; };
+      const g = box("ag"), k = box("a1");
+      return g && k && getComputedStyle(k).position !== "absolute" && getComputedStyle(g).paddingLeft !== "0px" && k.getBoundingClientRect().left > g.getBoundingClientRect().left;
+    }).catch(() => {});
+    await release(page);
+    await page.keyboard.press("Shift+A");
+    const freed = await poll(group, (g) => g.children.every((c) => typeof c.style.x === "number"));
+    const xs = freed.children.map((c) => c.style.x);
+    expect(xs[0] < xs[1] && xs[1] < xs[2] && freed.style.fw > 0 && freed.children.every((c) => c.style.fw === 10), `back to free, each child pinned where the row put it, in order, at its size, got x ${xs}, fw ${freed.children.map((c) => c.style.fw)}`);
+    ok(`Shift+A: three boxes become a row (gap ${flowed.props.gap}, padding ${flowed.style.padding}) in the order they stood; again, they're free at x ${xs.join(", ")}`);
+    await page.close();
+  });
+
   await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {
     if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the downloaded code"); return; }
     const { page } = await open({ width: 1440, height: 900 });

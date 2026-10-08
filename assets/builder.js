@@ -185,7 +185,8 @@
       ["Drag a copy", "Alt-drag"],
       ["Turn in 15° steps, while turning", "Shift"],
       ["Move without snapping, held", "Ctrl"],
-      ["Flip across, down", "Shift+H, Shift+V"]
+      ["Flip across, down", "Shift+H, Shift+V"],
+      ["Auto layout on a free group, or free again", "Shift+A"]
     ]],
     ["Components", [["Swap for another", "Cmd-drag"], ["Step a heading's size", "Shift+Up, Shift+Down"]]]
   ];
@@ -12687,7 +12688,9 @@
         one2 && one2.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
         { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
         { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" }
-      ]).concat(free && nodes.length > 1 && nodes.some(function(n) {
+      ]).concat(free && one2 && one2.type === "Group" && !one2.style.bool && (one2.children || []).length ? [(one2.children || []).every(function(c) {
+        return isFree(c.style);
+      }) ? { value: "autolayout", label: "Use auto layout", hint: "Shift+A", icon: "row", group: "Layer" } : { value: "freelayout", label: "Free positions", hint: "Shift+A", icon: "frame", group: "Layer" }] : []).concat(free && nodes.length > 1 && nodes.some(function(n) {
         return n.type === "Shape" && n.props.shape !== "line";
       }) ? [{ value: "mask", label: "Use the shape as a mask", icon: "shapeEllipse", group: "Layer" }] : []).concat(one2 && one2.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
     };
@@ -12706,6 +12709,8 @@
       else if (v === "group") actions.group();
       else if (v === "ungroup") actions.ungroup();
       else if (v === "mask") actions.mask();
+      else if (v === "autolayout") actions.autoLayout();
+      else if (v === "freelayout") actions.freeLayout();
       else if (v === "hide") actions.hide();
       else if (v === "lock") actions.lock();
       else if (v === "rename") actions.rename();
@@ -12898,6 +12903,134 @@
           return ops.group(d, ids);
         }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
       },
+      /* A free group's free children laid out in a row or a column, in the
+       order they stand: the direction from how they spread, the gap and the
+       padding the nearest tokens to what they had. The group keeps its own
+       place and hugs what it holds. */
+      autoLayout: function() {
+        var id = selRef.current[0], d = docRef.current, at2 = selRef.current.length === 1 ? locate(d, id) : null, a = api();
+        if (!at2 || at2.node.type !== "Group" || at2.node.style.bool || !isFree(at2.node.style) || !a || !a.rect || !a.measure) return false;
+        var kids = at2.node.children || [];
+        if (!kids.length || !kids.every(function(c) {
+          return isFree(c.style);
+        })) return false;
+        var gr = a.rect(id);
+        var items = kids.map(function(c) {
+          return { id: c.id, r: a.rect(c.id) };
+        }).filter(function(i2) {
+          return i2.r;
+        });
+        if (!gr || items.length !== kids.length) return false;
+        var spanX = Math.max.apply(null, items.map(function(i2) {
+          return i2.r.right;
+        })) - Math.min.apply(null, items.map(function(i2) {
+          return i2.r.left;
+        }));
+        var spanY = Math.max.apply(null, items.map(function(i2) {
+          return i2.r.bottom;
+        })) - Math.min.apply(null, items.map(function(i2) {
+          return i2.r.top;
+        }));
+        var row = spanX >= spanY;
+        items.sort(function(p, q) {
+          return row ? p.r.left - q.r.left : p.r.top - q.r.top;
+        });
+        var gaps = [];
+        for (var i = 1; i < items.length; i++) gaps.push(row ? items[i].r.left - items[i - 1].r.right : items[i].r.top - items[i - 1].r.bottom);
+        var want = gaps.length ? Math.max(0, gaps.reduce(function(n, g) {
+          return n + g;
+        }, 0) / gaps.length) : 0;
+        var steps = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
+        var got = a.measure(steps.map(function(s2) {
+          return "var(--dt-space-" + (row ? "inline" : "stack") + "-" + s2 + ")";
+        }));
+        var gap = "none", best = want;
+        steps.forEach(function(s2, j) {
+          if (got[j] != null && Math.abs(got[j] - want) < best) {
+            best = Math.abs(got[j] - want);
+            gap = s2;
+          }
+        });
+        var inset = Math.max(0, Math.min(Math.min.apply(null, items.map(function(it) {
+          return it.r.left - gr.left;
+        })), Math.min.apply(null, items.map(function(it) {
+          return it.r.top - gr.top;
+        }))));
+        var pad = null, pbest = inset;
+        steps.forEach(function(s2) {
+          var px = pxMap["padding|" + s2];
+          if (px != null && Math.abs(px - inset) < pbest) {
+            pbest = Math.abs(px - inset);
+            pad = s2;
+          }
+        });
+        var order = items.map(function(it) {
+          return it.id;
+        });
+        change(function(dd) {
+          var g = locate(dd, id);
+          if (!g) return null;
+          var byId2 = {};
+          g.node.children.forEach(function(c) {
+            byId2[c.id] = c;
+          });
+          g.node.children = order.map(function(k) {
+            return byId2[k];
+          });
+          g.node.children.forEach(function(c) {
+            ["x", "y", "ch", "cv", "rot", "flipH", "flipV"].concat(c.type === "Shape" || c.type === "Image" ? [] : ["fw", "fh"]).forEach(function(k) {
+              delete c.style[k];
+            });
+          });
+          g.node.props.direction = row ? "row" : "column";
+          g.node.props.gap = gap;
+          g.node.props.align = "flex-start";
+          delete g.node.style.fw;
+          delete g.node.style.fh;
+          if (pad) g.node.style.padding = pad;
+          else delete g.node.style.padding;
+          return [id];
+        }, "Auto layout: a " + (row ? "row" : "column") + ", gap " + gap);
+        return true;
+      },
+      /* Back to free: each child pinned where the layout put it, and the
+         group the size it was drawn at. */
+      freeLayout: function() {
+        var id = selRef.current[0], d = docRef.current, at2 = selRef.current.length === 1 ? locate(d, id) : null, a = api();
+        if (!at2 || at2.node.type !== "Group" || at2.node.style.bool || !isFree(at2.node.style) || !a || !a.rect) return false;
+        var kids = at2.node.children || [];
+        if (!kids.length || kids.some(function(c) {
+          return isFree(c.style);
+        })) return false;
+        var unit = pxMap["padding|2xs"] || 4, gr = a.rect(id);
+        var boxes2 = {};
+        kids.forEach(function(c) {
+          boxes2[c.id] = a.rect(c.id);
+        });
+        if (!gr || kids.some(function(c) {
+          return !boxes2[c.id];
+        })) return false;
+        var st = function(px) {
+          return Math.max(0, Math.min(FREE_MAX, Math.round(px / unit)));
+        };
+        change(function(dd) {
+          var g = locate(dd, id);
+          if (!g) return null;
+          g.node.style.fw = Math.max(1, st(gr.width));
+          g.node.style.fh = Math.max(1, st(gr.height));
+          g.node.children.forEach(function(c) {
+            var r = boxes2[c.id];
+            c.style.x = st(r.left - gr.left);
+            c.style.y = st(r.top - gr.top);
+            if (c.type === "Shape" || c.type === "Image") {
+              c.style.fw = Math.max(1, st(r.width));
+              c.style.fh = Math.max(1, st(r.height));
+            }
+          });
+          return [id];
+        }, "Free positions");
+        return true;
+      },
       mask: function() {
         var ids = selRef.current.slice();
         var d = docRef.current, a = api(), unit = pxMap["padding|2xs"] || 4;
@@ -13065,6 +13198,7 @@
         return true;
       }
       if (ev.shiftKey && !mod && !ev.altKey && (ev.code === "KeyH" || ev.code === "KeyV") && flip(ev.code === "KeyH" ? "flipH" : "flipV")) return true;
+      if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyA" && (actions.autoLayout() || actions.freeLayout())) return true;
       if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyR") {
         toggleView("rulers");
         return true;
