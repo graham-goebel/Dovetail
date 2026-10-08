@@ -2349,6 +2349,10 @@ const BUILDER_TOKENS = {
      corners), or the ellipse inside it. */
   clip: { label: "Clip content", section: "appearance", preview: "text",
     options: [tokenOption("box", [], { overflow: "hidden" }, "To its box"), tokenOption("ellipse", [], { overflow: "hidden", clipPath: "ellipse(50% 50% at 50% 50%)" }, "To an ellipse")] },
+  /* Shapes combined into one: drawn as a single SVG, the first shape cut,
+     kept or joined by the others. Sets no declaration of its own. */
+  bool: { label: "Combine", section: "appearance", preview: "text",
+    options: [["union", "Union"], ["subtract", "Subtract"], ["intersect", "Intersect"], ["exclude", "Exclude"]].map(([v, label]) => tokenOption(v, [], {}, label)) },
   /* Blur: the layer itself, or what shows through it (glass). */
   blur: { label: "Layer blur", section: "appearance", preview: "text",
     options: [["chip", "--dt-blur-chip", "Soft"], ["glass", "--dt-blur-glass", "Strong"]].map(([v, t, label]) => tokenOption(v, [t], { filter: `blur(${cssVar(t)})` }, label)) },

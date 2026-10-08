@@ -75,6 +75,61 @@
     return st;
   }
 
+  /* Shapes combined into one (a Group with bool set): a single SVG in the
+     group's box, its shapes placed in steps, filled with the group's fill.
+     Union draws them all; subtract draws the first with the others masked
+     out; intersect keeps only where the first meets the others; exclude
+     draws each with the others masked out. Masks are luminance, so white
+     and black there are a mechanism, not a colour. As
+     [tag, attrs, children]. */
+  function boolTree(node) {
+    var st = node.style || {}, op = st.bool;
+    var w = st.fw || 1, h = st.fh || 1;
+    var surf = (DATA.tokens.surface.options.filter(function (o) { return o.value === st.surface; })[0] || {}).tokens;
+    var fill = HEX.test(st.fill || "") ? st.fill : surf && surf[0] ? "var(" + surf[0] + ")" : "var(--dt-surface-sunken)";
+    var shapes = (node.children || []).filter(function (c) { return c.type === "Shape" && !c.hide && isFree(c.style); });
+    var draw = function (c, extra) {
+      var cs = c.style, sw = cs.fw || 1, sh = cs.fh || 1;
+      if ((c.props || {}).shape === "ellipse") return ["ellipse", Object.assign({ cx: cs.x + sw / 2, cy: cs.y + sh / 2, rx: sw / 2, ry: sh / 2 }, extra || {}), []];
+      return ["rect", Object.assign({ x: cs.x, y: cs.y, width: sw, height: sh }, extra || {}), []];
+    };
+    var whole = ["rect", { x: 0, y: 0, width: w, height: h, fill: "white" }, []];
+    var maskOf = function (id, base, others, on) {
+      return ["mask", { id: id, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: w, height: h }, (base ? [base] : []).concat(others.map(function (c) { return draw(c, { fill: on }); }))];
+    };
+    var defs = [], body = [];
+    var mid = function (i) { return "bool-" + node.id + "-" + i; };
+    if (op === "subtract" && shapes.length > 1) {
+      defs.push(maskOf(mid(0), whole, shapes.slice(1), "black"));
+      body.push(draw(shapes[0], { mask: "url(#" + mid(0) + ")" }));
+    } else if (op === "intersect" && shapes.length > 1) {
+      defs.push(maskOf(mid(0), null, shapes.slice(1), "white"));
+      body.push(draw(shapes[0], { mask: "url(#" + mid(0) + ")" }));
+    } else if (op === "exclude" && shapes.length > 1) {
+      shapes.forEach(function (c, i) {
+        defs.push(maskOf(mid(i), whole, shapes.filter(function (o) { return o !== c; }), "black"));
+        body.push(draw(c, { mask: "url(#" + mid(i) + ")" }));
+      });
+    } else shapes.forEach(function (c) { body.push(draw(c)); });
+    return { shapes: shapes, svg: ["svg", { viewBox: "0 0 " + w + " " + h, width: "100%", height: "100%", "aria-hidden": "true", style: { display: "block", fill: fill } }, (defs.length ? [["defs", {}, defs]] : []).concat(body)] };
+  }
+  function boolElement(t, key) {
+    return e(t[0], Object.assign({ key: key }, t[1]), t[2].map(function (c, i) { return boolElement(c, i); }));
+  }
+  function boolCode(t, used, pad) {
+    var attrs = Object.keys(t[1]).map(function (k) { var v = t[1][k]; return k + "=" + (typeof v === "string" ? JSON.stringify(v) : "{" + value(v, used, 0) + "}"); }).join(" ");
+    var open = pad + "<" + t[0] + (attrs ? " " + attrs : "");
+    if (!t[2].length) return open + " />";
+    return open + ">\n" + t[2].map(function (c) { return boolCode(c, used, pad + "  "); }).join("\n") + "\n" + pad + "</" + t[0] + ">";
+  }
+  /* The group's own box, without a background: the SVG is the fill. */
+  function boolBox(node) {
+    var st = Object.assign({}, styleFor(node.style) || {});
+    delete st.background;
+    st.position = st.position || "relative";
+    return st;
+  }
+
   /* A line is a box with no height whose top border is the stroke: the
      Border section's colour, width and style, or a strong border when none
      is set. A custom fill colours it. Its caps sit on its ends. */
@@ -430,6 +485,23 @@
     /* Hidden: known to the index (so Layers can find it) but not drawn. */
     if (node.hide) return null;
     var lock = node.lock ? "" : undefined;
+    if (node.type === "Group" && node.style && node.style.bool) {
+      var bt = boolTree(node);
+      /* Each shape's outline, invisible and out of the pointer's way, so
+         Layers can select one and the canvas can show its box. */
+      var outlines = bt.shapes.map(function (c) {
+        index[c.id] = { node: c, parent: node.id };
+        var cs = c.style, sw = cs.fw || 1, sh = cs.fh || 1;
+        var el = (c.props || {}).shape === "ellipse"
+          ? e("ellipse", { cx: cs.x + sw / 2, cy: cs.y + sh / 2, rx: sw / 2, ry: sh / 2 })
+          : e("rect", { x: cs.x, y: cs.y, width: sw, height: sh });
+        return e("g", { key: c.id, "data-bf-id": c.id, "data-bf-type": "Shape", style: { fill: "transparent", pointerEvents: "none" } }, el);
+      });
+      var svgEl = boolElement(bt.svg, "svg");
+      svgEl = React.cloneElement(svgEl, null, svgEl.props.children, outlines);
+      return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Group", "data-bf-free": isFree(node.style) ? "" : undefined, "data-bf-locked": lock, style: { display: "contents" } },
+        e("div", { className: node.style.dark ? "dark" : undefined, style: boolBox(node) }, svgEl));
+    }
     if (node.type === "Group") {
       var gp = node.props || {};
       var gkids = (node.children || []).length ? node.children.map(function (c) { return renderNode(c, node.id); }) : empty(node.id);
@@ -1065,6 +1137,10 @@
       var caps = capParts(node);
       if (!caps.length) return sopen + " />";
       return sopen + ">\n" + caps.map(function (c) { return capCode(c, used, pad + "  "); }).join("\n") + "\n" + pad + "</div>";
+    }
+    if (node.type === "Group" && node.style && node.style.bool) {
+      var bts = boolTree(node);
+      return pad + "<div" + (node.style.dark ? ' className="dark"' : "") + " style={" + value(boolBox(node), used, 0) + "}>\n" + boolCode(bts.svg, used, pad + "  ") + "\n" + pad + "</div>";
     }
     if (node.type === "Group") {
       var gs = Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {});

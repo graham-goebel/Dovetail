@@ -2243,7 +2243,9 @@ function App(props) {
       ARRANGE.map(function (a) {
         var off = few && (a[0] === "hspread" || a[0] === "vspread" || a[0] === "tidy");
         return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || undefined, onClick: function () { arrange(a[0]); } }, e(Icon, { name: a[2] }));
-      }).concat(nodes.length > 1 ? [e(Dropdown, { key: "gap", menu: true, label: "Spread with a gap", icon: "distributeH", iconOnly: true, compact: true, className: "bd-dd-icon bd-gap-dd",
+      }).concat(nodes.length > 1 && nodes.every(function (n) { return n.type === "Shape" && n.props.shape !== "line"; }) ? [e(Dropdown, { key: "bool", menu: true, label: "Combine shapes", icon: "boolUnion", iconOnly: true, compact: true, className: "bd-dd-icon bd-bool-dd",
+        options: DATA.tokens.bool.options.map(function (o) { return { value: o.value, label: o.label, icon: BOOL_ICON[o.value] }; }),
+        onChange: function (v) { combineShapes(v); } })] : []).concat(nodes.length > 1 ? [e(Dropdown, { key: "gap", menu: true, label: "Spread with a gap", icon: "distributeH", iconOnly: true, compact: true, className: "bd-dd-icon bd-gap-dd",
         options: ["x", "y"].reduce(function (list, axis) {
           return list.concat(DATA.tokens.padding.options.filter(function (o) { return /^--dt-space-inset-/.test(o.tokens[0] || "") && o.tokens.length === 1; }).map(function (o) {
             var px = pxMap["padding|" + o.value];
@@ -2359,6 +2361,25 @@ function App(props) {
     }, "Spread " + (axis === "x" ? "across" : "down") + " with a gap of " + step);
     if (moved) select(ids);
     return true;
+  };
+  /* Free rectangles and ellipses made one shape, by union, subtract,
+     intersect or exclude. A shape with no size of its own takes its drawn
+     size first. */
+  var BOOL_ICON = { union: "boolUnion", subtract: "boolSubtract", intersect: "boolIntersect", exclude: "boolExclude" };
+  var combineShapes = function (op) {
+    var ids = selRef.current.slice(), a = api(), unit = pxMap["padding|2xs"] || 4, made = null;
+    change(function (dd) {
+      ids.forEach(function (id) {
+        var at = locate(dd, id);
+        if (!at || at.node.type !== "Shape" || (at.node.style.fw && at.node.style.fh)) return;
+        var r = a && a.rect ? a.rect(id) : null;
+        if (r) { at.node.style.fw = at.node.style.fw || Math.max(1, Math.round(r.width / unit)); at.node.style.fh = at.node.style.fh || Math.max(1, Math.round(r.height / unit)); }
+      });
+      made = ops.combine(dd, ids, op);
+      return made ? [made] : null;
+    }, "Combined: " + op);
+    if (made) select([made]); else announce("Combine takes two or more free rectangles or ellipses side by side");
+    return !!made;
   };
   /* Mirrors free layers across or down; pressed again, back. */
   var flip = function (key) {
@@ -4879,6 +4900,10 @@ function App(props) {
           e("span", { className: "bd-blend-now" }, blendNow === null ? "Mixed" : blendOpt ? blendOpt.label || blendOpt.value : "Normal"),
           tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true,
             onPreview: function (v) { previewStyle(ids, "blend", v); } })),
+        nodes.every(function (n) { return n.type === "Group" && n.style.bool; }) ? e(Field, { key: "bool", id: lid + "-bool", label: "Combine", hint: "Off shows the shapes as they are" },
+          e(Dropdown, { labelledBy: lid + "-bool", value: same(nodes.map(function (n) { return n.style.bool; })) ? nodes[0].style.bool : null, mixed: !same(nodes.map(function (n) { return n.style.bool; })), className: "bd-dd-field", iconValue: true,
+            options: DATA.tokens.bool.options.map(function (o) { return { value: o.value, label: o.label, icon: BOOL_ICON[o.value] }; }).concat([{ value: "", label: "Off", hint: "The shapes as they are, in a group" }]),
+            onChange: function (v) { setStyle(ids, "bool", v || undefined); } })) : null,
         nodes.every(function (n) { return n.type === "Group"; }) ? e(Field, { key: "clip", id: lid + "-clip", label: "Clip content", hint: "Cuts off what reaches past its edge" },
           tokenDropdown("clip", nodes, lid + "-clip", { noneLabel: "Off", className: "bd-dd-field", noPreview: true })) : null,
         e("div", { key: "blurs", className: "bd-size-row bd-border-look" },
@@ -4899,7 +4924,7 @@ function App(props) {
       ], (function () {
         var hidden = nodes.every(function (n) { return n.hide; });
         return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip"])),
+      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip", "bool"])),
       sec("border", "Border", hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined, borderWidth: undefined, borderStyle: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", lines ? "strong" : "default"); }), hasBorder),
