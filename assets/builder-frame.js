@@ -230,7 +230,8 @@
          about its centre. */
       if (st.fw) out.width = "calc(" + FREE_UNIT + " * " + st.fw + ")";
       if (st.fh) out.height = "calc(" + FREE_UNIT + " * " + st.fh + ")";
-      if (st.rot) out.transform = "rotate(" + st.rot + "deg)";
+      var turn = [st.rot ? "rotate(" + st.rot + "deg)" : null, st.flipH ? "scaleX(-1)" : null, st.flipV ? "scaleY(-1)" : null].filter(Boolean);
+      if (turn.length) out.transform = turn.join(" ");
       if (st.ch || st.cv) pinned(out, st);
     }
     var rw = relCss(st.rw), rh = relCss(st.rh);
@@ -304,8 +305,22 @@
     });
     var st = styleFor(node.style);
     if (st) p.style = Object.assign({}, p.style || {}, st);
+    var box = textBox(node);
+    if (box) p.style = Object.assign({}, p.style || {}, box);
     if (node.style && node.style.dark) p.className = ((p.className || "") + " dark").trim();
     return p;
+  }
+
+  /* A free text's box: with no width of its own it grows as it's typed
+     (auto width); with a width it wraps there (auto height); with a height
+     as well it's fixed, and what doesn't fit is cut off. */
+  var TEXT_BOX = { Text: 1, Heading: 1 };
+  function textBox(node) {
+    var st = node.style;
+    if (!TEXT_BOX[node.type] || !isFree(st)) return null;
+    if (!st.fw && !st.rw) return { width: "max-content" };
+    if (st.fh || st.rh) return { overflow: "hidden" };
+    return null;
   }
 
   /* A prop combination a component rejects shows a note on that node only. */

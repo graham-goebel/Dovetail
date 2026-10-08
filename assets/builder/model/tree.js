@@ -381,6 +381,8 @@ function cleanNode(n, report) {
     if (k === "fw" || k === "fh") { if (Number.isInteger(st[k]) && st[k] >= 1 && st[k] <= FREE_MAX) style[k] = st[k]; else note(report, n.type + ": " + k + " is a whole number of --dt-space-inset-2xs steps from 1 to " + FREE_MAX + ", not " + JSON.stringify(st[k])); return; }
     if (k === "rw" || k === "rh") { if (relSize(st[k])) style[k] = st[k]; else note(report, n.type + ": " + k + " is a whole number from 1 to 999 followed by %, vw or vh, not " + JSON.stringify(st[k])); return; }
     if (k === "rot") { if (Number.isInteger(st.rot) && st.rot > -180 && st.rot <= 180 && st.rot !== 0) style.rot = st.rot; else if (st.rot !== 0) note(report, n.type + ": rot is whole degrees from -179 to 180, not " + JSON.stringify(st.rot)); return; }
+    /* Flipped across or down: a free layer's mirror, beside its turn. */
+    if (k === "flipH" || k === "flipV") { if (!isFree(style) && !isFree(st)) return; if (st[k] === true) style[k] = true; else if (st[k] !== false) note(report, n.type + ": " + k + " is true or left out, not " + JSON.stringify(st[k])); return; }
     if (k === "alpha") { if (Number.isInteger(st.alpha) && st.alpha >= 0 && st.alpha < 100) style.alpha = st.alpha; else note(report, n.type + ": alpha is a whole percent from 0 to 99, not " + JSON.stringify(st.alpha)); return; }
     if (tokenOption(k, st[k])) style[k] = st[k];
     else if (DATA.tokens[k]) note(report, n.type + ": " + k + " " + JSON.stringify(st[k]) + " isn't a token option (" + DATA.tokens[k].options.map(function (o) { return o.value; }).join(", ") + ")");

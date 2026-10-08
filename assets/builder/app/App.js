@@ -2243,7 +2243,21 @@ function App(props) {
       ARRANGE.map(function (a) {
         var off = few && (a[0] === "hspread" || a[0] === "vspread" || a[0] === "tidy");
         return e("button", { key: a[0], type: "button", className: "bd-act bd-act-sm bd-arrange-btn", "aria-label": a[1], title: a[1] + (off ? " (three or more)" : " (" + a[3] + ")"), disabled: off || undefined, onClick: function () { arrange(a[0]); } }, e(Icon, { name: a[2] }));
-      }));
+      }).concat([["flipH", "Flip across", "Shift+H"], ["flipV", "Flip down", "Shift+V"]].map(function (f) {
+        var on = nodes.every(function (n) { return n.style[f[0]]; });
+        return e("button", { key: f[0], type: "button", className: "bd-act bd-act-sm bd-flip-btn", "aria-label": f[1], "aria-pressed": String(on), title: f[1] + " (" + f[2] + ")", onClick: function () { flip(f[0]); } }, e(Icon, { name: f[0] }));
+      })));
+  };
+  /* Mirrors free layers across or down; pressed again, back. */
+  var flip = function (key) {
+    var spots = arrangeable(selRef.current.slice());
+    if (!spots) return false;
+    var on = spots.every(function (at) { return at.node.style[key]; });
+    var patch = {};
+    patch[key] = on ? undefined : true;
+    setStyles(spots.map(function (at) { return at.node.id; }), patch);
+    announce((on ? "Unflipped " : "Flipped ") + (key === "flipH" ? "across" : "down"));
+    return true;
   };
 
   /* Copy style takes one layer's look (its tokens and custom colours, not
@@ -2266,7 +2280,7 @@ function App(props) {
     if (!clipStyle || !selRef.current.length) return false;
     var patch = {};
     /* A free layer's own size, turn and opacity come along too. */
-    Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rw", "rh", "rot"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
+    Object.keys(DATA.tokens).concat(["fill", "color", "dark", "alpha", "fw", "fh", "rw", "rh", "rot", "flipH", "flipV"]).forEach(function (k) { if (POSITION_KEYS.indexOf(k) < 0) patch[k] = clipStyle[k]; });
     setStyles(selRef.current, patch);
     announce("Pasted the style");
     return true;
@@ -2519,6 +2533,7 @@ function App(props) {
     if (mod && (ev.key === "=" || ev.key === "+")) { zoomStep(1); return true; }
     if (mod && ev.key === "-") { zoomStep(-1); return true; }
     if (mod && ev.key === "0") { fitAll(); return true; }
+    if (ev.shiftKey && !mod && !ev.altKey && (ev.code === "KeyH" || ev.code === "KeyV") && flip(ev.code === "KeyH" ? "flipH" : "flipV")) return true;
     if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyR") { toggleView("rulers"); return true; }
     if (ev.shiftKey && !mod && !ev.altKey && ev.code === "KeyG") { toggleView("columns"); return true; }
     if (ev.shiftKey && !mod && ev.code === "Digit0") { zoomTo(1); return true; }
@@ -2706,7 +2721,7 @@ function App(props) {
       var kept = [];
       f.root.children.forEach(function (c) { if (joinsFlow(c.type) || isContainer(c.type)) kept.push(c); else loose.push(c); });
       loose.sort(function (a, b) { return ((a.style.y || 0) - (b.style.y || 0)) || ((a.style.x || 0) - (b.style.x || 0)); });
-      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; delete n.style.fill; delete n.style.color; delete n.style.alpha; delete n.style.fw; delete n.style.fh; delete n.style.rot; } (n.children || []).forEach(unfree); })(f.root);
+      (function unfree(n) { if (n.style) { delete n.style.x; delete n.style.y; delete n.style.ch; delete n.style.cv; delete n.style.fill; delete n.style.color; delete n.style.alpha; delete n.style.fw; delete n.style.fh; delete n.style.rot; delete n.style.flipH; delete n.style.flipV; } (n.children || []).forEach(unfree); })(f.root);
       if (loose.length) { var g = make("Group", { direction: "column", gap: "md" }, loose, { padding: "lg" }); kept.push(g); }
       f.root.children = kept;
       if (!f.gap) f.gap = "block";
@@ -3988,6 +4003,37 @@ function App(props) {
       })) : null);
   };
 
+  /* A free text's box: auto width (no size of its own), auto height (a
+     width) or fixed (a width and a height). Picking one takes the size it's
+     drawn at now; dragging a side or a corner on the canvas does the same. */
+  var TEXT_BOX = { Text: 1, Heading: 1 };
+  var textBoxRow = function (nodes) {
+    if (frame.mode === "structured" || !nodes.every(function (n) { return TEXT_BOX[n.type] && isFree(n.style); })) return null;
+    var modeOf = function (n) { return !n.style.fw && !n.style.rw ? "auto" : n.style.fh || n.style.rh ? "fixed" : "height"; };
+    var modes = nodes.map(modeOf);
+    var tid = "bd-textbox-" + nodes[0].id;
+    var HINT = { auto: "Grows as you type", height: "Wraps at its width, grows down", fixed: "Its own width and height; what doesn't fit is cut off" };
+    return e(Field, { key: "textbox", id: tid, label: "Text box", hint: same(modes) ? HINT[modes[0]] : null },
+      e(Dropdown, { labelledBy: tid, value: same(modes) ? modes[0] : null, mixed: !same(modes), className: "bd-dd-field", iconValue: true,
+        options: [{ value: "auto", label: "Auto width", icon: "textAutoWidth", hint: HINT.auto }, { value: "height", label: "Auto height", icon: "textAutoHeight", hint: HINT.height }, { value: "fixed", label: "Fixed size", icon: "textFixed", hint: HINT.fixed }],
+        onChange: function (v) {
+          var a = api(), unit = pxMap["padding|2xs"] || 4;
+          var steps = function (px) { return Math.max(1, Math.min(FREE_MAX, Math.round(px / unit))); };
+          change(function (d) {
+            nodes.forEach(function (n) {
+              var at = locate(d, n.id);
+              if (!at) return;
+              var st = at.node.style, r = a && a.rect ? a.rect(n.id) : null;
+              delete st.rw; delete st.rh;
+              if (v === "auto") { delete st.fw; delete st.fh; return; }
+              if (!st.fw && r) st.fw = steps(r.width);
+              if (v === "height") delete st.fh;
+              else if (!st.fh && r) st.fh = steps(r.height);
+            });
+          }, "Text box: " + (v === "auto" ? "auto width" : v === "height" ? "auto height" : "fixed size"));
+        } }));
+  };
+
   /* A border's width and line style, each from a menu. */
   var BORDER_LOOK_ICON = { borderWidth: { "": "weightDefault", strong: "weightStrong" }, borderStyle: { "": "lineSolid", dashed: "lineDashed", dotted: "lineDotted" } };
   var borderLookRow = function (nodes, nid) {
@@ -4760,7 +4806,7 @@ function App(props) {
                 onChange: function (v) { var deg = ((((v + 180) % 360) + 360) % 360) - 180; if (deg === -180) deg = 180; setStyles(ids, { rot: deg || undefined }); } });
             })())),
         pinsField(nodes, ids),
-        e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined, fw: undefined, fh: undefined, rot: undefined, ch: undefined, cv: undefined }); } }, "Put it in the flow"),
+        e("button", { key: "flow", type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyles(ids, { x: undefined, y: undefined, fw: undefined, fh: undefined, rot: undefined, flipH: undefined, flipV: undefined, ch: undefined, cv: undefined }); } }, "Put it in the flow"),
       ];
     }
     var pv = nodes.map(function (n) { return n.style.position || ""; });
@@ -5005,7 +5051,7 @@ function App(props) {
     else if (current === "layout") {
       body = [
         meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Flex layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
-        sec("size", "Size", [sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
+        sec("size", "Size", [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"])),
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS)),
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "x", "y"])),
       ];
