@@ -4267,6 +4267,44 @@ try {
       out.push({ where: "Structured parts / one Card selected", code: F.jsxNodes([card], "Card") });
       return out;
     });
+    /* My components, through the Export dialog as a person gets them: a
+       component inside a component, three instances (one with its texts
+       changed), and a placed one on a freeform frame. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const m = window.__builder.project();
+      const scope = m.group ? "g:" + m.group : m.lib === "shared" ? "shared" : "f:" + m.id;
+      const n = (id, type, props, children, style, name) => ({ id, type, props: props || {}, children, style: style || {}, ...(name ? { name } : {}) });
+      const badge = n("xb0", "Group", { direction: "row" }, [n("xb1", "Badge", { children: "Sale" })], { padding: "xs" });
+      const tile = n("xt0", "Group", { direction: "column", gap: "sm" }, [n("xt1", "Heading", { children: "Stoneware mug" }), n("xt2", "Text", { children: "Fern glaze" }, undefined, undefined, "Glaze"), n("xt3", "Button", { children: "Add to cart" }), { ...JSON.parse(JSON.stringify(badge)), id: "xt4", inst: { of: "xbadge", rev: 1 } }], { padding: "md", surface: "raised" });
+      const lib = await window.__builder.store.loadLibrary(scope) || {};
+      lib.components = [{ id: "xtile", name: "Product card", node: tile, tokens: ["--dt-space-inset-md"], rev: 1, made: 1 }, { id: "xbadge", name: "Sale badge", node: badge, tokens: ["--dt-space-inset-xs"], rev: 1, made: 1 }].concat(lib.components || []);
+      await window.__builder.store.saveLibrary(lib, scope);
+      const copyOf = (id, extra) => { const c = JSON.parse(JSON.stringify(tile)); let i = 0; (function w(x) { x.id = id + (i++); (x.children || []).forEach(w); })(c); c.inst = { of: "xtile", rev: 1 }; return Object.assign(c, extra || {}); };
+      const b = copyOf("xb"); b.children[0].props.children = "Tall jug"; b.children[1].props.children = "Moss glaze";
+      const placed = copyOf("xp"); Object.assign(placed.style, { x: 4, y: 4 });
+      await window.__builder.store.saveDoc(m.id, { frames: [
+        { id: "xf1", name: "Shop", width: 1280, hug: true, mode: "structured", root: { id: "root", type: "Root", children: [n("xs", "Section", {}, [copyOf("xa"), b])] } },
+        { id: "xf2", name: "Poster", width: 800, height: 600, mode: "freeform", root: { id: "root2", type: "Root", children: [placed] } },
+      ], active: "xf1" });
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="xa0"]'));
+    const viaDialog = async (where) => {
+      await page.locator(".bd-export").click();
+      await page.locator(".bd-code[open] .bd-code-pre code").waitFor();
+      exported.push({ where, code: await page.locator(".bd-code[open] .bd-code-pre code").textContent() });
+      await page.keyboard.press("Escape");
+    };
+    await page.evaluate(() => window.__builder.select([]));
+    await viaDialog("My components / Shop");
+    await page.evaluate(() => window.__builder.select(["xb0"]));
+    await viaDialog("My components / one instance picked");
+    await page.locator(".bd-flabel-btn", { hasText: "Poster" }).click();
+    await page.evaluate(() => window.__builder.select([]));
+    await viaDialog("My components / Poster");
+    expect(exported.slice(-3).every((x) => /export function MyProductCard\(/.test(x.code)), "the My components exports carry their component function");
     await page.close();
     expect(exported.length >= 20, `the Playground and the structured page should give at least 20 exports, got ${exported.length}`);
     const notPackage = exported.filter((x) => !/^import \{[^}]+\} from "@dovetail-ds\/react";\n/.test(x.code));
@@ -4297,7 +4335,7 @@ try {
     } finally {
       fs.rmSync(pkg, { recursive: true, force: true });
     }
-    ok(`${exported.length} exports (${exported.length - 3} Playground frames, a structured page and two selections) type-check against the package, strict, with react-jsx`);
+    ok(`${exported.length} exports (${exported.length - 6} Playground frames, a structured page, two selections and three with My components) type-check against the package, strict, with react-jsx`);
   });
 
   await step("Frames: a picked frame has a dot at each corner and resizes from its left edge; its auto layout, clip and scroll reach the frame and the code; a selection's tag has a ⋯ with its actions", async () => {

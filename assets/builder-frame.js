@@ -865,7 +865,15 @@
     if (typeof v === "object") {
       var keys = Object.keys(v).filter(function (k) { return v[k] !== undefined; });
       if (!keys.length) return "{}";
-      return "{ " + keys.map(function (k) { return (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)) + ": " + value(v[k], used, depth + 1); }).join(", ") + " }";
+      var pair = function (k) { return (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k)) + ": " + value(v[k], used, depth + 1); };
+      /* Custom properties (a brand fill's text colours) go in a spread of
+         their own: React sets them as they are, and a typed style object
+         takes them that way where it wouldn't take them as plain keys. */
+      var plain = keys.filter(function (k) { return k.indexOf("--") !== 0; });
+      var custom = keys.filter(function (k) { return k.indexOf("--") === 0; });
+      var parts = plain.map(pair);
+      if (custom.length) parts.push("...{ " + custom.map(pair).join(", ") + " }");
+      return "{ " + parts.join(", ") + " }";
     }
     return "undefined";
   }
@@ -966,6 +974,7 @@
     var used = new Set();
     tree = Object.assign({}, tree, { root: shown(tree.root) || tree.root });
     var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
+    if (NS[fn] || fn === "Root") fn = "My" + fn;
     var page = tree.page || {};
     if (page.bare) return jsxNodes(tree.root.children, name, opts);
     var was = freeBox;
@@ -996,6 +1005,9 @@
   function jsxNodes(nodes, name, opts) {
     var used = new Set();
     var fn = String(name || "Part").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "P$&") || "Part";
+    /* A picked Card is named after it, so it can't share the name of the
+       Card it imports: it's MyCard, as a component of that name would be. */
+    if (NS[fn] || fn === "Root") fn = "My" + fn;
     var unfree = function (c) { var o = Object.assign({}, c, { style: Object.assign({}, c.style) }); delete o.style.x; delete o.style.y; return o; };
     nodes = nodes.map(shown).filter(Boolean);
     var many = nodes.length !== 1;
