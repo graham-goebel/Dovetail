@@ -33,7 +33,7 @@ var CodeDialog = memo(function CodeDialog(p) {
   var name = p.title || p.frameName;
   return e("dialog", { className: "bd-code", ref: p.dialogRef, "aria-labelledby": "bd-code-title" },
     head("bd-code-title", "Export: " + name,
-      "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.", [
+      "React with @dovetail-ds/react. Props at their default are left out. Blocks and other larger components keep the sample copy they started with, so they render as you see them; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.", [
         e("button", { key: "copy", type: "button", className: "bd-btn bd-btn-primary", onClick: p.onCopyCode }, e(Icon, { name: "copy" }), "Copy code"),
         e("a", { key: "dl", className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(p.code), download: (name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
         e(Segmented, { key: "scale", label: "Picture scale", className: "bd-export-scale", value: String(p.scale), onChange: function (v) { if (v) p.setScale(Number(v)); },

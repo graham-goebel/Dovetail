@@ -992,10 +992,12 @@ try {
     expect(await page.locator(".bd-itab[aria-selected=true]").textContent() === "Layout", "the label opens the Stack's Layout tab");
     await page.keyboard.up("Shift");
     await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
-    /* Alt (Option) measures too. */
-    await page.mouse.move(tp.x + 30, tp.y + 30, { steps: 2 });
+    /* Alt (Option) measures too: the frame around the Stack, now picked,
+       hovered below it. */
+    const below = await canvasPoint(page, '[data-bf-type="Stack"]', "bottom");
+    await page.mouse.move(below.x + 30, below.y + 90, { steps: 2 });
     await page.keyboard.down("Alt");
-    await page.mouse.move(tp.x, tp.y, { steps: 4 });
+    await page.mouse.move(below.x, below.y + 60, { steps: 4 });
     await page.locator(".bd-spacing-tag").first().waitFor();
     await page.keyboard.up("Alt");
     await page.waitForFunction(() => !document.querySelector(".bd-spacing-tag"));
@@ -1222,9 +1224,9 @@ try {
     await page.waitForFunction(() => /Heading/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await release(page);
     for (let i = 0; i < 3; i++) await page.keyboard.press("Shift+ArrowUp");
-    expect(findIn((await lastFrame()).root, "Heading").props.size === "display-sm", "Shift+Up three times takes a heading-lg Heading to display-sm");
+    expect(findIn((await lastFrame()).root, "Heading").props.size === "display-md", "Shift+Up three times takes a heading-lg Heading to display-md");
     await page.keyboard.press("Shift+ArrowDown");
-    expect(findIn((await lastFrame()).root, "Heading").props.size === "heading-xl", "Shift+Down takes it back to heading-xl");
+    expect(findIn((await lastFrame()).root, "Heading").props.size === "display-sm", "Shift+Down takes it back to display-sm");
     ok("Shift+Up and Shift+Down step a Heading along the type scale, heading-xl to display-sm and back");
 
     await page.locator(".bd-export").click();
@@ -1676,7 +1678,7 @@ try {
     let c = await carousel();
     expect(c.children.length === 5 && c.children.every((k) => k.type === "Cover"), `a new Carousel arrives with five Covers to move, got ${c.children.map((k) => k.type)}`);
     const flat = await frame().evaluate(() => ({ items: document.querySelectorAll(".bf-carousel-item").length, covers: document.querySelectorAll('.bf-carousel-item [data-bf-type="Cover"]').length, live: document.querySelectorAll("[data-carousel-item]").length, head: document.querySelector(".bf-carousel-head").textContent }));
-    expect(flat.items === 5 && flat.covers === 5 && flat.live === 0 && /coverflow · 5 items/.test(flat.head), `while editing, the items lie flat with nothing moving, got ${JSON.stringify(flat)}`);
+    expect(flat.items === 5 && flat.covers === 5 && flat.live === 0 && /ring · 5 items/.test(flat.head), `while editing, the items lie flat with nothing moving, got ${JSON.stringify(flat)}`);
     ok(`a Carousel added to the frame brings five Covers, laid flat in a row ("${flat.head}")`);
 
     const at = await canvasPoint(page, '.bf-carousel-item:nth-child(2) [data-bf-type="Cover"]');
@@ -1689,15 +1691,15 @@ try {
     await pickLayer(page, "Carousel");
     await page.waitForFunction(() => /Carousel/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await tab(page, "Layout");
-    await choose(page, "Layout", "ring");
-    await frame().waitForFunction(() => /ring · 5 items/.test(document.querySelector(".bf-carousel-head").textContent));
+    await choose(page, "Layout", "coverflow");
+    await frame().waitForFunction(() => /coverflow · 5 items/.test(document.querySelector(".bf-carousel-head").textContent));
     await tab(page, "Properties");
     expect(await page.locator(".bd-right .bd-field", { hasText: "Pace" }).first().locator(".bd-dd").count() === 1, "Pace is a set of steps, not a number box");
     await choose(page, "Pace", "1.5×");
     c = await carousel();
-    expect(c.props.layout === "ring" && c.props.pace === 1.5, `layout and pace are set, got ${JSON.stringify(c.props)}`);
+    expect(c.props.layout === "coverflow" && c.props.pace === 1.5, `layout and pace are set, got ${JSON.stringify(c.props)}`);
     expect(!(await labels(page)).some((l) => /^(Value|Paused)$/.test(l)), "value and paused, which an app drives, aren't offered");
-    ok("its Layout tab sets ring, Pace steps to 1.5×, and value and paused aren't offered");
+    ok("its Layout tab sets coverflow, Pace steps to 1.5×, and value and paused aren't offered");
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
     await category(page, "Typography");
@@ -1718,8 +1720,8 @@ try {
     await page.locator(".bd-export").click();
     const code = await page.locator(".bd-code-pre code").textContent();
     await page.keyboard.press("Escape");
-    expect(/<Carousel[^>]*layout="ring"[^>]*>\s*<Cover[^]*<Heading[^]*<\/Carousel>/.test(code) && /import \{[^}]*Carousel[^}]*\}/.test(code), `the export writes the items as the Carousel's children, got ${code.slice(0, 200)}`);
-    ok("Code writes <Carousel layout=\"ring\" …> with its Covers and the Heading inside");
+    expect(/<Carousel[^>]*layout="coverflow"[^>]*>\s*<Cover[^]*<Heading[^]*<\/Carousel>/.test(code) && /import \{[^}]*Carousel[^}]*\}/.test(code), `the export writes the items as the Carousel's children, got ${code.slice(0, 200)}`);
+    ok("Code writes <Carousel layout=\"coverflow\" …> with its Covers and the Heading inside");
 
     await page.locator("[aria-label='Play']").first().click();
     await page.locator(".bd-play[open]").waitFor();
@@ -2305,7 +2307,7 @@ try {
     if (heading) await page.waitForFunction((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); return !!(i && i.contentDocument && i.contentDocument.querySelector("h1, h2, h3, h4")); }, heading.name);
     const hb = heading && await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); return i ? parseFloat(i.style.width) : 0; }, heading.name);
     const textW = heading && await page.evaluate((name) => { const i = [...document.querySelectorAll("iframe.bd-frame")].find((el) => el.title.indexOf("Frame " + name + ",") === 0); const h = i.contentDocument.querySelector("h1, h2, h3, h4"); const r = document.createRange(); r.selectNodeContents(h); return r.getBoundingClientRect().width; }, heading.name);
-    expect(heading && hb > 140 && hb >= textW - 2, `a Heading put down loose is as wide as its text, got a box ${Math.round(hb)} wide for text ${Math.round(textW)} wide`);
+    expect(heading && hb > 124 && hb >= textW - 2, `a Heading put down loose is as wide as its text, got a box ${Math.round(hb)} wide for text ${Math.round(textW)} wide`);
     ok(`a Heading put down loose is ${Math.round(hb)} wide, its text's width, rather than squeezed into 120`);
 
     /* With a loose object active, a new frame is still a screen. */
@@ -3335,9 +3337,17 @@ try {
     const lefts = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[0] === 10));
     expect(lefts.every((p) => p[0] === 10), `Alt+A lines their left edges up on the leftmost, got ${JSON.stringify(lefts)}`);
     expect((await steps(page)).past === stepsA + 1, "as one undo step");
+    /* What align measures: each object's box in the frame, beside where the
+       document puts it, so a failure says which one was measured off. */
+    let boxes = "";
+    for (const f of frames(page)) {
+      const got = await f.evaluate(() => document.querySelector('[data-bf-id="hc"]') ? ["ba", "bb", "hc"].map((id) => { const r = window.BuilderFrame.rect(id), el = document.querySelector(`[data-bf-id="${id}"]`).firstElementChild, b = el && el.getBoundingClientRect(); return id + " top " + (r ? Math.round(r.top * 100) / 100 + " h " + Math.round(r.height * 100) / 100 : "none") + " (el " + (b ? Math.round(b.top * 100) / 100 + " h " + Math.round(b.height * 100) / 100 : "none") + ")"; }).join(", ") + "; unit " + window.BuilderFrame.measure(["var(--dt-space-inset-2xs)"])[0] : "").catch(() => "");
+      if (got) { boxes = got; break; }
+    }
+    const was = [await at("ba"), await at("bb"), await at("hc")];
     await page.keyboard.press("Alt+KeyW");
     const tops = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[1] === 0));
-    expect(tops.every((p) => p[1] === 0), `Alt+W lines their tops up, got ${JSON.stringify(tops)}`);
+    expect(tops.every((p) => p[1] === 0), `Alt+W lines their tops up, got ${JSON.stringify(tops)} from ${JSON.stringify(was)}; measured ${boxes}`);
     await page.evaluate(() => window.__builder.select(["ba"]));
     await page.waitForTimeout(100);
     expect(await page.locator(".bd-arrange-btn[disabled]").count() === 3, "one object can align to its frame but not spread");
@@ -4967,6 +4977,81 @@ try {
     expect(/<Card /.test(code) && !/#page:/.test(code) && !/href=/.test(code), `the code leaves the dead link out, got ${(code.match(/<Card[^>]*>/) || [""])[0]}`);
     ok("a link to a removed page reads \"A page that was removed\" in the inspector and is left out of the code");
     await shared.page.close();
+    await page.close();
+  });
+
+  await step("Fresh atoms: a component added with nothing set starts from its own defaults, and the code leaves defaults out", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(300);
+    /* Each atom as a tile adds it: a type and nothing set. A HeroBlock beside
+       them keeps its sample copy. A Button set to md, an Input set to sm and
+       a Textarea set to 4 rows over its sample's 2 show what a choice
+       exports. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const types = ["Heading", "Text", "Button", "Badge", "Tag", "Link", "Divider", "Card", "Input", "Select", "Switch", "Checkbox", "Alert", "Image"];
+      const kids = types.map((t, i) => ({ id: "fa" + i, type: t, props: {}, style: {}, ...(t === "Card" ? { children: [] } : {}) }));
+      kids.push({ id: "fa-md", type: "Button", props: { size: "md", children: "Medium" }, style: {} });
+      kids.push({ id: "fa-sm", type: "Input", props: { size: "sm" }, style: {} });
+      kids.push({ id: "fa-rows", type: "Textarea", props: { rows: 4 }, style: {} });
+      d.frames = [{ id: "f1", name: "Fresh", width: 1280, hug: true, mode: "structured", root: { id: "root", type: "Root", children: [
+        { id: "fa-sec", type: "Section", props: {}, style: {}, children: kids },
+        { id: "fa-hero", type: "HeroBlock", props: {}, style: {} },
+      ] } }];
+      d.active = "f1";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+    });
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 1);
+    const fr = () => frames(page)[0];
+    await fr().waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="fa13"]') && document.querySelector('[data-bf-type="HeroBlock"] section'));
+    const seen = await fr().evaluate(() => ({
+      h: document.querySelector('[data-bf-id="fa0"] h1, [data-bf-id="fa0"] h2, [data-bf-id="fa0"] h3')?.tagName,
+      sw: document.querySelector('[data-bf-id="fa10"] input')?.checked,
+      cb: document.querySelector('[data-bf-id="fa11"] input')?.checked,
+      hero: document.querySelector('[data-bf-type="HeroBlock"]').textContent,
+    }));
+    expect(seen.h === "H2" && seen.sw === false && seen.cb === false, `on the canvas a fresh Heading is an h2 and a fresh Switch and Checkbox are off, got ${JSON.stringify(seen)}`);
+    expect(/Made slowly\. Used every day\./.test(seen.hero), `a HeroBlock still starts with its sample copy, got ${seen.hero.slice(0, 80)}`);
+    ok("on the canvas a fresh Heading is an h2, a fresh Switch and Checkbox are off, and a HeroBlock keeps its sample copy");
+
+    await page.evaluate(() => window.__builder.select([]));
+    await page.locator(".bd-export").click();
+    await page.locator(".bd-code[open] .bd-code-pre code").waitFor();
+    const code = await page.locator(".bd-code[open] .bd-code-pre code").textContent();
+    const want = [
+      "<Heading level={2}>Heading</Heading>",
+      "<Text>Text</Text>",
+      "<Button>Button</Button>",
+      "<Badge>Badge</Badge>",
+      "<Tag>Tag</Tag>",
+      '<Link href="#">Link</Link>',
+      "<Divider />",
+      '<Card title="Card" description="A line of copy." />',
+      '<Input label="Label" />',
+      '<Select label="Label" options={["Owner", "Admin", "Member"]} />',
+      '<Switch label="Switch" />',
+      '<Checkbox label="Checkbox" />',
+      '<Alert title="Alert" />',
+      '<Image alt="Image" />',
+    ];
+    const lines = code.split("\n").map((l) => l.trim());
+    const missing = want.filter((w) => !lines.includes(w));
+    expect(!missing.length, `each fresh atom exports as its plain self, missing ${missing.join(" | ")}`);
+    expect(!/variant="eyebrow"|size="sm"|defaultChecked|defaultValue|tone="warning"|selected\b|label="or"/.test(code.slice(0, code.indexOf("<Button>Medium"))), "no specimen showcase prop comes along");
+    expect(!/Ridge loop|Quiet mornings|Save changes|Account settings|Five editors|Workspace name|Two-factor|trial ends/.test(code), "no specimen copy comes along");
+    ok("each fresh atom exports as its plain self: " + want.slice(0, 3).join(" "));
+
+    expect(lines.includes("<Button>Medium</Button>"), `a Button set to md, its documented default, exports without size, got ${lines.find((l) => /Medium/.test(l))}`);
+    expect(lines.includes('<Input label="Label" size="sm" />'), `a prop away from its default stays, got ${lines.find((l) => /size="sm"/.test(l))}`);
+    expect(lines.includes('<Textarea label="Label" rows={4} />'), `a default chosen over a different start stays, so the code pastes back as it was, got ${lines.find((l) => /<Textarea/.test(l))}`);
+    expect(/<HeroBlock[^>]*title="Made slowly\. Used every day\."/.test(code), `a HeroBlock's code keeps its sample copy, got ${(code.match(/<HeroBlock[^\n]*/) || [""])[0].slice(0, 120)}`);
+    expect(!/size="md"|tone="info"|ratio="16:9"/.test(code), "documented defaults are left out of the code");
+    ok("a prop at its documented default is left out (<Button size=\"md\"> is <Button>), one set elsewhere stays, a default chosen over a different start stays, and a HeroBlock keeps its copy");
     await page.close();
   });
 
