@@ -19,6 +19,7 @@ import { addPlayground } from "../model/playground.js";
 import { ARRIVED, AccountDialog, useAccount } from "../cloud/Account.js";
 import { CONVERTS, FREE_MAX, active, autoLayout, canHold, clean, cleanNode, copy, emptyDoc, fixedSpot, frameById, fresh, isFree, locate, make, makeFrame, ops, presetOf, relSize, side, tokenOption, uid, constrain, H_PINS, V_PINS, GUIDES_MAX, COLUMNS_MAX, columnsOf } from "../model/tree.js";
 import { detachAll, holdsInstanceOf, masterOf, rebase, updateInstances } from "../model/instances.js";
+import { codeWithComponents } from "../model/codegen.js";
 import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
@@ -226,6 +227,9 @@ function App(props) {
   var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
   var codeTitleState = useState("");
   var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
+  /* What the code leaves out of the instances in it (model/codegen.js). */
+  var codeNotesState = useState([]);
+  var codeNotes = codeNotesState[0], setCodeNotes = codeNotesState[1];
   /* What Export's picture takes: the one layer the Code shows, or the frame;
      and at what scale, 1x to 3x. */
   var codePickState = useState(null);
@@ -2894,15 +2898,23 @@ function App(props) {
     var picked = selRef.current.map(function (id) { return locate(d, id); }).filter(Boolean).map(function (a) { return a.node; });
     var parts = [];
     picked.forEach(function (n) { if (n.type === "Slot") parts = parts.concat(n.children); else parts.push(n); });
+    /* Instances of My components become calls, with the components above. */
+    var withComps = function (roots) {
+      var got = codeWithComponents(roots, libRef.current);
+      setCodeNotes(got.leftOut);
+      return { roots: withPageLinks(got.roots), opts: { components: got.components.map(function (c) { return Object.assign({}, c, { node: withPageLinks(c.node) }); }) } };
+    };
     if (parts.length && f.jsxNodes) {
       var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
       setCodeTitle(title);
       setCodePick(parts.length === 1 ? parts[0].id : null);
-      setCode(f.jsxNodes(withPageLinks(parts), parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts"));
+      var gotParts = withComps(parts);
+      setCode(f.jsxNodes(gotParts.roots, parts.length === 1 ? (parts[0].name || parts[0].type) : fr.name + " parts", gotParts.opts));
     } else {
       setCodeTitle(fr.name);
       setCodePick(null);
-      setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: withPageLinks(fr.root) }, fr.name));
+      var gotFrame = withComps([fr.root]);
+      setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: gotFrame.roots[0] }, fr.name, gotFrame.opts));
     }
     var dlg = dialogRef.current;
     if (dlg && dlg.showModal) dlg.showModal();
@@ -5775,7 +5787,7 @@ function App(props) {
       return e("div", { className: cx("bd-ghost-el", g.flat && "is-flat"), style: { left: x + "px", top: y + "px", width: g.w * z + "px", height: g.h * z + "px" }, "aria-hidden": true },
         e("div", { className: "bd-ghost-inner", style: { width: g.w + "px", height: g.h + "px", transform: "scale(" + z + ")" }, dangerouslySetInnerHTML: { __html: g.html } }));
     })() : drag && !drag.inside ? e("div", { className: "bd-ghost", style: { left: drag.x + "px", top: drag.y + "px" }, "aria-hidden": true }, drag.label) : null,
-    e(CodeDialog, { dialogRef: dialogRef, code: code, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
+    e(CodeDialog, { dialogRef: dialogRef, code: code, notes: codeNotes, title: codeTitle, picked: !!codePick, frameName: frame.name, scale: exportScale, setScale: setExportScale, hasSelection: !!sel,
       onCopyCode: onCopyCode, onExportImage: onExportImage, onCopyLayout: onCopyLayout, onShare: onShare }),
     e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
     e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions: versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),

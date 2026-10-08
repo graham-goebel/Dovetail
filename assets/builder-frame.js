@@ -851,8 +851,11 @@
   }
   function attrName(k) { return k === "className" ? "className" : k; }
 
+  /* A component's param, written where its text was: {title}. */
+  function isExpr(v) { return v && typeof v === "object" && typeof v.__expr === "string" && !v.$$typeof; }
   function value(v, used, depth) {
     if (v === null) return "null";
+    if (isExpr(v)) return v.__expr;
     if (v === undefined) return "undefined";
     if (typeof v === "string") return JSON.stringify(v.replace(SCREEN_UNIT, "$2v$1"));
     if (typeof v === "number" || typeof v === "boolean") return String(v);
@@ -880,6 +883,7 @@
 
   function childText(c, used) {
     if (c === null || c === undefined || c === false || c === true) return "";
+    if (isExpr(c)) return "{" + c.__expr + "}";
     if (Array.isArray(c)) return c.map(function (x) { return childText(x, used); }).join("");
     if (isElement(c)) return inline(c, used);
     var s = String(c);
@@ -896,6 +900,16 @@
   }
 
   function block(node, used, pad) {
+    /* An instance of one of My components: a call to its function, with the
+       texts it changed as props, in a box that keeps its place if it has one. */
+    if (node.type === "__Call") {
+      var cv = node.props.values || {};
+      var ca = attrs(cv, used);
+      var callEl = "<" + node.props.name + (ca.length ? " " + ca.join(" ") : "") + " />";
+      var place = isFree(node.style) ? styleFor(node.style) : null;
+      if (!place) return pad + callEl;
+      return pad + "<div style={" + value(place, used, 0) + "}>\n" + pad + "  " + callEl + "\n" + pad + "</div>";
+    }
     if (node.type === "Shape") return pad + "<div" + (node.style && node.style.dark ? ' className="dark"' : "") + ' role="presentation" style={' + value(shapeStyle(node), used, 0) + "} />";
     if (node.type === "Group") {
       var gs = Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {});
@@ -927,18 +941,33 @@
     return kids ? open + ">" + kids + "</" + tag + ">" : open + " />";
   }
 
+  /* My components the code calls, each as a function of its own:
+     export function PromoCard({ title = "Card title" }) { return (...); } */
+  function componentFns(list, used) {
+    return (list || []).map(function (c) {
+      var node = shown(c.node);
+      if (!node) return "";
+      var params = (c.params || []).map(function (p) { return p.def !== undefined ? p.name + " = " + JSON.stringify(p.def) : p.name; });
+      return "export function " + c.name + "(" + (params.length ? "{ " + params.join(", ") + " }" : "") + ") {\n  return (\n" + block(node, used, "    ") + "\n  );\n}\n";
+    }).filter(Boolean);
+  }
+  function importLine(used) {
+    var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
+    return names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "";
+  }
+
   /* Hidden layers, and what's in them, stay out of the code. */
   function shown(node) {
     if (!node || node.hide) return null;
     if (!node.children) return node;
     return Object.assign({}, node, { children: node.children.map(shown).filter(Boolean) });
   }
-  function jsx(tree, name) {
+  function jsx(tree, name, opts) {
     var used = new Set();
     tree = Object.assign({}, tree, { root: shown(tree.root) || tree.root });
     var fn = String(name || "Screen").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "S$&") || "Screen";
     var page = tree.page || {};
-    if (page.bare) return jsxNodes(tree.root.children, name);
+    if (page.bare) return jsxNodes(tree.root.children, name, opts);
     var was = freeBox;
     freeBox = page.mode !== "structured" && !page.hug ? boxFor(page.width, page.height) : null;
     var kids = tree.root.children.map(function (c) { return block(c, used, "      "); });
@@ -956,24 +985,26 @@
     });
     var cls = page.dark ? "dark" : "";
     var rootAttrs = (cls ? ' className="' + cls + '"' : "") + (page.spacing ? ' data-layout="' + page.spacing + '"' : "") + (page.typeScale === "social" ? ' data-type-scale="social"' : "") + " style={{ " + rootStyle.join(", ") + " }}";
-    var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
-    return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
+    var fns = componentFns(opts && opts.components, used);
+    return importLine(used) + fns.map(function (f) { return f + "\n"; }).join("") +
       "export function " + fn + "() {\n  return (\n    <div" + rootAttrs + ">\n" + kids.join("\n") + (kids.length ? "\n" : "") + "    </div>\n  );\n}\n";
   }
 
   /* Just these layers, as a component of their own: a selection's code. A
      layer placed freely keeps its spot only on its frame, so here it sits in
      the flow. */
-  function jsxNodes(nodes, name) {
+  function jsxNodes(nodes, name, opts) {
     var used = new Set();
     var fn = String(name || "Part").replace(/[^A-Za-z0-9]+(.)?/g, function (m, c) { return c ? c.toUpperCase() : ""; }).replace(/^[a-z]/, function (c) { return c.toUpperCase(); }).replace(/^\d/, "P$&") || "Part";
     var unfree = function (c) { var o = Object.assign({}, c, { style: Object.assign({}, c.style) }); delete o.style.x; delete o.style.y; return o; };
     nodes = nodes.map(shown).filter(Boolean);
     var many = nodes.length !== 1;
     var kids = nodes.map(function (c) { return block(unfree(c), used, many ? "      " : "    "); });
-    var names = Array.from(used).filter(function (n) { return n !== "Root" && NS[n]; }).sort();
+    var fns = componentFns(opts && opts.components, used);
+    /* One instance picked: its component is the code, with no wrapper. */
+    if (!many && nodes[0] && nodes[0].type === "__Call" && fns.length) return importLine(used) + fns.join("\n");
     var body = many ? "    <>\n" + kids.join("\n") + "\n    </>" : kids.join("\n");
-    return (names.length ? "import { " + names.join(", ") + ' } from "@dovetail-ds/react";\n\n' : "") +
+    return importLine(used) + fns.map(function (f) { return f + "\n"; }).join("") +
       "export function " + fn + "() {\n  return (\n" + body + "\n  );\n}\n";
   }
 

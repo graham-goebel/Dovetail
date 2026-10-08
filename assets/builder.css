@@ -3106,6 +3106,29 @@ span.bd-layer-twisty.is-open .bd-ic {
   white-space: pre;
 }
 
+/* What the code leaves out of its instances, above the code. */
+.bd-code-notes {
+  margin: 0;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-md);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  font-size: var(--dt-font-size-sm);
+}
+
+.bd-code-notes summary {
+  cursor: pointer;
+  font-weight: var(--dt-font-weight-medium);
+}
+
+.bd-code-notes p,
+.bd-code-notes ul {
+  margin: var(--dt-space-stack-2xs) 0 0;
+  color: var(--dt-text-secondary);
+}
+
+.bd-code-notes ul {
+  padding-left: var(--dt-space-inset-md);
+}
+
 /* --------------------------------------------------------------- rename */
 
 .bd-rename {

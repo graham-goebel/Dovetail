@@ -27,7 +27,7 @@ var closeButton = function (dialogRef, title) {
 
 /* The code for a frame or the picked layers, to copy or download, with the
    same thing as a picture at a chosen scale, the layout as JSON, and a link.
-   { dialogRef, code, title, picked, frameName, scale, setScale, hasSelection,
+   { dialogRef, code, notes, title, picked, frameName, scale, setScale, hasSelection,
      onCopyCode, onExportImage(type), onCopyLayout, onShare } */
 var CodeDialog = memo(function CodeDialog(p) {
   var name = p.title || p.frameName;
@@ -44,8 +44,20 @@ var CodeDialog = memo(function CodeDialog(p) {
         e("button", { key: "link", type: "button", className: "bd-btn", onClick: p.onShare, title: p.hasSelection ? "Copy a link to the selected layer" : "Copy a link to " + p.frameName }, e(Icon, { name: "link" }), "Copy link"),
         closeButton(p.dialogRef),
       ]),
+    notes(p.notes),
     e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, p.code)));
 });
+/* What the code leaves out of its instances: each is its component as it
+   is, so its own changes beyond text aren't in it. */
+function notes(list) {
+  if (!list || !list.length) return null;
+  return e("details", { className: "bd-code-notes" },
+    e("summary", null, "Left out of the code (" + list.length + ")"),
+    e("p", null, "Each instance is written as a call to its component. Changed text comes along as props; these other changes don't. Update the component from an instance, or detach it, to keep them."),
+    e("ul", null, list.map(function (n) {
+      return e("li", { key: n.id }, e("strong", null, n.name), " (" + n.component + "): " + n.what.join("; "));
+    })));
+}
 
 /* ----------------------------------------------------- Paste a layout */
 

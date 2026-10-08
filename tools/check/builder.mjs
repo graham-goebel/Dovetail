@@ -4845,6 +4845,76 @@ try {
     await page.close();
   });
 
+  await step("Components in the code: an instance is a call to its component, its changed texts are props, the rest is listed as left out, and a placed instance keeps its place", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const poll = async (get, good, ms = 5000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.waitForTimeout(300);
+    /* Product tile holds a Sale badge (a component inside a component).
+       Three tiles on Shop: as it is, with two texts changed, and with a
+       layer gone and its own surface. One placed tile on Poster. */
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const m = window.__builder.project();
+      const scope = m.group ? "g:" + m.group : m.lib === "shared" ? "shared" : "f:" + m.id;
+      const n = (id, type, props, children, style, name) => ({ id, type, props: props || {}, children, style: style || {}, ...(name ? { name } : {}) });
+      const badge = n("b0", "Group", { direction: "row" }, [n("b1", "Badge", { children: "Sale" })], { padding: "xs" });
+      const tile = n("t0", "Group", { direction: "column", gap: "sm" }, [n("t1", "Heading", { children: "Stoneware mug" }), n("t2", "Text", { children: "Fern glaze" }, undefined, undefined, "Glaze"), n("t3", "Button", { children: "Add to cart", variant: "primary" }), { ...JSON.parse(JSON.stringify(badge)), id: "t4", inst: { of: "badge", rev: 1 } }], { padding: "md", radius: "container", surface: "raised" });
+      await window.__builder.store.saveLibrary({ components: [
+        { id: "tile", name: "Product tile", node: tile, tokens: ["--dt-space-inset-md"], rev: 1, made: 1 },
+        { id: "badge", name: "Sale badge", node: badge, tokens: ["--dt-space-inset-xs"], rev: 1, made: 1 },
+      ] }, scope);
+      const copyOf = (node, id, extra) => { const c = JSON.parse(JSON.stringify(node)); let i = 0; (function w(x) { x.id = id + (i++); (x.children || []).forEach(w); })(c); c.inst = { of: "tile", rev: 1 }; return Object.assign(c, extra || {}); };
+      const a = copyOf(tile, "a");
+      const b = copyOf(tile, "b"); b.children[0].props.children = "Tall jug"; b.children[1].props.children = "Moss glaze";
+      const c = copyOf(tile, "c", { name: "Featured" }); c.style.surface = "brand"; c.children.splice(2, 1);
+      const shop = { id: "f1", name: "Shop", width: 1280, hug: true, mode: "structured", root: { id: "root", type: "Root", children: [n("s", "Section", {}, [n("g", "Group", { direction: "row", gap: "md" }, [a, b, c])])] } };
+      const placed = copyOf(tile, "p"); Object.assign(placed.style, { x: 20, y: 10 });
+      const poster = { id: "f2", name: "Poster", width: 800, height: 600, mode: "freeform", root: { id: "root2", type: "Root", children: [placed] } };
+      await window.__builder.store.saveDoc(m.id, { frames: [shop, poster], active: "f1" });
+    });
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="a0"]'));
+    const exportCode = async () => {
+      await page.locator(".bd-export").click();
+      await page.locator(".bd-code[open] .bd-code-pre code").waitFor();
+      return page.locator(".bd-code[open] .bd-code-pre code").textContent();
+    };
+    await page.evaluate(() => window.__builder.select([]));
+    const shop = await exportCode();
+    expect(/^import \{ Badge, Button, Heading, Section, Text \} from "@dovetail-ds\/react";/.test(shop), `one import line for the page and its components, got ${shop.split("\n")[0]}`);
+    expect(/export function ProductTile\(\{ title = "Stoneware mug", glaze = "Fern glaze" \}\)/.test(shop), `the component takes the texts its instances changed, named by part and by layer, with its own as defaults, got ${(shop.match(/export function ProductTile[^\n]*/) || [""])[0]}`);
+    expect(/<Heading[^>]*>\{title\}<\/Heading>/.test(shop) && /<Text[^>]*>\{glaze\}<\/Text>/.test(shop), "the component writes its params where its texts were");
+    expect(/export function SaleBadge\(\)/.test(shop) && /<SaleBadge \/>/.test(shop), "a component inside a component is a function and a call of its own");
+    expect((shop.match(/export function ProductTile/g) || []).length === 1 && (shop.match(/export function SaleBadge/g) || []).length === 1, "each component appears once");
+    expect(/<ProductTile \/>\s*<ProductTile title="Tall jug" glaze="Moss glaze" \/>\s*<ProductTile \/>/.test(shop), `the page calls the component three times, the changed one with its texts, got ${(shop.match(/<ProductTile[^\n]*/g) || []).join(" | ")}`);
+    expect(!/Stoneware mug<\/Heading>/.test(shop.slice(shop.indexOf("export function Shop"))), "no tile is written out in full on the page");
+    const notes = page.locator(".bd-code[open] .bd-code-notes");
+    expect(/Left out of the code \(1\)/.test(await notes.locator("summary").textContent()), "the dialog says one instance has changes the code leaves out");
+    await notes.locator("summary").click();
+    const said = await notes.innerText();
+    expect(/Featured \(ProductTile\): a different set of layers inside; its own surface/.test(said), `and names them, got ${said}`);
+    await page.keyboard.press("Escape");
+    ok("Shop exports ProductTile({ title, glaze }) and SaleBadge once, three calls with the changed texts as props, and the dialog lists what Featured loses");
+
+    await page.evaluate(() => window.__builder.select(["b0"]));
+    const one = await exportCode();
+    expect(/^import \{ Badge, Button, Heading, Text \}/.test(one) && /export function ProductTile\(\{ title = "Stoneware mug", glaze = "Fern glaze" \}\)/.test(one) && !/export function (Part|Shop)/.test(one), `with an instance picked, the code is its component, got ${one.slice(0, 200)}`);
+    await page.keyboard.press("Escape");
+    ok("with one instance picked, the code is its component alone");
+
+    await page.locator(".bd-flabel-btn", { hasText: "Poster" }).click();
+    await page.evaluate(() => window.__builder.select([]));
+    const poster = await exportCode();
+    expect(/<div style=\{\{ position: "absolute", left: "calc\(var\(--dt-space-inset-2xs\) \* 20\)", top: "calc\(var\(--dt-space-inset-2xs\) \* 10\)"[^}]*\}\}>\s*<ProductTile \/>\s*<\/div>/.test(poster), `a placed instance is its call in a box that keeps its place, got ${poster.slice(poster.indexOf("export function Poster"))}`);
+    expect(await page.locator(".bd-code[open] .bd-code-notes").count() === 0, "being placed isn't a change the code leaves out");
+    await page.keyboard.press("Escape");
+    ok("on Poster, the placed tile is <ProductTile /> in a positioned box, with nothing listed as left out");
+    await page.close();
+  });
+
   await step("At 390px: panels behind tabs, the toolbar inline, nothing wider than the screen", async () => {
     const phone = await open({ width: 390, height: 844 });
     expect(await phone.page.locator(".bd-tabs [role=tab]").count() === 3, "three panel tabs");
