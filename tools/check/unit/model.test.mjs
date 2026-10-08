@@ -173,6 +173,14 @@ test("pasting JSX gives the tree, slots, sample items and a report", () => {
   assert.ok(read.report.some((l) => /came in as 5 sample Cover/.test(l)));
 });
 
+test("a pasted border's own width and style come back as Border width and Border style", () => {
+  const read = readLayout(`<div style={{ display: "flex", border: "var(--dt-border-width-strong) dashed var(--dt-border-brand)", borderTop: "var(--dt-border-width-default) dotted var(--dt-border-default)" }}><Badge>New</Badge></div>`);
+  assert.ok(read && read.doc, read && read.error);
+  const g = read.doc.frames[0].root.children[0];
+  assert.deepEqual([g.style.border, g.style.borderTop, g.style.borderWidth, g.style.borderStyle], ["brand", "default", "strong", "dotted"]);
+  assert.ok(!read.report.some((l) => /border/.test(l)), read.report.join("; "));
+});
+
 test("pasting tells JSON, JSX and nonsense apart", () => {
   assert.equal(readLayout('[{ "type": "Heading", "props": { "children": "Hi" } }]').doc.frames[0].root.children[0].type, "Heading");
   assert.equal(readLayout("{/* lead */} <Badge>New</Badge>").doc.frames[0].root.children[0].type, "Badge");

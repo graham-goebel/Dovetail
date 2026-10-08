@@ -187,6 +187,7 @@ function readLiteral(src) {
 /* An inline style as the builder's own token choices: each option whose CSS
    the style carries, the widest first; whatever is left is reported. */
 var TOKEN_CSS = null;
+var BORDER_LOOK = /^var\(--dt-border-width-([\w-]+)\)\s+(solid|dashed|dotted)\s+(var\(--dt-border-[\w-]+\))$/;
 function tokensFromCss(css, who, report) {
   if (!TOKEN_CSS) {
     TOKEN_CSS = [];
@@ -197,6 +198,16 @@ function tokensFromCss(css, who, report) {
   }
   var left = Object.assign({}, css), style = {};
   var same = function (a, b) { return String(a).replace(/\s+/g, "") === String(b).replace(/\s+/g, ""); };
+  /* A border's own width and style come back as Border width and Border
+     style, and the border itself as its colour. */
+  var known = function (key, v) { return DATA.tokens[key] && DATA.tokens[key].options.some(function (o) { return o.value === v; }); };
+  ["border", "borderTop", "borderRight", "borderBottom", "borderLeft"].forEach(function (k) {
+    var m = BORDER_LOOK.exec(String(left[k] || "").trim());
+    if (!m || (m[1] !== "default" && !known("borderWidth", m[1])) || (m[2] !== "solid" && !known("borderStyle", m[2]))) return;
+    if (m[1] !== "default") style.borderWidth = m[1];
+    if (m[2] !== "solid") style.borderStyle = m[2];
+    left[k] = "var(--dt-border-width-default) solid " + m[3];
+  });
   TOKEN_CSS.forEach(function (t) {
     if (style[t.key] !== undefined) return;
     var keys = Object.keys(t.css);

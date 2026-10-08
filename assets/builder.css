@@ -2849,6 +2849,12 @@ span.bd-layer-twisty.is-open .bd-ic {
   gap: var(--dt-space-inline-2xs);
 }
 
+/* A border's width and style: two menus sharing the row. */
+.bd-border-look { display: grid; grid-template-columns: 1fr 1fr; margin-top: var(--dt-space-stack-xs); }
+.bd-border-look:first-child { margin-top: 0; }
+.bd-border-look .bd-dd { min-width: 0; width: 100%; }
+.bd-border-look .bd-dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* W and H with their unit beside them: px, or a share of the parent (%) or
    of the screen (vw, vh). */
 .bd-size-unit {

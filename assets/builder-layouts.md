@@ -56,7 +56,7 @@ Device sizes: Phone 390 × 844, Phone, large 430 × 932, Tablet 768 × 1024, Lap
 - `name`: a label for a container, shown in the layers.
 - `id`: optional. The builder assigns one.
 
-Group is the builder's own flex container (a `div`), and Shape its rectangle or ellipse. Both export as plain elements styled with tokens.
+Group is the builder's own flex container (a `div`), and Shape its rectangle, ellipse or line. Both export as plain elements styled with tokens; a line's caps (arrow, dot, bar) export as small inline SVGs.
 
 ## Style keys
 
@@ -75,6 +75,8 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle or 
 | `borderRight` | Border right | `subtle`, `default`, `strong`, `brand` |
 | `borderBottom` | Border bottom | `subtle`, `default`, `strong`, `brand` |
 | `borderLeft` | Border left | `subtle`, `default`, `strong`, `brand` |
+| `borderWidth` | Border width | `strong` |
+| `borderStyle` | Border style | `dashed`, `dotted` |
 | `radius` | Radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
 | `elevation` | Shadow | `0`, `1`, `2`, `3`, `4`, `5` |
 | `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module-sm`, `module`, `module-lg`, `module-xl` |
@@ -99,7 +101,7 @@ A side key (`paddingTop`, `borderLeft` and the like) overrides the all-sides key
 ### Layout
 
 - **Group** (container): A flex group of anything. Props: `direction` (one of `row`, `column`; default `row`), `gap` (one of `none`, `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`; default `sm`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`; default `stretch`), `justify` (one of `flex-start`, `center`, `flex-end`, `space-between`; default `flex-start`), `wrap` (boolean; default `false`).
-- **Shape**: A rectangle or ellipse, painted with tokens. Props: `shape` (one of `rectangle`, `ellipse`; default `rectangle`).
+- **Shape**: A rectangle, ellipse or line, painted with tokens. Props: `shape` (one of `rectangle`, `ellipse`, `line`; default `rectangle`), `start` (one of `none`, `arrow`, `dot`, `bar`; default `none`), `end` (one of `none`, `arrow`, `dot`, `bar`; default `none`).
 - **Section** (container): A page band. Props: `width` (one of `narrow`, `default`, `wide`, `full`; default `default`), `tone` (one of `base`, `subtle`, `brand`, `brand-muted`, `secondary`, `secondary-muted`; default `base`), `dark` (boolean), `texture` (boolean; default `false`), `spacing` (one of `none`, `sm`, `md`, `lg`, `xl`, `default`, `compact`; default `default`), `spacingTop` (one of `none`, `sm`, `md`, `lg`, `xl`), `spacingBottom` (one of `none`, `sm`, `md`, `lg`, `xl`), `bleed` (one of `full`, `inset`; default `full`), `scrim` (one of `gradient`, `solid`, `none`; default `gradient`), `align` (one of `top`, `center`, `bottom`; default `bottom`).
 - **Stack** (container): A vertical column. Props: `gap` (one of `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`; default `md`), `layer` (one of `related`, `group`, `block`, `section`, `eyebrow`, `subcopy`, `paragraph`), `spacing` (one of `tight`, `balanced`, `open`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`), `justify` (one of `flex-start`, `center`, `flex-end`, `space-between`).
 - **Inline** (container): A row that wraps. Props: `gap` (one of `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`; default `sm`), `layer` (one of `related`, `group`, `block`, `section`), `spacing` (one of `tight`, `balanced`, `open`), `wrap` (boolean; default `true`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`), `justify` (one of `flex-start`, `center`, `flex-end`, `space-between`).

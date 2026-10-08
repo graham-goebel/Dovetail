@@ -2320,6 +2320,13 @@ const BUILDER_TOKENS = {
   borderRight: { label: "Border right", section: "appearance", preview: "color", side: "right", options: borderOpts("borderRight") },
   borderBottom: { label: "Border bottom", section: "appearance", preview: "color", side: "bottom", options: borderOpts("borderBottom") },
   borderLeft: { label: "Border left", section: "appearance", preview: "color", side: "left", options: borderOpts("borderLeft") },
+  /* A border's width and line style. Neither sets a declaration of its own:
+     each rewrites the width and style inside whatever border is set (all
+     sides or one), so the border stays one shorthand in the code. */
+  borderWidth: { label: "Border width", section: "appearance", preview: "text",
+    options: [tokenOption("strong", ["--dt-border-width-strong"], {}, "Strong")] },
+  borderStyle: { label: "Border style", section: "appearance", preview: "text",
+    options: [tokenOption("dashed", [], {}, "Dashed"), tokenOption("dotted", [], {}, "Dotted")] },
   radius: { label: "Radius", section: "appearance", preview: "radius",
     options: ["none", "control", "container", "overlay", "media", "pill"]
       .map((o) => tokenOption(o, [`--dt-radius-${o}`], { borderRadius: cssVar(`--dt-radius-${o}`), overflow: "hidden" })) },
@@ -2402,16 +2409,21 @@ const BUILDER_GROUP = {
     { name: "wrap", kind: "boolean", default: "false", note: "Let items wrap onto a new line", tab: "layout" },
   ],
 };
-/* The builder's own shape: a box or a circle with no content, sized and
-   painted only by the Size and Appearance tokens. */
+/* The builder's own shape: a box, a circle or a line with no content, sized
+   and painted only by the Size and Appearance tokens. A line is drawn by its
+   border, so its colour, width and style are the Border section's; its ends
+   can carry a cap. */
+const SHAPE_CAPS = ["none", "arrow", "dot", "bar"];
 const BUILDER_SHAPE = {
-  blurb: "A rectangle or ellipse, painted with tokens",
+  blurb: "A rectangle, ellipse or line, painted with tokens",
   group: "layout",
   container: false,
   builder: true,
   href: null,
   props: [
-    { name: "shape", kind: "enum", options: ["rectangle", "ellipse"], default: "rectangle", note: "Its outline", tab: "appearance" },
+    { name: "shape", kind: "enum", options: ["rectangle", "ellipse", "line"], default: "rectangle", note: "Its outline", tab: "appearance" },
+    { name: "start", kind: "enum", options: SHAPE_CAPS, default: "none", note: "A line's first end", tab: "appearance" },
+    { name: "end", kind: "enum", options: SHAPE_CAPS, default: "none", note: "A line's last end", tab: "appearance" },
   ],
 };
 /* Grid's minColumnWidth is a CSS length in the component. The builder offers
@@ -2571,7 +2583,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     `- ${code("name")}: a label for a container, shown in the layers.`,
     `- ${code("id")}: optional. The builder assigns one.`,
     ``,
-    `Group is the builder's own flex container (a ${code("div")}), and Shape its rectangle or ellipse. Both export as plain elements styled with tokens.`,
+    `Group is the builder's own flex container (a ${code("div")}), and Shape its rectangle, ellipse or line. Both export as plain elements styled with tokens; a line's caps (arrow, dot, bar) export as small inline SVGs.`,
     ``,
     `## Style keys`,
     ``,
