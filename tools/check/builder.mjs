@@ -69,6 +69,10 @@
      styles, sizes or components the inspector can't set loses them;
    - a theme tried in Configure reaches the frames and not the builder's own
      chrome;
+   - the code exported for every Playground page, for a structured page of
+     Groups, Sections, Cards, slots and a Carousel, and for a selection,
+     type-checks against the built package with tsc (typecheck.mjs, shared
+     with the package check);
    - at 390px the panels sit behind tabs and nothing is wider than the screen.
 
    Steps run side by side, as many as BUILDER_WORKERS (half the cores, up to
@@ -85,6 +89,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { serve } from "./serve.mjs";
+import { buildPackage, describe as describeTs, hasReactTypes, typecheck } from "./typecheck.mjs";
 
 let failures = 0;
 /* Steps run side by side, so each one's lines are kept in its own lane and
@@ -4211,6 +4216,88 @@ try {
     expect((await groups()).length === 2, "a reload adds no more");
     ok("New, then Playground, adds a fresh copy and shows it on Home; a reload adds none");
     await page.close();
+  });
+
+  await step("Exports compile: the code for every Playground page, and a structured page of Groups, Sections, Cards, slots and a Carousel, type-checks against @dovetail-ds/react", async () => {
+    if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the exported code"); return; }
+    const { page } = await open({ width: 1440, height: 900 }, { playground: true });
+    /* A first visit makes the Playground: Start here and six examples. */
+    await page.waitForFunction(() => window.__builder.store.listGroups().then((gs) => { const g = gs.find((x) => x.kind === "playground"); return !!g && window.__builder.store.listProjects().then((ps) => ps.filter((p) => p.group === g.id).length >= 7); }), null, { polling: 200 });
+    /* Each file's pages are read from the store and exported the way Export
+       does it: the frame's jsx(), with links to pages made relative. */
+    const exported = await page.evaluate(async () => {
+      const store = window.__builder.store;
+      const F = document.querySelector("iframe.bd-frame").contentWindow.BuilderFrame;
+      const g = (await store.listGroups()).find((x) => x.kind === "playground");
+      const files = (await store.listProjects()).filter((p) => p.group === g.id).sort((a, b) => a.createdAt - b.createdAt || a.name.localeCompare(b.name));
+      const out = [];
+      for (const meta of files) {
+        const pages = meta.pages && meta.pages.length ? meta.pages : [{ id: "main", name: "Page 1" }];
+        const links = {};
+        pages.forEach((p, i) => { links[p.id] = i === 0 ? "./index.html" : "./" + (p.name || "page").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + ".html"; });
+        const relink = (tree) => JSON.parse(JSON.stringify(tree), (k, v) => { const m = typeof v === "string" ? /^#page:([\w-]+)$/.exec(v) : null; return m ? links[m[1]] : v; });
+        for (const pg of pages) {
+          const doc = await store.loadDoc(meta.id, pg.id);
+          for (const fr of (doc && doc.frames) || []) out.push({ where: `${meta.name} / ${pg.name} / ${fr.name}`, code: F.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: relink(fr.root) }, fr.name) });
+        }
+      }
+      /* A structured page with one of each part the exporter writes
+         differently: Groups, a Section, Cards with a slot, a block with two
+         slots, and a Carousel of Covers. Then a selection's code. */
+      let n = 0;
+      const node = (type, props, children, style) => ({ id: "x" + ++n, type, props: props || {}, style: style || {}, children: children || [] });
+      const slot = (name, children) => node("Slot", { name }, children);
+      const card = node("Card", { eyebrow: "Starter", title: "Free", description: "For one person." }, [node("Text", { children: "Three projects." }), slot("footer", [node("Button", { children: "Start", variant: "primary" })])]);
+      const children = [
+        node("Section", { width: "default" }, [
+          node("Group", { direction: "column", gap: "lg" }, [
+            node("Heading", { children: "Plans", level: 2 }),
+            node("Group", { direction: "row", gap: "md" }, [
+              card,
+              node("Card", { title: "Team", description: "For a studio." }, [slot("footer", [node("Button", { children: "Talk to us", variant: "secondary" }), node("Link", { children: "Compare", href: "./index.html" })])]),
+            ]),
+            node("Carousel", { label: "Work" }, [node("Cover", { title: "One" }), node("Cover", { title: "Two" }), node("Cover", { title: "Three" })]),
+          ]),
+        ]),
+        node("HeroBlock", { title: "Made to order", lead: "Small batches." }, [slot("actions", [node("Button", { children: "Shop" }), node("Button", { children: "Read more", variant: "ghost" })]), slot("media", [node("Image", { src: "https://example.com/a.jpg", alt: "A bowl" })])]),
+      ];
+      const fr = { id: "fs", name: "Structured parts", mode: "structured", width: 1440, height: 900 };
+      out.push({ where: "Structured parts / whole frame", code: F.jsx({ page: fr, root: { id: "root", type: "Root", props: {}, style: {}, children } }, fr.name) });
+      out.push({ where: "Structured parts / two layers selected", code: F.jsxNodes(children, fr.name + " parts") });
+      out.push({ where: "Structured parts / one Card selected", code: F.jsxNodes([card], "Card") });
+      return out;
+    });
+    await page.close();
+    expect(exported.length >= 20, `the Playground and the structured page should give at least 20 exports, got ${exported.length}`);
+    const notPackage = exported.filter((x) => !/^import \{[^}]+\} from "@dovetail-ds\/react";\n/.test(x.code));
+    expect(!notPackage.length, `every export imports from @dovetail-ds/react, these don't: ${notPackage.map((x) => x.where).join(", ")}`);
+    /* One file each, named after where it came from, so tsc's lines say. */
+    const files = {}, where = {};
+    for (const x of exported) {
+      const base = "src/" + x.where.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      let name = base + ".tsx";
+      for (let i = 2; files[name]; i++) name = `${base}-${i}.tsx`;
+      files[name] = x.code;
+      where[name] = x.where;
+    }
+    /* Its own copy of the package: the behaviour check may rebuild dist/react
+       while this runs beside it. */
+    fs.mkdirSync(path.join(ROOT, "dist"), { recursive: true });
+    const pkg = fs.mkdtempSync(path.join(ROOT, "dist", ".export-package-"));
+    try {
+      buildPackage(pkg);
+      const { diagnostics } = await typecheck(files, { pkg });
+      /* Every line, not just the first a thrown error would show. */
+      if (diagnostics.length) {
+        const inFiles = new Set(diagnostics.map((d) => d.file));
+        fail(`tsc found ${diagnostics.length} error${diagnostics.length === 1 ? "" : "s"} in ${inFiles.size} of ${exported.length} exports:\n` +
+          diagnostics.map((d) => (where[d.file] ? `[${where[d.file]}] ` : "") + describeTs(d)).join("\n").replace(/\n/g, "\n        "));
+        return;
+      }
+    } finally {
+      fs.rmSync(pkg, { recursive: true, force: true });
+    }
+    ok(`${exported.length} exports (${exported.length - 3} Playground frames, a structured page and two selections) type-check against the package, strict, with react-jsx`);
   });
 
   await step("Frames: a picked frame has a dot at each corner and resizes from its left edge; its auto layout, clip and scroll reach the frame and the code; a selection's tag has a ⋯ with its actions", async () => {

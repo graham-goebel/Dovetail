@@ -90,7 +90,7 @@ Edit `assets/` or `tools/build-site.mjs`, run `npm run build`, and look at the r
 | `npm run check:build` | The bundle, card kit and site are current with their sources |
 | `npm run check:changes` | Every entry in `changes/` is valid (fields, migration notes for majors) |
 | `npm run check:browser` | Every card and every site page loads with no script error, no missing local file and no bundle error; every local link resolves |
-| `npm run check:builder` | The builder page renders every palette component, drags, styles with tokens only, exports, undoes and opens share links safely |
+| `npm run check:builder` | The builder page renders every palette component, drags, styles with tokens only, exports code that type-checks against the built package, undoes and opens share links safely |
 | `npm run check:fast` | The build, changelog, unit, server-render, package and consumer checks, in about fifteen seconds |
 | `npm run check` | All of these, then the browser, behaviour and builder checks side by side, with a timing per check |
 
