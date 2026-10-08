@@ -12296,7 +12296,21 @@
             var m = /^([xy]):(.+)$/.exec(v);
             if (m) spreadBy(m[1], m[2]);
           }
-        })] : []).concat([["flipH", "Flip across", "Shift+H"], ["flipV", "Flip down", "Shift+V"]].map(function(f) {
+        })] : []).concat([e(Dropdown, {
+          key: "scale",
+          menu: true,
+          label: "Scale",
+          icon: "fit",
+          iconOnly: true,
+          compact: true,
+          className: "bd-dd-icon bd-scale-dd",
+          options: SCALE_STEPS.map(function(p) {
+            return { value: String(p), label: p + "%", hint: p < 100 ? "Smaller" : "Larger" };
+          }),
+          onChange: function(v) {
+            scaleBy(Number(v) / 100);
+          }
+        })]).concat([["flipH", "Flip across", "Shift+H"], ["flipV", "Flip down", "Shift+V"]].map(function(f) {
           var on = nodes.every(function(n) {
             return n.style[f[0]];
           });
@@ -12305,6 +12319,108 @@
           } }, e(Icon, { name: f[0] }));
         }))
       );
+    };
+    var SCALE_STEPS = [50, 75, 125, 150, 200];
+    var SCALE_TYPE = {
+      Heading: { prop: "size", styles: { "heading-xs": "heading-xs", "heading-sm": "heading-sm", "heading-md": "heading-md", "heading-lg": "heading-lg", "heading-xl": "heading-xl", "display-sm": "display-sm", "display-md": "display-md", "display-lg": "display-lg" } },
+      Text: { prop: "variant", styles: { fine: "body-xs", small: "body-sm", body: "body-md", lead: "body-lg" } }
+    };
+    var scaleBy = function(factor) {
+      var ids = selRef.current.slice();
+      var spots = arrangeable(ids);
+      var f = api();
+      if (!spots || !f || !f.rect || !f.measure || !(factor > 0)) return false;
+      var unit = f.measure(["var(--dt-space-inset-2xs)"])[0] || 4;
+      var rects = {};
+      spots.forEach(function(at2) {
+        rects[at2.node.id] = f.rect(at2.node.id);
+      });
+      var typePx = {};
+      Object.keys(SCALE_TYPE).forEach(function(t) {
+        var sc = SCALE_TYPE[t], names = Object.keys(sc.styles);
+        var got = f.measure(names.map(function(v) {
+          return "var(--dt-text-" + sc.styles[v] + "-size)";
+        }));
+        typePx[t] = names.map(function(v, i) {
+          return { value: v, px: got[i] };
+        }).filter(function(o) {
+          return o.px > 0;
+        });
+      });
+      var nearest = function(list, want) {
+        var best = null;
+        list.forEach(function(o) {
+          if (!best || Math.abs(o.px - want) < Math.abs(best.px - want)) best = o;
+        });
+        return best;
+      };
+      var clamp = function(v, lo) {
+        return Math.max(lo, Math.min(FREE_MAX, Math.round(v)));
+      };
+      var SPACE_KEYS = Object.keys(DATA.tokens).filter(function(k) {
+        return DATA.tokens[k].section === "spacing";
+      });
+      var inner = function(n) {
+        SPACE_KEYS.forEach(function(k) {
+          var v = n.style[k], px = v ? pxMap[k + "|" + v] : null;
+          if (px == null) return;
+          var opt = tokenOption(k, v);
+          var list = DATA.tokens[k].options.filter(function(o) {
+            return pxMap[k + "|" + o.value] != null && (!opt || o.family === opt.family);
+          }).map(function(o) {
+            return { value: o.value, px: pxMap[k + "|" + o.value] };
+          });
+          var pick2 = nearest(list, px * factor);
+          if (pick2) n.style[k] = pick2.value;
+        });
+        var sc = SCALE_TYPE[n.type];
+        if (sc && typePx[n.type].length) {
+          var base = scalars[n.type] || {};
+          var cur = n.props[sc.prop] || base[sc.prop] || (n.type === "Heading" ? HEADING_DEFAULT[n.props.level || base.level || 2] : "body");
+          var now = typePx[n.type].filter(function(o) {
+            return o.value === cur;
+          })[0];
+          var to = now ? nearest(typePx[n.type], now.px * factor) : null;
+          if (to) n.props[sc.prop] = to.value;
+        }
+        (n.children || []).forEach(function(c) {
+          if (isFree(c.style)) {
+            c.style.x = clamp(c.style.x * factor, 0);
+            c.style.y = clamp(c.style.y * factor, 0);
+            if (c.style.fw) c.style.fw = clamp(c.style.fw * factor, 1);
+            if (c.style.fh) c.style.fh = clamp(c.style.fh * factor, 1);
+          }
+          inner(c);
+        });
+      };
+      var ox = Math.min.apply(null, spots.map(function(at2) {
+        return at2.node.style.x;
+      }));
+      var oy = Math.min.apply(null, spots.map(function(at2) {
+        return at2.node.style.y;
+      }));
+      var pct = Math.round(factor * 100) + "%";
+      var moved = change(function(d) {
+        var any = null;
+        spots.forEach(function(at0) {
+          var at2 = locate(d, at0.node.id);
+          if (!at2 || at2.node.lock) return;
+          var st = at2.node.style, r = rects[at0.node.id];
+          st.x = clamp(ox + (st.x - ox) * factor, 0);
+          st.y = clamp(oy + (st.y - oy) * factor, 0);
+          var sized = at2.node.type === "Shape";
+          if (st.fw || sized && r) st.fw = clamp((st.fw || r.width / unit) * factor, 1);
+          if (st.fh || sized && r) st.fh = clamp((st.fh || r.height / unit) * factor, 1);
+          inner(at2.node);
+          any = at2.node.id;
+        });
+        return any ? ids : null;
+      }, "Scaled to " + pct);
+      if (moved) {
+        select(ids);
+        announce("Scaled to " + pct + "; spacing and type moved to the nearest tokens");
+      }
+      return true;
     };
     var spreadBy = function(axis, step) {
       var ids = selRef.current.slice();

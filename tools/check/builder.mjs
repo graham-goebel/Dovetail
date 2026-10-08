@@ -4558,6 +4558,43 @@ try {
     await page.close();
   });
 
+  await step("Scale: the align row's Scale menu scales free layers about their top left, their own sizes with them, and moves spacing and type inside to the nearest tokens", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const kids = async () => (await saved()).frames.find((f) => f.id === "sf").root.children;
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "sf", name: "Scale", width: 1000, height: 800, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "s1", type: "Shape", props: { shape: "rectangle" }, style: { x: 10, y: 10, fw: 10, fh: 10 } },
+        { id: "s2", type: "Group", props: { direction: "column", gap: "sm" }, style: { x: 30, y: 10, padding: "sm" }, children: [
+          { id: "s3", type: "Heading", props: { children: "Big", level: 2, size: "heading-sm" }, style: {} }] }] } });
+      d.active = "sf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "sf"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await (await frameAt(page, 1)).waitForFunction(() => !!document.querySelector('[data-bf-id="s3"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["s1", "s2"]));
+    await page.waitForSelector(".bd-arrange");
+    await page.locator(".bd-scale-dd").click();
+    await option(page, "200%").click();
+    const after = await poll(kids, (k) => k[0].style.fw === 20);
+    const [shape, group] = after;
+    expect(shape.style.x === 10 && shape.style.fw === 20 && shape.style.fh === 20, `the shape doubles in place at the top left, got ${JSON.stringify(shape.style)}`);
+    expect(group.style.x === 50 && group.style.y === 10, `the group moves away from the top left by twice its distance, got ${group.style.x},${group.style.y}`);
+    expect(group.style.padding && group.style.padding !== "sm", `the group's padding moves up its scale, got ${group.style.padding}`);
+    const size = group.children[0].props.size;
+    expect(size && size !== "heading-sm", `the heading inside moves up the type scale, got ${size}`);
+    ok(`Scale 200%: the shape doubles in place, the group moves twice as far, its padding becomes ${group.style.padding} and its heading ${size}`);
+    await page.close();
+  });
+
   await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {
     if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the downloaded code"); return; }
     const { page } = await open({ width: 1440, height: 900 });
