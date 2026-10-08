@@ -4553,7 +4553,7 @@ function App(props) {
         options: p.options.map(function (o) {
           return { value: o, name: PIC_LABEL[o] || String(o), title: o === "scale-down" ? "Scale down: shrink to fit, never grow" : undefined, picture: propPicture(p.name, o) };
         }) });
-    } else if (p.kind === "enum" && first.type === "Shape" && ENUM_MENU[p.name]) {
+    } else if (p.kind === "enum" && ((first.type === "Shape" && ENUM_MENU[p.name]) || (first.type === "Image" && p.name === "position"))) {
       /* A line's caps only mean something on a line. */
       if ((p.name === "start" || p.name === "end") && !nodes.every(function (n) { return n.props.shape === "line"; })) return null;
       var pics = ENUM_MENU[p.name];

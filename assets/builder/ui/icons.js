@@ -216,13 +216,20 @@ var ENUM_ICONS = {
   orientation: { horizontal: "row", vertical: "column" },
 };
 /* Props picked from a menu, each choice with its picture. */
+/* A focal point: a frame with a dot where the picture keeps its focus. */
+var FOCUS_AT = { "top left": [8, 9], top: [12, 9], "top right": [16, 9], left: [8, 12], center: [12, 12], right: [16, 12], "bottom left": [8, 15], bottom: [12, 15], "bottom right": [16, 15] };
+Object.keys(FOCUS_AT).forEach(function (k) {
+  var x = FOCUS_AT[k][0], y = FOCUS_AT[k][1];
+  PATHS["focus-" + k.replace(" ", "-")] = ["M4 5h16v14H4z", "M" + (x - 1.5) + " " + y + "a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0"];
+});
 var ENUM_MENU = {
   shape: { rectangle: "shapeRect", ellipse: "shapeEllipse", line: "shapeLine" },
   start: { none: "capNone", arrow: "capArrowStart", dot: "capDotStart", bar: "capBarStart" },
   end: { none: "capNone", arrow: "capArrow", dot: "capDot", bar: "capBar" },
+  position: Object.keys(FOCUS_AT).reduce(function (m, k) { m[k] = "focus-" + k.replace(" ", "-"); return m; }, {}),
 };
 var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
 /* A component's own prop that would read like one of the Size controls. */
-var PROP_LABEL = { width: "Content width", spacing: "Section spacing" };
+var PROP_LABEL = { width: "Content width", spacing: "Section spacing", position: "Focal point" };
 
 export { ENUM_ICONS, ENUM_LABEL, ENUM_MENU, HERO, Icon, PATHS, PROP_LABEL };

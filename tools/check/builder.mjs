@@ -4595,6 +4595,44 @@ try {
     await page.close();
   });
 
+  await step("Focal point: an Image's focal point is a menu of position keywords, drawn as object-position and exported as its position prop", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const img = async () => (await saved()).frames.find((f) => f.id === "if").root.children[0];
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "if", name: "Picture", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "im", type: "Image", props: { src: "https://example.com/a.jpg", alt: "A bowl", ratio: "21:9" }, style: { x: 10, y: 10, fw: 80 } }] } });
+      d.active = "if";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "if"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    const fr = await frameAt(page, 1);
+    await fr.waitForFunction(() => !!document.querySelector('[data-bf-id="im"] img'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["im"]));
+    await page.waitForFunction(() => /Image/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await choose(page, "Focal point", "Top right");
+    const set = await poll(img, (n) => n.props.position === "top right");
+    expect(set.props.position === "top right", `the menu sets position, got ${set.props.position}`);
+    await fr.waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="im"] img')).objectPosition === "100% 0%").catch(() => {});
+    const op = await fr.evaluate(() => getComputedStyle(document.querySelector('[data-bf-id="im"] img')).objectPosition);
+    expect(op === "100% 0%", `the picture keeps its top right in view, got object-position ${op}`);
+    const code = await fr.evaluate((n) => window.BuilderFrame.jsxNodes([n], "Picture"), set);
+    expect(/position="top right"/.test(code), `the code carries the focal point:\n${code}`);
+    await choose(page, "Focal point", "Center");
+    const back = await poll(img, (n) => n.props.position === undefined);
+    expect(back.props.position === undefined, "Center is the default, so it isn't stored");
+    ok("an Image's Focal point menu sets top right (object-position 100% 0%, position=\"top right\" in the code) and Center clears it");
+    await page.close();
+  });
+
   await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {
     if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the downloaded code"); return; }
     const { page } = await open({ width: 1440, height: 900 });
