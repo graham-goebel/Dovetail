@@ -4348,6 +4348,83 @@ try {
     ok(`${exported.length} exports (${exported.length - 6} Playground frames, a structured page, two selections and three with My components) type-check against the package, strict, with react-jsx`);
   });
 
+  await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {
+    if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the downloaded code"); return; }
+    const { page } = await open({ width: 1440, height: 900 });
+    const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+    /* Two pages: Home with two instances of Product tile (which holds a Sale
+       badge and an uploaded picture) and a link to About us; About us with a
+       third instance whose title is changed. */
+    await page.evaluate(async (PNG) => {
+      await window.__builder.flush();
+      const m = window.__builder.project();
+      const scope = m.group ? "g:" + m.group : m.lib === "shared" ? "shared" : "f:" + m.id;
+      const n = (id, type, props, children, style, name) => ({ id, type, props: props || {}, children, style: style || {}, ...(name ? { name } : {}) });
+      const badge = n("db0", "Group", { direction: "row" }, [n("db1", "Badge", { children: "Sale" })], { padding: "xs" });
+      const tile = n("dt0", "Group", { direction: "column", gap: "sm" }, [n("dt1", "Heading", { children: "Stoneware mug" }), n("dt2", "Image", { src: PNG, alt: "A mug" }), { ...JSON.parse(JSON.stringify(badge)), id: "dt3", inst: { of: "dbadge", rev: 1 } }], { padding: "md", surface: "raised" });
+      await window.__builder.store.saveLibrary({ images: [{ id: "im1", name: "Mug photo", src: PNG }], components: [
+        { id: "dtile", name: "Product tile", node: tile, tokens: ["--dt-space-inset-md"], rev: 1, made: 1 },
+        { id: "dbadge", name: "Sale badge", node: badge, tokens: ["--dt-space-inset-xs"], rev: 1, made: 1 },
+      ] }, scope);
+      const copyOf = (id) => { const c = JSON.parse(JSON.stringify(tile)); let i = 0; (function w(x) { x.id = id + (i++); (x.children || []).forEach(w); })(c); c.inst = { of: "dtile", rev: 1 }; return c; };
+      const about = await window.__builder.store.addPage(m.id, "About us", { frames: [{ id: "df2", name: "About", width: 1280, hug: true, mode: "structured", root: { id: "root", type: "Root", children: [n("ds2", "Section", {}, [(() => { const c = copyOf("dc"); c.children[0].props.children = "Tall jug"; return c; })()])] } }], active: "df2" }, null);
+      await window.__builder.store.saveDoc(m.id, { frames: [{ id: "df1", name: "Shop", width: 1280, hug: true, mode: "structured", root: { id: "root", type: "Root", children: [n("ds1", "Section", {}, [copyOf("da"), copyOf("dx"), n("dl", "Link", { children: "About us", href: "#page:" + about.page.id })])] } }], active: "df1" });
+    }, PNG);
+    await page.reload();
+    await page.waitForSelector(".bd-assets", { state: "attached" });
+    await page.waitForFunction(() => window.__builder && window.__builder.project().pages && window.__builder.project().pages.length === 2);
+    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="da0"]'));
+    await page.locator(".bd-export").click();
+    await page.locator(".bd-code[open]").waitFor();
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.locator(".bd-code[open] .bd-btn", { hasText: "Download project code" }).click()]);
+    const file = path.join(os.tmpdir(), "project-code-" + Date.now() + ".zip");
+    await dl.saveAs(file);
+    const buf = fs.readFileSync(file);
+    fs.unlinkSync(file);
+    /* The archive read back from its central directory: stored entries. */
+    const entries = {};
+    const end = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+    expect(end > 0, "the download is a zip");
+    let at = buf.readUInt32LE(end + 16);
+    for (let i = 0, count = buf.readUInt16LE(end + 10); i < count; i++) {
+      const size = buf.readUInt32LE(at + 20), nameLen = buf.readUInt16LE(at + 28), extra = buf.readUInt16LE(at + 30), note = buf.readUInt16LE(at + 32), local = buf.readUInt32LE(at + 42);
+      const name = buf.slice(at + 46, at + 46 + nameLen).toString("utf8");
+      const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+      entries[name] = buf.slice(start, start + size);
+      at += 46 + nameLen + extra + note;
+    }
+    const names = Object.keys(entries);
+    expect(/-code\.zip$/.test(dl.suggestedFilename()), `named after the project, got ${dl.suggestedFilename()}`);
+    expect(["README.md", "pages/index.jsx", "pages/about-us.jsx", "components/ProductTile.jsx", "components/SaleBadge.jsx", "assets/mug-photo.png"].every((x) => names.includes(x)), `the files, got ${names.join(", ")}`);
+    expect(names.includes("theme.css") && /:root\s*\{/.test(entries["theme.css"].toString()), "the project's theme.css");
+    const text = (n) => entries[n].toString("utf8");
+    const home = text("pages/index.jsx"), tileFile = text("components/ProductTile.jsx");
+    expect(/^import \{ Link, Section \} from "@dovetail-ds\/react";\nimport \{ ProductTile \} from "\.\.\/components\/ProductTile";/.test(home), `a page imports the system and its components, got ${home.split("\n").slice(0, 3).join(" | ")}`);
+    expect(/<ProductTile \/>\s*<ProductTile \/>/.test(home) && /href="\/about-us"/.test(home), "Home calls the tile twice and links to /about-us");
+    expect(/<ProductTile title="Tall jug" \/>/.test(text("pages/about-us.jsx")), "About us calls it with its own title");
+    expect(/export function ProductTile\(\{ title = "Stoneware mug" \}\)/.test(tileFile), "the title another page changed is a prop of the component everywhere");
+    expect(/import \{ SaleBadge \} from "\.\/SaleBadge";/.test(tileFile) && /src="\.\.\/assets\/mug-photo\.png"/.test(tileFile) && !/data:image/.test(tileFile), "the tile imports its badge and points at its picture in assets/");
+    expect(entries["assets/mug-photo.png"].slice(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47])), "the picture is a PNG");
+    const readme = text("README.md");
+    expect(/npm install @dovetail-ds\/react/.test(readme) && /import "\.\/theme\.css";/.test(readme) && /- About us: `\/about-us`/.test(readme) && /`ProductTile` \(title\)/.test(readme), `the README says how to use it, got ${readme.slice(0, 300)}`);
+    ok(`Download project code gives ${names.length} files: the two pages, ProductTile and SaleBadge in files of their own (the title About us changes is a prop), theme.css, the picture in assets/ and a README`);
+
+    /* As one project: pages import components, components import each other. */
+    const files = {};
+    for (const n of names) if (/\.jsx$/.test(n)) files["src/" + n.replace(/\.jsx$/, ".tsx")] = text(n);
+    fs.mkdirSync(path.join(ROOT, "dist"), { recursive: true });
+    const pkg = fs.mkdtempSync(path.join(ROOT, "dist", ".project-package-"));
+    try {
+      buildPackage(pkg);
+      const { diagnostics } = await typecheck(files, { pkg });
+      if (diagnostics.length) { fail(`tsc found ${diagnostics.length} error${diagnostics.length === 1 ? "" : "s"} in the downloaded project:\n` + diagnostics.map(describeTs).join("\n").replace(/\n/g, "\n        ")); return; }
+    } finally {
+      fs.rmSync(pkg, { recursive: true, force: true });
+    }
+    ok("the downloaded pages and components type-check together against the package, strict, with react-jsx");
+    await page.close();
+  });
+
   await step("Frames: a picked frame has a dot at each corner and resizes from its left edge; its auto layout, clip and scroll reach the frame and the code; a selection's tag has a ⋯ with its actions", async () => {
     const { page, frame } = await open({ width: 1440, height: 900 });
     const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));

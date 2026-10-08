@@ -4509,6 +4509,7 @@
     zoomIn: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", "m20 20-3.5-3.5", "M11 8v6", "M8 11h6"],
     sides: ["M4 4h16v16H4z", "M4 9h16", "M4 15h16", "M9 4v16", "M15 4v16"],
     upload: ["M12 16V4", "m7 9 5-5 5 5", "M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"],
+    download: ["M12 4v12", "m7 11 5 5 5-5", "M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"],
     pencil: ["M4 20h4l10.5-10.5a2 2 0 0 0-4-4L4 16z", "m13 7 4 4"],
     layout: ["M4 4h16v16H4z", "M4 10h16", "M10 10v10"],
     type: ["M5 6V4h14v2", "M12 4v16", "M9 20h6"],
@@ -4603,6 +4604,7 @@
     more: ["M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"],
     zoomIn: ["m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"],
     upload: ["M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"],
+    download: ["M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"],
     pencil: ["m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"],
     layout: ["M3 8.25V18a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 18V8.25m-18 0V6a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 6v2.25m-18 0h18M5.25 6h.008v.008H5.25V6ZM7.5 6h.008v.008H7.5V6Zm2.25 0h.008v.008H9.75V6Z"],
     form: ["m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"],
@@ -6221,6 +6223,7 @@
         [
           e("button", { key: "copy", type: "button", className: "bd-btn bd-btn-primary", onClick: p.onCopyCode }, e(Icon, { name: "copy" }), "Copy code"),
           e("a", { key: "dl", className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(p.code), download: (name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),
+          e("button", { key: "project", type: "button", className: "bd-btn", onClick: p.onDownloadProject, title: "Every page, its components, the theme and the pictures, as a .zip to drop into a React app" }, e(Icon, { name: "download" }), "Download project code"),
           e(Segmented, {
             key: "scale",
             label: "Picture scale",
@@ -9427,6 +9430,265 @@
       }),
       leftOut: notes2
     };
+  }
+
+  // assets/builder/model/projectcode.js
+  var DATA_URL = /^data:([\w.+-]+\/[\w.+-]+);base64,([A-Za-z0-9+/=]+)$/;
+  var EXT = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp", "image/svg+xml": "svg", "video/mp4": "mp4", "video/webm": "webm" };
+  function slug(s, fallback) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || fallback;
+  }
+  function routes(pages) {
+    var out = {}, taken = {};
+    pages.forEach(function(pg, i) {
+      if (i === 0) {
+        out[pg.id] = { file: "index", path: "/" };
+        taken.index = true;
+        return;
+      }
+      var base = slug(pg.name, "page-" + (i + 1)), name = base, n = 2;
+      while (taken[name]) name = base + "-" + n++;
+      taken[name] = true;
+      out[pg.id] = { file: name, path: "/" + name };
+    });
+    return out;
+  }
+  function base64Bytes(b64) {
+    var bin = atob(b64), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function projectFiles(opts) {
+    var pages = opts.pages.filter(function(p) {
+      return p && p.doc && p.doc.frames;
+    });
+    var map = routes(pages);
+    var frames = [];
+    pages.forEach(function(pg) {
+      var shown = pg.doc.frames;
+      shown.forEach(function(fr) {
+        frames.push({ page: pg, frame: fr, many: shown.length > 1 });
+      });
+    });
+    var got = codeWithComponents(frames.map(function(f) {
+      return f.frame.root;
+    }), opts.library);
+    var assets = {}, assetNames = {}, entries = [];
+    var named = {};
+    ["images", "illustrations", "icons", "video"].forEach(function(k) {
+      (opts.library && opts.library[k] || []).forEach(function(it) {
+        if (it && it.src && !named[it.src]) named[it.src] = it.name;
+      });
+    });
+    var assetFor = function(src) {
+      if (assets[src]) return assets[src];
+      var m = DATA_URL.exec(src);
+      if (!m) return null;
+      var base = slug(named[src], "picture"), name = base, n = 2, ext = EXT[m[1]] || "bin";
+      while (assetNames[name + "." + ext]) name = base + "-" + n++;
+      var file = name + "." + ext;
+      assetNames[file] = true;
+      entries.push({ name: "assets/" + file, data: base64Bytes(m[2]) });
+      return assets[src] = file;
+    };
+    var prepare = function(tree) {
+      return JSON.parse(JSON.stringify(tree), function(k, v) {
+        if (typeof v !== "string") return v;
+        var link = PAGE_LINK.exec(v);
+        if (link) return map[link[1]] ? map[link[1]].path : void 0;
+        var file = DATA_URL.test(v) ? assetFor(v) : null;
+        return file ? "../assets/" + file : v;
+      });
+    };
+    var files = [], firstFn = null;
+    frames.forEach(function(f, i) {
+      var r = map[f.page.id];
+      var file = f.many ? r.file + "-" + slug(f.frame.name, "frame-" + (i + 1)) : r.file;
+      while (files.indexOf(file) >= 0) file += "-2";
+      files.push(file);
+      var code = opts.exporter.jsx({ page: Object.assign({}, f.frame, { bare: !!f.frame.bare, root: void 0 }), root: prepare(got.roots[i]) }, f.frame.name, { localFrom: "../components/" });
+      entries.push({ name: "pages/" + file + ".jsx", data: code });
+      if (!firstFn) {
+        var fns = code.match(/export function (\w+)\(\)/g) || [];
+        firstFn = fns.length ? fns[fns.length - 1].replace(/^export function |\(\)$/g, "") : null;
+      }
+    });
+    got.components.forEach(function(c) {
+      entries.push({ name: "components/" + c.name + ".jsx", data: opts.exporter.jsxComponent(Object.assign({}, c, { node: prepare(c.node) }), "./") });
+    });
+    var theme = opts.themeCss || "";
+    if (theme) entries.push({ name: "theme.css", data: theme });
+    entries.push({ name: "README.md", data: readme(opts.name, files, firstFn, got.components, theme, pages, map, Object.keys(assetNames)) });
+    var rank = function(n) {
+      return n === "README.md" ? 0 : n === "theme.css" ? 1 : /^pages\//.test(n) ? 2 : /^components\//.test(n) ? 3 : 4;
+    };
+    entries = entries.map(function(x, i) {
+      return { x, i };
+    }).sort(function(a, b) {
+      return rank(a.x.name) - rank(b.x.name) || a.i - b.i;
+    }).map(function(y) {
+      return y.x;
+    });
+    return { entries, notes: got.leftOut };
+  }
+  function readme(name, files, firstFn, components, theme, pages, map, assets) {
+    var lines = [];
+    lines.push("# " + (name || "Project"), "");
+    lines.push("React code exported from the Dovetail Builder. Every component comes from `@dovetail-ds/react` and is styled only with its tokens, so it follows the theme.", "");
+    lines.push("## Use it", "");
+    lines.push("1. Install the system and React in your app:", "", "   ```sh", "   npm install @dovetail-ds/react react react-dom", "   ```", "");
+    lines.push("2. Load its styles once, at the root of your app" + (theme ? ", then this project's theme after them:" : ":"), "", "   ```js", '   import "@dovetail-ds/react/styles.css";', '   import "@dovetail-ds/react/fonts.css";');
+    if (theme) lines.push('   import "./theme.css";');
+    lines.push("   ```", "");
+    lines.push("3. Copy `pages/`" + (components.length ? ", `components/`" : "") + (assets.length ? " and `assets/`" : "") + " into your source, and render a page:", "", "   ```jsx", "   import { " + (firstFn || "Page") + ' } from "./pages/' + files[0] + '";', "", "   <" + (firstFn || "Page") + " />", "   ```", "", "   Each file in `pages/` exports one function, named after its frame.", "");
+    lines.push("## Pages", "");
+    pages.forEach(function(pg) {
+      lines.push("- " + pg.name + ": `" + map[pg.id].path + "`");
+    });
+    lines.push("", "Links between pages are written as these paths (`/`, `/about-us`). Point your router at the files in `pages/` to match, or change the paths.", "");
+    if (components.length) {
+      lines.push("## Components", "");
+      components.forEach(function(c) {
+        lines.push("- `" + c.name + "`" + (c.params.length ? " (" + c.params.map(function(p) {
+          return p.name;
+        }).join(", ") + ")" : ""));
+      });
+      lines.push("", "Each instance on a page is a call to its component, with the text it changed as props.", "");
+    }
+    if (assets.length) lines.push("## Pictures", "", "The pictures uploaded in the Builder are in `assets/`, and the code points at them there.", "");
+    return lines.join("\n");
+  }
+
+  // assets/builder/model/theme.js
+  function themeCss(theme, core) {
+    if (!theme || typeof theme !== "object") return "";
+    var source = core || (typeof window !== "undefined" ? window.DovetailConfigurePanel : null);
+    if (!source || typeof source.themeCss !== "function") throw new Error("theme: Configure (assets/theme.js) has not loaded, so there is no stylesheet to write");
+    return source.themeCss(theme);
+  }
+
+  // assets/builder/model/zip.js
+  var LOCAL_SIG = 67324752;
+  var CENTRAL_SIG = 33639248;
+  var END_SIG = 101010256;
+  var VERSION = 20;
+  var MADE_BY = 3 << 8 | VERSION;
+  var UTF8_FLAG = 2048;
+  var FILE_ATTRS = 2175008768;
+  var MAX_U32 = 4294967295;
+  var crcTable = null;
+  function crc32(bytes) {
+    if (!crcTable) {
+      crcTable = new Uint32Array(256);
+      for (var n = 0; n < 256; n++) {
+        var c = n;
+        for (var k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+        crcTable[n] = c >>> 0;
+      }
+    }
+    var crc = 4294967295;
+    for (var i = 0; i < bytes.length; i++) crc = crcTable[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
+    return (crc ^ 4294967295) >>> 0;
+  }
+  function dosTime(date) {
+    if (!(date instanceof Date) || isNaN(date.getTime()) || date.getFullYear() < 1980) return { time: 0, date: 1 << 5 | 1 };
+    var year = Math.min(date.getFullYear(), 2107);
+    return {
+      time: date.getHours() << 11 | date.getMinutes() << 5 | date.getSeconds() >> 1,
+      date: year - 1980 << 9 | date.getMonth() + 1 << 5 | date.getDate()
+    };
+  }
+  function checkName(name) {
+    if (typeof name !== "string" || !name) throw new Error("zip: every entry needs a name");
+    if (/[\\\0]/.test(name)) throw new Error("zip: " + JSON.stringify(name) + " has a backslash or a null character");
+    if (/^[a-z]:/i.test(name)) throw new Error("zip: " + JSON.stringify(name) + " names a drive");
+    name.split("/").forEach(function(seg) {
+      if (seg === "") throw new Error("zip: " + JSON.stringify(name) + " is absolute or has an empty segment");
+      if (seg === "." || seg === "..") throw new Error("zip: " + JSON.stringify(name) + " steps out of its folder");
+    });
+  }
+  function zip(entries, options) {
+    var utf8 = new TextEncoder();
+    var stamp = dosTime(options && options.date);
+    var seen = {};
+    var files = (entries || []).map(function(e2) {
+      if (!e2 || typeof e2 !== "object") throw new Error("zip: an entry must be { name, data }");
+      checkName(e2.name);
+      if (Object.prototype.hasOwnProperty.call(seen, e2.name)) throw new Error("zip: " + JSON.stringify(e2.name) + " appears twice");
+      seen[e2.name] = true;
+      var data = typeof e2.data === "string" ? utf8.encode(e2.data) : e2.data == null ? new Uint8Array(0) : e2.data;
+      if (!(data instanceof Uint8Array)) throw new Error("zip: the data for " + JSON.stringify(e2.name) + " must be a string or a Uint8Array");
+      var name = utf8.encode(e2.name);
+      if (name.length > 65535) throw new Error("zip: " + JSON.stringify(e2.name.slice(0, 40)) + "... is too long a name");
+      return { name, data, crc: crc32(data) };
+    });
+    if (files.length > 65535) throw new Error("zip: more entries than an archive without 64-bit records holds");
+    var localSize = 0, centralSize = 0;
+    files.forEach(function(f) {
+      f.offset = localSize;
+      localSize += 30 + f.name.length + f.data.length;
+      centralSize += 46 + f.name.length;
+    });
+    if (localSize + centralSize + 22 > MAX_U32) throw new Error("zip: too large for an archive without 64-bit records");
+    var out = new Uint8Array(localSize + centralSize + 22);
+    var view = new DataView(out.buffer);
+    var at2 = 0;
+    var u16 = function(v) {
+      view.setUint16(at2, v, true);
+      at2 += 2;
+    };
+    var u32 = function(v) {
+      view.setUint32(at2, v >>> 0, true);
+      at2 += 4;
+    };
+    var bytes = function(b) {
+      out.set(b, at2);
+      at2 += b.length;
+    };
+    files.forEach(function(f) {
+      u32(LOCAL_SIG);
+      u16(VERSION);
+      u16(UTF8_FLAG);
+      u16(0);
+      u16(stamp.time);
+      u16(stamp.date);
+      u32(f.crc);
+      u32(f.data.length);
+      u32(f.data.length);
+      u16(f.name.length);
+      u16(0);
+      bytes(f.name);
+      bytes(f.data);
+    });
+    files.forEach(function(f) {
+      u32(CENTRAL_SIG);
+      u16(MADE_BY);
+      u16(VERSION);
+      u16(UTF8_FLAG);
+      u16(0);
+      u16(stamp.time);
+      u16(stamp.date);
+      u32(f.crc);
+      u32(f.data.length);
+      u32(f.data.length);
+      u16(f.name.length);
+      u16(0);
+      u16(0);
+      u16(0);
+      u16(0);
+      u32(FILE_ATTRS);
+      u32(f.offset);
+      bytes(f.name);
+    });
+    u32(END_SIG);
+    u16(0);
+    u16(0);
+    u16(files.length);
+    u16(files.length);
+    u32(centralSize);
+    u32(localSize);
+    u16(0);
+    return out;
   }
 
   // assets/builder/app/App.js
@@ -13808,6 +14070,41 @@
         });
       });
     };
+    var downloadProjectCode = function() {
+      var f = api();
+      if (!f || !f.jsxComponent) return;
+      var meta = projectRef.current, list = pagesOf(meta), pageNow = pageRef.current;
+      flush().then(function() {
+        return Promise.all(list.map(function(pg) {
+          return pg.id === pageNow ? docRef.current : store.loadDoc(meta.id, pg.id);
+        }));
+      }).then(function(docs) {
+        var P = window.DovetailConfigurePanel;
+        var css = "";
+        try {
+          css = P && P.theme ? themeCss(P.theme()) : "";
+        } catch (err) {
+          css = "";
+        }
+        var got = projectFiles({ name: meta.name, pages: list.map(function(pg, i) {
+          return { id: pg.id, name: pg.name, doc: docs[i] };
+        }), library: libRef.current, themeCss: css, exporter: f });
+        var bytes = zip(got.entries);
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([bytes], { type: "application/zip" }));
+        link.download = (meta.name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "project") + "-code.zip";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function() {
+          URL.revokeObjectURL(link.href);
+        }, 4e3);
+        var pagesN = got.entries.filter(function(x) {
+          return /^pages\//.test(x.name);
+        }).length;
+        announce("Downloaded " + link.download + ": " + pagesN + (pagesN === 1 ? " page" : " pages") + (got.notes.length ? ". " + got.notes.length + (got.notes.length === 1 ? " instance has" : " instances have") + " changes the code leaves out." : ""));
+      });
+    };
     var download = function(data, name) {
       var link = document.createElement("a");
       link.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
@@ -17534,6 +17831,7 @@
     var onCopyLayout = useEvent(copyLayout), onShare = useEvent(function() {
       share();
     });
+    var onDownloadProject = useEvent(downloadProjectCode);
     var onPlayClosed = useEvent(playClosed), onPlayBack = useEvent(playBack), onRenderPlay = useEvent(renderPlay);
     var compNode = useMemo(function() {
       return compDraft ? componentSource() : null;
@@ -17833,7 +18131,8 @@
         onCopyCode,
         onExportImage,
         onCopyLayout,
-        onShare
+        onShare,
+        onDownloadProject
       }),
       e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
       e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
