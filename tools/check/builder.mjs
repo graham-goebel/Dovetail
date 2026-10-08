@@ -4381,6 +4381,8 @@ try {
     const nodeOf = async (id) => { const d = await saved(); return d.frames.find((f) => f.id === "lf").root.children.find((c) => c.id === id); };
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -4441,6 +4443,8 @@ try {
     const nodeOf = async (id) => (await saved()).frames.find((f) => f.id === "tf").root.children.find((c) => c.id === id);
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -4508,6 +4512,8 @@ try {
     const kids = async () => (await saved()).frames.find((f) => f.id === "gf").root.children;
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -4564,6 +4570,8 @@ try {
     const kids = async () => (await saved()).frames.find((f) => f.id === "sf").root.children;
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -4601,6 +4609,8 @@ try {
     const img = async () => (await saved()).frames.find((f) => f.id === "if").root.children[0];
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -4639,6 +4649,8 @@ try {
     const shape = async () => (await saved()).frames.find((f) => f.id === "ef").root.children[0];
     const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
     await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
     await page.evaluate(async () => {
       await window.__builder.flush();
       const d = JSON.parse(JSON.stringify(window.__builder.doc()));
@@ -4673,6 +4685,57 @@ try {
     const code = await fr.evaluate((n) => window.BuilderFrame.jsxNodes([n], "Effects"), await shape());
     expect(/background: "var\(--dt-surface-brand-duotone\)"/.test(code) && /backdropFilter: "var\(--dt-backdrop-glass\)"/.test(code), `the code carries the tokens:\n${code}`);
     ok("Fill's Gradient (brand duotone), Layer's Blur (soft) and Behind (glass) draw from their tokens, over a custom fill and beside invert, and export as tokens");
+    await page.close();
+  });
+
+  await step("Clip and mask: a Group clips to its box or an ellipse, and an ellipse used as a mask becomes a clipped Group holding the picture where it stood", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const kids = async () => (await saved()).frames.find((f) => f.id === "mf").root.children;
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    /* Let the first visit's own save land before this one, or it can win. */
+    await page.waitForTimeout(400);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "mf", name: "Mask", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "me", type: "Shape", props: { shape: "ellipse" }, style: { x: 10, y: 10, fw: 40, fh: 40, surface: "brand" } },
+        { id: "mi", type: "Image", props: { src: "https://example.com/a.jpg", alt: "A bowl", ratio: "square" }, style: { x: 14, y: 12, fw: 50 } }] } });
+      d.active = "mf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "mf"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    const fr = await frameAt(page, 1);
+    await fr.waitForFunction(() => !!document.querySelector('[data-bf-id="mi"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["me", "mi"]));
+    await page.waitForSelector(".bd-arrange");
+    await release(page);
+    await page.keyboard.press("Shift+F10");
+    await page.locator(".bd-dd-opt", { hasText: "Use the shape as a mask" }).first().click();
+    const after = await poll(kids, (k) => k.length === 1 && k[0].type === "Group");
+    const g = after[0];
+    expect(g.type === "Group" && g.style.clip === "ellipse" && g.style.x === 10 && g.style.fw === 40 && g.style.surface === "brand", `the mask becomes a Group in the ellipse's place, clipped to an ellipse, with its fill, got ${JSON.stringify(g.style)}`);
+    expect(g.children.length === 1 && g.children[0].id === "mi" && g.children[0].style.x === 4 && g.children[0].style.y === 2, `the picture is inside, where it stood, got ${JSON.stringify(g.children.map((c) => [c.id, c.style.x, c.style.y]))}`);
+    await fr.waitForFunction((id) => { const el = document.querySelector('[data-bf-id="' + id + '"]'); return el && /ellipse/.test(getComputedStyle(el.firstElementChild).clipPath); }, g.id).catch(() => {});
+    const cp = await fr.evaluate((id) => getComputedStyle(document.querySelector('[data-bf-id="' + id + '"]').firstElementChild).clipPath, g.id);
+    expect(/ellipse/.test(cp), `the group clips to an ellipse on the canvas, got ${cp}`);
+    const code = await fr.evaluate((n) => window.BuilderFrame.jsxNodes([n], "Mask"), g);
+    expect(/clipPath: "ellipse\(50% 50% at 50% 50%\)"/.test(code) && /overflow: "hidden"/.test(code), `the code clips:\n${code}`);
+    await page.evaluate((id) => window.__builder.select([id]), g.id);
+    await page.waitForFunction(() => /Group/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Appearance");
+    const clipField = page.locator(".bd-right .bd-field", { hasText: "Clip content" });
+    expect(/To an ellipse/.test(await clipField.locator(".bd-dd").textContent()), "the Group's Clip content menu shows To an ellipse");
+    await clipField.locator(".bd-dd").click();
+    await option(page, "To its box").click();
+    const boxed = await poll(kids, (k) => k[0].style.clip === "box");
+    expect(boxed[0].style.clip === "box", "Clip content: To its box");
+    ok("Use the shape as a mask makes an ellipse-clipped Group holding the picture in place, drawn and exported with clip-path; Clip content switches it to its box");
     await page.close();
   });
 

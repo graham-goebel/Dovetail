@@ -1816,6 +1816,54 @@
       parent.children.splice(at2, 0, box);
       return box.id;
     },
+    /* A shape made the mask of the layers over it: a Group in the shape's
+       place and size, with its look, clipped to its box (an ellipse to an
+       ellipse), holding the others where they stood. The shape is the first
+       free one among them, in layer order. */
+    mask: function(doc2, ids) {
+      var spots = ids.map(function(id) {
+        return locate(doc2, id);
+      }).filter(Boolean);
+      if (spots.length < 2 || spots.some(fixed) || spots.some(function(s) {
+        return !isFree(s.node.style) || s.node.lock;
+      })) return null;
+      var parent = spots[0].parent;
+      if (spots.some(function(s) {
+        return s.parent !== parent;
+      })) return null;
+      spots.sort(function(a, b) {
+        return a.index - b.index;
+      });
+      var shapeAt = spots.filter(function(s) {
+        return s.node.type === "Shape" && (s.node.props || {}).shape !== "line";
+      })[0];
+      if (!shapeAt) return null;
+      var m = shapeAt.node, ms = m.style;
+      if (!ms.fw || !ms.fh) return null;
+      var look = {};
+      Object.keys(ms).forEach(function(k) {
+        if (k !== "x" && k !== "y") look[k] = ms[k];
+      });
+      look.x = ms.x;
+      look.y = ms.y;
+      look.clip = (m.props || {}).shape === "ellipse" ? "ellipse" : "box";
+      var kids = spots.filter(function(s) {
+        return s !== shapeAt;
+      }).map(function(s) {
+        var n = s.node;
+        n.style.x = Math.max(0, n.style.x - ms.x);
+        n.style.y = Math.max(0, n.style.y - ms.y);
+        return n;
+      });
+      var box = make("Group", {}, kids, look);
+      if (m.name) box.name = m.name;
+      var at2 = shapeAt.index;
+      parent.children = parent.children.filter(function(c) {
+        return ids.indexOf(c.id) < 0;
+      });
+      parent.children.splice(Math.min(at2, parent.children.length), 0, box);
+      return box.id;
+    },
     ungroup: function(doc2, id) {
       var at2 = locate(doc2, id);
       if (fixed(at2) || !at2.node.children || !isContainer(at2.node.type)) return null;
@@ -12555,7 +12603,9 @@
         one2 && one2.type === "Group" ? { value: "ungroup", label: "Ungroup", hint: "Ctrl+Shift+G", icon: "group", group: "Layer" } : { value: "group", label: "Group", hint: "Ctrl+G", icon: "group", group: "Layer" },
         { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
         { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" }
-      ]).concat(one2 && one2.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
+      ]).concat(free && nodes.length > 1 && nodes.some(function(n) {
+        return n.type === "Shape" && n.props.shape !== "line";
+      }) ? [{ value: "mask", label: "Use the shape as a mask", icon: "shapeEllipse", group: "Layer" }] : []).concat(one2 && one2.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : []).concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }]).concat(one2 ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
     };
     var onMenu = function(v) {
       if (v === "cut") copySelection(true);
@@ -12571,6 +12621,7 @@
       else if (v === "tidy") arrange("tidy");
       else if (v === "group") actions.group();
       else if (v === "ungroup") actions.ungroup();
+      else if (v === "mask") actions.mask();
       else if (v === "hide") actions.hide();
       else if (v === "lock") actions.lock();
       else if (v === "rename") actions.rename();
@@ -12762,6 +12813,29 @@
         if (!change(function(d) {
           return ops.group(d, ids);
         }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
+      },
+      mask: function() {
+        var ids = selRef.current.slice();
+        var d = docRef.current, a = api(), unit = pxMap["padding|2xs"] || 4;
+        var sized = function(dd) {
+          ids.forEach(function(id) {
+            var at2 = locate(dd, id);
+            if (!at2 || at2.node.type !== "Shape" || at2.node.style.fw && at2.node.style.fh) return;
+            var r = a && a.rect ? a.rect(id) : null;
+            if (r) {
+              at2.node.style.fw = at2.node.style.fw || Math.max(1, Math.round(r.width / unit));
+              at2.node.style.fh = at2.node.style.fh || Math.max(1, Math.round(r.height / unit));
+            }
+          });
+        };
+        var made = null;
+        change(function(dd) {
+          sized(dd);
+          made = ops.mask(dd, ids);
+          return made ? [made] : null;
+        }, "Masked with a shape");
+        if (made) select([made]);
+        else announce("A mask needs free layers side by side, one of them a rectangle or an ellipse");
       },
       ungroup: function() {
         var id = selRef.current[selRef.current.length - 1];
@@ -16345,6 +16419,13 @@
               }
             })
           ),
+          nodes.every(function(n) {
+            return n.type === "Group";
+          }) ? e(
+            Field,
+            { key: "clip", id: lid + "-clip", label: "Clip content", hint: "Cuts off what reaches past its edge" },
+            tokenDropdown("clip", nodes, lid + "-clip", { noneLabel: "Off", className: "bd-dd-field", noPreview: true })
+          ) : null,
           e(
             "div",
             { key: "blurs", className: "bd-size-row bd-border-look" },
@@ -16384,7 +16465,7 @@
             return n.hide;
           });
           return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-        })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop"])),
+        })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip"])),
         sec(
           "border",
           "Border",
