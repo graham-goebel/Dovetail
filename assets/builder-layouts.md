@@ -78,6 +78,10 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle, el
 | `borderWidth` | Border width | `strong` |
 | `borderStyle` | Border style | `dashed`, `dotted` |
 | `radius` | Radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
+| `radiusTopLeft` | Top left radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
+| `radiusTopRight` | Top right radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
+| `radiusBottomLeft` | Bottom left radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
+| `radiusBottomRight` | Bottom right radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
 | `elevation` | Shadow | `0`, `1`, `2`, `3`, `4`, `5` |
 | `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module-sm`, `module`, `module-lg`, `module-xl` |
 | `paddingTop` | Padding top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module`, `module-sm`, `module-lg`, `module-xl` |

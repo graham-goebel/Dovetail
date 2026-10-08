@@ -4502,6 +4502,62 @@ try {
     await page.close();
   });
 
+  await step("Gap and corners: the align row spreads free layers a spacing token apart, across or down, and Corners takes each corner from its own menu", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const kids = async () => (await saved()).frames.find((f) => f.id === "gf").root.children;
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      const box = (id, x, y) => ({ id, type: "Shape", props: { shape: "rectangle" }, style: { x, y, fw: 10, fh: 10 } });
+      d.frames.push({ id: "gf", name: "Gaps", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [box("g1", 10, 10), box("g2", 30, 12), box("g3", 80, 8)] } });
+      d.active = "gf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "gf"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await (await frameAt(page, 1)).waitForFunction(() => !!document.querySelector('[data-bf-id="g3"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["g1", "g2", "g3"]));
+    await page.waitForSelector(".bd-arrange");
+    await page.locator('.bd-gap-dd').click();
+    const md = page.locator(".bd-dd-opt", { has: page.locator(".bd-dd-opt-label", { hasText: /^md$/ }) }).first();
+    await md.click();
+    /* Each box is 10 steps wide; md is 16px, 4 steps: 10, then 24, then 38. */
+    const xs = await poll(async () => (await kids()).map((c) => c.style.x).join(), (v) => v === "10,24,38");
+    expect(xs === "10,24,38", `a gap of md across sets the boxes 4 steps apart from the first, got x ${xs}`);
+    const ys = (await kids()).map((c) => c.style.y).join();
+    expect(ys === "10,12,8", `spreading across leaves them where they are down, got y ${ys}`);
+    ok("Gap across, md, sets three free boxes 16px apart from the first, in the order they stand");
+
+    await page.evaluate(() => window.__builder.select(["g1"]));
+    await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Appearance");
+    await page.locator('.bd-right [aria-label="Add corners"]').click();
+    await page.locator('.bd-right [aria-label="Radius, each corner"]').click();
+    const corner = (n) => page.locator('.bd-right .bd-sec[data-sec="corners"] .bd-side .bd-dd').nth(n);
+    expect(await page.locator('.bd-right .bd-sec[data-sec="corners"] .bd-side').count() === 4, "each corner has its own menu");
+    /* The radius token "none", not the menu's own None (no corner of its own). */
+    const square = page.locator(".bd-dd-opt", { has: page.locator(".bd-dd-opt-label", { hasText: /^none$/ }) }).first();
+    await corner(2).click();
+    await square.click();
+    await corner(3).click();
+    await square.click();
+    const tabbed = await poll(async () => (await kids())[0].style, (st) => st.radiusBottomLeft === "none" && st.radiusBottomRight === "none");
+    expect(tabbed.radius && tabbed.radiusBottomLeft === "none" && tabbed.radiusBottomRight === "none", `two corners square off a rounded box, got ${JSON.stringify(tabbed)}`);
+    const code = await (await frameAt(page, 1)).evaluate((st) => window.BuilderFrame.jsx({ page: { mode: "freeform", width: 800, height: 600 }, root: { id: "r", type: "Root", props: {}, style: {}, children: [{ id: "c", type: "Shape", props: {}, style: st }] } }, "Tab"), tabbed);
+    expect(/borderRadius: "var\(--dt-radius-container\)"/.test(code) && /borderBottomLeftRadius: "var\(--dt-radius-none\)", borderBottomRightRadius: "var\(--dt-radius-none\)"/.test(code), `the code rounds every corner, then squares two:\n${code}`);
+    await page.locator('.bd-right [aria-label="Remove the corners"]').click();
+    const plain = await poll(async () => (await kids())[0].style, (st) => !st.radius && !st.radiusBottomLeft);
+    expect(!plain.radius && !plain.radiusBottomLeft && !plain.radiusBottomRight, "Remove the corners drops each corner too");
+    ok("Corners rounds every corner from one menu and each from its own, exports both, and removes them together");
+    await page.close();
+  });
+
   await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {
     if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the downloaded code"); return; }
     const { page } = await open({ width: 1440, height: 900 });

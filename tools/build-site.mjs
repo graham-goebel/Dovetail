@@ -2188,6 +2188,8 @@ const BUILDER_SPACE = ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"];
 const tokenOption = (value, tokens, css, label) => ({ value, tokens, css, ...(label ? { label } : {}) });
 const inset = (o) => cssVar(`--dt-space-inset-${o}`);
 const spaceOpts = (css) => BUILDER_SPACE.map((o) => tokenOption(o, [`--dt-space-inset-${o}`], css(inset(o))));
+const RADII = ["none", "control", "container", "overlay", "media", "pill"];
+const cornerOpts = (prop) => RADII.map((o) => tokenOption(o, [`--dt-radius-${o}`], { [prop]: cssVar(`--dt-radius-${o}`) }));
 const borderOpts = (prop) => ["subtle", "default", "strong", "brand"]
   .map((o) => tokenOption(o, [`--dt-border-${o}`, "--dt-border-width-default"], { [prop]: `${cssVar("--dt-border-width-default")} solid ${cssVar(`--dt-border-${o}`)}` }));
 /* Fixed sizes are whole multiples of the large control size, so a shape drawn
@@ -2327,9 +2329,14 @@ const BUILDER_TOKENS = {
     options: [tokenOption("strong", ["--dt-border-width-strong"], {}, "Strong")] },
   borderStyle: { label: "Border style", section: "appearance", preview: "text",
     options: [tokenOption("dashed", [], {}, "Dashed"), tokenOption("dotted", [], {}, "Dotted")] },
-  radius: { label: "Radius", section: "appearance", preview: "radius",
-    options: ["none", "control", "container", "overlay", "media", "pill"]
-      .map((o) => tokenOption(o, [`--dt-radius-${o}`], { borderRadius: cssVar(`--dt-radius-${o}`), overflow: "hidden" })) },
+  radius: { label: "Radius", section: "appearance", preview: "radius", sides: ["radiusTopLeft", "radiusTopRight", "radiusBottomLeft", "radiusBottomRight"],
+    options: RADII.map((o) => tokenOption(o, [`--dt-radius-${o}`], { borderRadius: cssVar(`--dt-radius-${o}`), overflow: "hidden" })) },
+  /* One corner's radius, over the all-corners one: a tab rounds its top
+     corners only. */
+  radiusTopLeft: { label: "Top left radius", section: "appearance", preview: "radius", side: "top-left", short: "↖", options: cornerOpts("borderTopLeftRadius") },
+  radiusTopRight: { label: "Top right radius", section: "appearance", preview: "radius", side: "top-right", short: "↗", options: cornerOpts("borderTopRightRadius") },
+  radiusBottomLeft: { label: "Bottom left radius", section: "appearance", preview: "radius", side: "bottom-left", short: "↙", options: cornerOpts("borderBottomLeftRadius") },
+  radiusBottomRight: { label: "Bottom right radius", section: "appearance", preview: "radius", side: "bottom-right", short: "↘", options: cornerOpts("borderBottomRightRadius") },
   elevation: { label: "Shadow", section: "appearance", preview: "shadow",
     options: ["0", "1", "2", "3", "4", "5"].map((o) => tokenOption(o, [`--dt-elevation-${o}`], { boxShadow: cssVar(`--dt-elevation-${o}`) })) },
   /* Padding reads the inset scale, or the layout layers for a band; margin
