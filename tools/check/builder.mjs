@@ -3337,9 +3337,13 @@ try {
     const lefts = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[0] === 10));
     expect(lefts.every((p) => p[0] === 10), `Alt+A lines their left edges up on the leftmost, got ${JSON.stringify(lefts)}`);
     expect((await steps(page)).past === stepsA + 1, "as one undo step");
+    /* What align measures: each object's box in the frame, beside where the
+       document puts it, so a failure says which one was measured off. */
+    const boxes = await frames(page)[0].evaluate(() => ["ba", "bb", "hc"].map((id) => { const r = window.BuilderFrame.rect(id); return id + " top " + (r ? Math.round(r.top * 100) / 100 + " h " + Math.round(r.height * 100) / 100 : "none"); }).join(", "));
+    const was = [await at("ba"), await at("bb"), await at("hc")];
     await page.keyboard.press("Alt+KeyW");
     const tops = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[1] === 0));
-    expect(tops.every((p) => p[1] === 0), `Alt+W lines their tops up, got ${JSON.stringify(tops)}`);
+    expect(tops.every((p) => p[1] === 0), `Alt+W lines their tops up, got ${JSON.stringify(tops)} from ${JSON.stringify(was)}; measured ${boxes}`);
     await page.evaluate(() => window.__builder.select(["ba"]));
     await page.waitForTimeout(100);
     expect(await page.locator(".bd-arrange-btn[disabled]").count() === 3, "one object can align to its frame but not spread");
