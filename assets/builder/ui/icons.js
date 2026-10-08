@@ -101,6 +101,22 @@ var PATHS = {
   variable: ["M8 4c-2 2.5-3 5-3 8s1 5.5 3 8", "M16 4c2 2.5 3 5 3 8s-1 5.5-3 8", "m9.5 9 5 6", "m14.5 9-5 6"],
   shapes: ["M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M13 13h8v8h-8z", "M7 14l4 7H3z"],
   card: ["M4 5h16v14H4z", "M4 10h16", "M7 14h6"],
+  /* A shape's kind, a line's caps, and a border's width and style. */
+  shapeRect: ["M4 6h16v12H4z"],
+  shapeEllipse: ["M12 18c4.4 0 8-2.7 8-6s-3.6-6-8-6-8 2.7-8 6 3.6 6 8 6z"],
+  shapeLine: ["M5 19 19 5"],
+  capNone: ["M3 12h18"],
+  capArrow: ["M3 12h17", "m15 7 5 5-5 5"],
+  capDot: ["M3 12h12", "M18 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
+  capBar: ["M3 12h17", "M20 7v10"],
+  capArrowStart: ["M21 12H4", "m9 7-5 5 5 5"],
+  capDotStart: ["M21 12H9", "M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
+  capBarStart: ["M21 12H4", "M4 7v10"],
+  lineSolid: ["M3 12h18"],
+  lineDashed: ["M3 12h4", "M10 12h4", "M17 12h4"],
+  lineDotted: ["M4 12h.01", "M8 12h.01", "M12 12h.01", "M16 12h.01", "M20 12h.01"],
+  weightDefault: ["M3 12h18"],
+  weightStrong: ["M3 11h18v2H3z"],
 };
 /* Heroicons outline, 24px, drawn at stroke 1.5 (MIT, Copyright (c) Tailwind Labs, Inc.;
    see assets/vendor/heroicons-LICENSE.txt). The builder's own drawings
@@ -193,8 +209,14 @@ var ENUM_ICONS = {
   direction: { row: "row", column: "column" },
   orientation: { horizontal: "row", vertical: "column" },
 };
+/* Props picked from a menu, each choice with its picture. */
+var ENUM_MENU = {
+  shape: { rectangle: "shapeRect", ellipse: "shapeEllipse", line: "shapeLine" },
+  start: { none: "capNone", arrow: "capArrowStart", dot: "capDotStart", bar: "capBarStart" },
+  end: { none: "capNone", arrow: "capArrow", dot: "capDot", bar: "capBar" },
+};
 var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
 /* A component's own prop that would read like one of the Size controls. */
 var PROP_LABEL = { width: "Content width", spacing: "Section spacing" };
 
-export { ENUM_ICONS, ENUM_LABEL, HERO, Icon, PATHS, PROP_LABEL };
+export { ENUM_ICONS, ENUM_LABEL, ENUM_MENU, HERO, Icon, PATHS, PROP_LABEL };

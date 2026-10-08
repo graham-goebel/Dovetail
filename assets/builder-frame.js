@@ -75,6 +75,54 @@
     return st;
   }
 
+  /* A line is a box with no height whose top border is the stroke: the
+     Border section's colour, width and style, or a strong border when none
+     is set. A custom fill colours it. Its caps sit on its ends. */
+  var LINE_STROKE = /^(var\(--dt-border-width-[\w-]+\)) (\w+) (var\(--dt-border-[\w-]+\))$/;
+  function lineStyle(node) {
+    var own = node.style || {};
+    var st = Object.assign({ boxSizing: "border-box", flex: "none" }, styleFor(own) || {});
+    var stroke = st.border || st.borderTop || st.borderBottom || st.borderLeft || st.borderRight;
+    if (!stroke) { var d = { border: "var(--dt-border-width-default) solid var(--dt-border-strong)" }; borderLook(d, own); stroke = d.border; }
+    var m = LINE_STROKE.exec(stroke) || [stroke, "var(--dt-border-width-default)", "solid", "var(--dt-border-strong)"];
+    var color = HEX.test(own.fill || "") ? own.fill : m[3];
+    BORDER_KEYS.forEach(function (k) { delete st[k]; });
+    ["background", "borderRadius", "overflow", "minHeight"].forEach(function (k) { delete st[k]; });
+    st.height = "0";
+    st.borderTop = m[1] + " " + m[2] + " " + color;
+    st.color = color;
+    if (!st.width) st.width = "calc(" + SHAPE_SIZE + " * 3)";
+    if (!st.position) st.position = "relative";
+    return st;
+  }
+  /* A line's caps: small drawings on its ends, in its colour and at its
+     stroke's width, as [{ key, kind, style }]. The end cap points along the
+     line; the start cap is the same drawing turned around. */
+  var CAP_DRAW = { arrow: "M3 2 L11 6 L3 10", bar: "M11 1 V11", dot: null };
+  function capParts(node) {
+    var p = node.props || {};
+    if (p.shape !== "line") return [];
+    var m = LINE_STROKE.exec(lineStyle(node).borderTop);
+    var w = m ? m[1] : "var(--dt-border-width-default)";
+    return ["start", "end"].filter(function (k) { return Object.prototype.hasOwnProperty.call(CAP_DRAW, p[k]); }).map(function (k) {
+      var st = { position: "absolute", top: "calc(" + w + " * -0.5)", width: "var(--dt-size-icon-sm)", height: "var(--dt-size-icon-sm)", transform: k === "start" ? "translateY(-50%) scaleX(-1)" : "translateY(-50%)", overflow: "visible", strokeWidth: w };
+      st[k === "start" ? "left" : "right"] = "0";
+      return { key: k, kind: p[k], style: st };
+    });
+  }
+  function capElement(c) {
+    var mark = c.kind === "dot"
+      ? e("circle", { cx: 9, cy: 6, r: 3, fill: "currentColor" })
+      : e("path", { d: CAP_DRAW[c.kind], fill: "none", stroke: "currentColor", vectorEffect: "non-scaling-stroke", strokeLinecap: "round", strokeLinejoin: "round" });
+    return e("svg", { key: c.key, viewBox: "0 0 12 12", "aria-hidden": true, style: c.style }, mark);
+  }
+  function capCode(c, used, pad) {
+    var mark = c.kind === "dot"
+      ? '<circle cx="9" cy="6" r="3" fill="currentColor" />'
+      : '<path d="' + CAP_DRAW[c.kind] + '" fill="none" stroke="currentColor" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />';
+    return pad + '<svg aria-hidden="true" viewBox="0 0 12 12" style={' + value(c.style, used, 0) + "}>" + mark + "</svg>";
+  }
+
   /* The page root's gap reads a layout layer, so it follows the layout's
      character with everything else. */
   var ROOT_GAP = { related: "--dt-layout-stack-related", group: "--dt-layout-stack-group", block: "--dt-layout-stack-block", section: "--dt-layout-stack-section" };
@@ -188,7 +236,21 @@
     var rw = relCss(st.rw), rh = relCss(st.rh);
     if (rw) { out = out || {}; out.width = rw; }
     if (rh) { out = out || {}; out.height = rh; }
+    borderLook(out, st);
     return out;
+  }
+
+  /* A border's own width and style (Border width, Border style), written
+     into each border shorthand the layer has, so the code keeps one
+     declaration per side. */
+  var BORDER_KEYS = ["border", "borderTop", "borderRight", "borderBottom", "borderLeft"];
+  var BORDER_PLAIN = /^var\(--dt-border-width-default\) solid (var\(--dt-border-[\w-]+\))$/;
+  function borderLook(out, st) {
+    if (!out || !st || (!st.borderWidth && !st.borderStyle)) return;
+    var pick = function (key) { return (DATA.tokens[key] ? DATA.tokens[key].options : []).filter(function (o) { return o.value === st[key]; })[0]; };
+    var bw = pick("borderWidth"), bs = pick("borderStyle");
+    var w = bw ? "var(" + bw.tokens[0] + ")" : "var(--dt-border-width-default)", s = bs ? bs.value : "solid";
+    BORDER_KEYS.forEach(function (k) { var m = BORDER_PLAIN.exec(out[k] || ""); if (m) out[k] = w + " " + s + " " + m[1]; });
   }
 
   /* The component's own element inside a specimen, which may wrap it. */
@@ -358,8 +420,11 @@
         e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: Object.assign(groupStyle(gp), styleFor(node.style) || {}) }, gkids));
     }
     if (node.type === "Shape") {
+      var isLine = (node.props || {}).shape === "line";
+      /* A line is thin: a wider band around it takes the pointer. */
       return e("div", { key: node.id, "data-bf-id": node.id, "data-bf-type": "Shape", "data-bf-free": isFree(node.style) ? "" : undefined, "data-bf-locked": lock, style: { display: "contents" } },
-        e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: shapeStyle(node), role: "presentation" }));
+        e("div", { className: node.style && node.style.dark ? "dark" : undefined, style: isLine ? lineStyle(node) : shapeStyle(node), role: "presentation" },
+          isLine ? [e("span", { key: "hit", className: "bf-line-hit", "aria-hidden": true })].concat(capParts(node).map(capElement)) : null));
     }
     if (node.type === "Carousel" && !opts.preview) return carouselBoard(node);
     var Comp = NS[node.type];
@@ -977,7 +1042,13 @@
       if (!place) return pad + callEl;
       return pad + "<div style={" + value(place, used, 0) + "}>\n" + pad + "  " + callEl + "\n" + pad + "</div>";
     }
-    if (node.type === "Shape") return pad + "<div" + (node.style && node.style.dark ? ' className="dark"' : "") + ' role="presentation" style={' + value(shapeStyle(node), used, 0) + "} />";
+    if (node.type === "Shape") {
+      var sline = (node.props || {}).shape === "line";
+      var sopen = pad + "<div" + (node.style && node.style.dark ? ' className="dark"' : "") + ' role="presentation" style={' + value(sline ? lineStyle(node) : shapeStyle(node), used, 0) + "}";
+      var caps = capParts(node);
+      if (!caps.length) return sopen + " />";
+      return sopen + ">\n" + caps.map(function (c) { return capCode(c, used, pad + "  "); }).join("\n") + "\n" + pad + "</div>";
+    }
     if (node.type === "Group") {
       var gs = Object.assign(groupStyle(node.props || {}), styleFor(node.style) || {});
       var gattrs = (node.style && node.style.dark ? ' className="dark"' : "") + " style={" + value(gs, used, 0) + "}";

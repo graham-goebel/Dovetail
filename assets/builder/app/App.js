@@ -23,7 +23,7 @@ import { codeWithComponents } from "../model/codegen.js";
 import { projectFiles } from "../model/projectcode.js";
 import { themeCss } from "../model/theme.js";
 import { zip } from "../model/zip.js";
-import { ENUM_ICONS, ENUM_LABEL, Icon, PROP_LABEL } from "../ui/icons.js";
+import { ENUM_ICONS, ENUM_LABEL, ENUM_MENU, Icon, PROP_LABEL } from "../ui/icons.js";
 import { AlignMatrix, BUILDER_ICON, ColorPick, ContextMenu, Dropdown, LinkTo, PAGE_LINK, Field, InlineEditor, ListEditor, NumberField, OpacityField, PictureField, PinPad, Renamable, SearchField, Section, Segmented, SwatchField, Switch, TabStrip, Thumb, VIEW_H, VIEW_W, clampZoom, distance, layoutOf, midpoint, playDefault, snapSide, ConstraintBox } from "../ui/parts.js";
 
 /* How Home orders projects and files, remembered in this browser. */
@@ -3988,6 +3988,21 @@ function App(props) {
       })) : null);
   };
 
+  /* A border's width and line style, each from a menu. */
+  var BORDER_LOOK_ICON = { borderWidth: { "": "weightDefault", strong: "weightStrong" }, borderStyle: { "": "lineSolid", dashed: "lineDashed", dotted: "lineDotted" } };
+  var borderLookRow = function (nodes, nid) {
+    var menu = function (key, prefix, noneLabel, noneHint) {
+      var values = nodes.map(function (n) { return n.style[key] || ""; });
+      var icons = BORDER_LOOK_ICON[key];
+      return e(Dropdown, { key: key, label: DATA.tokens[key].label, prefix: prefix, value: same(values) ? values[0] : null, mixed: !same(values), className: "bd-dd-field", narrow: true, iconValue: true,
+        options: [{ value: "", label: noneLabel, hint: noneHint, icon: icons[""] }].concat(DATA.tokens[key].options.map(function (o) { return { value: o.value, label: o.label || o.value, hint: o.tokens.join(" · ") || "CSS keyword", icon: icons[o.value] }; })),
+        onChange: function (v) { setStyle(nodes.map(function (n) { return n.id; }), key, v || undefined); } });
+    };
+    return e("div", { key: "look", className: "bd-size-row bd-border-look", id: "bd-border-look-" + nid },
+      menu("borderWidth", "Width", "Default", "--dt-border-width-default"),
+      menu("borderStyle", "Style", "Solid", "CSS keyword"));
+  };
+
   /* Several styles at once, in one undo step. */
   /* Constraints: what free layers keep to when their frame changes size.
      Left and top are the default and aren't stored. Stretching or scaling
@@ -4380,6 +4395,12 @@ function App(props) {
         options: p.options.map(function (o) {
           return { value: o, name: PIC_LABEL[o] || String(o), title: o === "scale-down" ? "Scale down: shrink to fit, never grow" : undefined, picture: propPicture(p.name, o) };
         }) });
+    } else if (p.kind === "enum" && first.type === "Shape" && ENUM_MENU[p.name]) {
+      /* A line's caps only mean something on a line. */
+      if ((p.name === "start" || p.name === "end") && !nodes.every(function (n) { return n.props.shape === "line"; })) return null;
+      var pics = ENUM_MENU[p.name];
+      control = e(Dropdown, { labelledBy: id, value: current === undefined && !mixed ? p.default : current, mixed: mixed, onChange: function (v) { set(v === p.default ? undefined : v); }, className: "bd-dd-field", iconValue: true,
+        options: p.options.map(function (o) { return { value: o, label: words(o), icon: pics[o] }; }) });
     } else if (p.kind === "enum") {
       var icons = ENUM_ICONS[p.name];
       if (icons && p.options.every(function (o) { return icons[o]; })) {
@@ -4633,6 +4654,9 @@ function App(props) {
     var first = nodes[0];
     var sidesOf = DATA.tokens.border.sides;
     var hasBorder = nodes.some(function (n) { return n.style.border || sidesOf.some(function (k) { return n.style[k]; }); });
+    /* A line is drawn by its border, so its width and style show even before
+       a colour is picked. */
+    var lines = nodes.every(function (n) { return n.type === "Shape" && n.props.shape === "line"; });
     var radiusValues = nodes.map(function (n) { return n.style.radius || ""; });
     var shadowValues = nodes.map(function (n) { return n.style.elevation || ""; });
     var hasRadius = nodes.some(function (n) { return n.style.radius; });
@@ -4691,9 +4715,9 @@ function App(props) {
         var hidden = nodes.every(function (n) { return n.hide; });
         return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
       })(), styled(nodes, ["blend", "invert", "opacity", "alpha"])),
-      sec("border", "Border", hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
-        hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
-          : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", "default"); }), hasBorder),
+      sec("border", "Border", hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
+        hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined, borderWidth: undefined, borderStyle: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
+          : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", lines ? "strong" : "default"); }), hasBorder),
       /* Corners and shadow stay out of the way until they're added, as a
          border is. */
       sec("corners", "Corners", hasRadius

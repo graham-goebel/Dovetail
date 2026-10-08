@@ -4237,7 +4237,7 @@ try {
     await page.close();
   });
 
-  await step("Exports compile: the code for every Playground page, and a structured page of Groups, Sections, Cards, slots and a Carousel, type-checks against @dovetail-ds/react", async () => {
+  await step("Exports compile: the code for every Playground page, a structured page of Groups, Sections, Cards, slots and a Carousel, and a freeform frame of lines and borders, type-checks against @dovetail-ds/react", async () => {
     if (!hasReactTypes()) { say("  skip  @types/react is not installed, so tsc can't check the exported code"); return; }
     const { page } = await open({ width: 1440, height: 900 }, { playground: true });
     /* A first visit makes the Playground: Start here and six examples. */
@@ -4284,6 +4284,16 @@ try {
       out.push({ where: "Structured parts / whole frame", code: F.jsx({ page: fr, root: { id: "root", type: "Root", props: {}, style: {}, children } }, fr.name) });
       out.push({ where: "Structured parts / two layers selected", code: F.jsxNodes(children, fr.name + " parts") });
       out.push({ where: "Structured parts / one Card selected", code: F.jsxNodes([card], "Card") });
+      /* A freeform frame of lines with caps and borders with their own width
+         and style: the caps are SVG, the borders one shorthand each. */
+      const ff = { id: "fl", name: "Lines", mode: "freeform", width: 800, height: 600 };
+      const lines = [
+        node("Shape", { shape: "rectangle" }, undefined, { x: 4, y: 4, fw: 40, fh: 24, border: "strong", borderWidth: "strong", borderStyle: "dashed", radius: "container" }),
+        node("Shape", { shape: "line", start: "dot", end: "arrow" }, undefined, { x: 4, y: 40, fw: 60, rot: -15, borderWidth: "strong" }),
+        node("Shape", { shape: "line", start: "arrow", end: "bar" }, undefined, { x: 4, y: 60, fw: 50, border: "brand", borderStyle: "dotted", fill: "#e0218a" }),
+        node("Group", { direction: "column" }, [node("Text", { children: "Ruled" })], { x: 80, y: 4, borderBottom: "default", borderStyle: "dashed" }),
+      ];
+      out.push({ where: "Lines / whole frame", code: F.jsx({ page: ff, root: { id: "root", type: "Root", props: {}, style: {}, children: lines } }, ff.name) });
       return out;
     });
     /* My components, through the Export dialog as a person gets them: a
@@ -4328,6 +4338,14 @@ try {
     expect(exported.length >= 20, `the Playground and the structured page should give at least 20 exports, got ${exported.length}`);
     const notPackage = exported.filter((x) => !/^import \{[^}]+\} from "@dovetail-ds\/react";\n/.test(x.code));
     expect(!notPackage.length, `every export imports from @dovetail-ds/react, these don't: ${notPackage.map((x) => x.where).join(", ")}`);
+    const linesCode = exported.find((x) => x.where === "Lines / whole frame").code;
+    for (const [want, what] of [
+      [/border: "var\(--dt-border-width-strong\) dashed var\(--dt-border-strong\)"/, "a strong dashed border as one shorthand"],
+      [/height: "0", borderTop: "var\(--dt-border-width-strong\) solid var\(--dt-border-strong\)", color: "var\(--dt-border-strong\)"/, "a line with no border set, strong, as its top border"],
+      [/borderTop: "var\(--dt-border-width-default\) dotted #e0218a"/, "a dotted line in its own colour"],
+      [/borderBottom: "var\(--dt-border-width-default\) dashed var\(--dt-border-default\)"/, "one side's border dashed"],
+    ]) expect(want.test(linesCode), `the Lines export should carry ${what}:\n${linesCode}`);
+    expect((linesCode.match(/<svg aria-hidden="true" viewBox="0 0 12 12"/g) || []).length === 4, `the two lines' four caps export as SVG, got:\n${linesCode}`);
     /* One file each, named after where it came from, so tsc's lines say. */
     const files = {}, where = {};
     for (const x of exported) {
@@ -4354,7 +4372,64 @@ try {
     } finally {
       fs.rmSync(pkg, { recursive: true, force: true });
     }
-    ok(`${exported.length} exports (${exported.length - 6} Playground frames, a structured page, two selections and three with My components) type-check against the package, strict, with react-jsx`);
+    ok(`${exported.length} exports (${exported.length - 7} Playground frames, a structured page, two selections, a freeform frame of lines and borders, and three with My components) type-check against the package, strict, with react-jsx`);
+  });
+
+  await step("Lines and borders: a Shape becomes a line from its Kind menu, caps show only on a line, Border has Width and Style menus, and a line's handles are its two ends", async () => {
+    const { page, frame } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const nodeOf = async (id) => { const d = await saved(); return d.frames.find((f) => f.id === "lf").root.children.find((c) => c.id === id); };
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "lf", name: "Lines", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "sa", type: "Shape", props: { shape: "rectangle" }, style: { x: 10, y: 10, fw: 40, fh: 20 } }] } });
+      d.active = "lf";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "lf"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    await (await frameAt(page, 1)).waitForFunction(() => !!document.querySelector('[data-bf-id="sa"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["sa"]));
+    await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Properties");
+    expect(await page.locator(".bd-right .bd-field", { hasText: "End" }).count() === 0, "a rectangle has no Start or End caps");
+    await choose(page, "Shape", "Line");
+    const asLine = await poll(() => nodeOf("sa"), (n) => n.props.shape === "line");
+    expect(asLine.props.shape === "line", `Kind: Line makes the shape a line, got ${asLine.props.shape}`);
+    await choose(page, "End", "Arrow");
+    await choose(page, "Start", "Dot");
+    const capped = await poll(() => nodeOf("sa"), (n) => n.props.end === "arrow" && n.props.start === "dot");
+    expect(capped.props.end === "arrow" && capped.props.start === "dot", `the cap menus set start and end, got ${capped.props.start}, ${capped.props.end}`);
+    const drawn = await (await frameAt(page, 1)).evaluate(() => {
+      const el = document.querySelector('[data-bf-id="sa"]').firstElementChild, cs = getComputedStyle(el);
+      return { h: el.getBoundingClientRect().height, top: cs.borderTopStyle, caps: el.querySelectorAll("svg").length };
+    });
+    expect(drawn.h <= 3 && drawn.top === "solid" && drawn.caps === 2, `a line is a hair tall, drawn by its top border, with two caps, got ${JSON.stringify(drawn)}`);
+    ok("Kind turns a rectangle into a line; Start and End appear for a line only and draw their caps");
+
+    await tab(page, "Appearance");
+    const border = page.locator('.bd-right .bd-sec[data-sec="border"]');
+    expect(await border.locator(".bd-border-look .bd-dd").count() === 2, "a line's Border shows Width and Style before a colour is set");
+    await border.locator('.bd-dd[aria-label="Border width"]').click();
+    await option(page, "Strong").click();
+    await border.locator('.bd-dd[aria-label="Border style"]').click();
+    await option(page, "Dashed").click();
+    const styled = await poll(() => nodeOf("sa"), (n) => n.style.borderWidth === "strong" && n.style.borderStyle === "dashed");
+    expect(styled.style.borderWidth === "strong" && styled.style.borderStyle === "dashed", `Width and Style set borderWidth and borderStyle, got ${JSON.stringify(styled.style)}`);
+    const look = await (await frameAt(page, 1)).evaluate(() => document.querySelector('[data-bf-id="sa"]').firstElementChild.style.borderTop);
+    expect(/var\(--dt-border-width-strong\) dashed var\(--dt-border-strong\)/.test(look), `the line draws strong and dashed, got ${look}`);
+    ok("Border width and Border style are menus, and the line draws with them");
+
+    const handles = await page.locator(".bd-mark-sel .bd-handle").evaluateAll((hs) => hs.map((h) => [...h.classList].find((c) => /^is-[nsew]+$/.test(c))).sort().join());
+    expect(handles === "is-e,is-w", `a line's handles are its two ends, got ${handles}`);
+    ok("a selected line has a handle at each end and none above or below");
+    await page.close();
   });
 
   await step("Download project code: a .zip of every page, each component in a file of its own, the theme and the pictures, with a README, that type-checks as one project", async () => {

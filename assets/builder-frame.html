@@ -63,6 +63,8 @@
     color: var(--dt-text-primary);
     font-size: var(--dt-text-body-xs-size);
   }
+  /* A line is a hair tall; this band around it takes the pointer. */
+  .bf-line-hit { position: absolute; left: 0; right: 0; top: calc(var(--dt-space-inset-xs) * -1); height: calc(var(--dt-space-inset-xs) * 2); }
   .bf-editing * { cursor: default; }
   /* A Carousel while editing: its items laid flat in a row, so each can be
      selected, edited and dropped between. Play shows the moving carousel. */

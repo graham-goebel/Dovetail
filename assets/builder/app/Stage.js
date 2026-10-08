@@ -222,6 +222,8 @@ function Marks(p) {
          sits), the tag goes inside the box. */
       var frameTop = p.boxes[p.frame.id] ? cam.y + p.boxes[p.frame.id].y * cam.z : 0;
       var handles = isMain && !p.part && !fixedSpot(at) && at.node.type !== "Slot" && !at.node.lock ? (isFree(at.node.style) ? p.HANDLES_FREE : p.HANDLES_FLOW) : null;
+      /* A line has a length and no height: its two ends are its handles. */
+      if (handles && at.node.type === "Shape" && at.node.props && at.node.props.shape === "line") handles = ["w", "e"];
       var turnable = !!handles && isFree(at.node.style);
       var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
       /* Short or narrow on screen: the handles step outward (in CSS), so

@@ -4105,6 +4105,7 @@
     }
   }
   var TOKEN_CSS = null;
+  var BORDER_LOOK = /^var\(--dt-border-width-([\w-]+)\)\s+(solid|dashed|dotted)\s+(var\(--dt-border-[\w-]+\))$/;
   function tokensFromCss(css, who, report) {
     if (!TOKEN_CSS) {
       TOKEN_CSS = [];
@@ -4121,6 +4122,18 @@
     var same3 = function(a, b) {
       return String(a).replace(/\s+/g, "") === String(b).replace(/\s+/g, "");
     };
+    var known = function(key, v) {
+      return DATA.tokens[key] && DATA.tokens[key].options.some(function(o) {
+        return o.value === v;
+      });
+    };
+    ["border", "borderTop", "borderRight", "borderBottom", "borderLeft"].forEach(function(k) {
+      var m = BORDER_LOOK.exec(String(left[k] || "").trim());
+      if (!m || m[1] !== "default" && !known("borderWidth", m[1]) || m[2] !== "solid" && !known("borderStyle", m[2])) return;
+      if (m[1] !== "default") style.borderWidth = m[1];
+      if (m[2] !== "solid") style.borderStyle = m[2];
+      left[k] = "var(--dt-border-width-default) solid " + m[3];
+    });
     TOKEN_CSS.forEach(function(t) {
       if (style[t.key] !== void 0) return;
       var keys2 = Object.keys(t.css);
@@ -4567,7 +4580,23 @@
     exportOut: ["M12 15V3", "m7 8 5-5 5 5", "M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"],
     variable: ["M8 4c-2 2.5-3 5-3 8s1 5.5 3 8", "M16 4c2 2.5 3 5 3 8s-1 5.5-3 8", "m9.5 9 5 6", "m14.5 9-5 6"],
     shapes: ["M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M13 13h8v8h-8z", "M7 14l4 7H3z"],
-    card: ["M4 5h16v14H4z", "M4 10h16", "M7 14h6"]
+    card: ["M4 5h16v14H4z", "M4 10h16", "M7 14h6"],
+    /* A shape's kind, a line's caps, and a border's width and style. */
+    shapeRect: ["M4 6h16v12H4z"],
+    shapeEllipse: ["M12 18c4.4 0 8-2.7 8-6s-3.6-6-8-6-8 2.7-8 6 3.6 6 8 6z"],
+    shapeLine: ["M5 19 19 5"],
+    capNone: ["M3 12h18"],
+    capArrow: ["M3 12h17", "m15 7 5 5-5 5"],
+    capDot: ["M3 12h12", "M18 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
+    capBar: ["M3 12h17", "M20 7v10"],
+    capArrowStart: ["M21 12H4", "m9 7-5 5 5 5"],
+    capDotStart: ["M21 12H9", "M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
+    capBarStart: ["M21 12H4", "M4 7v10"],
+    lineSolid: ["M3 12h18"],
+    lineDashed: ["M3 12h4", "M10 12h4", "M17 12h4"],
+    lineDotted: ["M4 12h.01", "M8 12h.01", "M12 12h.01", "M16 12h.01", "M20 12h.01"],
+    weightDefault: ["M3 12h18"],
+    weightStrong: ["M3 11h18v2H3z"]
   };
   var HERO = {
     grip: ["M9 6h.01", "M9 12h.01", "M9 18h.01", "M15 6h.01", "M15 12h.01", "M15 18h.01"],
@@ -4662,6 +4691,11 @@
     justify: { "flex-start": "justifyStart", center: "justifyCenter", "flex-end": "justifyEnd", "space-between": "justifyBetween" },
     direction: { row: "row", column: "column" },
     orientation: { horizontal: "row", vertical: "column" }
+  };
+  var ENUM_MENU = {
+    shape: { rectangle: "shapeRect", ellipse: "shapeEllipse", line: "shapeLine" },
+    start: { none: "capNone", arrow: "capArrowStart", dot: "capDotStart", bar: "capBarStart" },
+    end: { none: "capNone", arrow: "capArrow", dot: "capDot", bar: "capBar" }
   };
   var ENUM_LABEL = { "flex-start": "Start", "flex-end": "End", "space-between": "Space between", center: "Center", stretch: "Stretch", row: "Row", column: "Column" };
   var PROP_LABEL = { width: "Content width", spacing: "Section spacing" };
@@ -8615,6 +8649,7 @@
         var isMain = m.id === p.sel && !p.edit;
         var frameTop = p.boxes[p.frame.id] ? cam.y + p.boxes[p.frame.id].y * cam.z : 0;
         var handles = isMain && !p.part && !fixedSpot(at2) && at2.node.type !== "Slot" && !at2.node.lock ? isFree(at2.node.style) ? p.HANDLES_FREE : p.HANDLES_FLOW : null;
+        if (handles && at2.node.type === "Shape" && at2.node.props && at2.node.props.shape === "line") handles = ["w", "e"];
         var turnable = !!handles && isFree(at2.node.style);
         var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
         var short2 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
@@ -14792,6 +14827,39 @@
         })) : null
       );
     };
+    var BORDER_LOOK_ICON = { borderWidth: { "": "weightDefault", strong: "weightStrong" }, borderStyle: { "": "lineSolid", dashed: "lineDashed", dotted: "lineDotted" } };
+    var borderLookRow = function(nodes, nid) {
+      var menu2 = function(key, prefix, noneLabel, noneHint) {
+        var values = nodes.map(function(n) {
+          return n.style[key] || "";
+        });
+        var icons = BORDER_LOOK_ICON[key];
+        return e(Dropdown, {
+          key,
+          label: DATA.tokens[key].label,
+          prefix,
+          value: same3(values) ? values[0] : null,
+          mixed: !same3(values),
+          className: "bd-dd-field",
+          narrow: true,
+          iconValue: true,
+          options: [{ value: "", label: noneLabel, hint: noneHint, icon: icons[""] }].concat(DATA.tokens[key].options.map(function(o) {
+            return { value: o.value, label: o.label || o.value, hint: o.tokens.join(" · ") || "CSS keyword", icon: icons[o.value] };
+          })),
+          onChange: function(v) {
+            setStyle(nodes.map(function(n) {
+              return n.id;
+            }), key, v || void 0);
+          }
+        });
+      };
+      return e(
+        "div",
+        { key: "look", className: "bd-size-row bd-border-look", id: "bd-border-look-" + nid },
+        menu2("borderWidth", "Width", "Default", "--dt-border-width-default"),
+        menu2("borderStyle", "Style", "Solid", "CSS keyword")
+      );
+    };
     var PIN_WORD2 = { h: { left: "Left", right: "Right", both: "Left and right", center: "Centre", scale: "Scale" }, v: { top: "Top", bottom: "Bottom", both: "Top and bottom", center: "Centre", scale: "Scale" } };
     var PIN_SAYS = {
       h: { left: "keeps to the left edge", right: "keeps to the right edge", both: "stretches across with it", center: "stays centred across", scale: "scales across with it" },
@@ -15473,6 +15541,24 @@
             return { value: o, name: PIC_LABEL[o] || String(o), title: o === "scale-down" ? "Scale down: shrink to fit, never grow" : void 0, picture: propPicture(p.name, o) };
           })
         });
+      } else if (p.kind === "enum" && first.type === "Shape" && ENUM_MENU[p.name]) {
+        if ((p.name === "start" || p.name === "end") && !nodes.every(function(n) {
+          return n.props.shape === "line";
+        })) return null;
+        var pics = ENUM_MENU[p.name];
+        control = e(Dropdown, {
+          labelledBy: id,
+          value: current2 === void 0 && !mixed ? p.default : current2,
+          mixed,
+          onChange: function(v) {
+            set2(v === p.default ? void 0 : v);
+          },
+          className: "bd-dd-field",
+          iconValue: true,
+          options: p.options.map(function(o) {
+            return { value: o, label: words(o), icon: pics[o] };
+          })
+        });
       } else if (p.kind === "enum") {
         var icons = ENUM_ICONS[p.name];
         if (icons && p.options.every(function(o) {
@@ -15871,6 +15957,9 @@
           return n.style[k];
         });
       });
+      var lines = nodes.every(function(n) {
+        return n.type === "Shape" && n.props.shape === "line";
+      });
       var radiusValues = nodes.map(function(n) {
         return n.style.radius || "";
       });
@@ -16019,15 +16108,15 @@
         sec(
           "border",
           "Border",
-          hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : e("p", { className: "bd-sec-empty" }, "None"),
+          hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
           hasBorder ? headAction("minus", "Remove the border", function() {
-            var p = { border: void 0 };
+            var p = { border: void 0, borderWidth: void 0, borderStyle: void 0 };
             sidesOf.forEach(function(k) {
               p[k] = void 0;
             });
             setStyles(ids, p);
           }) : headAction("plusSm", "Add a border", function() {
-            setStyle(ids, "border", "default");
+            setStyle(ids, "border", lines ? "strong" : "default");
           }),
           hasBorder
         ),
