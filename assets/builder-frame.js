@@ -470,16 +470,36 @@
   }
 
   /* A node's box. Its wrapper is display: contents, so the box is the union of
-     what it renders. */
+     the elements it renders. Their own boxes, not a range over their
+     contents: a range takes in the glyphs too, and a heading's glyphs reach
+     past its box at a tight line height, more with some fonts than others,
+     which moved its top by a few pixels. Bare text, with no element, falls
+     back to the range. */
   function rect(id) {
     var w = wrapper(id);
     if (!w) return null;
     var r;
     if (id === "root") r = w.getBoundingClientRect();
     else {
-      var range = document.createRange();
-      range.selectNodeContents(w);
-      r = range.getBoundingClientRect();
+      /* Through any display: contents layers, which have no box of their own. */
+      var bs = [];
+      (function boxes(el) {
+        Array.prototype.forEach.call(el.children, function (c) {
+          var d = getComputedStyle(c).display;
+          if (d === "none") return;
+          if (d === "contents") boxes(c);
+          else bs.push(c.getBoundingClientRect());
+        });
+      })(w);
+      if (bs.length) {
+        var l = Math.min.apply(null, bs.map(function (b) { return b.left; })), t = Math.min.apply(null, bs.map(function (b) { return b.top; }));
+        var rr = Math.max.apply(null, bs.map(function (b) { return b.right; })), bb = Math.max.apply(null, bs.map(function (b) { return b.bottom; }));
+        r = { left: l, top: t, right: rr, bottom: bb, width: rr - l, height: bb - t };
+      } else {
+        var range = document.createRange();
+        range.selectNodeContents(w);
+        r = range.getBoundingClientRect();
+      }
     }
     if (!r || (!r.width && !r.height)) return null;
     return { left: r.left, top: r.top, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
