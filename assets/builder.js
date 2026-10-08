@@ -3181,11 +3181,16 @@
       return one("Settings", "desktop", [
         make("Section", { width: "narrow" }, [
           make("Stack", { layer: "block" }, [
-            make("Heading", { children: "Workspace settings" }),
+            make("Heading", { children: "Workspace settings", level: 3, size: "heading-md" }),
             make("Card", { eyebrow: "", title: "Profile", description: "How the workspace appears to its members." }, [
-              make("Stack", { layer: "group" }, [make("Input"), make("Select"), make("Switch"), make("Checkbox")])
+              make("Stack", { layer: "group" }, [
+                make("Input", { label: "Workspace name", size: "sm" }),
+                make("Select", { label: "Role", size: "sm" }),
+                make("Switch", { label: "Two-factor authentication", defaultChecked: true }),
+                make("Checkbox", { label: "Email me about releases", defaultChecked: true })
+              ])
             ]),
-            make("Group", { justify: "flex-end", gap: "sm" }, [make("Button", { variant: "secondary", children: "Cancel" }), make("Button", { children: "Save changes" })])
+            make("Group", { justify: "flex-end", gap: "sm" }, [make("Button", { variant: "secondary", size: "sm", children: "Cancel" }), make("Button", { size: "sm", children: "Save changes" })])
           ])
         ])
       ], { surface: "subtle" });
@@ -3222,7 +3227,7 @@
     return make("Heading", Object.assign({ children, size: size || "heading-md", level: 2 }, extra));
   }
   function button(children, variant, extra) {
-    return make("Button", Object.assign({ children, variant: variant || "primary" }, extra));
+    return make("Button", Object.assign({ children, variant: variant || "primary", size: "sm" }, extra));
   }
   function group(props, children, style) {
     return make("Group", Object.assign({ direction: "column", gap: "md" }, props), children, style);
@@ -3311,7 +3316,7 @@
       make("Shape", { shape: "rectangle" }, void 0, { x: 168, y: 92, fw: 56, fh: 40, surface: "brand", radius: "container", rot: -8 }),
       make("Heading", { children: "Freeform", size: "display-sm", level: 2 }, void 0, { x: 16, y: 24 }),
       make("Text", { children: "Place anything anywhere. Drag a layer to move it, pull its handles to size it in 4px steps, and drag just outside a corner to turn it.", variant: "lead" }, void 0, { x: 16, y: 48, fw: 100 }),
-      make("Button", { children: "I go anywhere", variant: "secondary" }, void 0, { x: 16, y: 120 })
+      make("Button", { children: "I go anywhere", variant: "secondary", size: "sm" }, void 0, { x: 16, y: 120 })
     ];
     var structured = frame("Structured", "laptop", [
       make("Section", { width: "default" }, [
@@ -3332,7 +3337,7 @@
           make("Inline", { gap: "xs" }, [make("Badge", { tone: "success", dot: true, children: "In stock" }), make("Badge", { tone: "brand", children: "New" })]),
           heading("Fired twice", "heading-lg"),
           text("A second firing makes the glaze hard enough for the dishwasher.", "body", { tone: "secondary" }),
-          make("Input", { label: "Email" }),
+          make("Input", { label: "Email", size: "sm" }),
           make("Switch", { label: "Tell me about new pieces", defaultChecked: true }),
           group({ direction: "row", gap: "sm" }, [button("Add to basket"), button("Save", "secondary")])
         ])
@@ -3362,7 +3367,7 @@
             { title: "Where is it made?", content: "In small workshops within a day's drive." }
           ] })
         ]),
-        make("Carousel", { label: "Collections", layout: "coverflow" })
+        make("Carousel", { label: "Collections", layout: "coverflow", itemRatio: "portrait" })
       ])
     ]));
   }
@@ -6212,7 +6217,7 @@
       head(
         "bd-code-title",
         "Export: " + name,
-        "React with @dovetail-ds/react. Sample data from the specimens is included so it renders as you see it; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.",
+        "React with @dovetail-ds/react. Props at their default are left out. Blocks and other larger components keep the sample copy they started with, so they render as you see them; replace it with your own. Or take " + (p.picked ? p.title : p.frameName) + " as a picture, or every frame as layout JSON.",
         [
           e("button", { key: "copy", type: "button", className: "bd-btn bd-btn-primary", onClick: p.onCopyCode }, e(Icon, { name: "copy" }), "Copy code"),
           e("a", { key: "dl", className: "bd-btn", href: "data:text/plain;charset=utf-8," + encodeURIComponent(p.code), download: (name.replace(/[^\w]+/g, "") || "Screen") + ".jsx" }, "Download .jsx"),

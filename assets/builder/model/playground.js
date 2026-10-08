@@ -30,7 +30,7 @@ function doc() {
 function slot(name, children) { return { id: uid(), type: "Slot", props: { name: name }, style: {}, children: children }; }
 function text(children, variant, extra) { return make("Text", Object.assign({ children: children, variant: variant || "body" }, extra)); }
 function heading(children, size, extra) { return make("Heading", Object.assign({ children: children, size: size || "heading-md", level: 2 }, extra)); }
-function button(children, variant, extra) { return make("Button", Object.assign({ children: children, variant: variant || "primary" }, extra)); }
+function button(children, variant, extra) { return make("Button", Object.assign({ children: children, variant: variant || "primary", size: "sm" }, extra)); }
 function group(props, children, style) { return make("Group", Object.assign({ direction: "column", gap: "md" }, props), children, style); }
 
 /* A guide page: a section with an eyebrow, a title, a lead, then the rest. */
@@ -117,7 +117,7 @@ function freeAndStructured() {
     make("Shape", { shape: "rectangle" }, undefined, { x: 168, y: 92, fw: 56, fh: 40, surface: "brand", radius: "container", rot: -8 }),
     make("Heading", { children: "Freeform", size: "display-sm", level: 2 }, undefined, { x: 16, y: 24 }),
     make("Text", { children: "Place anything anywhere. Drag a layer to move it, pull its handles to size it in 4px steps, and drag just outside a corner to turn it.", variant: "lead" }, undefined, { x: 16, y: 48, fw: 100 }),
-    make("Button", { children: "I go anywhere", variant: "secondary" }, undefined, { x: 16, y: 120 }),
+    make("Button", { children: "I go anywhere", variant: "secondary", size: "sm" }, undefined, { x: 16, y: 120 }),
   ];
   var structured = frame("Structured", "laptop", [
     make("Section", { width: "default" }, [
@@ -139,7 +139,7 @@ function lightDark() {
         make("Inline", { gap: "xs" }, [make("Badge", { tone: "success", dot: true, children: "In stock" }), make("Badge", { tone: "brand", children: "New" })]),
         heading("Fired twice", "heading-lg"),
         text("A second firing makes the glaze hard enough for the dishwasher.", "body", { tone: "secondary" }),
-        make("Input", { label: "Email" }),
+        make("Input", { label: "Email", size: "sm" }),
         make("Switch", { label: "Tell me about new pieces", defaultChecked: true }),
         group({ direction: "row", gap: "sm" }, [button("Add to basket"), button("Save", "secondary")]),
       ]),
@@ -170,7 +170,7 @@ function useComponents() {
           { title: "Where is it made?", content: "In small workshops within a day's drive." },
         ] }),
       ]),
-      make("Carousel", { label: "Collections", layout: "coverflow" }),
+      make("Carousel", { label: "Collections", layout: "coverflow", itemRatio: "portrait" }),
     ]),
   ]));
 }

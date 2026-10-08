@@ -24,11 +24,16 @@ var STARTERS = [
     return one("Settings", "desktop", [
       make("Section", { width: "narrow" }, [
         make("Stack", { layer: "block" }, [
-          make("Heading", { children: "Workspace settings" }),
+          make("Heading", { children: "Workspace settings", level: 3, size: "heading-md" }),
           make("Card", { eyebrow: "", title: "Profile", description: "How the workspace appears to its members." }, [
-            make("Stack", { layer: "group" }, [make("Input"), make("Select"), make("Switch"), make("Checkbox")]),
+            make("Stack", { layer: "group" }, [
+              make("Input", { label: "Workspace name", size: "sm" }),
+              make("Select", { label: "Role", size: "sm" }),
+              make("Switch", { label: "Two-factor authentication", defaultChecked: true }),
+              make("Checkbox", { label: "Email me about releases", defaultChecked: true }),
+            ]),
           ]),
-          make("Group", { justify: "flex-end", gap: "sm" }, [make("Button", { variant: "secondary", children: "Cancel" }), make("Button", { children: "Save changes" })]),
+          make("Group", { justify: "flex-end", gap: "sm" }, [make("Button", { variant: "secondary", size: "sm", children: "Cancel" }), make("Button", { size: "sm", children: "Save changes" })]),
         ]),
       ]),
     ], { surface: "subtle" });

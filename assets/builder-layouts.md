@@ -49,7 +49,7 @@ Device sizes: Phone 390 × 844, Phone, large 430 × 932, Tablet 768 × 1024, Lap
 ```
 
 - `type`: a component from the list below.
-- `props`: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a `?` marks one you may leave out), and "a list of text" an array of strings. A component's text is `props.children`. Leave a prop out to keep the sample content the builder starts it with.
+- `props`: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a `?` marks one you may leave out), and "a list of text" an array of strings. A component's text is `props.children`. Leave a prop out to keep what the builder starts it with: a block's sample content, or a small component's own default.
 - `style`: keys from the style table, each set to one of its option names. Never a CSS value, with three exceptions in a free frame: `x` and `y` place a top-level item (whole steps of `--dt-space-inset-2xs`), and `fill` and `color` take a custom `#rrggbb` background and text colour.
 - `children`: an array of nodes, only on containers: `Group`, `Section`, `Stack`, `Inline`, `Grid`, `Card`, `Carousel`.
 - On any other component, `children` may hold its slots instead: `{ "type": "Slot", "props": { "name": "actions" }, "children": [ ...nodes ] }`. A slot stands for one of the component's element props (a hero's `actions` or `media`, marked "a slot" below). What's in it renders into that prop and exports as JSX in it. Leave a slot out to keep the sample's own content.
