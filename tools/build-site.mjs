@@ -2421,6 +2421,7 @@ const BUILDER_GROUP = {
    border, so its colour, width and style are the Border section's; its ends
    can carry a cap. */
 const SHAPE_CAPS = ["none", "arrow", "dot", "bar"];
+const IMAGE_FOCUS = ["center", "top", "bottom", "left", "right", "top left", "top right", "bottom left", "bottom right"];
 const BUILDER_SHAPE = {
   blurb: "A rectangle, ellipse or line, painted with tokens",
   group: "layout",
@@ -2687,6 +2688,9 @@ function buildBuilder() {
     /* An image or video source takes an upload or a URL, never typed CSS. */
     const media = ["Image", "Cover", "Video"].includes(c.name) ? ["src"].concat(c.name === "Video" ? ["poster"] : []) : [];
     media.forEach((name) => props.push({ name, kind: "media", options: null, default: null, note: name === "poster" ? "Shown before the video plays" : "The picture or clip", tab: "content" }));
+    /* An image's focal point, as a CSS position keyword: kept in view when
+       the frame crops the picture. Never a typed length. */
+    if (c.name === "Image" && /\n\s*position\?:\s*string/.test(src)) props.push({ name: "position", kind: "enum", options: IMAGE_FOCUS, default: "center", note: "Its focal point, kept in view when the frame crops it", tab: "appearance" });
     /* A link goes to one of the project's pages or a safe address, through
        the inspector's Link to control rather than typed CSS. */
     if (!props.some((p) => p.name === "href") && /\n\s*href\??:\s*string/.test(src)) props.push({ name: "href", kind: "url", options: null, default: null, note: "Where it goes: a page of the project, or a web address", tab: "content" });
