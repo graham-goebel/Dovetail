@@ -82,6 +82,9 @@ Group is the builder's own flex container (a `div`), and Shape its rectangle, el
 | `radiusTopRight` | Top right radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
 | `radiusBottomLeft` | Bottom left radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
 | `radiusBottomRight` | Bottom right radius | `none`, `control`, `container`, `overlay`, `media`, `pill` |
+| `gradient` | Gradient | `brand-gradient`, `brand-duotone`, `scrim-bottom`, `scrim-top`, `fade-bottom`, `pattern-dots`, `pattern-grid` |
+| `blur` | Layer blur | `chip`, `glass` |
+| `backdrop` | Background blur | `glass` |
 | `elevation` | Shadow | `0`, `1`, `2`, `3`, `4`, `5` |
 | `padding` | Padding | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module-sm`, `module`, `module-lg`, `module-xl` |
 | `paddingTop` | Padding top | `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `related`, `group`, `block`, `section`, `module`, `module-sm`, `module-lg`, `module-xl` |

@@ -217,7 +217,7 @@
       if (o) out = Object.assign(out || {}, o.css);
     });
     /* A free frame may give a layer its own colours, as six-digit hex. */
-    if (HEX.test(st.fill || "")) out = Object.assign(out || {}, { background: st.fill });
+    if (HEX.test(st.fill || "") && !st.gradient) out = Object.assign(out || {}, { background: st.fill });
     if (HEX.test(st.color || "")) out = Object.assign(out || {}, { color: st.color, "--dt-text-primary": st.color, "--dt-text-headline": st.color });
     /* And its own opacity, in whole percents. */
     if (typeof st.alpha === "number" && st.alpha >= 0 && st.alpha < 100) out = Object.assign(out || {}, { opacity: st.alpha / 100 });
@@ -238,6 +238,8 @@
     if (rw) { out = out || {}; out.width = rw; }
     if (rh) { out = out || {}; out.height = rh; }
     borderLook(out, st);
+    /* Inverted and blurred: both in the one filter. */
+    if (out && st.invert === "on" && st.blur && /^blur\(/.test(out.filter || "")) out.filter = "invert(1) " + out.filter;
     return out;
   }
 

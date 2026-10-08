@@ -2644,7 +2644,7 @@ try {
     await sec.waitFor();
     const groups = await sec.locator(".bd-swatch-group").allTextContents();
     expect(groups.join() === "Neutral,Brand,Status", `the swatches are grouped Neutral, Brand, Status, got ${groups.join()}`);
-    expect(await sec.locator(".bd-swatch").count() === 13 && await sec.locator(".bd-dd").count() === 0, "13 swatches (None and 12 surfaces), and no dropdown");
+    expect(await sec.locator(".bd-swatch").count() === 13 && await sec.locator(".bd-swatch-field .bd-dd").count() === 0, "13 swatches (None and 12 surfaces), and no dropdown among them");
     /* The frame's own colours: base is the frame's white, not the dark builder's. */
     const base = await sec.locator('.bd-swatch[aria-label="Fill: Base"]').evaluate((b) => b.style.background);
     const frameBase = await page.evaluate(() => { const d = document.querySelector("iframe.bd-frame").contentDocument; return getComputedStyle(d.querySelector(".bf-root")).backgroundColor; });
@@ -4630,6 +4630,49 @@ try {
     const back = await poll(img, (n) => n.props.position === undefined);
     expect(back.props.position === undefined, "Center is the default, so it isn't stored");
     ok("an Image's Focal point menu sets top right (object-position 100% 0%, position=\"top right\" in the code) and Center clears it");
+    await page.close();
+  });
+
+  await step("Gradient and blur: Fill takes a gradient or texture token, Layer takes a layer blur and a background blur, and the code carries each as its token", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    const saved = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__builder.doc())));
+    const shape = async () => (await saved()).frames.find((f) => f.id === "ef").root.children[0];
+    const poll = async (get, good, ms = 4000) => { const end = Date.now() + ms; let v; do { v = await get(); if (good(v)) return v; await page.waitForTimeout(50); } while (Date.now() < end); return v; };
+    await poll(() => page.evaluate(() => window.__builder.saved().ok), (v) => v === true);
+    await page.evaluate(async () => {
+      await window.__builder.flush();
+      const d = JSON.parse(JSON.stringify(window.__builder.doc()));
+      d.frames.push({ id: "ef", name: "Effects", width: 800, height: 600, mode: "free", root: { id: "root", type: "Root", children: [
+        { id: "ea", type: "Shape", props: { shape: "rectangle" }, style: { x: 10, y: 10, fw: 40, fh: 30, fill: "#123456", invert: "on" } }] } });
+      d.active = "ef";
+      await window.__builder.store.saveDoc(window.__builder.project().id, d);
+      await window.__builder.flush();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.doc().frames.some((f) => f.id === "ef"));
+    await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
+    const fr = await frameAt(page, 1);
+    await fr.waitForFunction(() => !!document.querySelector('[data-bf-id="ea"]'));
+    await release(page);
+    await page.evaluate(() => window.__builder.select(["ea"]));
+    await page.waitForFunction(() => /Shape/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
+    await tab(page, "Appearance");
+    await page.locator('.bd-right .bd-field', { hasText: "Gradient" }).locator(".bd-dd").first().click();
+    await option(page, "Brand duotone").click();
+    await page.locator('.bd-right .bd-dd[aria-label="Layer blur"]').click();
+    await option(page, "Soft").click();
+    await page.locator('.bd-right .bd-dd[aria-label="Background blur"]').click();
+    await option(page, "Glass").click();
+    const st = (await poll(shape, (n) => n.style.gradient === "brand-duotone" && n.style.blur === "chip" && n.style.backdrop === "glass")).style;
+    expect(st.gradient === "brand-duotone" && st.blur === "chip" && st.backdrop === "glass", `the menus set gradient, blur and backdrop, got ${JSON.stringify(st)}`);
+    await fr.waitForFunction(() => { const s = document.querySelector('[data-bf-id="ea"]').firstElementChild.style; return /blur/.test(s.filter) && /backdrop/.test(s.backdropFilter); }).catch(() => {});
+    const drawn = await fr.evaluate(() => { const s = document.querySelector('[data-bf-id="ea"]').firstElementChild.style; return { bg: s.background, filter: s.filter, backdrop: s.backdropFilter }; });
+    expect(/--dt-surface-brand-duotone/.test(drawn.bg), `the gradient wins over the custom fill, got background ${drawn.bg}`);
+    expect(drawn.filter === "invert(1) blur(var(--dt-blur-chip))", `inverted and blurred share one filter, got ${drawn.filter}`);
+    expect(/--dt-backdrop-glass/.test(drawn.backdrop), `the background blur is the glass token, got ${drawn.backdrop}`);
+    const code = await fr.evaluate((n) => window.BuilderFrame.jsxNodes([n], "Effects"), await shape());
+    expect(/background: "var\(--dt-surface-brand-duotone\)"/.test(code) && /backdropFilter: "var\(--dt-backdrop-glass\)"/.test(code), `the code carries the tokens:\n${code}`);
+    ok("Fill's Gradient (brand duotone), Layer's Blur (soft) and Behind (glass) draw from their tokens, over a custom fill and beside invert, and export as tokens");
     await page.close();
   });
 

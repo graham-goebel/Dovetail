@@ -16296,6 +16296,22 @@
               else setStyle(ids, "surface", v || void 0);
             }
           }),
+          /* A gradient or a texture, over the fill. */
+          e(
+            Field,
+            { key: "gradient", id: "bd-grad-" + first.id, label: "Gradient", hint: (function() {
+              var g = tokenOption("gradient", nodes[0].style.gradient);
+              return g ? g.tokens[0] : null;
+            })() },
+            tokenDropdown("gradient", nodes, "bd-grad-" + first.id, {
+              noneLabel: "None",
+              className: "bd-dd-field",
+              noPreview: true,
+              onPreview: function(v) {
+                previewStyle(ids, "gradient", v);
+              }
+            })
+          ),
           free && textOnly ? e(
             Field,
             { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
@@ -16308,7 +16324,7 @@
               } }, "Use the system's") : null
             )
           ) : null
-        ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark"])),
+        ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark", "gradient"])),
         sec("layer", "Layer", [
           e(
             "div",
@@ -16328,6 +16344,12 @@
                 previewStyle(ids, "blend", v);
               }
             })
+          ),
+          e(
+            "div",
+            { key: "blurs", className: "bd-size-row bd-border-look" },
+            tokenDropdown("blur", nodes, null, { label: "Layer blur", prefix: "Blur", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true }),
+            tokenDropdown("backdrop", nodes, null, { label: "Background blur", prefix: "Behind", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true })
           ),
           picturesOnly ? e(
             Field,
@@ -16362,7 +16384,7 @@
             return n.hide;
           });
           return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-        })(), styled(nodes, ["blend", "invert", "opacity", "alpha"])),
+        })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop"])),
         sec(
           "border",
           "Border",
