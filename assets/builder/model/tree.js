@@ -164,6 +164,36 @@ var ops = {
     parent.children.splice(at, 0, box);
     return box.id;
   },
+  /* A shape made the mask of the layers over it: a Group in the shape's
+     place and size, with its look, clipped to its box (an ellipse to an
+     ellipse), holding the others where they stood. The shape is the first
+     free one among them, in layer order. */
+  mask: function (doc, ids) {
+    var spots = ids.map(function (id) { return locate(doc, id); }).filter(Boolean);
+    if (spots.length < 2 || spots.some(fixed) || spots.some(function (s) { return !isFree(s.node.style) || s.node.lock; })) return null;
+    var parent = spots[0].parent;
+    if (spots.some(function (s) { return s.parent !== parent; })) return null;
+    spots.sort(function (a, b) { return a.index - b.index; });
+    var shapeAt = spots.filter(function (s) { return s.node.type === "Shape" && (s.node.props || {}).shape !== "line"; })[0];
+    if (!shapeAt) return null;
+    var m = shapeAt.node, ms = m.style;
+    if (!ms.fw || !ms.fh) return null;
+    var look = {};
+    Object.keys(ms).forEach(function (k) { if (k !== "x" && k !== "y") look[k] = ms[k]; });
+    look.x = ms.x; look.y = ms.y;
+    look.clip = (m.props || {}).shape === "ellipse" ? "ellipse" : "box";
+    var kids = spots.filter(function (s) { return s !== shapeAt; }).map(function (s) {
+      var n = s.node;
+      n.style.x = Math.max(0, n.style.x - ms.x); n.style.y = Math.max(0, n.style.y - ms.y);
+      return n;
+    });
+    var box = make("Group", {}, kids, look);
+    if (m.name) box.name = m.name;
+    var at = shapeAt.index;
+    parent.children = parent.children.filter(function (c) { return ids.indexOf(c.id) < 0; });
+    parent.children.splice(Math.min(at, parent.children.length), 0, box);
+    return box.id;
+  },
   ungroup: function (doc, id) {
     var at = locate(doc, id);
     if (fixed(at) || !at.node.children || !isContainer(at.node.type)) return null;

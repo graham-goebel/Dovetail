@@ -2443,6 +2443,7 @@ function App(props) {
       { value: "hide", label: allHidden ? "Show" : "Hide", hint: "Ctrl+Shift+H", icon: allHidden ? "eye" : "eyeOff", group: "Layer" },
       { value: "lock", label: allLocked ? "Unlock" : "Lock", hint: "Ctrl+Shift+L", icon: allLocked ? "lockOpen" : "lock", group: "Layer" },
     ])
+    .concat(free && nodes.length > 1 && nodes.some(function (n) { return n.type === "Shape" && n.props.shape !== "line"; }) ? [{ value: "mask", label: "Use the shape as a mask", icon: "shapeEllipse", group: "Layer" }] : [])
     .concat(one && one.type !== "Slot" ? [{ value: "rename", label: "Rename", hint: "F2", icon: "pencil", group: "Layer" }] : [])
     .concat([{ value: "component", label: "Create component", hint: "Ctrl+Alt+K", icon: "component", group: "Layer" }])
     .concat(one ? [{ value: "link", label: "Copy link to this layer", icon: "link", group: "Layer" }, { value: "png", label: "Export as PNG", icon: "image", group: "Layer" }] : []);
@@ -2460,6 +2461,7 @@ function App(props) {
     else if (v === "tidy") arrange("tidy");
     else if (v === "group") actions.group();
     else if (v === "ungroup") actions.ungroup();
+    else if (v === "mask") actions.mask();
     else if (v === "hide") actions.hide();
     else if (v === "lock") actions.lock();
     else if (v === "rename") actions.rename();
@@ -2565,6 +2567,22 @@ function App(props) {
       var ids = selRef.current.slice();
       if (!ids.length) return;
       if (!change(function (d) { return ops.group(d, ids); }, "Grouped " + ids.length + (ids.length === 1 ? " item" : " items"))) announce("Only items side by side in the same parent can be grouped");
+    },
+    mask: function () {
+      var ids = selRef.current.slice();
+      var d = docRef.current, a = api(), unit = pxMap["padding|2xs"] || 4;
+      /* A shape with no size of its own takes its drawn size first. */
+      var sized = function (dd) {
+        ids.forEach(function (id) {
+          var at = locate(dd, id);
+          if (!at || at.node.type !== "Shape" || (at.node.style.fw && at.node.style.fh)) return;
+          var r = a && a.rect ? a.rect(id) : null;
+          if (r) { at.node.style.fw = at.node.style.fw || Math.max(1, Math.round(r.width / unit)); at.node.style.fh = at.node.style.fh || Math.max(1, Math.round(r.height / unit)); }
+        });
+      };
+      var made = null;
+      change(function (dd) { sized(dd); made = ops.mask(dd, ids); return made ? [made] : null; }, "Masked with a shape");
+      if (made) select([made]); else announce("A mask needs free layers side by side, one of them a rectangle or an ellipse");
     },
     ungroup: function () {
       var id = selRef.current[selRef.current.length - 1];
@@ -4861,6 +4879,8 @@ function App(props) {
           e("span", { className: "bd-blend-now" }, blendNow === null ? "Mixed" : blendOpt ? blendOpt.label || blendOpt.value : "Normal"),
           tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true,
             onPreview: function (v) { previewStyle(ids, "blend", v); } })),
+        nodes.every(function (n) { return n.type === "Group"; }) ? e(Field, { key: "clip", id: lid + "-clip", label: "Clip content", hint: "Cuts off what reaches past its edge" },
+          tokenDropdown("clip", nodes, lid + "-clip", { noneLabel: "Off", className: "bd-dd-field", noPreview: true })) : null,
         e("div", { key: "blurs", className: "bd-size-row bd-border-look" },
           tokenDropdown("blur", nodes, null, { label: "Layer blur", prefix: "Blur", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true }),
           tokenDropdown("backdrop", nodes, null, { label: "Background blur", prefix: "Behind", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true })),
@@ -4879,7 +4899,7 @@ function App(props) {
       ], (function () {
         var hidden = nodes.every(function (n) { return n.hide; });
         return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop"])),
+      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop", "clip"])),
       sec("border", "Border", hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined, borderWidth: undefined, borderStyle: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", lines ? "strong" : "default"); }), hasBorder),

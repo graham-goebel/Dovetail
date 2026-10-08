@@ -311,3 +311,18 @@ test("absorbComponents merges a file's components into a library and keeps what 
   assert.deepEqual((await store.loadLibrary("f:a")).components.map((c) => c.id), ["c1", "c2"], "and it's saved");
   assert.equal((await absorbComponents(store, "f:b", [])), null, "nothing to take in reads the library as it is");
 });
+
+test("a shape used as a mask becomes a clipped Group holding the others where they stood", () => {
+  const doc = { active: "f", frames: [{ id: "f", name: "F", mode: "free", width: 400, height: 300, root: { id: "root", type: "Root", props: {}, style: {}, children: [
+    { id: "s", type: "Shape", props: { shape: "rectangle" }, style: { x: 10, y: 10, fw: 20, fh: 20, radius: "container" } },
+    { id: "t", type: "Text", props: { children: "Hi" }, style: { x: 12, y: 8 } },
+    { id: "u", type: "Text", props: { children: "Out" }, style: { x: 100, y: 100 } }] } }] };
+  const id = ops.mask(doc, ["s", "t"]);
+  const kids = doc.frames[0].root.children;
+  assert.equal(kids.length, 2);
+  const g = kids.find((k) => k.id === id);
+  assert.equal(g.type, "Group");
+  assert.deepEqual([g.style.x, g.style.y, g.style.fw, g.style.fh, g.style.clip, g.style.radius], [10, 10, 20, 20, "box", "container"]);
+  assert.deepEqual(g.children.map((c) => [c.id, c.style.x, c.style.y]), [["t", 2, 0]]);
+  assert.equal(ops.mask(doc, ["u"]), null);
+});

@@ -2345,6 +2345,10 @@ const BUILDER_TOKENS = {
       ["scrim-bottom", "--dt-scrim-bottom", "Scrim from the bottom"], ["scrim-top", "--dt-scrim-top", "Scrim from the top"], ["fade-bottom", "--dt-scrim-fade-bottom", "Fade to the surface"],
       ["pattern-dots", "--dt-pattern-dots", "Dots"], ["pattern-grid", "--dt-pattern-grid", "Grid"]]
       .map(([v, t, label]) => tokenOption(v, [t], { background: cssVar(t) }, label)) },
+  /* A box that cuts off what reaches past its edge: its own box (and its
+     corners), or the ellipse inside it. */
+  clip: { label: "Clip content", section: "appearance", preview: "text",
+    options: [tokenOption("box", [], { overflow: "hidden" }, "To its box"), tokenOption("ellipse", [], { overflow: "hidden", clipPath: "ellipse(50% 50% at 50% 50%)" }, "To an ellipse")] },
   /* Blur: the layer itself, or what shows through it (glass). */
   blur: { label: "Layer blur", section: "appearance", preview: "text",
     options: [["chip", "--dt-blur-chip", "Soft"], ["glass", "--dt-blur-glass", "Strong"]].map(([v, t, label]) => tokenOption(v, [t], { filter: `blur(${cssVar(t)})` }, label)) },
