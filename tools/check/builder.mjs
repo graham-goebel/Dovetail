@@ -4406,6 +4406,8 @@ try {
     await choose(page, "Start", "Dot");
     const capped = await poll(() => nodeOf("sa"), (n) => n.props.end === "arrow" && n.props.start === "dot");
     expect(capped.props.end === "arrow" && capped.props.start === "dot", `the cap menus set start and end, got ${capped.props.start}, ${capped.props.end}`);
+    /* The canvas draws the second cap a beat after the document has it. */
+    await (await frameAt(page, 1)).waitForFunction(() => document.querySelectorAll('[data-bf-id="sa"] svg').length === 2).catch(() => {});
     const drawn = await (await frameAt(page, 1)).evaluate(() => {
       const el = document.querySelector('[data-bf-id="sa"]').firstElementChild, cs = getComputedStyle(el);
       return { h: el.getBoundingClientRect().height, top: cs.borderTopStyle, caps: el.querySelectorAll("svg").length };
@@ -4422,6 +4424,7 @@ try {
     await option(page, "Dashed").click();
     const styled = await poll(() => nodeOf("sa"), (n) => n.style.borderWidth === "strong" && n.style.borderStyle === "dashed");
     expect(styled.style.borderWidth === "strong" && styled.style.borderStyle === "dashed", `Width and Style set borderWidth and borderStyle, got ${JSON.stringify(styled.style)}`);
+    await (await frameAt(page, 1)).waitForFunction(() => /dashed/.test(document.querySelector('[data-bf-id="sa"]').firstElementChild.style.borderTop)).catch(() => {});
     const look = await (await frameAt(page, 1)).evaluate(() => document.querySelector('[data-bf-id="sa"]').firstElementChild.style.borderTop);
     expect(/var\(--dt-border-width-strong\) dashed var\(--dt-border-strong\)/.test(look), `the line draws strong and dashed, got ${look}`);
     ok("Border width and Border style are menus, and the line draws with them");
