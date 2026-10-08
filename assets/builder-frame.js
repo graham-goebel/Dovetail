@@ -5,7 +5,8 @@
 
    - render(tree, options): draws the tree with the bundle's components;
    - rect(id) and drop(x, y, dragId): geometry, in this frame's coordinates;
-   - jsx(tree, name): the code for the tree, with each component's full props;
+   - jsx(tree, name): the code for the tree, with each component's full props
+     less those at their documented default;
    - detach(node): the same thing built from primitives, where a recipe exists;
    - textRect(id, text): where a node's text sits, for editing it in place;
    - height() and scrollBy(dx, dy): how tall the content is, and scrolling
@@ -19,6 +20,8 @@
    reader changed; everything else comes from the component's specimen
    (assets/specimens.js), the same starting point the component pages use, so
    a dropped component looks like a real use of it rather than an empty shell.
+   An atom (Text, Button, a form control) has its specimen changed by the
+   file's DEFAULTS, so it starts plain and named after itself.
    `style` holds token names, never values. Each name is looked up in the
    builder data (assets/builder-data.js, generated and checked by the site
    build), whose declarations are the only way a value reaches the canvas.
@@ -30,7 +33,7 @@
   "use strict";
 
   var NS = window.BeamMobileDesignSystem_e33121;
-  var specs = window.DovetailSpecimens || { build: {}, notes: {}, samples: {} };
+  var specs = window.DovetailSpecimens || { build: {}, notes: {}, samples: {}, defaults: {} };
   var mount = document.getElementById("bf-mount");
   if (!NS || !window.React || !window.ReactDOM || !mount) return;
 
@@ -220,6 +223,10 @@
         if (el) props = Object.assign({}, el.props);
       } catch (err) { props = {}; }
     }
+    /* An atom starts from its own defaults, not the specimen's showcase:
+       DEFAULTS in assets/specimens.js, where null removes a prop. */
+    var own = specs.defaults && specs.defaults[type];
+    if (own) Object.keys(own).forEach(function (k) { if (own[k] === null) delete props[k]; else props[k] = own[k]; });
     if (CONTAINERS[type]) delete props.children;
     baseCache[type] = props;
     return props;
@@ -878,6 +885,37 @@
     return "undefined";
   }
 
+  /* Whether a value is the prop's documented default (its @default, carried
+     in the builder data). A default written as prose or an expression
+     ("summary.locale", a template string) never matches. */
+  function isDocDefault(type, name, v) {
+    var m = DATA.components && DATA.components[type];
+    var spec = m && m.props.filter(function (x) { return x.name === name; })[0];
+    var d = spec ? spec.default : null;
+    if (d === null || d === undefined || d === "") return false;
+    if (typeof d === "number") return v === d;
+    if (/["`]/.test(d) || /^[A-Za-z_$][\w$]*\.[A-Za-z_$]/.test(d) || /^an? /.test(d)) return false;
+    if (typeof v === "boolean") return d === String(v);
+    if (typeof v === "number") return /^-?\d+(\.\d+)?$/.test(d) && Number(d) === v;
+    return typeof v === "string" && v === d;
+  }
+  /* A heading's level says where it sits in the page's outline, which only
+     the page knows, so the code always says it. */
+  var KEEP_DEFAULT = { level: true, headingLevel: true };
+  /* The props the code writes: a prop at its documented default says nothing
+     the component doesn't, so it's left out (<Button size="md"> is
+     <Button>). One the reader set to the default over a different starting
+     value stays, so the code shows the change and pastes back as it was. */
+  function withoutDefaults(node, p) {
+    var own = node.props || {}, b = base(node.type);
+    Object.keys(p).forEach(function (k) {
+      if (KEEP_DEFAULT[k] || !isDocDefault(node.type, k, p[k])) return;
+      var moved = own[k] !== undefined && own[k] !== null && b[k] !== undefined && !isDocDefault(node.type, k, b[k]);
+      if (!moved) delete p[k];
+    });
+    return p;
+  }
+
   function attrs(props, used) {
     return Object.keys(props).filter(function (k) {
       return k !== "children" && k !== "key" && k !== "ref" && props[k] !== undefined && !/^data-bf-/.test(k);
@@ -928,7 +966,7 @@
     }
     var tag = node.type;
     used.add(tag);
-    var p = propsOf(node);
+    var p = withoutDefaults(node, propsOf(node));
     var slots = slotsOf(node);
     slots.forEach(function (sl) { delete p[sl.props.name]; });
     var a = attrs(p, used);

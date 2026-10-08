@@ -705,8 +705,41 @@
     },
   };
 
-  /* The component pages' playground starts from these same specimens. */
-  window.DovetailSpecimens = { build: SPECIMENS, notes: NOTES, samples: SAMPLES };
+  /* Where the builder starts an atom: its specimen, changed by these. A
+     specimen shows a component off (an eyebrow, a small button, a switch
+     that's on), which is a surprising start for something just added. Here
+     an atom keeps only what it needs to be seen and says what it is: a value
+     replaces the specimen's, null removes it. Blocks, commerce, chat and the
+     rest have no entry, because their sample copy is what makes them
+     readable. */
+  var DEFAULTS = {
+    Text: { variant: null, children: "Text" },
+    /* Size follows level. */
+    Heading: { level: 2, size: null, children: "Heading" },
+    Button: { size: null, children: "Button" },
+    IconButton: { size: null },
+    Link: { children: "Link" },
+    Badge: { tone: null, children: "Badge" },
+    Tag: { selected: null, children: "Tag" },
+    Divider: { label: null },
+    Input: { size: null, defaultValue: null, label: "Label" },
+    Select: { size: null, label: "Label" },
+    Textarea: { defaultValue: null, label: "Label" },
+    Checkbox: { defaultChecked: null, label: "Checkbox" },
+    Radio: { defaultChecked: null, label: "Radio" },
+    Switch: { defaultChecked: null, label: "Switch" },
+    Card: { eyebrow: null, title: "Card", description: "A line of copy." },
+    Carousel: { layout: null, itemRatio: null },
+    Alert: { tone: null, title: "Alert", children: null },
+    Banner: { tone: null },
+    Callout: { tone: null },
+    Image: { alt: "Image" },
+    Video: { label: "Video" },
+  };
+
+  /* The component pages' playground starts from these same specimens, and
+     the builder from them and DEFAULTS. */
+  window.DovetailSpecimens = { build: SPECIMENS, notes: NOTES, samples: SAMPLES, defaults: DEFAULTS };
   if (!slots.length) return;
 
   Array.prototype.forEach.call(slots, function (slot) {
