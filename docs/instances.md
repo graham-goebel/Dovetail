@@ -75,6 +75,36 @@ stays as it is. `componentsFor(docs, library)` picks them and
 `absorbComponents(store, scope, components)` takes them in, both in
 `model/share.js`.
 
+## In the code
+
+The Export dialog writes an instance as a call to its component, and the
+component once, above the page, as a function of its own
+(`model/codegen.js` decides, the frame's exporter writes):
+
+```jsx
+export function ProductTile({ title = "Stoneware mug", glaze = "Fern glaze" }) { ... }
+... <ProductTile /> <ProductTile title="Tall jug" glaze="Moss glaze" /> ...
+```
+
+- A text an instance changed (children, or a prop the reader lists as
+  text, like a Card's title) becomes a prop. It's named after the layer
+  when the layer has a name (`glaze`), else after its part (`title` for a
+  Heading, `label` for a Button or Link), and its default is the
+  component's own text. Only texts some instance in the export changed
+  become props.
+- Anything else an instance changed (its own padding or surface, a layer
+  added, removed or hidden, a prop that isn't text) isn't in the code: the
+  call is the component as it is. The dialog lists those changes under
+  *Left out of the code*; update the component from the instance, or
+  detach it, to keep them.
+- An instance's own place on a freeform frame comes along: the call sits
+  in a box at that position.
+- A component inside a component is a call there too. Each component is
+  one function, named from its name in PascalCase, with *My* in front when
+  the system has a component of that name (`MyProductCard`).
+- With one instance picked, the code is its component alone. An instance
+  whose component has been deleted is written out in full, as before.
+
 ## Checks
 
 `tools/check/unit/instances.test.mjs` covers overrides, rebase, document

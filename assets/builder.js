@@ -6237,9 +6237,22 @@
           closeButton(p.dialogRef)
         ]
       ),
+      notes(p.notes),
       e("pre", { className: "bd-code-pre", tabIndex: 0 }, e("code", null, p.code))
     );
   });
+  function notes(list) {
+    if (!list || !list.length) return null;
+    return e(
+      "details",
+      { className: "bd-code-notes" },
+      e("summary", null, "Left out of the code (" + list.length + ")"),
+      e("p", null, "Each instance is written as a call to its component. Changed text comes along as props; these other changes don't. Update the component from an instance, or detach it, to keep them."),
+      e("ul", null, list.map(function(n) {
+        return e("li", { key: n.id }, e("strong", null, n.name), " (" + n.component + "): " + n.what.join("; "));
+      }))
+    );
+  }
   var ImportDialog = memo(function ImportDialog2(p) {
     var read = readLayout(p.text);
     var ok = read && !read.error;
@@ -9254,6 +9267,163 @@
     });
   }
 
+  // assets/builder/model/codegen.js
+  var OWN_STYLE = ["x", "y", "ch", "cv", "fw", "fh", "rot", "rw", "rh"];
+  function isText(type, key, value) {
+    if (typeof value !== "string") return false;
+    if (key === "children") return true;
+    var meta = META[type];
+    var spec = meta && (meta.props || []).filter(function(p) {
+      return p.name === key;
+    })[0];
+    return !!spec && (spec.kind === "text" || spec.kind === "node");
+  }
+  function propWord(node, key) {
+    if (node.name) {
+      var w = String(node.name).replace(/[^A-Za-z0-9]+(.)?/g, function(m, c) {
+        return c ? c.toUpperCase() : "";
+      });
+      w = w.charAt(0).toLowerCase() + w.slice(1);
+      if (/^[A-Za-z_$][\w$]*$/.test(w)) return w;
+    }
+    if (key !== "children") return key;
+    if (node.type === "Heading") return "title";
+    if (node.type === "Button" || node.type === "Link" || node.type === "Badge" || node.type === "Tag") return "label";
+    if (node.type === "Quote") return "quote";
+    return "text";
+  }
+  function functionName(name, taken) {
+    var base = String(name || "Component").replace(/[^A-Za-z0-9]+(.)?/g, function(m, c) {
+      return c ? c.toUpperCase() : "";
+    }).replace(/^[a-z]/, function(c) {
+      return c.toUpperCase();
+    }).replace(/^\d/, "C$&") || "Component";
+    if (META[base] || base === "Root" || base === "Slot") base = "My" + base;
+    var out = base, n = 2;
+    while (taken[out]) out = base + n++;
+    taken[out] = true;
+    return out;
+  }
+  function leftOut(ovs, master, textKeys) {
+    var said = [];
+    var add = function(s) {
+      if (said.indexOf(s) < 0) said.push(s);
+    };
+    ovs.forEach(function(o) {
+      var node = at(master, o.path);
+      if (o.children) add("a different set of layers inside");
+      if (o.style) {
+        var keys2 = Object.keys(o.style).filter(function(k) {
+          return o.path !== "" || OWN_STYLE.indexOf(k) < 0;
+        });
+        if (keys2.length) add("its own " + keys2.join(", ") + (o.path ? " on " + (node && (node.name || node.type) || "a layer") : ""));
+      }
+      if (o.flags && o.flags.hide !== void 0) add(o.flags.hide ? "a hidden layer" : "a layer shown that the component hides");
+      if (o.props) {
+        var other = Object.keys(o.props).filter(function(k) {
+          return !textKeys[o.path + "\0" + k];
+        });
+        if (other.length) add("its own " + other.join(", ") + (o.path ? " on " + (node && (node.name || node.type) || "a layer") : ""));
+      }
+    });
+    return said;
+  }
+  function codeWithComponents(roots, library) {
+    var comps = {}, order = [], taken = {}, notes2 = [];
+    var found = {};
+    var collect = function(n) {
+      var comp = n.inst ? masterOf(library, n) : null;
+      if (comp) {
+        (found[comp.id] = found[comp.id] || { comp, instances: [] }).instances.push(n);
+        if (!found[comp.id].seen) {
+          found[comp.id].seen = true;
+          (comp.node.children || []).forEach(collect);
+        }
+        return;
+      }
+      (n.children || []).forEach(collect);
+    };
+    roots.forEach(collect);
+    Object.keys(found).forEach(function(id) {
+      var f = found[id], master = f.comp.node, params = [], keys2 = {}, words2 = {};
+      f.instances.forEach(function(inst) {
+        overrides(inst, master).forEach(function(o) {
+          if (!o.props) return;
+          Object.keys(o.props).forEach(function(k) {
+            var node = at(master, o.path), v = o.props[k];
+            if (!node || !isText(node.type, k, v)) return;
+            var key = o.path + "\0" + k;
+            if (keys2[key]) return;
+            var w = propWord(node, k), name = w, i = 2;
+            while (words2[name] || name === "style") name = w + i++;
+            words2[name] = true;
+            keys2[key] = name;
+            params.push({ name, path: o.path, key: k, def: typeof (node.props || {})[k] === "string" ? node.props[k] : void 0 });
+          });
+        });
+      });
+      params.sort(function(a, b) {
+        return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
+      });
+      comps[id] = { id, comp: f.comp, params, keys: keys2, instances: f.instances };
+    });
+    var call = function(n) {
+      var c = comps[n.inst.of];
+      if (!c.fn) {
+        c.fn = functionName(c.comp.name, taken);
+        order.push(c);
+        c.node = asComponent(c);
+      }
+      var ovs = overrides(n, c.comp.node), values = {};
+      ovs.forEach(function(o) {
+        Object.keys(o.props || {}).forEach(function(k) {
+          var name = c.keys[o.path + "\0" + k];
+          if (name) values[name] = o.props[k];
+        });
+      });
+      var what = leftOut(ovs, c.comp.node, c.keys);
+      if (what.length) notes2.push({ id: n.id, name: n.name || c.comp.name, component: c.fn, what });
+      var own = {};
+      OWN_STYLE.forEach(function(k) {
+        if (n.style && n.style[k] !== void 0) own[k] = n.style[k];
+      });
+      var out2 = { id: n.id, type: "__Call", props: { name: c.fn, values }, style: own };
+      if (n.hide) out2.hide = true;
+      return out2;
+    };
+    var swap = function(n) {
+      if (n.inst && comps[n.inst.of]) return call(n);
+      if (!n.children) return n;
+      return Object.assign({}, n, { children: n.children.map(swap) });
+    };
+    var asComponent = function(c) {
+      var node = copy(c.comp.node);
+      delete node.inst;
+      OWN_STYLE.forEach(function(k) {
+        if (node.style) delete node.style[k];
+      });
+      c.params.forEach(function(p) {
+        var t = at(node, p.path);
+        if (t) {
+          t.props = t.props || {};
+          t.props[p.key] = { __expr: p.name };
+        }
+      });
+      node.children = (node.children || []).map(swap);
+      return node;
+    };
+    var out = roots.map(swap);
+    return {
+      roots: out,
+      components: order.map(function(c) {
+        return { name: c.fn, node: c.node, params: c.params.map(function(p) {
+          return { name: p.name, def: p.def };
+        }) };
+      }),
+      leftOut: notes2
+    };
+  }
+
   // assets/builder/app/App.js
   var HOME_SORT_KEY = "dovetail-builder-home-sort";
   var DARK_KEY = "dovetail-builder-dark";
@@ -9437,6 +9607,8 @@
     var openFrames = openFramesState[0], setOpenFrames = openFramesState[1];
     var codeTitleState = useState("");
     var codeTitle = codeTitleState[0], setCodeTitle = codeTitleState[1];
+    var codeNotesState = useState([]);
+    var codeNotes = codeNotesState[0], setCodeNotes = codeNotesState[1];
     var codePickState = useState(null);
     var codePick = codePickState[0], setCodePick = codePickState[1];
     var scaleState = useState(2);
@@ -12829,15 +13001,24 @@
         if (n.type === "Slot") parts = parts.concat(n.children);
         else parts.push(n);
       });
+      var withComps = function(roots) {
+        var got = codeWithComponents(roots, libRef.current);
+        setCodeNotes(got.leftOut);
+        return { roots: withPageLinks(got.roots), opts: { components: got.components.map(function(c) {
+          return Object.assign({}, c, { node: withPageLinks(c.node) });
+        }) } };
+      };
       if (parts.length && f.jsxNodes) {
         var title = parts.length === 1 ? nameOf(parts[0]) : parts.length + " layers";
         setCodeTitle(title);
         setCodePick(parts.length === 1 ? parts[0].id : null);
-        setCode(f.jsxNodes(withPageLinks(parts), parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts"));
+        var gotParts = withComps(parts);
+        setCode(f.jsxNodes(gotParts.roots, parts.length === 1 ? parts[0].name || parts[0].type : fr.name + " parts", gotParts.opts));
       } else {
         setCodeTitle(fr.name);
         setCodePick(null);
-        setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: withPageLinks(fr.root) }, fr.name));
+        var gotFrame = withComps([fr.root]);
+        setCode(f.jsx({ page: Object.assign({}, fr, { bare: !!fr.bare }), root: gotFrame.roots[0] }, fr.name, gotFrame.opts));
       }
       var dlg = dialogRef.current;
       if (dlg && dlg.showModal) dlg.showModal();
@@ -17637,6 +17818,7 @@
       e(CodeDialog, {
         dialogRef,
         code,
+        notes: codeNotes,
         title: codeTitle,
         picked: !!codePick,
         frameName: frame2.name,
