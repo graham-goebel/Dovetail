@@ -180,6 +180,13 @@ function watch(page) {
 
 /* The canvas frames, in the order they sit on the canvas. */
 const frames = (page) => page.frames().filter((f) => f.url().includes("builder-frame"));
+/* The i-th canvas frame once Playwright has it: right after a reload the
+   iframe element can be in the page before its frame is attached. */
+const frameAt = async (page, i = 0, ms = 8000) => {
+  const end = Date.now() + ms;
+  while (!frames(page)[i]) { if (Date.now() > end) throw new Error(`canvas frame ${i} never attached`); await page.waitForTimeout(50); }
+  return frames(page)[i];
+};
 
 async function open(viewport, { hash = "", store = null, before = null, playground = false } = {}) {
   const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
@@ -1337,7 +1344,7 @@ try {
     await tab(page, "Appearance");
     await page.locator(".bd-right .bd-blend-dd").click();
     await option(page, "Multiply").click();
-    await frames(page)[0].waitForFunction(() => { const b = [...document.querySelectorAll('[data-bf-type="Badge"]')].pop(); return getComputedStyle(b.firstElementChild).mixBlendMode === "multiply"; });
+    await (await frameAt(page, 0)).waitForFunction(() => { const b = [...document.querySelectorAll('[data-bf-type="Badge"]')].pop(); return getComputedStyle(b.firstElementChild).mixBlendMode === "multiply"; });
 
     await tab(page, "Layout");
     await dd(page, "Width").click();
@@ -1526,7 +1533,7 @@ try {
     await release(page);
     await page.keyboard.press("Shift+ArrowUp");
     const titleSize = await poll(async () => (await saved()).frames[0].root.children.find((c) => c.type === "HeroBlock").props.titleSize, (v) => v === "display-md");
-    await frames(page)[0].waitForFunction((b) => parseFloat(getComputedStyle(document.querySelector('[data-bf-type="HeroBlock"] h1')).fontSize) > b, sizeBefore);
+    await (await frameAt(page, 0)).waitForFunction((b) => parseFloat(getComputedStyle(document.querySelector('[data-bf-type="HeroBlock"] h1')).fontSize) > b, sizeBefore);
     ok(`pressing the hero's heading picks its Title; Shift+Up makes it ${titleSize}, larger on the canvas`);
 
     await page.locator(".bd-rail .bd-tab", { hasText: "Content" }).click();
@@ -1629,7 +1636,7 @@ try {
     await page.evaluate(() => window.__builder && window.__builder.flush());
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame);
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame);
     await fitAll(page);
     await pressButton(page, "Shop the collection");
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
@@ -3217,7 +3224,7 @@ try {
     const opened = await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : "no builder"), (v) => /freebie/.test(v), 8000);
     expect(/freebie/.test(opened), `after the save and reload the free frame is there, got frames ${opened}`);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
-    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    await (await frameAt(page, 1)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
     const free = async () => (await saved()).frames.find((f) => f.id === "freebie");
     const at = async (id) => { const n = (await free()).root.children.find((c) => c.id === id); return [n.style.x, n.style.y]; };
     const order = async () => (await free()).root.children.map((c) => c.id).join(",");
@@ -3571,7 +3578,7 @@ try {
     await release(page);
     await page.keyboard.press("Control+Shift+KeyH");
     expect((await poll(() => flag("hc"), (v) => v.hide)).hide, "Ctrl+Shift+H hides the Heading");
-    await frames(page)[1].waitForFunction(() => !document.querySelector('[data-bf-id="hc"]'));
+    await (await frameAt(page, 1)).waitForFunction(() => !document.querySelector('[data-bf-id="hc"]'));
     await page.evaluate(() => window.__builder.select([]));
     await page.waitForTimeout(100);
     await page.locator(".bd-export").click();
@@ -3711,21 +3718,21 @@ try {
     const blendSteps = (await steps(page)).past;
     await page.locator(".bd-right .bd-blend-dd").click();
     await page.locator(".bd-dd-opt", { hasText: /^Multiply/ }).hover();
-    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply");
+    await (await frameAt(page, 1)).waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply");
     await page.locator(".bd-dd-opt", { hasText: /^Screen/ }).hover();
-    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "screen");
+    await (await frameAt(page, 1)).waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "screen");
     await page.keyboard.press("ArrowDown");
-    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "overlay");
+    await (await frameAt(page, 1)).waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "overlay");
     expect((await steps(page)).past === blendSteps, "previewing makes no undo step");
     await page.keyboard.press("Escape");
-    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "normal");
+    await (await frameAt(page, 1)).waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "normal");
     expect(!(await ba()).blend, "Escape puts the blend mode back to Normal");
     await page.locator(".bd-right .bd-blend-dd").click();
     await page.locator(".bd-dd-opt", { hasText: /^Darken/ }).hover();
     await page.locator(".bd-dd-opt", { hasText: /^Multiply/ }).click();
     expect(await poll(async () => (await ba()).blend, (v) => v === "multiply") === "multiply" && (await steps(page)).past === blendSteps + 1, `a click keeps Multiply as one undo step, got ${(await ba()).blend} and ${(await steps(page)).past - blendSteps} steps`);
     /* The frame repaints just after the change. */
-    await frames(page)[1].waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply", null, { timeout: 4000 }).catch(() => {});
+    await (await frameAt(page, 1)).waitForFunction(() => getComputedStyle(document.querySelector('[data-bf-id="ba"]').firstElementChild).mixBlendMode === "multiply", null, { timeout: 4000 }).catch(() => {});
     expect(await blendOn() === "multiply", `the canvas keeps it, got ${await blendOn()}`);
     await release(page);
     await page.keyboard.press("Control+z");
@@ -3776,7 +3783,7 @@ try {
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => window.__builder && window.__builder.project().pages && window.__builder.project().pages.length === 2);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="FeatureGridBlock"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="FeatureGridBlock"]'));
     const grid = findIn((await saved()).frames[0].root, "FeatureGridBlock");
     await page.evaluate(([id, to]) => window.__builder.edit(id, "items", [
       { title: "Fired twice", description: "A second firing makes the glaze hard enough for the dishwasher.", href: "#page:" + to, linkLabel: "About us" },
@@ -3850,7 +3857,7 @@ try {
     await page.waitForTimeout(400);
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="Button"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="Button"]'));
     await page.evaluate((id) => window.__builder.select([id]), btn.id);
     await page.waitForFunction(() => /Button/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await page.locator(".bd-inspect-head .bd-layer-menu").click();
@@ -3884,7 +3891,7 @@ try {
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => window.__builder && window.__builder.project().pages && window.__builder.project().pages.length === 2);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="Button"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-type="Button"]'));
 
     /* Two more instances from My components. */
     await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).click();
@@ -4037,7 +4044,7 @@ try {
     await page.waitForTimeout(400);
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="sct"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="sct"]'));
     const listOf = async (locator) => { await locator.click(); const l = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents(); await page.keyboard.press("Escape"); return l; };
     const selectOne = async (id, title) => { await page.evaluate((x) => window.__builder.select([x]), id); await page.waitForFunction((t) => new RegExp(t).test(document.querySelector(".bd-inspect-title")?.textContent || ""), title); await tab(page, "Layout"); };
 
@@ -4098,7 +4105,7 @@ try {
     await page.waitForTimeout(400);
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="opc"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="opc"]'));
     const listOf = async (locator) => { await locator.click(); const l = await page.locator(".bd-dd-opt .bd-dd-opt-label").allTextContents(); await page.keyboard.press("Escape"); return l; };
     const selectOne = async (id, title) => { await page.evaluate((x) => window.__builder.select([x]), id); await page.waitForFunction((t) => new RegExp(t).test(document.querySelector(".bd-inspect-title")?.textContent || ""), title); await tab(page, "Layout"); };
 
@@ -4163,7 +4170,7 @@ try {
        the cleared side in grey with that size: the inspector re-renders on
        the frame's redraw, and Up before then has stale steps to step. */
     await page.waitForSelector(".bd-box-p > .bd-box-cell.is-right .bd-dd.is-inherited");
-    await frames(page)[0].waitForFunction((px) => window.BuilderFrame.spacing("opc").paddingRight === px, drawnPad);
+    await (await frameAt(page, 0)).waitForFunction((px) => window.BuilderFrame.spacing("opc").paddingRight === px, drawnPad);
     await page.waitForFunction((px) => document.querySelector(".bd-box-p > .bd-box-cell.is-right .bd-dd-label")?.textContent === String(px), drawnPad);
     await cell("right").focus();
     await page.keyboard.press("ArrowUp");
@@ -4300,7 +4307,7 @@ try {
     });
     await page.reload();
     await page.waitForFunction(() => window.__builder && document.querySelectorAll("iframe.bd-frame").length === 2);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="xa0"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="xa0"]'));
     const viaDialog = async (where) => {
       await page.locator(".bd-export").click();
       await page.locator(".bd-code[open] .bd-code-pre code").waitFor();
@@ -4373,7 +4380,7 @@ try {
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => window.__builder && window.__builder.project().pages && window.__builder.project().pages.length === 2);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="da0"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="da0"]'));
     await page.locator(".bd-export").click();
     await page.locator(".bd-code[open]").waitFor();
     const [dl] = await Promise.all([page.waitForEvent("download"), page.locator(".bd-code[open] .bd-btn", { hasText: "Download project code" }).click()]);
@@ -4536,7 +4543,7 @@ try {
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => /conv/.test(v), 8000);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
-    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    await (await frameAt(page, 1)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
     const free = async () => (await saved()).frames.find((f) => f.id === "conv");
     const nodeOf = async (id) => (await free()).root.children.find((c) => c.id === id);
     await fitAll(page);
@@ -4583,7 +4590,7 @@ try {
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => /conv/.test(v), 8000);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
-    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
+    await (await frameAt(page, 1)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="ba"]'));
     const kept = [(await nodeOf("hc")).name, (await nodeOf("bb")).name];
     expect(kept.join() === "Big title,Secondary", `the names outlast a reload, got ${kept}`);
     ok("F2 renames a Heading, a double-click renames a Button's row, and both names outlast a reload");
@@ -4699,7 +4706,7 @@ try {
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => v === "pin", 8000);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="bt"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="bt"]'));
     const node = async (id) => (await saved()).frames[0].root.children.find((c) => c.id === id).style;
     const rectOf = (id) => page.evaluate((id) => document.querySelector("iframe.bd-frame").contentWindow.BuilderFrame.rect(id), id);
     await fitAll(page);
@@ -4795,7 +4802,7 @@ try {
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await poll(() => page.evaluate(() => window.__builder ? window.__builder.doc().frames.map((f) => f.id).join() : ""), (v) => /vw/.test(v), 8000);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
-    await frames(page)[1].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="bt"]'));
+    await (await frameAt(page, 1)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="bt"]'));
     const vw = async () => (await saved()).frames.find((f) => f.id === "vw");
     await page.evaluate(() => window.__builder.select([]));
     await page.keyboard.press("Shift+2");
@@ -4993,7 +5000,7 @@ try {
     });
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="in1"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="in1"]'));
     const lib0 = await library();
     expect(lib0.components.length === 1 && lib0.components[0].rev === 2 && lib0.components[0].prev, `the library reads back with the component's revision and the one before, got ${JSON.stringify(lib0.components[0] && { rev: lib0.components[0].rev, prev: !!lib0.components[0].prev })}`);
     ok("a component's revision and its previous one survive a reload");
@@ -5010,7 +5017,7 @@ try {
     await page.locator(".bd-projects input[type=file][accept^='.dovetail']").setInputFiles(file);
     await page.waitForFunction((id) => window.__builder.project().id !== id, firstId);
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length > 0);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="in1"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="in1"]'));
     const lib1 = await poll(() => library(), (l) => (l.components || []).some((c) => c.id === "promo1"));
     expect((lib1.components || []).some((c) => c.id === "promo1" && c.rev === 2), `the opened file's library has the component, got ${JSON.stringify((lib1.components || []).map((c) => c.id))}`);
     await page.evaluate(() => window.__builder.select(["in1"]));
@@ -5163,7 +5170,7 @@ try {
     await page.reload();
     await page.waitForSelector(".bd-assets", { state: "attached" });
     await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length === 2);
-    await frames(page)[0].waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="a0"]'));
+    await (await frameAt(page, 0)).waitForFunction(() => !!window.BuilderFrame && document.querySelector('[data-bf-id="a0"]'));
     const exportCode = async () => {
       await page.locator(".bd-export").click();
       await page.locator(".bd-code[open] .bd-code-pre code").waitFor();
