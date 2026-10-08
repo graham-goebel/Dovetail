@@ -3339,7 +3339,11 @@ try {
     expect((await steps(page)).past === stepsA + 1, "as one undo step");
     /* What align measures: each object's box in the frame, beside where the
        document puts it, so a failure says which one was measured off. */
-    const boxes = await frames(page)[0].evaluate(() => ["ba", "bb", "hc"].map((id) => { const r = window.BuilderFrame.rect(id); return id + " top " + (r ? Math.round(r.top * 100) / 100 + " h " + Math.round(r.height * 100) / 100 : "none"); }).join(", "));
+    let boxes = "";
+    for (const f of frames(page)) {
+      const got = await f.evaluate(() => document.querySelector('[data-bf-id="hc"]') ? ["ba", "bb", "hc"].map((id) => { const r = window.BuilderFrame.rect(id), el = document.querySelector(`[data-bf-id="${id}"]`).firstElementChild, b = el && el.getBoundingClientRect(); return id + " top " + (r ? Math.round(r.top * 100) / 100 + " h " + Math.round(r.height * 100) / 100 : "none") + " (el " + (b ? Math.round(b.top * 100) / 100 + " h " + Math.round(b.height * 100) / 100 : "none") + ")"; }).join(", ") + "; unit " + window.BuilderFrame.measure(["var(--dt-space-inset-2xs)"])[0] : "").catch(() => "");
+      if (got) { boxes = got; break; }
+    }
     const was = [await at("ba"), await at("bb"), await at("hc")];
     await page.keyboard.press("Alt+KeyW");
     const tops = await poll(async () => [await at("ba"), await at("bb"), await at("hc")], (v) => v.every((p) => p[1] === 0));
