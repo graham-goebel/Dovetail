@@ -204,7 +204,9 @@ async function open(viewport, { hash = "", store = null, before = null, playgrou
   if (hash) await page.goto(server.origin + "/builder.html" + hash);
   await page.reload();
   await page.waitForSelector(".bd-assets", { state: "attached" });
-  const frame = (i = 0) => frames(page)[i];
+  /* The i-th canvas frame; until Playwright has attached it (just after a
+     load), a stand-in whose calls wait for it first. */
+  const frame = (i = 0) => frames(page)[i] || new Proxy({}, { get: (_, k) => (...a) => frameAt(page, i).then((f) => f[k](...a)) });
   await page.waitForFunction(() => document.querySelectorAll("iframe.bd-frame").length > 0);
   await frame().waitForFunction(() => !!window.BuilderFrame);
   return { page, frame };
