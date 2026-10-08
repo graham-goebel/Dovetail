@@ -4846,17 +4846,24 @@ function App(props) {
         e(SwatchField, { key: "fill", id: "bd-fill-" + first.id, label: "Fill", groups: surfaceGroups(), value: surfaceNow, mixed: surfaceNow === null, custom: free && !surfaceNow && fillHex ? fillHex : null,
           noneHint: "Takes the surface around it",
           onChange: function (v) { if (free) setStyles(ids, { surface: v || undefined, fill: undefined }); else setStyle(ids, "surface", v || undefined); } }),
+        /* A gradient or a texture, over the fill. */
+        e(Field, { key: "gradient", id: "bd-grad-" + first.id, label: "Gradient", hint: (function () { var g = tokenOption("gradient", nodes[0].style.gradient); return g ? g.tokens[0] : null; })() },
+          tokenDropdown("gradient", nodes, "bd-grad-" + first.id, { noneLabel: "None", className: "bd-dd-field", noPreview: true,
+            onPreview: function (v) { previewStyle(ids, "gradient", v); } })),
         free && textOnly ? e(Field, { key: "ink", id: "bd-ink-" + first.id, label: "Text colour", hint: inkHex ? "A custom colour, outside the system's text roles." : "From the system's text roles." },
           e("div", { className: "bd-canvas-row" },
             picker("color", inkHex, "Custom text colour"),
             inkHex ? e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function () { setStyle(ids, "color", undefined); } }, "Use the system's") : null)) : null,
-      ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark"])),
+      ], free ? e("span", { className: "bd-sec-acts" }, picker("fill", fillHex, "Custom fill colour", "surface"), darkToggle) : darkToggle, styled(nodes, ["surface", "fill", "color", "dark", "gradient"])),
       sec("layer", "Layer", [
         e("div", { key: "blend", className: "bd-blend-row" },
           e("span", { className: "bd-field-label", id: lid }, "Blend"),
           e("span", { className: "bd-blend-now" }, blendNow === null ? "Mixed" : blendOpt ? blendOpt.label || blendOpt.value : "Normal"),
           tokenDropdown("blend", nodes, lid, { label: "Blend mode", noneLabel: "Normal", className: "bd-dd-icon bd-blend-dd", noPreview: true, icon: "swatch", iconOnly: true, compact: true, alignEnd: true,
             onPreview: function (v) { previewStyle(ids, "blend", v); } })),
+        e("div", { key: "blurs", className: "bd-size-row bd-border-look" },
+          tokenDropdown("blur", nodes, null, { label: "Layer blur", prefix: "Blur", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true }),
+          tokenDropdown("backdrop", nodes, null, { label: "Background blur", prefix: "Behind", noneLabel: "None", className: "bd-dd-field", noPreview: true, narrow: true })),
         picturesOnly ? e(Field, { key: "invert", id: lid + "-inv", label: "Invert colours", inline: true, note: "Flips the picture to its negative" },
           e(Switch, { labelledBy: lid + "-inv", value: !!invValues[0], mixed: !same(invValues), onChange: function (v) { setStyle(ids, "invert", v ? "on" : undefined); } })) : null,
         free ? (function () {
@@ -4872,7 +4879,7 @@ function App(props) {
       ], (function () {
         var hidden = nodes.every(function (n) { return n.hide; });
         return headAction(hidden ? "eyeOff" : "eye", hidden ? "Hidden: press to show (Ctrl+Shift+H)" : "Visible: press to hide (Ctrl+Shift+H)", actions.hide, hidden);
-      })(), styled(nodes, ["blend", "invert", "opacity", "alpha"])),
+      })(), styled(nodes, ["blend", "invert", "opacity", "alpha", "blur", "backdrop"])),
       sec("border", "Border", hasBorder || lines ? [hasBorder ? tokenControl("border", nodes, "bd-t-" + first.id + "-border", "Colour") : null, borderLookRow(nodes, first.id)] : e("p", { className: "bd-sec-empty" }, "None"),
         hasBorder ? headAction("minus", "Remove the border", function () { var p = { border: undefined, borderWidth: undefined, borderStyle: undefined }; sidesOf.forEach(function (k) { p[k] = undefined; }); setStyles(ids, p); })
           : headAction("plusSm", "Add a border", function () { setStyle(ids, "border", lines ? "strong" : "default"); }), hasBorder),

@@ -2337,6 +2337,19 @@ const BUILDER_TOKENS = {
   radiusTopRight: { label: "Top right radius", section: "appearance", preview: "radius", side: "top-right", short: "↗", options: cornerOpts("borderTopRightRadius") },
   radiusBottomLeft: { label: "Bottom left radius", section: "appearance", preview: "radius", side: "bottom-left", short: "↙", options: cornerOpts("borderBottomLeftRadius") },
   radiusBottomRight: { label: "Bottom right radius", section: "appearance", preview: "radius", side: "bottom-right", short: "↘", options: cornerOpts("borderBottomRightRadius") },
+  /* A fill from the system's own gradients and patterns: the brand's
+     gradient and duotone, the scrims laid over pictures, and the two
+     textures. Each is a semantic token, so a theme and dark mode follow. */
+  gradient: { label: "Gradient", section: "appearance", preview: "text",
+    options: [["brand-gradient", "--dt-surface-brand-gradient", "Brand gradient"], ["brand-duotone", "--dt-surface-brand-duotone", "Brand duotone"],
+      ["scrim-bottom", "--dt-scrim-bottom", "Scrim from the bottom"], ["scrim-top", "--dt-scrim-top", "Scrim from the top"], ["fade-bottom", "--dt-scrim-fade-bottom", "Fade to the surface"],
+      ["pattern-dots", "--dt-pattern-dots", "Dots"], ["pattern-grid", "--dt-pattern-grid", "Grid"]]
+      .map(([v, t, label]) => tokenOption(v, [t], { background: cssVar(t) }, label)) },
+  /* Blur: the layer itself, or what shows through it (glass). */
+  blur: { label: "Layer blur", section: "appearance", preview: "text",
+    options: [["chip", "--dt-blur-chip", "Soft"], ["glass", "--dt-blur-glass", "Strong"]].map(([v, t, label]) => tokenOption(v, [t], { filter: `blur(${cssVar(t)})` }, label)) },
+  backdrop: { label: "Background blur", section: "appearance", preview: "text",
+    options: [tokenOption("glass", ["--dt-backdrop-glass"], { backdropFilter: cssVar("--dt-backdrop-glass") }, "Glass")] },
   elevation: { label: "Shadow", section: "appearance", preview: "shadow",
     options: ["0", "1", "2", "3", "4", "5"].map((o) => tokenOption(o, [`--dt-elevation-${o}`], { boxShadow: cssVar(`--dt-elevation-${o}`) })) },
   /* Padding reads the inset scale, or the layout layers for a band; margin
