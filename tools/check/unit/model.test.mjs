@@ -171,6 +171,8 @@ test("pasting JSX gives the tree, slots, sample items and a report", () => {
   assert.equal(group.children[1].props.ratio, "16:9");
   assert.ok(read.report.some((l) => /onClick is a handler/.test(l)));
   assert.ok(read.report.some((l) => /came in as 5 sample Cover/.test(l)));
+  const f = read.doc.frames[0];
+  assert.deepEqual([f.mode, f.hug], ["structured", true], "JSX places nothing by position, so it lands as a structured page that hugs its content");
 });
 
 test("a pasted border's own width and style come back as Border width and Border style", () => {
