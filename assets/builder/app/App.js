@@ -389,6 +389,44 @@ function App(props) {
   var asReachState = useState("selection");
   var asDropState = useState([]);
   var asMsgs = useRef([]);
+  /* The assistant's settings: plans before big changes (on unless turned
+     off, for this browser) and how hard it thinks (Careful unless Quick is
+     picked). Looking at the canvas is per file (canLook). */
+  var AS_PLAN_KEY = "dovetail-assistant-plan", AS_EFFORT_KEY = "dovetail-assistant-effort";
+  var readPref = function (k, dflt) { try { return window.localStorage.getItem(k) || dflt; } catch (err) { return dflt; } };
+  var writePref = function (k, v) { try { window.localStorage.setItem(k, v); } catch (err) { /* kept for this visit only */ } };
+  var asPlanState = useState(readPref(AS_PLAN_KEY, "on") !== "off");
+  var asEffortState = useState(readPref(AS_EFFORT_KEY, "high") === "low" ? "low" : "high");
+  var asLookTick = useState(0);
+  /* Notes typed while a reply runs, handed over at its next step; a plan
+     waiting on its answer. */
+  var asNotes = useRef([]);
+  var planWait = useRef(null);
+  /* The file's conversation with the assistant, picked up where it was
+     left, and saved whenever a reply finishes. A reply cut off by leaving
+     the page shows as stopped. */
+  var threadFor = useRef(null);
+  useEffect(function () {
+    var meta = projectRef.current, live = true;
+    threadFor.current = null;
+    setAsThread([]);
+    asMsgs.current = [];
+    if (!meta || !store.loadThread) return undefined;
+    store.loadThread(meta.id).then(function (v) {
+      if (!live) return;
+      threadFor.current = meta.id;
+      if (!v || !Array.isArray(v.thread)) return;
+      setAsThread(v.thread.map(function (t) { return t.status === "working" ? Object.assign({}, t, { status: "error", error: "Stopped when the page closed." }) : t.queued ? Object.assign({}, t, { queued: false }) : t; }));
+      asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+    }, function () { if (live) threadFor.current = meta.id; });
+    return function () { live = false; };
+  }, [project ? project.id : null]);
+  useEffect(function () {
+    var meta = projectRef.current;
+    if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread) return;
+    var plan = asThread.map(function (t) { return t.plan && t.plan.status === "pending" ? Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) }) : t; });
+    store.saveThread(meta.id, asThread.length ? { thread: plan, msgs: asMsgs.current } : null).catch(function () { /* the panel still has it */ });
+  }, [asThread, asBusy]);
   var asAbort = useRef(null);
   var patchTurn = function (id, patch) {
     setAsThread(function (t) { return t.map(function (x) { return x.id === id ? Object.assign({}, x, typeof patch === "function" ? patch(x) : patch) : x; }); });
@@ -597,22 +635,42 @@ function App(props) {
      it stops calling them (eight rounds at most). The brief (systemPrompt)
      goes first and never changes; what's particular to this page and this
      message follows it. */
+  /* A conversation this long (pictures and all) is past what's sent in one
+     request, so the next message starts a fresh one. */
+  var AS_MSGS_MAX = 6000000;
   var runAssistant = function (text) {
     if (asBusy || !text) return;
     var sel = toolApi.selection().map(function (id) { var at = locate(docRef.current, id); return at && at.node; }).filter(Boolean);
     var ctx = asContext();
     var fr = active(docRef.current);
+    var planOn = asPlanState[0];
     var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " +
-      (asReachState[0] === "page" ? "You may change anything on this page." : sel.length ? "Selected: " + sel.map(function (n) { return (n.name || n.type) + " (" + n.id + ")"; }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.");
+      (asReachState[0] === "page" ? "You may change anything on this page." : sel.length ? "Selected: " + sel.map(function (n) { return (n.name || n.type) + " (" + n.id + ")"; }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.") +
+      (planOn ? "" : "\n\nPlans are off: build without propose_plan.");
     var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
-    var tools = toolsFor({ look: canLook() });
-    var api2 = canLook() ? toolApi : Object.assign({}, toolApi, { screenshot: null });
+    var tools = toolsFor({ look: canLook(), plan: planOn });
+    var planned = false;
     var me = { id: uid(), role: "user", text: text };
     var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text };
+    var api2 = Object.assign({}, toolApi, {
+      screenshot: canLook() ? toolApi.screenshot : null,
+      needsPlan: function () { return planOn && !planned; },
+      /* The plan shows on this reply's card; its answer comes from the
+         person's click (approvePlan or changePlan), or Stop. */
+      proposePlan: function (plan) {
+        patchTurn(turn.id, { plan: Object.assign({ status: "pending" }, plan) });
+        return new Promise(function (resolve) {
+          planWait.current = { turn: turn.id, resolve: function (answer) { planWait.current = null; if (answer && answer.approved) planned = true; resolve(answer); } };
+        });
+      },
+    });
+    var fresh0 = JSON.stringify(asMsgs.current).length > AS_MSGS_MAX;
+    if (fresh0) asMsgs.current = [];
     if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel.length ? sel.length + (sel.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
-    setAsThread(function (t) { return t.concat([me, turn]); });
+    setAsThread(function (t) { return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], [me, turn]); });
     asDraftState[1]("");
     setAsBusy(true);
+    asNotes.current = [];
     asMsgs.current = asMsgs.current.concat([{ role: "user", content: text }]);
     var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
     asAbort.current = abort;
@@ -621,7 +679,7 @@ function App(props) {
     var round = function (n) {
       var c = collector();
       var shown = "";
-      return sendAssistant({ stable: systemPrompt(), system: system, messages: asMsgs.current, tools: tools }, function (ev) {
+      return sendAssistant({ stable: systemPrompt(), system: system, messages: asMsgs.current, tools: tools, effort: asEffortState[0] }, function (ev) {
         c.add(ev);
         if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { shown += ev.delta.text; var now = shown; patchTurn(turn.id, function (x) { return { text: (x.base || "") + now }; }); }
       }, { script: script, signal: abort && abort.signal }).then(function () {
@@ -632,13 +690,16 @@ function App(props) {
         var noted = r.notes.map(function (t) { return { ok: true, note: true, text: t }; });
         if (r.stop !== "tool_use" || !r.tools.length) { if (noted.length) patchTurn(turn.id, function (x) { return { steps: x.steps.concat(noted) }; }); return null; }
         var results = [], changes = [], steps = noted.slice();
-        /* One at a time, in order: an edit can depend on the one before. */
+        /* One at a time, in order: an edit can depend on the one before.
+           Each change remembers the history step it began at, so the card
+           can undo back to it. */
         return r.tools.reduce(function (p, call) {
           return p.then(function () {
             if (call.bad) { results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true }); return; }
+            var at = history.current.past.length;
             return Promise.resolve(runTool(api2, call)).then(function (res) {
-              if (res.change) changes.push(res.change);
-              if (res.changes) changes.push.apply(changes, res.changes);
+              var mine = [].concat(res.change ? [res.change] : [], res.changes || []).map(function (ch) { return Object.assign({}, ch, { at: at }); });
+              changes.push.apply(changes, mine);
               if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : undefined });
               if (!res.ok) steps.push({ ok: false, text: res.result });
               results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
@@ -646,11 +707,27 @@ function App(props) {
           });
         }, Promise.resolve()).then(function () {
           edits += changes.length;
+          /* Notes typed meanwhile go with the results, so this reply hears them. */
+          var notes = asNotes.current.splice(0);
+          if (notes.length) results.push({ type: "text", text: "The person added, while you worked: " + notes.map(function (x) { return x.text; }).join("\n") });
           patchTurn(turn.id, function (x) { return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: (x.text ? x.text + " " : "") }; });
+          if (notes.length) setAsThread(function (t) { return t.map(function (x) { return notes.some(function (nt) { return nt.id === x.id; }) ? Object.assign({}, x, { queued: false }) : x; }); });
           asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
-          return n < 7 ? round(n + 1) : null;
+          return n < 11 ? round(n + 1) : null;
         });
       });
+    };
+    var finish = function () {
+      setAsBusy(false);
+      asAbort.current = null;
+      if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
+      /* Notes that came too late for this reply start the next one. */
+      var left = asNotes.current.splice(0);
+      if (left.length) {
+        setAsThread(function (t) { return t.filter(function (x) { return !left.some(function (nt) { return nt.id === x.id; }); }); });
+        /* After the panel has drawn this reply as finished, so the next one may start. */
+        setTimeout(function () { runRef.current(left.map(function (x) { return x.text; }).join("\n")); }, 60);
+      }
     };
     round(0).then(function () {
       var changed = edits > 0;
@@ -667,12 +744,80 @@ function App(props) {
       }, 0);
     }, function (err) {
       patchTurn(turn.id, function (x) { return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from }; });
-    }).then(function () { setAsBusy(false); asAbort.current = null; });
+    }).then(finish);
   };
+  var runRef = useRef(runAssistant); runRef.current = runAssistant;
   var asApi = {
     send: runAssistant,
-    stop: function () { if (asAbort.current) asAbort.current.abort(); },
-    clear: function () { setAsThread([]); asMsgs.current = []; },
+    stop: function () { if (asAbort.current) asAbort.current.abort(); if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" }); },
+    clear: function () { setAsThread([]); asMsgs.current = []; if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function () {}); },
+    /* A note while it works: it lands with the next step's results. */
+    note: function (text) {
+      var item = { id: uid(), role: "user", text: text, queued: true };
+      asNotes.current.push(item);
+      setAsThread(function (t) { return t.concat([item]); });
+      asDraftState[1]("");
+    },
+    approvePlan: function (id) {
+      if (!planWait.current || planWait.current.turn !== id) return;
+      patchTurn(id, function (x) { return { plan: Object.assign({}, x.plan, { status: "approved" }) }; });
+      planWait.current.resolve({ approved: true });
+    },
+    changePlan: function (id) {
+      if (!planWait.current || planWait.current.turn !== id) return;
+      patchTurn(id, function (x) { return { plan: Object.assign({}, x.plan, { status: "changing" }) }; });
+      planWait.current.resolve({ approved: false });
+      asDraftState[1]("Change the plan: ");
+      setTimeout(function () { var el = document.querySelector(".bd-as-input"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 0);
+    },
+    setPlans: function (on) { asPlanState[1](on); writePref(AS_PLAN_KEY, on ? "on" : "off"); announce(on ? "The assistant shows a plan before big changes" : "The assistant builds without asking first"); },
+    setEffort: function (v) { asEffortState[1](v); writePref(AS_EFFORT_KEY, v); },
+    setLook: function (on) {
+      try { if (on) window.localStorage.removeItem(LOOK_KEY + projectRef.current.id); else window.localStorage.setItem(LOOK_KEY + projectRef.current.id, "off"); } catch (err) { /* this visit only */ }
+      asLookTick[1](function (n) { return n + 1; });
+      announce(on ? "The assistant can look at this file's canvas" : "The assistant won't send pictures of this file's canvas");
+    },
+    /* Undo one of a reply's changes and every one after it, while nothing
+       else has been edited since. */
+    undoFrom: function (id, index) {
+      var t = asThread.filter(function (x) { return x.id === id; })[0];
+      var ch = t && t.changes[index];
+      if (!t || !ch || ch.undone) return;
+      var end = t.from + (t.made || 0);
+      if (history.current.past.length !== end) { announce("Other edits came after this reply, so undo them first, or use Undo step by step."); return; }
+      var n = end - ch.at;
+      for (var i = 0; i < n; i++) undo();
+      patchTurn(id, function (x) {
+        var changes = x.changes.map(function (c) { return c.at >= ch.at ? Object.assign({}, c, { undone: true }) : c; });
+        var all = changes.every(function (c) { return c.undone; });
+        return { changes: changes, made: ch.at - x.from, undone: all, checks: all ? x.checks : null };
+      });
+      announce("Undid " + (n === 1 ? "that step" : "that step and the ones after it"));
+    },
+    /* The conversation as Markdown, to keep or share. */
+    exportThread: function () {
+      var lines = ["# Assistant: " + ((projectRef.current && projectRef.current.name) || "file"), ""];
+      asThread.forEach(function (t) {
+        if (t.role === "user") lines.push("**You:** " + t.text, "");
+        else if (t.role === "divider") lines.push("---", "", "_" + t.text + "_", "");
+        else {
+          (t.steps || []).forEach(function (st) { lines.push("- " + (st.ok ? "" : "(failed) ") + st.text); });
+          if (t.text) lines.push("", t.text);
+          if (t.changes && t.changes.length) { lines.push("", "Changes:"); t.changes.forEach(function (c) { lines.push("- " + c.label + ": " + c.value + (c.on ? " · " + c.on : "") + (c.undone ? " (undone)" : "")); }); }
+          if (t.checks) { lines.push("", "Checks:"); t.checks.forEach(function (r) { lines.push("- " + r.status + ": " + r.title); }); }
+          lines.push("");
+        }
+      });
+      var blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "assistant-" + (((projectRef.current && projectRef.current.name) || "file").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".md";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+      announce("Downloaded " + link.download);
+    },
     keep: function (id) { patchTurn(id, { kept: true }); },
     undoTurn: function (id) {
       var t = asThread.filter(function (x) { return x.id === id; })[0];
@@ -6472,7 +6617,9 @@ function App(props) {
                   includeSel: asSelState[0], toggleSel: function () { asSelState[1](!asSelState[0]); }, reach: asReachState[0], setReach: asReachState[1],
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
-                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show })
+                  send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
+                  note: asApi.note, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
+                  plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
                   pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,
                   add: ctxApi.add, update: ctxApi.update, remove: ctxApi.remove, move: ctxApi.move })

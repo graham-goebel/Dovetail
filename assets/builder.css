@@ -6850,6 +6850,7 @@ input.bd-folder-name {
 /* The Assistant panel: the conversation, and the box at its foot with what
    goes with the next message as chips. */
 .bd-as {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -7087,8 +7088,30 @@ input.bd-folder-name {
   color: var(--dt-text-tertiary);
 }
 .bd-as-v {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.bd-as-row {
+  align-items: center;
+}
+.bd-as-row.is-undone .bd-as-v {
+  color: var(--dt-text-tertiary);
+  text-decoration: line-through;
+}
+/* Undo back to a change: shown on hover or focus, so the card stays quiet. */
+.bd-as-row-undo {
+  flex: none;
+  opacity: 0;
+}
+.bd-as-row:hover .bd-as-row-undo,
+.bd-as-row-undo:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .bd-as-row-undo {
+    opacity: 1;
+  }
 }
 .bd-as-on {
   color: var(--dt-text-tertiary);
@@ -7171,8 +7194,184 @@ input.bd-folder-name {
 }
 .bd-as-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--dt-space-inline-xs);
+}
+/* A plan waiting on the person's answer: its title, and the frame it
+   makes on a line of its own. */
+.bd-as-plan .bd-as-card-h {
+  flex-direction: column;
+  gap: 2px;
+}
+.bd-as-plan .bd-as-card-h > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  min-width: 0;
+}
+.bd-as-plan .bd-as-card-h .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+.bd-as-plan-steps {
+  margin: 0;
+  padding: 0 var(--dt-space-inset-sm);
+  list-style: none;
+  counter-reset: bd-plan;
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-plan-steps li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  column-gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-2xs, 6px) 0;
+  counter-increment: bd-plan;
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-plan-steps li:last-child {
+  border-bottom: 0;
+}
+.bd-as-plan-steps li::before {
+  content: counter(bd-plan);
+  display: grid;
+  grid-row: span 2;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--bd-field-on, var(--bd-field));
+  color: var(--dt-text-secondary);
+  font-size: 10px;
+}
+.bd-as-plan-steps b {
+  font-weight: var(--dt-font-weight-medium, 500);
+}
+.bd-as-plan-steps span {
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-plan-notes p {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+  align-items: flex-start;
+  margin: 0 var(--dt-space-inset-sm) var(--dt-space-inset-xs);
+  padding: var(--dt-space-inset-2xs, 6px) var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-control, 6px);
+  background: color-mix(in oklab, var(--dt-text-warning, #c58a00) 14%, transparent);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-plan-notes .bd-ic {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 1px;
+  color: var(--dt-text-warning, #c58a00);
+}
+.bd-as-plan-skip {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  padding: 0 var(--dt-space-inset-sm) var(--dt-space-inset-xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+/* A note typed while a reply runs, until that reply hears it. */
+.bd-as-me-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.bd-as-me.is-queued {
+  opacity: 0.8;
+}
+.bd-as-queued {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-queued .bd-ic {
+  width: 12px;
+  height: 12px;
+}
+.bd-as-divider {
+  margin: 0;
+  padding-top: var(--dt-space-stack-xs, 8px);
+  border-top: var(--dt-border-width-default) dashed var(--dt-border-subtle);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+  text-align: center;
+}
+/* The panel's menu: its settings and the thread's actions. */
+/* The menu opens across the panel, so it's never cut off at its edge. */
+.bd-as-pop {
+  position: absolute;
+  z-index: 20;
+  top: 44px;
+  right: var(--dt-space-inset-xs, 8px);
+  left: var(--dt-space-inset-xs, 8px);
+  padding: var(--dt-space-inset-2xs, 6px) 0;
+  border-radius: var(--dt-radius-container, 10px);
+  background: var(--dt-surface-raised);
+  box-shadow: 0 0 0 1px var(--dt-border-subtle), var(--dt-elevation-3, 0 12px 32px rgba(0, 0, 0, 0.3));
+}
+.bd-as-mrow {
+  display: flex;
+  gap: var(--dt-space-inline-sm);
+  align-items: flex-start;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+}
+.bd-as-mrow-t {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.bd-as-mrow-t b {
+  font-weight: var(--dt-font-weight-medium, 500);
+}
+.bd-as-mrow-t span,
+.bd-as-mnote {
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-mnote {
+  margin: 0;
+  padding: 0 var(--dt-space-inset-sm) var(--dt-space-inset-2xs, 4px);
+}
+.bd-as-pop hr {
+  margin: var(--dt-space-inset-2xs, 4px) 0;
+  border: 0;
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-mbtn {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-2xs, 6px) var(--dt-space-inset-sm);
+  border: 0;
+  background: none;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.bd-as-mbtn:hover:not(:disabled) {
+  background: var(--bd-field-on, var(--bd-field));
+  color: var(--dt-text-primary);
+}
+.bd-as-mbtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.bd-as-mbtn .bd-ic {
+  width: 14px;
+  height: 14px;
 }
 .bd-as-sp {
   flex: 1;

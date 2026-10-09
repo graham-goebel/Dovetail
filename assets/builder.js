@@ -2368,6 +2368,7 @@
   var VERSION_EVERY = 10 * 60 * 1e3;
   var LAST_KEY = "dovetail-builder-last";
   var CONTEXT_KEY = "dovetail-builder-context";
+  var THREAD_KEY = "dovetail-builder-thread";
   var LIBS_DONE_KEY = "dovetail-builder-libs-kept-apart";
   var MAIN = "main";
   function docKey(id, page) {
@@ -3016,6 +3017,29 @@
           return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
         }
         return b.put("library", { id: "ctx:" + scope, value: items });
+      },
+      /* A file's conversation with the assistant: what the panel shows and
+         the messages as sent, so it picks up where it left off. In browser
+         storage (no IndexedDB) a long one, pictures and all, may not fit, and
+         is then not kept. */
+      loadThread: function(fileId) {
+        if (b.kind !== "indexeddb") return Promise.resolve(storage(function(s) {
+          return JSON.parse(s.getItem(THREAD_KEY + ":" + fileId) || "null");
+        }) || null);
+        return b.get("library", "thread:" + fileId).then(function(rec) {
+          return rec && rec.value && typeof rec.value === "object" ? rec.value : null;
+        });
+      },
+      saveThread: function(fileId, value) {
+        if (b.kind !== "indexeddb") {
+          storage(function(s) {
+            if (value) s.setItem(THREAD_KEY + ":" + fileId, JSON.stringify(value));
+            else s.removeItem(THREAD_KEY + ":" + fileId);
+            return true;
+          });
+          return Promise.resolve();
+        }
+        return value ? b.put("library", { id: "thread:" + fileId, value }) : b.del("library", "thread:" + fileId);
       },
       /* What one library holds, added to another (when a file moves). */
       mergeLibrary: function(from, to) {
@@ -3864,16 +3888,16 @@
             var err = read && read.error ? read.error : "That example couldn't be read.";
             return cur ? Object.assign(cur, { from: "jsx", dropped: [], error: err }) : fresh2("Untitled", starterDoc(), { from: "jsx", dropped: [], error: err });
           }
-          var added = read.doc.frames.map(function(f) {
+          var added2 = read.doc.frames.map(function(f) {
             var c = copy(f);
             c.id = uid();
             c.name = "Example";
             return c;
           });
-          if (!cur) return fresh2("Examples", { frames: added, active: added[0].id }, { from: "jsx", dropped: read.report });
+          if (!cur) return fresh2("Examples", { frames: added2, active: added2[0].id }, { from: "jsx", dropped: read.report });
           var base = copy(cur.doc);
-          base.frames = base.frames.concat(added).slice(-24);
-          base.active = added[0].id;
+          base.frames = base.frames.concat(added2).slice(-24);
+          base.active = added2[0].id;
           return { project: cur.project, doc: base, from: "jsx", dropped: read.report };
         });
       }
@@ -9238,11 +9262,15 @@
         turn.kept ? e("span", { className: "bd-as-note" }, "Kept") : turn.undone ? e("span", { className: "bd-as-note" }, "Undone") : null
       ),
       turn.changes.map(function(c, i) {
+        var can = turn.status === "done" && !turn.kept && !turn.undone && !c.undone && !p.busy;
         return e(
           "div",
-          { key: i, className: "bd-as-row" },
+          { key: i, className: cx("bd-as-row", c.undone && "is-undone") },
           e("span", { className: "bd-as-n" }, c.label),
-          e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null)
+          e("span", { className: "bd-as-v" }, c.value, c.on ? e("span", { className: "bd-as-on" }, " · " + c.on) : null),
+          can ? e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-row-undo", title: "Undo this and the changes after it", "aria-label": "Undo " + c.label + " and the changes after it", onClick: function() {
+            p.undoFrom(turn.id, i);
+          } }, e(Icon, { name: "undo" })) : null
         );
       }),
       turn.undone ? null : turn.checking ? e("div", { className: "bd-as-checks" }, e("div", { className: "bd-as-checks-h" }, e("span", null, "Checks"), e("span", { className: "bd-as-note" }, "Checking…"))) : turn.checks ? e(
@@ -9284,6 +9312,98 @@
       ) : null
     );
   }
+  function planCard(p, turn) {
+    var pl = turn.plan;
+    if (!pl) return null;
+    return e(
+      "div",
+      { className: "bd-as-card bd-as-plan" },
+      e(
+        "div",
+        { className: "bd-as-card-h" },
+        e("span", null, e(Icon, { name: "frame" }), pl.title),
+        pl.status === "approved" ? e("span", { className: "bd-as-note" }, "Approved") : pl.status === "changing" ? e("span", { className: "bd-as-note" }, "Changing") : pl.frame ? e("span", { className: "bd-as-note" }, [pl.frame.preset, pl.frame.mode].filter(Boolean).join(" · ")) : null
+      ),
+      e("ol", { className: "bd-as-plan-steps" }, pl.steps.map(function(st, i) {
+        return e("li", { key: i }, e("b", null, st.title), st.detail ? e("span", null, st.detail) : null);
+      })),
+      pl.notes && pl.notes.length ? e("div", { className: "bd-as-plan-notes" }, pl.notes.map(function(n, i) {
+        return e("p", { key: i }, e(Icon, { name: "alert" }), e("span", null, n));
+      })) : null,
+      pl.status === "pending" ? e(
+        "div",
+        { className: "bd-as-acts" },
+        e("button", { type: "button", className: "bd-btn bd-btn-sm bd-btn-primary", onClick: function() {
+          p.approvePlan(turn.id);
+        } }, e(Icon, { name: "play" }), "Build it"),
+        e("button", { type: "button", className: "bd-btn bd-btn-sm", onClick: function() {
+          p.changePlan(turn.id);
+        } }, e(Icon, { name: "pencil" }), "Change plan")
+      ) : null,
+      pl.status === "pending" ? e(
+        "label",
+        { className: "bd-as-plan-skip" },
+        e("input", { type: "checkbox", checked: !p.plans, onChange: function(ev) {
+          p.setPlans(!ev.target.checked);
+        } }),
+        "Don't ask before big changes"
+      ) : null
+    );
+  }
+  function AsMenu(p) {
+    var openState = useState(false), open = openState[0], setOpen = openState[1];
+    var ref = useRef(null);
+    useEffect(function() {
+      if (!open) return void 0;
+      var away = function(ev) {
+        if (ref.current && !ref.current.contains(ev.target)) setOpen(false);
+      };
+      var key = function(ev) {
+        if (ev.key === "Escape") {
+          setOpen(false);
+          var b = ref.current && ref.current.querySelector(".bd-as-menu-btn");
+          if (b) b.focus();
+        }
+      };
+      document.addEventListener("pointerdown", away);
+      document.addEventListener("keydown", key);
+      return function() {
+        document.removeEventListener("pointerdown", away);
+        document.removeEventListener("keydown", key);
+      };
+    }, [open]);
+    var row = function(id, title, help, value, onChange) {
+      return e(
+        "div",
+        { className: "bd-as-mrow" },
+        e("span", { className: "bd-as-mrow-t" }, e("b", { id }, title), e("span", null, help)),
+        e(Switch, { value, onChange, labelledBy: id })
+      );
+    };
+    return e(
+      "div",
+      { className: "bd-as-menu", ref },
+      e("button", { type: "button", className: "bd-act bd-act-ghost bd-as-menu-btn", "aria-label": "Assistant settings", "aria-expanded": open, "aria-haspopup": "true", onClick: function() {
+        setOpen(!open);
+      } }, e(Icon, { name: "more" })),
+      open ? e(
+        "div",
+        { className: "bd-as-pop", role: "group", "aria-label": "Assistant settings" },
+        row("bd-as-m-plan", "Plan before big changes", "New pages, or more than about 10 layers. Small edits just happen.", p.plans, p.setPlans),
+        row("bd-as-m-look", "Look at the canvas", "Sends a picture of what it built so it can check and fix it. Off keeps this file's canvas private.", p.look, p.setLook),
+        e("p", { className: "bd-as-mnote" }, "Checks run after every change."),
+        e("hr"),
+        e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length, onClick: function() {
+          setOpen(false);
+          p.exportThread();
+        } }, e(Icon, { name: "download" }), "Export thread as .md"),
+        e("button", { type: "button", className: "bd-as-mbtn", disabled: !p.thread.length || p.busy, onClick: function() {
+          setOpen(false);
+          p.clear();
+        } }, e(Icon, { name: "trash" }), "Clear this thread")
+      ) : null
+    );
+  }
   function AssistantPanel(p) {
     var listRef = useRef(null);
     var last = p.thread[p.thread.length - 1];
@@ -9294,7 +9414,9 @@
     }, [tail]);
     var send = function() {
       var t = p.draft.trim();
-      if (t && !p.busy) p.send(t);
+      if (!t) return;
+      if (p.busy) p.note(t);
+      else p.send(t);
     };
     return e(
       "div",
@@ -9304,7 +9426,8 @@
         { className: "bd-as-head" },
         e("span", { className: "bd-as-title" }, "Assistant"),
         p.mode === "practice" ? e("span", { className: "bd-as-badge", title: "Answers come from a script in this browser; nothing is sent or charged" }, "Practice") : null,
-        e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" }))
+        e("button", { type: "button", className: "bd-act bd-act-ghost", title: "New conversation", "aria-label": "New conversation", onClick: p.clear, disabled: !p.thread.length || p.busy }, e(Icon, { name: "plus" })),
+        e(AsMenu, p)
       ),
       e(
         "div",
@@ -9320,7 +9443,8 @@
           }))
         ) : null,
         p.thread.map(function(t) {
-          if (t.role === "user") return e("div", { key: t.id, className: "bd-as-me" }, t.text);
+          if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
+          if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step")) : e("div", { key: t.id, className: "bd-as-me" }, t.text);
           return e(
             "div",
             { key: t.id, className: cx("bd-as-bot", t.status === "error" && "is-error") },
@@ -9330,6 +9454,7 @@
               return e("div", { key: i, className: cx("bd-as-step", !s.ok && "is-failed") }, e("span", { className: "bd-as-ok" }, e(Icon, { name: s.ok ? "check" : "close" })), s.text);
             }),
             t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
+            planCard(p, t),
             t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
             changeCard(p, t)
           );
@@ -9367,8 +9492,8 @@
           className: "bd-as-input",
           rows: 2,
           value: p.draft,
-          placeholder: "Ask for a change, or describe a new section…",
-          "aria-label": "Message the assistant",
+          placeholder: p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…",
+          "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
           onChange: function(ev) {
             p.setDraft(ev.target.value);
           },
@@ -9390,8 +9515,16 @@
             },
             options: [{ value: "selection", label: "Selection" }, { value: "page", label: "Page" }]
           }),
+          e(Segmented, {
+            label: "How hard it thinks",
+            value: p.effort,
+            onChange: function(v) {
+              if (v) p.setEffort(v);
+            },
+            options: [{ value: "low", label: "Quick", title: "Quicker, for small edits" }, { value: "high", label: "Careful", title: "Thinks it through, for pages and redesigns" }]
+          }),
           e("span", { className: "bd-as-sp" }),
-          p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim(), onClick: send }, e(Icon, { name: "up" }))
+          p.busy && p.draft.trim() ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Add the note", onClick: send }, e(Icon, { name: "up" })) : p.busy ? e("button", { type: "button", className: "bd-as-send", "aria-label": "Stop", onClick: p.stop }, e(Icon, { name: "close" })) : e("button", { type: "button", className: "bd-as-send", "aria-label": "Send", disabled: !p.draft.trim(), onClick: send }, e(Icon, { name: "up" }))
         )
       )
     );
@@ -9425,15 +9558,16 @@
       return f.id;
     }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
     { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
+    { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
     { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
     { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
     { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
     { name: "read_skill", description: "Read a skill's files when a request fits its description: its SKILL.md, or another file by path.", input_schema: { type: "object", properties: { name: { type: "string" }, path: { type: "string" } }, required: ["name"], additionalProperties: false } }
   ];
   function toolsFor(opts) {
-    var look = !opts || opts.look !== false;
+    var look = !opts || opts.look !== false, plan = !opts || opts.plan !== false;
     return TOOLS.filter(function(t) {
-      return look || t.name !== "screenshot";
+      return (look || t.name !== "screenshot") && (plan || t.name !== "propose_plan");
     });
   }
   var LABEL = { surface: "Fill", radius: "Corners", elevation: "Shadow", border: "Border", padding: "Padding", gap: "Gap", blur: "Blur", backdrop: "Behind", opacity: "Opacity", gradient: "Gradient" };
@@ -9540,6 +9674,7 @@
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
       "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
+      "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
       "- Finish with a sentence or two on what you changed and anything the person should check.",
       "## The system's rules",
       "- Tokens only: every colour, size, space, radius and shadow is a token value from list_tokens. Never invent one.",
@@ -9555,6 +9690,18 @@
       sides.length ? "Per-side families take the same values as their base family: " + sides.join(", ") + "." : ""
     ].filter(Boolean).join("\n\n");
     return brief;
+  }
+  var PLAN_OVER = 10;
+  function owesPlan(api, size) {
+    if (!api.needsPlan) return null;
+    var big = size === "frame" || size > PLAN_OVER;
+    if (!big || !api.needsPlan()) return null;
+    return { ok: false, result: (size === "frame" ? "A new frame" : "Adding " + size + " layers") + " is a big change. Call propose_plan first and wait for the person's answer." };
+  }
+  function added(nodes) {
+    return nodes.reduce(function(a, n) {
+      return a + count(n);
+    }, 0);
   }
   function fromJsx(jsx) {
     var els = readJsxElements(String(jsx || ""));
@@ -9752,6 +9899,8 @@
       case "insert_jsx": {
         var made = fromJsx(input.jsx);
         if (!made.length) return fail("That JSX has no components the system knows.");
+        var owed = owesPlan(api, added(made));
+        if (owed) return owed;
         var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
         if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
         return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function(n) {
@@ -9763,6 +9912,8 @@
         if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
         var made2 = fromJsx(input.jsx);
         if (!made2.length) return fail("That JSX has no components the system knows.");
+        var owed2 = owesPlan(api, added(made2));
+        if (owed2) return owed2;
         var was = nameOf2(input.id);
         var ids3 = api.replace(input.id, made2);
         if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
@@ -9824,6 +9975,8 @@
         })[0];
         if (!preset) return fail("There's no preset " + input.preset + ".");
         if (input.mode !== "structured" && input.mode !== "free") return fail("A frame is structured or free.");
+        var owed3 = owesPlan(api, "frame");
+        if (owed3) return owed3;
         var made3 = api.createFrame({ name: short2(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
         if (!made3) return fail("The frame couldn't be added.");
         return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short2(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
@@ -9843,10 +9996,16 @@
           return !c || BATCHABLE.indexOf(c.name) < 0;
         })[0];
         if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
+        var size = list.reduce(function(a, c) {
+          return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx((c.input || {}).jsx)) : 0);
+        }, 0);
+        var owed4 = owesPlan(api, size);
+        if (owed4) return owed4;
+        var inner = Object.assign({}, api, { needsPlan: null });
         var changes = [], outs = [], stopped = null;
         api.batch(function() {
           for (var i = 0; i < list.length; i++) {
-            var r = runTool(api, { name: list[i].name, input: list[i].input || {} });
+            var r = runTool(inner, { name: list[i].name, input: list[i].input || {} });
             outs.push(r.ok ? r.result : "Failed: " + r.result);
             if (!r.ok) {
               stopped = { at: i, why: r.result };
@@ -9858,6 +10017,22 @@
         var summary = JSON.stringify(outs);
         if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes };
         return { ok: true, result: summary, changes };
+      }
+      case "propose_plan": {
+        if (!api.proposePlan) return fail("Plans can't be shown here; go ahead.");
+        var steps = (input.steps || []).slice(0, 12).map(function(st) {
+          return { title: short2(String(st.title || ""), 60), detail: st.detail ? short2(String(st.detail), 160) : "" };
+        }).filter(function(st) {
+          return st.title;
+        });
+        if (!steps.length) return fail("A plan needs at least one step.");
+        var plan = { title: short2(String(input.title || "Plan"), 80), frame: input.frame && input.frame.name ? { name: short2(String(input.frame.name), 60), preset: input.frame.preset || "", mode: input.frame.mode || "" } : null, steps, notes: (input.notes || []).slice(0, 4).map(function(t) {
+          return short2(String(t), 200);
+        }) };
+        return Promise.resolve(api.proposePlan(plan)).then(function(answer) {
+          if (answer && answer.approved) return { ok: true, result: "Approved. Build it now, as planned.", step: "Plan approved" };
+          return { ok: true, result: "Not approved yet: the person wants to change the plan" + (answer && answer.note ? ": " + answer.note : "") + ". Stop here and wait for their message.", step: "Plan set aside to change" };
+        });
       }
       case "remove": {
         var rids = known(input.ids);
@@ -9923,6 +10098,13 @@
       return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
     }
     if (names[0] === "screenshot") return { text: "Practice mode: I looked at " + body(0).replace(/, \d+×\d+ pixels\.$/, "") + ". A model would now check it for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+    if (names[0] === "propose_plan") {
+      if (!/^Approved/.test(body(0))) return { text: "Practice mode: tell me what to change in the plan, and I'll propose it again.", calls: [] };
+      var fr = (prev.content.filter(function(b) {
+        return b.type === "tool_use";
+      })[0].input || {}).frame || {};
+      return { text: "", calls: [{ name: "create_frame", input: { name: fr.name || "Page", preset: fr.preset || "desktop", mode: fr.mode || "structured" } }] };
+    }
     if (names[0] === "create_frame") {
       var made = {};
       try {
@@ -9997,7 +10179,13 @@
       var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text2) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text2);
       if (page && /make|build|design|create|start/.test(text2)) {
         var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);
-        return { text: "", calls: [{ name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } }] };
+        var first = { name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } };
+        if (offered.indexOf("propose_plan") < 0) return { text: "", calls: [first] };
+        return { text: "Here's what I'll build. It's a new page, so I'll check with you first.", calls: [{ name: "propose_plan", input: { title: "New page · " + title, frame: { name: title, preset: "desktop", mode: "structured" }, steps: [
+          { title: "Hero", detail: 'Display heading, one line under it, a "New" badge and one primary button' },
+          { title: "Plans", detail: "Three cards: Free, Pro and Team" },
+          { title: "Close", detail: "A dark band with one button" }
+        ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
       }
       var forWhat = /component (?:for|to)\s+(.+)$/.exec(text2) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text2);
       if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
@@ -11971,6 +12159,56 @@
     var asReachState = useState("selection");
     var asDropState = useState([]);
     var asMsgs = useRef([]);
+    var AS_PLAN_KEY = "dovetail-assistant-plan", AS_EFFORT_KEY = "dovetail-assistant-effort";
+    var readPref = function(k, dflt) {
+      try {
+        return window.localStorage.getItem(k) || dflt;
+      } catch (err) {
+        return dflt;
+      }
+    };
+    var writePref = function(k, v) {
+      try {
+        window.localStorage.setItem(k, v);
+      } catch (err) {
+      }
+    };
+    var asPlanState = useState(readPref(AS_PLAN_KEY, "on") !== "off");
+    var asEffortState = useState(readPref(AS_EFFORT_KEY, "high") === "low" ? "low" : "high");
+    var asLookTick = useState(0);
+    var asNotes = useRef([]);
+    var planWait = useRef(null);
+    var threadFor = useRef(null);
+    useEffect(function() {
+      var meta = projectRef.current, live = true;
+      threadFor.current = null;
+      setAsThread([]);
+      asMsgs.current = [];
+      if (!meta || !store.loadThread) return void 0;
+      store.loadThread(meta.id).then(function(v) {
+        if (!live) return;
+        threadFor.current = meta.id;
+        if (!v || !Array.isArray(v.thread)) return;
+        setAsThread(v.thread.map(function(t) {
+          return t.status === "working" ? Object.assign({}, t, { status: "error", error: "Stopped when the page closed." }) : t.queued ? Object.assign({}, t, { queued: false }) : t;
+        }));
+        asMsgs.current = Array.isArray(v.msgs) ? v.msgs : [];
+      }, function() {
+        if (live) threadFor.current = meta.id;
+      });
+      return function() {
+        live = false;
+      };
+    }, [project ? project.id : null]);
+    useEffect(function() {
+      var meta = projectRef.current;
+      if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread) return;
+      var plan = asThread.map(function(t) {
+        return t.plan && t.plan.status === "pending" ? Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) }) : t;
+      });
+      store.saveThread(meta.id, asThread.length ? { thread: plan, msgs: asMsgs.current } : null).catch(function() {
+      });
+    }, [asThread, asBusy]);
     var asAbort = useRef(null);
     var patchTurn = function(id, patch) {
       setAsThread(function(t) {
@@ -12344,6 +12582,7 @@
         }
       }
     };
+    var AS_MSGS_MAX = 6e6;
     var runAssistant = function(text2) {
       if (asBusy || !text2) return;
       var sel2 = toolApi.selection().map(function(id) {
@@ -12352,20 +12591,42 @@
       }).filter(Boolean);
       var ctx = asContext();
       var fr = active(docRef.current);
+      var planOn = asPlanState[0];
       var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " + (asReachState[0] === "page" ? "You may change anything on this page." : sel2.length ? "Selected: " + sel2.map(function(n) {
         return (n.name || n.type) + " (" + n.id + ")";
-      }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.");
+      }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.") + (planOn ? "" : "\n\nPlans are off: build without propose_plan.");
       var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
-      var tools2 = toolsFor({ look: canLook() });
-      var api2 = canLook() ? toolApi : Object.assign({}, toolApi, { screenshot: null });
+      var tools2 = toolsFor({ look: canLook(), plan: planOn });
+      var planned = false;
       var me = { id: uid(), role: "user", text: text2 };
       var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text2 };
+      var api2 = Object.assign({}, toolApi, {
+        screenshot: canLook() ? toolApi.screenshot : null,
+        needsPlan: function() {
+          return planOn && !planned;
+        },
+        /* The plan shows on this reply's card; its answer comes from the
+           person's click (approvePlan or changePlan), or Stop. */
+        proposePlan: function(plan) {
+          patchTurn(turn.id, { plan: Object.assign({ status: "pending" }, plan) });
+          return new Promise(function(resolve2) {
+            planWait.current = { turn: turn.id, resolve: function(answer) {
+              planWait.current = null;
+              if (answer && answer.approved) planned = true;
+              resolve2(answer);
+            } };
+          });
+        }
+      });
+      var fresh0 = JSON.stringify(asMsgs.current).length > AS_MSGS_MAX;
+      if (fresh0) asMsgs.current = [];
       if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel2.length ? sel2.length + (sel2.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
       setAsThread(function(t) {
-        return t.concat([me, turn]);
+        return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], [me, turn]);
       });
       asDraftState[1]("");
       setAsBusy(true);
+      asNotes.current = [];
       asMsgs.current = asMsgs.current.concat([{ role: "user", content: text2 }]);
       var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
       asAbort.current = abort;
@@ -12374,7 +12635,7 @@
       var round = function(n) {
         var c = collector();
         var shown2 = "";
-        return sendAssistant({ stable: systemPrompt(), system, messages: asMsgs.current, tools: tools2 }, function(ev) {
+        return sendAssistant({ stable: systemPrompt(), system, messages: asMsgs.current, tools: tools2, effort: asEffortState[0] }, function(ev) {
           c.add(ev);
           if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
             shown2 += ev.delta.text;
@@ -12404,9 +12665,12 @@
                 results.push({ type: "tool_result", tool_use_id: call.id, content: "That input didn't parse; send it again.", is_error: true });
                 return;
               }
+              var at2 = history.current.past.length;
               return Promise.resolve(runTool(api2, call)).then(function(res) {
-                if (res.change) changes.push(res.change);
-                if (res.changes) changes.push.apply(changes, res.changes);
+                var mine = [].concat(res.change ? [res.change] : [], res.changes || []).map(function(ch) {
+                  return Object.assign({}, ch, { at: at2 });
+                });
+                changes.push.apply(changes, mine);
                 if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : void 0 });
                 if (!res.ok) steps.push({ ok: false, text: res.result });
                 results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
@@ -12414,13 +12678,44 @@
             });
           }, Promise.resolve()).then(function() {
             edits += changes.length;
+            var notes2 = asNotes.current.splice(0);
+            if (notes2.length) results.push({ type: "text", text: "The person added, while you worked: " + notes2.map(function(x) {
+              return x.text;
+            }).join("\n") });
             patchTurn(turn.id, function(x) {
               return { changes: x.changes.concat(changes), steps: x.steps.concat(steps), base: x.text ? x.text + " " : "" };
             });
+            if (notes2.length) setAsThread(function(t) {
+              return t.map(function(x) {
+                return notes2.some(function(nt) {
+                  return nt.id === x.id;
+                }) ? Object.assign({}, x, { queued: false }) : x;
+              });
+            });
             asMsgs.current = asMsgs.current.concat([{ role: "user", content: results }]);
-            return n < 7 ? round(n + 1) : null;
+            return n < 11 ? round(n + 1) : null;
           });
         });
+      };
+      var finish = function() {
+        setAsBusy(false);
+        asAbort.current = null;
+        if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
+        var left2 = asNotes.current.splice(0);
+        if (left2.length) {
+          setAsThread(function(t) {
+            return t.filter(function(x) {
+              return !left2.some(function(nt) {
+                return nt.id === x.id;
+              });
+            });
+          });
+          setTimeout(function() {
+            runRef.current(left2.map(function(x) {
+              return x.text;
+            }).join("\n"));
+          }, 60);
+        }
       };
       round(0).then(function() {
         var changed = edits > 0;
@@ -12441,19 +12736,136 @@
         patchTurn(turn.id, function(x) {
           return { status: "error", error: err.message || "The assistant stopped.", made: history.current.past.length - x.from };
         });
-      }).then(function() {
-        setAsBusy(false);
-        asAbort.current = null;
-      });
+      }).then(finish);
     };
+    var runRef = useRef(runAssistant);
+    runRef.current = runAssistant;
     var asApi = {
       send: runAssistant,
       stop: function() {
         if (asAbort.current) asAbort.current.abort();
+        if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
       },
       clear: function() {
         setAsThread([]);
         asMsgs.current = [];
+        if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function() {
+        });
+      },
+      /* A note while it works: it lands with the next step's results. */
+      note: function(text2) {
+        var item = { id: uid(), role: "user", text: text2, queued: true };
+        asNotes.current.push(item);
+        setAsThread(function(t) {
+          return t.concat([item]);
+        });
+        asDraftState[1]("");
+      },
+      approvePlan: function(id) {
+        if (!planWait.current || planWait.current.turn !== id) return;
+        patchTurn(id, function(x) {
+          return { plan: Object.assign({}, x.plan, { status: "approved" }) };
+        });
+        planWait.current.resolve({ approved: true });
+      },
+      changePlan: function(id) {
+        if (!planWait.current || planWait.current.turn !== id) return;
+        patchTurn(id, function(x) {
+          return { plan: Object.assign({}, x.plan, { status: "changing" }) };
+        });
+        planWait.current.resolve({ approved: false });
+        asDraftState[1]("Change the plan: ");
+        setTimeout(function() {
+          var el = document.querySelector(".bd-as-input");
+          if (el) {
+            el.focus();
+            el.setSelectionRange(el.value.length, el.value.length);
+          }
+        }, 0);
+      },
+      setPlans: function(on) {
+        asPlanState[1](on);
+        writePref(AS_PLAN_KEY, on ? "on" : "off");
+        announce(on ? "The assistant shows a plan before big changes" : "The assistant builds without asking first");
+      },
+      setEffort: function(v) {
+        asEffortState[1](v);
+        writePref(AS_EFFORT_KEY, v);
+      },
+      setLook: function(on) {
+        try {
+          if (on) window.localStorage.removeItem(LOOK_KEY + projectRef.current.id);
+          else window.localStorage.setItem(LOOK_KEY + projectRef.current.id, "off");
+        } catch (err) {
+        }
+        asLookTick[1](function(n) {
+          return n + 1;
+        });
+        announce(on ? "The assistant can look at this file's canvas" : "The assistant won't send pictures of this file's canvas");
+      },
+      /* Undo one of a reply's changes and every one after it, while nothing
+         else has been edited since. */
+      undoFrom: function(id, index) {
+        var t = asThread.filter(function(x) {
+          return x.id === id;
+        })[0];
+        var ch = t && t.changes[index];
+        if (!t || !ch || ch.undone) return;
+        var end = t.from + (t.made || 0);
+        if (history.current.past.length !== end) {
+          announce("Other edits came after this reply, so undo them first, or use Undo step by step.");
+          return;
+        }
+        var n = end - ch.at;
+        for (var i = 0; i < n; i++) undo();
+        patchTurn(id, function(x) {
+          var changes = x.changes.map(function(c) {
+            return c.at >= ch.at ? Object.assign({}, c, { undone: true }) : c;
+          });
+          var all = changes.every(function(c) {
+            return c.undone;
+          });
+          return { changes, made: ch.at - x.from, undone: all, checks: all ? x.checks : null };
+        });
+        announce("Undid " + (n === 1 ? "that step" : "that step and the ones after it"));
+      },
+      /* The conversation as Markdown, to keep or share. */
+      exportThread: function() {
+        var lines = ["# Assistant: " + (projectRef.current && projectRef.current.name || "file"), ""];
+        asThread.forEach(function(t) {
+          if (t.role === "user") lines.push("**You:** " + t.text, "");
+          else if (t.role === "divider") lines.push("---", "", "_" + t.text + "_", "");
+          else {
+            (t.steps || []).forEach(function(st) {
+              lines.push("- " + (st.ok ? "" : "(failed) ") + st.text);
+            });
+            if (t.text) lines.push("", t.text);
+            if (t.changes && t.changes.length) {
+              lines.push("", "Changes:");
+              t.changes.forEach(function(c) {
+                lines.push("- " + c.label + ": " + c.value + (c.on ? " · " + c.on : "") + (c.undone ? " (undone)" : ""));
+              });
+            }
+            if (t.checks) {
+              lines.push("", "Checks:");
+              t.checks.forEach(function(r) {
+                lines.push("- " + r.status + ": " + r.title);
+              });
+            }
+            lines.push("");
+          }
+        });
+        var blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "assistant-" + ((projectRef.current && projectRef.current.name || "file").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "") || "file") + ".md";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function() {
+          URL.revokeObjectURL(link.href);
+        }, 1e3);
+        announce("Downloaded " + link.download);
       },
       keep: function(id) {
         patchTurn(id, { kept: true });
@@ -21110,7 +21522,18 @@
                 undoTurn: asApi.undoTurn,
                 retry: asApi.retry,
                 fix: asApi.fix,
-                show: asApi.show
+                show: asApi.show,
+                note: asApi.note,
+                approvePlan: asApi.approvePlan,
+                changePlan: asApi.changePlan,
+                undoFrom: asApi.undoFrom,
+                exportThread: asApi.exportThread,
+                plans: asPlanState[0],
+                setPlans: asApi.setPlans,
+                effort: asEffortState[0],
+                setEffort: asApi.setEffort,
+                look: canLook(),
+                setLook: asApi.setLook
               }) : left === "context" ? e(ContextPanel, {
                 items: ctxItems,
                 query: contextQuery,

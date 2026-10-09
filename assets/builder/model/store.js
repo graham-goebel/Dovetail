@@ -20,6 +20,7 @@ var VERSIONS_MAX = 30;
 var VERSION_EVERY = 10 * 60 * 1000;
 var LAST_KEY = "dovetail-builder-last";
 var CONTEXT_KEY = "dovetail-builder-context";
+var THREAD_KEY = "dovetail-builder-thread";
 /* Set once the libraries have been kept apart (see migrate). */
 var LIBS_DONE_KEY = "dovetail-builder-libs-kept-apart";
 /* A project's pages, each its own canvas. The first page's document is the
@@ -455,6 +456,21 @@ function makeStore(b) {
         return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
       }
       return b.put("library", { id: "ctx:" + scope, value: items });
+    },
+    /* A file's conversation with the assistant: what the panel shows and
+       the messages as sent, so it picks up where it left off. In browser
+       storage (no IndexedDB) a long one, pictures and all, may not fit, and
+       is then not kept. */
+    loadThread: function (fileId) {
+      if (b.kind !== "indexeddb") return Promise.resolve(storage(function (s) { return JSON.parse(s.getItem(THREAD_KEY + ":" + fileId) || "null"); }) || null);
+      return b.get("library", "thread:" + fileId).then(function (rec) { return rec && rec.value && typeof rec.value === "object" ? rec.value : null; });
+    },
+    saveThread: function (fileId, value) {
+      if (b.kind !== "indexeddb") {
+        storage(function (s) { if (value) s.setItem(THREAD_KEY + ":" + fileId, JSON.stringify(value)); else s.removeItem(THREAD_KEY + ":" + fileId); return true; });
+        return Promise.resolve();
+      }
+      return value ? b.put("library", { id: "thread:" + fileId, value: value }) : b.del("library", "thread:" + fileId);
     },
     /* What one library holds, added to another (when a file moves). */
     mergeLibrary: function (from, to) {

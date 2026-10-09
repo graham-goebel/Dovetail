@@ -38,6 +38,7 @@ var TOOLS = [
   { name: "rename", description: "Give a layer a name, so the layers list says what it is.", input_schema: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } }, required: ["id", "name"], additionalProperties: false } },
   { name: "create_frame", description: "Add a frame to this page and make it the one you're working in. structured frames are auto layout pages (they start with a Content group to fill, whose id comes back); free frames place layers anywhere. Presets: " + PRESETS.map(function (f) { return f.id + " (" + f.width + "×" + f.height + ")"; }).join(", ") + ".", input_schema: { type: "object", properties: { name: { type: "string" }, preset: { type: "string", enum: PRESETS.map(function (f) { return f.id; }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
   { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
+  { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
   { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
   { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
   { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
@@ -45,10 +46,11 @@ var TOOLS = [
 ];
 
 /* The tools for one conversation: screenshot only when the assistant may
-   look at the canvas. The order never changes, so the cache holds. */
+   look at the canvas, propose_plan only when plans come first. The order
+   never changes, so the cache holds. */
 function toolsFor(opts) {
-  var look = !opts || opts.look !== false;
-  return TOOLS.filter(function (t) { return look || t.name !== "screenshot"; });
+  var look = !opts || opts.look !== false, plan = !opts || opts.plan !== false;
+  return TOOLS.filter(function (t) { return (look || t.name !== "screenshot") && (plan || t.name !== "propose_plan"); });
 }
 
 var LABEL = { surface: "Fill", radius: "Corners", elevation: "Shadow", border: "Border", padding: "Padding", gap: "Gap", blur: "Blur", backdrop: "Behind", opacity: "Opacity", gradient: "Gradient" };
@@ -127,6 +129,7 @@ function systemPrompt() {
     "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
     "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
     "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
+    "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
     "- Finish with a sentence or two on what you changed and anything the person should check.",
     "## The system's rules",
     "- Tokens only: every colour, size, space, radius and shadow is a token value from list_tokens. Never invent one.",
@@ -144,6 +147,18 @@ function systemPrompt() {
   return brief;
 }
 
+/* A change big enough to want a plan first: a new frame, or more than
+   PLAN_OVER layers added. api.needsPlan(size) says whether one is still
+   owed (plans are on and none was approved this turn). */
+var PLAN_OVER = 10;
+function owesPlan(api, size) {
+  if (!api.needsPlan) return null;
+  var big = size === "frame" || size > PLAN_OVER;
+  if (!big || !api.needsPlan()) return null;
+  return { ok: false, result: (size === "frame" ? "A new frame" : "Adding " + size + " layers") + " is a big change. Call propose_plan first and wait for the person's answer." };
+}
+function added(nodes) { return nodes.reduce(function (a, n) { return a + count(n); }, 0); }
+
 /* JSX into new layers, the way pasted code is read: unknown tags add nothing. */
 function fromJsx(jsx) {
   var els = readJsxElements(String(jsx || ""));
@@ -157,7 +172,7 @@ function fromJsx(jsx) {
    componentDoc(name), replace(id, nodes), move(ids, parent, index),
    wrap(id, type), group(ids), duplicate(ids), rename(id, name),
    createFrame(opts), useFrame(fid), batch(fn), runChecks(fid),
-   measure(a, b) }. Returns { ok, result,
+   measure(a, b), proposePlan(plan), needsPlan() }. Returns { ok, result,
    change, changes, step }, or a promise
    of one for the tools that wait (another page, a picture, a component's
    docs). change, for one that edited the canvas, says what in a line for
@@ -278,6 +293,8 @@ function runTool(api, call) {
     case "insert_jsx": {
       var made = fromJsx(input.jsx);
       if (!made.length) return fail("That JSX has no components the system knows.");
+      var owed = owesPlan(api, added(made));
+      if (owed) return owed;
       var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
       if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
       return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function (n) { return n.name || n.type; }).join(", "), on: "" } };
@@ -287,6 +304,8 @@ function runTool(api, call) {
       if (!at0 || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
       var made2 = fromJsx(input.jsx);
       if (!made2.length) return fail("That JSX has no components the system knows.");
+      var owed2 = owesPlan(api, added(made2));
+      if (owed2) return owed2;
       var was = nameOf(input.id);
       var ids3 = api.replace(input.id, made2);
       if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
@@ -339,6 +358,8 @@ function runTool(api, call) {
       var preset = PRESETS.filter(function (f) { return f.id === input.preset; })[0];
       if (!preset) return fail("There's no preset " + input.preset + ".");
       if (input.mode !== "structured" && input.mode !== "free") return fail("A frame is structured or free.");
+      var owed3 = owesPlan(api, "frame");
+      if (owed3) return owed3;
       var made3 = api.createFrame({ name: short(String(input.name || "Frame"), 60), preset: preset.id, mode: input.mode });
       if (!made3) return fail("The frame couldn't be added.");
       return { ok: true, result: JSON.stringify(made3), change: { ids: [], label: "New frame", value: short(String(input.name || "Frame"), 60), on: preset.label + ", " + input.mode } };
@@ -354,10 +375,15 @@ function runTool(api, call) {
       if (!list.length) return fail("Send at least one call.");
       var bad = list.filter(function (c) { return !c || BATCHABLE.indexOf(c.name) < 0; })[0];
       if (bad) return fail((bad && bad.name) + " can't run in a batch. Batch runs: " + BATCHABLE.join(", ") + ".");
+      var size = list.reduce(function (a, c) { return a + (c.name === "insert_jsx" || c.name === "replace_jsx" ? added(fromJsx((c.input || {}).jsx)) : 0); }, 0);
+      var owed4 = owesPlan(api, size);
+      if (owed4) return owed4;
+      /* The batch as a whole was judged; its calls aren't asked again. */
+      var inner = Object.assign({}, api, { needsPlan: null });
       var changes = [], outs = [], stopped = null;
       api.batch(function () {
         for (var i = 0; i < list.length; i++) {
-          var r = runTool(api, { name: list[i].name, input: list[i].input || {} });
+          var r = runTool(inner, { name: list[i].name, input: list[i].input || {} });
           outs.push(r.ok ? r.result : "Failed: " + r.result);
           if (!r.ok) { stopped = { at: i, why: r.result }; break; }
           if (r.change) changes.push(r.change);
@@ -366,6 +392,16 @@ function runTool(api, call) {
       var summary = JSON.stringify(outs);
       if (stopped) return { ok: changes.length > 0, result: "Call " + (stopped.at + 1) + " (" + list[stopped.at].name + ") failed: " + stopped.why + " The " + stopped.at + " before it stand. Results: " + summary, changes: changes };
       return { ok: true, result: summary, changes: changes };
+    }
+    case "propose_plan": {
+      if (!api.proposePlan) return fail("Plans can't be shown here; go ahead.");
+      var steps = (input.steps || []).slice(0, 12).map(function (st) { return { title: short(String(st.title || ""), 60), detail: st.detail ? short(String(st.detail), 160) : "" }; }).filter(function (st) { return st.title; });
+      if (!steps.length) return fail("A plan needs at least one step.");
+      var plan = { title: short(String(input.title || "Plan"), 80), frame: input.frame && input.frame.name ? { name: short(String(input.frame.name), 60), preset: input.frame.preset || "", mode: input.frame.mode || "" } : null, steps: steps, notes: (input.notes || []).slice(0, 4).map(function (t) { return short(String(t), 200); }) };
+      return Promise.resolve(api.proposePlan(plan)).then(function (answer) {
+        if (answer && answer.approved) return { ok: true, result: "Approved. Build it now, as planned.", step: "Plan approved" };
+        return { ok: true, result: "Not approved yet: the person wants to change the plan" + (answer && answer.note ? ": " + answer.note : "") + ". Stop here and wait for their message.", step: "Plan set aside to change" };
+      });
     }
     case "remove": {
       var rids = known(input.ids);
@@ -406,6 +442,11 @@ function practiceAnswer(request, results) {
     return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
   }
   if (names[0] === "screenshot") return { text: "Practice mode: I looked at " + body(0).replace(/, \d+×\d+ pixels\.$/, "") + ". A model would now check it for overlaps, spacing and contrast, and fix what it finds.", calls: [] };
+  if (names[0] === "propose_plan") {
+    if (!/^Approved/.test(body(0))) return { text: "Practice mode: tell me what to change in the plan, and I'll propose it again.", calls: [] };
+    var fr = (prev.content.filter(function (b) { return b.type === "tool_use"; })[0].input || {}).frame || {};
+    return { text: "", calls: [{ name: "create_frame", input: { name: fr.name || "Page", preset: fr.preset || "desktop", mode: fr.mode || "structured" } }] };
+  }
   if (names[0] === "create_frame") {
     var made = {};
     try { made = JSON.parse(body(0)); } catch (err) { made = {}; }
@@ -454,7 +495,13 @@ function practiceScript(sel) {
     var page = /(?:make|build|design|create|start)\b.*\b(pricing|landing|about|home|launch)\b.*\bpage\b/.exec(text) || /\b(pricing|landing|about|launch)\s+page\b/.exec(text);
     if (page && /make|build|design|create|start/.test(text)) {
       var title = page[1].charAt(0).toUpperCase() + page[1].slice(1);
-      return { text: "", calls: [{ name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } }] };
+      var first = { name: "create_frame", input: { name: title, preset: "desktop", mode: "structured" } };
+      if (offered.indexOf("propose_plan") < 0) return { text: "", calls: [first] };
+      return { text: "Here's what I'll build. It's a new page, so I'll check with you first.", calls: [{ name: "propose_plan", input: { title: "New page · " + title, frame: { name: title, preset: "desktop", mode: "structured" }, steps: [
+        { title: "Hero", detail: "Display heading, one line under it, a \"New\" badge and one primary button" },
+        { title: "Plans", detail: "Three cards: Free, Pro and Team" },
+        { title: "Close", detail: "A dark band with one button" },
+      ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
     }
     var forWhat = /component (?:for|to)\s+(.+)$/.exec(text) || /(?:which|find a|is there a) component\s+(?:for\s+)?(.+)$/.exec(text);
     if (forWhat) return { text: "", calls: [{ name: "search_components", input: { query: forWhat[1].replace(/[?.!]+$/, "") } }] };
