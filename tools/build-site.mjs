@@ -15,6 +15,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import vm from "node:vm";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -2537,12 +2539,51 @@ function checkLayout(layout, meta, tokens) {
   if (problems.length) throw new Error(`builder: the example layout doesn't match the builder:\n  ${problems.join("\n  ")}`);
 }
 
+/* What each component starts with on the canvas when a layout leaves a prop
+   out: the same specimen and DEFAULTS the builder frame reads
+   (builder-frame.js base()), worked out by running assets/specimens.js
+   against the bundle with React, outside a browser. Only the props a layout
+   can set come back, as plain values. */
+function builderSamples(meta) {
+  const require = createRequire(import.meta.url);
+  const React = require("react");
+  const noop = () => {};
+  const win = { React, ReactDOM: {}, addEventListener: noop, matchMedia: () => ({ matches: false, addEventListener: noop }), location: { href: "" }, navigator: {},
+    document: { querySelectorAll: () => [], addEventListener: noop, documentElement: { getAttribute: () => null, classList: { contains: () => false } } } };
+  win.window = win; win.self = win;
+  const ctx = vm.createContext(win);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, "system/_ds_bundle.js"), "utf8"), ctx);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, "assets/specimens.js"), "utf8"), ctx);
+  const specs = win.DovetailSpecimens;
+  const NS = Object.values(win).find((v) => v && typeof v === "object" && v.Button && v.Card) || {};
+  const find = (n, C) => {
+    if (!n || typeof n !== "object") return null;
+    if (Array.isArray(n)) { for (const c of n) { const f = find(c, C); if (f) return f; } return null; }
+    if (n.type === C) return n;
+    return n.props ? find(n.props.children, C) : null;
+  };
+  const out = {};
+  for (const name of Object.keys(meta)) {
+    if (meta[name].container && name !== "Card") continue;
+    const build = (specs.samples && specs.samples[name]) || specs.build[name];
+    let props = {};
+    if (NS[name] && build) { try { const el = find(build(), NS[name]); if (el) props = { ...el.props }; } catch { props = {}; } }
+    const own = specs.defaults && specs.defaults[name];
+    if (own) for (const k of Object.keys(own)) { if (own[k] === null) delete props[k]; else props[k] = own[k]; }
+    const settable = new Set(meta[name].props.map((p) => p.name).concat("children"));
+    const kept = Object.entries(props).filter(([k, v]) => settable.has(k) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean"));
+    if (kept.length) out[name] = Object.fromEntries(kept);
+  }
+  return out;
+}
+
 /* assets/builder-layouts.md: the builder's layout format, written from the
    same data the builder reads, for a person or an agent (Claude) composing a
    layout to open on the canvas. llms.txt and the dovetail-setup skill point
    here. */
 function buildBuilderFormat(meta, groups, tokens) {
   checkLayout(BUILDER_EXAMPLE, meta, tokens);
+  const samples = builderSamples(meta);
   const link = `${SITE_URL}builder.html#b=${Buffer.from(JSON.stringify(BUILDER_EXAMPLE)).toString("base64url")}`;
   const code = (s) => "`" + s + "`";
   const list = (xs) => xs.map(code).join(", ");
@@ -2598,6 +2639,8 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `Device sizes: ${BUILDER_FRAMES.map((f) => `${f.label} ${f.width} × ${f.height}`).join(", ")}.`,
     ``,
+    `A page meant to scroll wants ${code("\"mode\": \"structured\"")} and ${code("\"hug\": true")}: without ${code("hug")} the frame keeps its height and cuts off what's below it.`,
+    ``,
     `### Node`,
     ``,
     "```json",
@@ -2605,7 +2648,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     "```",
     ``,
     `- ${code("type")}: a component from the list below.`,
-    `- ${code("props")}: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a ${code("?")} marks one you may leave out), and "a list of text" an array of strings. A component's text is ${code("props.children")}. Leave a prop out to keep what the builder starts it with: a block's sample content, or a small component's own default.`,
+    `- ${code("props")}: only the props listed for it, as plain strings, numbers and booleans, and an enum value only from its options. A prop marked "a list of { … }" takes an array of objects with those fields (a ${code("?")} marks one you may leave out), and "a list of text" an array of strings. A component's text is ${code("props.children")}, as plain text: nodes in a non-container's ${code("children")} are left out, unless they are its slots. Leave a prop out to keep what the builder starts it with, listed as "Starts with" for each component below; set a text prop to ${code("\"\"")} to clear it.`,
     `- ${code("style")}: keys from the style table, each set to one of its option names. Never a CSS value, with three exceptions in a free frame: ${code("x")} and ${code("y")} place a top-level item (whole steps of ${code("--dt-space-inset-2xs")}), and ${code("fill")} and ${code("color")} take a custom ${code("#rrggbb")} background and text colour.`,
     `- ${code("children")}: an array of nodes, only on containers: ${list(containers)}.`,
     `- On any other component, ${code("children")} may hold its slots instead: ${code('{ "type": "Slot", "props": { "name": "actions" }, "children": [ ...nodes ] }')}. A slot stands for one of the component's element props (a hero's ${code("actions")} or ${code("media")}, marked "a slot" below). What's in it renders into that prop and exports as JSX in it. Leave a slot out to keep the sample's own content.`,
@@ -2622,6 +2665,15 @@ function buildBuilderFormat(meta, groups, tokens) {
     ``,
     `A side key (${code("paddingTop")}, ${code("borderLeft")} and the like) overrides the all-sides key for that side. Sizes named ${code("x1")} to ${code("x12")} are that many times ${code("--dt-size-control-lg")}.`,
     ``,
+    `Options that read differently from their names:`,
+    ``,
+    `- ${code("w: fill")} is the whole width of the parent, not a share of a row: three of them in a row with ${code("wrap")} stack. For columns that share the width and reflow on a phone, use a Grid with ${code("minColumnWidth")}.`,
+    `- ${code("height: fill")} takes the parent's height and grows into spare room in a column.`,
+    `- ${code("position: floating")} takes the item out of the flow and places it inside its parent (the parent becomes the reference), at ${code("anchor")}, moved in by ${code("offset")}. It paints over the parent's other children.`,
+    `- ${code("position: pinned")} stays put in the frame as it scrolls; ${code("sticky")} sticks to the top of its scrolling parent.`,
+    `- ${code("gradient")} and ${code("surface")} on one layer: the gradient paints over the fill. A layer takes one gradient; nest a layer for a second.`,
+    `- ${code("blur")} blurs the layer itself (a soft glow from a Shape); ${code("backdrop")} blurs what shows through it.`,
+    ``,
     `## Components`,
     ``,
   ];
@@ -2630,11 +2682,27 @@ function buildBuilderFormat(meta, groups, tokens) {
     for (const n of g.items) {
       const m = meta[n];
       const props = m.props.map(propLine);
-      lines.push(`- **${n}**${m.container ? " (container)" : ""}: ${m.blurb || ""}.${props.length ? ` Props: ${props.join(", ")}.` : ""}`);
+      if (n === "Grid" && !m.props.some((p) => p.name === "minColumnWidth")) props.push(`${code("minColumnWidth")} (one of ${list(BUILDER_COLUMN_WIDTHS.map((w) => w.value))}: as many columns as fit at that width, one column on a phone; leave it out for a fixed ${code("columns")} count)`);
+      const start = samples[n] ? Object.entries(samples[n]).map(([k, v]) => `${code(k)} ${JSON.stringify(typeof v === "string" && v.length > 48 ? v.slice(0, 47) + "…" : v)}`) : [];
+      lines.push(`- **${n}**${m.container ? " (container)" : ""}: ${m.blurb || ""}.${props.length ? ` Props: ${props.join(", ")}.` : ""}${start.length ? ` Starts with ${start.join(", ")}.` : ""}`);
     }
     lines.push(``);
   }
   lines.push(
+    `## Composing from Group and Shape`,
+    ``,
+    `The finished components carry their own layout and sample copy. For an expressive screen, build from Group, Shape, Heading and Text, and style them with the keys above. These hold up at 390px and in dark mode:`,
+    ``,
+    `- **Columns that reflow:** a Grid with ${code("minColumnWidth")} ${code(BUILDER_COLUMN_WIDTHS[BUILDER_COLUMN_WIDTHS.length - 1].value)} sits as many tiles as fit side by side and one per row on a phone. Rows of Groups don't reflow; keep them to content that fits at 390px.`,
+    `- **Tiles:** a column Group with ${code("padding: lg")}, ${code("radius: overlay")}, ${code("border: subtle")} and a ${code("surface")}; add ${code("gradient: pattern-dots")} or ${code("brand-duotone")} for texture.`,
+    `- **A soft glow:** an ellipse Shape (${code("w")} and ${code("height")} ${code("x4")} to ${code("x8")}) with ${code("surface: brand")} and ${code("blur: glass")}, floating in a Group that has a ${code("height")} of its own. On a dark page, ${code("blend: screen")} keeps white text white where the glow passes behind it, but grey text loses contrast. Keep glows clear of copy, or float the copy above them.`,
+    `- **A ring:** a Group with ${code("radius: pill")}, equal ${code("w")} and ${code("height")}, ${code("padding: sm")} and ${code("gradient: brand-gradient")}, holding a Group with ${code("height: fill")}, ${code("radius: pill")} and ${code("surface: sunken")} that centres a Heading.`,
+    `- **A bar chart:** a row Group with a ${code("height")} (say ${code("x6")}) and ${code("align: stretch")}; in it, column Groups with ${code("w: fill")} and ${code("justify: flex-end")}, each holding a rectangle Shape with ${code("w: fill")}, ${code("radius: control")}, a ${code("surface")} and a ${code("height")} from ${code("x1")} up to the row's.`,
+    `- **Chips and pill buttons:** a row Group with ${code("radius: pill")}, ${code("padding: xs")}, ${code("paddingLeft")} and ${code("paddingRight")} ${code("sm")} or ${code("md")}, a ${code("border")} or ${code("surface")}, holding a Text ${code("variant: label")}.`,
+    `- **A big number:** Heading ${code("size: display-lg")} under a Text ${code("variant: eyebrow")}, with a pill beside or below it for the change.`,
+    `- **A line with ends:** a line Shape with ${code("w: fill")}, ${code("start: dot")}, ${code("end: arrow")} and a ${code("border")} for its colour.`,
+    `- **Names:** give each container a ${code("name")}, so the layers read as the screen does.`,
+    ``,
     `## Example`,
     ``,
     `[Open this layout in the builder](${link})`,
