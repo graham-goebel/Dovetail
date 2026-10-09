@@ -13,6 +13,20 @@
 
 :root {
   /* ---- Display ---------------------------------------------------- */
+  /* The two largest are fluid: poster scale on a wide screen, still on the
+     page at 390px. */
+  --dt-text-display-2xl-family: var(--dt-font-family-sans);
+  --dt-text-display-2xl-size: var(--dt-font-size-fluid-2xl);
+  --dt-text-display-2xl-line: var(--dt-line-height-fluid);
+  --dt-text-display-2xl-weight: var(--dt-font-weight-medium);
+  --dt-text-display-2xl-tracking: var(--dt-tracking-tightest);
+
+  --dt-text-display-xl-family: var(--dt-font-family-sans);
+  --dt-text-display-xl-size: var(--dt-font-size-fluid-xl);
+  --dt-text-display-xl-line: var(--dt-line-height-fluid);
+  --dt-text-display-xl-weight: var(--dt-font-weight-medium);
+  --dt-text-display-xl-tracking: var(--dt-tracking-tightest);
+
   --dt-text-display-lg-family: var(--dt-font-family-sans);
   --dt-text-display-lg-size: var(--dt-font-size-7xl);
   --dt-text-display-lg-line: var(--dt-line-height-7xl);

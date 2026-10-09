@@ -93,7 +93,7 @@
      voice. Body, label and code keep the text family, because a display face
      set at 14px is a legibility problem, not a brand. */
   var DISPLAY_ROLES = [
-    "display-lg", "display-md", "display-sm",
+    "display-2xl", "display-xl", "display-lg", "display-md", "display-sm",
     "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs",
   ];
 

@@ -1,7 +1,7 @@
 import React from "react";
 
 const DEFAULT_SIZE = { 1: "heading-xl", 2: "heading-lg", 3: "heading-md", 4: "heading-sm", 5: "heading-xs", 6: "heading-xs" };
-const SIZES = ["display-lg", "display-md", "display-sm", "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs"];
+const SIZES = ["display-2xl", "display-xl", "display-lg", "display-md", "display-sm", "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs"];
 const TONES = {
   headline: "var(--dt-text-headline, var(--dt-text-primary))",
   brand: "var(--dt-text-brand, var(--dt-text-link))",

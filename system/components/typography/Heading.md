@@ -4,6 +4,7 @@ A heading whose level and size are two props. `level` sets the tag, so the docum
 
 ## Use it when
 - Any heading on a page: a hero title, a section title, a card title that needs to be a real heading.
+- A headline or a key number should be poster-sized: `display-xl` and `display-2xl` are fluid, largest on a wide screen and shrinking to fit a phone. Keep them to one per screen.
 - The visual size and the outline disagree. A hero's one `h1` is often set at `display-md`; a product name inside a card is an `h3` set at `heading-sm`.
 
 ## Don't use it when

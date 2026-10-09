@@ -2706,7 +2706,7 @@ function buildBuilderFormat(meta, groups, tokens) {
     `- **A ring:** a Group with ${code("radius: pill")}, equal ${code("w")} and ${code("height")}, ${code("padding: sm")} and ${code("gradient: brand-gradient")}, holding a Group with ${code("height: fill")}, ${code("radius: pill")} and ${code("surface: sunken")} that centres a Heading.`,
     `- **A bar chart:** a row Group with a ${code("height")} (say ${code("x6")}) and ${code("align: stretch")}; in it, column Groups with ${code("w: fill")} and ${code("justify: flex-end")}, each holding a rectangle Shape with ${code("w: fill")}, ${code("radius: control")}, a ${code("surface")} and a ${code("height")} from ${code("x1")} up to the row's.`,
     `- **Chips and pill buttons:** a row Group with ${code("radius: pill")}, ${code("padding: xs")}, ${code("paddingLeft")} and ${code("paddingRight")} ${code("sm")} or ${code("md")}, a ${code("border")} or ${code("surface")}, holding a Text ${code("variant: label")}.`,
-    `- **A big number:** Heading ${code("size: display-lg")} under a Text ${code("variant: eyebrow")}, with a pill beside or below it for the change.`,
+    `- **A big number:** Heading ${code("size: display-xl")} or ${code("display-2xl")} under a Text ${code("variant: eyebrow")}, with a pill beside or below it for the change. Both are fluid, so a long number still fits at 390px; keep one per screen.`,
     `- **A line with ends:** a line Shape with ${code("w: fill")}, ${code("start: dot")}, ${code("end: arrow")} and a ${code("border")} for its colour.`,
     `- **Names:** give each container a ${code("name")}, so the layers read as the screen does.`,
     ``,

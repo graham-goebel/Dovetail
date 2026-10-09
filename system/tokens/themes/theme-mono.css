@@ -66,6 +66,8 @@
   --dt-elevation-5: 0 0 0 1px var(--dt-color-neutral-950);
 
   /* Tighter, more mechanical type. */
+  --dt-text-display-2xl-tracking: var(--dt-tracking-tighter);
+  --dt-text-display-xl-tracking: var(--dt-tracking-tighter);
   --dt-text-display-lg-tracking: var(--dt-tracking-tighter);
   --dt-text-display-md-tracking: var(--dt-tracking-tighter);
   --dt-text-heading-xl-tracking: var(--dt-tracking-tighter);

@@ -692,6 +692,10 @@
   --dt-line-height-5xl: 52px;
   --dt-line-height-6xl: 64px;
   --dt-line-height-7xl: 76px;
+  --dt-line-height-8xl: 88px;
+  --dt-line-height-9xl: 104px;
+  --dt-line-height-10xl: 124px;
+  --dt-line-height-11xl: 148px;
   --dt-font-weight-light: 300;
   --dt-font-weight-regular: 400;
   --dt-font-weight-medium: 500;
@@ -789,6 +793,14 @@
   --text-dt-font-size-5xl: 400 48px/1.4 inherit;
   --text-dt-font-size-6xl: 400 58px/1.4 inherit;
   --text-dt-font-size-7xl: 400 69px/1.4 inherit;
+  --text-dt-font-size-8xl: 400 83px/1.4 inherit;
+  --text-dt-font-size-9xl: 400 100px/1.4 inherit;
+  --text-dt-font-size-10xl: 400 120px/1.4 inherit;
+  --text-dt-font-size-11xl: 400 144px/1.4 inherit;
+  --text-dt-text-display-2xl: 500 144px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-display-2xl-line: 400 148px/1.4 inherit;
+  --text-dt-text-display-xl: 500 100px/1.4 var(--font-dt-font-family-sans);
+  --text-dt-text-display-xl-line: 400 104px/1.4 inherit;
   --text-dt-text-display-lg: 600 69px/1.4 var(--font-dt-font-family-sans);
   --text-dt-text-display-lg-line: 400 76px/1.4 inherit;
   --text-dt-text-display-md: 600 58px/1.4 var(--font-dt-font-family-sans);
@@ -906,6 +918,44 @@
   line-height: 1.4;
   font-weight: 400;
   letter-spacing: 0;
+}
+.dt-font-size-8xl {
+  font-size: 83px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-9xl {
+  font-size: 100px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-10xl {
+  font-size: 120px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-font-size-11xl {
+  font-size: 144px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.dt-text-display-2xl {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 144px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.dt-text-display-xl {
+  font-family: var(--font-dt-font-family-sans);
+  font-size: 100px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.04em;
 }
 .dt-text-display-lg {
   font-family: var(--font-dt-font-family-sans);

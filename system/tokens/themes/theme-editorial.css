@@ -41,12 +41,16 @@
 
   /* Typography: serif for editorial voice, sans for UI chrome. */
   --dt-font-family-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --dt-text-display-2xl-family: var(--dt-font-family-serif);
+  --dt-text-display-xl-family: var(--dt-font-family-serif);
   --dt-text-display-lg-family: var(--dt-font-family-serif);
   --dt-text-display-md-family: var(--dt-font-family-serif);
   --dt-text-display-sm-family: var(--dt-font-family-serif);
   --dt-text-heading-xl-family: var(--dt-font-family-serif);
   --dt-text-heading-lg-family: var(--dt-font-family-serif);
   --dt-text-heading-md-family: var(--dt-font-family-serif);
+  --dt-text-display-2xl-weight: var(--dt-font-weight-regular);
+  --dt-text-display-xl-weight: var(--dt-font-weight-regular);
   --dt-text-display-lg-weight: var(--dt-font-weight-regular);
   --dt-text-display-md-weight: var(--dt-font-weight-regular);
   --dt-text-display-sm-weight: var(--dt-font-weight-regular);

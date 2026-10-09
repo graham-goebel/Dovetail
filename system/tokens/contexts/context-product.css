@@ -17,6 +17,10 @@
 
 .dt-context-product {
   /* Display type is rare in product UI and never this large. */
+  --dt-text-display-2xl-size: var(--dt-font-size-6xl);
+  --dt-text-display-2xl-line: var(--dt-line-height-6xl);
+  --dt-text-display-xl-size: var(--dt-font-size-5xl);
+  --dt-text-display-xl-line: var(--dt-line-height-5xl);
   --dt-text-display-lg-size: var(--dt-font-size-4xl);
   --dt-text-display-lg-line: var(--dt-line-height-4xl);
   --dt-text-display-md-size: var(--dt-font-size-3xl);

@@ -131,6 +131,11 @@ export declare function Text(props: TextProps): React.JSX.Element;
 | `--dt-text-code-sm-weight` | semantic | `var(--dt-font-weight-regular)` |
 | `--dt-text-danger` | semantic | `var(--dt-color-red-800)` |
 | `--dt-text-disabled` | semantic | `var(--dt-color-neutral-400)` |
+| `--dt-text-display-2xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-2xl-line` | semantic | `var(--dt-line-height-fluid)` |
+| `--dt-text-display-2xl-size` | semantic | `var(--dt-font-size-fluid-2xl)` |
+| `--dt-text-display-2xl-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-2xl-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-display-lg-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-display-lg-line` | semantic | `var(--dt-line-height-7xl)` |
 | `--dt-text-display-lg-size` | semantic | `var(--dt-font-size-7xl)` |
@@ -146,6 +151,11 @@ export declare function Text(props: TextProps): React.JSX.Element;
 | `--dt-text-display-sm-size` | semantic | `var(--dt-font-size-5xl)` |
 | `--dt-text-display-sm-tracking` | semantic | `var(--dt-tracking-tighter)` |
 | `--dt-text-display-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-display-xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-xl-line` | semantic | `var(--dt-line-height-fluid)` |
+| `--dt-text-display-xl-size` | semantic | `var(--dt-font-size-fluid-xl)` |
+| `--dt-text-display-xl-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-xl-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-eyebrow-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-eyebrow-line` | semantic | `var(--dt-line-height-2xs)` |
 | `--dt-text-eyebrow-size` | semantic | `var(--dt-font-size-2xs)` |

@@ -30,6 +30,14 @@
   --dt-font-size-5xl: 48px;
   --dt-font-size-6xl: 58px;
   --dt-font-size-7xl: 69px;
+  --dt-font-size-8xl: 83px;
+  --dt-font-size-9xl: 100px;
+  --dt-font-size-10xl: 120px;
+  --dt-font-size-11xl: 144px;
+  /* Fluid display: shrinks with the screen between two steps of the ramp, so
+     a big headline or number never runs off a phone. */
+  --dt-font-size-fluid-xl: clamp(var(--dt-font-size-6xl), 9vw, var(--dt-font-size-9xl));
+  --dt-font-size-fluid-2xl: clamp(var(--dt-font-size-7xl), 12vw, var(--dt-font-size-11xl));
 
   /* Line heights — all multiples of 4 */
   --dt-line-height-2xs: 16px;
@@ -44,6 +52,12 @@
   --dt-line-height-5xl: 52px;
   --dt-line-height-6xl: 64px;
   --dt-line-height-7xl: 76px;
+  --dt-line-height-8xl: 88px;
+  --dt-line-height-9xl: 104px;
+  --dt-line-height-10xl: 124px;
+  --dt-line-height-11xl: 148px;
+  /* For fluid sizes: a ratio, so the line follows the size. */
+  --dt-line-height-fluid: 1.04;
 
   /* Weights */
   --dt-font-weight-light: 300;

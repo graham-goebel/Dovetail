@@ -20,6 +20,10 @@
 .dt-context-social {
   /* Display type barely appears in a feed. Where it does, it is a profile name
      or an empty state, not a hero. */
+  --dt-text-display-2xl-size: var(--dt-font-size-5xl);
+  --dt-text-display-2xl-line: var(--dt-line-height-5xl);
+  --dt-text-display-xl-size: var(--dt-font-size-4xl);
+  --dt-text-display-xl-line: var(--dt-line-height-4xl);
   --dt-text-display-lg-size: var(--dt-font-size-3xl);
   --dt-text-display-lg-line: var(--dt-line-height-3xl);
   --dt-text-display-md-size: var(--dt-font-size-2xl);

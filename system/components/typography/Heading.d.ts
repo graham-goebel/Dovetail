@@ -8,8 +8,8 @@ import * as React from "react";
 export interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   /** Sets the tag, h1 to h6. @default 2 */
   level?: 1 | 2 | 3 | 4 | 5 | 6;
-  /** The type role it is set in. Defaults by level: 1 heading-xl, 2 heading-lg, 3 heading-md, 4 heading-sm, 5 and 6 heading-xs. */
-  size?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md" | "heading-sm" | "heading-xs";
+  /** The type role it is set in. Defaults by level: 1 heading-xl, 2 heading-lg, 3 heading-md, 4 heading-sm, 5 and 6 heading-xs. display-xl and display-2xl are fluid: they shrink with the screen, so a poster-sized headline or number still fits at 390px. */
+  size?: "display-2xl" | "display-xl" | "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md" | "heading-sm" | "heading-xs";
   /**
    * headline reads --dt-text-headline: ink unless a theme sets headlines in a
    * brand colour, and re-pointed by a brand, photo or dark Section so it
