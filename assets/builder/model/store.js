@@ -19,6 +19,7 @@ var STORES = ["projects", "docs", "versions", "library", "groups"];
 var VERSIONS_MAX = 30;
 var VERSION_EVERY = 10 * 60 * 1000;
 var LAST_KEY = "dovetail-builder-last";
+var CONTEXT_KEY = "dovetail-builder-context";
 /* Set once the libraries have been kept apart (see migrate). */
 var LIBS_DONE_KEY = "dovetail-builder-libs-kept-apart";
 /* A project's pages, each its own canvas. The first page's document is the
@@ -441,6 +442,19 @@ function makeStore(b) {
       if (!scope || scope === "shared") return Promise.resolve();
       if (b.kind !== "indexeddb") { storage(function (s) { s.removeItem(LIB_KEY + ":" + scope); }); return Promise.resolve(); }
       return b.del("library", "lib:" + scope);
+    },
+    /* Context docs and skills for the assistant, by scope key: "f:<file
+       id>", "g:<project id>" or "t:<team>". Kept beside the libraries. */
+    loadContext: function (scope) {
+      if (b.kind !== "indexeddb") return Promise.resolve(storage(function (s) { return JSON.parse(s.getItem(CONTEXT_KEY + ":" + scope) || "null"); }) || []);
+      return b.get("library", "ctx:" + scope).then(function (rec) { return rec && Array.isArray(rec.value) ? rec.value : []; });
+    },
+    saveContext: function (scope, items) {
+      if (b.kind !== "indexeddb") {
+        var ok = storage(function (s) { s.setItem(CONTEXT_KEY + ":" + scope, JSON.stringify(items)); return true; });
+        return ok ? Promise.resolve() : Promise.reject(new Error("This browser is out of room."));
+      }
+      return b.put("library", { id: "ctx:" + scope, value: items });
     },
     /* What one library holds, added to another (when a file moves). */
     mergeLibrary: function (from, to) {

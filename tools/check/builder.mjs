@@ -90,6 +90,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { serve } from "./serve.mjs";
 import { buildPackage, describe as describeTs, hasReactTypes, typecheck } from "./typecheck.mjs";
+import { zip } from "../../assets/builder/model/zip.js";
 
 let failures = 0;
 /* Steps run side by side, so each one's lines are kept in its own lane and
@@ -896,7 +897,7 @@ try {
     const rail = (name) => page.locator(".bd-rail .bd-tab", { hasText: name });
 
     const tabs = await page.$$eval(".bd-rail [role=tab]", (b) => b.map((x) => x.textContent));
-    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure", `the rail holds Home, Assets, Pages, Layers, Content and Configure, got ${tabs}`);
+    expect(tabs.join() === "Home,Assets,Pages,Layers,Content,Configure,Context", `the rail holds Home, Assets, Pages, Layers, Content, Configure and Context, got ${tabs}`);
     const dupes = await page.locator(".bd-toolbar [aria-label='New frame'], .bd-toolbar [aria-label='Dark mode'], .bd-toolbar .bd-frame-size").count();
     expect(dupes === 0, "the top bar no longer repeats New frame, the frame size or dark mode");
     const gone = await page.locator(".bd-toolbar [aria-label='New'], .bd-toolbar [aria-label='Undo'], .bd-toolbar [aria-label='Redo'], .bd-toolbar [aria-label='Hide panels'], .bd-toolbar [aria-label='Copy link'], .bd-toolbar .bd-saved").count();
@@ -5710,6 +5711,48 @@ try {
     expect(pane.overflow === "auto" && pane.room > 0 && pane.top > 0, `the Edit pane runs past the screen and scrolls, got ${JSON.stringify(pane)}`);
     ok(`tabs, inline toolbar, no overflow, a phone canvas, tap to add, and an Edit pane that scrolls (${pane.room}px more than the screen)`);
     await phone.page.close();
+  });
+
+  await step("Context: docs and skills for the assistant, uploaded or written, kept for the file or the team, on and off, and kept across a reload", async () => {
+    const { page } = await open({ width: 1440, height: 900 });
+    await page.locator(".bd-rail .bd-tab", { hasText: "Context" }).click();
+    await page.locator(".bd-cx").waitFor();
+    const meter = () => page.locator(".bd-cx-meter").textContent();
+    expect(/0 docs sent, 0 skills/.test(await meter()), `an empty file sends nothing, got ${await meter()}`);
+    await page.locator('input[aria-label="Upload docs or a skill zip"]').setInputFiles([
+      { name: "brand-voice.md", mimeType: "text/markdown", buffer: Buffer.from("# Brand voice\n\nPlain words. Short sentences.\n") },
+      { name: "pricing-skill.zip", mimeType: "application/zip", buffer: Buffer.from(zip([
+        { name: "pricing-table/SKILL.md", data: new TextEncoder().encode("---\nname: pricing-table\ndescription: Use when asked for plans or prices.\n---\n# Pricing table\n") },
+        { name: "pricing-table/examples.md", data: new TextEncoder().encode("Three tiers.") },
+        { name: "README.md", data: new TextEncoder().encode("outside the skill folder") },
+      ])) },
+    ]);
+    await page.locator('.bd-cx-group[data-scope="file"] .bd-cx-title', { hasText: "pricing-table" }).waitFor();
+    expect(await page.locator('.bd-cx-group[data-scope="file"] .bd-cx-title', { hasText: "Brand voice" }).count() === 1, "a markdown file becomes a doc, titled by its heading");
+    expect(await page.locator('.bd-cx-group[data-scope="file"] .bd-cx-when', { hasText: "plans or prices" }).count() === 1, "a zipped skill shows when it's used, from its SKILL.md");
+    expect(/1 doc sent, 1 skill on call/.test(await meter()), `the page sends the doc and offers the skill, got ${await meter()}`);
+    await page.getByRole("switch", { name: "Turn off Brand voice" }).click();
+    expect(/0 docs sent/.test(await meter()), `a doc switched off isn't sent, got ${await meter()}`);
+    /* Open the skill: its files, from the zip's skill folder only. */
+    await page.getByRole("button", { name: "Open pricing-table" }).click();
+    const files = await page.locator(".bd-cx-file > span:nth-child(2)").allTextContents();
+    expect(files.join(",") === "SKILL.md,examples.md", `the skill keeps the files in its own folder, got ${files}`);
+    /* Its front matter names it and says when to use it. */
+    await page.locator(".bd-cx-body").fill("---\nname: pricing-plans\ndescription: Use when a page needs tiers.\n---\n# Plans");
+    await page.waitForFunction(() => document.querySelector('.bd-cx-edit input[aria-label="Skill name"]').value === "pricing-plans");
+    expect(await page.locator('.bd-cx-field input').first().inputValue() === "Use when a page needs tiers.", "editing SKILL.md updates when it's used");
+    await page.locator('.bd-cx-field .bd-seg-btn', { hasText: "Team" }).click();
+    await page.locator('[aria-label="Back to all context"]').click();
+    await page.locator('.bd-cx-group[data-scope="team"] .bd-cx-title', { hasText: "pricing-plans" }).waitFor();
+    ok("markdown becomes a doc, a zip becomes a skill (and keeps only its own files), off isn't sent, SKILL.md names the skill, and it moves to the team");
+    await page.waitForTimeout(300);
+    await page.reload();
+    await page.waitForFunction(() => window.__builder && window.__builder.saved && window.__builder.saved().ok);
+    await page.locator(".bd-rail .bd-tab", { hasText: "Context" }).click();
+    await page.locator('.bd-cx-group[data-scope="team"] .bd-cx-title', { hasText: "pricing-plans" }).waitFor();
+    expect(await page.locator('.bd-cx-group[data-scope="file"] .bd-cx-item.is-off .bd-cx-title', { hasText: "Brand voice" }).count() === 1, "the file's doc comes back, still off");
+    ok("docs and skills come back after a reload, where they were kept");
+    await page.close();
   });
 
   await step("Canvas icons: the rail and inspector draw the canvas icon set, still at rest, moving once while hovered, never with reduced motion", async () => {

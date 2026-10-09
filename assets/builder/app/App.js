@@ -13,6 +13,8 @@ import { Layers } from "./Layers.js";
 import { Pages } from "./Pages.js";
 import { Assets } from "./Assets.js";
 import { Content } from "./Content.js";
+import { ContextPanel } from "./ContextPanel.js";
+import { cleanItem } from "../model/context.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
 import { STARTERS } from "../model/starters.js";
 import { addPlayground } from "../model/playground.js";
@@ -78,6 +80,17 @@ function App(props) {
   var layerQueryState = useState("");
   var layerQuery = layerQueryState[0], setLayerQuery = layerQueryState[1];
   var contentQueryState = useState("");
+  var contextQueryState = useState("");
+  var contextQuery = contextQueryState[0], setContextQuery = contextQueryState[1];
+  /* What the assistant reads (model/context.js), by scope: this file's, its
+     project's and the team's. Read in when the file opens or moves; saved
+     as it changes. The team, until teams come from the cloud, is this
+     browser's. */
+  var ctxState = useState({ file: [], project: [], team: [] });
+  var ctxItems = ctxState[0], setCtxItems = ctxState[1];
+  var ctxRef = useRef(ctxItems); ctxRef.current = ctxItems;
+  var groupNameState = useState("");
+  var groupName = groupNameState[0], setGroupName = groupNameState[1];
   var pageQueryState = useState("");
   var configQueryState = useState("");
   var configQuery = configQueryState[0], setConfigQuery = configQueryState[1];
@@ -324,6 +337,39 @@ function App(props) {
       setLibrary(loadLibrary(v));
       setLibTab(null);
     });
+  };
+  var ctxKey = function (scope, meta) {
+    meta = meta || projectRef.current;
+    return scope === "team" ? "t:local" : scope === "project" ? (meta && meta.group ? "g:" + meta.group : null) : meta ? "f:" + meta.id : null;
+  };
+  var groupOfFile = project ? project.group || "" : "";
+  useEffect(function () {
+    var meta = projectRef.current, live = true;
+    if (!meta) return undefined;
+    var read = function (scope) { var k = ctxKey(scope, meta); return k ? store.loadContext(k).then(function (list) { return (list || []).map(cleanItem).filter(Boolean); }, function () { return []; }) : Promise.resolve([]); };
+    Promise.all([read("file"), read("project"), read("team")]).then(function (got) { if (live) setCtxItems({ file: got[0], project: got[1], team: got[2] }); });
+    if (meta.group && store.getGroup) store.getGroup(meta.group).then(function (g) { if (live) setGroupName(g ? g.name : ""); }, function () {});
+    else setGroupName("");
+    return function () { live = false; };
+  }, [project ? project.id : null, groupOfFile]);
+  /* One scope's items replaced, kept on screen and saved. */
+  var putCtx = function (scope, items) {
+    var k = ctxKey(scope);
+    if (!k) return;
+    setCtxItems(function (c) { var n = Object.assign({}, c); n[scope] = items; return n; });
+    store.saveContext(k, items).catch(function () { announce("This browser is out of room for context. Remove something, or use smaller files."); });
+  };
+  var ctxApi = {
+    add: function (scope, list) { putCtx(scope, (ctxRef.current[scope] || []).concat(list)); },
+    update: function (scope, id, patch) { putCtx(scope, (ctxRef.current[scope] || []).map(function (it) { return it.id === id ? cleanItem(Object.assign({}, it, patch, { updatedAt: Date.now() })) || it : it; })); },
+    remove: function (scope, id) { putCtx(scope, (ctxRef.current[scope] || []).filter(function (it) { return it.id !== id; })); },
+    move: function (from, to, id) {
+      var it = (ctxRef.current[from] || []).filter(function (x) { return x.id === id; })[0];
+      if (!it || !ctxKey(to)) return;
+      var moved = Object.assign({}, it, { pages: to === "file" ? it.pages : [] });
+      putCtx(from, (ctxRef.current[from] || []).filter(function (x) { return x.id !== id; }));
+      putCtx(to, (ctxRef.current[to] || []).concat([moved]));
+    },
   };
   var docked = left === "configure" && !(wide && (bare || preview)) && (wide || pane === "add");
   useEffect(function () {
@@ -6077,7 +6123,7 @@ function App(props) {
       })),
     e("div", { className: cx("bd-shell", hidePanels && "is-bare", arriving && "is-arriving", leftClosed && "is-left-closed"), "data-pane": pane, inert: home ? "" : undefined, "aria-hidden": home ? "true" : undefined,
       style: wide ? { "--bd-left-w": (leftClosed ? railW || 88 : panels.left) + "px", "--bd-right-w": (rightClosed ? 0 : panels.right) + "px" } : undefined },
-      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content and configure", hidden: hidePanels || undefined },
+      e("aside", { className: "bd-left", ref: leftPanelRef, "aria-label": "Assets, pages, layers, content, configure and context", hidden: hidePanels || undefined },
         e("div", { className: "bd-left-tabs bd-rail" },
           e("div", { className: "bd-rail-tabs", role: "tablist", "aria-label": "Left panel", "aria-orientation": wide ? "vertical" : "horizontal" },
             RAIL.map(function (r) {
@@ -6091,11 +6137,16 @@ function App(props) {
         e("div", { className: "bd-left-body", id: "bd-left-body", role: "tabpanel" },
           e("div", { className: cx("bd-left-main", left === "configure" && "bd-config-main") },
             left === "configure" ? e(React.Fragment, null, e("div", { className: "bd-config-dock", ref: dockRef }), configNone ? e("p", { className: "bd-empty-note bd-config-none" }, "No settings match.") : null)
-              : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps) : e(Content, contentProps)),
+              : left === "assets" ? e(Assets, assetsProps) : left === "pages" ? e(Pages, pagesProps) : left === "layers" ? e(Layers, layersProps)
+              : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
+                  pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,
+                  add: ctxApi.add, update: ctxApi.update, remove: ctxApi.remove, move: ctxApi.move })
+              : e(Content, contentProps)),
           left === "configure" ? e(SearchField, { className: "bd-search-dock", label: "Search settings", placeholder: "Search settings", value: configQuery, onChange: setConfigQuery })
             : left === "pages" ? e(SearchField, { className: "bd-search-dock", label: "Filter pages", placeholder: "Filter pages", value: pageQuery, onChange: setPageQuery })
             : left === "assets" ? e(SearchField, { className: "bd-search-dock", label: "Search components", placeholder: "Search all components", value: query, onChange: setQuery })
             : left === "layers" ? e(SearchField, { className: "bd-search-dock", label: "Filter layers", placeholder: "Filter layers", value: layerQuery, onChange: setLayerQuery })
+            : left === "context" ? e(SearchField, { className: "bd-search-dock", label: "Filter context", placeholder: "Filter docs and skills", value: contextQuery, onChange: setContextQuery })
             : e(SearchField, { className: "bd-search-dock", label: "Search content", placeholder: "Search your content", value: contentQuery, onChange: setContentQuery }))),
       e("div", { className: "bd-center" }, slot ? null : toolbar, stage),
       e("aside", { className: "bd-right", "aria-label": "Inspector", ref: rightRef, hidden: hidePanels || rightClosed || undefined }, inspector),
