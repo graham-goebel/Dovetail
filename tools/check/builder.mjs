@@ -996,7 +996,10 @@ try {
     await tag.waitFor();
     const said = await tag.textContent();
     expect(/^\d+ gap \w+$/.test(said), `Shift shows the gap between the Heading and the Text with its token, got ${said}`);
-    await tag.click();
+    /* Pressed where it is: moving the pointer onto the label would change
+       what's measured under it, and on a slow runner swap the label for
+       another before the press lands. */
+    await tag.dispatchEvent("click");
     await page.waitForFunction(() => /Stack/.test(document.querySelector(".bd-inspect-title")?.textContent || ""));
     await page.waitForFunction(() => document.querySelector('.bd-right .bd-sec[data-sec="spacing"]:not(.is-closed), .bd-right .bd-sec[data-sec="flex"]:not(.is-closed)'));
     ok("the label selects the Stack, with its layout open in the inspector");
