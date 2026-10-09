@@ -19181,6 +19181,28 @@
       );
     };
     var TEXT_BOX = { Text: 1, Heading: 1 };
+    var linesRow = function(nodes) {
+      if (!nodes.every(function(n) {
+        return TEXT_BOX[n.type];
+      })) return null;
+      var ids = nodes.map(function(n) {
+        return n.id;
+      });
+      var vs = nodes.map(function(n) {
+        return n.style.textWrap || "";
+      });
+      var lid = "bd-lines-" + nodes[0].id;
+      var opts = [{ value: "", label: "Wrap", hint: "Breaks where the line runs out" }].concat(DATA.tokens.textWrap.options.map(function(o) {
+        return { value: o.value, label: o.label };
+      }));
+      return e(
+        Field,
+        { key: "lines", id: lid, label: "Lines" },
+        e(Dropdown, { labelledBy: lid, value: same3(vs) ? vs[0] : null, mixed: !same3(vs), className: "bd-dd-field", options: opts, onChange: function(v) {
+          setStyle(ids, "textWrap", v || void 0);
+        } })
+      );
+    };
     var textBoxRow = function(nodes) {
       if (frame2.mode === "structured" || !nodes.every(function(n) {
         return TEXT_BOX[n.type] && isFree(n.style);
@@ -21282,7 +21304,7 @@
         arrange2 ? sec("props-arrange", "Arrangement", arrange2, null, propsSet(nodes, propNames("layout"))) : null,
         meta.container && flex && flex.filter(Boolean).length ? sec("flex", first.type === "Grid" ? "Grid layout" : flex[0] || flex[1] ? "Auto layout" : "Arrangement", flex, null, propsSet(nodes, propNames("layout"))) : null,
         sec("position", "Position", positionRows(nodes), null, styled(nodes, ["position", "anchor", "offset", "z", "x", "y"].concat(placedFree ? ["fw", "fh", "rw", "rh", "rot"] : []))),
-        sec("size", "Size", placedFree ? [textBoxRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h"] : ["w", "minW", "height", "h", "self", "fw", "fh", "rw", "rh"]))
+        sec("size", "Size", placedFree ? [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes, "mins")] : [textBoxRow(nodes), linesRow(nodes), sizeGrid(nodes), selfRow(nodes)], null, styled(nodes, placedFree ? ["minW", "h", "textWrap"] : ["w", "minW", "height", "h", "self", "textWrap", "fw", "fh", "rw", "rh"]))
       ].concat(lookSections(nodes, null), [
         sec("spacing", "Spacing", boxModel(nodes), null, styled(nodes, SPACING_KEYS))
       ]);
