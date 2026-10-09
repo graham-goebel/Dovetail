@@ -18,6 +18,7 @@ import { cleanItem, contextFor, contextText } from "../model/context.js";
 import { AssistantPanel } from "./AssistantPanel.js";
 import { practiceScript, runTool, systemPrompt, toolsFor } from "../model/agent.js";
 import { checksFrom, checksText, lintFrame } from "../model/lint.js";
+import { editsText, recentEdits } from "../model/recent.js";
 import { collector } from "../model/assistant.js";
 import { assistantMode, sendAssistant } from "../cloud/assistant.js";
 import { EditorAt, Labels, Marks, Resizers, Rulers, SpacingLines, ViewMarks, World, camera, onStage, placeMarks } from "./Stage.js";
@@ -402,6 +403,12 @@ function App(props) {
      waiting on its answer. */
   var asNotes = useRef([]);
   var planWait = useRef(null);
+  /* A question on a reply's card, waiting for a choice or a typed answer. */
+  var askWait = useRef(null);
+  /* The page as the assistant last left it, so the person's own edits since
+     can go with their next message. */
+  var asBase = useRef(null);
+  var asBaseTick = useState(0);
   /* The file's conversation with the assistant, picked up where it was
      left, and saved whenever a reply finishes. A reply cut off by leaving
      the page shows as stopped. */
@@ -409,6 +416,7 @@ function App(props) {
   useEffect(function () {
     var meta = projectRef.current, live = true;
     threadFor.current = null;
+    asBase.current = null;
     setAsThread([]);
     asMsgs.current = [];
     if (!meta || !store.loadThread) return undefined;
@@ -424,7 +432,11 @@ function App(props) {
   useEffect(function () {
     var meta = projectRef.current;
     if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread) return;
-    var plan = asThread.map(function (t) { return t.plan && t.plan.status === "pending" ? Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) }) : t; });
+    var plan = asThread.map(function (t) {
+      if (t.plan && t.plan.status === "pending") t = Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) });
+      if (t.ask && t.ask.status === "pending") t = Object.assign({}, t, { ask: Object.assign({}, t.ask, { status: "skipped" }) });
+      return t;
+    });
     store.saveThread(meta.id, asThread.length ? { thread: plan, msgs: asMsgs.current } : null).catch(function () { /* the panel still has it */ });
   }, [asThread, asBusy]);
   var asAbort = useRef(null);
@@ -684,12 +696,24 @@ function App(props) {
     var tools = toolsFor({ look: canLook(), plan: planOn });
     var planned = false;
     var me = { id: uid(), role: "user", text: text };
+    var base = asBase.current;
+    var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
+    var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
+    asBase.current = null;
     var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text };
     var api2 = Object.assign({}, toolApi, {
       screenshot: canLook() ? toolApi.screenshot : null,
       needsPlan: function () { return planOn && !planned; },
       /* The plan shows on this reply's card; its answer comes from the
          person's click (approvePlan or changePlan), or Stop. */
+      /* The question shows on this reply's card; its answer is a click on
+         an option (answerAsk), or what the person types next, or Stop. */
+      askUser: function (q) {
+        patchTurn(turn.id, { ask: Object.assign({ status: "pending" }, q) });
+        return new Promise(function (resolve) {
+          askWait.current = { turn: turn.id, resolve: function (answer) { askWait.current = null; resolve(answer); } };
+        });
+      },
       proposePlan: function (plan) {
         patchTurn(turn.id, { plan: Object.assign({ status: "pending" }, plan) });
         return new Promise(function (resolve) {
@@ -700,11 +724,11 @@ function App(props) {
     var fresh0 = JSON.stringify(asMsgs.current).length > AS_MSGS_MAX;
     if (fresh0) asMsgs.current = [];
     if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel.length ? sel.length + (sel.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
-    setAsThread(function (t) { return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], [me, turn]); });
+    setAsThread(function (t) { return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], told ? [told] : [], [me, turn]); });
     asDraftState[1]("");
     setAsBusy(true);
     asNotes.current = [];
-    asMsgs.current = asMsgs.current.concat([{ role: "user", content: text }]);
+    asMsgs.current = asMsgs.current.concat([{ role: "user", content: told ? [{ type: "text", text: editsText(mine) }, { type: "text", text: text }] : text }]);
     var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
     asAbort.current = abort;
     var script = practiceScript(sel);
@@ -754,6 +778,9 @@ function App(props) {
       setAsBusy(false);
       asAbort.current = null;
       if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
+      if (askWait.current) askWait.current.resolve(null);
+      asBase.current = { page: pageRef.current, doc: docRef.current };
+      asBaseTick[1](function (n) { return n + 1; });
       /* Notes that came too late for this reply start the next one. */
       var left = asNotes.current.splice(0);
       if (left.length) {
@@ -782,14 +809,36 @@ function App(props) {
   var runRef = useRef(runAssistant); runRef.current = runAssistant;
   var asApi = {
     send: runAssistant,
-    stop: function () { if (asAbort.current) asAbort.current.abort(); if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" }); },
-    clear: function () { setAsThread([]); asMsgs.current = []; if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function () {}); },
+    stop: function () { if (asAbort.current) asAbort.current.abort(); if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" }); if (askWait.current) askWait.current.resolve(null); },
+    clear: function () { setAsThread([]); asMsgs.current = []; asBase.current = null; asBaseTick[1](function (n) { return n + 1; }); if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function () {}); },
     /* A note while it works: it lands with the next step's results. */
     note: function (text) {
+      if (askWait.current) {
+        var asked = askWait.current.turn;
+        setAsThread(function (t) { return t.map(function (x) { return x.id === asked ? Object.assign({}, x, { ask: Object.assign({}, x.ask, { status: "answered", answer: text }) }) : x; }); });
+        askWait.current.resolve({ text: text });
+        asDraftState[1]("");
+        return;
+      }
       var item = { id: uid(), role: "user", text: text, queued: true };
       asNotes.current.push(item);
       setAsThread(function (t) { return t.concat([item]); });
       asDraftState[1]("");
+    },
+    /* A click on one of a question's options. */
+    answerAsk: function (id, index) {
+      if (!askWait.current || askWait.current.turn !== id) return;
+      patchTurn(id, function (x) { return { ask: Object.assign({}, x.ask, { status: "answered", choice: index }) }; });
+      askWait.current.resolve({ index: index });
+    },
+    /* Write something else: the next message answers the question. */
+    otherAsk: function () {
+      setTimeout(function () { var el = document.querySelector(".bd-as-input"); if (el) el.focus(); }, 0);
+    },
+    /* Leave the edits since the last reply out of the next message. */
+    dropEdits: function () {
+      asBase.current = { page: pageRef.current, doc: docRef.current };
+      asBaseTick[1](function (n) { return n + 1; });
     },
     approvePlan: function (id) {
       if (!planWait.current || planWait.current.turn !== id) return;
@@ -832,6 +881,7 @@ function App(props) {
       var lines = ["# Assistant: " + ((projectRef.current && projectRef.current.name) || "file"), ""];
       asThread.forEach(function (t) {
         if (t.role === "user") lines.push("**You:** " + t.text, "");
+        else if (t.role === "edits") { lines.push("_You changed:_"); t.lines.forEach(function (l) { lines.push("- " + l); }); lines.push(""); }
         else if (t.role === "divider") lines.push("---", "", "_" + t.text + "_", "");
         else {
           (t.steps || []).forEach(function (st) { lines.push("- " + (st.ok ? "" : "(failed) ") + st.text); });
@@ -5888,6 +5938,14 @@ function App(props) {
   /* ------------------------------------------------- layout */
 
   var selectedNodes = nodesOf(selection);
+  /* The person's own edits since the assistant's last reply, shown above
+     the message box while the panel is open. */
+  var asEditsNow = useMemo(function () {
+    var b = asBase.current;
+    if (left !== "assistant" || asBusy || !b || b.page !== pageId) return null;
+    var got = recentEdits(b.doc, doc);
+    return got.count ? got : null;
+  }, [doc, left, asBusy, pageId, asBaseTick[0]]);
   var savedTitle = "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
   var hidePanels = wide && (bare || preview);
   hidePanelsRef.current = hidePanels;
@@ -6651,7 +6709,7 @@ function App(props) {
                   docs: asContext().docs, skills: asContext().skills, dropDoc: function (id) { asDropState[1](asDropState[0].concat([id])); },
                   suggestions: selectedNodes.length ? ["Make it feel more premium", "Round the corners", "Add a button"] : ["Add a pricing section"],
                   send: asApi.send, stop: asApi.stop, clear: asApi.clear, keep: asApi.keep, undoTurn: asApi.undoTurn, retry: asApi.retry, fix: asApi.fix, show: asApi.show,
-                  note: asApi.note, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
+                  note: asApi.note, waiting: asBusy && asThread.some(function (t) { return t.ask && t.ask.status === "pending"; }), answerAsk: asApi.answerAsk, otherAsk: asApi.otherAsk, edits: asEditsNow, dropEdits: asApi.dropEdits, approvePlan: asApi.approvePlan, changePlan: asApi.changePlan, undoFrom: asApi.undoFrom, exportThread: asApi.exportThread,
                   plans: asPlanState[0], setPlans: asApi.setPlans, effort: asEffortState[0], setEffort: asApi.setEffort, look: canLook(), setLook: asApi.setLook })
               : left === "context" ? e(ContextPanel, { items: ctxItems, query: contextQuery, hasProject: !!(project && project.group), projectName: groupName, fileName: project ? project.name : "",
                   pages: pagesOf(project), pageId: pageId, pageName: (pagesOf(project).filter(function (x) { return x.id === pageId; })[0] || {}).name, announce: announce,

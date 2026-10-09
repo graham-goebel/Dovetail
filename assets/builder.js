@@ -614,7 +614,7 @@
         iter(key, obj[key], obj);
       });
     } else {
-      obj.forEach((entry, index) => iter(index, entry, obj));
+      obj.forEach((entry, index2) => iter(index2, entry, obj));
     }
   }
   function getArchtype(thing) {
@@ -1492,9 +1492,9 @@
     return produce(doc2, function(d) {
       var frames = byId(d.frames);
       var made = {}, madeFrames = {}, rootOf = {};
-      var index = {};
+      var index2 = {};
       var look = function(fid) {
-        if (index[fid]) return index[fid];
+        if (index2[fid]) return index2[fid];
         var f = frames.get(fid);
         var nodes = /* @__PURE__ */ new Map(), parent = /* @__PURE__ */ new Map();
         if (f) (function walk(n, p) {
@@ -1504,8 +1504,8 @@
             walk(c, n);
           });
         })(f.root, null);
-        index[fid] = { nodes, parent };
-        return index[fid];
+        index2[fid] = { nodes, parent };
+        return index2[fid];
       };
       var node = function(fid, nid) {
         return made[fid] && made[fid][nid] || look(fid).nodes.get(nid) || null;
@@ -1731,14 +1731,14 @@
   }
   var CONVERTS = ["Group", "Section", "Stack", "Inline", "Grid", "Card"];
   var ops = {
-    insert: function(doc2, parentId, index, n, fid) {
+    insert: function(doc2, parentId, index2, n, fid) {
       var p = locate(doc2, parentId, fid);
       if (!canHold(p, n)) return null;
       var put2 = settle(fid && frameById(doc2, fid) || active(doc2), parentId, n);
-      p.node.children.splice(Math.max(0, Math.min(index, p.node.children.length)), 0, put2);
+      p.node.children.splice(Math.max(0, Math.min(index2, p.node.children.length)), 0, put2);
       return n.id;
     },
-    move: function(doc2, id, parentId, index) {
+    move: function(doc2, id, parentId, index2) {
       if (id === "root" || id === parentId) return null;
       var from = locate(doc2, id);
       var to = locate(doc2, parentId);
@@ -1746,10 +1746,10 @@
       if (to.path.some(function(x) {
         return x.id === id;
       })) return null;
-      if (from.parent === to.node && (index === from.index || index === from.index + 1)) return null;
+      if (from.parent === to.node && (index2 === from.index || index2 === from.index + 1)) return null;
       from.parent.children.splice(from.index, 1);
-      if (from.parent === to.node && from.index < index) index--;
-      to.node.children.splice(Math.max(0, Math.min(index, to.node.children.length)), 0, settle(active(doc2), parentId, from.node));
+      if (from.parent === to.node && from.index < index2) index2--;
+      to.node.children.splice(Math.max(0, Math.min(index2, to.node.children.length)), 0, settle(active(doc2), parentId, from.node));
       return id;
     },
     /* "root" means nothing left to select; null means nothing happened. */
@@ -2504,9 +2504,9 @@
           return s.delete(key);
         });
       },
-      byIndex: function(store, index, key) {
+      byIndex: function(store, index2, key) {
         return run(store, "readonly", function(s) {
-          return s.index(index).getAll(key);
+          return s.index(index2).getAll(key);
         });
       }
     };
@@ -2557,12 +2557,12 @@
         delete d[store][key];
         return write(d);
       },
-      byIndex: function(store, index, key) {
+      byIndex: function(store, index2, key) {
         var d = read();
         return Promise.resolve(Object.keys(d[store]).map(function(k) {
           return d[store][k];
         }).filter(function(v) {
-          return v[index] === key;
+          return v[index2] === key;
         }));
       }
     };
@@ -2704,7 +2704,7 @@
       },
       /* A page put at a place in the list, in a folder or out of one. index
          counts the list without the page itself. */
-      placePage: function(id, pageId, index, folderId) {
+      placePage: function(id, pageId, index2, folderId) {
         return b.get("projects", id).then(function(meta) {
           if (!meta) return null;
           var pages = pagesOf(meta).slice();
@@ -2717,7 +2717,7 @@
             return f.id === folderId;
           })) page.folder = folderId;
           else delete page.folder;
-          var to = Math.max(0, Math.min(pages.length, Math.round(Number(index)) || 0));
+          var to = Math.max(0, Math.min(pages.length, Math.round(Number(index2)) || 0));
           pages.splice(to, 0, page);
           meta.pages = pages;
           return b.put("projects", meta).then(function() {
@@ -5260,7 +5260,7 @@
     var on = all.filter(function(o) {
       return o.value === props.value;
     })[0];
-    var shown = hover ? hover.name : props.mixed ? "Mixed" : props.custom ? "Custom " + props.custom : on ? on.name : "None";
+    var shown2 = hover ? hover.name : props.mixed ? "Mixed" : props.custom ? "Custom " + props.custom : on ? on.name : "None";
     var tile = function(o) {
       var pressed = !props.mixed && !props.custom && o.value === props.value;
       var none = !o.value;
@@ -5291,7 +5291,7 @@
         "div",
         { className: "bd-field-head" },
         e("span", { className: "bd-field-label", id: props.id }, props.label),
-        e("span", { className: cx("bd-field-val", hover && "is-preview"), "aria-hidden": true }, shown)
+        e("span", { className: cx("bd-field-val", hover && "is-preview"), "aria-hidden": true }, shown2)
       ),
       e(
         "div",
@@ -5998,12 +5998,12 @@
     );
   }
   function OpacityField(props) {
-    var shown = props.value == null ? "" : String(props.value);
-    var textState = useState(shown);
+    var shown2 = props.value == null ? "" : String(props.value);
+    var textState = useState(shown2);
     var text2 = textState[0], setText = textState[1];
     useEffect(function() {
-      setText(shown);
-    }, [shown]);
+      setText(shown2);
+    }, [shown2]);
     var live = useRef({ first: true });
     var latest2 = useRef(props.value);
     useEffect(function() {
@@ -6015,13 +6015,13 @@
     var commit = function() {
       var n = Number(String(text2).replace(/[^\d]/g, ""));
       if (!String(text2).trim() || !isFinite(n)) {
-        setText(shown);
+        setText(shown2);
         return;
       }
       if (clamp(n) !== props.value) {
         latest2.current = clamp(n);
         props.onChange(clamp(n));
-      } else setText(shown);
+      } else setText(shown2);
     };
     var step = function(ev, from) {
       if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown" && ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return false;
@@ -6081,7 +6081,7 @@
             } else if (ev.key === "Escape") {
               ev.preventDefault();
               ev.stopPropagation();
-              setText(shown);
+              setText(shown2);
             } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") step(ev, text2 === "" ? latest2.current : Number(text2));
           }
         }),
@@ -6235,12 +6235,12 @@
   }
   function NumberField(props) {
     var step = props.step || 1, big = props.bigStep || (props.step ? props.step * 4 : 10);
-    var shown = props.value == null ? "" : String(props.value);
-    var textState = useState(shown);
+    var shown2 = props.value == null ? "" : String(props.value);
+    var textState = useState(shown2);
     var text2 = textState[0], setText = textState[1];
     useEffect(function() {
-      setText(shown);
-    }, [shown]);
+      setText(shown2);
+    }, [shown2]);
     var tidy = function(n) {
       n = Math.round(n / step) * step;
       if (props.min != null) n = Math.max(props.min, n);
@@ -6250,12 +6250,12 @@
     var commit = function() {
       var raw = Number(text2);
       if (!String(text2).trim() || text2 === "-" || !isFinite(raw)) {
-        setText(shown);
+        setText(shown2);
         return;
       }
       var n = tidy(raw);
       if (n === props.value) {
-        setText(shown);
+        setText(shown2);
         return;
       }
       props.onChange(n);
@@ -6310,7 +6310,7 @@
           } else if (ev.key === "Escape") {
             ev.preventDefault();
             ev.stopPropagation();
-            setText(shown);
+            setText(shown2);
           } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
             ev.preventDefault();
             var from = text2 !== "" && isFinite(Number(text2)) ? Number(text2) : Number(props.value) || 0;
@@ -7543,28 +7543,28 @@
       if (into) return { into, index: endOfFolder(projectRef.current, into, dr.id), folder: into, line: null };
       var before = rows2[slot2], prev = rows2[slot2 - 1];
       var tucked = x > listBox.left + 28;
-      var folder = null, index;
+      var folder = null, index2;
       if (before && before.kind === "page" && before.folder && prev && (prev.kind === "page" ? prev.folder === before.folder : prev.folder.id === before.folder)) {
         folder = before.folder;
-        index = at2(before.page.id);
+        index2 = at2(before.page.id);
       } else if (prev && (prev.kind === "page" && prev.folder || prev.kind === "folder" && !prev.open && prev.count) && tucked) {
         folder = prev.kind === "page" ? prev.folder : prev.folder.id;
-        index = endOfFolder(projectRef.current, folder, dr.id);
+        index2 = endOfFolder(projectRef.current, folder, dr.id);
       } else if (prev && prev.kind === "page" && prev.folder) {
         folder = null;
-        index = endOfFolder(projectRef.current, prev.folder, dr.id);
+        index2 = endOfFolder(projectRef.current, prev.folder, dr.id);
       } else if (before && before.kind === "page") {
         folder = null;
-        index = at2(before.page.id);
+        index2 = at2(before.page.id);
       } else if (before && before.kind === "folder") {
         folder = null;
-        index = before.count ? firstOf(before.folder.id) : pages.length;
+        index2 = before.count ? firstOf(before.folder.id) : pages.length;
       } else {
         folder = null;
-        index = pages.length;
+        index2 = pages.length;
       }
       var edge = slot2 < els.length ? els[slot2].getBoundingClientRect().top : els.length ? els[els.length - 1].getBoundingClientRect().bottom : listBox.top;
-      return { into: null, index, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
+      return { into: null, index: index2, folder, line: { top: edge - listBox.top + list.scrollTop, depth: folder ? 1 : 0 } };
     };
     var rowDown = function(pg) {
       return function(ev) {
@@ -9145,7 +9145,7 @@
       }, fileSelState[0], fileSelState[1]));
     }
     var ctx = contextFor(p.items, p.pageId);
-    var shown = function(it2) {
+    var shown2 = function(it2) {
       return (filter === "all" || (filter === "docs" ? it2.kind === "doc" : it2.kind === "skill")) && (!p.query || (it2.title || it2.name || "").toLowerCase().indexOf(p.query.toLowerCase()) >= 0);
     };
     return e(
@@ -9176,7 +9176,7 @@
         })
       ),
       SCOPES.map(function(scope) {
-        var items = (p.items[scope] || []).filter(shown);
+        var items = (p.items[scope] || []).filter(shown2);
         if (scope === "project" && !p.hasProject) return e(
           "section",
           { key: scope, className: "bd-cx-group" },
@@ -9350,6 +9350,51 @@
       ) : null
     );
   }
+  function askCard(p, turn) {
+    var q = turn.ask;
+    if (!q) return null;
+    var open = q.status === "pending" && p.busy;
+    return e(
+      "div",
+      { className: "bd-as-card bd-as-ask", role: "group", "aria-label": q.question },
+      e(
+        "div",
+        { className: "bd-as-card-h" },
+        e("span", null, q.question),
+        e("span", { className: "bd-as-note" }, q.status === "answered" ? "Answered" : q.status === "skipped" || !open ? "Set aside" : "Pick one")
+      ),
+      q.options.map(function(o, i) {
+        var chosen = q.choice === i;
+        return e(
+          "button",
+          {
+            key: i,
+            type: "button",
+            className: cx("bd-as-opt", chosen && "is-chosen"),
+            disabled: !open,
+            "aria-pressed": chosen,
+            onClick: function() {
+              p.answerAsk(turn.id, i);
+            }
+          },
+          e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, chosen ? e(Icon, { name: "check" }) : String.fromCharCode(65 + i)),
+          e("span", { className: "bd-as-opt-t" }, e("b", null, o.label), o.detail ? e("span", null, o.detail) : null)
+        );
+      }),
+      q.answer ? e("p", { className: "bd-as-ask-said" }, e(Icon, { name: "chat" }), e("span", null, q.answer)) : open ? e("button", { type: "button", className: "bd-as-opt bd-as-opt-other", onClick: p.otherAsk }, e("span", { className: "bd-as-opt-k", "aria-hidden": "true" }, e(Icon, { name: "pencil" })), e("span", { className: "bd-as-opt-t" }, e("span", null, "Something else? Type it below."))) : null
+    );
+  }
+  function editLines(lines, count2, max) {
+    var shown2 = lines.slice(0, max);
+    return e(
+      "ul",
+      { className: "bd-as-edits-l" },
+      shown2.map(function(l, i) {
+        return e("li", { key: i }, l);
+      }),
+      count2 > shown2.length ? e("li", { className: "bd-as-edits-more" }, "and " + (count2 - shown2.length) + " more") : null
+    );
+  }
   function AsMenu(p) {
     var openState = useState(false), open = openState[0], setOpen = openState[1];
     var ref = useRef(null);
@@ -9443,6 +9488,12 @@
           }))
         ) : null,
         p.thread.map(function(t) {
+          if (t.role === "edits") return e(
+            "div",
+            { key: t.id, className: "bd-as-edits" },
+            e("div", { className: "bd-as-edits-h" }, e(Icon, { name: "cursor" }), e("b", null, "You changed " + t.count + (t.count === 1 ? " thing" : " things"))),
+            editLines(t.lines, t.count, 6)
+          );
           if (t.role === "divider") return e("p", { key: t.id, className: "bd-as-divider" }, t.text);
           if (t.role === "user") return t.queued ? e("div", { key: t.id, className: "bd-as-me-wrap" }, e("div", { className: "bd-as-me is-queued" }, t.text), e("span", { className: "bd-as-queued" }, e(Icon, { name: "chat" }), "Lands after this step")) : e("div", { key: t.id, className: "bd-as-me" }, t.text);
           return e(
@@ -9455,11 +9506,25 @@
             }),
             t.text ? e("p", { className: "bd-as-text" }, t.text) : t.status === "working" ? e("p", { className: "bd-as-text bd-as-wait" }, "Working…") : null,
             planCard(p, t),
+            askCard(p, t),
             t.error ? e("p", { className: "bd-as-text bd-as-err" }, t.error) : null,
             changeCard(p, t)
           );
         })
       ),
+      p.edits ? e(
+        "div",
+        { className: "bd-as-edits is-pending" },
+        e(
+          "div",
+          { className: "bd-as-edits-h" },
+          e(Icon, { name: "cursor" }),
+          e("b", null, "You changed " + p.edits.count + (p.edits.count === 1 ? " thing" : " things") + " since its last reply"),
+          e("button", { type: "button", className: "bd-act bd-act-ghost", "aria-label": "Don't send these changes", title: "Don't send these changes", onClick: p.dropEdits }, e(Icon, { name: "close" }))
+        ),
+        editLines(p.edits.lines, p.edits.count, 3),
+        e("p", { className: "bd-as-edits-n" }, "Sent with your next message, so it builds on them.")
+      ) : null,
       e(
         "div",
         { className: "bd-as-comp" },
@@ -9492,7 +9557,7 @@
           className: "bd-as-input",
           rows: 2,
           value: p.draft,
-          placeholder: p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…",
+          placeholder: p.waiting ? "Answer the question, or pick an option…" : p.busy ? "Add a note while it works…" : "Ask for a change, or describe a new page…",
           "aria-label": p.busy ? "Add a note for the assistant" : "Message the assistant",
           onChange: function(ev) {
             p.setDraft(ev.target.value);
@@ -9561,6 +9626,7 @@
     }) }, mode: { type: "string", enum: ["structured", "free"] } }, required: ["name", "preset", "mode"], additionalProperties: false } },
     { name: "use_frame", description: "Work in another frame on this page: the edit tools act on the frame you're in.", input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false } },
     { name: "propose_plan", description: "Before a new page or frame, or any change that adds more than about 10 layers, show the person a short plan and wait for their answer: the frame it goes in (when it's a new one), the steps in order (a title and a line each), and anything they should know (missing content you'll stand in for, a choice you made). It comes back approved, or with what they want changed.", input_schema: { type: "object", properties: { title: { type: "string" }, frame: { type: "object", properties: { name: { type: "string" }, preset: { type: "string" }, mode: { type: "string", enum: ["structured", "free"] } }, additionalProperties: false }, steps: { type: "array", minItems: 1, maxItems: 12, items: { type: "object", properties: { title: { type: "string" }, detail: { type: "string" } }, required: ["title"], additionalProperties: false } }, notes: { type: "array", maxItems: 4, items: { type: "string" } } }, required: ["title", "steps"], additionalProperties: false } },
+    { name: "ask_user", description: "Ask the person to choose when the request leaves a real choice open: two to four ways that would set a different tone or direction, which the request, the docs and the theme don't settle. Each option is a short label and a line on what it means (the components and tokens it would use). The answer comes back as the option they picked, or what they wrote instead. Don't ask about what you can decide yourself.", input_schema: { type: "object", properties: { question: { type: "string" }, options: { type: "array", minItems: 2, maxItems: 4, items: { type: "object", properties: { label: { type: "string" }, detail: { type: "string" } }, required: ["label"], additionalProperties: false } } }, required: ["question", "options"], additionalProperties: false } },
     { name: "batch", description: "Run several edit calls in order as one step the person can undo at once. Each call is { name, input } for one of: " + BATCHABLE.join(", ") + ". It stops at the first call that fails, keeping the ones before it.", input_schema: { type: "object", properties: { calls: { type: "array", minItems: 1, maxItems: 40, items: { type: "object", properties: { name: { type: "string", enum: BATCHABLE }, input: { type: "object" } }, required: ["name", "input"], additionalProperties: false } } }, required: ["calls"], additionalProperties: false } },
     { name: "remove", description: "Remove layers.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["ids"], additionalProperties: false } },
     { name: "select", description: "Select layers, so the person sees them.", input_schema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"], additionalProperties: false } },
@@ -9691,7 +9757,8 @@
       "- Write real, short copy in the brand's voice. Never lorem ipsum.",
       "- After a visible change, look with screenshot when you have it, and fix what looks wrong before you finish.",
       "- Run lint on the frame when you've finished changing it, and fix what fails. The person sees the same checks under your reply.",
-      "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first.",
+      "- If the request is unclear or would change a lot more than asked, say what you'd do and ask first. When it leaves a real choice of direction open (two good answers with a different tone), call ask_user with the options rather than guessing.",
+      "- A message may start with what the person changed on the canvas since your last reply. Keep those changes unless they ask otherwise, and build on them.",
       "- Before a new page or frame, or a change that adds more than about 10 layers, call propose_plan and wait for the answer, unless the canvas notes say plans are off. Building without one is refused.",
       "- Finish with a sentence or two on what you changed and anything the person should check.",
       "## The system's rules",
@@ -9744,7 +9811,7 @@
         return typeof id === "string" && locate(doc2, id);
       });
     };
-    var nameOf2 = function(id) {
+    var nameOf3 = function(id) {
       var at2 = locate(doc2, id);
       return at2 ? at2.node.name || at2.node.type : id;
     };
@@ -9855,7 +9922,7 @@
         if (!api.measure) return fail("Measuring can't run here.");
         return Promise.resolve(api.measure(input.a, input.b)).then(function(m2) {
           if (!m2) return fail("Those layers aren't drawn.");
-          return { ok: true, result: JSON.stringify(m2), step: "Measured " + nameOf2(input.a) + " to " + nameOf2(input.b) };
+          return { ok: true, result: JSON.stringify(m2), step: "Measured " + nameOf3(input.a) + " to " + nameOf3(input.b) };
         });
       }
       case "search_components": {
@@ -9925,7 +9992,7 @@
         var ids = known(input.ids);
         if (!ids.length) return fail("None of those layers are on the canvas.");
         if (!api.setStyle(ids, input.family, v || void 0)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids, label: familyWord(input.family), value: v || "none", on: ids.map(nameOf2).join(", ") } };
+        return { ok: true, result: "Done.", change: { ids, label: familyWord(input.family), value: v || "none", on: ids.map(nameOf3).join(", ") } };
       }
       case "set_prop": {
         var pids = known(input.ids);
@@ -9943,7 +10010,7 @@
         })) return fail("Set a prop on layers of one type at a time.");
         if (spec && spec.kind === "enum" && spec.options.indexOf(input.value) < 0) return fail(input.value + " isn't one of " + input.name + "'s options: " + spec.options.join(", ") + ".");
         if (!api.setProp(pids, input.name, input.value)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf2).join(", ") } };
+        return { ok: true, result: "Done.", change: { ids: pids, label: input.name === "children" ? "Text" : input.name.charAt(0).toUpperCase() + input.name.slice(1), value: String(input.value).slice(0, 60), on: pids.map(nameOf3).join(", ") } };
       }
       case "insert_jsx": {
         var made = fromJsx(input.jsx);
@@ -9963,7 +10030,7 @@
         if (!made2.length) return fail("That JSX has no components the system knows.");
         var owed2 = owesPlan(api, added(made2));
         if (owed2) return owed2;
-        var was = nameOf2(input.id);
+        var was = nameOf3(input.id);
         var ids3 = api.replace(input.id, made2);
         if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
         return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function(n) {
@@ -9984,7 +10051,7 @@
         if (!key) return fail(tn.type + " has no text of its own; set the text of a layer inside it.");
         var text2 = String(input.text == null ? "" : input.text);
         if (!api.setProp([input.id], key, text2)) return fail("Nothing changed.");
-        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short2(text2, 60), on: nameOf2(input.id) } };
+        return { ok: true, result: "Done.", change: { ids: [input.id], label: "Text", value: short2(text2, 60), on: nameOf3(input.id) } };
       }
       case "move": {
         var mids = known(input.ids);
@@ -9992,7 +10059,7 @@
         if (!locate(doc2, input.parent)) return fail("There's no container " + input.parent + " in this frame.");
         var moved = api.move(mids, input.parent, typeof input.index === "number" ? input.index : null);
         if (!moved || !moved.length) return fail("Those layers can't go there.");
-        return { ok: true, result: JSON.stringify({ moved }), change: { ids: moved, label: "Moved", value: moved.map(nameOf2).join(", "), on: "into " + nameOf2(input.parent) } };
+        return { ok: true, result: JSON.stringify({ moved }), change: { ids: moved, label: "Moved", value: moved.map(nameOf3).join(", "), on: "into " + nameOf3(input.parent) } };
       }
       case "wrap": {
         var wids = known(input.ids);
@@ -10001,20 +10068,20 @@
         if (wids.length > 1 && type !== "Group") return fail("Several layers go into a Group; wrap them one at a time for a " + type + ".");
         var box = wids.length > 1 ? api.group(wids) : api.wrap(wids[0], type);
         if (!box) return fail("Those can't be wrapped there.");
-        return { ok: true, result: JSON.stringify({ container: box }), change: { ids: [box], label: "Wrapped", value: wids.map(nameOf2).join(", "), on: "in a " + type } };
+        return { ok: true, result: JSON.stringify({ container: box }), change: { ids: [box], label: "Wrapped", value: wids.map(nameOf3).join(", "), on: "in a " + type } };
       }
       case "duplicate": {
         var dids = known(input.ids);
         if (!dids.length) return fail("None of those layers are in this frame.");
         var copies = api.duplicate(dids);
         if (!copies || !copies.length) return fail("Those layers can't be copied.");
-        return { ok: true, result: JSON.stringify({ copies }), change: { ids: copies, label: "Copied", value: dids.map(nameOf2).join(", "), on: "" } };
+        return { ok: true, result: JSON.stringify({ copies }), change: { ids: copies, label: "Copied", value: dids.map(nameOf3).join(", "), on: "" } };
       }
       case "rename": {
         if (!locate(doc2, input.id) || input.id === "root") return fail("There's no layer " + input.id + " in this frame.");
         var nm = short2(String(input.name || ""), 60);
         if (!nm) return fail("Give it a name.");
-        var old = nameOf2(input.id);
+        var old = nameOf3(input.id);
         if (!api.rename(input.id, nm)) return fail("Nothing changed.");
         return { ok: true, result: "Done.", change: { ids: [input.id], label: "Named", value: nm, on: old } };
       }
@@ -10083,10 +10150,25 @@
           return { ok: true, result: "Not approved yet: the person wants to change the plan" + (answer && answer.note ? ": " + answer.note : "") + ". Stop here and wait for their message.", step: "Plan set aside to change" };
         });
       }
+      case "ask_user": {
+        if (!api.askUser) return fail("Questions can't be shown here; ask in your reply instead.");
+        var opts = (input.options || []).slice(0, 4).map(function(o) {
+          return { label: short2(String(o && o.label || ""), 60), detail: o && o.detail ? short2(String(o.detail), 140) : "" };
+        }).filter(function(o) {
+          return o.label;
+        });
+        if (opts.length < 2) return fail("Give at least two options.");
+        var q = { question: short2(String(input.question || "Which way?"), 140), options: opts };
+        return Promise.resolve(api.askUser(q)).then(function(answer) {
+          if (answer && typeof answer.index === "number" && opts[answer.index]) return { ok: true, result: "They chose: " + opts[answer.index].label + ".", step: "You chose " + opts[answer.index].label };
+          if (answer && answer.text) return { ok: true, result: "They answered in their own words: " + answer.text, step: "You answered" };
+          return { ok: true, result: "They didn't choose. Stop here and wait for their message.", step: "Question set aside" };
+        });
+      }
       case "remove": {
         var rids = known(input.ids);
         if (!rids.length) return fail("None of those layers are on the canvas.");
-        var names = rids.map(nameOf2).join(", ");
+        var names = rids.map(nameOf3).join(", ");
         if (!api.remove(rids)) return fail("Those layers can't be removed.");
         return { ok: true, result: "Done.", change: { ids: [], label: "Removed", value: names, on: "" } };
       }
@@ -10198,6 +10280,20 @@
       }
       return { text: "Practice mode: this file's brand is " + (th.brand || "unnamed") + ", primary " + (th.primary || "?") + ", " + (th.context ? th.context + " context" : "no context set") + ", " + (th.fonts && th.fonts.body ? th.fonts.body + " type" : "the default type") + ". A model would use that to pick variants and copy.", calls: [] };
     }
+    if (names[0] === "ask_user") {
+      var said0 = body(0);
+      var pick = /^They chose: (.+)\.$/.exec(said0);
+      if (!pick) return { text: /own words/.test(said0) ? "Practice mode: a model would build what you described. Pick an option to see the practice version." : "Practice mode: pick an option whenever you're ready.", calls: [] };
+      var CLOSES = {
+        "Dark band, one button": '<Section dark><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Button variant="primary">Start free</Button></Stack></Section>',
+        "Soft tint, two buttons": '<Section tone="brand-muted"><Stack gap="md" align="center"><Heading>Ready when you are</Heading><Inline gap="sm"><Button variant="primary">Start free</Button><Button variant="secondary">Talk to us</Button></Inline></Stack></Section>',
+        "Quiet line and a link": `<Section><Stack gap="sm" align="center"><Text>Questions first? We're happy to help.</Text><Link href="#">Talk to us</Link></Stack></Section>`
+      };
+      var jsx = CLOSES[pick[1]];
+      if (!jsx) return { text: "Practice mode: you chose " + pick[1] + ".", calls: [] };
+      return { text: "", calls: [{ name: "insert_jsx", input: { jsx } }] };
+    }
+    if (names[0] === "insert_jsx") return { text: "Practice mode, with the real tools: the close you picked is at the foot of the frame.", calls: [] };
     if (names[0] === "read_guideline") return { text: "Practice mode: " + body(0).split("\n")[0].replace(/^# /, "") + " read. A model would apply it to the next change.", calls: [] };
     if (names[0] === "search_components") {
       var found = [];
@@ -10219,9 +10315,24 @@
         return b && b.type === "tool_result";
       }) : [];
       if (results.length) return practiceAnswer(request, results);
-      var text2 = String(typeof last.content === "string" ? last.content : (last.content || []).map(function(b) {
+      var blocks = typeof last.content === "string" ? [{ text: last.content }] : last.content || [];
+      var edits = blocks.filter(function(b) {
+        return /^Since your last reply, the person changed/.test(b.text || "");
+      })[0];
+      var text2 = blocks.filter(function(b) {
+        return b !== edits;
+      }).map(function(b) {
         return b.text || "";
-      }).join(" ")).toLowerCase();
+      }).join(" ").toLowerCase();
+      if (/what (did|have) i changed?|my (changes|edits)/.test(text2)) {
+        if (!edits) return { text: "Practice mode: you haven't changed anything since my last reply.", calls: [] };
+        var mine = edits.text.split("\n").filter(function(l) {
+          return /^- /.test(l);
+        }).map(function(l) {
+          return l.slice(2);
+        });
+        return { text: "Practice mode: since my last reply you changed " + mine.length + (mine.length === 1 ? " thing" : " things") + ": " + mine.join("; ") + ". I'd keep those.", calls: [] };
+      }
       var ids = sel.map(function(n) {
         return n.id;
       });
@@ -10246,6 +10357,11 @@
           { title: "Close", detail: "A dark band with one button" }
         ], notes: ["Practice mode writes stand-in copy; a model would use your context docs."] } }] };
       }
+      if (/\b(add|give it|needs?|want) (a |an )?(close|closing|ending|final call to action)\b/.test(text2) && offered.indexOf("ask_user") >= 0) return { text: "There are a few good ways to close a page, and they set different tones. Which fits?", calls: [{ name: "ask_user", input: { question: "How should it close?", options: [
+        { label: "Dark band, one button", detail: "Section dark · Button primary · a strong end" },
+        { label: "Soft tint, two buttons", detail: "Section brand-muted · primary and secondary" },
+        { label: "Quiet line and a link", detail: "No band · Text and a Link to contact" }
+      ] } }] };
       if (/\btheme\b|brand colou?r|which fonts?/.test(text2)) return { text: "", calls: [{ name: "read_theme", input: {} }] };
       var topic = /\b(voice|accessibility|tokens|theming)\b/.exec(text2);
       if (topic && /guideline|guide|rule|say|how/.test(text2)) return { text: "", calls: [{ name: "read_guideline", input: { topic: topic[1] } }] };
@@ -10457,6 +10573,146 @@
     return "Checks on " + frame2.name + ":\n" + rows.map(function(r) {
       return "- " + r.status.toUpperCase() + " " + r.title + (r.detail ? ": " + r.detail : "") + (r.ids.length ? " [layers: " + r.ids.slice(0, 12).join(", ") + "]" : "");
     }).join("\n");
+  }
+
+  // assets/builder/model/recent.js
+  var TEXT = ["children", "title", "label", "text", "heading", "description", "eyebrow", "alt"];
+  function short3(v, n) {
+    var t = String(v).replace(/\s+/g, " ").trim();
+    return t.length > n ? t.slice(0, n - 1) + "…" : t;
+  }
+  function shown(v) {
+    if (v === void 0 || v === null || v === "") return "none";
+    if (typeof v === "object") return "custom";
+    return short3(v, 32);
+  }
+  function index(doc2) {
+    var m = {};
+    (doc2.frames || []).forEach(function(f) {
+      (function walk(n, parent) {
+        m[f.id + "/" + n.id] = { node: n, parent, frame: f };
+        (n.children || []).forEach(function(c) {
+          walk(c, n.id);
+        });
+      })(f.root, null);
+    });
+    return m;
+  }
+  function nameOf2(n, bare) {
+    if (!n) return "a layer";
+    if (n.id === "root") return "the frame";
+    if (bare) return n.name || n.type;
+    var p = n.props || {};
+    var said = typeof p.children === "string" && p.children.trim() ? " “" + short3(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short3(p.title, 24) + "”" : "";
+    return n.name ? n.name : n.type + said;
+  }
+  function recentEdits(prev, next, max) {
+    max = max || 12;
+    if (!prev || !next || prev === next) return { count: 0, lines: [] };
+    var changes = diff(prev, next);
+    if (!changes.length) return { count: 0, lines: [] };
+    var A = index(prev), B = index(next);
+    var lines = [];
+    var per = {}, order = [];
+    var touch = function(key) {
+      if (!per[key]) {
+        per[key] = [];
+        order.push(key);
+      }
+      return per[key];
+    };
+    var frameName = function(fid, doc2) {
+      var f = (doc2.frames || []).filter(function(x) {
+        return x.id === fid;
+      })[0];
+      return f ? f.name || "a frame" : "a frame";
+    };
+    changes.forEach(function(c) {
+      var key = c.f + "/" + c.n;
+      if (c.t === "addF") lines.push("Added the frame " + frameName(c.f, next));
+      else if (c.t === "delF") lines.push("Removed the frame " + frameName(c.f, prev));
+      else if (c.t === "order") lines.push("Reordered the frames");
+      else if (c.t === "set" && c.n === null) {
+        if (c.k === "name") lines.push("Renamed the frame " + shown(c.old) + " to " + shown(c.value));
+        else if (["x", "y", "width", "height"].indexOf(c.k) >= 0) touch("frame:" + c.f).push("size");
+      } else if (c.t === "addN") {
+        if (A[key]) return;
+        var at2 = B[key];
+        if (!at2 || at2.parent && !A[c.f + "/" + at2.parent]) return;
+        var into = at2.parent ? B[c.f + "/" + at2.parent] : null;
+        lines.push("Added " + nameOf2(at2.node) + (into && into.parent ? " to " + nameOf2(into.node) : ""));
+      } else if (c.t === "delN") {
+        var was = A[key];
+        if (!was || B[key]) return;
+        if (was.parent && !B[c.f + "/" + was.parent]) return;
+        lines.push("Removed " + nameOf2(was.node));
+      } else if (c.t === "set" || c.t === "group") {
+        var bits = touch(key);
+        if (c.t === "group") {
+          var keys2 = {};
+          Object.keys(c.old || {}).concat(Object.keys(c.value || {})).forEach(function(k) {
+            keys2[k] = true;
+          });
+          Object.keys(keys2).forEach(function(k) {
+            bits.push({ g: c.g, k, old: (c.old || {})[k], value: (c.value || {})[k] });
+          });
+        } else bits.push({ g: c.g, k: c.k, old: c.old, value: c.value });
+      } else if (c.t === "kids") {
+        var oldKids = (c.old || []).filter(function(id) {
+          return B[c.f + "/" + id];
+        });
+        var newKids = (c.value || []).filter(function(id) {
+          return A[c.f + "/" + id];
+        });
+        newKids.forEach(function(id) {
+          var from = A[c.f + "/" + id];
+          if (from && from.parent !== c.n) lines.push("Moved " + nameOf2(B[c.f + "/" + id].node) + " into " + nameOf2(B[key] && B[key].node));
+        });
+        var stayed = newKids.filter(function(id) {
+          return oldKids.indexOf(id) >= 0;
+        });
+        var before = oldKids.filter(function(id) {
+          return stayed.indexOf(id) >= 0;
+        });
+        if (stayed.join() !== before.join()) {
+          var moved = stayed.filter(function(id, i) {
+            return before[i] !== id;
+          })[0];
+          var mn = moved && B[c.f + "/" + moved];
+          lines.push(mn ? "Moved " + nameOf2(mn.node) + " within " + nameOf2(B[key] && B[key].node) : "Reordered layers in " + nameOf2(B[key] && B[key].node));
+        }
+      }
+    });
+    order.forEach(function(key) {
+      if (key.indexOf("frame:") === 0) {
+        lines.push("Resized the frame " + frameName(key.slice(6), next));
+        return;
+      }
+      var at2 = B[key];
+      if (!at2) return;
+      var retext = per[key].some(function(b) {
+        return b.g === "p" && TEXT.indexOf(b.k) >= 0;
+      });
+      var label2 = nameOf2(at2.node, retext);
+      var said = [];
+      per[key].forEach(function(b) {
+        if (b.g === "f" && b.k === "name") said.push("renamed from " + shown(b.old));
+        else if (b.g === "f" && b.k === "hidden") said.push(b.value ? "hidden" : "shown");
+        else if (b.g === "f" && b.k === "locked") said.push(b.value ? "locked" : "unlocked");
+        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said.push((b.k === "children" ? "text" : b.k) + " “" + short3(b.old || "", 30) + "” → “" + short3(b.value || "", 30) + "”");
+        else if (b.g === "f") return;
+        else said.push(b.k + " " + shown(b.old) + " → " + shown(b.value));
+      });
+      if (!said.length) return;
+      lines.push(label2 + ": " + said.slice(0, 3).join(", ") + (said.length > 3 ? ", and " + (said.length - 3) + " more" : ""));
+    });
+    return { count: lines.length, lines: lines.slice(0, max) };
+  }
+  function editsText(ed) {
+    if (!ed || !ed.count) return "";
+    return "Since your last reply, the person changed the canvas themselves (keep these unless they ask otherwise):\n" + ed.lines.map(function(l) {
+      return "- " + l;
+    }).join("\n") + (ed.count > ed.lines.length ? "\n- and " + (ed.count - ed.lines.length) + " more" : "");
   }
 
   // assets/builder/model/assistant.js
@@ -11076,10 +11332,10 @@
         if (handles && at2.node.type === "Shape" && at2.node.props && at2.node.props.shape === "line") handles = ["w", "e"];
         var turnable = !!handles && isFree(at2.node.style);
         var markStyle = m.rot ? Object.assign({}, m.box, { transform: "rotate(" + m.rot + "deg)" }) : m.r;
-        var short3 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
+        var short4 = (m.box || m.r).height < 28, narrow = (m.box || m.r).width < 28;
         return e(
           "div",
-          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short3 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
+          { key: m.id, className: cx("bd-mark bd-mark-sel", m.id !== p.sel && "is-extra", at2.node.lock && "is-locked", at2.node.inst && "is-instance", (m.r.top < 24 || m.r.top - frameTop < 24) && "is-top", p.sizing && p.sizing.id === m.id && "is-sizing", handles && short4 && "is-short", handles && narrow && "is-narrow"), style: markStyle },
           turnable ? ["nw", "ne", "se", "sw"].map(function(c) {
             return e("span", { key: "rot-" + c, className: "bd-rotate is-" + c, title: "Drag to turn; Shift snaps to 15°", onPointerDown: function(ev) {
               p.startRotate(ev, at2.node.id);
@@ -11789,9 +12045,9 @@
     var map = routes(pages);
     var frames = [];
     pages.forEach(function(pg) {
-      var shown = pg.doc.frames;
-      shown.forEach(function(fr) {
-        frames.push({ page: pg, frame: fr, many: shown.length > 1 });
+      var shown2 = pg.doc.frames;
+      shown2.forEach(function(fr) {
+        frames.push({ page: pg, frame: fr, many: shown2.length > 1 });
       });
     });
     var got = codeWithComponents(frames.map(function(f) {
@@ -12264,10 +12520,14 @@
     var asLookTick = useState(0);
     var asNotes = useRef([]);
     var planWait = useRef(null);
+    var askWait = useRef(null);
+    var asBase = useRef(null);
+    var asBaseTick = useState(0);
     var threadFor = useRef(null);
     useEffect(function() {
       var meta = projectRef.current, live = true;
       threadFor.current = null;
+      asBase.current = null;
       setAsThread([]);
       asMsgs.current = [];
       if (!meta || !store.loadThread) return void 0;
@@ -12290,7 +12550,9 @@
       var meta = projectRef.current;
       if (!meta || asBusy || threadFor.current !== meta.id || !store.saveThread) return;
       var plan = asThread.map(function(t) {
-        return t.plan && t.plan.status === "pending" ? Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) }) : t;
+        if (t.plan && t.plan.status === "pending") t = Object.assign({}, t, { plan: Object.assign({}, t.plan, { status: "changing" }) });
+        if (t.ask && t.ask.status === "pending") t = Object.assign({}, t, { ask: Object.assign({}, t.ask, { status: "skipped" }) });
+        return t;
       });
       store.saveThread(meta.id, asThread.length ? { thread: plan, msgs: asMsgs.current } : null).catch(function() {
       });
@@ -12577,8 +12839,8 @@
           return any ? void 0 : null;
         });
       },
-      insert: function(parent, index, nodes) {
-        var t = parent ? { parent, index } : target();
+      insert: function(parent, index2, nodes) {
+        var t = parent ? { parent, index: index2 } : target();
         var at0 = locate(docRef.current, t.parent);
         if (!at0) return [];
         var at2 = t.index == null ? (at0.node.children || []).length : t.index, made = [];
@@ -12634,13 +12896,13 @@
         });
         return made;
       },
-      move: function(ids, parent, index) {
+      move: function(ids, parent, index2) {
         var moved = [];
         change(function(d) {
           ids.forEach(function(id) {
             var to = locate(d, parent);
             if (!to) return;
-            var at2 = index == null ? to.node.children.length : index + moved.length;
+            var at2 = index2 == null ? to.node.children.length : index2 + moved.length;
             if (ops.move(d, id, parent, at2)) moved.push(id);
           });
           return moved.length ? void 0 : null;
@@ -12730,6 +12992,10 @@
       var tools2 = toolsFor({ look: canLook(), plan: planOn });
       var planned = false;
       var me = { id: uid(), role: "user", text: text2 };
+      var base = asBase.current;
+      var mine = base && base.page === pageRef.current ? recentEdits(base.doc, docRef.current) : null;
+      var told = mine && mine.count ? { id: uid(), role: "edits", count: mine.count, lines: mine.lines } : null;
+      asBase.current = null;
       var turn = { id: uid(), role: "assistant", text: "", steps: [], changes: [], status: "working", from: history.current.past.length, prompt: text2 };
       var api2 = Object.assign({}, toolApi, {
         screenshot: canLook() ? toolApi.screenshot : null,
@@ -12738,6 +13004,17 @@
         },
         /* The plan shows on this reply's card; its answer comes from the
            person's click (approvePlan or changePlan), or Stop. */
+        /* The question shows on this reply's card; its answer is a click on
+           an option (answerAsk), or what the person types next, or Stop. */
+        askUser: function(q) {
+          patchTurn(turn.id, { ask: Object.assign({ status: "pending" }, q) });
+          return new Promise(function(resolve2) {
+            askWait.current = { turn: turn.id, resolve: function(answer) {
+              askWait.current = null;
+              resolve2(answer);
+            } };
+          });
+        },
         proposePlan: function(plan) {
           patchTurn(turn.id, { plan: Object.assign({ status: "pending" }, plan) });
           return new Promise(function(resolve2) {
@@ -12753,24 +13030,24 @@
       if (fresh0) asMsgs.current = [];
       if (ctx.docs.length || ctx.skills.length) turn.steps.push({ ok: true, text: "Read " + (sel2.length ? sel2.length + (sel2.length === 1 ? " layer" : " layers") + ", " : "") + ctx.docs.length + (ctx.docs.length === 1 ? " doc" : " docs") + " and " + ctx.skills.length + (ctx.skills.length === 1 ? " skill" : " skills") });
       setAsThread(function(t) {
-        return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], [me, turn]);
+        return t.concat(fresh0 ? [{ id: uid(), role: "divider", text: "A fresh conversation from here: the last one got too long to send. The assistant still sees the canvas." }] : [], told ? [told] : [], [me, turn]);
       });
       asDraftState[1]("");
       setAsBusy(true);
       asNotes.current = [];
-      asMsgs.current = asMsgs.current.concat([{ role: "user", content: text2 }]);
+      asMsgs.current = asMsgs.current.concat([{ role: "user", content: told ? [{ type: "text", text: editsText(mine) }, { type: "text", text: text2 }] : text2 }]);
       var abort = typeof AbortController !== "undefined" ? new AbortController() : null;
       asAbort.current = abort;
       var script = practiceScript(sel2);
       var edits = 0;
       var round = function(n) {
         var c = collector();
-        var shown2 = "";
+        var shown3 = "";
         return sendAssistant({ stable: systemPrompt(), system, messages: asMsgs.current, tools: tools2, effort: asEffortState[0] }, function(ev) {
           c.add(ev);
           if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
-            shown2 += ev.delta.text;
-            var now = shown2;
+            shown3 += ev.delta.text;
+            var now = shown3;
             patchTurn(turn.id, function(x) {
               return { text: (x.base || "") + now };
             });
@@ -12798,10 +13075,10 @@
               }
               var at2 = history.current.past.length;
               return Promise.resolve(runTool(api2, call)).then(function(res) {
-                var mine = [].concat(res.change ? [res.change] : [], res.changes || []).map(function(ch) {
+                var mine2 = [].concat(res.change ? [res.change] : [], res.changes || []).map(function(ch) {
                   return Object.assign({}, ch, { at: at2 });
                 });
-                changes.push.apply(changes, mine);
+                changes.push.apply(changes, mine2);
                 if (res.step && res.ok) steps.push({ ok: true, text: res.step, shot: res.shot ? res.shot.url : void 0 });
                 if (!res.ok) steps.push({ ok: false, text: res.result });
                 results.push({ type: "tool_result", tool_use_id: call.id, content: res.result, is_error: !res.ok });
@@ -12832,6 +13109,11 @@
         setAsBusy(false);
         asAbort.current = null;
         if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
+        if (askWait.current) askWait.current.resolve(null);
+        asBase.current = { page: pageRef.current, doc: docRef.current };
+        asBaseTick[1](function(n) {
+          return n + 1;
+        });
         var left2 = asNotes.current.splice(0);
         if (left2.length) {
           setAsThread(function(t) {
@@ -12876,21 +13158,59 @@
       stop: function() {
         if (asAbort.current) asAbort.current.abort();
         if (planWait.current) planWait.current.resolve({ approved: false, note: "stopped" });
+        if (askWait.current) askWait.current.resolve(null);
       },
       clear: function() {
         setAsThread([]);
         asMsgs.current = [];
+        asBase.current = null;
+        asBaseTick[1](function(n) {
+          return n + 1;
+        });
         if (projectRef.current) store.saveThread(projectRef.current.id, null).catch(function() {
         });
       },
       /* A note while it works: it lands with the next step's results. */
       note: function(text2) {
+        if (askWait.current) {
+          var asked = askWait.current.turn;
+          setAsThread(function(t) {
+            return t.map(function(x) {
+              return x.id === asked ? Object.assign({}, x, { ask: Object.assign({}, x.ask, { status: "answered", answer: text2 }) }) : x;
+            });
+          });
+          askWait.current.resolve({ text: text2 });
+          asDraftState[1]("");
+          return;
+        }
         var item = { id: uid(), role: "user", text: text2, queued: true };
         asNotes.current.push(item);
         setAsThread(function(t) {
           return t.concat([item]);
         });
         asDraftState[1]("");
+      },
+      /* A click on one of a question's options. */
+      answerAsk: function(id, index2) {
+        if (!askWait.current || askWait.current.turn !== id) return;
+        patchTurn(id, function(x) {
+          return { ask: Object.assign({}, x.ask, { status: "answered", choice: index2 }) };
+        });
+        askWait.current.resolve({ index: index2 });
+      },
+      /* Write something else: the next message answers the question. */
+      otherAsk: function() {
+        setTimeout(function() {
+          var el = document.querySelector(".bd-as-input");
+          if (el) el.focus();
+        }, 0);
+      },
+      /* Leave the edits since the last reply out of the next message. */
+      dropEdits: function() {
+        asBase.current = { page: pageRef.current, doc: docRef.current };
+        asBaseTick[1](function(n) {
+          return n + 1;
+        });
       },
       approvePlan: function(id) {
         if (!planWait.current || planWait.current.turn !== id) return;
@@ -12936,11 +13256,11 @@
       },
       /* Undo one of a reply's changes and every one after it, while nothing
          else has been edited since. */
-      undoFrom: function(id, index) {
+      undoFrom: function(id, index2) {
         var t = asThread.filter(function(x) {
           return x.id === id;
         })[0];
-        var ch = t && t.changes[index];
+        var ch = t && t.changes[index2];
         if (!t || !ch || ch.undone) return;
         var end = t.from + (t.made || 0);
         if (history.current.past.length !== end) {
@@ -12965,7 +13285,13 @@
         var lines = ["# Assistant: " + (projectRef.current && projectRef.current.name || "file"), ""];
         asThread.forEach(function(t) {
           if (t.role === "user") lines.push("**You:** " + t.text, "");
-          else if (t.role === "divider") lines.push("---", "", "_" + t.text + "_", "");
+          else if (t.role === "edits") {
+            lines.push("_You changed:_");
+            t.lines.forEach(function(l) {
+              lines.push("- " + l);
+            });
+            lines.push("");
+          } else if (t.role === "divider") lines.push("---", "", "_" + t.text + "_", "");
           else {
             (t.steps || []).forEach(function(st) {
               lines.push("- " + (st.ok ? "" : "(failed) ") + st.text);
@@ -13066,13 +13392,13 @@
         var menu2 = root.querySelector(".configure-menu");
         var panel = root.querySelector(".configure-panel");
         var items = menu2 ? menu2.querySelectorAll(".configure-row") : panel ? panel.children : [];
-        var shown2 = 0;
+        var shown3 = 0;
         Array.prototype.forEach.call(items, function(el) {
           var hit = !q || el.textContent.toLowerCase().indexOf(q) >= 0;
           el.classList.toggle("bd-cfg-out", !hit);
-          if (hit) shown2++;
+          if (hit) shown3++;
         });
-        setConfigNone(!!q && items.length > 0 && !shown2);
+        setConfigNone(!!q && items.length > 0 && !shown3);
       };
       apply2();
       var watch = new MutationObserver(apply2);
@@ -17033,7 +17359,7 @@
     var versionsState = useState([]);
     var versions = versionsState[0], setVersions = versionsState[1];
     var shownState = useState(null);
-    var shown = shownState[0], setShown = shownState[1];
+    var shown2 = shownState[0], setShown = shownState[1];
     var refreshProjects = function() {
       return Promise.all([store.listProjects(), store.listGroups()]).then(function(got) {
         setGroupList(got[1]);
@@ -17440,8 +17766,8 @@
     var movePage = function(pg, by) {
       store.movePage(projectRef.current.id, pg, by).then(takeMeta);
     };
-    var placePage = function(pg, index, folderId) {
-      return store.placePage(projectRef.current.id, pg, index, folderId).then(takeMeta);
+    var placePage = function(pg, index2, folderId) {
+      return store.placePage(projectRef.current.id, pg, index2, folderId).then(takeMeta);
     };
     var addFolder = function() {
       var meta = projectRef.current;
@@ -18128,8 +18454,8 @@
         var px = pxMap[key + "|" + o.value];
         var name = o.value === "fill" && def.section === "size" ? "Fill container" : o.label || o.value;
         var group2 = order && o.family ? order.indexOf(o.family) >= 0 ? FAMILY_LABEL[o.family] : more : void 0;
-        var short3 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
-        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short3, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
+        var short4 = opts.pxOnly && px != null ? String(Math.round(px)) : opts.short ? opts.short(o, px) : px != null ? Math.round(px) + " " + name : void 0;
+        return { value: o.value, label: name, px: px != null ? Math.round(px) : null, group: group2, short: short4, hint: o.tokens.join(" · ") || (o.value === "hug" ? "As big as what's in it" : o.value === "fill" ? "As big as its parent allows" : "CSS keyword"), tokens: o.tokens };
       }));
       if (opts.fixed) {
         var lastFit = -1;
@@ -18598,7 +18924,7 @@
         return e("div", { key }, tokenDropdown(key, nodes, null, { prefix, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: key === "w" || key === "height" }));
       };
       var dim = function(wide2) {
-        var short3 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
+        var short4 = wide2 ? "W" : "H", label2 = wide2 ? "Width" : "Height";
         var fkey = wide2 ? "fw" : "fh", tkey = wide2 ? "w" : "height", rkey = wide2 ? "rw" : "rh";
         var units = nodes.map(function(n) {
           var r = relSize(n.style[rkey]);
@@ -18657,7 +18983,7 @@
             return relSize(n.style[rkey]).n;
           });
           body = e(NumberField, {
-            short: short3,
+            short: short4,
             label: label2 + ", in " + (unit === "%" ? "percent of its parent" : unit === "vw" ? "percent of the screen's width" : "percent of the screen's height"),
             value: same3(ns) ? ns[0] : null,
             placeholder: "Mixed",
@@ -18687,7 +19013,7 @@
             }, label2 + " " + steps * 4 + "px", first === false);
           };
           body = e(NumberField, {
-            short: short3,
+            short: short4,
             label: label2 + ", in pixels, a multiple of 4",
             value: same3(vs) ? vs[0] : null,
             placeholder: "Mixed",
@@ -18703,7 +19029,7 @@
             }
           });
         } else {
-          body = tokenDropdown(tkey, nodes, null, { prefix: short3, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
+          body = tokenDropdown(tkey, nodes, null, { prefix: short4, short: shortSize, noneLabel: "Auto", noneShort: "Auto", noPreview: true, className: "bd-dd-field", scrub: true, fixed: true });
         }
         return e("div", { key: fkey, className: "bd-size-unit" }, body, picker);
       };
@@ -20420,6 +20746,12 @@
       );
     };
     var selectedNodes = nodesOf2(selection);
+    var asEditsNow = useMemo(function() {
+      var b = asBase.current;
+      if (left !== "assistant" || asBusy || !b || b.page !== pageId) return null;
+      var got = recentEdits(b.doc, doc2);
+      return got.count ? got : null;
+    }, [doc2, left, asBusy, pageId, asBaseTick[0]]);
     var savedTitle = "This browser won't keep your work (a private window, blocked storage, or too many uploads). Use Share or Code to keep it.";
     var hidePanels = wide && (bare || preview);
     hidePanelsRef.current = hidePanels;
@@ -21655,6 +21987,13 @@
                 fix: asApi.fix,
                 show: asApi.show,
                 note: asApi.note,
+                waiting: asBusy && asThread.some(function(t) {
+                  return t.ask && t.ask.status === "pending";
+                }),
+                answerAsk: asApi.answerAsk,
+                otherAsk: asApi.otherAsk,
+                edits: asEditsNow,
+                dropEdits: asApi.dropEdits,
                 approvePlan: asApi.approvePlan,
                 changePlan: asApi.changePlan,
                 undoFrom: asApi.undoFrom,
@@ -21757,8 +22096,8 @@
         onDownloadProject
       }),
       e(ImportDialog, { dialogRef: importRef, text: importText, setText: setImportText, onImport: onImportLayout }),
-      e(VersionsDialog, { dialogRef: versionsRef, open: shown === "versions", onClose: closeShown, projectName: project.name, versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
-      e(KeysDialog, { dialogRef: keysRef, open: shown === "keys", onClose: closeShown }),
+      e(VersionsDialog, { dialogRef: versionsRef, open: shown2 === "versions", onClose: closeShown, projectName: project.name, versions, onKeep: onKeepVersion, onRestore: onRestoreVersion }),
+      e(KeysDialog, { dialogRef: keysRef, open: shown2 === "keys", onClose: closeShown }),
       e(ComponentDialog, { dialogRef: compRef, draft: compDraft, setDraft: setCompDraft, node: compNode, onClose: closeComponent, onSave: onSaveComponent, onFix: onFixComponent }),
       e(PlayDialog, {
         dialogRef: playRef,
