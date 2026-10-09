@@ -5755,7 +5755,7 @@ try {
     await page.close();
   });
 
-  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page and looks at the canvas; nothing is sent", async () => {
+  await step("Assistant: in practice mode a request changes the selection with system tokens, lists what changed, and Undo all takes it back; it reads the page, looks at the canvas and builds a page; nothing is sent", async () => {
     const { page } = await open({ width: 1440, height: 900 });
     const sent = [];
     page.on("request", (r) => { if (/functions\/v1\/assistant|anthropic/.test(r.url())) sent.push(r.url()); });
@@ -5816,8 +5816,22 @@ try {
     expect(/Looked at Section/.test(await reply(3).locator(".bd-as-look").textContent()), "the step names what it looked at");
     await page.waitForFunction(() => { const b = document.querySelectorAll(".bd-as-bot")[3]; return b && /I looked at/.test(b.textContent); });
     await settled();
+    ok("asking it to look takes a picture of the selection and shows it");
+    const framesBefore = await page.evaluate(() => window.__builder.doc().frames.length);
+    const stepsBefore = (await page.evaluate(() => window.__builder.history())).past;
+    await page.locator(".bd-as-input").fill("Build a pricing page");
+    await page.keyboard.press("Enter");
+    await reply(4).locator(".bd-as-acts").waitFor({ timeout: 20000 });
+    const built = await page.evaluate(() => { const d = window.__builder.doc(); const f = d.frames[d.frames.length - 1]; return { n: d.frames.length, name: f.name, mode: f.mode, active: d.active === f.id, sections: (f.root.children[0].children || []).map((c) => c.type) }; });
+    expect(built.n === framesBefore + 1 && built.name === "Pricing" && built.mode === "structured" && built.active, `a new structured Pricing frame to work in, got ${JSON.stringify(built)}`);
+    expect(built.sections.join() === "Section,Section,Section", `its Content group holds three sections, got ${built.sections}`);
+    expect((await page.evaluate(() => window.__builder.history())).past === stepsBefore + 2, "the frame is one step and the batch of sections another");
+    const rows4 = await reply(4).locator(".bd-as-row .bd-as-n").allTextContents();
+    expect(rows4[0] === "New frame" && rows4.filter((r) => r === "Added").length === 3, `the card lists the new frame and the three sections, got ${rows4}`);
+    await reply(4).locator(".bd-as-acts button", { hasText: "Undo all" }).click();
+    await page.waitForFunction((n) => window.__builder.doc().frames.length === n, framesBefore);
     expect(sent.length === 0, `nothing goes to a model or the cloud in practice mode, got ${sent.join(", ")}`);
-    ok("asking it to look takes a picture of the selection and shows it, and no request leaves the page");
+    ok("asking for a pricing page makes a structured frame and fills it in one batch; Undo all takes the frame away; no request leaves the page");
     await page.close();
   });
 

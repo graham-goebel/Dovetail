@@ -163,3 +163,111 @@ test("the practice script reads the page and says what's on it", () => {
   assert.equal(after.calls.length, 0);
   assert.equal(script({ messages: [{ role: "user", content: "take a look" }], tools: toolsFor({ look: false }) }).calls.length, 0, "no screenshot when looking is off");
 });
+
+/* The build tools, against the real tree operations. */
+import { ops } from "../../../assets/builder/model/tree.js";
+function builder() {
+  const h = harness();
+  const { doc, api } = h;
+  let steps = 0;
+  const edit = (fn) => { const r = fn(); if (r !== null && r !== undefined && r !== false) steps++; return r; };
+  Object.assign(api, {
+    replace: (id, nodes) => edit(() => { const at = locate(doc, id); if (!ops.replace(doc, id, nodes[0])) return null; nodes.slice(1).forEach((n, i) => ops.insert(doc, at.parent.id, at.index + 1 + i, n)); return nodes.map((n) => n.id); }) || [],
+    move: (ids, parent, index) => edit(() => { const out = []; ids.forEach((id) => { const to = locate(doc, parent); if (ops.move(doc, id, parent, index == null ? to.node.children.length : index + out.length)) out.push(id); }); return out.length ? out : null; }) || [],
+    wrap: (id, type) => edit(() => ops.wrap(doc, id, type)),
+    group: (ids) => edit(() => ops.group(doc, ids)),
+    duplicate: (ids) => edit(() => { const out = ids.map((id) => ops.duplicate(doc, id)).filter(Boolean); return out.length ? out : null; }) || [],
+    rename: (id, name) => !!edit(() => { locate(doc, id).node.name = name; return true; }),
+    setProp: (ids, name, value) => !!edit(() => { ids.forEach((id) => { locate(doc, id).node.props[name] = value; }); return true; }),
+    createFrame: (opts) => { const f = { id: "f2", name: opts.name, width: 1280, mode: opts.mode, root: { id: "root", type: "Root", props: {}, style: {}, children: [{ id: "content", type: "Group", props: {}, style: {}, children: [] }] } }; doc.frames.push(f); doc.active = f.id; return { frame: f.id, content: "content" }; },
+    useFrame: (fid) => { doc.active = fid; },
+    batch: (fn) => { const from = steps; fn(); if (steps - from > 1) steps = from + 1; },
+  });
+  return { ...h, steps: () => steps };
+}
+
+test("replace_jsx rebuilds a layer in its place", () => {
+  const { doc, hero, api } = builder();
+  const r = runTool(api, { name: "replace_jsx", input: { id: hero.id, jsx: "<Section><Heading>New</Heading></Section><Section />" } });
+  assert.equal(r.ok, true);
+  const kids = doc.frames[0].root.children;
+  assert.equal(kids.length, 2, "both new sections land where the old one was");
+  assert.ok(!kids.some((k) => k.id === hero.id));
+  assert.equal(r.change.label, "Rebuilt");
+  assert.equal(runTool(api, { name: "replace_jsx", input: { id: "nope", jsx: "<Section />" } }).ok, false);
+});
+
+test("set_text finds the layer's own text prop", () => {
+  const { hero, api } = builder();
+  const h = hero.children[0];
+  assert.equal(runTool(api, { name: "set_text", input: { id: h.id, text: "Made to last." } }).ok, true);
+  assert.equal(h.props.children, "Made to last.");
+  assert.equal(runTool(api, { name: "set_text", input: { id: hero.id, text: "x" } }).ok, false, "a Section has no text of its own");
+});
+
+test("move, wrap, duplicate and rename", () => {
+  const { doc, hero, api } = builder();
+  const root = doc.frames[0].root;
+  const card = make("Card", { title: "A" });
+  root.children.push(card);
+  assert.equal(runTool(api, { name: "move", input: { ids: [card.id], parent: hero.id, index: 0 } }).ok, true);
+  assert.equal(hero.children[0].id, card.id);
+  const w = runTool(api, { name: "wrap", input: { ids: [card.id], type: "Stack" } });
+  assert.equal(w.ok, true);
+  assert.equal(hero.children[0].type, "Stack");
+  assert.equal(runTool(api, { name: "wrap", input: { ids: [card.id, hero.children[1].id], type: "Card" } }).ok, false, "several layers only go into a Group");
+  const d = runTool(api, { name: "duplicate", input: { ids: [hero.id] } });
+  assert.equal(root.children.length, 2);
+  assert.notEqual(JSON.parse(d.result).copies[0], hero.id);
+  assert.equal(runTool(api, { name: "rename", input: { id: hero.id, name: "Hero" } }).ok, true);
+  assert.equal(hero.name, "Hero");
+});
+
+test("create_frame makes a structured frame to work in, and use_frame moves between frames", () => {
+  const { doc, api } = builder();
+  const r = runTool(api, { name: "create_frame", input: { name: "Pricing", preset: "desktop", mode: "structured" } });
+  assert.equal(r.ok, true);
+  assert.equal(JSON.parse(r.result).content, "content");
+  assert.equal(doc.active, "f2");
+  assert.equal(runTool(api, { name: "create_frame", input: { name: "X", preset: "billboard", mode: "free" } }).ok, false);
+  const first = doc.frames[0].id;
+  assert.equal(runTool(api, { name: "use_frame", input: { id: first } }).ok, true);
+  assert.equal(doc.active, first);
+  assert.equal(runTool(api, { name: "use_frame", input: { id: "nope" } }).ok, false);
+});
+
+test("batch runs edits in order as one step, and stops at the first that fails", () => {
+  const { hero, api, steps } = builder();
+  const h = hero.children[0];
+  const r = runTool(api, { name: "batch", input: { calls: [
+    { name: "set_text", input: { id: h.id, text: "One" } },
+    { name: "rename", input: { id: hero.id, name: "Hero" } },
+    { name: "insert_jsx", input: { parent: hero.id, jsx: "<Button>Go</Button>" } },
+  ] } });
+  assert.equal(r.ok, true);
+  assert.equal(r.changes.length, 3);
+  assert.equal(steps(), 1, "three edits, one history step");
+  const s = runTool(api, { name: "batch", input: { calls: [
+    { name: "set_text", input: { id: h.id, text: "Two" } },
+    { name: "set_style", input: { ids: [hero.id], family: "surface", value: "#f00" } },
+    { name: "set_text", input: { id: h.id, text: "Three" } },
+  ] } });
+  assert.match(s.result, /Call 2 \(set_style\) failed/);
+  assert.equal(h.props.children, "Two", "the call after the failure never runs");
+  assert.equal(runTool(api, { name: "batch", input: { calls: [{ name: "screenshot", input: {} }] } }).ok, false, "only edits run in a batch");
+});
+
+test("the practice script builds a page in two rounds: a frame, then its sections as one batch", () => {
+  const { api } = builder();
+  const script = practiceScript([]);
+  const ask = [{ role: "user", content: "Build a pricing page" }];
+  const t1 = script({ messages: ask, tools: TOOLS });
+  assert.equal(t1.calls[0].name, "create_frame");
+  const r1 = runTool(api, t1.calls[0]);
+  const msgs = ask.concat([{ role: "assistant", content: [{ type: "tool_use", id: "a", name: "create_frame", input: t1.calls[0].input }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "a", content: r1.result }] }]);
+  const t2 = script({ messages: msgs, tools: TOOLS });
+  assert.equal(t2.calls[0].name, "batch");
+  const r2 = runTool(api, t2.calls[0]);
+  assert.equal(r2.ok, true, r2.result);
+  assert.equal(api.doc().frames[1].root.children[0].children.length, 3, "three sections in the new frame's Content group");
+});
