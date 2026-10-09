@@ -3669,6 +3669,9 @@ try {
     await tab(page, "Appearance");
     const num = page.locator('.bd-right .bd-opacity input[aria-label="Opacity, percent"]');
     const range = page.locator(".bd-right .bd-opacity-range");
+    /* The tab draws its sections after the switch; wait for the field. */
+    await num.waitFor({ timeout: 5000 });
+    await page.waitForFunction(() => { const el = document.querySelector('.bd-right .bd-opacity input[aria-label="Opacity, percent"]'); return el && el.value === "100"; }, null, { timeout: 5000 }).catch(() => {});
     expect(await num.count() === 1 && await range.count() === 1 && await num.inputValue() === "100", "the Layer section has an opacity slider and a number at 100");
     await num.fill("37");
     await num.press("Enter");
