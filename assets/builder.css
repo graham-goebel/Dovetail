@@ -6846,3 +6846,248 @@ input.bd-folder-name {
   justify-content: space-between;
   gap: var(--dt-space-inline-xs);
 }
+
+/* The Assistant panel: the conversation, and the box at its foot with what
+   goes with the next message as chips. */
+.bd-as {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-size: var(--dt-font-size-xs);
+}
+.bd-left-body:has(.bd-as) {
+  display: flex;
+  flex-direction: column;
+}
+.bd-left-main:has(.bd-as) {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.bd-as-head {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-bottom: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-title {
+  flex: 1;
+  font-size: var(--dt-font-size-sm);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-as-badge {
+  padding: 2px var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-pill);
+  background: color-mix(in oklab, var(--dt-color-violet-500, #8b6cf6) 22%, transparent);
+  color: var(--dt-text-primary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-thread {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--dt-space-stack-sm);
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--dt-space-inset-sm);
+}
+.bd-as-empty p {
+  margin: 0 0 var(--dt-space-stack-xs);
+  color: var(--dt-text-secondary);
+}
+.bd-as-sugg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-2xs);
+}
+.bd-as-sugg button {
+  padding: var(--dt-space-inset-2xs, 4px) var(--dt-space-inset-xs);
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-control);
+  background: none;
+  color: var(--dt-text-secondary);
+  font: inherit;
+  font-size: var(--dt-font-size-2xs, 11px);
+  cursor: pointer;
+}
+.bd-as-sugg button:hover {
+  background: var(--bd-field);
+  color: var(--dt-text-primary);
+}
+.bd-as-me {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-radius: 12px 12px 4px 12px;
+  background: var(--bd-field-on, var(--bd-field));
+  white-space: pre-wrap;
+}
+.bd-as-bot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+}
+.bd-as-step {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-2xs);
+  color: var(--dt-text-tertiary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-ok .bd-ic {
+  width: 12px;
+  height: 12px;
+}
+.bd-as-text {
+  margin: 0;
+  color: var(--dt-text-secondary);
+  white-space: pre-wrap;
+}
+.bd-as-wait {
+  color: var(--dt-text-tertiary);
+}
+.bd-as-err {
+  color: var(--dt-text-danger, #e5484d);
+}
+.bd-as-card {
+  margin-top: var(--dt-space-stack-2xs);
+  overflow: hidden;
+  border: var(--dt-border-width-default) solid var(--dt-border-subtle);
+  border-radius: var(--dt-radius-container, 10px);
+}
+.bd-as-card-h {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  font-weight: var(--dt-font-weight-semibold, 600);
+}
+.bd-as-note {
+  color: var(--dt-text-tertiary);
+  font-weight: var(--dt-font-weight-regular, 400);
+}
+.bd-as-row {
+  display: flex;
+  gap: var(--dt-space-inline-xs);
+  padding: var(--dt-space-inset-2xs, 4px) var(--dt-space-inset-sm);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-n {
+  flex: none;
+  min-width: 64px;
+  color: var(--dt-text-tertiary);
+}
+.bd-as-v {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bd-as-on {
+  color: var(--dt-text-tertiary);
+}
+.bd-as-acts {
+  display: flex;
+  gap: var(--dt-space-inline-2xs);
+  padding: var(--dt-space-inset-xs) var(--dt-space-inset-sm);
+  border-top: var(--dt-border-width-default) solid var(--dt-border-subtle);
+}
+.bd-as-retry {
+  margin-left: auto;
+}
+.bd-as-comp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dt-space-stack-2xs);
+  margin: var(--dt-space-inset-xs) var(--dt-space-inset-sm) var(--dt-space-inset-sm);
+  padding: var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-container, 10px);
+  background: var(--bd-field);
+}
+.bd-as-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dt-space-inline-2xs);
+}
+.bd-as-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 0 4px 0 var(--dt-space-inset-xs);
+  border-radius: var(--dt-radius-pill);
+  background: var(--bd-field);
+  color: var(--dt-text-secondary);
+  font-size: var(--dt-font-size-2xs, 11px);
+}
+.bd-as-chip .bd-ic {
+  width: 12px;
+  height: 12px;
+}
+.bd-as-chip button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--dt-text-tertiary);
+  font: inherit;
+  cursor: pointer;
+}
+.bd-as-chip.is-target {
+  background: color-mix(in oklab, var(--dt-color-primary-500, #e2541b) 20%, transparent);
+  color: var(--dt-text-primary);
+}
+.bd-as-chip.is-target.is-off {
+  background: var(--bd-field);
+  color: var(--dt-text-tertiary);
+  text-decoration: line-through;
+}
+.bd-as-chip.is-skill {
+  padding-right: var(--dt-space-inset-xs);
+  background: color-mix(in oklab, var(--dt-color-violet-500, #8b6cf6) 22%, transparent);
+}
+.bd-as-input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--dt-space-inset-2xs, 4px);
+  border: 0;
+  background: none;
+  color: var(--dt-text-primary);
+  font: inherit;
+  font-size: var(--dt-font-size-xs);
+  resize: none;
+}
+.bd-as-input:focus-visible {
+  outline: none;
+}
+.bd-as-comp:focus-within {
+  box-shadow: 0 0 0 var(--dt-focus-ring-width) var(--dt-focus-ring-color);
+}
+.bd-as-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-inline-xs);
+}
+.bd-as-sp {
+  flex: 1;
+}
+.bd-as-send {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--dt-text-primary);
+  color: var(--dt-surface-raised);
+  cursor: pointer;
+}
+.bd-as-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.bd-as-send .bd-ic {
+  width: 14px;
+  height: 14px;
+}
+.bd-as-acts .bd-btn {
+  white-space: nowrap;
+}
