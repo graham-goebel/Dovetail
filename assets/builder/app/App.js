@@ -754,7 +754,7 @@ function App(props) {
     var fr = active(docRef.current);
     var planOn = asPlanState[0];
     var canvas = "# Canvas\n\nFrame: " + fr.name + " (" + (fr.mode || "free") + ", " + fr.width + " wide). " +
-      (asReachState[0] === "page" ? "You may change anything on this page." : sel.length ? "Selected: " + sel.map(function (n) { return (n.name || n.type) + " (" + n.id + ")"; }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.") +
+      (asReachState[0] === "page" ? "You may change anything on this page." : sel.length ? "Selected: " + sel.map(function (n) { return nameOf(n) + " (" + n.id + ")"; }).join(", ") + ". Change only these unless asked for more." : "Nothing is selected.") +
       (planOn ? "" : "\n\nPlans are off: build without propose_plan.");
     var system = [contextText(ctx), canvas].filter(Boolean).join("\n\n");
     var tools = toolsFor({ look: canLook(), plan: planOn });

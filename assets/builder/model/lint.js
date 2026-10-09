@@ -13,13 +13,15 @@ var TEXT_KEYS = ["children", "title", "label", "text", "description", "heading",
 /* What a destructive action says, for the danger variant's rule. */
 var DESTRUCTIVE = /\b(delete|remove|discard|erase|revoke|cancel (my |your |the )?(account|subscription|plan|order)|close (my |your |the )?account|leave|reset|destroy|unsubscribe|deactivate|disconnect|uninstall|clear all|empty trash)\b/i;
 
-function label(n) { return n.name || n.type; }
+import { autoName, layerName } from "./names.js";
+
+function label(n) { return layerName(n); }
 
 /* A layer as a check names it: its own name, or its type and the start of
    its text. */
 function said(n) {
   if (!n) return "a layer";
-  if (n.name) return n.name;
+  if (n.name || autoName(n)) return layerName(n);
   var p = n.props || {};
   var t = typeof p.children === "string" && p.children.trim() ? p.children : typeof p.title === "string" && p.title.trim() ? p.title : typeof p.label === "string" && p.label.trim() ? p.label : "";
   t = t.replace(/\s+/g, " ").trim();

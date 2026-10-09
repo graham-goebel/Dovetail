@@ -12,6 +12,7 @@
 import { DATA, META, PRESETS, TEXT_PROPS, WRAPS } from "../config.js";
 import { jsxNodes, readJsxElements } from "./paste.js";
 import { cleanNode, fresh, locate } from "./tree.js";
+import { layerName } from "./names.js";
 
 var FAMILIES = Object.keys(DATA.tokens);
 /* The edits batch may run: everything that changes layers in this frame. */
@@ -208,7 +209,7 @@ function runTool(api, call) {
   var fail = function (msg) { return { ok: false, result: msg }; };
   var doc = api.doc();
   var known = function (ids) { return (ids || []).filter(function (id) { return typeof id === "string" && locate(doc, id); }); };
-  var nameOf = function (id) { var at = locate(doc, id); return at ? at.node.name || at.node.type : id; };
+  var nameOf = function (id) { var at = locate(doc, id); return at ? layerName(at.node) : id; };
   switch (call.name) {
     case "list_pages": {
       var pages = api.pages ? api.pages() : [];
@@ -236,7 +237,7 @@ function runTool(api, call) {
       if (input.id && !frameOf && input.id !== "root") (doc.frames || []).some(function (f) { var at = locate(doc, input.id, f.id); if (at) { inFrame = f; shotAt = at; } return !!at; });
       if (input.id && input.id !== "root" && !shotAt && !frameOf) return fail("There's no layer or frame " + input.id + " on this page.");
       var fr = frameOf || inFrame || (doc.frames || []).filter(function (f) { return f.id === doc.active; })[0] || doc.frames[0];
-      var what = shotAt ? shotAt.node.name || shotAt.node.type : fr.name;
+      var what = shotAt ? layerName(shotAt.node) : fr.name;
       var width = typeof input.width === "number" ? Math.max(320, Math.min(2560, Math.round(input.width))) : null;
       var dark = typeof input.dark === "boolean" ? input.dark : null;
       var how = [width ? "at " + width + " wide" : "", dark === true ? "in dark mode" : dark === false ? "in light mode" : ""].filter(Boolean).join(" ");
@@ -345,7 +346,7 @@ function runTool(api, call) {
       if (owed) return owed;
       var ids2 = api.insert(input.parent || null, typeof input.index === "number" ? input.index : null, made);
       if (!ids2 || !ids2.length) return fail("Those layers can't go there.");
-      return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function (n) { return n.name || n.type; }).join(", "), on: "" } };
+      return { ok: true, result: JSON.stringify({ added: ids2 }), change: { ids: ids2, label: "Added", value: made.map(function (n) { return layerName(n); }).join(", "), on: "" } };
     }
     case "replace_jsx": {
       var at0 = locate(doc, input.id);
@@ -357,7 +358,7 @@ function runTool(api, call) {
       var was = nameOf(input.id);
       var ids3 = api.replace(input.id, made2);
       if (!ids3 || !ids3.length) return fail("Those layers can't go there.");
-      return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function (n) { return n.name || n.type; }).join(", "), on: "" } };
+      return { ok: true, result: JSON.stringify({ added: ids3 }), change: { ids: ids3, label: "Rebuilt", value: was + " → " + made2.map(function (n) { return layerName(n); }).join(", "), on: "" } };
     }
     case "set_text": {
       var tat = locate(doc, input.id);

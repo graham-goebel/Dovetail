@@ -6,6 +6,7 @@
    tokens changed. */
 
 import { diff } from "./edits.js";
+import { autoName } from "./names.js";
 
 var TEXT = ["children", "title", "label", "text", "heading", "description", "eyebrow", "alt"];
 
@@ -31,7 +32,8 @@ function index(doc) {
 function nameOf(n, bare) {
   if (!n) return "a layer";
   if (n.id === "root") return "the frame";
-  if (bare) return n.name || n.type;
+  if (bare) return n.name || autoName(n) || n.type;
+  if (!n.name && autoName(n)) return autoName(n);
   var p = n.props || {};
   var said = typeof p.children === "string" && p.children.trim() ? " “" + short(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short(p.title, 24) + "”" : "";
   return n.name ? n.name : n.type + said;
