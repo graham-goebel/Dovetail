@@ -4624,16 +4624,16 @@
     }
     if (!data || typeof data !== "object" || !Array.isArray(data.frames) || !data.frames.length) return { error: "No frames or nodes found. See the layout format for what the builder reads." };
     var doc2 = clean(data, report);
-    var layers = 0;
+    var layers2 = 0;
     doc2.frames.forEach(function(f) {
       (function walk(n) {
         (n.children || []).forEach(function(c) {
-          layers++;
+          layers2++;
           walk(c);
         });
       })(f.root);
     });
-    return { doc: doc2, report, layers };
+    return { doc: doc2, report, layers: layers2 };
   }
 
   // assets/builder/model/usage.js
@@ -8099,9 +8099,9 @@
   }
   function mineList(p, list) {
     return e("ul", { className: "bd-mine", role: "list" }, list.map(function(c) {
-      var layers = 0;
+      var layers2 = 0;
       (function walk(n) {
-        layers++;
+        layers2++;
         (n.children || []).forEach(walk);
       })(c.node);
       return e(
@@ -8122,7 +8122,7 @@
             }
           },
           e("span", { className: "bd-sys-lead" }, e(Icon, { name: "component" })),
-          e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers + (layers === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))
+          e("span", { className: "bd-mine-text" }, e("span", { className: "bd-mine-name" }, c.name), e("span", { className: "bd-mine-meta" }, layers2 + (layers2 === 1 ? " layer" : " layers") + " · " + c.tokens.length + (c.tokens.length === 1 ? " token" : " tokens")))
         ),
         e(Dropdown, {
           menu: true,
@@ -9341,15 +9341,15 @@
     return first ? short2(first.text, 60) : "New conversation";
   }
   function summaryOf(thread) {
-    var said = "", changes = 0;
+    var said2 = "", changes = 0;
     (thread || []).forEach(function(t) {
       if (t.role !== "assistant") return;
-      if (t.text) said = t.text;
+      if (t.text) said2 = t.text;
       changes += (t.changes || []).filter(function(c) {
         return !c.undone;
       }).length;
     });
-    return { said: short2(said.replace(/^Practice mode(, with the real tools)?: /, ""), 90), changes };
+    return { said: short2(said2.replace(/^Practice mode(, with the real tools)?: /, ""), 90), changes };
   }
   function metaOf(thread, opts) {
     opts = opts || {};
@@ -10486,7 +10486,7 @@
       var frames = lines.filter(function(l) {
         return /^Frame /.test(l);
       }).length;
-      var layers = lines.filter(function(l) {
+      var layers2 = lines.filter(function(l) {
         return /^\s+- /.test(l);
       }).length;
       var top = lines.filter(function(l) {
@@ -10495,7 +10495,7 @@
         var m = /^  - (\w+)(?: "([^"]+)")?/.exec(l);
         return m ? m[2] ? m[2] + " (" + m[1] + ")" : m[1] : "";
       }).filter(Boolean);
-      return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers + (layers === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
+      return { text: "Practice mode: this page has " + frames + (frames === 1 ? " frame" : " frames") + " and " + layers2 + (layers2 === 1 ? " layer" : " layers") + (top.length ? ". At the top level: " + top.slice(0, 8).join(", ") + (top.length > 8 ? ", and " + (top.length - 8) + " more" : "") : "") + ".", calls: [] };
     }
     if (names[0] === "screenshot") {
       var seen = results.map(function(r, i) {
@@ -10535,7 +10535,7 @@
       var open = rows.filter(function(l) {
         return /^- (FAIL|WARN) /.test(l);
       }).map(function(l) {
-        return l.replace(/^- (FAIL|WARN) /, "").replace(/:.*$/, "").replace(/ \[layers:.*$/, "");
+        return l.replace(/^- (FAIL|WARN) /, "").replace(/ \[layers:.*$/, "").replace(/\.$/, "");
       });
       var asked = /^fix this check/i.test(String(request.messages.filter(function(m) {
         return m.role === "user" && typeof m.content === "string";
@@ -10628,7 +10628,7 @@
       var ids = sel.map(function(n) {
         return n.id;
       });
-      var calls = [], said = [];
+      var calls = [], said2 = [];
       var offered = (request.tools || []).map(function(t) {
         return t.name;
       });
@@ -10671,20 +10671,20 @@
       if (!ids.length && !/add|insert|section|pricing/.test(text2)) return { text: "Practice mode: select something on the canvas and ask me to restyle it, or ask me to add a section.", calls: [] };
       if (/premium|calm|quiet|muted|soft/.test(text2) && surface.indexOf("brand-muted") >= 0) {
         calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand-muted" } });
-        said.push("a quieter brand fill");
+        said2.push("a quieter brand fill");
       } else if (/bold|brand|loud|vivid/.test(text2) && surface.indexOf("brand") >= 0) {
         calls.push({ name: "set_style", input: { ids, family: "surface", value: "brand" } });
-        said.push("the brand fill");
+        said2.push("the brand fill");
       }
       if (/round|corner|soft/.test(text2)) {
         var r = DATA.tokens.radius.options;
         calls.push({ name: "set_style", input: { ids, family: "radius", value: (r[Math.min(2, r.length - 1)] || r[0]).value } });
-        said.push("rounder corners");
+        said2.push("rounder corners");
       }
       if (/shadow|lift|float|premium/.test(text2)) {
         var el = DATA.tokens.elevation.options;
         calls.push({ name: "set_style", input: { ids, family: "elevation", value: (el[1] || el[0]).value } });
-        said.push("a soft shadow");
+        said2.push("a soft shadow");
       }
       var headings = sel.filter(function(n) {
         return n.type === "Heading";
@@ -10693,18 +10693,18 @@
         calls.push({ name: "set_prop", input: { ids: headings.map(function(n) {
           return n.id;
         }), name: "size", value: "display-md" } });
-        said.push("a display-size heading");
+        said2.push("a display-size heading");
       }
       if (/add|insert/.test(text2) && /button|cta|action/.test(text2)) {
         calls.push({ name: "insert_jsx", input: { jsx: '<Button variant="primary">Get started</Button>' } });
-        said.push("a button");
+        said2.push("a button");
       }
       if (/add|insert/.test(text2) && /section|pricing|hero/.test(text2)) {
         calls.push({ name: "insert_jsx", input: { jsx: '<Section><Stack><Heading size="heading-lg">Plans for every team</Heading><Text>Start free, upgrade when you need to.</Text><Button>See plans</Button></Stack></Section>' } });
-        said.push("a section");
+        said2.push("a section");
       }
       if (!calls.length) return { text: "Practice mode: I can try fills (premium, bold), corners, shadows, bigger headings, or adding a button or a section. Real requests go to the model once live mode is on.", calls: [] };
-      return { text: "Practice mode, with the real tools: " + said.join(", ") + ".", calls };
+      return { text: "Practice mode, with the real tools: " + said2.join(", ") + ".", calls };
     };
   }
 
@@ -10715,6 +10715,34 @@
   var DESTRUCTIVE = /\b(delete|remove|discard|erase|revoke|cancel (my |your |the )?(account|subscription|plan|order)|close (my |your |the )?account|leave|reset|destroy|unsubscribe|deactivate|disconnect|uninstall|clear all|empty trash)\b/i;
   function label(n) {
     return n.name || n.type;
+  }
+  function said(n) {
+    if (!n) return "a layer";
+    if (n.name) return n.name;
+    var p = n.props || {};
+    var t = typeof p.children === "string" && p.children.trim() ? p.children : typeof p.title === "string" && p.title.trim() ? p.title : typeof p.label === "string" && p.label.trim() ? p.label : "";
+    t = t.replace(/\s+/g, " ").trim();
+    return n.type + (t ? " “" + (t.length > 24 ? t.slice(0, 23) + "…" : t) + "”" : "");
+  }
+  function layers(frame2) {
+    var m = {};
+    (function walk(n, parent) {
+      m[n.id] = { node: n, parent };
+      (n.children || []).forEach(function(c) {
+        walk(c, n.id);
+      });
+    })(frame2.root, null);
+    return m;
+  }
+  function outermost(ids, at2) {
+    var set2 = {};
+    ids.forEach(function(id) {
+      set2[id] = true;
+    });
+    return ids.filter(function(id) {
+      for (var p = at2[id] && at2[id].parent; p && p !== "root"; p = at2[p] && at2[p].parent) if (set2[p]) return false;
+      return id !== "root";
+    });
   }
   function lintFrame(frame2) {
     var found = [];
@@ -10793,21 +10821,55 @@
       })
     );
     else row("contrast", "Text contrast", "skip", skip.here || "The frame wasn't drawn.");
+    var at2 = layers(frame2);
     var narrow = drawn.narrow;
     if (narrow) {
       var spill = narrow.overflow.length || narrow.scrolls;
+      var by = {};
+      narrow.overflow.forEach(function(o) {
+        by[o.id] = o.by;
+      });
+      var tops = outermost(narrow.overflow.map(function(o) {
+        return o.id;
+      }), at2);
+      var inside = narrow.overflow.length - tops.length - (by.root != null ? 1 : 0);
       row(
         "narrow",
         spill ? "Something overflows at 390px" : "Nothing overflows at 390px",
         spill ? "fail" : "pass",
-        narrow.overflow.slice(0, 3).map(function(o) {
-          return o.by + "px past the edge";
-        }).join("; "),
-        narrow.overflow.map(function(o) {
+        tops.slice(0, 3).map(function(id) {
+          return said(at2[id] && at2[id].node) + " runs " + by[id] + "px past the edge";
+        }).join("; ") + (inside > 0 ? " (with " + inside + (inside === 1 ? " layer" : " layers") + " inside)" : ""),
+        tops.concat(narrow.overflow.map(function(o) {
           return o.id;
-        })
+        }).filter(function(id) {
+          return id !== "root" && tops.indexOf(id) < 0;
+        }))
       );
     } else row("narrow", "390px wide", "skip", skip.narrow || "Not checked.");
+    if (drawn.here || drawn.narrow) {
+      var covered = [], seenText = {};
+      [drawn.here, drawn.narrow].forEach(function(a, i) {
+        (a && a.covered || []).forEach(function(c) {
+          if (seenText[c.id]) return;
+          seenText[c.id] = true;
+          covered.push(Object.assign({ narrow: i === 1 }, c));
+        });
+      });
+      row(
+        "covered",
+        covered.length ? "Decoration covers text in " + covered.length + (covered.length === 1 ? " place" : " places") : "No decoration covers text",
+        covered.length ? "warn" : "pass",
+        covered.slice(0, 3).map(function(c) {
+          return "“" + c.text + "” is under " + said(at2[c.by] && at2[c.by].node) + (c.narrow ? " at 390px" : "");
+        }).join("; ") + (covered.length ? ". Move the decoration clear of the copy, or set the copy's z above it." : ""),
+        covered.map(function(c) {
+          return c.id;
+        }).concat(covered.map(function(c) {
+          return c.by;
+        }))
+      );
+    }
     var dark = contrastOf(drawn.dark);
     if (dark) row(
       "dark",
@@ -10901,8 +10963,8 @@
     if (n.id === "root") return "the frame";
     if (bare) return n.name || n.type;
     var p = n.props || {};
-    var said = typeof p.children === "string" && p.children.trim() ? " “" + short4(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short4(p.title, 24) + "”" : "";
-    return n.name ? n.name : n.type + said;
+    var said2 = typeof p.children === "string" && p.children.trim() ? " “" + short4(p.children, 24) + "”" : typeof p.title === "string" && p.title.trim() ? " “" + short4(p.title, 24) + "”" : "";
+    return n.name ? n.name : n.type + said2;
   }
   function recentEdits(prev, next, max) {
     max = max || 12;
@@ -10992,17 +11054,17 @@
         return b.g === "p" && TEXT.indexOf(b.k) >= 0;
       });
       var label2 = nameOf2(at2.node, retext);
-      var said = [];
+      var said2 = [];
       per[key].forEach(function(b) {
-        if (b.g === "f" && b.k === "name") said.push("renamed from " + shown(b.old));
-        else if (b.g === "f" && b.k === "hidden") said.push(b.value ? "hidden" : "shown");
-        else if (b.g === "f" && b.k === "locked") said.push(b.value ? "locked" : "unlocked");
-        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said.push((b.k === "children" ? "text" : b.k) + " “" + short4(b.old || "", 30) + "” → “" + short4(b.value || "", 30) + "”");
+        if (b.g === "f" && b.k === "name") said2.push("renamed from " + shown(b.old));
+        else if (b.g === "f" && b.k === "hidden") said2.push(b.value ? "hidden" : "shown");
+        else if (b.g === "f" && b.k === "locked") said2.push(b.value ? "locked" : "unlocked");
+        else if (b.g === "p" && TEXT.indexOf(b.k) >= 0 && typeof (b.value || b.old) === "string") said2.push((b.k === "children" ? "text" : b.k) + " “" + short4(b.old || "", 30) + "” → “" + short4(b.value || "", 30) + "”");
         else if (b.g === "f") return;
-        else said.push(b.k + " " + shown(b.old) + " → " + shown(b.value));
+        else said2.push(b.k + " " + shown(b.old) + " → " + shown(b.value));
       });
-      if (!said.length) return;
-      lines.push(label2 + ": " + said.slice(0, 3).join(", ") + (said.length > 3 ? ", and " + (said.length - 3) + " more" : ""));
+      if (!said2.length) return;
+      lines.push(label2 + ": " + said2.slice(0, 3).join(", ") + (said2.length > 3 ? ", and " + (said2.length - 3) + " more" : ""));
     });
     return { count: lines.length, lines: lines.slice(0, max) };
   }
@@ -12191,9 +12253,9 @@
     return out;
   }
   function leftOut(ovs, master, textKeys) {
-    var said = [];
+    var said2 = [];
     var add = function(s) {
-      if (said.indexOf(s) < 0) said.push(s);
+      if (said2.indexOf(s) < 0) said2.push(s);
     };
     ovs.forEach(function(o) {
       var node = at(master, o.path);
@@ -12212,7 +12274,7 @@
         if (other.length) add("its own " + other.join(", ") + (o.path ? " on " + (node && (node.name || node.type) || "a layer") : ""));
       }
     });
-    return said;
+    return said2;
   }
   function codeWithComponents(roots, library) {
     var comps = {}, order = [], taken = {}, notes2 = [];
@@ -14104,6 +14166,10 @@
         },
         flush,
         store,
+        /* The assistant's checks on a frame (the active one by default), as the lint tool runs them. */
+        checks: function(fid) {
+          return runChecks(fid || docRef.current.active);
+        },
         /* One prop on one layer, through the same undoable change a control makes. */
         edit: function(id, key, value) {
           return change(function(d) {
@@ -17783,7 +17849,7 @@
       if (!nodes.length || !nodes.every(function(n) {
         return TYPE_SCALE[n.type];
       })) return false;
-      var said = null;
+      var said2 = null;
       change(function(dd) {
         var any = false;
         nodes.forEach(function(n0) {
@@ -17798,11 +17864,11 @@
           if (j === i) return;
           at2.node.props[sc.prop] = sc.steps[j];
           any = true;
-          said = said || words(cur || "") + " to " + words(sc.steps[j]).replace(/-/g, " ");
+          said2 = said2 || words(cur || "") + " to " + words(sc.steps[j]).replace(/-/g, " ");
         });
         return any ? void 0 : null;
       }, null);
-      announce(said ? said.replace(/-/g, " ") : by > 0 ? "Already the largest size" : "Already the smallest size");
+      announce(said2 ? said2.replace(/-/g, " ") : by > 0 ? "Already the largest size" : "Already the smallest size");
       return true;
     };
     var share = function(nodeId, frameId) {
