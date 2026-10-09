@@ -132,7 +132,7 @@ Options that read differently from their names:
 
 ### Typography
 
-- **Heading**: Level and size apart. Props: `size` (one of `display-lg`, `display-md`, `display-sm`, `heading-xl`, `heading-lg`, `heading-md`, `heading-sm`, `heading-xs`), `tone` (one of `headline`, `brand`, `brand-secondary`, `primary`, `secondary`, `inherit`; default `headline`), `measure` (one of `narrow`, `default`, `wide`, `none`; default `none`), `balance` (boolean; default `true`), `level` (one of `1`, `2`, `3`, `4`, `5`, `6`; default `2`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`). Starts with `level` 2, `children` "Heading".
+- **Heading**: Level and size apart. Props: `size` (one of `display-2xl`, `display-xl`, `display-lg`, `display-md`, `display-sm`, `heading-xl`, `heading-lg`, `heading-md`, `heading-sm`, `heading-xs`), `tone` (one of `headline`, `brand`, `brand-secondary`, `primary`, `secondary`, `inherit`; default `headline`), `measure` (one of `narrow`, `default`, `wide`, `none`; default `none`), `balance` (boolean; default `true`), `level` (one of `1`, `2`, `3`, `4`, `5`, `6`; default `2`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`). Starts with `level` 2, `children` "Heading".
 - **Text**: Body, lead, eyebrow. Props: `variant` (one of `eyebrow`, `lead`, `body`, `small`, `fine`, `label`; default `body`), `tone` (one of `inherit`, `primary`, `secondary`, `tertiary`, `link`, `brand`, `brand-secondary`), `measure` (one of `narrow`, `default`, `wide`, `none`), `weight` (one of `regular`, `medium`, `semibold`), `numeric` (boolean; default `false`), `align` (one of `flex-start`, `center`, `flex-end`, `stretch`). Starts with `children` "Text".
 
 ### Actions
@@ -268,7 +268,7 @@ The finished components carry their own layout and sample copy. For an expressiv
 - **A ring:** a Group with `radius: pill`, equal `w` and `height`, `padding: sm` and `gradient: brand-gradient`, holding a Group with `height: fill`, `radius: pill` and `surface: sunken` that centres a Heading.
 - **A bar chart:** a row Group with a `height` (say `x6`) and `align: stretch`; in it, column Groups with `w: fill` and `justify: flex-end`, each holding a rectangle Shape with `w: fill`, `radius: control`, a `surface` and a `height` from `x1` up to the row's.
 - **Chips and pill buttons:** a row Group with `radius: pill`, `padding: xs`, `paddingLeft` and `paddingRight` `sm` or `md`, a `border` or `surface`, holding a Text `variant: label`.
-- **A big number:** Heading `size: display-lg` under a Text `variant: eyebrow`, with a pill beside or below it for the change.
+- **A big number:** Heading `size: display-xl` or `display-2xl` under a Text `variant: eyebrow`, with a pill beside or below it for the change. Both are fluid, so a long number still fits at 390px; keep one per screen.
 - **A line with ends:** a line Shape with `w: fill`, `start: dot`, `end: arrow` and a `border` for its colour.
 - **Names:** give each container a `name`, so the layers read as the screen does.
 

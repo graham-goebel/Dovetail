@@ -33,6 +33,11 @@
   --dt-type-scale-display: 3;
   --dt-layout-scale: 2.5;
 
+  /* A 1080 artboard is a fixed width, so the fluid sizes take their steps. */
+  --dt-text-display-2xl-size: calc(var(--dt-font-size-9xl) * var(--dt-type-scale-display));
+  --dt-text-display-2xl-line: calc(var(--dt-line-height-9xl) * var(--dt-type-scale-display));
+  --dt-text-display-xl-size: calc(var(--dt-font-size-8xl) * var(--dt-type-scale-display));
+  --dt-text-display-xl-line: calc(var(--dt-line-height-8xl) * var(--dt-type-scale-display));
   --dt-text-display-lg-size: calc(var(--dt-font-size-7xl) * var(--dt-type-scale-display));
   --dt-text-display-lg-line: calc(var(--dt-line-height-7xl) * var(--dt-type-scale-display));
   --dt-text-display-md-size: calc(var(--dt-font-size-6xl) * var(--dt-type-scale-display));

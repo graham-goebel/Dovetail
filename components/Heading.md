@@ -10,6 +10,7 @@ A heading whose level and size are two props. `level` sets the tag, so the docum
 
 ### Use it when
 - Any heading on a page: a hero title, a section title, a card title that needs to be a real heading.
+- A headline or a key number should be poster-sized: `display-xl` and `display-2xl` are fluid, largest on a wide screen and shrinking to fit a phone. Keep them to one per screen.
 - The visual size and the outline disagree. A hero's one `h1` is often set at `display-md`; a product name inside a card is an `h3` set at `heading-sm`.
 
 ### Don't use it when
@@ -52,8 +53,8 @@ import * as React from "react";
 export interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   /** Sets the tag, h1 to h6. @default 2 */
   level?: 1 | 2 | 3 | 4 | 5 | 6;
-  /** The type role it is set in. Defaults by level: 1 heading-xl, 2 heading-lg, 3 heading-md, 4 heading-sm, 5 and 6 heading-xs. */
-  size?: "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md" | "heading-sm" | "heading-xs";
+  /** The type role it is set in. Defaults by level: 1 heading-xl, 2 heading-lg, 3 heading-md, 4 heading-sm, 5 and 6 heading-xs. display-xl and display-2xl are fluid: they shrink with the screen, so a poster-sized headline or number still fits at 390px. */
+  size?: "display-2xl" | "display-xl" | "display-lg" | "display-md" | "display-sm" | "heading-xl" | "heading-lg" | "heading-md" | "heading-sm" | "heading-xs";
   /**
    * headline reads --dt-text-headline: ink unless a theme sets headlines in a
    * brand colour, and re-pointed by a brand, photo or dark Section so it
@@ -122,6 +123,11 @@ export declare function Heading(props: HeadingProps): React.JSX.Element;
 | `--dt-text-code-sm-weight` | semantic | `var(--dt-font-weight-regular)` |
 | `--dt-text-danger` | semantic | `var(--dt-color-red-800)` |
 | `--dt-text-disabled` | semantic | `var(--dt-color-neutral-400)` |
+| `--dt-text-display-2xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-2xl-line` | semantic | `var(--dt-line-height-fluid)` |
+| `--dt-text-display-2xl-size` | semantic | `var(--dt-font-size-fluid-2xl)` |
+| `--dt-text-display-2xl-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-2xl-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-display-lg-family` | semantic | `var(--dt-font-family-sans)` |
 | `--dt-text-display-lg-line` | semantic | `var(--dt-line-height-7xl)` |
 | `--dt-text-display-lg-size` | semantic | `var(--dt-font-size-7xl)` |
@@ -137,6 +143,11 @@ export declare function Heading(props: HeadingProps): React.JSX.Element;
 | `--dt-text-display-sm-size` | semantic | `var(--dt-font-size-5xl)` |
 | `--dt-text-display-sm-tracking` | semantic | `var(--dt-tracking-tighter)` |
 | `--dt-text-display-sm-weight` | semantic | `var(--dt-font-weight-medium)` |
+| `--dt-text-display-xl-family` | semantic | `var(--dt-font-family-sans)` |
+| `--dt-text-display-xl-line` | semantic | `var(--dt-line-height-fluid)` |
+| `--dt-text-display-xl-size` | semantic | `var(--dt-font-size-fluid-xl)` |
+| `--dt-text-display-xl-tracking` | semantic | `var(--dt-tracking-tightest)` |
+| `--dt-text-display-xl-weight` | semantic | `var(--dt-font-weight-medium)` |
 | `--dt-text-eyebrow-family` | semantic | `var(--dt-font-family-secondary)` |
 | `--dt-text-eyebrow-line` | semantic | `var(--dt-line-height-2xs)` |
 | `--dt-text-eyebrow-size` | semantic | `var(--dt-font-size-2xs)` |
@@ -228,7 +239,7 @@ export declare function Heading(props: HeadingProps): React.JSX.Element;
 import React from "react";
 
 const DEFAULT_SIZE = { 1: "heading-xl", 2: "heading-lg", 3: "heading-md", 4: "heading-sm", 5: "heading-xs", 6: "heading-xs" };
-const SIZES = ["display-lg", "display-md", "display-sm", "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs"];
+const SIZES = ["display-2xl", "display-xl", "display-lg", "display-md", "display-sm", "heading-xl", "heading-lg", "heading-md", "heading-sm", "heading-xs"];
 const TONES = {
   headline: "var(--dt-text-headline, var(--dt-text-primary))",
   brand: "var(--dt-text-brand, var(--dt-text-link))",

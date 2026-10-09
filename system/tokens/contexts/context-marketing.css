@@ -12,6 +12,10 @@
 
 .dt-context-marketing {
   /* Display type earns its size here. */
+  --dt-text-display-2xl-size: var(--dt-font-size-fluid-2xl);
+  --dt-text-display-2xl-line: var(--dt-line-height-fluid);
+  --dt-text-display-xl-size: var(--dt-font-size-fluid-xl);
+  --dt-text-display-xl-line: var(--dt-line-height-fluid);
   --dt-text-display-lg-size: var(--dt-font-size-7xl);
   --dt-text-display-lg-line: var(--dt-line-height-7xl);
   --dt-text-display-md-size: var(--dt-font-size-6xl);
