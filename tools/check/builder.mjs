@@ -2013,6 +2013,8 @@ try {
     expect((await names(".bd-home-sec[aria-label=Projects]")).join() === "Kiln & Co" && /0 files/.test(await homeCard(page, "Kiln & Co").textContent()), "Escape goes back to Home, which lists the project");
     await cardMenu(page, "Untitled", "Move to Kiln & Co");
     await page.waitForFunction(() => window.__builder.project().group);
+    /* The move saves before Home draws it again; wait for the page, not the data. */
+    await page.waitForFunction(() => !document.querySelector(".bd-home-sec[aria-label=Files]") && [...document.querySelectorAll(".bd-proj")].some((c) => c.querySelector(".bd-proj-name")?.textContent === "Kiln & Co" && /1 file/.test(c.textContent))).catch(() => {});
     expect(await page.locator(".bd-home-sec[aria-label=Files]").count() === 0 && /1 file/.test(await homeCard(page, "Kiln & Co").textContent()), "the file moves into the project and off Home");
     await page.locator(".bd-home-search input").fill("untit");
     expect((await names(".bd-home-sec[aria-label=Files]")).join() === "Untitled" && /in Kiln & Co/.test(await homeCard(page, "Untitled").textContent()), "searching Home finds a file inside a project, and says which");
@@ -3080,7 +3082,8 @@ try {
        otherwise win when it opens again. */
     const theme = JSON.stringify({ vars: { "--dt-surface-subtle": "rgb(255, 0, 0)", "--dt-surface-base": "rgb(0, 0, 255)" } });
     const themed = await open({ width: 1280, height: 900 }, { store: { "dovetail-theme-config": theme }, before: (p) => p.addInitScript((t) => { try { if (!sessionStorage.getItem("themed")) { sessionStorage.setItem("themed", "1"); localStorage.setItem("dovetail-theme-config", t); } } catch (err) { /* no storage */ } }, theme) });
-    await themed.frame().waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 255)");
+    /* A cold frame under a busy machine can take a while to paint. */
+    await themed.frame().waitForFunction(() => getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 255)", null, { timeout: 20000 });
     const chrome = await themed.page.evaluate(() => [document.documentElement.hasAttribute("data-theme-fixed"), getComputedStyle(document.querySelector(".bd-left")).backgroundColor]);
     expect(chrome[0] && chrome[1] !== "rgb(255, 0, 0)", `the builder's panels should keep their own colours, got ${chrome[1]}`);
     ok("the canvas takes the configured surface; the panels keep theirs");
