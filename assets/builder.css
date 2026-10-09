@@ -6594,3 +6594,12 @@ input.bd-folder-name {
 .bd-right .bd-arrange .bd-dd-icon.bd-dd:hover {
   background: var(--bd-field);
 }
+
+/* The canvas icons play once, briskly, when their control is hovered or
+   focused (their own CSS holds the motion and turns it off for reduced
+   motion). */
+.bd-ic.ci {
+  --ci-repeat: 1;
+  --ci-duration: 900ms;
+  overflow: visible;
+}

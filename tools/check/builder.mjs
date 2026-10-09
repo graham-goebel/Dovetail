@@ -1495,8 +1495,8 @@ try {
 
     const panel = await page.evaluate(() => { const l = document.querySelector(".bd-left"), st = document.querySelector(".bd-stage"); const lr = l.getBoundingClientRect(), sr = st.getBoundingClientRect(); return { radius: parseFloat(getComputedStyle(l).borderTopLeftRadius), inset: lr.left, under: sr.left <= lr.left && sr.right >= document.querySelector(".bd-right").getBoundingClientRect().right }; });
     expect(panel.radius > 0 && panel.inset > 0 && panel.under, `the panels float over the canvas, inset and rounded, got ${JSON.stringify(panel)}`);
-    const plus = await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).locator("svg path").first().getAttribute("d");
-    expect(/^M12 4\.5v15/.test(plus), `the builder draws with Heroicons, got ${plus}`);
+    const plus = await page.locator(".bd-rail .bd-tab", { hasText: "Assets" }).locator("svg").first().getAttribute("data-ci");
+    expect(plus === "plus", `the rail draws with the canvas icons, got ${plus}`);
     ok("the side panels float over a full-width canvas, inset with rounded corners; the icons are Heroicons");
 
     const searchTop = async () => Math.round((await page.locator(".bd-search-dock").boundingBox()).y);
@@ -5710,6 +5710,29 @@ try {
     expect(pane.overflow === "auto" && pane.room > 0 && pane.top > 0, `the Edit pane runs past the screen and scrolls, got ${JSON.stringify(pane)}`);
     ok(`tabs, inline toolbar, no overflow, a phone canvas, tap to add, and an Edit pane that scrolls (${pane.room}px more than the screen)`);
     await phone.page.close();
+  });
+
+  await step("Canvas icons: the rail and inspector draw the canvas icon set, still at rest, moving once while hovered, never with reduced motion", async () => {
+    for (const motion of ["no-preference", "reduce"]) {
+      const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: motion });
+      watch(page);
+      await page.context().addInitScript(() => { try { localStorage.setItem("dovetail-builder-playground", "1"); } catch (err) { /* no storage */ } });
+      await page.goto(server.origin + "/builder.html");
+      const layers = page.locator('.bd-left [data-ci="layers"]').first();
+      await layers.waitFor();
+      const moving = () => layers.evaluate((svg) => [...svg.querySelectorAll("*")].filter((el) => getComputedStyle(el).animationName !== "none").length);
+      expect(await moving() === 0, `the Layers icon is still at rest (${motion})`);
+      await layers.hover();
+      await page.waitForTimeout(60);
+      const n = await moving();
+      expect(motion === "reduce" ? n === 0 : n > 0, `hovering its button ${motion === "reduce" ? "leaves it still with reduced motion" : "moves it"}, got ${n} moving parts`);
+      if (motion === "no-preference") {
+        const count = await page.locator(".bd-right .ci[data-ci], .bd-left .ci[data-ci], .bd-toolbar .ci[data-ci]").count();
+        expect(count > 5, `the builder's chrome draws canvas icons, got ${count}`);
+      }
+      await page.close();
+    }
+    ok("canvas icons are drawn, still at rest, move while hovered, and stay still with reduced motion");
   });
 
   await step("page errors", () => {
