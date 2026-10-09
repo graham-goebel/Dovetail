@@ -4564,7 +4564,7 @@
   function readJsx(text2, report) {
     var els = readJsxElements(text2);
     if (!els.length) return null;
-    var frame2 = { name: "Pasted", hug: true, root: { children: [] } };
+    var frame2 = { name: "Pasted", mode: "structured", hug: true, root: { children: [] } };
     var page = els.length === 1 && els[0].tag === "div" && els[0].attrs.some(function(a) {
       return a.name === "data-layout" || a.name === "data-type-scale";
     }) || els.length === 1 && els[0].tag === "div" && /export\s+(default\s+)?function/.test(text2) && !els[0].attrs.some(function(a) {

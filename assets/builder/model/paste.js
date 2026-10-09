@@ -369,11 +369,12 @@ function jsxNodes(els, report) {
 
 /* JSX as a layout: one frame holding what was written. A whole page from
    the Code dialog (one <div> carrying the page's settings) becomes the
-   frame itself. */
+   frame itself. JSX places nothing by position, so the frame is a
+   structured page that hugs what's in it. */
 function readJsx(text, report) {
   var els = readJsxElements(text);
   if (!els.length) return null;
-  var frame = { name: "Pasted", hug: true, root: { children: [] } };
+  var frame = { name: "Pasted", mode: "structured", hug: true, root: { children: [] } };
   var page = els.length === 1 && els[0].tag === "div" && els[0].attrs.some(function (a) { return a.name === "data-layout" || a.name === "data-type-scale"; })
     || (els.length === 1 && els[0].tag === "div" && /export\s+(default\s+)?function/.test(text) && !els[0].attrs.some(function (a) { return a.name === "role"; }));
   if (page) {
